@@ -30,17 +30,20 @@ package org.hisp.dhis.gist;
 import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.gist.GistLogic.effectiveTransform;
+import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isIncludedField;
+import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
 import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
+import static org.hisp.dhis.gist.GistLogic.parentPath;
 import static org.hisp.dhis.gist.GistLogic.pathOnSameParent;
 import static org.hisp.dhis.schema.PropertyType.COLLECTION;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import lombok.AllArgsConstructor;
@@ -48,6 +51,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.gist.GistQuery.Field;
+import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
@@ -68,18 +72,42 @@ class GistPlanner
 
     public GistQuery plan()
     {
+        return query.withFields( planFields() ).withFilters( planFilters() );
+    }
+
+    private List<Field> planFields()
+    {
         List<Field> fields = query.getFields();
         if ( fields.isEmpty() )
         {
             fields = singletonList( Field.ALL );
         }
-        fields = withDefaultFields( fields );
-        fields = withDisplayAsTranslatedFields( fields );
-        fields = withInnerAsMultipleFields( fields );
-        fields = withUniqueFields( fields );
-        fields = withEffectiveTransformation( fields );
-        fields = withEndpointsField( fields );
-        return query.withFields( fields );
+        fields = withDefaultFields( fields ); // 1:n
+        fields = withDisplayAsTranslatedFields( fields ); // 1:1
+        fields = withInnerAsSeparateFields( fields ); // 1:n
+        fields = withCollectionItemPropertyAsTransformation( fields ); // 1:1
+        fields = withEffectiveTransformation( fields ); // 1:1
+        fields = withEndpointsField( fields ); // 1:1+1
+        return fields;
+    }
+
+    private List<Filter> planFilters()
+    {
+        List<Filter> filters = new ArrayList<>();
+        for ( Filter f : query.getFilters() )
+        {
+            Property p = context.resolveMandatory( f.getPropertyPath() );
+            if ( p.isCollection() && !isCollectionSizeFilter( f, p )
+                && IdentifiableObject.class.isAssignableFrom( p.getItemKlass() ) )
+            {
+                filters.add( f.withPropertyPath( f.getPropertyPath() + ".id" ) );
+            }
+            else
+            {
+                filters.add( f );
+            }
+        }
+        return filters;
     }
 
     private static int propertyTypeOrder( Property a, Property b )
@@ -117,6 +145,7 @@ class GistPlanner
 
     private List<Field> withDefaultFields( List<Field> fields )
     {
+        Set<String> explicit = fields.stream().map( Field::getPropertyPath ).collect( toSet() );
         List<Field> expanded = new ArrayList<>();
         for ( Field f : fields )
         {
@@ -126,7 +155,13 @@ class GistPlanner
                 context.getHome().getProperties().stream()
                     .filter( getPresetFilter( path ) )
                     .sorted( GistPlanner::propertyTypeOrder )
-                    .forEach( p -> expanded.add( new Field( p.key(), Transform.AUTO ) ) );
+                    .forEach( p -> {
+                        if ( !explicit.contains( p.key() ) && !explicit.contains( "-" + p.key() )
+                            && !explicit.contains( "!" + p.key() ) )
+                        {
+                            expanded.add( new Field( p.key(), Transform.AUTO ) );
+                        }
+                    } );
             }
             else if ( isExcludeField( path ) )
             {
@@ -164,7 +199,7 @@ class GistPlanner
         return mapped;
     }
 
-    private List<Field> withInnerAsMultipleFields( List<Field> fields )
+    private List<Field> withInnerAsSeparateFields( List<Field> fields )
     {
         List<Field> expanded = new ArrayList<>();
         for ( Field f : fields )
@@ -174,12 +209,13 @@ class GistPlanner
             {
                 String outerPath = path.substring( 0, path.indexOf( '[' ) );
                 String innerList = path.substring( path.indexOf( '[' ) + 1, path.lastIndexOf( ']' ) );
-                for ( String innerPath : innerList.split( "," ) )
+                for ( String innerFieldName : innerList.split( "," ) )
                 {
-                    Field child = Field.parse( innerPath );
+                    Field child = Field.parse( innerFieldName );
                     expanded.add( child
                         .withPropertyPath( outerPath + "." + child.getPropertyPath() )
-                        .withAlias( (f.getAlias().isEmpty() ? outerPath : f.getAlias()) + "." + child.getName() ) );
+                        .withAlias(
+                            (f.getAlias().isEmpty() ? outerPath : f.getAlias()) + "." + child.getName() ) );
                 }
             }
             else
@@ -188,6 +224,43 @@ class GistPlanner
             }
         }
         return expanded;
+    }
+
+    private List<Field> withCollectionItemPropertyAsTransformation( List<Field> fields )
+    {
+        List<Field> mapped = new ArrayList<>();
+        for ( Field f : fields )
+        {
+            String path = f.getPropertyPath();
+            if ( !isNonNestedPath( path ) && context.resolveMandatory( parentPath( path ) ).isCollection() )
+            {
+                String parentPath = parentPath( path );
+                String propertyName = path.substring( path.lastIndexOf( '.' ) + 1 );
+                Property collection = context.resolveMandatory( parentPath );
+                if ( "id".equals( propertyName )
+                    && IdentifiableObject.class.isAssignableFrom( collection.getItemKlass() ) )
+                {
+                    mapped.add( f
+                        .withPropertyPath( parentPath )
+                        .withAlias( path )
+                        .withTransformation( Transform.IDS ) );
+                }
+                else
+                {
+                    mapped.add( Field.builder()
+                        .propertyPath( parentPath )
+                        .alias( path )
+                        .transformation( Transform.PLUCK )
+                        .transformationArgument( propertyName )
+                        .build() );
+                }
+            }
+            else
+            {
+                mapped.add( f );
+            }
+        }
+        return mapped;
     }
 
     private Predicate<Property> getPresetFilter( String path )
@@ -238,17 +311,6 @@ class GistPlanner
         return Field.ALL_PATH.equals( path ) || ":*".equals( path ) || ":all".equals( path );
     }
 
-    private List<Field> withUniqueFields( List<Field> fields )
-    {
-        // OBS! We use a map to not get duplicate fields, last wins
-        Map<String, Field> fieldsByPath = new LinkedHashMap<>();
-        for ( Field f : fields )
-        {
-            fieldsByPath.put( f.getPropertyPath(), f );
-        }
-        return new ArrayList<>( fieldsByPath.values() );
-    }
-
     private List<Field> withEndpointsField( List<Field> fields )
     {
         boolean hasReferences = fields.stream().anyMatch( field -> {
@@ -256,10 +318,12 @@ class GistPlanner
             return isPersistentReferenceField( p ) && p.isIdentifiableObject()
                 || isPersistentCollectionField( p );
         } );
-        if ( hasReferences )
+        if ( !hasReferences )
         {
-            fields.add( new Field( Field.REFS_PATH, Transform.NONE, "apiEndpoints", null, false ) );
+            return fields;
         }
-        return fields;
+        ArrayList<Field> extended = new ArrayList<>( fields );
+        extended.add( new Field( Field.REFS_PATH, Transform.NONE, "apiEndpoints", null, false ) );
+        return extended;
     }
 }

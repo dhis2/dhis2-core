@@ -25,44 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
+package org.hisp.dhis.webapi.controller.event.webrequest;
 
-import java.util.Date;
+import java.util.Optional;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-
-@Data
-@NoArgsConstructor
-public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter
+/**
+ * Paging parameters
+ *
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ */
+public interface PagingCriteria
 {
-    private String orgUnit;
+    Integer DEFAULT_PAGE = 1;
 
-    private OrganisationUnitSelectionMode ouMode;
+    Integer DEFAULT_PAGE_SIZE = 50;
 
-    private String program;
+    /**
+     * Page number to return.
+     */
+    Integer getPage();
 
-    private ProgramStatus programStatus;
+    /**
+     * Page size.
+     */
+    Integer getPageSize();
 
-    private Boolean followUp;
+    /**
+     * Indicates whether to include the total number of pages in the paging
+     * response.
+     */
+    boolean isTotalPages();
 
-    private Date updatedAfter;
+    /**
+     * Indicates whether paging should be skipped.
+     */
+    Boolean getSkipPaging();
 
-    private String updatedWithin;
+    /**
+     * Indicated whether paging is enabled
+     */
+    Boolean getPaging();
 
-    private Date enrolledAfter;
+    default Integer getFirstResult()
+    {
+        Integer page = Optional.ofNullable( getPage() )
+            .filter( p -> p > 0 )
+            .orElse( DEFAULT_PAGE );
 
-    private Date enrolledBefore;
+        Integer pageSize = Optional.ofNullable( getPageSize() )
+            .filter( ps -> ps > 0 )
+            .orElse( DEFAULT_PAGE_SIZE );
 
-    private String trackedEntityType;
+        return (page - 1) * pageSize;
+    }
 
-    private String trackedEntity;
-
-    private String enrollment;
-
-    private boolean includeDeleted;
 }

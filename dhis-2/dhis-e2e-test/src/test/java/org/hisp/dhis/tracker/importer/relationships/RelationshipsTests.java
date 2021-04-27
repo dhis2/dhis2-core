@@ -207,7 +207,7 @@ public class RelationshipsTests
         relationshipResponse
             .validate()
             .statusCode( 200 )
-            .body( "size()", is( 2 ) );
+            .body( "instances.size()", is( 2 ) );
     }
 
     @Test
@@ -247,8 +247,8 @@ public class RelationshipsTests
         relationshipResponse
             .validate()
             .statusCode( 200 )
-            .body( "[0].relationship", is( createdRelationshipUid ) )
-            .body( "size()", is( 1 ) );
+            .body( "instances[0].relationship", is( createdRelationshipUid ) )
+            .body( "instances.size()", is( 1 ) );
 
     }
 

@@ -28,7 +28,6 @@
 package org.hisp.dhis.interpretation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.List;
 
@@ -61,8 +60,8 @@ public class InterpretationDeletionHandler
     protected void register()
     {
         whenDeleting( User.class, this::deleteUser );
-        whenVetoing( Map.class, this::allowDeleteMap );
-        whenVetoing( Visualization.class, this::allowDeleteVisualization );
+        whenDeleting( Visualization.class, this::deleteVisualizationInterpretations );
+        whenDeleting( Map.class, this::deleteMapInterpretations );
     }
 
     private void deleteUser( User user )
@@ -79,13 +78,23 @@ public class InterpretationDeletionHandler
         }
     }
 
-    private DeletionVeto allowDeleteMap( Map map )
+    private void deleteVisualizationInterpretations( Visualization visualization )
     {
-        return interpretationService.countMapInterpretations( map ) == 0 ? ACCEPT : VETO;
+        List<Interpretation> interpretations = interpretationService.getInterpretations( visualization );
+
+        if ( interpretations != null )
+        {
+            interpretations.forEach( interpretationService::deleteInterpretation );
+        }
     }
 
-    private DeletionVeto allowDeleteVisualization( Visualization visualization )
+    private void deleteMapInterpretations( Map map )
     {
-        return interpretationService.countVisualizationInterpretations( visualization ) == 0 ? ACCEPT : VETO;
+        List<Interpretation> interpretations = interpretationService.getInterpretations( map );
+
+        if ( interpretations != null )
+        {
+            interpretations.forEach( interpretationService::deleteInterpretation );
+        }
     }
 }
