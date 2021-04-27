@@ -32,8 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.preheat.Preheat;
-import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
@@ -46,11 +44,11 @@ public class HideOptionProgramRuleActionValidator extends AbstractProgramRuleAct
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService, Preheat preheat, PreheatIdentifier preheatIdentifier )
+        ProgramRuleActionValidationContext validationContext )
     {
         // First checking the validity of DataElement and TEA
-        ProgramRuleActionValidationResult result = super.validate( programRuleAction, validationService, preheat,
-            preheatIdentifier );
+        ProgramRuleActionValidationResult result = super.validate( programRuleAction,
+            validationContext );
 
         if ( !result.isValid() )
         {

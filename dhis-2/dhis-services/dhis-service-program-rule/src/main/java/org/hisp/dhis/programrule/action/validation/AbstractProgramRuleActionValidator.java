@@ -32,8 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.preheat.Preheat;
-import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
@@ -48,9 +46,9 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService, Preheat preheat, PreheatIdentifier preheatIdentifier )
+        ProgramRuleActionValidationContext validationContext )
     {
-        ProgramRule rule = preheat.get( preheatIdentifier, ProgramRule.class, programRuleAction.getProgramRule() );
+        ProgramRule rule = validationContext.getProgramRule();
 
         if ( !programRuleAction.hasDataElement() && !programRuleAction.hasTrackedEntityAttribute() )
         {
@@ -66,8 +64,7 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
 
         if ( programRuleAction.hasDataElement() )
         {
-            DataElement dataElement = preheat.get( preheatIdentifier, DataElement.class,
-                programRuleAction.getDataElement() );
+            DataElement dataElement = validationContext.getDataElement();
 
             if ( dataElement == null )
             {
@@ -87,8 +84,7 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
         if ( programRuleAction.hasTrackedEntityAttribute() )
         {
 
-            TrackedEntityAttribute attribute = preheat.get( preheatIdentifier, TrackedEntityAttribute.class,
-                programRuleAction.getAttribute() );
+            TrackedEntityAttribute attribute = validationContext.getTrackedEntityAttribute();
 
             if ( attribute == null )
             {

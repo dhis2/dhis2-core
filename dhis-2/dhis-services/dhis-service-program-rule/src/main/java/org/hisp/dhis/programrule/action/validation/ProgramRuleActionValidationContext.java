@@ -28,41 +28,38 @@
 package org.hisp.dhis.programrule.action.validation;
 
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.option.OptionGroupStore;
-import org.hisp.dhis.option.OptionService;
-import org.hisp.dhis.program.ProgramStageSectionService;
-import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
  * @author Zubair Asghar
  */
 
-@Getter
+@Data
 @Builder
-public class ProgramRuleActionValidationService
+public class ProgramRuleActionValidationContext
 {
-    private final ProgramRuleService programRuleService;
+    private ProgramRule programRule;
 
-    private final DataElementService dataElementService;
+    private DataElement dataElement;
 
-    private final TrackedEntityAttributeService attributeService;
+    private TrackedEntityAttribute trackedEntityAttribute;
 
-    private final ProgramNotificationTemplateService notificationTemplateService;
+    private ProgramStageSection programStageSection;
 
-    private final ProgramStageSectionService stageSectionService;
+    private ProgramStage programStage;
 
-    private final OptionService optionService;
+    private Option option;
 
-    private final OptionGroupStore optionGroupStore;
+    private OptionGroup optionGroup;
 
-    private final ProgramStageService programStageService;
-
-    private final IdentifiableObjectManager manager;
+    private ProgramNotificationTemplate notificationTemplate;
 }

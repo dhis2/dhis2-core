@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
-import org.hisp.dhis.preheat.Preheat;
-import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
@@ -39,7 +37,7 @@ public class DisplayTextProgramRuleActionValidator extends AbstractProgramRuleAc
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService, Preheat preheat, PreheatIdentifier preheatIdentifier )
+        ProgramRuleActionValidationContext validationContext )
     {
         return ProgramRuleActionValidationResult.builder().valid( true ).build();
     }

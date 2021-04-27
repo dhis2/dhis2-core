@@ -33,8 +33,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
-import org.hisp.dhis.preheat.Preheat;
-import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
@@ -48,13 +46,13 @@ public abstract class AbstractOptionGroupProgramRuleActionValidator extends Abst
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService, Preheat preheat, PreheatIdentifier preheatIdentifier )
+        ProgramRuleActionValidationContext validationContext )
     {
-        ProgramRule rule = preheat.get( preheatIdentifier, ProgramRule.class, programRuleAction.getProgramRule() );
+        ProgramRule rule = validationContext.getProgramRule();
 
         // First checking the validity of DataElement and TEA
-        ProgramRuleActionValidationResult result = super.validate( programRuleAction, validationService, preheat,
-            preheatIdentifier );
+        ProgramRuleActionValidationResult result = super.validate( programRuleAction,
+            validationContext );
 
         if ( !result.isValid() )
         {
@@ -73,8 +71,7 @@ public abstract class AbstractOptionGroupProgramRuleActionValidator extends Abst
                 .build();
         }
 
-        OptionGroup optionGroup = preheat.get( preheatIdentifier, OptionGroup.class,
-            programRuleAction.getOptionGroup() );
+        OptionGroup optionGroup = validationContext.getOptionGroup();
 
         if ( optionGroup == null )
         {

@@ -31,8 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.preheat.Preheat;
-import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -47,9 +45,9 @@ public abstract class AbstractMessageProgramRuleActionValidator implements Progr
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService, Preheat preheat, PreheatIdentifier preheatIdentifier )
+        ProgramRuleActionValidationContext validationContext )
     {
-        ProgramRule rule = preheat.get( preheatIdentifier, ProgramRule.class, programRuleAction.getProgramRule() );
+        ProgramRule rule = validationContext.getProgramRule();
 
         if ( !programRuleAction.hasNotification() )
         {
@@ -63,21 +61,21 @@ public abstract class AbstractMessageProgramRuleActionValidator implements Progr
                 .build();
         }
 
-        ProgramNotificationTemplate pnt = preheat.get( preheatIdentifier, ProgramNotificationTemplate.class,
-            programRuleAction.getTemplateUid() );
+        ProgramNotificationTemplate pnt = validationContext.getNotificationTemplate();
 
-        if ( pnt != null )
+        if ( pnt == null )
         {
-            return ProgramRuleActionValidationResult.builder().valid( true ).build();
+            log.debug( String.format( "ProgramNotificationTemplate id: %s for program rule: %s does not exist",
+                programRuleAction.getTemplateUid(), rule.getName() ) );
+
+            return ProgramRuleActionValidationResult.builder()
+                .valid( false )
+                .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4034,
+                    programRuleAction.getTemplateUid(), rule.getName() ) )
+                .build();
+
         }
 
-        log.debug( String.format( "ProgramNotificationTemplate id: %s for program rule: %s does not exist",
-            programRuleAction.getTemplateUid(), rule.getName() ) );
-
-        return ProgramRuleActionValidationResult.builder()
-            .valid( false )
-            .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4034,
-                programRuleAction.getTemplateUid(), rule.getName() ) )
-            .build();
+        return ProgramRuleActionValidationResult.builder().valid( true ).build();
     }
 }

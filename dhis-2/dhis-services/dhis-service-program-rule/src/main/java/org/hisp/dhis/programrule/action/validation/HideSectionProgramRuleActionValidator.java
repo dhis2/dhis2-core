@@ -31,8 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.preheat.Preheat;
-import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -47,9 +45,9 @@ public class HideSectionProgramRuleActionValidator implements ProgramRuleActionV
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService, Preheat preheat, PreheatIdentifier preheatIdentifier )
+        ProgramRuleActionValidationContext validationContext )
     {
-        ProgramRule rule = preheat.get( preheatIdentifier, ProgramRule.class, programRuleAction.getProgramRule() );
+        ProgramRule rule = validationContext.getProgramRule();
 
         if ( !programRuleAction.hasProgramStageSection() )
         {
@@ -63,8 +61,7 @@ public class HideSectionProgramRuleActionValidator implements ProgramRuleActionV
                 .build();
         }
 
-        ProgramStageSection stageSection = preheat.get( preheatIdentifier, ProgramStageSection.class,
-            programRuleAction.getProgramStageSection() );
+        ProgramStageSection stageSection = validationContext.getProgramStageSection();
 
         if ( stageSection == null )
         {
