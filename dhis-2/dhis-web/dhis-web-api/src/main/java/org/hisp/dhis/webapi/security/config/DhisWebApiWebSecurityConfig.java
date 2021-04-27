@@ -399,6 +399,8 @@ public class DhisWebApiWebSecurityConfig
             configureOAuth2TokenFilter( http );
 
             setHttpHeaders( http );
+
+
         }
 
         private void configureOAuth2TokenFilter( HttpSecurity http )
