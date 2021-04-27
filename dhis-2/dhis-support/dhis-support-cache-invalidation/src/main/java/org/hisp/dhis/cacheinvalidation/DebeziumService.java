@@ -42,7 +42,6 @@ import org.springframework.stereotype.Service;
 
 import io.debezium.config.Configuration;
 import io.debezium.embedded.Connect;
-import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.RecordChangeEvent;
 import io.debezium.engine.format.ChangeEventFormat;
@@ -81,52 +80,6 @@ public class DebeziumService
         props.setProperty( "database.dbname", "dhis2master_26041" );
         props.setProperty( "snapshot.mode", "never" );
 
-        // props.setProperty( "database.history",
-        // "io.debezium.relational.history.FileDatabaseHistory" );
-        // props.setProperty( "database.history.file.filename",
-        // "/path/to/storage/dbhistory.dat" );
-
-        // props.setProperty( "plugin.name", "pgoutput" );
-        // props.setProperty( "slot.name", "myslut1" );
-        // props.setProperty( "connector.class",
-        // "io.debezium.connector.postgresql.PostgresConnector" );
-        // props.setProperty( "offset.storage",
-        // "org.apache.kafka.connect.storage.FileOffsetBackingStore" );
-        // props.setProperty( "offset.storage.file.filename", "/tmp/offsets.dat"
-        // );
-        // props.setProperty( "offset.flush.interval.ms", "60000" );
-        // /* begin connector properties */
-        // props.setProperty( "database.hostname", "localhost" );
-        // props.setProperty( "database.port", "5432" );
-        // props.setProperty( "database.user", "postgres" );
-        // props.setProperty( "database.password", "uk67TYYA" );
-        // props.setProperty( "database.server.id", "85744" );
-        // props.setProperty( "database.server.name", "dhis2master_26041" );
-        // props.setProperty( "database.dbname", "dhis2master_26041" );
-        // props.setProperty( "snapshot.mode", "never" );
-        // props.setProperty( "database.history",
-        // "io.debezium.relational.history.FileDatabaseHistory" );
-        // props.setProperty( "database.history.file.filename",
-        // "/path/to/storage/dbhistory.dat" );
-
-        // io.debezium.config.Configuration conf =
-        // io.debezium.config.Configuration.create()
-        // .with( "connector.class",
-        // "io.debezium.connector.postgresql.PostgresConnector" )
-        // .with( "offset.storage",
-        // "org.apache.kafka.connect.storage.MemoryOffsetBackingStore" )
-        // .with( "offset.flush.interval.ms", 60000 )
-        // .with( "name", "orders-postgres-connector" )
-        // .with( "database.server.name", "dhis2master_2604" )
-        // .with( "database.hostname", "localhost" )
-        // .with( "database.port", 5432 )
-        // .with( "database.user", "postgres" )
-        // .with( "database.password", "uk67TYYA" )
-        // .with( "database.dbname", "dhis2master_2604" )
-        // .with( "table.whitelist", "public.users" )
-        // .with( "snapshot.mode", "never" )
-        // .build();
-
         try ( DebeziumEngine<RecordChangeEvent<SourceRecord>> engine = DebeziumEngine.create( ChangeEventFormat.of(
             Connect.class ) )
             .using( props )
@@ -141,45 +94,5 @@ public class DebeziumService
         }
     }
 
-    private void handleDbChange( ChangeEvent<String, String> event )
-    {
-
-        log.info( "Db event:" + event );
-
-    }
-
-    // private void handleDbChangeEvent( SourceRecord record )
-    // {
-    // if ( record.topic().equals( "dbserver1.public.item" ) )
-    // {
-    // Long itemId = ((Struct) record.key()).getInt64( "id" );
-    // Struct payload = (Struct) record.value();
-    // Operation op = Operation.forCode( payload.getString( "op" ) );
-    //
-    // if ( op == Operation.UPDATE || op == Operation.DELETE )
-    // {
-    // emf.getCache().evict( Item.class, itemId );
-    // }
-    // }
-    // }
-    //
-    // @Inject
-    // private KnownTransactions knownTransactions;
-    //
-    // private void handleDbChangeEvent( SourceRecord record )
-    // {
-    // if ( record.topic().equals( "dbserver1.public.item" ) )
-    // {
-    // Long itemId = ((Struct) record.key()).getInt64( "id" );
-    // Struct payload = (Struct) record.value();
-    // Operation op = Operation.forCode( payload.getString( "op" ) );
-    // Long txId = ((Struct) payload.get( "source" )).getInt64( "txId" );
-    //
-    // if ( !knownTransactions.isKnown( txId ) &&
-    // (op == Operation.UPDATE || op == Operation.DELETE) )
-    // {
-    // emf.getCache().evict( Item.class, itemId );
-    // }
-    // }
-    // }
+    // TODO: Impl. keep alive/watchdog to make sure connection is alive...
 }

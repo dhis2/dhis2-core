@@ -44,7 +44,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 @Component
-// @DependsOn( "auditMatrix" )
 @RequiredArgsConstructor
 public class CacheInvalidationHibernateListenerConfigurer
     implements ApplicationContextAware
@@ -77,5 +76,4 @@ public class CacheInvalidationHibernateListenerConfigurer
         registry.getEventListenerGroup( EventType.FLUSH ).appendListener( hibernateFlushListener );
 
     }
-
 }

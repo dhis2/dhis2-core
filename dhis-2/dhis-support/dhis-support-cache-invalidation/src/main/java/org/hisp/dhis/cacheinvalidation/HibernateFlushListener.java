@@ -40,7 +40,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class HibernateFlushListener implements FlushEventListener
 {
-
     @Autowired
     private volatile KnownTransactions knownTransactions;
 
@@ -55,15 +54,4 @@ public class HibernateFlushListener implements FlushEventListener
             knownTransactions.register( txId.longValue() );
         } );
     }
-
-    // private KnownTransactions getKnownTransactions() {
-    // KnownTransactions value = knownTransactions;
-    //
-    // if (value == null) {
-    // knownTransactions = value =
-    // CDI.current().select(KnownTransactions.class).get();
-    // }
-    //
-    // return value;
-    // }
 }

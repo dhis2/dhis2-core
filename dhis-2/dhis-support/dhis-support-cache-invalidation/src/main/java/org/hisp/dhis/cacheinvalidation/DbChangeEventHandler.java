@@ -81,9 +81,9 @@ public class DbChangeEventHandler
 
     private void tryEvictCache( RecordChangeEvent<SourceRecord> event )
     {
-        log.info( "RecordChangeEvent:" + event );
-
         SourceRecord record = event.record();
+
+        log.info( "New RecordChangeEvent incoming! topic=" + record.topic() );
 
         String[] topic = record.topic().split( "\\." );
 
@@ -110,7 +110,13 @@ public class DbChangeEventHandler
 
         if ( !knownTransactions.isKnown( txId ) )
         {
+            log.info( String.format( "RecordChangeEvent is an external event! "
+                + "Trying to evict; entityClass=%s, id=%s", entityClass, id ) );
             sessionFactory.getCache().evict( entityClass, id );
+        }
+        else
+        {
+            log.info( "RecordChangeEvent is a local event, ignoring..." );
         }
     }
 

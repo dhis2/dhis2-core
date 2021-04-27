@@ -48,25 +48,10 @@ public class KnownTransactions
 
     public KnownTransactions()
     {
-        // CacheLoader<Long, Boolean> loader;
-        // loader = new CacheLoader<Long, Boolean>()
-        // {
-        // @Override
-        // public Boolean load( Long key )
-        // {
-        // return true;
-        // }
-        // };
-
         applicationTransactions = CacheBuilder.newBuilder()
-            .expireAfterAccess( 60, TimeUnit.MINUTES )
+            .expireAfterAccess( 10, TimeUnit.MINUTES )
             .build();
     }
-
-    // @PreDestroy
-    // public void stopCacheManager() {
-    // cacheManager.stop();
-    // }
 
     public void register( long txId )
     {
@@ -75,7 +60,6 @@ public class KnownTransactions
 
     public boolean isKnown( long txId )
     {
-        Boolean obj = applicationTransactions.getIfPresent( txId );
-        return Boolean.TRUE.equals( obj );
+        return Boolean.TRUE.equals( applicationTransactions.getIfPresent( txId ) );
     }
 }
