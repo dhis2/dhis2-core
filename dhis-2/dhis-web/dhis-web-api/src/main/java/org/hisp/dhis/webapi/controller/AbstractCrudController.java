@@ -38,7 +38,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -838,22 +837,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             .setUser( user )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( parsed );
-
-        if ( params.isSkipTranslation() )
-        {
-            // TODO this is a workaround to keep translations, preheat needs fix
-            params.setSkipTranslation( false );
-            T entity = manager.get( getEntityClass(), pvUid );
-            ((BaseIdentifiableObject) parsed).setTranslations( new HashSet<>( entity.getTranslations() ) );
-        }
-
-        if ( params.isSkipSharing() )
-        {
-            // TODO this is a workaround to keep sharing
-            params.setSkipSharing( false );
-            T entity = manager.get( getEntityClass(), pvUid );
-            ((BaseIdentifiableObject) parsed).setSharing( entity.getSharing() );
-        }
 
         ImportReport importReport = importService.importMetadata( params );
         WebMessage webMessage = WebMessageUtils.objectReport( importReport );
