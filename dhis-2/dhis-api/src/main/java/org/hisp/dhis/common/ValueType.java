@@ -191,7 +191,6 @@ public enum ValueType
         {
             return false;
         }
-        // only TEXT can have AggregationType.NONE
         if ( this == TEXT )
         {
             return aggregationType == AggregationType.NONE;
