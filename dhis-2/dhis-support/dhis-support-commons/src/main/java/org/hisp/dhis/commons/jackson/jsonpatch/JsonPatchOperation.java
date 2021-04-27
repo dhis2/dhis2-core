@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.commons.jackson.jsonpatch;
 
+import lombok.Getter;
+
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.RemoveOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.ReplaceOperation;
@@ -35,8 +37,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonPointer;
-
-import lombok.Getter;
 
 /**
  * @author Morten Olav Hansen

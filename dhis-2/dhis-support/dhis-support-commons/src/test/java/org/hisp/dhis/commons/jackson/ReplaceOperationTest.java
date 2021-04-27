@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.commons.jackson;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
@@ -36,6 +38,8 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
  * @author Morten Olav Hansen
@@ -45,14 +49,25 @@ public class ReplaceOperationTest
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test
-    public void testBasic()
+    public void testBasicPropertyReplacement()
         throws JsonProcessingException,
         JsonPatchException
     {
         JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"\", \"value\": \"bbb\"}" +
+            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": \"bbb\"}" +
             "]", JsonPatch.class );
 
         assertNotNull( patch );
+
+        ObjectNode root = jsonMapper.createObjectNode();
+        root.set( "aaa", TextNode.valueOf( "aaa" ) );
+
+        assertTrue( root.has( "aaa" ) );
+        assertEquals( "aaa", root.get( "aaa" ).asText() );
+
+        root = (ObjectNode) patch.apply( root );
+
+        assertTrue( root.has( "aaa" ) );
+        assertEquals( "bbb", root.get( "aaa" ).asText() );
     }
 }
