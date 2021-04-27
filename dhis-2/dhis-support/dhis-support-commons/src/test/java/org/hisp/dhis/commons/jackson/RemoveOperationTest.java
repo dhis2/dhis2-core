@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.commons.jackson;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -39,6 +40,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
@@ -82,5 +84,35 @@ public class RemoveOperationTest
         assertTrue( root.has( "aaa" ) );
         root = (ObjectNode) patch.apply( root );
         assertFalse( root.has( "aaa" ) );
+    }
+
+    @Test
+    public void testRemovePropertyArrayIndex()
+        throws JsonProcessingException,
+        JsonPatchException
+    {
+        JsonPatch patch = jsonMapper.readValue( "[" +
+            "{\"op\": \"remove\", \"path\": \"/aaa/1\"}" +
+            "]", JsonPatch.class );
+
+        assertNotNull( patch );
+
+        ObjectNode root = jsonMapper.createObjectNode();
+
+        ArrayNode arrayNode = jsonMapper.createArrayNode();
+        arrayNode.add( 10 );
+        arrayNode.add( 20 );
+        arrayNode.add( 30 );
+
+        root.set( "aaa", arrayNode );
+
+        assertTrue( root.has( "aaa" ) );
+        assertEquals( 3, arrayNode.size() );
+
+        root = (ObjectNode) patch.apply( root );
+
+        arrayNode = (ArrayNode) root.get( "aaa" );
+        assertNotNull( arrayNode );
+        assertEquals( 2, arrayNode.size() );
     }
 }
