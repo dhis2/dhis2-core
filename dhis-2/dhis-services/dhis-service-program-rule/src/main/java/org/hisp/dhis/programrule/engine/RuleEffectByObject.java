@@ -55,11 +55,11 @@ public class RuleEffectByObject
 
     public static RuleEffectByObject ruleEffectForEnrollment( String uid, List<RuleEffect> effects )
     {
-        return RuleEffectByObject.ruleEffectForEnrollment( uid, effects );
+        return new RuleEffectByObject( true, false, uid, effects );
     }
 
     public static RuleEffectByObject ruleEffectForEvent( String uid, List<RuleEffect> effects )
     {
-        return RuleEffectByObject.ruleEffectForEvent( uid, effects );
+        return new RuleEffectByObject( false, true, uid, effects );
     }
 }
