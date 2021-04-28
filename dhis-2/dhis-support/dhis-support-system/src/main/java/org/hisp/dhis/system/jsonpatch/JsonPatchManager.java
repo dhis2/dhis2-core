@@ -25,8 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.jsonpatch;
+package org.hisp.dhis.system.jsonpatch;
 
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +50,7 @@ public class JsonPatchManager
     }
 
     @Transactional
-    public Object apply( JsonPatch patch, Object object )
+    public Object apply(JsonPatch patch, Object object )
         throws JsonPatchException
     {
         if ( patch == null || object == null )
