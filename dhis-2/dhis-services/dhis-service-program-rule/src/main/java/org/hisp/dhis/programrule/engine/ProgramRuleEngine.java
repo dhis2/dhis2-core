@@ -146,11 +146,18 @@ public class ProgramRuleEngine
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
 
-        List<RuleEffect> ruleEffects = evaluateProgramRules( enrollment, null, events, program,
-            trackedEntityAttributeValues );
+        List<RuleEffectByObject> ruleEffects = Lists.newArrayList();
 
-        RuleEffectByObject ruleEffectsForEnrollment = new RuleEffectByObject( true, false, enrollment.getUid(),
-            ruleEffects );
+        if ( enrollment != null )
+        {
+            List<RuleEffect> effects = evaluateProgramRules( enrollment, null, events, program,
+                trackedEntityAttributeValues );
+
+            RuleEffectByObject ruleEffectsForEnrollment = new RuleEffectByObject( true, false, enrollment.getUid(),
+                effects );
+
+            ruleEffects.add( ruleEffectsForEnrollment );
+        }
 
         List<RuleEffectByObject> ruleEffectsForEvents = events.stream()
             .map( event -> Pair
@@ -159,9 +166,9 @@ public class ProgramRuleEngine
             .map( pair -> new RuleEffectByObject( false, true, pair.getFirst(), pair.getSecond() ) )
             .collect( Collectors.toList() );
 
-        ruleEffectsForEvents.add( ruleEffectsForEnrollment );
+        ruleEffects.addAll( ruleEffectsForEvents );
 
-        return ruleEffectsForEvents;
+        return ruleEffects;
     }
 
     /**
