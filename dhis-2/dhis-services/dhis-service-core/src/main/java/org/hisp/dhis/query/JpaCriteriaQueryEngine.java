@@ -151,7 +151,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
         typedQuery.setFirstResult( query.getFirstResult() );
         typedQuery.setMaxResults( query.getMaxResults() );
-
+        typedQuery.setHint( "org.hibernate.cacheable", true );
         return typedQuery.getResultList();
     }
 
