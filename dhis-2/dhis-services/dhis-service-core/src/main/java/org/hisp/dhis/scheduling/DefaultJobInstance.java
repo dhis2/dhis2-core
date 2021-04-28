@@ -35,7 +35,6 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.util.Clock;
-import org.springframework.stereotype.Component;
 
 import com.google.common.base.Preconditions;
 
@@ -43,22 +42,16 @@ import com.google.common.base.Preconditions;
  * @author Henning Håkonsen
  */
 @Slf4j
-@Component( "org.hisp.dhis.scheduling.JobInstance" )
 public class DefaultJobInstance
     implements JobInstance
 {
     private static final String NOT_LEADER_SKIP_LOG = "Not a leader, skipping job with jobType:%s and name:%s";
 
-    private SchedulingManager schedulingManager;
+    private final SchedulingManager schedulingManager;
 
-    private MessageService messageService;
+    private final MessageService messageService;
 
-    private LeaderManager leaderManager;
-
-    @SuppressWarnings( "unused" )
-    private DefaultJobInstance()
-    {
-    }
+    private final LeaderManager leaderManager;
 
     public DefaultJobInstance( SchedulingManager schedulingManager, MessageService messageService,
         LeaderManager leaderManager )
@@ -95,7 +88,7 @@ public class DefaultJobInstance
             {
                 executeJob( jobConfiguration, clock );
             }
-            else if ( !schedulingManager.isJobConfigurationRunning( jobConfiguration ) )
+            else if ( !schedulingManager.isJobConfigurationRunning( jobConfiguration.getJobType() ) )
             {
                 jobConfiguration.setJobStatus( JobStatus.RUNNING );
                 schedulingManager.jobConfigurationStarted( jobConfiguration );

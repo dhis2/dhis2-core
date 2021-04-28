@@ -54,6 +54,10 @@ public interface InterpretationService
 
     List<Interpretation> getInterpretations();
 
+    List<Interpretation> getInterpretations( Visualization visualization );
+
+    List<Interpretation> getInterpretations( Map map );
+
     List<Interpretation> getInterpretations( Date lastUpdated );
 
     List<Interpretation> getInterpretations( int first, int max );
