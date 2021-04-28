@@ -34,11 +34,9 @@ import java.util.Map;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Lars Helge Overland
@@ -107,19 +105,4 @@ public interface DataAnalysisStore
     List<DeflatedDataValue> getFollowupDataValues( Collection<DataElement> dataElements,
         Collection<CategoryOptionCombo> categoryOptionCombos, Collection<Period> periods,
         Collection<OrganisationUnit> parents, int limit );
-
-    /**
-     * Returns {@link FollowupValue}s which were marked for
-     * {@link DataValue#isFollowup()} and which match the filter parameters.
-     *
-     * This is (mostly) a version of
-     * {@link #getFollowupDataValues(Collection, Collection, Collection, Collection, int)}
-     * which works with UIDs in input and output rather than objects or internal
-     * numeric database IDs.
-     *
-     * @param currentUser the current user (for sharing access)
-     * @param request filter parameters
-     * @return a list if {@link FollowupValue}s.
-     */
-    List<FollowupValue> getFollowupDataValues( User currentUser, FollowupAnalysisRequest request );
 }

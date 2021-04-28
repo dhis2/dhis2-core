@@ -198,6 +198,15 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
+    public void testPerformFollowupAnalysis_ValidationMissingOrganisationUnit()
+    {
+        JsonError error = GET( "/dataAnalysis/followup?de={de}&pe=2021", dataElementId )
+            .error( HttpStatus.CONFLICT );
+        assertEquals( ErrorCode.E2203, error.getErrorCode() );
+        assertEquals( "At least one organisation unit must be specified", error.getMessage() );
+    }
+
+    @Test
     public void testPerformFollowupAnalysis_ValidationMissingStartDate()
     {
         JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&endDate=2020-01-01",
@@ -223,7 +232,7 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
         JsonError error = GET(
             "/dataAnalysis/followup?ou={ou}&de={de}&startDate=2020-01-01&endDate=2019-01-01",
             orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
-        assertEquals( ErrorCode.E2302, error.getErrorCode() );
+        assertEquals( ErrorCode.E2202, error.getErrorCode() );
         assertEquals( "Start date must be before end date", error.getMessage() );
     }
 
@@ -232,7 +241,7 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
     {
         JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&pe=2021&maxResults=0",
             orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
-        assertEquals( ErrorCode.E2303, error.getErrorCode() );
+        assertEquals( ErrorCode.E2205, error.getErrorCode() );
         assertEquals( "Max results must be a positive number", error.getMessage() );
     }
 
@@ -241,7 +250,7 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
     {
         JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&pe=2021&maxResults=11111",
             orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
-        assertEquals( ErrorCode.E2304, error.getErrorCode() );
+        assertEquals( ErrorCode.E2206, error.getErrorCode() );
         assertEquals( "Max results exceeds the allowed max limit: `10,000`", error.getMessage() );
     }
 

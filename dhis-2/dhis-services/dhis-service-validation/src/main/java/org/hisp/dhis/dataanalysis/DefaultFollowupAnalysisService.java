@@ -65,6 +65,8 @@ public class DefaultFollowupAnalysisService
 
     private final DataAnalysisStore dataAnalysisStore;
 
+    private final FollowupValueManager followupValueManager;
+
     private final CurrentUserService currentUserService;
 
     @Override
@@ -100,7 +102,7 @@ public class DefaultFollowupAnalysisService
     {
         validate( request );
 
-        List<FollowupValue> followupValues = dataAnalysisStore
+        List<FollowupValue> followupValues = followupValueManager
             .getFollowupDataValues( currentUserService.getCurrentUser(), request );
         return new FollowupAnalysisResponse( new FollowupAnalysisMetadata( request ), followupValues );
     }
@@ -111,6 +113,10 @@ public class DefaultFollowupAnalysisService
         {
             throw validationError( ErrorCode.E2300 );
         }
+        if ( isEmpty( request.getOu() ) )
+        {
+            throw validationError( ErrorCode.E2203 );
+        }
         if ( (request.getStartDate() == null || request.getEndDate() == null) && request.getPe() == null )
         {
             throw validationError( ErrorCode.E2301 );
@@ -118,15 +124,15 @@ public class DefaultFollowupAnalysisService
         if ( request.getStartDate() != null && request.getEndDate() != null
             && !request.getStartDate().before( request.getEndDate() ) )
         {
-            throw validationError( ErrorCode.E2302 );
+            throw validationError( ErrorCode.E2202 );
         }
         if ( request.getMaxResults() <= 0 )
         {
-            throw validationError( ErrorCode.E2303 );
+            throw validationError( ErrorCode.E2205 );
         }
         if ( request.getMaxResults() > MAX_LIMIT )
         {
-            throw validationError( ErrorCode.E2304, MAX_LIMIT );
+            throw validationError( ErrorCode.E2206, MAX_LIMIT );
         }
     }
 
