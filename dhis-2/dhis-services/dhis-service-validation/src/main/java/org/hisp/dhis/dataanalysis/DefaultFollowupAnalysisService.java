@@ -107,11 +107,11 @@ public class DefaultFollowupAnalysisService
 
     private void validate( FollowupAnalysisRequest request )
     {
-        if ( isEmpty( request.getDataElements() ) && isEmpty( request.getDataSets() ) )
+        if ( isEmpty( request.getDe() ) && isEmpty( request.getDs() ) )
         {
             throw validationError( ErrorCode.E2300 );
         }
-        if ( (request.getStartDate() == null || request.getEndDate() == null) && request.getPeriod() == null )
+        if ( (request.getStartDate() == null || request.getEndDate() == null) && request.getPe() == null )
         {
             throw validationError( ErrorCode.E2301 );
         }
