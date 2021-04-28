@@ -28,6 +28,7 @@
 package org.hisp.dhis.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.query.JpaQueryUtils.HIBERNATE_CACHEABLE_HINT;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -151,6 +152,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
         typedQuery.setFirstResult( query.getFirstResult() );
         typedQuery.setMaxResults( query.getMaxResults() );
+        typedQuery.setHint( HIBERNATE_CACHEABLE_HINT, true );
 
         return typedQuery.getResultList();
     }
