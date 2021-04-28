@@ -25,39 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
-/**
- * Paging parameters
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-public interface PagingCriteria
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+
+@Data
+@NoArgsConstructor
+public class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
 {
 
-    /**
-     * Page number to return.
-     */
-    Integer getPage();
+    private String tei;
 
-    /**
-     * Page size.
-     */
-    Integer getPageSize();
+    private String enrollment;
 
-    /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
-     */
-    boolean isTotalPages();
-
-    /**
-     * Indicates whether paging should be skipped.
-     */
-    Boolean getSkipPaging();
-
-    /**
-     * Indicated whether paging is enabled
-     */
-    Boolean getPaging();
+    private String event;
 }

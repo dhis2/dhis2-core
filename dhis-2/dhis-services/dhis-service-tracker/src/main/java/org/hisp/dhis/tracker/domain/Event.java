@@ -126,6 +126,12 @@ public class Event
     private String assignedUser;
 
     @JsonProperty
+    private String createdBy;
+
+    @JsonProperty
+    private String updatedBy;
+
+    @JsonProperty
     @Builder.Default
     private Set<DataValue> dataValues = new HashSet<>();
 

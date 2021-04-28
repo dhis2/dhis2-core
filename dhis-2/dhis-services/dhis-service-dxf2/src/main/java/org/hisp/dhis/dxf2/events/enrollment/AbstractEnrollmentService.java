@@ -293,6 +293,8 @@ public abstract class AbstractEnrollmentService
         enrollment.setCompletedDate( programInstance.getEndDate() );
         enrollment.setCompletedBy( programInstance.getCompletedBy() );
         enrollment.setStoredBy( programInstance.getStoredBy() );
+        enrollment.setCreatedByUserInfo( programInstance.getCreatedByUserInfo() );
+        enrollment.setLastUpdatedByUserInfo( programInstance.getLastUpdatedByUserInfo() );
         enrollment.setDeleted( programInstance.isDeleted() );
 
         enrollment.getNotes().addAll( NoteHelper.convertNotes( programInstance.getComments() ) );

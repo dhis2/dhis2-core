@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -106,8 +107,10 @@ public class TrackedEntityTrackerConverterService
             tei = new TrackedEntityInstance();
             tei.setUid( te.getTrackedEntity() );
             tei.setCreated( now );
+            tei.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
         }
 
+        tei.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
         tei.setStoredBy( te.getStoredBy() );
         tei.setLastUpdated( now );
         tei.setDeleted( false );

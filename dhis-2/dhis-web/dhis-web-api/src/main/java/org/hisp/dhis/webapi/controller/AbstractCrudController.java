@@ -299,11 +299,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         Class<? extends IdentifiableObject> elementType, GistAutoType autoDefault )
     {
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
+        Locale translationLocale = !params.getString( "locale", "" ).isEmpty()
+            ? Locale.forLanguageTag( params.getString( "locale" ) )
+            : UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
         return GistQuery.builder()
             .elementType( elementType )
             .autoType( params.getEnum( "auto", autoDefault ) )
             .contextRoot( ContextUtils.getRootPath( request ) )
-            .translationLocale( UserContext.getUserSetting( UserSettingKey.DB_LOCALE ) )
+            .translationLocale( translationLocale )
             .build()
             .with( params );
     }

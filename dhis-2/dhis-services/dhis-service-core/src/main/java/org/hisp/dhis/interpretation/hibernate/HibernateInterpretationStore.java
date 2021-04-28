@@ -93,6 +93,24 @@ public class HibernateInterpretationStore
     }
 
     @Override
+    public List<Interpretation> getInterpretations( Map map )
+    {
+        Query<Interpretation> query = getTypedQuery(
+            "select distinct c from " + clazz.getName() + " c where c.map=:map" );
+        query.setParameter( "map", map );
+        return query.list();
+    }
+
+    @Override
+    public List<Interpretation> getInterpretations( Visualization visualization )
+    {
+        Query<Interpretation> query = getTypedQuery(
+            "select distinct c from " + clazz.getName() + " c where c.visualization=:visualization" );
+        query.setParameter( "visualization", visualization );
+        return query.list();
+    }
+
+    @Override
     public long countVisualizationInterpretations( Visualization visualization )
     {
         Query query = getQuery(

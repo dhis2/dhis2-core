@@ -191,8 +191,7 @@ public enum ValueType
         {
             return false;
         }
-
-        if ( this == TEXT || this == LONG_TEXT || this == LETTER )
+        if ( this == TEXT )
         {
             return aggregationType == AggregationType.NONE;
         }
