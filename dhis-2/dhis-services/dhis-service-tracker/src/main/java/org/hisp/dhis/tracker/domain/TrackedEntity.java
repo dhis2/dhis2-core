@@ -81,6 +81,12 @@ public class TrackedEntity
     private String storedBy;
 
     @JsonProperty
+    private String createdBy;
+
+    @JsonProperty
+    private String updatedBy;
+
+    @JsonProperty
     @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
 

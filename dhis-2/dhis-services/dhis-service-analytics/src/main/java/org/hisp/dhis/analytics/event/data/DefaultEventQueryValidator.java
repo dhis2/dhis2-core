@@ -166,7 +166,7 @@ public class DefaultEventQueryValidator
             {
                 error = new ErrorMessage( ErrorCode.E7215, item.getItemId() );
             }
-            else if ( params.isAggregateData() && !item.getAggregationType().isAggregateable() )
+            else if ( params.isAggregateData() && !item.getAggregationType().isAggregatable() )
             {
                 error = new ErrorMessage( ErrorCode.E7216, item.getItemId() );
             }

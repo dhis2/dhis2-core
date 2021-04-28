@@ -41,7 +41,6 @@ public enum TrackerErrorCode
     E1005( "Could not find TrackedEntityType: `{0}`." ),
     E1006( "Attribute: `{0}`, does not exist." ),
     E1007( "Error validating attribute value type: `{0}`; Error: `{1}`." ),
-    E1008( "Value: `{0}`, does not match the attribute pattern: `{1}`." ),
     E1009( "File resource: `{0}`, has already been assigned to a different object." ),
     E1010( "Could not find Program: `{0}`, linked to Event." ),
     E1011( "Could not find OrganisationUnit: `{0}`, linked to Event." ),
@@ -81,7 +80,7 @@ public enum TrackerErrorCode
     E1070( "Could not find OrganisationUnit: `{0}`, linked to Enrollment." ),
     E1074( "FeatureType is missing." ),
     E1075( "Attribute: `{0}`, is missing uid." ),
-    E1076( "Attribute: `{0}`, value is null." ),
+    E1076( "`{0}` `{1}` is mandatory and can''t be null" ),
     E1077( "Attribute: `{0}`, text value exceed the maximum allowed length: `{0}`." ),
     E1080( "Enrollment: `{0}`, already exists." ),
     E1081( "Enrollment: `{0}`, do not exist." ),
@@ -129,8 +128,6 @@ public enum TrackerErrorCode
     E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
     // TODO: See TODO on error usage
     E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
-    // TODO: See TODO on error usage
-    E1111( "We have a generated attribute: `{0}`, but no pattern." ),
     // TODO See TODO on error usage
     E1045( "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event." ),
     // TODO See TODO on error usage

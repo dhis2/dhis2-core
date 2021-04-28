@@ -102,9 +102,13 @@ final class GistLogic
 
     static boolean isCollectionSizeFilter( Filter filter, Property property )
     {
-        return isNonNestedPath( filter.getPropertyPath() )
-            && (filter.getOperator().isSizeCompare() ||
-                (filter.getOperator().isOrderCompare() && property.isCollection()));
+        return filter.getOperator().isSizeCompare() ||
+            (filter.getOperator().isNumericCompare() && property.isCollection());
+    }
+
+    static boolean isStringLengthFilter( Filter filter, Property property )
+    {
+        return filter.getOperator().isSizeCompare() && property.isSimple() && property.getKlass() == String.class;
     }
 
     static Transform effectiveTransform( Property property, Transform fallback, Transform target )

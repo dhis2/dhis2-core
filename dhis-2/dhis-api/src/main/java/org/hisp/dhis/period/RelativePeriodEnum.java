@@ -57,6 +57,7 @@ public enum RelativePeriodEnum
     QUARTERS_LAST_YEAR,
     LAST_YEAR,
     LAST_5_YEARS,
+    LAST_10_YEARS,
     LAST_12_MONTHS,
     LAST_6_MONTHS,
     LAST_3_MONTHS,

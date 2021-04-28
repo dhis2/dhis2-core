@@ -52,7 +52,7 @@ public enum AggregationType
 
     private final String value;
 
-    private boolean aggregateable;
+    private boolean aggregatable;
 
     AggregationType( String value )
     {
@@ -62,7 +62,7 @@ public enum AggregationType
     AggregationType( String value, boolean aggregateable )
     {
         this.value = value;
-        this.aggregateable = aggregateable;
+        this.aggregatable = aggregateable;
     }
 
     public String getValue()
@@ -75,9 +75,9 @@ public enum AggregationType
         return this == AVERAGE_SUM_ORG_UNIT || this == AVERAGE;
     }
 
-    public boolean isAggregateable()
+    public boolean isAggregatable()
     {
-        return aggregateable;
+        return aggregatable;
     }
 
     public static AggregationType fromValue( String value )

@@ -31,6 +31,7 @@ import static org.hisp.dhis.gist.GistBuilder.createCountBuilder;
 import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
 
 import java.net.URI;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -58,6 +59,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @AllArgsConstructor
 public class DefaultGistService implements GistService
 {
+
+    /**
+     * Instead of an actual date value users may use string {@code now} to
+     * always get current moment as time for a {@link Date} value.
+     */
+    private static final String NOW_PARAMETER_VALUE = "now";
 
     private final SessionFactory sessionFactory;
 
@@ -151,11 +158,21 @@ public class DefaultGistService implements GistService
         return query.getSingleResult().intValue();
     }
 
+    @SuppressWarnings( "unchecked" )
     private <T> T parseFilterArgument( String value, Class<T> type )
     {
+        if ( type == Date.class && NOW_PARAMETER_VALUE.equals( value ) )
+        {
+            return (T) new Date();
+        }
+        String valueAsJson = value;
+        if ( !(Number.class.isAssignableFrom( type ) || type == Boolean.class || type == boolean.class) )
+        {
+            valueAsJson = '"' + value + '"';
+        }
         try
         {
-            return jsonMapper.readValue( value, type );
+            return jsonMapper.readValue( valueAsJson, type );
         }
         catch ( JsonProcessingException e )
         {
