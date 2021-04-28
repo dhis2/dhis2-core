@@ -30,6 +30,7 @@ package org.hisp.dhis.db.migration.v36;
 import static org.hisp.dhis.db.migration.v36.V2_36_1__normalize_program_rule_variable_names_for_duplicates.ProgramRuleMigrationUtils.findAvailableName;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -44,12 +45,12 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
+
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
@@ -58,6 +59,8 @@ import org.flywaydb.core.api.migration.Context;
 public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
     extends BaseJavaMigration
 {
+
+    public static final String UPDATE_PROGRAMRULEVARIABLE = "UPDATE programrulevariable SET name= ? WHERE uid=?";
 
     @Override
     public void migrate( Context context )
@@ -141,7 +144,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
         }
 
         Collection<String> renamedVariableNames = ProgramRuleMigrationUtils.renameAll( variableName, uidWithNewNames,
-            connection, this::getUpdateQuery );
+            connection, UPDATE_PROGRAMRULEVARIABLE, this::nameUidSupplier );
 
         return getAffectedRules( renamedVariableNames, connection );
     }
@@ -178,11 +181,9 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
         return Collections.emptySet();
     }
 
-    @SneakyThrows
-    private String getUpdateQuery( Map.Entry<String, String> uidNameEntry, Set<String> existingNames )
+    private Pair<String, String> nameUidSupplier( Map.Entry<String, String> uidNameEntry, Set<String> existingNames )
     {
-        return "UPDATE programrulevariable SET name='" + findAvailableName( uidNameEntry.getValue(), existingNames )
-            + "' WHERE uid= '" + uidNameEntry.getKey() + "'";
+        return Pair.of( findAvailableName( uidNameEntry.getValue(), existingNames ), uidNameEntry.getKey() );
     }
 
     /**
@@ -217,17 +218,29 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
         }
 
         @SneakyThrows
-        static void executeUpdate( String updateQuery, Connection connection )
+        static void executeUpdate( String updateQuery, Connection connection, Pair<String, String> params )
         {
-            try ( final Statement stmt = connection.createStatement() )
+            try (
+                final PreparedStatement preparedStatement = prepareUpdateStatement( updateQuery, connection, params ) )
             {
-                stmt.executeUpdate( updateQuery );
+                preparedStatement.executeUpdate();
             }
+        }
+
+        @SneakyThrows
+        private static PreparedStatement prepareUpdateStatement( String updateQuery, Connection connection,
+            Pair<String, String> params )
+        {
+            PreparedStatement preparedStatement = connection.prepareStatement( updateQuery );
+            preparedStatement.setString( 1, params.getLeft() );
+            preparedStatement.setString( 2, params.getRight() );
+            return preparedStatement;
         }
 
         static Collection<String> renameAll( String variableName, Map<String, String> uidWithNewNames,
             Connection connection,
-            BiFunction<Map.Entry<String, String>, Set<String>, String> updateQuerySupplier )
+            String updateSql,
+            BiFunction<Map.Entry<String, String>, Set<String>, Pair<String, String>> nameUidUpdateSupplier )
         {
             Collection<String> renamedVariableNames = new HashSet<>();
 
@@ -237,8 +250,8 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
                 .filter( entry -> entry.getValue().equals( variableName ) )
                 .skip( 1 )
                 .peek( entry -> renamedVariableNames.add( entry.getValue() ) )
-                .map( entry -> updateQuerySupplier.apply( entry, existingNames ) )
-                .forEach( updateQuery -> executeUpdate( updateQuery, connection ) );
+                .map( entry -> nameUidUpdateSupplier.apply( entry, existingNames ) )
+                .forEach( params -> executeUpdate( updateSql, connection, params ) );
 
             return renamedVariableNames;
         }
