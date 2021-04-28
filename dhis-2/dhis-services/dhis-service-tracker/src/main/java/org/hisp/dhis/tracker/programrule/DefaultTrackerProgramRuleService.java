@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -131,12 +132,15 @@ public class DefaultTrackerProgramRuleService
     @Transactional( readOnly = true )
     public List<RuleEffectByObject> calculateEventRuleEffects( TrackerBundle bundle )
     {
-        List<String> enrollmentUids = bundle.getEnrollments().stream().map( Enrollment::getEnrollment )
+        List<String> enrollmentUids = bundle.getEnrollments()
+            .stream()
+            .map( Enrollment::getEnrollment )
             .collect( Collectors.toList() );
 
         Map<String, List<Event>> eventsByEnrollment = bundle.getEvents()
             .stream()
             .filter( event -> !enrollmentUids.contains( event.getEnrollment() ) )
+            .filter( event -> StringUtils.isNotEmpty( event.getEnrollment() ) )
             .collect( Collectors.groupingBy( Event::getEnrollment ) );
 
         return eventsByEnrollment
