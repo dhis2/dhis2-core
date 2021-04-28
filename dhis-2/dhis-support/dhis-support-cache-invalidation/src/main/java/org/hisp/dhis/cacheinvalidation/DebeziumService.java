@@ -33,10 +33,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.kafka.connect.source.SourceRecord;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,45 +56,57 @@ import io.debezium.engine.format.ChangeEventFormat;
 @Slf4j
 public class DebeziumService
 {
-    private final Executor executor = Executors.newSingleThreadExecutor();
-
     @Autowired
     private DbChangeEventHandler dbChangeEventHandler;
 
-    @PostConstruct
-    protected void init()
-    {
-        Properties props = Configuration.create().build().asProperties();
+    @Autowired
+    private DhisConfigurationProvider dhisConfig;
 
-        props.setProperty( "name", "engine2" );
+    private DebeziumEngine<RecordChangeEvent<SourceRecord>> engine;
+
+    private final Executor executor = Executors.newSingleThreadExecutor();
+
+    @PostConstruct
+    protected void debeziumEngine()
+    {
+        String username = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_CONNECTION_USERNAME );
+        String password = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_CONNECTION_PASSWORD );
+        String dbHostname = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_DB_HOSTNAME );
+        String dbPort = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_DB_PORT );
+        String dbName = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_DB_NAME );
+
+        String slotName = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_SLOT_NAME ).toLowerCase();
+
+        Properties props = Configuration.create().build().asProperties();
+        props.setProperty( "name", slotName );
+        props.setProperty( "slot.name", slotName );
         props.setProperty( "plugin.name", "pgoutput" );
-        props.setProperty( "slot.name", "slot1" );
         props.setProperty( "connector.class", "io.debezium.connector.postgresql.PostgresConnector" );
         props.setProperty( "offset.storage", "org.apache.kafka.connect.storage.MemoryOffsetBackingStore" );
         props.setProperty( "offset.flush.interval.ms", "60000" );
-        /* begin connector properties */
-        props.setProperty( "database.hostname", "localhost" );
         props.setProperty( "database.tcpKeepAlive", "true" );
-        props.setProperty( "database.port", "5432" );
-        props.setProperty( "database.user", "postgres" );
-        props.setProperty( "database.password", "uk67TYYA" );
-        props.setProperty( "database.server.id", "85744" );
-        props.setProperty( "database.server.name", "dhis2master_26041" );
-        props.setProperty( "database.dbname", "dhis2master_26041" );
+        props.setProperty( "database.hostname", dbHostname );
+        props.setProperty( "database.port", dbPort );
+        props.setProperty( "database.user", username );
+        props.setProperty( "database.password", password );
+        props.setProperty( "database.server.name", dbName );
+        props.setProperty( "database.dbname", dbName );
         props.setProperty( "snapshot.mode", "never" );
 
-        try ( DebeziumEngine<RecordChangeEvent<SourceRecord>> engine = DebeziumEngine.create( ChangeEventFormat.of(
-            Connect.class ) )
+        engine = DebeziumEngine
+            .create( ChangeEventFormat.of( Connect.class ) )
             .using( props )
             .notifying( dbChangeEventHandler::handleDbChange )
-            .build() )
-        {
-            executor.execute( engine );
-        }
-        catch ( IOException e )
-        {
-            log.error( "Debezium failure!", e );
-        }
+            .build();
+
+        executor.execute( engine );
+    }
+
+    @PreDestroy
+    public void stopDebezium()
+        throws IOException
+    {
+        engine.close();
     }
 
     // TODO: Impl. keep alive/watchdog to make sure connection is alive...

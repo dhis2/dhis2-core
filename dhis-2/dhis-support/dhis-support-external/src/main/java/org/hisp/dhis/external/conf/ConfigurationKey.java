@@ -149,7 +149,13 @@ public enum ConfigurationKey
     AUDIT_ENABLED( "system.audit.enabled", Constants.TRUE, false ),
     TRACKER_IMPORT_PREHEAT_CACHE_ENABLED( "tracker.import.preheat.cache.enabled", Constants.ON, false ),
     ENABLE_OAUTH2_AUTHORIZATION_SERVER( "oauth2.authorization.server.enabled", Constants.ON, false ),
-    ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION( "oidc.jwt.token.authentication.enabled", Constants.OFF, false );
+    ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION( "oidc.jwt.token.authentication.enabled", Constants.OFF, false ),
+    DEBEZIUM_CONNECTION_USERNAME( "debezium.connection.username", "", false ),
+    DEBEZIUM_CONNECTION_PASSWORD( "debezium.connection.password", "", false ),
+    DEBEZIUM_DB_HOSTNAME( "debezium.db.hostname", "", false ),
+    DEBEZIUM_DB_PORT( "debezium.db.port", "", false ),
+    DEBEZIUM_DB_NAME( "debezium.db.name", "", false ),
+    DEBEZIUM_SLOT_NAME( "debezium.slot.name", "", false );
 
     private final String key;
 
