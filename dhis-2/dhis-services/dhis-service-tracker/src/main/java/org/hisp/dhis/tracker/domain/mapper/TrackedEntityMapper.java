@@ -45,5 +45,7 @@ public interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance,
     @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
     TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
 }
