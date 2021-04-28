@@ -277,10 +277,11 @@ public class SetMandatoryFieldValidatorTest
     private List<RuleEffectByObject> getRuleEventAndEnrollmentEffects()
     {
         List<RuleEffectByObject> ruleEffectsByEvent = Lists.newArrayList();
-        ruleEffectsByEvent.add( new RuleEffectByObject( false, true, FIRST_EVENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( new RuleEffectByObject( false, true, SECOND_EVENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( new RuleEffectByObject( true, false, ACTIVE_ENROLLMENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( new RuleEffectByObject( true, false, COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( RuleEffectByObject.ruleEffectForEvent( FIRST_EVENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( RuleEffectByObject.ruleEffectForEvent( SECOND_EVENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( RuleEffectByObject.ruleEffectForEnrollment( ACTIVE_ENROLLMENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent
+            .add( RuleEffectByObject.ruleEffectForEnrollment( COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
         return ruleEffectsByEvent;
     }
 

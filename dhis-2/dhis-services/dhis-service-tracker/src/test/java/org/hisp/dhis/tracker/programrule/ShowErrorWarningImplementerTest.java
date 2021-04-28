@@ -296,9 +296,9 @@ public class ShowErrorWarningImplementerTest
     {
         List<RuleEffectByObject> ruleEffectsByEvent = Lists.newArrayList();
         ruleEffectsByEvent
-            .add( new RuleEffectByObject( false, true, ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
+            .add( RuleEffectByObject.ruleEffectForEvent( ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
         ruleEffectsByEvent
-            .add( new RuleEffectByObject( false, true, COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
+            .add( RuleEffectByObject.ruleEffectForEvent( COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
         return ruleEffectsByEvent;
     }
 
@@ -306,19 +306,20 @@ public class ShowErrorWarningImplementerTest
     {
         List<RuleEffectByObject> ruleEffectsByEvent = Lists.newArrayList();
         ruleEffectsByEvent
-            .add( new RuleEffectByObject( false, true, ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
+            .add( RuleEffectByObject.ruleEffectForEvent( ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
         ruleEffectsByEvent.add(
-            new RuleEffectByObject( false, true, COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataAnotherElement() ) );
+            RuleEffectByObject.ruleEffectForEvent( COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataAnotherElement() ) );
         return ruleEffectsByEvent;
     }
 
     private List<RuleEffectByObject> getRuleEventAndEnrollmentEffects()
     {
         List<RuleEffectByObject> ruleEffectsByEvent = Lists.newArrayList();
-        ruleEffectsByEvent.add( new RuleEffectByObject( false, true, ACTIVE_EVENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( new RuleEffectByObject( false, true, COMPLETED_EVENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( new RuleEffectByObject( true, false, ACTIVE_ENROLLMENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( new RuleEffectByObject( true, false, COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( RuleEffectByObject.ruleEffectForEvent( ACTIVE_EVENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( RuleEffectByObject.ruleEffectForEvent( COMPLETED_EVENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( RuleEffectByObject.ruleEffectForEnrollment( ACTIVE_ENROLLMENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent
+            .add( RuleEffectByObject.ruleEffectForEnrollment( COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
         return ruleEffectsByEvent;
     }
 

@@ -30,11 +30,9 @@ package org.hisp.dhis.programrule.engine;
 import java.util.List;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.rules.models.RuleEffect;
 
-@RequiredArgsConstructor
 @Getter
 public class RuleEffectByObject
 {
@@ -45,4 +43,23 @@ public class RuleEffectByObject
     private final String uid;
 
     private final List<RuleEffect> effects;
+
+    private RuleEffectByObject( boolean isEnrollment, boolean isEvent, String uid,
+        List<RuleEffect> effects )
+    {
+        this.isEnrollment = isEnrollment;
+        this.isEvent = isEvent;
+        this.uid = uid;
+        this.effects = effects;
+    }
+
+    public static RuleEffectByObject ruleEffectForEnrollment( String uid, List<RuleEffect> effects )
+    {
+        return RuleEffectByObject.ruleEffectForEnrollment( uid, effects );
+    }
+
+    public static RuleEffectByObject ruleEffectForEvent( String uid, List<RuleEffect> effects )
+    {
+        return RuleEffectByObject.ruleEffectForEvent( uid, effects );
+    }
 }

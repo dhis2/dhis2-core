@@ -516,7 +516,7 @@ public class AssignValueImplementerTest
 
         for ( Event event : events )
         {
-            ruleEffectsByEvent.add( new RuleEffectByObject( false, true, event.getEvent(), getRuleEventEffects() ) );
+            ruleEffectsByEvent.add( RuleEffectByObject.ruleEffectForEvent( event.getEvent(), getRuleEventEffects() ) );
 
         }
         return ruleEffectsByEvent;
@@ -529,7 +529,8 @@ public class AssignValueImplementerTest
         for ( Enrollment enrollment : enrollments )
         {
             ruleEffectsByEnrollment
-                .add( new RuleEffectByObject( true, false, enrollment.getEnrollment(), getRuleEnrollmentEffects() ) );
+                .add( RuleEffectByObject
+                    .ruleEffectForEnrollment( enrollment.getEnrollment(), getRuleEnrollmentEffects() ) );
 
         }
         return ruleEffectsByEnrollment;
