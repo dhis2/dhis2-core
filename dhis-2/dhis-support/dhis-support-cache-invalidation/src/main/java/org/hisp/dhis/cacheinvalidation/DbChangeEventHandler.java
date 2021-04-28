@@ -33,8 +33,6 @@ import java.util.Map;
 
 import javax.persistence.metamodel.EntityType;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
@@ -48,6 +46,7 @@ import org.springframework.stereotype.Component;
 
 import io.debezium.data.Envelope;
 import io.debezium.engine.RecordChangeEvent;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -95,6 +94,11 @@ public class DbChangeEventHandler
         String tableName = topic[topic.length - 1];
         Class<?> entityClass = entityToTableNames.get( tableName );
 
+        if ( entityClass == null )
+        {
+            log.info( "No entityClass mapped to the table name, ignoring event! tablename=" + tableName );
+        }
+
         Schema schema = record.keySchema();
         List<Field> allIdFields = schema.fields();
         Field idField = allIdFields.get( 0 );
@@ -110,9 +114,20 @@ public class DbChangeEventHandler
 
         if ( !knownTransactions.isKnown( txId ) )
         {
-            log.info( String.format( "RecordChangeEvent is an external event! "
-                + "Trying to evict; entityClass=%s, id=%s", entityClass, id ) );
-            sessionFactory.getCache().evict( entityClass, id );
+            if ( operation == Envelope.Operation.UPDATE || operation == Envelope.Operation.DELETE )
+            {
+                log.info( String.format( "RecordChangeEvent is an external %s event! "
+                    + "Trying to evict; entityClass=%s, id=%s", operation.name(), entityClass, id ) );
+
+                sessionFactory.getCache().evict( entityClass, id );
+            }
+            else if ( operation == Envelope.Operation.CREATE )
+            {
+                log.info( String.format( "RecordChangeEvent is an external %s event! "
+                    + "Trying to evict; entityClass=%s", operation.name(), entityClass ) );
+
+                sessionFactory.getCache().evict( entityClass );
+            }
         }
         else
         {
