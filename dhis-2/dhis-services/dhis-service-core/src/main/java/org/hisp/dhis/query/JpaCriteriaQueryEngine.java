@@ -151,7 +151,13 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
         typedQuery.setFirstResult( query.getFirstResult() );
         typedQuery.setMaxResults( query.getMaxResults() );
+
         typedQuery.setHint( "org.hibernate.cacheable", true );
+
+        String queryString = typedQuery.unwrap( org.hibernate.Query.class ).getQueryString();
+        String regionName = klass.getName() + "_" + queryString;
+        typedQuery.setHint( "org.hibernate.cacheRegion", regionName );
+
         return typedQuery.getResultList();
     }
 

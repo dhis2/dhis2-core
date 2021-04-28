@@ -41,16 +41,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -162,11 +161,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     protected static final String DEFAULTS = "INCLUDE";
 
-    private final Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
-    {
-    }
-        .expireAfterWrite( 1, TimeUnit.MINUTES )
-        .build();
+    private Cache<String, Long> paginationCountCache;
 
     // --------------------------------------------------------------------------
     // Dependencies
@@ -244,6 +239,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     private GistService gistService;
+
+    @Autowired
+    protected PaginationCacheManager paginationCacheManager;
 
     // --------------------------------------------------------------------------
     // GET
@@ -383,9 +381,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             }
             else
             {
+                Cache<String, Long> paginationCache = paginationCacheManager.getPaginationCache( getEntityClass() );
                 String cacheKey = composePaginationCountKey( currentUser, filters, options );
-                totalCount = paginationCountCache.computeIfAbsent( cacheKey,
-                    () -> countTotal( options, filters, orders ) );
+                totalCount = paginationCache.computeIfAbsent( cacheKey, () -> countTotal( options, filters, orders ) );
             }
 
             pager = new Pager( options.getPage(), totalCount, options.getPageSize() );
@@ -1560,6 +1558,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      * Deserializes a payload from the request, handles JSON/XML payloads
      *
      * @param request HttpServletRequest from current session
+     *
      * @return Parsed entity or null if invalid type
      */
     protected T deserialize( HttpServletRequest request )
@@ -1594,6 +1593,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      * Are we receiving JSON data?
      *
      * @param request HttpServletRequest from current session
+     *
      * @return true if JSON compatible
      */
     protected boolean isJson( HttpServletRequest request )
@@ -1614,6 +1614,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      * Are we receiving XML data?
      *
      * @param request HttpServletRequest from current session
+     *
      * @return true if XML compatible
      */
     protected boolean isXml( HttpServletRequest request )

@@ -31,22 +31,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
 import javax.persistence.metamodel.EntityType;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
+import org.hibernate.Cache;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.cache.internal.EnabledCaching;
+import org.hibernate.cache.spi.QueryResultsCache;
 import org.hibernate.metamodel.internal.MetamodelImpl;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.SingleTableEntityPersister;
+import org.hisp.dhis.cache.PaginationCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.debezium.data.Envelope;
 import io.debezium.engine.RecordChangeEvent;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -56,13 +65,19 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class DbChangeEventHandler
 {
+    @PersistenceUnit
+    private EntityManagerFactory emf;
+
     @Autowired
     private SessionFactory sessionFactory;
 
     @Autowired
     private KnownTransactions knownTransactions;
 
-    private Map<String, Class<?>> entityToTableNames = new HashMap<>();
+    @Autowired
+    private PaginationCacheManager paginationCacheManager;
+
+    private final Map<String, Class<?>> entityToTableNames = new HashMap<>();
 
     protected void handleDbChange( RecordChangeEvent<SourceRecord> event )
     {
@@ -97,6 +112,7 @@ public class DbChangeEventHandler
         if ( entityClass == null )
         {
             log.info( "No entityClass mapped to the table name, ignoring event! tablename=" + tableName );
+            return;
         }
 
         Schema schema = record.keySchema();
@@ -124,14 +140,56 @@ public class DbChangeEventHandler
             else if ( operation == Envelope.Operation.CREATE )
             {
                 log.info( String.format( "RecordChangeEvent is an external %s event! "
-                    + "Trying to evict; entityClass=%s", operation.name(), entityClass ) );
+                    + "Trying to find new entity and evict query cache; entityClass=%s", operation.name(),
+                    entityClass ) );
 
-                sessionFactory.getCache().evict( entityClass );
+                evictQueryCache( entityClass );
+
+                paginationCacheManager.evictCache( entityClass.getName() );
+
+                try ( Session session = sessionFactory.openSession() )
+                {
+                    Object o = session.get( entityClass, id );
+                    log.info( "Found new object:" + o );
+                }
+                catch ( HibernateException e )
+                {
+                    log.error( "Failed to execute get query!", e );
+                }
             }
         }
         else
         {
             log.info( "RecordChangeEvent is a local event, ignoring..." );
+        }
+    }
+
+    private void evictQueryCache( Class<?> entityClass )
+    {
+        try
+        {
+            Cache cache = sessionFactory.getCache();
+            EnabledCaching enabledCaching = (EnabledCaching) cache;
+
+            java.lang.reflect.Field privateField = EnabledCaching.class
+                .getDeclaredField( "namedQueryResultsCacheMap" );
+            privateField.setAccessible( true );
+            Map<String, QueryResultsCache> allQueryCache = (Map<String, QueryResultsCache>) privateField
+                .get( enabledCaching );
+
+            for ( Map.Entry<String, QueryResultsCache> entry : allQueryCache.entrySet() )
+            {
+                String key = entry.getKey();
+                String klassPart = key.split( "_" )[0];
+                if ( klassPart.equalsIgnoreCase( entityClass.getName() ) && cache.containsQuery( key ) )
+                {
+                    cache.evictQueryRegion( key );
+                }
+            }
+        }
+        catch ( NoSuchFieldException | IllegalAccessException e )
+        {
+            log.error( "Failed to evict query cache!", e );
         }
     }
 
