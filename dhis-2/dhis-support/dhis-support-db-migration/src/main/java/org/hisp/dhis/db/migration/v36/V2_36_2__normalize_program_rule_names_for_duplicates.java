@@ -41,11 +41,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.SneakyThrows;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-
-import lombok.SneakyThrows;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
