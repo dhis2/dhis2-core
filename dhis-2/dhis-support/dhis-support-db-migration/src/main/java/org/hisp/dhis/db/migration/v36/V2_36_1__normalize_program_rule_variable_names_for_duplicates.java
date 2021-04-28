@@ -45,12 +45,12 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
