@@ -33,6 +33,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
  * @author Abyot Asalefew
@@ -42,11 +43,29 @@ public interface RelationshipStore
 {
     String ID = RelationshipStore.class.getName();
 
-    List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei );
+    default List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei )
+    {
+        return getByTrackedEntityInstance( tei, null );
+    }
 
-    List<Relationship> getByProgramInstance( ProgramInstance pi );
+    List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
-    List<Relationship> getByProgramStageInstance( ProgramStageInstance psi );
+    default List<Relationship> getByProgramInstance( ProgramInstance pi )
+    {
+        return getByProgramInstance( pi, null );
+    }
+
+    List<Relationship> getByProgramInstance( ProgramInstance pi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
+
+    default List<Relationship> getByProgramStageInstance( ProgramStageInstance psi )
+    {
+        return getByProgramStageInstance( psi, null );
+    }
+
+    List<Relationship> getByProgramStageInstance( ProgramStageInstance psi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
     List<Relationship> getByRelationshipType( RelationshipType relationshipType );
 

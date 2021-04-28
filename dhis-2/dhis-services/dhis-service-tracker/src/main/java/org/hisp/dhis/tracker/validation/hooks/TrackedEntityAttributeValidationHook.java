@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1006;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1008;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1077;
@@ -38,9 +37,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1085;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1090;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1112;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
 import java.util.*;
@@ -50,17 +47,13 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -73,17 +66,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class TrackedEntityAttributeValidationHook extends AttributeValidationHook
 {
-    private final ReservedValueService reservedValueService;
-
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
     public TrackedEntityAttributeValidationHook( TrackedAttributeValidationService teAttrService,
-        ReservedValueService reservedValueService, DhisConfigurationProvider dhisConfigurationProvider )
+        DhisConfigurationProvider dhisConfigurationProvider )
     {
         super( teAttrService );
-        checkNotNull( reservedValueService );
         checkNotNull( dhisConfigurationProvider );
-        this.reservedValueService = reservedValueService;
         this.dhisConfigurationProvider = dhisConfigurationProvider;
     }
 
@@ -166,7 +155,6 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             }
 
             validateAttributeValue( reporter, tea, attribute.getValue() );
-            validateTextPattern( reporter, attribute, tea, valueMap.get( tea.getUid() ) );
             validateAttrValueType( reporter, attribute, tea );
             validateOptionSet( reporter, tea, attribute.getValue() );
 
@@ -195,48 +183,6 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         // data value type set on the attribute
         final String result = dataValueIsValid( value, tea.getValueType() );
         addErrorIf( () -> result != null, reporter, E1085, tea, result );
-    }
-
-    protected void validateTextPattern( ValidationErrorReporter reporter,
-        Attribute attribute, TrackedEntityAttribute tea, TrackedEntityAttributeValue existingValue )
-    {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
-        checkNotNull( attribute, ATTRIBUTE_CANT_BE_NULL );
-        checkNotNull( tea, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
-
-        if ( !tea.isGenerated() )
-        {
-            return;
-        }
-
-        // TODO: Should we check the text pattern even if its not generated?
-        // TextPatternValidationUtils.validateTextPatternValue(
-        // attribute.getTextPattern(), value )
-
-        // TODO: Can't provoke this error since metadata importer won't allow
-        // null, empty or invalid patterns.
-        if ( tea.getTextPattern() == null && !bundle.isSkipTextPatternValidation() )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1111 )
-                .addArg( attribute ) );
-        }
-
-        if ( tea.getTextPattern() != null && !bundle.isSkipTextPatternValidation() )
-        {
-            String oldValue = existingValue != null ? existingValue.getValue() : null;
-
-            // We basically ignore the pattern validation if the value is
-            // reserved or already
-            // assigned i.e. input eq. already persisted value.
-            boolean isReservedOrAlreadyAssigned = Objects.equals( attribute.getValue(), oldValue ) ||
-                reservedValueService.isReserved( tea.getTextPattern(), attribute.getValue() );
-
-            boolean isValidPattern = TextPatternValidationUtils
-                .validateTextPatternValue( tea.getTextPattern(), attribute.getValue() );
-
-            addErrorIf( () -> !isReservedOrAlreadyAssigned && !isValidPattern, reporter, E1008, attribute.getValue(),
-                tea.getTextPattern() );
-        }
     }
 
     protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter,

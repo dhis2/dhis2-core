@@ -228,6 +228,18 @@ public class DefaultInterpretationService
     }
 
     @Override
+    public List<Interpretation> getInterpretations( Visualization visualization )
+    {
+        return interpretationStore.getInterpretations( visualization );
+    }
+
+    @Override
+    public List<Interpretation> getInterpretations( Map map )
+    {
+        return interpretationStore.getInterpretations( map );
+    }
+
+    @Override
     public List<Interpretation> getInterpretations( Date lastUpdated )
     {
         return interpretationStore.getAllGeLastUpdated( lastUpdated );

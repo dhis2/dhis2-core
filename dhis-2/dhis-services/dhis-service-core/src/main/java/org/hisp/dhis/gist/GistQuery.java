@@ -224,6 +224,11 @@ public final class GistQuery
         return toBuilder().fields( fields ).build();
     }
 
+    public GistQuery withFilters( List<Filter> filters )
+    {
+        return toBuilder().filters( filters ).build();
+    }
+
     private <E> GistQuery withAddedItem( E e, List<E> collection,
         BiFunction<GistQueryBuilder, List<E>, GistQueryBuilder> setter )
     {
@@ -268,9 +273,9 @@ public final class GistQuery
         ILIKE( "ilike" ),
         NOT_ILIKE( "!ilike" ),
         STARTS_WITH( "$ilike", "startswith" ),
-        NOT_STARTS_WITH( "!$ilike" ),
+        NOT_STARTS_WITH( "!$ilike", "!startswith" ),
         ENDS_WITH( "ilike$", "endswith" ),
-        NOT_ENDS_WITH( "!ilike$" );
+        NOT_ENDS_WITH( "!ilike$", "!endswith" );
 
         private final String[] symbols;
 
@@ -314,7 +319,7 @@ public final class GistQuery
 
         public boolean isCollectionCompare()
         {
-            return this == IN || this == NOT_IN || isSizeCompare();
+            return isContainsCompare() || isSizeCompare();
         }
 
         public boolean isSizeCompare()
@@ -325,6 +330,11 @@ public final class GistQuery
         public boolean isStringCompare()
         {
             return ordinal() >= LIKE.ordinal();
+        }
+
+        public boolean isContainsCompare()
+        {
+            return this == IN || this == NOT_IN;
         }
     }
 
@@ -465,6 +475,11 @@ public final class GistQuery
             this.propertyPath = propertyPath;
             this.operator = operator;
             this.value = value;
+        }
+
+        public Filter withPropertyPath( String path )
+        {
+            return new Filter( path, operator, value );
         }
 
         public static Filter parse( String filter )
