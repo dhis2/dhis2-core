@@ -1997,7 +1997,9 @@ public class DataQueryParams
                 return other.filters == null;
             }
             else
+            {
                 return filters.equals( other.filters );
+            }
         }
         else
         {
@@ -2010,7 +2012,9 @@ public class DataQueryParams
                 return other.filters == null;
             }
             else
+            {
                 return filters.equals( other.filters );
+            }
         }
     }
 
