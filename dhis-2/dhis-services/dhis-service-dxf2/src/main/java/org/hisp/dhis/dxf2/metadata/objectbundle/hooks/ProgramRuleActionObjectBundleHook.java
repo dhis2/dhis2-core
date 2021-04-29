@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +43,7 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationContext;
+import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationSupplier;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -59,10 +62,15 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
     @Qualifier( "programRuleActionValidatorMap" )
     private final Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap;
 
+    @Nonnull
+    private final ProgramRuleActionValidationSupplier actionValidationServiceSupplier;
+
     public ProgramRuleActionObjectBundleHook(
-        @NonNull Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap )
+        @NonNull Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap,
+        @Nonnull ProgramRuleActionValidationSupplier programRuleActionValidationSupplier )
     {
         this.validatorMap = validatorMap;
+        this.actionValidationServiceSupplier = programRuleActionValidationSupplier;
     }
 
     @Override
@@ -91,7 +99,8 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
         ProgramRuleActionValidationResult validationResult;
 
         ProgramRuleActionValidationContext validationContext = ProgramRuleActionValidationContext
-            .load( bundle.getPreheat(), bundle.getPreheatIdentifier(), ruleAction );
+            .load( bundle.getPreheat(), bundle.getPreheatIdentifier(), ruleAction,
+                actionValidationServiceSupplier.get() );
 
         try
         {

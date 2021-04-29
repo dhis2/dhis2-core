@@ -168,7 +168,7 @@ public enum ErrorCode
     E4045( "DataElement `{0}` associated with program rule `{1}` does not exist" ),
     E4046( "TrackedEntityAttribute `{0}` associated with program rule `{1}` does not exist" ),
     E4047( "DataElement `{0}` is not linked to ProgramStageDataElement" ),
-    E4048( "TrackedEntityAttribute `{0}` is not linked to Program `{1}`" ),
+    E4048( "TrackedEntityAttribute `{0}` is not linked to ProgramTrackedEntityAttribute for program rule `{1}`" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),

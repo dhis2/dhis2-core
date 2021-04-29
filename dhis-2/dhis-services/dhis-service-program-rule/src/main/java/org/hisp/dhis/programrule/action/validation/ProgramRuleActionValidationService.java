@@ -25,41 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.programrule.action.validation;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import javax.annotation.Nonnull;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
+import lombok.Builder;
+import lombok.Data;
+
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
 /**
- * @author Viet Nguyen
+ * @author Zubair Asghar
  */
-public interface ProgramStageDataElementStore
-    extends IdentifiableObjectStore<ProgramStageDataElement>
+
+@Data
+@Builder
+public class ProgramRuleActionValidationService
 {
-    String ID = ProgramStageInstanceStore.class.getName();
+    @Nonnull
+    private final ProgramStageService programStageService;
 
-    /**
-     * Retrieve ProgramStageDataElement list on a program stage and a data
-     * element
-     *
-     * @param programStage ProgramStage
-     * @param dataElement DataElement
-     * @return ProgramStageDataElement
-     */
-    ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement );
+    @Nonnull
+    private final ProgramService programService;
 
-    /**
-     * Returns Map of ProgramStages containing Set of DataElements (together
-     * ProgramStageDataElements) that have skipSynchronization flag set to true
-     *
-     * @return Map<String, Set<String>>
-     */
-    Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+    @Nonnull
+    private final ProgramStageSectionService sectionService;
 
-    List<ProgramStageDataElement> getAllProgramStageDataElements( Set<ProgramStage> programStages,
-        DataElement dataElement );
+    @Nonnull
+    private final ProgramStageDataElementService stageDataElementService;
+
+    @Nonnull
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
+
+    @Nonnull
+    private final DataElementService dataElementService;
 }

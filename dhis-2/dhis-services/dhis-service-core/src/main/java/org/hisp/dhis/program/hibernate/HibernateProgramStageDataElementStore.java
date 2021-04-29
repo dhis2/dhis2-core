@@ -29,8 +29,10 @@ package org.hisp.dhis.program.hibernate;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
@@ -90,5 +92,17 @@ public class HibernateProgramStageDataElementStore
         } );
 
         return psdesWithSkipSync;
+    }
+
+    @Override
+    public List<ProgramStageDataElement> getAllProgramStageDataElements( Set<ProgramStage> programStages,
+        DataElement dataElement )
+    {
+        return getQuery(
+            "FROM ProgramStageDataElement psde WHERE psde.programStage IN ( :stages ) AND psde.dataElement = :dataElement" )
+                .setParameter( "stages",
+                    programStages.stream().map( ProgramStage::getId ).collect( Collectors.toList() ) )
+                .setParameter( "dataElement", dataElement )
+                .getResultList();
     }
 }

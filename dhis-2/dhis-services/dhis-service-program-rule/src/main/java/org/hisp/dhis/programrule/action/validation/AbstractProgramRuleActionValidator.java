@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
@@ -79,6 +83,23 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
                         rule.getName() ) )
                     .build();
             }
+
+            List<ProgramStageDataElement> stageDataElements = validationContext.getProgramRuleActionValidationService()
+                .getStageDataElementService()
+                .getAllProgramStageDataElements( rule.getProgram().getProgramStages(), dataElement );
+
+            // DataElement is not linked to any program stage
+            if ( stageDataElements.isEmpty() )
+            {
+                log.debug( String.format( "DataElement: %s is not linked to any ProgramStageDataElement",
+                    programRuleAction.getDataElement().getUid() ) );
+
+                return ProgramRuleActionValidationResult.builder()
+                    .valid( false )
+                    .errorReport( new ErrorReport( DataElement.class, ErrorCode.E4047,
+                        programRuleAction.getDataElement().getUid() ) )
+                    .build();
+            }
         }
 
         if ( programRuleAction.hasTrackedEntityAttribute() )
@@ -96,6 +117,25 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
                 return ProgramRuleActionValidationResult.builder()
                     .valid( false )
                     .errorReport( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4046,
+                        programRuleAction.getAttribute().getUid(),
+                        rule.getName() ) )
+                    .build();
+            }
+
+            ProgramTrackedEntityAttribute programTrackedEntityAttribute = validationContext
+                .getProgramRuleActionValidationService().getTrackedEntityAttributeService()
+                .getProgramTrackedEntityAttribute( rule.getProgram(), attribute );
+
+            if ( programTrackedEntityAttribute == null )
+            {
+                log.debug( String.format(
+                    "TrackedEntityAttribute: %s is not linked to ProgramTrackedEntityAttribute for program rule %s",
+                    programRuleAction.getAttribute().getUid(),
+                    rule.getName() ) );
+
+                return ProgramRuleActionValidationResult.builder()
+                    .valid( false )
+                    .errorReport( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4048,
                         programRuleAction.getAttribute().getUid(),
                         rule.getName() ) )
                     .build();

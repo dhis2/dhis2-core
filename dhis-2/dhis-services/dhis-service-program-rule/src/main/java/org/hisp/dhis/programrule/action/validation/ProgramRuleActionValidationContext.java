@@ -66,8 +66,10 @@ public class ProgramRuleActionValidationContext
 
     private ProgramNotificationTemplate notificationTemplate;
 
+    private ProgramRuleActionValidationService programRuleActionValidationService;
+
     public static ProgramRuleActionValidationContext load( Preheat preheat, PreheatIdentifier preheatIdentifier,
-        ProgramRuleAction ruleAction )
+        ProgramRuleAction ruleAction, ProgramRuleActionValidationService programRuleActionValidationService )
     {
         return ProgramRuleActionValidationContext.builder()
             .programRule( preheat.get( preheatIdentifier, ProgramRule.class,
@@ -90,6 +92,7 @@ public class ProgramRuleActionValidationContext
                 ruleAction.getOption() ) : null )
             .optionGroup( ruleAction.hasOptionGroup() ? preheat.get( preheatIdentifier, OptionGroup.class,
                 ruleAction.getOptionGroup() ) : null )
+            .programRuleActionValidationService( programRuleActionValidationService )
             .build();
     }
 }

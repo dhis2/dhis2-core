@@ -65,8 +65,7 @@ public interface ProgramStageDataElementService
     void deleteProgramStageDataElement( ProgramStageDataElement programStageDataElement );
 
     /**
-     * Retrieve ProgramStageDataElement list on a program stage and a data
-     * element
+     * Retrieve ProgramStageDataElement on a program stage and a data element
      *
      * @param programStage ProgramStage
      * @param dataElement DataElement
@@ -81,6 +80,9 @@ public interface ProgramStageDataElementService
      *         collection if there are no ProgramStageDataElements.
      */
     List<ProgramStageDataElement> getAllProgramStageDataElements();
+
+    List<ProgramStageDataElement> getAllProgramStageDataElements( Set<ProgramStage> programStages,
+        DataElement dataElement );
 
     /**
      * Returns Map of ProgramStages containing Set of DataElements (together
