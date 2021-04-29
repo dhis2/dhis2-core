@@ -61,7 +61,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
-import org.hisp.dhis.system.jsonpatch.JsonPatchManager;
+import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
