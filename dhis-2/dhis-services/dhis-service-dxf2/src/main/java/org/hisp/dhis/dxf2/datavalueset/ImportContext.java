@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import static java.util.Collections.emptySet;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +39,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DateRange;
@@ -44,7 +47,9 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -73,6 +78,8 @@ public final class ImportContext
     private final ImportOptions importOptions;
 
     private final User currentUser;
+
+    private final Set<OrganisationUnit> currentOrgUnits;
 
     private final I18n i18n;
 
@@ -181,5 +188,78 @@ public final class ImportContext
         summary.getConflicts().addAll( values.stream()
             .map( value -> new ImportConflict( object, value ) )
             .collect( Collectors.toList() ) );
+    }
+
+    public String getStoredBy( DataValue dataValue )
+    {
+        return dataValue.getStoredBy() == null || dataValue.getStoredBy().trim().isEmpty()
+            ? getCurrentUserName()
+            : dataValue.getStoredBy();
+    }
+
+    public DataSet getApprovalDataSet( DataSetContext dataSetContext, DataValueContext valueContext )
+    {
+        return dataSetContext.getDataSet() != null
+            ? dataSetContext.getDataSet()
+            : getDataElementDataSetMap().get( valueContext.getDataElement().getUid(),
+                valueContext.getDataElement()::getApprovalDataSet );
+    }
+
+    /**
+     * The existing persisted objects in the context of a {@link DataValueSet}
+     * import.
+     *
+     * @author Jan Bernitt
+     */
+    @Getter
+    @Builder
+    @AllArgsConstructor( access = AccessLevel.PRIVATE )
+    public static final class DataSetContext
+    {
+        private final DataSet dataSet;
+
+        private final Period outerPeriod;
+
+        private final OrganisationUnit outerOrgUnit;
+
+        private final CategoryOptionCombo outerAttrOptionCombo;
+
+        private final CategoryOptionCombo fallbackCategoryOptionCombo;
+
+        public Set<DataElement> getDataSetDataElements()
+        {
+            return dataSet != null ? dataSet.getDataElements() : emptySet();
+        }
+
+    }
+
+    /**
+     * Context for a single {@link org.hisp.dhis.dxf2.events.event.DataValue} of
+     * a {@link DataValueSet} during the import.
+     *
+     * @author Jan Bernitt
+     */
+    @Getter
+    @Builder
+    @AllArgsConstructor( access = AccessLevel.PRIVATE )
+    public static final class DataValueContext
+    {
+        private final DataElement dataElement;
+
+        private final Period period;
+
+        private final OrganisationUnit orgUnit;
+
+        @Setter
+        private CategoryOptionCombo categoryOptionCombo;
+
+        @Setter
+        private CategoryOptionCombo attrOptionCombo;
+
+        public org.hisp.dhis.datavalue.DataValue getActualDataValue( DataValueService dataValueService )
+        {
+            return dataValueService.getDataValue( getDataElement(), getPeriod(), getOrgUnit(), getCategoryOptionCombo(),
+                getAttrOptionCombo() );
+        }
     }
 }
