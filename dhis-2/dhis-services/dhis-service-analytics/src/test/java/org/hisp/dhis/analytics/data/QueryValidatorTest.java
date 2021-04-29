@@ -195,6 +195,19 @@ public class QueryValidatorTest
     }
 
     @Test
+    public void validateSuccessSingleProgramIndicatorFilter()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList( inA ) ) )
+            .build();
+
+        queryValidator.validate( params );
+    }
+
+    @Test
     public void validateFailureSingleIndicatorAsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -202,6 +215,20 @@ public class QueryValidatorTest
                 new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, inA ) ) ).build();
+
+        assertValidatonError( ErrorCode.E7108, params );
+    }
+
+    @Test
+    public void validateFailureProgramSingleIndicatorAsFilter()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .addFilter(
+                new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList( deA, inA ) ) )
+            .build();
 
         assertValidatonError( ErrorCode.E7108, params );
     }
