@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -242,17 +243,28 @@ public class DataValueSetImportValidator
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         Set<ImportConflict> conflicts = context.getSummary().getConflicts();
-        int conflictsBefore = conflicts.size();
-        for ( DataValueValidation validation : dataValueValidations )
+        Set<ImportConflict> validationConflicts = new HashSet<>();
+        context.getSummary().setConflicts( validationConflicts );
+        try
         {
-            validation.validate( dataValue, context, dataSetContext, valueContext );
-            if ( conflicts.size() > conflictsBefore )
+            for ( DataValueValidation validation : dataValueValidations )
             {
-                conflicts.remove( ImportConflict.SKIP ); // just in case
-                return true;
+                validation.validate( dataValue, context, dataSetContext, valueContext );
+                if ( !validationConflicts.isEmpty() )
+                {
+                    if ( !validationConflicts.contains( ImportConflict.SKIP ) )
+                    {
+                        conflicts.addAll( validationConflicts );
+                    }
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
+        finally
+        {
+            context.getSummary().setConflicts( conflicts );
+        }
     }
 
     private static void validateDataValueDataElementExists( DataValue dataValue, ImportContext context,
