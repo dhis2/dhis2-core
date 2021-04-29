@@ -66,6 +66,10 @@ import org.hisp.dhis.user.User;
 public final class ImportContext
 {
 
+    /*
+     * Read-only state
+     */
+
     private final ImportOptions importOptions;
 
     private final User currentUser;
