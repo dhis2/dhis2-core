@@ -226,18 +226,6 @@
 
     <property name="percentStackedValues"/>
 
-    <property name="rangeAxisMaxValue"/>
-
-    <property name="rangeAxisMinValue"/>
-
-    <property name="rangeAxisSteps"/>
-
-    <property name="rangeAxisDecimals"/>
-
-    <property name="targetLineValue"/>
-
-    <property name="baseLineValue"/>
-
     <property name="title"/>
 
     <property name="subtitle"/>
@@ -257,14 +245,6 @@
     <property name="hideLegend"/>
 
     <property name="noSpaceBetweenColumns"/>
-
-    <property name="targetLineLabel"/>
-
-    <property name="baseLineLabel"/>
-
-    <property name="domainAxisLabel"/>
-
-    <property name="rangeAxisLabel"/>
 
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_visualization_legendsetid"/>

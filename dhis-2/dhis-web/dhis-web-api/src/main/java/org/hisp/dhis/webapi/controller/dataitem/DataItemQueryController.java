@@ -39,7 +39,6 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -163,7 +162,7 @@ public class DataItemQueryController
         final RootNode rootNode = createMetadata();
 
         responseHandler.addResultsToNode( rootNode, dimensionalItems, fields );
-        responseHandler.addPaginationToNode( rootNode, new ArrayList<>( targetEntities ), currentUser, options,
+        responseHandler.addPaginationToNode( rootNode, targetEntities, currentUser, options,
             filters );
 
         return new ResponseEntity<>( rootNode, OK );

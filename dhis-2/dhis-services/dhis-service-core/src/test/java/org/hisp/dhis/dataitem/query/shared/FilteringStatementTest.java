@@ -32,10 +32,8 @@ import static org.apache.commons.collections4.SetUtils.unmodifiableSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunction;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
@@ -52,7 +50,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 public class FilteringStatementTest
 {
     @Test
-    public void testCommonFilteringUsingOneColumnAndIlikeFilterIsSet()
+    public void testNameFilteringUsingOneColumnAndIlikeFilterIsSet()
     {
         // Given
         final String aColumn = "anyColumn";
@@ -68,7 +66,7 @@ public class FilteringStatementTest
     }
 
     @Test
-    public void testCommonFilteringUsingOneColumnAndIlikeFilterIsNotSet()
+    public void testNameFilteringUsingOneColumnAndIlikeFilterIsNotSet()
     {
         // Given
         final String aColumn = "anyColumn";
@@ -82,7 +80,7 @@ public class FilteringStatementTest
     }
 
     @Test
-    public void testCommonFilteringUsingOneColumnAndIlikeFilterIsNull()
+    public void testValueTypeFilteringUsingOneColumnAndIlikeFilterIsNull()
     {
         // Given
         final String aColumn = "anyColumn";
@@ -97,7 +95,7 @@ public class FilteringStatementTest
     }
 
     @Test
-    public void testCommonFilteringUsingOneColumnAndIlikeFilterIsEmpty()
+    public void testValueTypeFilteringUsingOneColumnAndIlikeFilterIsEmpty()
     {
         // Given
         final String aColumn = "anyColumn";
@@ -112,7 +110,7 @@ public class FilteringStatementTest
     }
 
     @Test
-    public void testCommonFilteringUsingTwoColumnAndIlikeFilterIsSet()
+    public void testNameFilteringUsingTwoColumnAndIlikeFilterIsSet()
     {
         // Given
         final String column1 = "anyColumn";
@@ -129,7 +127,7 @@ public class FilteringStatementTest
     }
 
     @Test
-    public void testCommonFilteringUsingTwoColumnAndIlikeFilterIsNotSet()
+    public void testNameFilteringUsingTwoColumnAndIlikeFilterIsNotSet()
     {
         // Given
         final String column1 = "anyColumn";
@@ -219,35 +217,6 @@ public class FilteringStatementTest
 
         // Then
         assertThat( actualResult, is( EMPTY ) );
-    }
-
-    @Test
-    public void testSkipNumberValueTypeWhenNumberTypeIsPresentInParameters()
-    {
-        // Given
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( VALUE_TYPES, unmodifiableSet( "NUMBER", "INTEGER" ) );
-
-        // When
-        final boolean actualResult = skipValueType( NUMBER, theParameterSource );
-
-        // Then
-        assertThat( actualResult, is( false ) );
-    }
-
-    @Test
-    public void testSkipNumberValueTypeWhenNumberTypeIsNotPresentInParameters()
-    {
-        // Given
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( VALUE_TYPES, unmodifiableSet( "BOOLEAN", "INTEGER" ) );
-        final boolean expectedResult = true;
-
-        // When
-        final boolean actualResult = skipValueType( NUMBER, theParameterSource );
-
-        // Then
-        assertThat( actualResult, is( expectedResult ) );
     }
 
     @Test

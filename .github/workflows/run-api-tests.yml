@@ -1,15 +1,23 @@
 name: Run api tests
 
 on:
-  pull_request:
-    types: [labeled, synchronize ]
+  pull_request: 
+    types: [ labeled, synchronize ]
 jobs:
+  cleanup-runs:
+   runs-on: ubuntu-latest
+   steps:
+   - uses: rokroskar/workflow-run-cleanup-action@master
+     env:
+       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
+     
   api-test:
     env:
       CORE_IMAGE_NAME: "dhis2/core:local"
       TEST_IMAGE_NAME: "dhis2/tests:local"
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'run-api-tests')
+    if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
