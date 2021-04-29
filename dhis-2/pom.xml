@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
@@ -387,16 +387,16 @@
               <configuration>
                 <target>
                   <tstamp>
-                    <format property="now" pattern="yyyy-MM-dd HH:mm:ss" />
+                    <format property="now" pattern="yyyy-MM-dd HH:mm:ss"/>
                   </tstamp>
-                  <mkdir dir="${project.build.outputDirectory}" />
+                  <mkdir dir="${project.build.outputDirectory}"/>
                   <exec executable="git" outputproperty="revision" failifexecutionfails="false">
-                    <arg value="rev-parse" />
-                    <arg value="--short=7" />
-                    <arg value="HEAD" />
+                    <arg value="rev-parse"/>
+                    <arg value="--short=7"/>
+                    <arg value="HEAD"/>
                   </exec>
                   <echo file="${project.build.outputDirectory}/build.properties"
-                    message="build.version = ${project.version}&#10;build.time = ${now}&#10;build.revision = ${revision}&#10;jasperreports.version = ${jasperreports.version}&#10;" />
+                        message="build.version = ${project.version}&#10;build.time = ${now}&#10;build.revision = ${revision}&#10;jasperreports.version = ${jasperreports.version}&#10;"/>
                 </target>
               </configuration>
               <goals>
@@ -502,15 +502,15 @@
               <goal>enforce</goal>
             </goals>
             <configuration>
-                <rules>
-                    <banDuplicatePomDependencyVersions/>
-                    <requireMavenVersion>
-                        <version>3.6.0</version>
-                    </requireMavenVersion>
-                    <requireJavaVersion>
-                        <version>1.8</version>
-                    </requireJavaVersion>
-                </rules>
+              <rules>
+                <banDuplicatePomDependencyVersions/>
+                <requireMavenVersion>
+                  <version>3.6.0</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>1.8</version>
+                </requireJavaVersion>
+              </rules>
             </configuration>
           </execution>
         </executions>
@@ -1732,8 +1732,8 @@
       </dependency>
 
       <dependency>
-          <groupId>org.apache.activemq</groupId>
-          <artifactId>activemq-artemis-native</artifactId>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>activemq-artemis-native</artifactId>
         <version>1.0.2</version>
         <exclusions>
           <exclusion>
@@ -1743,7 +1743,7 @@
         </exclusions>
       </dependency>
 
-      <!-- AMQP -->
+      <!-- Apache Artemis -->
       <dependency>
         <groupId>org.apache.activemq</groupId>
         <artifactId>artemis-server</artifactId>
@@ -1796,19 +1796,14 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>org.apache.geronimo.specs</groupId>
+        <artifactId>geronimo-jms_2.0_spec</artifactId>
+        <version>1.0-alpha-2</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.activemq</groupId>
-        <artifactId>artemis-amqp-protocol</artifactId>
+        <artifactId>artemis-jms-client</artifactId>
         <version>${artemis.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-buffer</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>io.netty</groupId>
@@ -1817,51 +1812,12 @@
       </dependency>
 
       <dependency>
-        <groupId>org.apache.qpid</groupId>
-        <artifactId>qpid-jms-client</artifactId>
-        <version>0.56.0</version>
-        <exclusions>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-buffer</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-codec-http</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-common</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-handler</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport-native-epoll</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport-native-kqueue</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.qpid</groupId>
-        <artifactId>proton-j</artifactId>
-        <version>0.33.8</version>
-      </dependency>
-      <dependency>
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
         <version>1.18.10</version>
         <scope>provided</scope>
       </dependency>
+
       <!-- SMPP -->
       <dependency>
         <groupId>org.jsmpp</groupId>
@@ -2029,7 +1985,7 @@
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>
-        <artifactId>postgresql </artifactId>
+        <artifactId>postgresql</artifactId>
         <version>${testcontainers.version}</version>
       </dependency>
 
@@ -2113,7 +2069,7 @@
     <geotools.version>18.0</geotools.version>
     <jasperreports.version>6.3.1</jasperreports.version>
     <jacoco.version>0.8.2</jacoco.version>
-    <artemis.version>2.16.0</artemis.version>
+    <artemis.version>2.17.0</artemis.version>
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
