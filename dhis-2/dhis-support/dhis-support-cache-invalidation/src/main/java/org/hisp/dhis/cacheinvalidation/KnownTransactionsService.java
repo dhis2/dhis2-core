@@ -27,13 +27,38 @@
  */
 package org.hisp.dhis.cacheinvalidation;
 
+import java.util.concurrent.TimeUnit;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
-public class QueryCacheRegionNameManager
+@Slf4j
+public class KnownTransactionsService
 {
+    private final Cache<Long, Boolean> applicationTransactions;
 
+    public KnownTransactionsService()
+    {
+        applicationTransactions = CacheBuilder.newBuilder()
+            .expireAfterAccess( 10, TimeUnit.MINUTES )
+            .build();
+    }
+
+    public void register( long txId )
+    {
+        applicationTransactions.put( txId, true );
+    }
+
+    public boolean isKnown( long txId )
+    {
+        return Boolean.TRUE.equals( applicationTransactions.getIfPresent( txId ) );
+    }
 }

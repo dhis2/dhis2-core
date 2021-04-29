@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 public class HibernateFlushListener implements FlushEventListener
 {
     @Autowired
-    private volatile KnownTransactions knownTransactions;
+    private volatile KnownTransactionsService knownTransactionsService;
 
     public void onFlush( FlushEvent event )
         throws HibernateException
@@ -51,7 +51,7 @@ public class HibernateFlushListener implements FlushEventListener
                 .setFlushMode( FlushMode.MANUAL )
                 .getSingleResult();
 
-            knownTransactions.register( txId.longValue() );
+            knownTransactionsService.register( txId.longValue() );
         } );
     }
 }

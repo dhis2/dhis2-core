@@ -72,7 +72,7 @@ public class DbChangeEventHandler
     private SessionFactory sessionFactory;
 
     @Autowired
-    private KnownTransactions knownTransactions;
+    private KnownTransactionsService knownTransactionsService;
 
     @Autowired
     private PaginationCacheManager paginationCacheManager;
@@ -128,7 +128,7 @@ public class DbChangeEventHandler
 
         Envelope.Operation operation = Envelope.Operation.forCode( payload.getString( "op" ) );
 
-        if ( !knownTransactions.isKnown( txId ) )
+        if ( !knownTransactionsService.isKnown( txId ) )
         {
             if ( operation == Envelope.Operation.UPDATE || operation == Envelope.Operation.DELETE )
             {
