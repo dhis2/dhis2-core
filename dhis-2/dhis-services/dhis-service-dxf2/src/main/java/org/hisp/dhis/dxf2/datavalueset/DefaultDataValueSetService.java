@@ -46,6 +46,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -58,7 +60,6 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
@@ -100,7 +101,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
@@ -126,8 +126,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.csvreader.CsvReader;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Note that a mock BatchHandler factory is being injected.
@@ -836,30 +834,6 @@ public class DefaultDataValueSetService
         NotificationLevel notificationLevel = context.getImportOptions().getNotificationLevel( INFO );
         notifier.clear( id ).notify( id, notificationLevel, "Process started" );
 
-
-        // ---------------------------------------------------------------------
-        // Create meta-data maps
-        // ---------------------------------------------------------------------
-
-        CachingMap<String, DataElement> dataElementMap = new CachingMap<>();
-        CachingMap<String, OrganisationUnit> orgUnitMap = new CachingMap<>();
-        CachingMap<String, CategoryOptionCombo> optionComboMap = new CachingMap<>();
-        CachingMap<String, DataSet> dataElementDataSetMap = new CachingMap<>();
-        CachingMap<String, Period> periodMap = new CachingMap<>();
-        CachingMap<String, Set<PeriodType>> dataElementPeriodTypesMap = new CachingMap<>();
-        CachingMap<String, Set<CategoryOptionCombo>> dataElementCategoryOptionComboMap = new CachingMap<>();
-        CachingMap<String, Set<CategoryOptionCombo>> dataElementAttrOptionComboMap = new CachingMap<>();
-        CachingMap<String, Boolean> dataElementOrgUnitMap = new CachingMap<>();
-        CachingMap<String, Boolean> dataSetLockedMap = new CachingMap<>();
-        CachingMap<String, Period> dataElementLatestFuturePeriodMap = new CachingMap<>();
-        CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
-        CachingMap<String, DateRange> attrOptionComboDateRangeMap = new CachingMap<>();
-        CachingMap<String, Boolean> attrOptionComboOrgUnitMap = new CachingMap<>();
-        CachingMap<String, Optional<Set<String>>> dataElementOptionsMap = new CachingMap<>();
-        CachingMap<String, Boolean> approvalMap = new CachingMap<>();
-        CachingMap<String, Boolean> lowestApprovalLevelMap = new CachingMap<>();
-        CachingMap<String, Boolean> periodOpenForDataElement = new CachingMap<>();
-
         // ---------------------------------------------------------------------
         // Get meta-data maps
         // ---------------------------------------------------------------------
@@ -882,11 +856,11 @@ public class DefaultDataValueSetService
 
         if ( context.getImportOptions().isPreheatCacheDefaultFalse() )
         {
-            dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ),
+            context.getDataElementMap().load( identifiableObjectManager.getAll( DataElement.class ),
                 o -> o.getPropertyValue( context.getDataElementIdScheme() ) );
-            orgUnitMap.load( identifiableObjectManager.getAll( OrganisationUnit.class ),
+            context.getOrgUnitMap().load( identifiableObjectManager.getAll( OrganisationUnit.class ),
                 o -> o.getPropertyValue( context.getOrgUnitIdScheme() ) );
-            optionComboMap.load( identifiableObjectManager.getAll( CategoryOptionCombo.class ),
+            context.getOptionComboMap().load( identifiableObjectManager.getAll( CategoryOptionCombo.class ),
                 o -> o.getPropertyValue( context.getCategoryOptComboIdScheme() ) );
         }
 
@@ -901,9 +875,10 @@ public class DefaultDataValueSetService
 
         Date completeDate = parseDate( dataValueSet.getCompleteDate() );
 
-        Period outerPeriod = periodMap.get( trimToNull( dataValueSet.getPeriod() ), periodCallable );
+        Period outerPeriod = context.getPeriodMap().get( trimToNull( dataValueSet.getPeriod() ), periodCallable );
 
-        OrganisationUnit outerOrgUnit = orgUnitMap.get( trimToNull( dataValueSet.getOrgUnit() ), orgUnitCallable );
+        OrganisationUnit outerOrgUnit = context.getOrgUnitMap().get( trimToNull( dataValueSet.getOrgUnit() ),
+            orgUnitCallable );
 
         CategoryOptionCombo fallbackCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
@@ -913,7 +888,8 @@ public class DefaultDataValueSetService
 
         if ( dataValueSet.getAttributeOptionCombo() != null )
         {
-            outerAttrOptionCombo = optionComboMap.get( trimToNull( dataValueSet.getAttributeOptionCombo() ),
+            outerAttrOptionCombo = context.getOptionComboMap().get(
+                trimToNull( dataValueSet.getAttributeOptionCombo() ),
                 attributeOptionComboCallable.setId( trimToNull( dataValueSet.getAttributeOptionCombo() ) ) );
         }
         else if ( dataValueSet.getAttributeCategoryOptions() != null )
@@ -1000,46 +976,48 @@ public class DefaultDataValueSetService
 
             totalCount++;
 
-            final DataElement dataElement = dataElementMap.get( trimToNull( dataValue.getDataElement() ),
+            final DataElement dataElement = context.getDataElementMap().get( trimToNull( dataValue.getDataElement() ),
                 dataElementCallable.setId( trimToNull( dataValue.getDataElement() ) ) );
             final Period period = outerPeriod != null ? outerPeriod
-                : periodMap.get( trimToNull( dataValue.getPeriod() ),
+                : context.getPeriodMap().get( trimToNull( dataValue.getPeriod() ),
                     periodCallable.setId( trimToNull( dataValue.getPeriod() ) ) );
             final OrganisationUnit orgUnit = outerOrgUnit != null ? outerOrgUnit
-                : orgUnitMap.get( trimToNull( dataValue.getOrgUnit() ),
+                : context.getOrgUnitMap().get( trimToNull( dataValue.getOrgUnit() ),
                     orgUnitCallable.setId( trimToNull( dataValue.getOrgUnit() ) ) );
-            CategoryOptionCombo categoryOptionCombo = optionComboMap.get(
+            CategoryOptionCombo categoryOptionCombo = context.getOptionComboMap().get(
                 trimToNull( dataValue.getCategoryOptionCombo() ),
                 categoryOptionComboCallable.setId( trimToNull( dataValue.getCategoryOptionCombo() ) ) );
             CategoryOptionCombo attrOptionCombo = outerAttrOptionCombo != null ? outerAttrOptionCombo
-                : optionComboMap.get( trimToNull( dataValue.getAttributeOptionCombo() ),
+                : context.getOptionComboMap().get( trimToNull( dataValue.getAttributeOptionCombo() ),
                     attributeOptionComboCallable.setId( trimToNull( dataValue.getAttributeOptionCombo() ) ) );
 
             // -----------------------------------------------------------------
             // Potentially heat caches
             // -----------------------------------------------------------------
 
-            if ( !dataElementMap.isCacheLoaded() && dataElementMap.getCacheMissCount() > CACHE_MISS_THRESHOLD )
+            if ( !context.getDataElementMap().isCacheLoaded()
+                && context.getDataElementMap().getCacheMissCount() > CACHE_MISS_THRESHOLD )
             {
-                dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ),
+                context.getDataElementMap().load( identifiableObjectManager.getAll( DataElement.class ),
                     o -> o.getPropertyValue( context.getDataElementIdScheme() ) );
 
                 log.info( "Data element cache heated after cache miss threshold reached" );
             }
 
-            if ( !orgUnitMap.isCacheLoaded() && orgUnitMap.getCacheMissCount() > CACHE_MISS_THRESHOLD )
+            if ( !context.getOrgUnitMap().isCacheLoaded()
+                && context.getOrgUnitMap().getCacheMissCount() > CACHE_MISS_THRESHOLD )
             {
-                orgUnitMap.load( identifiableObjectManager.getAll( OrganisationUnit.class ),
+                context.getOrgUnitMap().load( identifiableObjectManager.getAll( OrganisationUnit.class ),
                     o -> o.getPropertyValue( context.getOrgUnitIdScheme() ) );
 
                 log.info( "Org unit cache heated after cache miss threshold reached" );
             }
 
-            if ( !optionComboMap.isCacheLoaded() && optionComboMap.getCacheMissCount() > CACHE_MISS_THRESHOLD )
+            if ( !context.getOptionComboMap().isCacheLoaded()
+                && context.getOptionComboMap().getCacheMissCount() > CACHE_MISS_THRESHOLD )
             {
-                optionComboMap.load( identifiableObjectManager.getAll( CategoryOptionCombo.class ),
-                    o -> o.getPropertyValue(
-                        context.getCategoryOptComboIdScheme() ) );
+                context.getOptionComboMap().load( identifiableObjectManager.getAll( CategoryOptionCombo.class ),
+                    o -> o.getPropertyValue( context.getCategoryOptComboIdScheme() ) );
 
                 log.info( "Category Option Combo cache heated after cache miss threshold reached" );
             }
@@ -1102,7 +1080,7 @@ public class DefaultDataValueSetService
                 }
             }
 
-            boolean inUserHierarchy = orgUnitInHierarchyMap.get( orgUnit.getUid(),
+            boolean inUserHierarchy = context.getOrgUnitInHierarchyMap().get( orgUnit.getUid(),
                 () -> orgUnit.isDescendant( currentOrgUnits ) );
 
             if ( !inUserHierarchy )
@@ -1140,7 +1118,7 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            Optional<Set<String>> optionCodes = dataElementOptionsMap.get( dataElement.getUid(),
+            Optional<Set<String>> optionCodes = context.getDataElementOptionsMap().get( dataElement.getUid(),
                 () -> dataElement.hasOptionSet() ? Optional.of( dataElement.getOptionSet().getOptionCodesAsSet() )
                     : Optional.empty() );
 
@@ -1183,7 +1161,7 @@ public class DefaultDataValueSetService
                 }
             }
 
-            if ( context.isStrictPeriods() && !dataElementPeriodTypesMap.get( dataElement.getUid(),
+            if ( context.isStrictPeriods() && !context.getDataElementPeriodTypesMap().get( dataElement.getUid(),
                 dataElement::getPeriodTypes ).contains( period.getPeriodType() ) )
             {
                 context.addConflict( dataValue.getPeriod(),
@@ -1199,8 +1177,9 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            if ( context.isStrictCategoryOptionCombos() && !dataElementCategoryOptionComboMap.get( dataElement.getUid(),
-                dataElement::getCategoryOptionCombos ).contains( categoryOptionCombo ) )
+            if ( context.isStrictCategoryOptionCombos()
+                && !context.getDataElementCategoryOptionComboMap().get( dataElement.getUid(),
+                    dataElement::getCategoryOptionCombos ).contains( categoryOptionCombo ) )
             {
                 context.addConflict( categoryOptionCombo.getUid(),
                     "Category option combo: " + categoryOptionCombo.getUid()
@@ -1208,8 +1187,9 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            if ( context.isStrictAttrOptionCombos() && !dataElementAttrOptionComboMap.get( dataElement.getUid(),
-                dataElement::getDataSetCategoryOptionCombos ).contains( attrOptionCombo ) )
+            if ( context.isStrictAttrOptionCombos()
+                && !context.getDataElementAttrOptionComboMap().get( dataElement.getUid(),
+                    dataElement::getDataSetCategoryOptionCombos ).contains( attrOptionCombo ) )
             {
                 context.addConflict( attrOptionCombo.getUid(),
                     "Attribute option combo: " + attrOptionCombo.getUid()
@@ -1218,8 +1198,9 @@ public class DefaultDataValueSetService
             }
 
             if ( context.isStrictOrgUnits()
-                && BooleanUtils.isFalse( dataElementOrgUnitMap.get( dataElement.getUid() + orgUnit.getUid(),
-                    () -> orgUnit.hasDataElement( dataElement ) ) ) )
+                && BooleanUtils
+                    .isFalse( context.getDataElementOrgUnitMap().get( dataElement.getUid() + orgUnit.getUid(),
+                        () -> orgUnit.hasDataElement( dataElement ) ) ) )
             {
                 context.addConflict( orgUnit.getUid(),
                     "Data element: " + dataElement.getUid()
@@ -1250,9 +1231,9 @@ public class DefaultDataValueSetService
             final CategoryOptionCombo aoc = attrOptionCombo;
 
             DateRange aocDateRange = dataSet != null
-                ? attrOptionComboDateRangeMap.get( attrOptionCombo.getUid() + dataSet.getUid(),
+                ? context.getAttrOptionComboDateRangeMap().get( attrOptionCombo.getUid() + dataSet.getUid(),
                     () -> aoc.getDateRange( dataSet ) )
-                : attrOptionComboDateRangeMap.get( attrOptionCombo.getUid() + dataElement.getUid(),
+                : context.getAttrOptionComboDateRangeMap().get( attrOptionCombo.getUid() + dataElement.getUid(),
                     () -> aoc.getDateRange( dataElement ) );
 
             if ( (aocDateRange.getStartDate() != null && aocDateRange.getStartDate().after( period.getEndDate() ))
@@ -1264,7 +1245,7 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            if ( !attrOptionComboOrgUnitMap.get( attrOptionCombo.getUid() + orgUnit.getUid(), () -> {
+            if ( !context.getAttrOptionComboOrgUnitMap().get( attrOptionCombo.getUid() + orgUnit.getUid(), () -> {
                 Set<OrganisationUnit> aocOrgUnits = aoc.getOrganisationUnits();
                 return aocOrgUnits == null || orgUnit.isDescendant( aocOrgUnits );
             } ) )
@@ -1276,12 +1257,12 @@ public class DefaultDataValueSetService
             }
 
             final DataSet approvalDataSet = dataSet != null ? dataSet
-                : dataElementDataSetMap.get( dataElement.getUid(), dataElement::getApprovalDataSet );
+                : context.getDataElementDataSetMap().get( dataElement.getUid(), dataElement::getApprovalDataSet );
 
             // Data element is assigned to at least one data set
             if ( approvalDataSet != null && !context.isForceDataInput() )
             {
-                if ( dataSetLockedMap.get( approvalDataSet.getUid() + period.getUid() + orgUnit.getUid(),
+                if ( context.getDataSetLockedMap().get( approvalDataSet.getUid() + period.getUid() + orgUnit.getUid(),
                     () -> isLocked( context.getCurrentUser(), approvalDataSet, period, orgUnit,
                         context.isSkipLockExceptionCheck() ) ) )
                 {
@@ -1290,7 +1271,7 @@ public class DefaultDataValueSetService
                     continue;
                 }
 
-                Period latestFuturePeriod = dataElementLatestFuturePeriodMap.get( dataElement.getUid(),
+                Period latestFuturePeriod = context.getDataElementLatestFuturePeriodMap().get( dataElement.getUid(),
                     dataElement::getLatestOpenFuturePeriod );
 
                 if ( period.isAfter( latestFuturePeriod ) && context.isIso8601() )
@@ -1307,11 +1288,11 @@ public class DefaultDataValueSetService
                 {
                     final String workflowPeriodAoc = workflow.getUid() + period.getUid() + attrOptionCombo.getUid();
 
-                    if ( approvalMap.get( orgUnit.getUid() + workflowPeriodAoc, () -> {
+                    if ( context.getApprovalMap().get( orgUnit.getUid() + workflowPeriodAoc, () -> {
                         DataApproval lowestApproval = DataApproval
                             .getLowestApproval( new DataApproval( null, workflow, period, orgUnit, aoc ) );
 
-                        return lowestApproval != null && lowestApprovalLevelMap.get(
+                        return lowestApproval != null && context.getLowestApprovalLevelMap().get(
                             lowestApproval.getDataApprovalLevel().getUid()
                                 + lowestApproval.getOrganisationUnit().getUid() + workflowPeriodAoc,
                             () -> approvalService.getDataApproval( lowestApproval ) != null );
@@ -1337,8 +1318,8 @@ public class DefaultDataValueSetService
             }
 
             if ( !context.isForceDataInput()
-                && !periodOpenForDataElement.get( dataElement.getUid() + period.getIsoDate(),
-                () -> dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() ) ) )
+                && !context.getPeriodOpenForDataElement().get( dataElement.getUid() + period.getIsoDate(),
+                    () -> dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() ) ) )
             {
                 context.addConflict( orgUnit.getUid(),
                     "Period " + period.getName() + " does not conform to the open periods of associated data sets" );
