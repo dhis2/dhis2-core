@@ -49,6 +49,8 @@ public final class ImportContext {
 
 	private final boolean skipAudit;
 
+    private final boolean hasSkipAuditAuth;
+
 	private final boolean dryRun;
 	private final boolean skipExistingCheck;
 	private final boolean strictPeriods;

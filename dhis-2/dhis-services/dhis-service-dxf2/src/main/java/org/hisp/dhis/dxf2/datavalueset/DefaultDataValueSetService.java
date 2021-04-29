@@ -44,6 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.calendar.CalendarService;
@@ -75,7 +76,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalueset.ImportContext.ImportContextBuilder;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -87,7 +87,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
@@ -735,106 +734,78 @@ public class DefaultDataValueSetService
         return saveDataValueSetPdf( in, importOptions, null );
     }
 
-    private ImportContext createDataValueSetImportContext( ImportOptions importOptions, DataValueSet dataValueSet )
+    private ImportContext createDataValueSetImportContext( ImportOptions options, DataValueSet data )
     {
-        ImportContextBuilder contextBuilder = ImportContext.builder();
-        importOptions = ObjectUtils.firstNonNull( importOptions, ImportOptions.getDefaultImportOptions() );
+        options = ObjectUtils.firstNonNull( options, ImportOptions.getDefaultImportOptions() );
 
-        contextBuilder.importOptions( importOptions );
-
-        ImportSummary summary = new ImportSummary().setImportOptions( importOptions );
-        contextBuilder.summary( summary );
-
-        boolean isIso8601 = calendarService.getSystemCalendar().isIso8601();
-        boolean skipLockExceptionCheck = !lockExceptionStore.anyExists();
-        contextBuilder.isIso8601( isIso8601 ).skipLockExceptionCheck( skipLockExceptionCheck );
-
-        log.info( String.format( "Is ISO calendar: %b, skip lock exception check: %b", isIso8601,
-            skipLockExceptionCheck ) );
-
-        I18n i18n = i18nManager.getI18n();
         final User currentUser = currentUserService.getCurrentUser();
-
-        contextBuilder.i18n( i18n ).currentUser( currentUser );
 
         boolean auditEnabled = config.isEnabled( CHANGELOG_AGGREGATE );
         boolean hasSkipAuditAuth = currentUser != null
             && currentUser.isAuthorized( Authorities.F_SKIP_DATA_IMPORT_AUDIT );
-        boolean skipAudit = (importOptions.isSkipAudit() && hasSkipAuditAuth) || !auditEnabled;
+        boolean skipAudit = (options.isSkipAudit() && hasSkipAuditAuth) || !auditEnabled;
 
-        contextBuilder.skipAudit( skipAudit );
+        SystemSettingManager settings = systemSettingManager;
 
-        log.info( String.format( "Skip audit: %b, has authority to skip: %b", skipAudit, hasSkipAuditAuth ) );
+        return ImportContext.builder()
+            .importOptions( options )
+            .summary( new ImportSummary().setImportOptions( options ) )
+            .isIso8601( calendarService.getSystemCalendar().isIso8601() )
+            .skipLockExceptionCheck( !lockExceptionStore.anyExists() )
+            .i18n( i18nManager.getI18n() )
+            .currentUser( currentUser )
+            .hasSkipAuditAuth( hasSkipAuditAuth )
+            .skipAudit( skipAudit )
+            .idScheme( createIdScheme( data.getIdSchemeProperty(), options, IdSchemes::getIdScheme ) )
+            .dataElementIdScheme(
+                createIdScheme( data.getDataElementIdSchemeProperty(), options, IdSchemes::getDataElementIdScheme ) )
+            .orgUnitIdScheme(
+                createIdScheme( data.getOrgUnitIdSchemeProperty(), options, IdSchemes::getOrgUnitIdScheme ) )
+            .categoryOptComboIdScheme( createIdScheme( data.getCategoryOptionComboIdSchemeProperty(), options,
+                IdSchemes::getCategoryOptionComboIdScheme ) )
+            .dataSetIdScheme(
+                createIdScheme( data.getDataSetIdSchemeProperty(), options, IdSchemes::getDataSetIdScheme ) )
+            .strategy( data.getStrategy() != null
+                ? ImportStrategy.valueOf( data.getStrategy() )
+                : options.getImportStrategy() )
+            .dryRun( data.getDryRun() != null ? data.getDryRun() : options.isDryRun() )
+            .skipExistingCheck( options.isSkipExistingCheck() )
+            .strictPeriods( options.isStrictPeriods()
+                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS ) )
+            .strictDataElements( options.isStrictDataElements()
+                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_DATA_ELEMENTS ) )
+            .strictCategoryOptionCombos( options.isStrictCategoryOptionCombos()
+                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS ) )
+            .strictAttrOptionCombos( options.isStrictAttributeOptionCombos()
+                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS ) )
+            .strictOrgUnits( options.isStrictOrganisationUnits()
+                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS ) )
+            .requireCategoryOptionCombo( options.isRequireCategoryOptionCombo()
+                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO ) )
+            .requireAttrOptionCombo( options.isRequireAttributeOptionCombo()
+                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO ) )
+            .forceDataInput( inputUtils.canForceDataInput( currentUser, options.isForce() ) )
+            .build();
+    }
 
-        // ---------------------------------------------------------------------
-        // Get import options
-        // ---------------------------------------------------------------------
+    private void logDataValueSetImportContextInfo( ImportContext context )
+    {
+        log.info( String.format( "Is ISO calendar: %b, skip lock exception check: %b",
+            context.isIso8601(), context.isSkipLockExceptionCheck() ) );
+        log.info( String.format( "Skip audit: %b, has authority to skip: %b",
+            context.isSkipAudit(), context.isHasSkipAuditAuth() ) );
+        log.info( "Import options: " + context.getImportOptions() );
+        log.info( String.format(
+            "Identifier scheme: %s, data element: %s, org unit: %s, category option combo: %s, data set: %s",
+            context.getIdScheme(), context.getDataElementIdScheme(), context.getOrgUnitIdScheme(),
+            context.getCategoryOptComboIdScheme(), context.getDataSetIdScheme() ) );
+    }
 
-        log.info( "Import options: " + importOptions );
-
-        IdScheme dvSetIdScheme = IdScheme.from( dataValueSet.getIdSchemeProperty() );
-        IdScheme dvSetDataElementIdScheme = IdScheme.from( dataValueSet.getDataElementIdSchemeProperty() );
-        IdScheme dvSetOrgUnitIdScheme = IdScheme.from( dataValueSet.getOrgUnitIdSchemeProperty() );
-        IdScheme dvSetCategoryOptComboIdScheme = IdScheme
-            .from( dataValueSet.getCategoryOptionComboIdSchemeProperty() );
-        IdScheme dvSetDataSetIdScheme = IdScheme.from( dataValueSet.getDataSetIdSchemeProperty() );
-
-        log.info( "Data value set identifier scheme: " + dvSetIdScheme + ", data element: "
-            + dvSetDataElementIdScheme + ", org unit: " + dvSetOrgUnitIdScheme + ", category option combo: "
-            + dvSetCategoryOptComboIdScheme + ", data set: " + dvSetDataSetIdScheme );
-
-        IdScheme idScheme = dvSetIdScheme.isNotNull() ? dvSetIdScheme : importOptions.getIdSchemes().getIdScheme();
-        IdScheme dataElementIdScheme = dvSetDataElementIdScheme.isNotNull() ? dvSetDataElementIdScheme
-            : importOptions.getIdSchemes().getDataElementIdScheme();
-        IdScheme orgUnitIdScheme = dvSetOrgUnitIdScheme.isNotNull() ? dvSetOrgUnitIdScheme
-            : importOptions.getIdSchemes().getOrgUnitIdScheme();
-        IdScheme categoryOptComboIdScheme = dvSetCategoryOptComboIdScheme.isNotNull()
-            ? dvSetCategoryOptComboIdScheme
-            : importOptions.getIdSchemes().getCategoryOptionComboIdScheme();
-        IdScheme dataSetIdScheme = dvSetDataSetIdScheme.isNotNull() ? dvSetDataSetIdScheme
-            : importOptions.getIdSchemes().getDataSetIdScheme();
-
-        contextBuilder.idScheme( idScheme ).dataElementIdScheme( dataElementIdScheme )
-            .orgUnitIdScheme( orgUnitIdScheme ).categoryOptComboIdScheme( categoryOptComboIdScheme )
-            .dataSetIdScheme( dataSetIdScheme );
-
-        log.info( "Identifier scheme: " + idScheme + ", data element: " + dataElementIdScheme + ", org unit: "
-            + orgUnitIdScheme + ", category option combo: " + categoryOptComboIdScheme + ", data set: "
-            + dataSetIdScheme );
-
-        ImportStrategy strategy = dataValueSet.getStrategy() != null
-            ? ImportStrategy.valueOf( dataValueSet.getStrategy() )
-            : importOptions.getImportStrategy();
-
-        boolean dryRun = dataValueSet.getDryRun() != null ? dataValueSet.getDryRun() : importOptions.isDryRun();
-        boolean skipExistingCheck = importOptions.isSkipExistingCheck();
-        boolean strictPeriods = importOptions.isStrictPeriods()
-            || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
-        boolean strictDataElements = importOptions.isStrictDataElements()
-            || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_DATA_ELEMENTS );
-        boolean strictCategoryOptionCombos = importOptions.isStrictCategoryOptionCombos()
-            || (Boolean) systemSettingManager
-                .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS );
-        boolean strictAttrOptionCombos = importOptions.isStrictAttributeOptionCombos()
-            || (Boolean) systemSettingManager
-                .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
-        boolean strictOrgUnits = importOptions.isStrictOrganisationUnits()
-            || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
-        boolean requireCategoryOptionCombo = importOptions.isRequireCategoryOptionCombo()
-            || (Boolean) systemSettingManager
-                .getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
-        boolean requireAttrOptionCombo = importOptions.isRequireAttributeOptionCombo()
-            || (Boolean) systemSettingManager
-                .getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
-        boolean forceDataInput = inputUtils.canForceDataInput( currentUser, importOptions.isForce() );
-
-        contextBuilder.strategy( strategy ).dryRun( dryRun ).skipExistingCheck( skipExistingCheck )
-            .strictPeriods( strictPeriods ).strictDataElements( strictDataElements )
-            .strictCategoryOptionCombos( strictCategoryOptionCombos )
-            .strictAttrOptionCombos( strictAttrOptionCombos ).strictOrgUnits( strictOrgUnits )
-            .requireCategoryOptionCombo( requireCategoryOptionCombo )
-            .requireAttrOptionCombo( requireAttrOptionCombo ).forceDataInput( forceDataInput );
-        return contextBuilder.build();
+    private static IdScheme createIdScheme( IdScheme fromDataValueSet, ImportOptions options,
+        Function<IdSchemes, IdScheme> getter )
+    {
+        IdScheme fromData = IdScheme.from( fromDataValueSet );
+        return fromData.isNotNull() ? fromData : getter.apply( options.getIdSchemes() );
     }
 
     /**
@@ -858,6 +829,7 @@ public class DefaultDataValueSetService
         DataValueSet dataValueSet )
     {
         final ImportContext context = createDataValueSetImportContext( importOptions, dataValueSet );
+        logDataValueSetImportContextInfo( context );
 
         Clock clock = new Clock( log ).startClock()
             .logTime( "Starting data value import, options: " + context.getImportOptions() );
