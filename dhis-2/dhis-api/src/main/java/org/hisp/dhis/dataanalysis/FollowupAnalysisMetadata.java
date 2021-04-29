@@ -27,25 +27,45 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Jan Bernitt
  */
-public interface FollowupAnalysisService
+@Getter
+public class FollowupAnalysisMetadata
 {
-    /**
-     * @deprecated Use {@link #getFollowupDataValues(FollowupAnalysisRequest)}
-     */
-    @Deprecated
-    List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
-        Collection<DataElement> dataElements, Collection<Period> periods, int limit );
 
-    FollowupAnalysisResponse getFollowupDataValues( FollowupAnalysisRequest params );
+    @JsonProperty
+    private final List<String> de;
+
+    @JsonProperty
+    private final List<String> coc;
+
+    @JsonProperty
+    private final List<String> ou;
+
+    @JsonProperty
+    private final Date startDate;
+
+    @JsonProperty
+    private final Date endDate;
+
+    @JsonProperty
+    private final int maxResults;
+
+    public FollowupAnalysisMetadata( FollowupAnalysisRequest request )
+    {
+        this.de = request.getDe();
+        this.coc = request.getCoc();
+        this.ou = request.getOu();
+        this.startDate = request.getStartDate();
+        this.endDate = request.getEndDate();
+        this.maxResults = request.getMaxResults();
+    }
 }

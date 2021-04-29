@@ -310,6 +310,7 @@ public class DataValueController
             DataValue newValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo,
                 attributeOptionCombo,
                 StringUtils.trimToNull( value ), storedBy, now, StringUtils.trimToNull( comment ) );
+            newValue.setFollowup( followUp );
 
             dataValueService.addDataValue( newValue );
         }
