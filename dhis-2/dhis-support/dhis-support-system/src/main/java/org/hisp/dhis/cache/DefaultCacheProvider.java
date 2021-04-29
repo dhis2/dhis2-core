@@ -57,6 +57,8 @@ public class DefaultCacheProvider
 
     private static final long SIZE_100 = 100;
 
+    private static final long SIZE_500 = 500;
+
     private static final long SIZE_1K = 1_000;
 
     private static final long SIZE_10K = 10_000;
@@ -89,6 +91,7 @@ public class DefaultCacheProvider
         isDataApproved,
         allConstantsCache,
         inUserOuHierarchy,
+        isUserViewOuHierHierarchy,
         inUserSearchOuHierarchy,
         userCaptureOuCountThreshold,
         periodIdCache,
@@ -108,10 +111,12 @@ public class DefaultCacheProvider
         analyticsSql,
         dataElementCache,
         propertyTransformerCache,
-        programRulesCache,
+        programHasRulesCache,
         programRuleVariablesCache,
         userGroupNameCache,
-        userDisplayNameCache
+        userDisplayNameCache,
+        programWebHookNotificationTemplateCache,
+        programStageWebHookNotificationTemplateCache
     }
 
     private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -194,6 +199,17 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.inUserOuHierarchy.name() )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createInUserViewOrgUnitHierarchyCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.isUserViewOuHierHierarchy.name() )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
@@ -205,7 +221,7 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.inUserSearchOuHierarchy.name() )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
@@ -216,7 +232,7 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.userCaptureOuCountThreshold.name() )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
@@ -398,10 +414,10 @@ public class DefaultCacheProvider
     }
 
     @Override
-    public <V> Cache<V> createProgramRulesCache()
+    public <V> Cache<V> createProgramHasRulesCache()
     {
         return registerCache( this.<V> newBuilder()
-            .forRegion( Region.programRulesCache.name() )
+            .forRegion( Region.programHasRulesCache.name() )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
@@ -431,7 +447,7 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.userGroupNameCache.name() )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
@@ -442,9 +458,31 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.userDisplayNameCache.name() )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( SIZE_10K ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createProgramWebHookNotificationTemplateCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.programWebHookNotificationTemplateCache.name() )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( 20 ) )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_500 ) ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createProgramStageWebHookNotificationTemplateCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.programStageWebHookNotificationTemplateCache.name() )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( 20 ) )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_500 ) ) ) );
     }
 }

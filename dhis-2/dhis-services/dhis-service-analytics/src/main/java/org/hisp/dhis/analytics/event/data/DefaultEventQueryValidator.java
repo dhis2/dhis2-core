@@ -158,7 +158,6 @@ public class DefaultEventQueryValidator
         else if ( (params.hasBbox() || params.hasClusterSize()) && params.getCoordinateField() == null )
         {
             error = new ErrorMessage( ErrorCode.E7214 );
-            ;
         }
 
         for ( QueryItem item : params.getItemsAndItemFilters() )
@@ -167,7 +166,7 @@ public class DefaultEventQueryValidator
             {
                 error = new ErrorMessage( ErrorCode.E7215, item.getItemId() );
             }
-            else if ( params.isAggregateData() && !item.getAggregationType().isAggregateable() )
+            else if ( params.isAggregateData() && !item.getAggregationType().isAggregatable() )
             {
                 error = new ErrorMessage( ErrorCode.E7216, item.getItemId() );
             }

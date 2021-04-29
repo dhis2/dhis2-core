@@ -34,6 +34,8 @@ import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEve
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
+import org.hisp.dhis.programrule.engine.TrackerEnrollmentWebHookEvent;
+import org.hisp.dhis.programrule.engine.TrackerEventWebHookEvent;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -47,6 +49,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class ProgramNotificationListener
 {
     private final ProgramNotificationService programNotificationService;
+
+    private final TrackerNotificationWebHookService trackerNotificationWebHookService;
 
     @TransactionalEventListener( fallbackExecution = true )
     public void onEnrollment( ProgramEnrollmentNotificationEvent event )
@@ -79,5 +83,17 @@ public class ProgramNotificationListener
     {
         programNotificationService.sendProgramRuleTriggeredEventNotifications( event.getTemplate(),
             event.getProgramStageInstance() );
+    }
+
+    @TransactionalEventListener( fallbackExecution = true )
+    public void onTrackerEventWebHook( TrackerEventWebHookEvent event )
+    {
+        trackerNotificationWebHookService.handleEvent( event.getProgramStageInstance() );
+    }
+
+    @TransactionalEventListener( fallbackExecution = true )
+    public void onTrackerEnrollmentWebHook( TrackerEnrollmentWebHookEvent event )
+    {
+        trackerNotificationWebHookService.handleEnrollment( event.getProgramInstance() );
     }
 }

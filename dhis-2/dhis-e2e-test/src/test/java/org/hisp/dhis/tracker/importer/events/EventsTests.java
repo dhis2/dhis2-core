@@ -184,14 +184,12 @@ public class EventsTests
 
         TrackerApiResponse response = importTeiWithEnrollment( programId, programStageId );
 
-        String teiId = response.extractImportedTeis().get( 0 );
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
         JsonObject event = new JsonObjectBuilder(
             trackerActions.buildEvent( Constants.ORG_UNIT_IDS[1], programId, programStageId ).getAsJsonArray(
                 "events"
             ).get( 0 ).getAsJsonObject() )
-            .addProperty( "trackedEntity", teiId )
             .addProperty( "enrollment", enrollmentId )
             .wrapIntoArray( "events" );
 
@@ -203,8 +201,7 @@ public class EventsTests
         trackerActions
             .get( "/events/" + eventId + "?fields=*" )
             .validate().statusCode( 200 )
-            .body( "enrollment", equalTo( enrollmentId ) )
-            .body( "trackedEntity", equalTo( teiId ) );
+            .body( "enrollment", equalTo( enrollmentId ) );
     }
 
     private TrackerApiResponse importTeiWithEnrollment( String programId, String programStageId )

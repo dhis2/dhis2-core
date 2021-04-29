@@ -41,7 +41,6 @@ public enum TrackerErrorCode
     E1005( "Could not find TrackedEntityType: `{0}`." ),
     E1006( "Attribute: `{0}`, does not exist." ),
     E1007( "Error validating attribute value type: `{0}`; Error: `{1}`." ),
-    E1008( "Value: `{0}`, does not match the attribute pattern: `{1}`." ),
     E1009( "File resource: `{0}`, has already been assigned to a different object." ),
     E1010( "Could not find Program: `{0}`, linked to Event." ),
     E1011( "Could not find OrganisationUnit: `{0}`, linked to Event." ),
@@ -65,9 +64,6 @@ public enum TrackerErrorCode
     E1032( "Event: `{0}`, do not exist." ),
     E1033( "Event: `{0}`, Enrollment value is NULL." ),
     E1035( "Event: `{0}`, ProgramStage value is NULL." ),
-    E1036( "Event: `{0}`, TrackedEntityInstance does not point to a existing object." ),
-    E1037( "TrackedEntityInstance: `{0}`, is not enrolled in Program `{1}`." ),
-    E1038( "TrackedEntityInstance: `{0}`, has multiple active enrollments in Program `{1}`." ),
     E1039( "ProgramStage: `{0}`, is not repeatable and an event already exists." ),
     E1041( "Enrollment OrganisationUnit: `{0}`, and Program: `{1}`, don't match." ),
     E1042( "Event: `{0}`, needs to have completed date." ),
@@ -84,7 +80,7 @@ public enum TrackerErrorCode
     E1070( "Could not find OrganisationUnit: `{0}`, linked to Enrollment." ),
     E1074( "FeatureType is missing." ),
     E1075( "Attribute: `{0}`, is missing uid." ),
-    E1076( "Attribute: `{0}`, value is null." ),
+    E1076( "`{0}` `{1}` is mandatory and can''t be null" ),
     E1077( "Attribute: `{0}`, text value exceed the maximum allowed length: `{0}`." ),
     E1080( "Enrollment: `{0}`, already exists." ),
     E1081( "Enrollment: `{0}`, do not exist." ),
@@ -120,6 +116,9 @@ public enum TrackerErrorCode
     E1123( "Missing required event property: `{0}`." ),
     E1124( "Missing required relationship property: `{0}`." ),
     E1125( "Value {0} is not a valid option for {1} {2} in option set {3}" ),
+    E1126( "Not allowed to update Tracked Entity property: {0}." ),
+    E1127( "Not allowed to update Enrollment property: {0}." ),
+    E1128( "Not allowed to update Event property: {0}." ),
 
     // TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),
@@ -129,10 +128,6 @@ public enum TrackerErrorCode
     E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
     // TODO: See TODO on error usage
     E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
-    // TODO: See TODO on error usage
-    E1111( "We have a generated attribute: `{0}`, but no pattern." ),
-    // TODO: See TODO on error usage
-    E1040( "Multiple active enrollments exists for Program: `{0}`." ),
     // TODO See TODO on error usage
     E1045( "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event." ),
     // TODO See TODO on error usage
@@ -173,7 +168,7 @@ public enum TrackerErrorCode
     E4012( "Could not find `{0}`: `{1}`, linked to Relationship." ),
     E4013( "Relationship Type `{0}` constraint is missing {1}." ),
     E4014( "Relationship Type `{0}` constraint requires a Tracked Entity having type `{1}` but `{2}` was found." ),
-
+    E4015( "Relationship: `{0}`, already exists." ),
     E9999( "N/A" );
 
     private final String message;

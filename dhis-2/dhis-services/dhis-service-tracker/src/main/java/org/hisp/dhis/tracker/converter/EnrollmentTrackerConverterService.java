@@ -40,6 +40,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -48,6 +50,8 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
+
+import com.google.api.client.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -135,9 +139,12 @@ public class EnrollmentTrackerConverterService
                 !StringUtils.isEmpty( enrollment.getEnrollment() ) ? enrollment.getEnrollment() : enrollment.getUid() );
             programInstance.setCreated( now );
             programInstance.setStoredBy( enrollment.getStoredBy() );
+            programInstance.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
         }
 
         programInstance.setLastUpdated( now );
+        programInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
+        programInstance.setDeleted( false );
         programInstance.setCreatedAtClient( DateUtils.fromInstant( enrollment.getCreatedAtClient() ) );
         programInstance.setLastUpdatedAtClient( DateUtils.fromInstant( enrollment.getUpdatedAtClient() ) );
 
@@ -157,14 +164,29 @@ public class EnrollmentTrackerConverterService
             enrollment.setStatus( EnrollmentStatus.ACTIVE );
         }
 
+        programInstance.setEndDate( DateUtils.fromInstant( enrollment.getCompletedAt() ) );
+        programInstance.setCompletedBy( enrollment.getCompletedBy() );
+
+        ProgramStatus previousStatus = programInstance.getStatus();
         programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
 
-        if ( programInstance.isCompleted() )
+        if ( !Objects.equal( previousStatus, programInstance.getStatus() ) )
         {
-            programInstance
-                .setEndDate( enrollment.getCompletedAt() != null ? DateUtils.fromInstant( enrollment.getCompletedAt() )
-                    : new Date() );
-            programInstance.setCompletedBy( enrollment.getCompletedBy() );
+            if ( programInstance.isCompleted() )
+            {
+                programInstance
+                    .setEndDate(
+                        enrollment.getCompletedAt() != null ? DateUtils.fromInstant( enrollment.getCompletedAt() )
+                            : new Date() );
+                programInstance.setCompletedBy(
+                    enrollment.getCompletedBy() != null ? enrollment.getCompletedBy() : preheat.getUsername() );
+            }
+            else if ( programInstance.getStatus().equals( ProgramStatus.CANCELLED ) )
+            {
+                programInstance.setEndDate(
+                    enrollment.getCompletedAt() != null ? DateUtils.fromInstant( enrollment.getCompletedAt() )
+                        : new Date() );
+            }
         }
 
         if ( isNotEmpty( enrollment.getNotes() ) )

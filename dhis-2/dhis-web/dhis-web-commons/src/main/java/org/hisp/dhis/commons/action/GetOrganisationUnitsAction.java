@@ -34,6 +34,7 @@ import java.util.List;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.paging.ActionPagingSupport;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Lars Helge Overland
@@ -84,6 +85,8 @@ public class GetOrganisationUnitsAction
     public String execute()
         throws Exception
     {
+        canReadType( OrganisationUnit.class );
+
         if ( level == null || level == ALL )
         {
             organisationUnits = new ArrayList<>( organisationUnitService.getAllOrganisationUnits() );
@@ -95,6 +98,9 @@ public class GetOrganisationUnitsAction
         }
 
         Collections.sort( organisationUnits );
+
+        User currentUser = currentUserService.getCurrentUser();
+        organisationUnits.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         if ( usePaging )
         {

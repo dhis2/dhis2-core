@@ -76,7 +76,7 @@ public class CustomExceptionMappingAuthenticationFailureHandler
         else
         {
             request.getSession()
-                .setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.invalid" ) );
+                .setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "wrong_username_or_password" ) );
         }
 
         super.onAuthenticationFailure( request, response, exception );

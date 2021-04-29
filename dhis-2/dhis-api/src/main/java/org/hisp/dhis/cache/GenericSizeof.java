@@ -106,6 +106,7 @@ public final class GenericSizeof implements Sizeof
         fixedSizeOfType.put( Method.class, 0L );
         fixedSizeOfType.put( Field.class, 0L );
         fixedSizeOfType.put( Pattern.class, 0L );
+        sizeofByType.put( String.class, str -> 52L + ((String) str).length() );
     }
 
     @Override

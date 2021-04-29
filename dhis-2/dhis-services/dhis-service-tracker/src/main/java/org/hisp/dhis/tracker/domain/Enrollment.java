@@ -44,7 +44,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Enrollment implements TrackerDto
+public class Enrollment
+    implements TrackerDto
 {
     @JsonProperty
     private String enrollment;
@@ -63,9 +64,6 @@ public class Enrollment implements TrackerDto
 
     @JsonProperty
     private String trackedEntity;
-
-    @JsonProperty
-    private String trackedEntityType;
 
     @JsonProperty
     private String program;
@@ -99,6 +97,12 @@ public class Enrollment implements TrackerDto
 
     @JsonProperty
     private String storedBy;
+
+    @JsonProperty
+    private String createdBy;
+
+    @JsonProperty
+    private String updatedBy;
 
     @JsonProperty
     private Geometry geometry;

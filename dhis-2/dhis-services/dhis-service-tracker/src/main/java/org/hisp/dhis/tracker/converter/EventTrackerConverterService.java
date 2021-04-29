@@ -41,16 +41,12 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
-import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
@@ -58,6 +54,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
 import com.google.api.client.util.Lists;
+import com.google.api.client.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -98,13 +95,7 @@ public class EventTrackerConverterService
             Event event = new Event();
             event.setEvent( psi.getUid() );
 
-            if ( psi.getProgramInstance().getEntityInstance() != null )
-            {
-                event.setTrackedEntity( psi.getProgramInstance().getEntityInstance().getUid() );
-            }
-
             event.setFollowup( BooleanUtils.toBoolean( psi.getProgramInstance().getFollowup() ) );
-            event.setEnrollmentStatus( EnrollmentStatus.fromProgramStatus( psi.getProgramInstance().getStatus() ) );
             event.setStatus( psi.getStatus() );
             event.setOccurredAt( DateUtils.instantFromDate( psi.getExecutionDate() ) );
             event.setScheduledAt( DateUtils.instantFromDate( psi.getDueDate() ) );
@@ -216,8 +207,11 @@ public class EventTrackerConverterService
             programStageInstance.setUid( !StringUtils.isEmpty( event.getEvent() ) ? event.getEvent() : event.getUid() );
             programStageInstance.setCreated( now );
             programStageInstance.setStoredBy( event.getStoredBy() );
+            programStageInstance.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
         }
+        programStageInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
         programStageInstance.setLastUpdated( now );
+        programStageInstance.setDeleted( false );
         programStageInstance.setCreatedAtClient( DateUtils.fromInstant( event.getCreatedAtClient() ) );
         programStageInstance.setLastUpdatedAtClient( DateUtils.fromInstant( event.getUpdatedAtClient() ) );
         programStageInstance.setProgramInstance(
@@ -242,19 +236,17 @@ public class EventTrackerConverterService
         }
 
         programStageInstance.setGeometry( event.getGeometry() );
+
+        EventStatus previousStatus = programStageInstance.getStatus();
+        Date completedDate = DateUtils.fromInstant( event.getCompletedAt() );
+
         programStageInstance.setStatus( event.getStatus() );
 
-        if ( programStageInstance.isCompleted() )
+        if ( !Objects.equal( previousStatus, programStageInstance.getStatus() ) && programStageInstance.isCompleted() )
         {
-            Date completedDate = DateUtils.fromInstant( event.getCompletedAt() );
-
-            if ( completedDate == null )
-            {
-                completedDate = new Date();
-            }
-
-            programStageInstance.setCompletedDate( completedDate );
-            programStageInstance.setCompletedBy( event.getCompletedBy() );
+            programStageInstance.setCompletedDate( completedDate == null ? new Date() : completedDate );
+            programStageInstance
+                .setCompletedBy( event.getCompletedBy() != null ? event.getCompletedBy() : preheat.getUsername() );
         }
 
         if ( programStage.isEnableUserAssignment() )

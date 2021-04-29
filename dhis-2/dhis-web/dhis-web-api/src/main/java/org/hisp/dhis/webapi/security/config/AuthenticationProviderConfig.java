@@ -32,10 +32,10 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.AuthenticationLoggerListener;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator;
-import org.hisp.dhis.security.oauth2.DefaultClientDetailsUserDetailsService;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -68,7 +68,8 @@ public class AuthenticationProviderConfig
     TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
     @Autowired
-    DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
+    @Qualifier( "ldapUserDetailsService" )
+    UserDetailsService ldapUserDetailsService;
 
     @Bean
     public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource()
@@ -80,7 +81,7 @@ public class AuthenticationProviderConfig
     CustomLdapAuthenticationProvider customLdapAuthenticationProvider()
     {
         return new CustomLdapAuthenticationProvider( dhisBindAuthenticator(),
-            userDetailsServiceLdapAuthoritiesPopulator( defaultClientDetailsUserDetailsService ),
+            userDetailsServiceLdapAuthoritiesPopulator( ldapUserDetailsService ),
             configurationProvider );
     }
 
