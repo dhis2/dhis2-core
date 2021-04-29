@@ -220,7 +220,7 @@ public class QueryValidatorTest
     }
 
     @Test
-    public void validateFailureProgramSingleIndicatorAsFilter()
+    public void validateFailureSingleProgramIndicatorAsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
