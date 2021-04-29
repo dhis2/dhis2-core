@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.json.domain;
 
 import java.util.function.Consumer;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
 
@@ -62,6 +63,11 @@ public interface JsonError extends JsonObject
     default String getDevMessage()
     {
         return getString( "devMessage" ).string();
+    }
+
+    default ErrorCode getErrorCode()
+    {
+        return getString( "errorCode" ).parsed( ErrorCode::valueOf );
     }
 
     /**

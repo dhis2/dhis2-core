@@ -27,25 +27,82 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.Date;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Halvdan Hoem Grelland
+ * A {@link FollowupValue} is a read-only set of fields extracted for a
+ * {@link org.hisp.dhis.datavalue.DataValue} and references objects as part of
+ * the followup-data-analysis.
+ *
+ * @author Jan Bernitt
  */
-public interface FollowupAnalysisService
+@Getter
+@AllArgsConstructor
+public final class FollowupValue
 {
-    /**
-     * @deprecated Use {@link #getFollowupDataValues(FollowupAnalysisRequest)}
-     */
-    @Deprecated
-    List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
-        Collection<DataElement> dataElements, Collection<Period> periods, int limit );
+    // OBS! The order of fields is important as it becomes the order of the
+    // constructor arguments that are mapped to database results.
 
-    FollowupAnalysisResponse getFollowupDataValues( FollowupAnalysisRequest params );
+    @JsonProperty
+    private String de;
+
+    @JsonProperty
+    private String deName;
+
+    @JsonProperty
+    private String pe;
+
+    @JsonProperty
+    private Date peStartDate;
+
+    @JsonProperty
+    private Date peEndDate;
+
+    @JsonProperty
+    private String ou;
+
+    @JsonProperty
+    private String ouName;
+
+    @JsonProperty
+    private String ouPath;
+
+    @JsonProperty
+    private String coc;
+
+    @JsonProperty
+    private String cocName;
+
+    @JsonProperty
+    private String aoc;
+
+    @JsonProperty
+    private String aocName;
+
+    @JsonProperty
+    private String value;
+
+    @JsonProperty
+    private String storedBy;
+
+    @JsonProperty
+    private Date lastUpdated;
+
+    @JsonProperty
+    private Date created;
+
+    @JsonProperty
+    private String comment;
+
+    @JsonProperty
+    private Integer min;
+
+    @JsonProperty
+    private Integer max;
+
 }

@@ -44,6 +44,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.schema.Property;
@@ -369,13 +370,15 @@ public class JpaQueryUtils
      *        {@link org.hisp.dhis.security.acl.AccessStringHelper}
      * @return SQL query
      */
-    public static final String generateSQlQueryForSharingCheck( String sharingColumn, User user, String access )
+    public static String generateSQlQueryForSharingCheck( String sharingColumn, User user, String access )
     {
         List<Long> userGroupIds = getIdentifiers( user.getGroups() );
 
         String groupsIds = CollectionUtils.isEmpty( userGroupIds ) ? null
-            : "{" + org.apache.commons.lang3.StringUtils.join( user.getGroups().stream().map( g -> g.getUid() )
-                .collect( Collectors.toList() ), "," ) + "}";
+            : "{" + org.apache.commons.lang3.StringUtils
+                .join( user.getGroups().stream().map( BaseIdentifiableObject::getUid )
+                    .collect( Collectors.toList() ), "," )
+                + "}";
 
         String sql = " ( %1$s->>'owner' is not null and %1$s->>'owner' = '%2$s') "
             + " or %1$s->>'public' like '%4$s' or %1$s->>'public' is null "
@@ -386,6 +389,20 @@ public class JpaQueryUtils
                     + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( %1$s, '%3$s', '%4$s') = true )");
 
         return String.format( sql, sharingColumn, user.getUid(), groupsIds, access );
+    }
+
+    public static String generateHqlQueryForSharingCheck( String tableName, User user, String access )
+    {
+        if ( user.isSuper() )
+        {
+            return "1=1";
+        }
+        String hql = generateSQlQueryForSharingCheck( tableName + ".sharing", user, access );
+        // HQL does not allow the ->> syntax so we have to substitute with the
+        // named function: jsonb_extract_path_text
+        hql = hql.replaceAll( tableName + "\\.sharing->>'([^']+)'",
+            JsonbFunctions.EXTRACT_PATH_TEXT + "(" + tableName + ".sharing, '$1')" );
+        return "(" + hql + ")";
     }
 
     private static boolean isIgnoreCase( org.hisp.dhis.query.Order o )
