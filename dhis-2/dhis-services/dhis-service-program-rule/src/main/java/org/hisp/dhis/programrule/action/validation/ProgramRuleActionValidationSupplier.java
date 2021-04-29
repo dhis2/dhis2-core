@@ -34,6 +34,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Component;
 
@@ -56,9 +57,12 @@ public class ProgramRuleActionValidationSupplier implements Supplier<ProgramRule
 
     private final DataElementService dataElementService;
 
+    private final ProgramNotificationTemplateService programNotificationTemplateService;
+
     public ProgramRuleActionValidationSupplier( ProgramStageService programStageService, ProgramService programService,
         ProgramStageSectionService sectionService, ProgramStageDataElementService stageDataElementService,
-        TrackedEntityAttributeService trackedEntityAttributeService, DataElementService dataElementService )
+        TrackedEntityAttributeService trackedEntityAttributeService, DataElementService dataElementService,
+        ProgramNotificationTemplateService programNotificationTemplateService )
     {
         this.programStageService = programStageService;
         this.programService = programService;
@@ -66,6 +70,7 @@ public class ProgramRuleActionValidationSupplier implements Supplier<ProgramRule
         this.stageDataElementService = stageDataElementService;
         this.trackedEntityAttributeService = trackedEntityAttributeService;
         this.dataElementService = dataElementService;
+        this.programNotificationTemplateService = programNotificationTemplateService;
     }
 
     @Override
@@ -78,6 +83,7 @@ public class ProgramRuleActionValidationSupplier implements Supplier<ProgramRule
             .stageDataElementService( stageDataElementService )
             .trackedEntityAttributeService( trackedEntityAttributeService )
             .dataElementService( dataElementService )
+            .notificationTemplateService( programNotificationTemplateService )
             .build();
     }
 }

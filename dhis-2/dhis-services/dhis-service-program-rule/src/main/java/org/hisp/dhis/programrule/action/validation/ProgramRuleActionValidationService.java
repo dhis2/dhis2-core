@@ -37,6 +37,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
 /**
@@ -64,4 +65,7 @@ public class ProgramRuleActionValidationService
 
     @Nonnull
     private final DataElementService dataElementService;
+
+    @Nonnull
+    private final ProgramNotificationTemplateService notificationTemplateService;
 }

@@ -61,7 +61,15 @@ public abstract class AbstractMessageProgramRuleActionValidator implements Progr
                 .build();
         }
 
+        // fetch notification from preheat
         ProgramNotificationTemplate pnt = validationContext.getNotificationTemplate();
+
+        if ( pnt == null )
+        {
+            // fetch it from database
+            pnt = validationContext.getProgramRuleActionValidationService().getNotificationTemplateService()
+                .getByUid( programRuleAction.getTemplateUid() );
+        }
 
         if ( pnt == null )
         {
