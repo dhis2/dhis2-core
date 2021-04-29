@@ -147,15 +147,18 @@ public class ObjectBundleServiceFavoritesTest
         assertNotNull( visualizations.get( 0 ).getSeries() );
         assertNotNull( visualizations.get( 1 ).getSeries() );
         assertNotNull( visualizations.get( 2 ).getSeries() );
+        assertNotNull( visualizations.get( 0 ).getAxes() );
+        assertNotNull( visualizations.get( 1 ).getAxes() );
+        assertNotNull( visualizations.get( 2 ).getAxes() );
+        assertNotNull( visualizations.get( 0 ).getLegend() );
+        assertNotNull( visualizations.get( 1 ).getLegend() );
+        assertNotNull( visualizations.get( 2 ).getLegend() );
         assertEquals( 2, visualizations.get( 0 ).getSeries().size() );
         assertEquals( 2, visualizations.get( 1 ).getSeries().size() );
         assertEquals( 2, visualizations.get( 2 ).getSeries().size() );
-        assertTrue( visualizations.get( 0 ).getRangeAxisMinValue() < 0 );
-        assertTrue( visualizations.get( 1 ).getRangeAxisMinValue() < 0 );
-        assertTrue( visualizations.get( 2 ).getRangeAxisMinValue() < 0 );
-        assertTrue( visualizations.get( 0 ).getBaseLineValue() < 0 );
-        assertTrue( visualizations.get( 1 ).getBaseLineValue() < 0 );
-        assertTrue( visualizations.get( 2 ).getBaseLineValue() < 0 );
+        assertEquals( 2, visualizations.get( 0 ).getAxes().size() );
+        assertEquals( 2, visualizations.get( 1 ).getAxes().size() );
+        assertEquals( 2, visualizations.get( 2 ).getAxes().size() );
 
         assertNotNull( visualizations.get( 0 ).getFontStyle() );
         assertNotNull( visualizations.get( 1 ).getFontStyle() );
