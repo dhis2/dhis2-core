@@ -249,10 +249,10 @@ public class DataValueSetImportValidator
             if ( conflicts.size() > conflictsBefore )
             {
                 conflicts.remove( ImportConflict.SKIP ); // just in case
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     private static void validateDataValueDataElementExists( DataValue dataValue, ImportContext context,
