@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.hisp.dhis.association.IdentifiableObjectAssociations;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -56,6 +57,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Lists;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -114,6 +117,13 @@ public class ProgramController
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, program, download );
+    }
+
+    @RequestMapping( value = "/names", method = RequestMethod.GET, produces = { APPLICATION_JSON_VALUE,
+            "application/javascript" } )
+    @ResponseBody public String[] getProgramNames( )
+    {
+        return programService.getAllPrograms().stream().map(BaseIdentifiableObject::getName).toArray(String[]::new);
     }
 
     @ResponseBody

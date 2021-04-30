@@ -74,6 +74,7 @@ public class AnalyticsTableJob
             .withLastYears( parameters.getLastYears() )
             .withSkipResourceTables( parameters.isSkipResourceTables() )
             .withSkipTableTypes( parameters.getSkipTableTypes() )
+            .withSkipPrograms( parameters.getSkipPrograms() )
             .withJobId( jobConfiguration )
             .withStartTime( new Date() )
             .build();

@@ -66,6 +66,11 @@ public class AnalyticsTableUpdateParams
     private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
     /**
+     * Analytics table programs to skip.
+     */
+    private Set<String> skipPrograms = new HashSet<>();
+
+    /**
      * Job ID.
      */
     private JobConfiguration jobId;
@@ -107,6 +112,11 @@ public class AnalyticsTableUpdateParams
     public Set<AnalyticsTableType> getSkipTableTypes()
     {
         return skipTableTypes;
+    }
+
+    public Set<String> getSkipPrograms()
+    {
+        return skipPrograms;
     }
 
     public JobConfiguration getJobId()
@@ -195,6 +205,7 @@ public class AnalyticsTableUpdateParams
         params.lastYears = this.lastYears;
         params.skipResourceTables = this.skipResourceTables;
         params.skipTableTypes = new HashSet<>( this.skipTableTypes );
+        params.skipPrograms = new HashSet<>( this.skipPrograms );
         params.jobId = this.jobId;
         params.startTime = this.startTime;
         params.lastSuccessfulUpdate = this.lastSuccessfulUpdate;
@@ -217,7 +228,7 @@ public class AnalyticsTableUpdateParams
      */
     public static class Builder
     {
-        private AnalyticsTableUpdateParams params;
+        private final AnalyticsTableUpdateParams params;
 
         protected Builder()
         {
@@ -250,6 +261,12 @@ public class AnalyticsTableUpdateParams
         public Builder withSkipTableTypes( Set<AnalyticsTableType> skipTableTypes )
         {
             this.params.skipTableTypes = skipTableTypes;
+            return this;
+        }
+
+        public Builder withSkipPrograms( Set<String> skipPrograms )
+        {
+            this.params.skipPrograms = skipPrograms;
             return this;
         }
 
