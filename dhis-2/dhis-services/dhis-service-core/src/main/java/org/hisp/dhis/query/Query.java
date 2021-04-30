@@ -62,6 +62,8 @@ public class Query extends Criteria
 
     private Defaults defaults = Defaults.EXCLUDE;
 
+    private boolean cacheable = true;
+
     private List<? extends IdentifiableObject> objects;
 
     public static Query from( Schema schema )
@@ -141,6 +143,16 @@ public class Query extends Criteria
     {
         this.user = user;
         return this;
+    }
+
+    public boolean isCacheable()
+    {
+        return cacheable;
+    }
+
+    public void setCacheable( boolean cacheable )
+    {
+        this.cacheable = cacheable;
     }
 
     public String getLocale()

@@ -27,48 +27,51 @@
  */
 package org.hisp.dhis.cache;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hibernate.Cache;
 import org.springframework.stereotype.Service;
+
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
 @Slf4j
-public class PaginationCacheManager
+public class QueryCacheManager
 {
-    private final Map<String, Cache<String, Long>> cacheMap = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> regionNameMap = new ConcurrentHashMap<>();
 
-    public void evictCache( String key )
+    private final HashFunction sessionIdHasher = Hashing.sha256();
+
+    public String generateRegionName( Class<?> klass, String queryString )
     {
-        Cache<String, Long> paginationCacheStrict = getPaginationCacheStrict( key );
-        paginationCacheStrict.clear();
+        String queryStringHash = sessionIdHasher.newHasher().putString( queryString, Charsets.UTF_8 ).hash().toString();
+        String regionName = klass.getName() + "_" + queryStringHash;
+
+        Set<String> allQueriesOnKlass = regionNameMap.computeIfAbsent( klass.getName(), s -> new HashSet<>() );
+        allQueriesOnKlass.add( queryStringHash );
+
+        return regionName;
     }
 
-    public <T extends IdentifiableObject> Cache<String, Long> getPaginationCacheStrict( String key )
+    public void evictQueryCache( Cache cache, Class<?> klass )
     {
-        return cacheMap.get( key );
-    }
+        Set<String> hashes = regionNameMap.get( klass.getName() );
 
-    public <T extends IdentifiableObject> Cache<String, Long> getPaginationCache( Class<T> entityClass )
-    {
-        return cacheMap.computeIfAbsent( entityClass.getName(), s -> createCache() );
-    }
-
-    private Cache<String, Long> createCache()
-    {
-        return new Cache2kBuilder<String, Long>()
+        for ( String regionNameHash : hashes )
         {
+            String key = klass.getName() + "_" + regionNameHash;
+
+            cache.evictQueryRegion( key );
         }
-            .expireAfterWrite( 1, TimeUnit.MINUTES )
-            .build();
     }
 }

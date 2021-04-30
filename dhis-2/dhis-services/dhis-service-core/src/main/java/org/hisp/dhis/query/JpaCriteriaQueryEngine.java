@@ -42,6 +42,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
@@ -66,11 +67,14 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
     private final SessionFactory sessionFactory;
 
+    private final QueryCacheManager queryCacheManager;
+
     private Map<Class<?>, InternalHibernateGenericStore<T>> stores = new HashMap<>();
 
     @Autowired
     public JpaCriteriaQueryEngine( CurrentUserService currentUserService, QueryPlanner queryPlanner,
-        List<InternalHibernateGenericStore<T>> hibernateGenericStores, SessionFactory sessionFactory )
+        List<InternalHibernateGenericStore<T>> hibernateGenericStores, SessionFactory sessionFactory,
+        QueryCacheManager queryCacheManager )
     {
         checkNotNull( currentUserService );
         checkNotNull( queryPlanner );
@@ -81,6 +85,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         this.queryPlanner = queryPlanner;
         this.hibernateGenericStores = hibernateGenericStores;
         this.sessionFactory = sessionFactory;
+        this.queryCacheManager = queryCacheManager;
     }
 
     @Override
@@ -152,11 +157,11 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         typedQuery.setFirstResult( query.getFirstResult() );
         typedQuery.setMaxResults( query.getMaxResults() );
 
-        typedQuery.setHint( "org.hibernate.cacheable", true );
-
-        String queryString = typedQuery.unwrap( org.hibernate.Query.class ).getQueryString();
-        String regionName = klass.getName() + "_" + queryString;
-        typedQuery.setHint( "org.hibernate.cacheRegion", regionName );
+        if ( query.isCacheable() )
+        {
+            typedQuery.setHint( "org.hibernate.cacheable", true );
+            typedQuery.setHint( "org.hibernate.cacheRegion", getQueryCacheRegionName( klass, typedQuery ) );
+        }
 
         return typedQuery.getResultList();
     }
@@ -338,5 +343,11 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
                 addJunction( builder, root, junction, c );
             }
         }
+    }
+
+    private String getQueryCacheRegionName( Class<T> klass, TypedQuery<T> typedQuery )
+    {
+        String queryString = typedQuery.unwrap( org.hibernate.query.Query.class ).getQueryString();
+        return queryCacheManager.generateRegionName( klass, queryString );
     }
 }
