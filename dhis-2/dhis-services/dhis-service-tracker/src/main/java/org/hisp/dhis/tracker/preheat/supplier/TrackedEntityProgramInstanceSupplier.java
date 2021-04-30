@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +41,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.util.Constant;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
@@ -116,22 +113,22 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
         parameters.addValue( "uids", trackedEntityListSubList );
 
         jdbcTemplate.query( SQL, parameters, resultSet -> {
-                String tei = resultSet.getString( TEI_UID_COLUMN_ALIAS );
+            String tei = resultSet.getString( TEI_UID_COLUMN_ALIAS );
 
-                ProgramInstance newPi = new ProgramInstance();
-                newPi.setUid( resultSet.getString( PI_UID_COLUMN_ALIAS ) );
-                newPi.setStatus( ProgramStatus.valueOf( resultSet.getString( PI_STATUS_COLUMN_ALIAS ) ) );
+            ProgramInstance newPi = new ProgramInstance();
+            newPi.setUid( resultSet.getString( PI_UID_COLUMN_ALIAS ) );
+            newPi.setStatus( ProgramStatus.valueOf( resultSet.getString( PI_STATUS_COLUMN_ALIAS ) ) );
 
-                Program program = new Program();
-                program.setUid( resultSet.getString( PR_UID_COLUMN_ALIAS ) );
-                newPi.setProgram( program );
+            Program program = new Program();
+            program.setUid( resultSet.getString( PR_UID_COLUMN_ALIAS ) );
+            newPi.setProgram( program );
 
-                List<ProgramInstance> piList = trackedEntityToProgramInstanceMap.getOrDefault( tei,
-                        new ArrayList<ProgramInstance>() );
+            List<ProgramInstance> piList = trackedEntityToProgramInstanceMap.getOrDefault( tei,
+                new ArrayList<ProgramInstance>() );
 
-                piList.add( newPi );
+            piList.add( newPi );
 
-                trackedEntityToProgramInstanceMap.put( tei, piList );
-        });
+            trackedEntityToProgramInstanceMap.put( tei, piList );
+        } );
     }
 }

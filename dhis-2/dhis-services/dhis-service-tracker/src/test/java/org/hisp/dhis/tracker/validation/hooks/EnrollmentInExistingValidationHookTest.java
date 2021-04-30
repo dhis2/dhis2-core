@@ -34,6 +34,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
@@ -52,10 +56,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 
 public class EnrollmentInExistingValidationHookTest
 {
@@ -94,20 +94,20 @@ public class EnrollmentInExistingValidationHookTest
         hookToTest = new EnrollmentInExistingValidationHook();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getIdentifier() ).thenReturn(TrackerIdScheme.UID);
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         when( enrollment.getProgram() ).thenReturn( programUid );
         when( enrollment.getTrackedEntity() ).thenReturn( trackedEntity );
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.ACTIVE );
         when( enrollment.getEnrollment() ).thenReturn( enrollmentUid );
 
         when( validationContext.getTrackedEntityInstance( trackedEntity ) ).thenReturn( trackedEntityInstance );
-        when(trackedEntityInstance.getUid()).thenReturn(trackedEntity);
+        when( trackedEntityInstance.getUid() ).thenReturn( trackedEntity );
 
         when( validationContext.getBundle() ).thenReturn( bundle );
 
         Program program = new Program();
         program.setOnlyEnrollOnce( false );
-        program.setUid(programUid);
+        program.setUid( programUid );
 
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
         validationErrorReporter = new ValidationErrorReporter( validationContext );
@@ -166,79 +166,87 @@ public class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldFailEnrollmentAlreadyInPayload() {
+    public void shouldFailEnrollmentAlreadyInPayload()
+    {
 
-        setEnrollmentInPayload(EnrollmentStatus.ACTIVE);
+        setEnrollmentInPayload( EnrollmentStatus.ACTIVE );
 
         hookToTest.validateEnrollment( validationErrorReporter, enrollment );
 
-        assertTrue(validationErrorReporter.hasErrors());
-        assertEquals(2, validationErrorReporter.getReportList().size());
+        assertTrue( validationErrorReporter.hasErrors() );
+        assertEquals( 2, validationErrorReporter.getReportList().size() );
 
         assertThat( validationErrorReporter.getReportList(),
-                hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
 
         assertThat( validationErrorReporter.getReportList(),
-                hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
 
     }
 
     @Test
-    public void shouldFailEnrollmentAlreadyInDb() {
+    public void shouldFailEnrollmentAlreadyInDb()
+    {
 
         setTeiInDb();
 
         hookToTest.validateEnrollment( validationErrorReporter, enrollment );
 
-        assertTrue(validationErrorReporter.hasErrors());
-        assertEquals(2, validationErrorReporter.getReportList().size());
+        assertTrue( validationErrorReporter.hasErrors() );
+        assertEquals( 2, validationErrorReporter.getReportList().size() );
 
         assertThat( validationErrorReporter.getReportList(),
-                hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
 
         assertThat( validationErrorReporter.getReportList(),
-                hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
 
     }
 
     @Test
-    public void shouldFailWithPriorityInPayload() {
+    public void shouldFailWithPriorityInPayload()
+    {
 
-        setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
+        setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
         setTeiInDb();
 
         hookToTest.validateEnrollment( validationErrorReporter, enrollment );
 
-        assertTrue(validationErrorReporter.hasErrors());
-        assertEquals(1, validationErrorReporter.getReportList().size());
+        assertTrue( validationErrorReporter.hasErrors() );
+        assertEquals( 1, validationErrorReporter.getReportList().size() );
 
         assertThat( validationErrorReporter.getReportList(),
-                hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
 
     }
 
-    private void setTeiInDb() {
-        when(preheat.getTrackedEntityToProgramInstanceMap()).thenReturn(new HashMap<String, List<ProgramInstance>>(){{
-            ProgramInstance programInstance = new ProgramInstance();
+    private void setTeiInDb()
+    {
+        when( preheat.getTrackedEntityToProgramInstanceMap() ).thenReturn( new HashMap<String, List<ProgramInstance>>()
+        {
+            {
+                ProgramInstance programInstance = new ProgramInstance();
 
-            Program program = new Program();
-            program.setUid(programUid);
+                Program program = new Program();
+                program.setUid( programUid );
 
-            programInstance.setUid("another_enrollment");
-            programInstance.setStatus(ProgramStatus.ACTIVE);
-            programInstance.setProgram(program);
+                programInstance.setUid( "another_enrollment" );
+                programInstance.setStatus( ProgramStatus.ACTIVE );
+                programInstance.setProgram( program );
 
-            put(trackedEntity, Collections.singletonList(programInstance));
-        }});
+                put( trackedEntity, Collections.singletonList( programInstance ) );
+            }
+        } );
     }
 
-    private void setEnrollmentInPayload(EnrollmentStatus enrollmentStatus) {
+    private void setEnrollmentInPayload( EnrollmentStatus enrollmentStatus )
+    {
         Enrollment enrollmentInBundle = new Enrollment();
-        enrollmentInBundle.setProgram(programUid);
-        enrollmentInBundle.setTrackedEntity(trackedEntity);
-        enrollmentInBundle.setEnrollment("another_enrollment");
-        enrollmentInBundle.setStatus(enrollmentStatus);
+        enrollmentInBundle.setProgram( programUid );
+        enrollmentInBundle.setTrackedEntity( trackedEntity );
+        enrollmentInBundle.setEnrollment( "another_enrollment" );
+        enrollmentInBundle.setStatus( enrollmentStatus );
 
-        when(bundle.getEnrollments()).thenReturn(Collections.singletonList(enrollmentInBundle));
+        when( bundle.getEnrollments() ).thenReturn( Collections.singletonList( enrollmentInBundle ) );
     }
 }
