@@ -79,10 +79,4 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
     {
         return notes.stream().map( n -> from( preheat, n ) ).collect( Collectors.toList() );
     }
-
-    @Override
-    public TrackedEntityComment fromForRuleEngine( TrackerPreheat preheat, Note object )
-    {
-        return null;
-    }
 }

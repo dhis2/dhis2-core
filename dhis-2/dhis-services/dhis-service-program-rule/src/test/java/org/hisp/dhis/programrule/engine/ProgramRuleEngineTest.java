@@ -266,7 +266,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P1" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet() );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateOldOne( programInstance, Sets.newHashSet() );
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -286,7 +286,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P2" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet() );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateOldOne( programInstance, Sets.newHashSet() );
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -313,7 +313,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateOldOne( programStageInstance.getProgramInstance(),
             programStageInstance, Sets.newHashSet() );
 
         assertEquals( 1, ruleEffects.size() );
@@ -422,7 +422,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS12" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateOldOne( programStageInstance.getProgramInstance(),
             programStageInstance, Sets.newHashSet() );
 
         assertNotNull( ruleEffects );
@@ -436,7 +436,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS13" );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateOldOne( programStageInstance.getProgramInstance(),
             programStageInstance, Sets.newHashSet() );
 
         assertNotNull( ruleEffects );
