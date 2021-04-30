@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -57,8 +59,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Lists;
-
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -120,10 +120,11 @@ public class ProgramController
     }
 
     @RequestMapping( value = "/names", method = RequestMethod.GET, produces = { APPLICATION_JSON_VALUE,
-            "application/javascript" } )
-    @ResponseBody public String[] getProgramNames( )
+        "application/javascript" } )
+    @ResponseBody
+    public String[] getProgramNames()
     {
-        return programService.getAllPrograms().stream().map(BaseIdentifiableObject::getName).toArray(String[]::new);
+        return programService.getAllPrograms().stream().map( BaseIdentifiableObject::getName ).toArray( String[]::new );
     }
 
     @ResponseBody
