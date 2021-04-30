@@ -36,10 +36,7 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.*;
@@ -152,14 +149,20 @@ public class JdbcEventAnalyticsTableManagerTest
     {
         Program prA = createProgram( 'A' );
         Program prB = createProgram( 'B' );
-        List<Program> programs = Lists.newArrayList( prA, prB );
+        Program prC = createProgram( 'C' );
+        Program prD = createProgram( 'D' );
+        List<Program> programs = Lists.newArrayList( prA, prB, prC, prD );
 
         Date lastFullTableUpdate = new DateTime( 2019, 3, 1, 2, 0 ).toDate();
         Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
         Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
 
+        Set<String> skipPrograms = new HashSet<>();
+        skipPrograms.add( "ProgramC" );
+        skipPrograms.add( "ProgramD" );
+
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( startTime )
-            .withLatestPartition().build();
+            .withLatestPartition().withSkipPrograms( skipPrograms ).build();
 
         List<Map<String, Object>> queryResp = Lists.newArrayList();
         queryResp.add( ImmutableMap.of( "dataelementid", 1 ) );
@@ -172,11 +175,10 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( programs );
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
-
         assertThat( tables, hasSize( 2 ) );
 
         AnalyticsTable tableA = tables.get( 0 );
-        AnalyticsTable tableB = tables.get( 0 );
+        AnalyticsTable tableB = tables.get( 1 );
 
         assertThat( tableA, notNullValue() );
         assertThat( tableB, notNullValue() );

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +88,29 @@ public class ProgramControllerTest
         throws Exception
     {
         getWithDependencies( true );
+    }
+
+    @Test
+    public void getProgramNames()
+    {
+        //arrange
+        List<Program> programs = new ArrayList<>();
+        Program prA = new Program("prA");
+        Program prB = new Program("prB");
+        Program prC = new Program("prC");
+        programs.add( prA );
+        programs.add( prB );
+        programs.add( prC );
+        Mockito.when( service.getAllPrograms() ).thenReturn( programs );
+
+        //act
+        String[] prNames = controller.getProgramNames();
+
+        //assert
+        Assert.assertEquals(prNames.length, 3);
+        Assert.assertEquals(prNames[0], "prA");
+        Assert.assertEquals(prNames[1], "prB");
+        Assert.assertEquals(prNames[2], "prC");
     }
 
     private void getWithDependencies( boolean download )

@@ -52,6 +52,10 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
  */
 public class JobConfigurationSerializationTest
 {
+    private static final String PROGRAM1 = "Information Campaign";
+
+    private static final String PROGRAM2 = "Malaria case diagnosis, treatment and investigation";
+
     @Test
     public void xmlWithArray()
         throws IOException
@@ -89,6 +93,10 @@ public class JobConfigurationSerializationTest
                 "          <skipTableType>ORG_UNIT_TARGET</skipTableType>\n" +
                 "          <skipTableType>VALIDATION_RESULT</skipTableType>\n" +
                 "        </skipTableTypes>" +
+                "        <skipPrograms>\n" +
+                "          <String>" + PROGRAM1 + "</String>\n" +
+                "          <String>" + PROGRAM2 + "</String>\n" +
+                "        </skipPrograms>" +
                 "      </jobParameters>\n" +
                 "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
                 "    </jobConfiguration>",
@@ -109,6 +117,9 @@ public class JobConfigurationSerializationTest
         assertEquals( 3, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size() );
         assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
             AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
+        assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(), Matchers.hasItems(
+            PROGRAM1, PROGRAM2 ) );
+
     }
 
     @Test
@@ -145,6 +156,8 @@ public class JobConfigurationSerializationTest
                 "        <skipResourceTables>true</skipResourceTables>\n" +
                 "        <skipTableTypes>\n" +
                 "        </skipTableTypes>" +
+                "        <skipPrograms>\n" +
+                "        </skipPrograms>" +
                 "      </jobParameters>\n" +
                 "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
                 "    </jobConfiguration>",
@@ -165,6 +178,7 @@ public class JobConfigurationSerializationTest
         assertTrue( ((AnalyticsJobParameters) jc.getJobParameters()).isSkipResourceTables() );
         assertNotNull( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes() );
         assertEquals( 0, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size() );
+        assertEquals( 0, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms().size() );
     }
 
     @Test
@@ -204,6 +218,10 @@ public class JobConfigurationSerializationTest
                 "          <skipTableType>ORG_UNIT_TARGET</skipTableType>\n" +
                 "          <skipTableType>VALIDATION_RESULT</skipTableType>\n" +
                 "        </skipTableTypes>" +
+                "        <skipPrograms>\n" +
+                "          <String>" + PROGRAM1 + "</String>\n" +
+                "          <String>" + PROGRAM2 + "</String>\n" +
+                "        </skipPrograms>" +
                 "      </jobParameters>\n" +
                 "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
                 "    </jobConfiguration>",
@@ -225,6 +243,9 @@ public class JobConfigurationSerializationTest
         assertEquals( 3, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size() );
         assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
             AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
+        assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(), Matchers.hasItems(
+            PROGRAM1, PROGRAM2 ) );
+
     }
 
     @Test
@@ -261,8 +282,10 @@ public class JobConfigurationSerializationTest
             "        \"write\": true,\n" +
             "        \"manage\": true\n" +
             "      },\n" +
-            "      \"jobParameters\":{\"lastYears\":2,\"skipResourceTables\":true,\"skipTableTypes\":[\"ENROLLMENT\",\"ORG_UNIT_TARGET\",\"VALIDATION_RESULT\"]},"
-            +
+            "      \"jobParameters\":{\"lastYears\":2,\"skipResourceTables\":true," +
+            "      \"skipTableTypes\":[\"ENROLLMENT\",\"ORG_UNIT_TARGET\",\"VALIDATION_RESULT\"]," +
+            "      \"skipPrograms\":[\"" + PROGRAM1 + "\"" + ",\"" + PROGRAM2 + "\"]" +
+            "      }," +
             "      \"favorites\": [],\n" +
             "      \"translations\": [],\n" +
             "      \"userGroupAccesses\": [],\n" +
@@ -286,6 +309,8 @@ public class JobConfigurationSerializationTest
         assertEquals( 3, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size() );
         assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
             AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
+        assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(),
+            Matchers.hasItems( PROGRAM1, PROGRAM2 ) );
     }
 
     @Test
@@ -322,8 +347,10 @@ public class JobConfigurationSerializationTest
             "        \"write\": true,\n" +
             "        \"manage\": true\n" +
             "      },\n" +
-            "      \"jobParameters\":{\"lastYears\":2,\"skipResourceTables\":true,\"skipTableTypes\":[\"ENROLLMENT\",\"ORG_UNIT_TARGET\",\"VALIDATION_RESULT\"]},"
-            +
+            "      \"jobParameters\":{\"lastYears\":2,\"skipResourceTables\":true," +
+            "      \"skipTableTypes\":[\"ENROLLMENT\",\"ORG_UNIT_TARGET\",\"VALIDATION_RESULT\"]," +
+            "      \"skipPrograms\":[\"" + PROGRAM1 + "\"" + ",\"" + PROGRAM2 + "\"]" +
+            "      }," +
             "      \"favorites\": [],\n" +
             "      \"translations\": [],\n" +
             "      \"userGroupAccesses\": [],\n" +
@@ -347,5 +374,8 @@ public class JobConfigurationSerializationTest
         assertEquals( 3, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size() );
         assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
             AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
+        assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(), Matchers.hasItems(
+            PROGRAM1, PROGRAM2 ) );
+
     }
 }

@@ -163,6 +163,7 @@ public class AnalyticsTableUpdateParams
             .add( "last years", lastYears )
             .add( "skip resource tables", skipResourceTables )
             .add( "skip table types", skipTableTypes )
+            .add( "skip programs", skipPrograms )
             .add( "start time", DateUtils.getLongDateString( startTime ) )
             .toString();
     }
