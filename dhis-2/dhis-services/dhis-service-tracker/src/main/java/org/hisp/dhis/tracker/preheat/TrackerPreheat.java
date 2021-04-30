@@ -175,9 +175,7 @@ public class TrackerPreheat
     private Map<TrackerIdScheme, Map<String, TrackedEntityComment>> notes = new EnumMap<>( TrackerIdScheme.class );
 
     /**
-     * A Map of trackedEntity uid and preheated {@see ProgramInstance}. The
-     * value is a List, because the system may return multiple ProgramInstance,
-     * which will be detected by validation
+     * A Map of trackedEntity uid connected to Program Instances
      */
     @Getter
     @Setter

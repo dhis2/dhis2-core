@@ -98,7 +98,7 @@ public class EnrollmentInExistingValidationHook
             .filter( pi -> pi.getProgram().getUid().equals( program.getUid() )
                 && !pi.getUid().equals( enrollment.getEnrollment() ) )
             .filter( pi -> ProgramStatus.ACTIVE == pi.getStatus() || ProgramStatus.COMPLETED == pi.getStatus() )
-            .collect( Collectors.toSet() ).stream().map( this::getEnrollmentFromProgramInstance )
+            .distinct().map( this::getEnrollmentFromProgramInstance )
             .collect( Collectors.toSet() );
 
         // Priority to payload
