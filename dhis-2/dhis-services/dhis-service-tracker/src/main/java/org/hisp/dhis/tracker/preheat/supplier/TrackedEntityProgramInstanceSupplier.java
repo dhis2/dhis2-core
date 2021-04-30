@@ -55,23 +55,23 @@ import com.google.common.collect.Lists;
 public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSupplier
 {
 
-    private final static String PR_UID_COLUMN = "pr.uid";
+    private static final String PR_UID_COLUMN = "pr.uid";
 
-    private final static String PR_UID_COLUMN_ALIAS = "pruid";
+    private static final  String  PR_UID_COLUMN_ALIAS = "pruid";
 
-    private final static String PI_UID_COLUMN = "pi.uid";
+    private static final String PI_UID_COLUMN = "pi.uid";
 
-    private final static String PI_UID_COLUMN_ALIAS = "piuid";
+    private static final String PI_UID_COLUMN_ALIAS = "piuid";
 
-    private final static String PI_STATUS_COLUMN = "pi.status";
+    private static final String PI_STATUS_COLUMN = "pi.status";
 
-    private final static String PI_STATUS_COLUMN_ALIAS = "status";
+    private static final String PI_STATUS_COLUMN_ALIAS = "status";
 
-    private final static String TEI_UID_COLUMN = "tei.uid";
+    private static final String TEI_UID_COLUMN = "tei.uid";
 
-    private final static String TEI_UID_COLUMN_ALIAS = "teiuid";
+    private static final String TEI_UID_COLUMN_ALIAS = "teiuid";
 
-    private final static String SQL = "select  " + PR_UID_COLUMN + " as " + PR_UID_COLUMN_ALIAS + ", "
+    private static final  String SQL = "select  " + PR_UID_COLUMN + " as " + PR_UID_COLUMN_ALIAS + ", "
         + PI_UID_COLUMN + " as " + PI_UID_COLUMN_ALIAS + ", "
         + PI_STATUS_COLUMN + " as " + PI_STATUS_COLUMN_ALIAS + ", "
         + TEI_UID_COLUMN + " as " + TEI_UID_COLUMN_ALIAS +
@@ -124,7 +124,7 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
             newPi.setProgram( program );
 
             List<ProgramInstance> piList = trackedEntityToProgramInstanceMap.getOrDefault( tei,
-                new ArrayList<ProgramInstance>() );
+                new ArrayList<>() );
 
             piList.add( newPi );
 
