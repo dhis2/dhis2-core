@@ -57,7 +57,7 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
 
     private static final String PR_UID_COLUMN = "pr.uid";
 
-    private static final  String  PR_UID_COLUMN_ALIAS = "pruid";
+    private static final String PR_UID_COLUMN_ALIAS = "pruid";
 
     private static final String PI_UID_COLUMN = "pi.uid";
 
@@ -71,7 +71,7 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
 
     private static final String TEI_UID_COLUMN_ALIAS = "teiuid";
 
-    private static final  String SQL = "select  " + PR_UID_COLUMN + " as " + PR_UID_COLUMN_ALIAS + ", "
+    private static final String SQL = "select  " + PR_UID_COLUMN + " as " + PR_UID_COLUMN_ALIAS + ", "
         + PI_UID_COLUMN + " as " + PI_UID_COLUMN_ALIAS + ", "
         + PI_STATUS_COLUMN + " as " + PI_STATUS_COLUMN_ALIAS + ", "
         + TEI_UID_COLUMN + " as " + TEI_UID_COLUMN_ALIAS +
