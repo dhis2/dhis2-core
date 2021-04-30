@@ -500,6 +500,7 @@ public class EnrollmentImportValidationTest
     public void testBadGeoOnEnrollment()
         throws IOException
     {
+<<<<<<< HEAD
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_bad-geo.json" );
 
@@ -537,6 +538,23 @@ public class EnrollmentImportValidationTest
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
+=======
+        TrackerImportParams trackerImportParams = createBundleFromJson(
+            "tracker/validations/enrollments_double-tei-enrollment_part1.json" );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+
+        TrackerValidationReport validationReport = trackerImportReport.getValidationReport();
+
+        assertEquals( 0, validationReport.getErrorReports().size() );
+
+        TrackerImportParams trackerImportParams1 = createBundleFromJson(
+            "tracker/validations/enrollments_double-tei-enrollment_part2.json" );
+
+        trackerImportReport = trackerImportService.importTracker( trackerImportParams1 );
+
+        validationReport = trackerImportReport.getValidationReport();
+>>>>>>> e61143fc3b (fix: faling tests)
 
         assertEquals( 1, validationReport.getErrorReports().size() );
 
