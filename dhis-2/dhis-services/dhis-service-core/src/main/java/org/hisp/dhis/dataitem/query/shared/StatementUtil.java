@@ -30,9 +30,10 @@ package org.hisp.dhis.dataitem.query.shared;
 import static org.apache.commons.lang3.StringUtils.replaceEach;
 
 /**
- * This class keeps basic SQL keywords/constants so they can be reused by the
- * queries. It was created mainly to make SonarQube happy regarding what is
- * considered "code smell".
+ * This class keeps basic SQL statements/keywords/constants so they can be
+ * reused by the queries.
+ *
+ * @author maikel arabori
  */
 public class StatementUtil
 {
@@ -48,6 +49,14 @@ public class StatementUtil
 
     public static final String SPACED_AND = " and ";
 
+    public static final String EQUAL = " = :";
+
+    public static final String ILIKE = " ilike :";
+
+    public static final String SPACED_LEFT_PARENTHESIS = " ( ";
+
+    public static final String SPACED_RIGHT_PARENTHESIS = " ) ";
+
     /**
      * This method is specific for strings used in "ilike" filters where some
      * non accepted characters will fail at querying time. It will only replace
@@ -59,5 +68,61 @@ public class StatementUtil
     public static String addIlikeReplacingCharacters( final String value )
     {
         return replaceEach( value, new String[] { "%", "," }, new String[] { "\\%", "\\," } );
+    }
+
+    /**
+     * Creates a "in" SQL statement isolated by parenthesis, ie.: "( column in
+     * (:param) )"
+     *
+     * @param column
+     * @param namedParam
+     * @return the SQL string
+     */
+    public static String inFiltering( final String column, final String namedParam )
+    {
+        return SPACED_LEFT_PARENTHESIS + column + " in (:" + namedParam + ")" + SPACED_RIGHT_PARENTHESIS;
+    }
+
+    /**
+     * Creates a "ilike" SQL statement isolated by parenthesis, ie.: "( column
+     * ilike :param )"
+     *
+     * @param column
+     * @param namedParam
+     * @return the SQL string
+     */
+    public static String ilikeFiltering( final String column, final String namedParam )
+    {
+        return SPACED_LEFT_PARENTHESIS + column + ILIKE + namedParam + SPACED_RIGHT_PARENTHESIS;
+    }
+
+    /**
+     * Creates a "ilike" SQL statement isolated by parenthesis. It consider two
+     * different columns and uses "or" as junction, ie.: "( columnOne ilike
+     * :param or columnTwo ilike :param)"
+     *
+     * @param columnOne
+     * @param columnTwo
+     * @param namedParam
+     * @return the SQL string
+     */
+    public static String ilikeOrFiltering( final String columnOne, final String columnTwo,
+        final String namedParam )
+    {
+        return SPACED_LEFT_PARENTHESIS + columnOne + ILIKE + namedParam + " or " + columnTwo + ILIKE
+            + namedParam + SPACED_RIGHT_PARENTHESIS;
+    }
+
+    /**
+     * Creates a "equal" SQL statement isolated by parenthesis, ie.: "( column =
+     * :param )"
+     *
+     * @param column
+     * @param namedParam
+     * @return the SQL string
+     */
+    public static String equalsFiltering( final String column, final String namedParam )
+    {
+        return SPACED_LEFT_PARENTHESIS + column + EQUAL + namedParam + SPACED_RIGHT_PARENTHESIS;
     }
 }

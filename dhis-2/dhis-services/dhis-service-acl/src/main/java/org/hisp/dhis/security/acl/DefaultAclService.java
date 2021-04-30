@@ -32,7 +32,6 @@ import static org.springframework.util.CollectionUtils.containsAny;
 
 import java.util.*;
 
-import org.apache.commons.collections4.*;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -51,8 +50,6 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.util.*;
 import org.springframework.stereotype.Service;
-
-import com.sun.tools.rngom.parse.host.*;
 
 /**
  * Default ACL implementation that uses SchemaDescriptors to get authorities /

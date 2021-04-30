@@ -64,7 +64,20 @@ login.changeLocale = function( locale )
 		$( '#2fa_code' ).attr( 'placeholder', json.login_code );
 		$( '#forgotPasswordLink' ).html( json.forgot_password );
 		$( '#createAccountLink' ).html( json.create_an_account );
-		$( '#loginMessage' ).html( json.wrong_username_or_password );
+
+		var loginMsg = $( '#lockedMessage' ).html();
+
+        if ( undefined !== loginMsg && loginMsg.indexOf( "locked" ) != -1 )
+        {
+            loginMsg = json.account_locked;
+        }
+        else
+        {
+            loginMsg = json.wrong_username_or_password;
+        }
+
+		$( '#loginMessage' ).html( loginMsg );
+
 		$( '#poweredByLabel' ).html( json.powered_by );
 		$( '#submit' ).val( json.sign_in );
 		

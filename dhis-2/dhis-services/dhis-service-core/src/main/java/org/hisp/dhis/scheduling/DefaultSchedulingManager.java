@@ -35,11 +35,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.BiFunction;
 
@@ -70,9 +70,9 @@ public class DefaultSchedulingManager
 {
     private static final int DEFAULT_INITIAL_DELAY_S = 10;
 
-    private Map<String, ScheduledFuture<?>> futures = new ConcurrentHashMap<>();
+    private final Map<String, Future<?>> futures = new ConcurrentHashMap<>();
 
-    private Map<String, ListenableFuture<?>> currentTasks = new ConcurrentHashMap<>();
+    private final Map<String, Future<?>> currentTasks = new ConcurrentHashMap<>();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -122,18 +122,12 @@ public class DefaultSchedulingManager
     /**
      * List of currently running jobs.
      */
-    private List<JobConfiguration> runningJobConfigurations = new CopyOnWriteArrayList<>();
+    private Set<JobType> runningJobTypes = ConcurrentHashMap.newKeySet();
 
     @Override
-    public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration )
+    public boolean isJobConfigurationRunning( JobType type )
     {
-        if ( jobConfiguration.isInMemoryJob() )
-        {
-            return false;
-        }
-
-        return runningJobConfigurations.stream().anyMatch(
-            jc -> jc.getJobType().equals( jobConfiguration.getJobType() ) );
+        return runningJobTypes.contains( type );
     }
 
     @Override
@@ -141,7 +135,7 @@ public class DefaultSchedulingManager
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
-            runningJobConfigurations.add( jobConfiguration );
+            runningJobTypes.add( jobConfiguration.getJobType() );
             jobConfigurationService.updateJobConfiguration( jobConfiguration );
         }
     }
@@ -149,7 +143,7 @@ public class DefaultSchedulingManager
     @Override
     public void jobConfigurationFinished( JobConfiguration jobConfiguration )
     {
-        runningJobConfigurations.remove( jobConfiguration );
+        runningJobTypes.remove( jobConfiguration.getJobType() );
 
         JobConfiguration tempJobConfiguration = jobConfigurationService
             .getJobConfigurationByUid( jobConfiguration.getUid() );
@@ -244,7 +238,7 @@ public class DefaultSchedulingManager
     @Override
     public boolean executeJob( JobConfiguration jobConfiguration )
     {
-        if ( jobConfiguration != null && !isJobConfigurationRunning( jobConfiguration ) )
+        if ( jobConfiguration != null && !isJobConfigurationRunning( jobConfiguration.getJobType() ) )
         {
             internalExecuteJobConfiguration( jobConfiguration );
             return true;
@@ -262,7 +256,7 @@ public class DefaultSchedulingManager
     }
 
     @Override
-    public Map<String, ScheduledFuture<?>> getAllFutureJobs()
+    public Map<String, Future<?>> getAllFutureJobs()
     {
         return futures;
     }
@@ -300,7 +294,7 @@ public class DefaultSchedulingManager
     {
         if ( uid != null )
         {
-            ScheduledFuture<?> future = futures.get( uid );
+            Future<?> future = futures.get( uid );
 
             if ( future == null )
             {
@@ -330,6 +324,6 @@ public class DefaultSchedulingManager
 
     private boolean isJobInSystem( String jobKey )
     {
-        return futures.get( jobKey ) != null || currentTasks.get( jobKey ) != null;
+        return jobKey != null && (futures.get( jobKey ) != null || currentTasks.get( jobKey ) != null);
     }
 }

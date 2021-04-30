@@ -29,9 +29,11 @@ package org.hisp.dhis.dataitem.query.shared;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 
 import java.util.Set;
 
+import org.hisp.dhis.common.ValueType;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -55,7 +57,7 @@ public class ParamPresenceChecker
      *        paramsMap
      * @return true if the param is a String and is not blank, false otherwise
      */
-    public static boolean hasStringNonBlankPresence( final MapSqlParameterSource paramsMap, final String param )
+    public static boolean hasNonBlankStringPresence( final MapSqlParameterSource paramsMap, final String param )
     {
         return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof String
             && isNotBlank( (String) paramsMap.getValue( param ) );
@@ -105,5 +107,24 @@ public class ParamPresenceChecker
     {
         return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof Set
             && isNotEmpty( (Set) paramsMap.getValue( param ) );
+    }
+
+    /**
+     * Checks if the given paramsMap has the presence of the valueType provided.
+     *
+     * @param paramsMap
+     * @param valueType
+     * @return true if valueType is present in paramsMap, false otherwise
+     */
+    public static boolean hasValueTypePresence( final MapSqlParameterSource paramsMap, final ValueType valueType )
+    {
+        if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
+        {
+            final Set<String> valueTypeNames = (Set<String>) paramsMap.getValue( VALUE_TYPES );
+
+            return valueTypeNames != null && valueTypeNames.contains( valueType.name() );
+        }
+
+        return false;
     }
 }

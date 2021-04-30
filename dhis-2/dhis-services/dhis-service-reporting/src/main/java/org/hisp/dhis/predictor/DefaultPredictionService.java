@@ -317,7 +317,7 @@ public class DefaultPredictionService
         PredictionAnalyticsDataFetcher analyticsFetcher = new PredictionAnalyticsDataFetcher( analyticsService );
         PredictionWriter predictionWriter = new PredictionWriter( dataValueService, batchHandlerFactory );
 
-        predictionWriter.init( existingOutputPeriods, predictionSummary, storedBy );
+        predictionWriter.init( existingOutputPeriods, predictionSummary );
 
         predictionSummary.incrementPredictors();
 

@@ -37,6 +37,8 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.joda.time.DateTime;
@@ -144,6 +146,12 @@ public class RelativePeriods
         streamToStringArray( IntStream.rangeClosed( 1, 4 ).map( i -> 4 - i + 1 ).boxed(), "year_minus_", "" ),
         Collections.singletonList( "year_this" ).toArray() );
 
+    // Generates an array containing "year_minus_9" -> "year_minus_1" +
+    // "year_this"
+    public static final String[] LAST_10_YEARS = (String[]) ArrayUtils.addAll(
+        streamToStringArray( IntStream.rangeClosed( 1, 9 ).map( i -> 9 - i + 1 ).boxed(), "year_minus_", "" ),
+        Collections.singletonList( "year_this" ).toArray() );
+
     // Generates an array containing "financial_year_minus_4" ->
     // "financial_year_minus_1" + "financial_year_this"
     public static final String[] LAST_5_FINANCIAL_YEARS = (String[]) ArrayUtils.addAll(
@@ -216,6 +224,8 @@ public class RelativePeriods
     private boolean lastYear = false;
 
     private boolean last5Years = false;
+
+    private boolean last10Years = false;
 
     private boolean last12Months = false;
 
@@ -655,6 +665,17 @@ public class RelativePeriods
                 getRollingRelativePeriodList( new YearlyPeriodType(), LAST_5_YEARS, date, dynamicNames, format ) );
         }
 
+        if ( isLast10Years() )
+        {
+            periods.addAll(
+                getRollingRelativePeriodList( new YearlyPeriodType(), LAST_10_YEARS,
+                    Iso8601Calendar.getInstance().minusYears( DateTimeUnit.fromJdkDate( date ), 5 ).toJdkDate(),
+                    dynamicNames, format ) );
+            periods.addAll(
+                getRollingRelativePeriodList( new YearlyPeriodType(), LAST_10_YEARS, date, dynamicNames, format ) );
+
+        }
+
         return periods;
     }
 
@@ -677,9 +698,8 @@ public class RelativePeriods
             periods.add( getRelativePeriod( financialPeriodType, THIS_FINANCIAL_YEAR, date, dynamicNames, format ) );
         }
 
-        date = new DateTime( date ).minusMonths( MONTHS_IN_YEAR ).toDate(); // Rewind
-                                                                            // one
-                                                                            // year
+        // Rewind one year
+        date = new DateTime( date ).minusMonths( MONTHS_IN_YEAR ).toDate();
 
         if ( isLastFinancialYear() )
         {
@@ -831,6 +851,7 @@ public class RelativePeriods
         map.put( RelativePeriodEnum.QUARTERS_LAST_YEAR, new RelativePeriods().setQuartersLastYear( true ) );
         map.put( RelativePeriodEnum.LAST_YEAR, new RelativePeriods().setLastYear( true ) );
         map.put( RelativePeriodEnum.LAST_5_YEARS, new RelativePeriods().setLast5Years( true ) );
+        map.put( RelativePeriodEnum.LAST_10_YEARS, new RelativePeriods().setLast10Years( true ) );
         map.put( RelativePeriodEnum.LAST_12_MONTHS, new RelativePeriods().setLast12Months( true ) );
         map.put( RelativePeriodEnum.LAST_6_MONTHS, new RelativePeriods().setLast6Months( true ) );
         map.put( RelativePeriodEnum.LAST_3_MONTHS, new RelativePeriods().setLast3Months( true ) );
@@ -891,6 +912,7 @@ public class RelativePeriods
         add( list, RelativePeriodEnum.QUARTERS_LAST_YEAR, quartersLastYear );
         add( list, RelativePeriodEnum.LAST_YEAR, lastYear );
         add( list, RelativePeriodEnum.LAST_5_YEARS, last5Years );
+        add( list, RelativePeriodEnum.LAST_10_YEARS, last10Years );
         add( list, RelativePeriodEnum.LAST_12_MONTHS, last12Months );
         add( list, RelativePeriodEnum.LAST_6_MONTHS, last6Months );
         add( list, RelativePeriodEnum.LAST_3_MONTHS, last3Months );
@@ -942,6 +964,7 @@ public class RelativePeriods
             quartersLastYear = relativePeriods.contains( RelativePeriodEnum.QUARTERS_LAST_YEAR );
             lastYear = relativePeriods.contains( RelativePeriodEnum.LAST_YEAR );
             last5Years = relativePeriods.contains( RelativePeriodEnum.LAST_5_YEARS );
+            last10Years = relativePeriods.contains( RelativePeriodEnum.LAST_10_YEARS );
             last12Months = relativePeriods.contains( RelativePeriodEnum.LAST_12_MONTHS );
             last6Months = relativePeriods.contains( RelativePeriodEnum.LAST_6_MONTHS );
             last3Months = relativePeriods.contains( RelativePeriodEnum.LAST_3_MONTHS );
@@ -1313,6 +1336,19 @@ public class RelativePeriods
     public RelativePeriods setLast5Years( boolean last5Years )
     {
         this.last5Years = last5Years;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isLast10Years()
+    {
+        return last10Years;
+    }
+
+    public RelativePeriods setLast10Years( boolean last10Years )
+    {
+        this.last10Years = last10Years;
         return this;
     }
 
