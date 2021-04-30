@@ -531,6 +531,24 @@ public class DataValueController
         dataValueService.updateDataValue( dataValue );
     }
 
+    @PutMapping( value = "/followups" )
+    @ResponseStatus( value = HttpStatus.OK )
+    public void setDataValuesFollowUp( @RequestBody List<DataValueFollowUpRequest> request )
+    {
+        if ( request == null || request.isEmpty() || request.stream().anyMatch( e -> e.getFollowup() == null ) )
+        {
+            throw new IllegalQueryException( ErrorCode.E2033 );
+        }
+
+        List<DataValue> dataValues = new ArrayList<>();
+        for ( DataValueFollowUpRequest e : request )
+        {
+            DataValue dataValue = dataValueValidation.getAndValidateDataValue( e );
+            dataValue.setFollowup( e.getFollowup() );
+        }
+        dataValueService.updateDataValues( dataValues );
+    }
+
     // ---------------------------------------------------------------------
     // GET file
     // ---------------------------------------------------------------------
