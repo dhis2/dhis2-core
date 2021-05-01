@@ -181,13 +181,35 @@ public class ProgramRuleEngine
             log.error( "Program cannot be null" );
             return RuleValidationResult.builder().isValid( false ).errorMessage( "Program cannot be null" ).build();
         }
+        
+        return loadRuleEngineForDescription( program ).evaluate( condition );
+    }
 
+    /**
+     * To get description for program rule action data field.
+     *
+     * @param dataExpression of program rule action data field expression.
+     * @param program {@link Program} which the programRule is associated with.
+     * @return RuleValidationResult contains description of program rule
+     *         condition or errorMessage
+     */
+    public RuleValidationResult getDataExpressionDescription( String dataExpression, Program program )
+    {
+        if ( program == null )
+        {
+            log.error( "Program cannot be null" );
+            return RuleValidationResult.builder().isValid( false ).errorMessage( "Program cannot be null" ).build();
+        }
+
+        return loadRuleEngineForDescription( program ).evaluate( dataExpression );
+    }
+
+    private RuleEngine loadRuleEngineForDescription( Program program )
+    {
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( program );
 
-        RuleEngine ruleEngine = ruleEngineBuilder( ListUtils.newList(), programRuleVariables,
-            RuleEngineIntent.DESCRIPTION ).build();
-
-        return ruleEngine.evaluate( condition );
+        return ruleEngineBuilder( ListUtils.newList(), programRuleVariables,
+                RuleEngineIntent.DESCRIPTION ).build();
     }
 
     private RuleEngineContext getRuleEngineContext( Program program, List<ProgramRule> programRules )
