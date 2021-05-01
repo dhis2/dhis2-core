@@ -181,7 +181,7 @@ public class ProgramRuleEngine
             log.error( "Program cannot be null" );
             return RuleValidationResult.builder().isValid( false ).errorMessage( "Program cannot be null" ).build();
         }
-        
+
         return loadRuleEngineForDescription( program ).evaluate( condition );
     }
 
@@ -209,7 +209,7 @@ public class ProgramRuleEngine
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( program );
 
         return ruleEngineBuilder( ListUtils.newList(), programRuleVariables,
-                RuleEngineIntent.DESCRIPTION ).build();
+            RuleEngineIntent.DESCRIPTION ).build();
     }
 
     private RuleEngineContext getRuleEngineContext( Program program, List<ProgramRule> programRules )

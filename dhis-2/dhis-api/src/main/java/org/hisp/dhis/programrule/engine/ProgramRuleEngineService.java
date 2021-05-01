@@ -66,7 +66,7 @@ public interface ProgramRuleEngineService
     RuleValidationResult getDescription( String condition, String programId );
 
     /**
-     * Gets the description of program rule action data field. T
+     * Gets the description of program rule action data field.
      *
      * @param dataExpression to get description for.
      * @param programId program id which program rule is associated to.
