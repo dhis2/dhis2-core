@@ -43,7 +43,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -273,11 +272,12 @@ public class ObjectBundleServiceProgramTest
 
     @Test
     public void testInvalidProgramRuleAction()
-            throws IOException
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-                new ClassPathResource( "dxf2/metadata_with_program_and_program_rules_with_invalid_ruleActions.json" ).getInputStream(),
-                RenderFormat.JSON );
+            new ClassPathResource( "dxf2/metadata_with_program_and_program_rules_with_invalid_ruleActions.json" )
+                .getInputStream(),
+            RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -291,7 +291,8 @@ public class ObjectBundleServiceProgramTest
 
         assertFalse( validate.getErrorReports().isEmpty() );
 
-        List<ErrorCode> codes = validate.getErrorReports().stream().map( r -> r.getErrorCode()).collect(Collectors.toList());
+        List<ErrorCode> codes = validate.getErrorReports().stream().map( r -> r.getErrorCode() )
+            .collect( Collectors.toList() );
 
         assertTrue( codes.contains( ErrorCode.E4047 ) );
         assertTrue( codes.contains( ErrorCode.E4048 ) );

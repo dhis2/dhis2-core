@@ -86,7 +86,7 @@ public class HibernateProgramStageStore
     }
 
     @Override
-    public List<ProgramStage> getByProgram(Program program)
+    public List<ProgramStage> getByProgram( Program program )
     {
         if ( program == null )
         {

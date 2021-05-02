@@ -103,8 +103,8 @@ public class DefaultProgramStageService
 
     @Override
     @Transactional( readOnly = true )
-    public List<ProgramStage> getProgramStagesByProgram(Program program)
+    public List<ProgramStage> getProgramStagesByProgram( Program program )
     {
-        return programStageStore.getByProgram(program);
+        return programStageStore.getByProgram( program );
     }
 }

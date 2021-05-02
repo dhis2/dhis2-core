@@ -69,7 +69,11 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
     @Nonnull
     private final ProgramRuleActionValidationContextLoader contextLoader;
 
-    public ProgramRuleActionObjectBundleHook(@NonNull Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap, @Nonnull ProgramRuleActionValidationSupplier actionValidationServiceSupplier, @Nonnull ProgramRuleActionValidationContextLoader contextLoader) {
+    public ProgramRuleActionObjectBundleHook(
+        @NonNull Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap,
+        @Nonnull ProgramRuleActionValidationSupplier actionValidationServiceSupplier,
+        @Nonnull ProgramRuleActionValidationContextLoader contextLoader )
+    {
         this.validatorMap = validatorMap;
         this.actionValidationServiceSupplier = actionValidationServiceSupplier;
         this.contextLoader = contextLoader;

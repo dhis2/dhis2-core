@@ -30,8 +30,8 @@ package org.hisp.dhis.programrule.action.validation;
 import javax.annotation.Nonnull;
 
 import lombok.Builder;
-
 import lombok.Getter;
+
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElementService;
