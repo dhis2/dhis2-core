@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+import java.util.List;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -67,4 +69,6 @@ public class ProgramRuleActionValidationContext
     private ProgramNotificationTemplate notificationTemplate;
 
     private ProgramRuleActionValidationService programRuleActionValidationService;
+
+    private List<ProgramStage> programStages;
 }

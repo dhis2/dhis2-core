@@ -295,7 +295,6 @@ public class ObjectBundleServiceProgramTest
             .collect( Collectors.toList() );
 
         assertTrue( codes.contains( ErrorCode.E4047 ) );
-        assertTrue( codes.contains( ErrorCode.E4048 ) );
     }
 
     @Test

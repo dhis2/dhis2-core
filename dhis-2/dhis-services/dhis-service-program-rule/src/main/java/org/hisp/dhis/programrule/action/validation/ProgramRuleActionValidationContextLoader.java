@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
@@ -57,9 +60,14 @@ public class ProgramRuleActionValidationContextLoader
         ProgramRule rule = preheat.get( preheatIdentifier, ProgramRule.class,
             ruleAction.getProgramRule() );
 
+        Program program = preheat.get( preheatIdentifier, Program.class, rule.getProgram() );
+
+        List<ProgramStage> stages = preheat.getAll( preheatIdentifier, new ArrayList<>( program.getProgramStages() ) );
+
         return ProgramRuleActionValidationContext.builder()
             .programRule( rule )
-            .program( preheat.get( preheatIdentifier, Program.class, rule.getProgram() ) )
+            .program( program )
+            .programStages( stages )
             .dataElement( ruleAction.hasDataElement()
                 ? preheat.get( preheatIdentifier, DataElement.class, ruleAction.getDataElement() )
                 : null )

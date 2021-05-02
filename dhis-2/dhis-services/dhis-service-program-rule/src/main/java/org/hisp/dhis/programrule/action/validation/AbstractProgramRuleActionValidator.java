@@ -38,7 +38,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
@@ -95,12 +94,19 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
                     .build();
             }
 
-            Set<ProgramStage> stages = program.getProgramStages();
+            List<ProgramStage> stages = validationContext.getProgramStages();
 
-            Set<DataElement> dataElements = stages.stream().flatMap( s -> s.getDataElements().stream() )
+            if ( stages == null || stages.isEmpty() )
+            {
+                stages = validationContext.getProgramRuleActionValidationService().getProgramStageService()
+                    .getProgramStagesByProgram( program );
+            }
+
+            Set<String> dataElements = stages.stream().flatMap( s -> s.getDataElements().stream() )
+                .map( DataElement::getUid )
                 .collect( Collectors.toSet() );
 
-            if ( !dataElements.contains( dataElement ) )
+            if ( !dataElements.contains( dataElement.getUid() ) )
             {
                 log.debug( String.format( "DataElement: %s is not linked to any ProgramStageDataElement",
                     dataElement.getUid() ) );
@@ -132,10 +138,10 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
                     .build();
             }
 
-            List<TrackedEntityAttribute> trackedEntityAttributes = program.getProgramAttributes().stream()
-                .map( ProgramTrackedEntityAttribute::getAttribute ).collect( Collectors.toList() );
+            List<String> trackedEntityAttributes = program.getProgramAttributes().stream()
+                .map( att -> att.getAttribute().getUid() ).collect( Collectors.toList() );
 
-            if ( !trackedEntityAttributes.contains( attribute ) )
+            if ( !trackedEntityAttributes.contains( attribute.getUid() ) )
             {
                 log.debug(
                     String.format( "TrackedEntityAttribute: %s is not linked to any ProgramTrackedEntityAttribute",
