@@ -69,7 +69,7 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
                 .build();
         }
 
-        Program program = validationContext.getProgramRuleActionValidationService().getProgramService().getProgram( rule.getProgram().getUid() );
+        Program program = validationContext.getProgram();
 
         if ( program == null )
         {
@@ -94,7 +94,7 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
                         .build();
             }
 
-            List<ProgramStage> stages = validationContext.getProgramRuleActionValidationService().getProgramStageService().getProgramStagesByProgram( program );
+            Set<ProgramStage> stages = program.getProgramStages();
 
             Set<DataElement> dataElements = stages.stream().flatMap( s -> s.getDataElements().stream() ).collect(Collectors.toSet());
 
@@ -106,7 +106,7 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
                 return ProgramRuleActionValidationResult.builder()
                         .valid( false )
                         .errorReport( new ErrorReport( DataElement.class, ErrorCode.E4047,
-                                dataElement.getUid() ) )
+                                dataElement.getUid(), rule.getName() ) )
                         .build();
             }
         }
@@ -140,7 +140,7 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
                 return ProgramRuleActionValidationResult.builder()
                         .valid( false )
                         .errorReport( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4048,
-                                attribute.getUid() ) )
+                                attribute.getUid(), rule.getName() ) )
                         .build();
             }
         }

@@ -70,33 +70,4 @@ public class ProgramRuleActionValidationContext
     private ProgramNotificationTemplate notificationTemplate;
 
     private ProgramRuleActionValidationService programRuleActionValidationService;
-
-    public static ProgramRuleActionValidationContext load( Preheat preheat, PreheatIdentifier preheatIdentifier,
-        ProgramRuleAction ruleAction, ProgramRuleActionValidationService programRuleActionValidationService )
-    {
-        return ProgramRuleActionValidationContext.builder()
-            .programRule( preheat.get( preheatIdentifier, ProgramRule.class,
-                ruleAction.getProgramRule() ) )
-            .program( preheat.get( preheatIdentifier, Program.class, ruleAction.getProgramRule().getUid() ) )
-            .dataElement( ruleAction.hasDataElement()
-                ? preheat.get( preheatIdentifier, DataElement.class, ruleAction.getDataElement() )
-                : null )
-            .trackedEntityAttribute(
-                ruleAction.hasTrackedEntityAttribute() ? preheat.get( preheatIdentifier, TrackedEntityAttribute.class,
-                    ruleAction.getAttribute() ) : null )
-            .notificationTemplate(
-                ruleAction.hasNotification() ? preheat.get( preheatIdentifier, ProgramNotificationTemplate.class,
-                    ruleAction.getTemplateUid() ) : null )
-            .programStageSection(
-                ruleAction.hasProgramStageSection() ? preheat.get( preheatIdentifier, ProgramStageSection.class,
-                    ruleAction.getProgramStageSection() ) : null )
-            .programStage( ruleAction.hasProgramStage() ? preheat.get( preheatIdentifier, ProgramStage.class,
-                ruleAction.getProgramStage() ) : null )
-            .option( ruleAction.hasOption() ? preheat.get( preheatIdentifier, Option.class,
-                ruleAction.getOption() ) : null )
-            .optionGroup( ruleAction.hasOptionGroup() ? preheat.get( preheatIdentifier, OptionGroup.class,
-                ruleAction.getOptionGroup() ) : null )
-            .programRuleActionValidationService( programRuleActionValidationService )
-            .build();
-    }
 }
