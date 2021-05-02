@@ -84,4 +84,17 @@ public class HibernateProgramStageStore
 
         return getQuery( hql ).setParameter( "dataEntryForm", dataEntryForm ).list();
     }
+
+    @Override
+    public List<ProgramStage> getByProgram(Program program)
+    {
+        if ( program == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        final String hql = "from ProgramStage p where p.program = :program";
+
+        return getQuery( hql ).setParameter( "program", program ).list();
+    }
 }

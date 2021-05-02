@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule.action.validation;
 
 import java.util.function.Supplier;
 
+import lombok.NonNull;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElementService;
@@ -45,18 +46,25 @@ import org.springframework.stereotype.Component;
 @Component( "programRuleActionValidationServiceSupplier" )
 public class ProgramRuleActionValidationSupplier implements Supplier<ProgramRuleActionValidationService>
 {
+    @NonNull
     private final ProgramStageService programStageService;
 
+    @NonNull
     private final ProgramService programService;
 
+    @NonNull
     private final ProgramStageSectionService sectionService;
 
+    @NonNull
     private final ProgramStageDataElementService stageDataElementService;
 
+    @NonNull
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
+    @NonNull
     private final DataElementService dataElementService;
 
+    @NonNull
     private final ProgramNotificationTemplateService programNotificationTemplateService;
 
     public ProgramRuleActionValidationSupplier( ProgramStageService programStageService, ProgramService programService,

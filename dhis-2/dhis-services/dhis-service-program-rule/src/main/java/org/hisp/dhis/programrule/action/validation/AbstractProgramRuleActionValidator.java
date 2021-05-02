@@ -32,10 +32,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Zubair Asghar
@@ -62,6 +69,13 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
                 .build();
         }
 
+        Program program = validationContext.getProgramRuleActionValidationService().getProgramService().getProgram( rule.getProgram().getUid() );
+
+        if ( program == null )
+        {
+            program = validationContext.getProgramRuleActionValidationService().getProgramService().getProgram( rule.getProgram().getUid() );
+        }
+
         if ( programRuleAction.hasDataElement() )
         {
             DataElement dataElement = validationContext.getDataElement();
@@ -69,37 +83,65 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
             if ( dataElement == null )
             {
                 log.debug( String.format( "DataElement: %s associated with program rule: %s does not exist",
-                    programRuleAction.getDataElement().getUid(),
-                    rule.getName() ) );
+                        programRuleAction.getDataElement().getUid(),
+                        rule.getName() ) );
 
                 return ProgramRuleActionValidationResult.builder()
-                    .valid( false )
-                    .errorReport( new ErrorReport( DataElement.class, ErrorCode.E4045,
-                        programRuleAction.getDataElement().getUid(),
-                        rule.getName() ) )
-                    .build();
+                        .valid( false )
+                        .errorReport( new ErrorReport( DataElement.class, ErrorCode.E4045,
+                                programRuleAction.getDataElement().getUid(),
+                                rule.getName() ) )
+                        .build();
             }
 
+            List<ProgramStage> stages = validationContext.getProgramRuleActionValidationService().getProgramStageService().getProgramStagesByProgram( program );
+
+            Set<DataElement> dataElements = stages.stream().flatMap( s -> s.getDataElements().stream() ).collect(Collectors.toSet());
+
+            if ( !dataElements.contains( dataElement ) )
+            {
+                log.debug( String.format( "DataElement: %s is not linked to any ProgramStageDataElement",
+                        dataElement.getUid() ) );
+
+                return ProgramRuleActionValidationResult.builder()
+                        .valid( false )
+                        .errorReport( new ErrorReport( DataElement.class, ErrorCode.E4047,
+                                dataElement.getUid() ) )
+                        .build();
+            }
         }
 
         if ( programRuleAction.hasTrackedEntityAttribute() )
         {
-
             TrackedEntityAttribute attribute = validationContext.getTrackedEntityAttribute();
 
             if ( attribute == null )
             {
 
                 log.debug( String.format( "TrackedEntityAttribute: %s associated with program rule: %s does not exist",
-                    programRuleAction.getAttribute().getUid(),
-                    rule.getName() ) );
+                        programRuleAction.getAttribute().getUid(),
+                        rule.getName() ) );
 
                 return ProgramRuleActionValidationResult.builder()
-                    .valid( false )
-                    .errorReport( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4046,
-                        programRuleAction.getAttribute().getUid(),
-                        rule.getName() ) )
-                    .build();
+                        .valid( false )
+                        .errorReport( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4046,
+                                programRuleAction.getAttribute().getUid(),
+                                rule.getName() ) )
+                        .build();
+            }
+
+            List<TrackedEntityAttribute> trackedEntityAttributes = program.getProgramAttributes().stream().map(ProgramTrackedEntityAttribute::getAttribute).collect(Collectors.toList());
+
+            if ( !trackedEntityAttributes.contains( attribute ) )
+            {
+                log.debug( String.format( "TrackedEntityAttribute: %s is not linked to any ProgramTrackedEntityAttribute",
+                        attribute.getUid() ) );
+
+                return ProgramRuleActionValidationResult.builder()
+                        .valid( false )
+                        .errorReport( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4048,
+                                attribute.getUid() ) )
+                        .build();
             }
         }
 
