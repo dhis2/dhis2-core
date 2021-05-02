@@ -64,6 +64,8 @@ import com.google.api.client.util.Sets;
 @RequiredArgsConstructor
 public class ProgramRuleEngine
 {
+    private static final String ERROR = "Program cannot be null";
+
     @NonNull
     private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
@@ -178,8 +180,8 @@ public class ProgramRuleEngine
     {
         if ( program == null )
         {
-            log.error( "Program cannot be null" );
-            return RuleValidationResult.builder().isValid( false ).errorMessage( "Program cannot be null" ).build();
+            log.error( ERROR );
+            return RuleValidationResult.builder().isValid( false ).errorMessage( ERROR ).build();
         }
 
         return loadRuleEngineForDescription( program ).evaluate( condition );
@@ -197,8 +199,8 @@ public class ProgramRuleEngine
     {
         if ( program == null )
         {
-            log.error( "Program cannot be null" );
-            return RuleValidationResult.builder().isValid( false ).errorMessage( "Program cannot be null" ).build();
+            log.error( ERROR );
+            return RuleValidationResult.builder().isValid( false ).errorMessage( ERROR ).build();
         }
 
         return loadRuleEngineForDescription( program ).evaluate( dataExpression );
