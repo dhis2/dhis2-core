@@ -93,12 +93,6 @@ public class TrackedEntityTrackerConverterService
             .collect( Collectors.toList() );
     }
 
-    @Override
-    public TrackedEntityInstance fromForRuleEngine( TrackerPreheat preheat, TrackedEntity object )
-    {
-        return null;
-    }
-
     private TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity te, TrackedEntityInstance tei )
     {
         OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class,
