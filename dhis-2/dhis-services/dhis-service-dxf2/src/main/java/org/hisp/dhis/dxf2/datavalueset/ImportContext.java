@@ -58,6 +58,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.user.User;
 
 /**
@@ -130,6 +131,16 @@ public final class ImportContext
      */
 
     private final ImportSummary summary;
+
+    private final IdentifiableObjectCallable<DataElement> dataElementCallable;
+
+    private final IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable;
+
+    private final IdentifiableObjectCallable<CategoryOptionCombo> categoryOptionComboCallable;
+
+    private final IdentifiableObjectCallable<CategoryOptionCombo> attributeOptionComboCallable;
+
+    private final IdentifiableObjectCallable<Period> periodCallable;
 
     private final CachingMap<String, DataElement> dataElementMap = new CachingMap<>();
 

@@ -71,6 +71,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataSetContext;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -749,41 +750,14 @@ public class DefaultDataValueSetService
         notifier.clear( id ).notify( id, notificationLevel, "Process started" );
 
         // ---------------------------------------------------------------------
-        // Get meta-data maps
-        // ---------------------------------------------------------------------
-
-        IdentifiableObjectCallable<DataElement> dataElementCallable = new IdentifiableObjectCallable<>(
-            identifiableObjectManager, DataElement.class, context.getDataElementIdScheme(), null );
-        IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable = new IdentifiableObjectCallable<>(
-            identifiableObjectManager, OrganisationUnit.class, context.getOrgUnitIdScheme(),
-            trimToNull( dataValueSet.getOrgUnit() ) );
-        IdentifiableObjectCallable<CategoryOptionCombo> categoryOptionComboCallable = new CategoryOptionComboAclCallable(
-            categoryService, context.getCategoryOptComboIdScheme(), null );
-        IdentifiableObjectCallable<CategoryOptionCombo> attributeOptionComboCallable = new CategoryOptionComboAclCallable(
-            categoryService, context.getCategoryOptComboIdScheme(), null );
-        IdentifiableObjectCallable<Period> periodCallable = new PeriodCallable( periodService, null,
-            trimToNull( dataValueSet.getPeriod() ) );
-
-        // ---------------------------------------------------------------------
         // Heat caches
         // ---------------------------------------------------------------------
-
-        if ( context.getImportOptions().isPreheatCacheDefaultFalse() )
-        {
-            context.getDataElementMap().load( identifiableObjectManager.getAll( DataElement.class ),
-                o -> o.getPropertyValue( context.getDataElementIdScheme() ) );
-            context.getOrgUnitMap().load( identifiableObjectManager.getAll( OrganisationUnit.class ),
-                o -> o.getPropertyValue( context.getOrgUnitIdScheme() ) );
-            context.getOptionComboMap().load( identifiableObjectManager.getAll( CategoryOptionCombo.class ),
-                o -> o.getPropertyValue( context.getCategoryOptComboIdScheme() ) );
-        }
+        preheatCaches( context );
 
         // ---------------------------------------------------------------------
         // Get outer meta-data
         // ---------------------------------------------------------------------
-
-        ImportContext.DataSetContext dataSetContext = createDataSetImportContext( context, dataValueSet,
-            orgUnitCallable, attributeOptionComboCallable, periodCallable );
+        ImportContext.DataSetContext dataSetContext = createDataSetImportContext( context, dataValueSet );
 
         // ---------------------------------------------------------------------
         // Validation
@@ -837,41 +811,14 @@ public class DefaultDataValueSetService
 
             org.hisp.dhis.dxf2.datavalue.DataValue dataValue = dataValueSet.getNextDataValue();
 
-            ImportContext.DataValueContext valueContext = createDataValueImportContext( context, dataSetContext,
-                dataValue,
-                dataElementCallable,
-                orgUnitCallable, categoryOptionComboCallable, attributeOptionComboCallable, periodCallable );
+            ImportContext.DataValueContext valueContext = createDataValueImportContext(
+                dataValue, context, dataSetContext );
 
             // -----------------------------------------------------------------
             // Potentially heat caches
             // -----------------------------------------------------------------
 
-            if ( !context.getDataElementMap().isCacheLoaded()
-                && context.getDataElementMap().getCacheMissCount() > CACHE_MISS_THRESHOLD )
-            {
-                context.getDataElementMap().load( identifiableObjectManager.getAll( DataElement.class ),
-                    o -> o.getPropertyValue( context.getDataElementIdScheme() ) );
-
-                log.info( "Data element cache heated after cache miss threshold reached" );
-            }
-
-            if ( !context.getOrgUnitMap().isCacheLoaded()
-                && context.getOrgUnitMap().getCacheMissCount() > CACHE_MISS_THRESHOLD )
-            {
-                context.getOrgUnitMap().load( identifiableObjectManager.getAll( OrganisationUnit.class ),
-                    o -> o.getPropertyValue( context.getOrgUnitIdScheme() ) );
-
-                log.info( "Org unit cache heated after cache miss threshold reached" );
-            }
-
-            if ( !context.getOptionComboMap().isCacheLoaded()
-                && context.getOptionComboMap().getCacheMissCount() > CACHE_MISS_THRESHOLD )
-            {
-                context.getOptionComboMap().load( identifiableObjectManager.getAll( CategoryOptionCombo.class ),
-                    o -> o.getPropertyValue( context.getCategoryOptComboIdScheme() ) );
-
-                log.info( "Category Option Combo cache heated after cache miss threshold reached" );
-            }
+            autoPreheatCaches( context );
 
             // -----------------------------------------------------------------
             // Validation & Constraints
@@ -1050,6 +997,61 @@ public class DefaultDataValueSetService
         return context.getSummary();
     }
 
+    private void preheatCaches( ImportContext context )
+    {
+        if ( context.getImportOptions().isPreheatCacheDefaultFalse() )
+        {
+            preheatDataElementCache( context );
+            preheatOrgUnitCache( context );
+            preheatOptionComboCache( context );
+        }
+    }
+
+    private void autoPreheatCaches( ImportContext context )
+    {
+        if ( !context.getDataElementMap().isCacheLoaded()
+            && context.getDataElementMap().getCacheMissCount() > CACHE_MISS_THRESHOLD )
+        {
+            preheatDataElementCache( context );
+
+            log.info( "Data element cache heated after cache miss threshold reached" );
+        }
+
+        if ( !context.getOrgUnitMap().isCacheLoaded()
+            && context.getOrgUnitMap().getCacheMissCount() > CACHE_MISS_THRESHOLD )
+        {
+            preheatOrgUnitCache( context );
+
+            log.info( "Org unit cache heated after cache miss threshold reached" );
+        }
+
+        if ( !context.getOptionComboMap().isCacheLoaded()
+            && context.getOptionComboMap().getCacheMissCount() > CACHE_MISS_THRESHOLD )
+        {
+            preheatOptionComboCache( context );
+
+            log.info( "Category Option Combo cache heated after cache miss threshold reached" );
+        }
+    }
+
+    private void preheatOptionComboCache( ImportContext context )
+    {
+        context.getOptionComboMap().load( identifiableObjectManager.getAll( CategoryOptionCombo.class ),
+            o -> o.getPropertyValue( context.getCategoryOptComboIdScheme() ) );
+    }
+
+    private void preheatOrgUnitCache( ImportContext context )
+    {
+        context.getOrgUnitMap().load( identifiableObjectManager.getAll( OrganisationUnit.class ),
+            o -> o.getPropertyValue( context.getOrgUnitIdScheme() ) );
+    }
+
+    private void preheatDataElementCache( ImportContext context )
+    {
+        context.getDataElementMap().load( identifiableObjectManager.getAll( DataElement.class ),
+            o -> o.getPropertyValue( context.getDataElementIdScheme() ) );
+    }
+
     private ImportContext createDataValueSetImportContext( ImportOptions options, DataValueSet data )
     {
         options = ObjectUtils.firstNonNull( options, ImportOptions.getDefaultImportOptions() );
@@ -1063,6 +1065,14 @@ public class DefaultDataValueSetService
 
         SystemSettingManager settings = systemSettingManager;
 
+        IdScheme dataElementIdScheme = createIdScheme( data.getDataElementIdSchemeProperty(), options,
+            IdSchemes::getDataElementIdScheme );
+        IdScheme orgUnitIdScheme = createIdScheme( data.getOrgUnitIdSchemeProperty(), options,
+            IdSchemes::getOrgUnitIdScheme );
+        IdScheme categoryOptComboIdScheme = createIdScheme( data.getCategoryOptionComboIdSchemeProperty(), options,
+            IdSchemes::getCategoryOptionComboIdScheme );
+        IdScheme dataSetIdScheme = createIdScheme( data.getDataSetIdSchemeProperty(), options,
+            IdSchemes::getDataSetIdScheme );
         return ImportContext.builder()
             .importOptions( options )
             .summary( new ImportSummary().setImportOptions( options ) )
@@ -1074,14 +1084,10 @@ public class DefaultDataValueSetService
             .hasSkipAuditAuth( hasSkipAuditAuth )
             .skipAudit( skipAudit )
             .idScheme( createIdScheme( data.getIdSchemeProperty(), options, IdSchemes::getIdScheme ) )
-            .dataElementIdScheme(
-                createIdScheme( data.getDataElementIdSchemeProperty(), options, IdSchemes::getDataElementIdScheme ) )
-            .orgUnitIdScheme(
-                createIdScheme( data.getOrgUnitIdSchemeProperty(), options, IdSchemes::getOrgUnitIdScheme ) )
-            .categoryOptComboIdScheme( createIdScheme( data.getCategoryOptionComboIdSchemeProperty(), options,
-                IdSchemes::getCategoryOptionComboIdScheme ) )
-            .dataSetIdScheme(
-                createIdScheme( data.getDataSetIdSchemeProperty(), options, IdSchemes::getDataSetIdScheme ) )
+            .dataElementIdScheme( dataElementIdScheme )
+            .orgUnitIdScheme( orgUnitIdScheme )
+            .categoryOptComboIdScheme( categoryOptComboIdScheme )
+            .dataSetIdScheme( dataSetIdScheme )
             .strategy( data.getStrategy() != null
                 ? ImportStrategy.valueOf( data.getStrategy() )
                 : options.getImportStrategy() )
@@ -1102,7 +1108,19 @@ public class DefaultDataValueSetService
             .requireAttrOptionCombo( options.isRequireAttributeOptionCombo()
                 || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO ) )
             .forceDataInput( inputUtils.canForceDataInput( currentUser, options.isForce() ) )
+            .dataElementCallable( new IdentifiableObjectCallable<>(
+                identifiableObjectManager, DataElement.class, dataElementIdScheme, null ) )
+            .orgUnitCallable( new IdentifiableObjectCallable<>(
+                identifiableObjectManager, OrganisationUnit.class, orgUnitIdScheme,
+                trimToNull( data.getOrgUnit() ) ) )
+            .categoryOptionComboCallable( new CategoryOptionComboAclCallable(
+                categoryService, categoryOptComboIdScheme, null ) )
+            .attributeOptionComboCallable( new CategoryOptionComboAclCallable(
+                categoryService, categoryOptComboIdScheme, null ) )
+            .periodCallable( new PeriodCallable( periodService, null,
+                trimToNull( data.getPeriod() ) ) )
             .build();
+
     }
 
     private void logDataValueSetImportContextInfo( ImportContext context )
@@ -1125,10 +1143,7 @@ public class DefaultDataValueSetService
         return fromData.isNotNull() ? fromData : getter.apply( options.getIdSchemes() );
     }
 
-    private ImportContext.DataSetContext createDataSetImportContext( ImportContext context, DataValueSet dataValueSet,
-        IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable,
-        IdentifiableObjectCallable<CategoryOptionCombo> attributeOptionComboCallable,
-        IdentifiableObjectCallable<Period> periodCallable )
+    private ImportContext.DataSetContext createDataSetImportContext( ImportContext context, DataValueSet dataValueSet )
     {
         DataSet dataSet = dataValueSet.getDataSet() != null ? identifiableObjectManager.getObject( DataSet.class,
             context.getDataSetIdScheme(), dataValueSet.getDataSet() ) : null;
@@ -1138,7 +1153,8 @@ public class DefaultDataValueSetService
         {
             outerAttrOptionCombo = context.getOptionComboMap().get(
                 trimToNull( dataValueSet.getAttributeOptionCombo() ),
-                attributeOptionComboCallable.setId( trimToNull( dataValueSet.getAttributeOptionCombo() ) ) );
+                context.getAttributeOptionComboCallable()
+                    .setId( trimToNull( dataValueSet.getAttributeOptionCombo() ) ) );
         }
         else if ( dataValueSet.getAttributeCategoryOptions() != null )
         {
@@ -1147,37 +1163,35 @@ public class DefaultDataValueSetService
         }
         return ImportContext.DataSetContext.builder()
             .dataSet( dataSet )
-            .outerPeriod( context.getPeriodMap().get( trimToNull( dataValueSet.getPeriod() ), periodCallable ) )
-            .outerOrgUnit( context.getOrgUnitMap().get( trimToNull( dataValueSet.getOrgUnit() ), orgUnitCallable ) )
+            .outerPeriod(
+                context.getPeriodMap().get( trimToNull( dataValueSet.getPeriod() ), context.getPeriodCallable() ) )
+            .outerOrgUnit(
+                context.getOrgUnitMap().get( trimToNull( dataValueSet.getOrgUnit() ), context.getOrgUnitCallable() ) )
             .fallbackCategoryOptionCombo( categoryService.getDefaultCategoryOptionCombo() )
             .outerAttrOptionCombo( outerAttrOptionCombo )
             .build();
     }
 
-    private ImportContext.DataValueContext createDataValueImportContext( ImportContext context,
-        ImportContext.DataSetContext dataSetContext, org.hisp.dhis.dxf2.datavalue.DataValue dataValue,
-        IdentifiableObjectCallable<DataElement> dataElementCallable,
-        IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable,
-        IdentifiableObjectCallable<CategoryOptionCombo> categoryOptionComboCallable,
-        IdentifiableObjectCallable<CategoryOptionCombo> attributeOptionComboCallable,
-        IdentifiableObjectCallable<Period> periodCallable )
+    private ImportContext.DataValueContext createDataValueImportContext(
+        org.hisp.dhis.dxf2.datavalue.DataValue dataValue, ImportContext context, DataSetContext dataSetContext )
     {
         return ImportContext.DataValueContext.builder()
             .dataElement( context.getDataElementMap().get( trimToNull( dataValue.getDataElement() ),
-                dataElementCallable.setId( trimToNull( dataValue.getDataElement() ) ) ) )
+                context.getDataElementCallable().setId( trimToNull( dataValue.getDataElement() ) ) ) )
             .period( dataSetContext.getOuterPeriod() != null ? dataSetContext.getOuterPeriod()
                 : context.getPeriodMap().get( trimToNull( dataValue.getPeriod() ),
-                    periodCallable.setId( trimToNull( dataValue.getPeriod() ) ) ) )
+                    context.getPeriodCallable().setId( trimToNull( dataValue.getPeriod() ) ) ) )
             .orgUnit( dataSetContext.getOuterOrgUnit() != null ? dataSetContext.getOuterOrgUnit()
                 : context.getOrgUnitMap().get( trimToNull( dataValue.getOrgUnit() ),
-                    orgUnitCallable.setId( trimToNull( dataValue.getOrgUnit() ) ) ) )
+                    context.getOrgUnitCallable().setId( trimToNull( dataValue.getOrgUnit() ) ) ) )
             .categoryOptionCombo( context.getOptionComboMap().get(
                 trimToNull( dataValue.getCategoryOptionCombo() ),
-                categoryOptionComboCallable.setId( trimToNull( dataValue.getCategoryOptionCombo() ) ) ) )
+                context.getCategoryOptionComboCallable().setId( trimToNull( dataValue.getCategoryOptionCombo() ) ) ) )
             .attrOptionCombo(
                 dataSetContext.getOuterAttrOptionCombo() != null ? dataSetContext.getOuterAttrOptionCombo()
                     : context.getOptionComboMap().get( trimToNull( dataValue.getAttributeOptionCombo() ),
-                        attributeOptionComboCallable.setId( trimToNull( dataValue.getAttributeOptionCombo() ) ) ) )
+                        context.getAttributeOptionComboCallable()
+                            .setId( trimToNull( dataValue.getAttributeOptionCombo() ) ) ) )
             .build();
     }
 
