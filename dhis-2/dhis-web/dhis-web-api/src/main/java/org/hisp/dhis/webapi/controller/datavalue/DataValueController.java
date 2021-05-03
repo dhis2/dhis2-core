@@ -68,6 +68,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
+import org.hisp.dhis.webapi.webdomain.DataValuesFollowUpRequest;
 import org.jclouds.rest.AuthorizationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -533,15 +534,16 @@ public class DataValueController
 
     @PutMapping( value = "/followups" )
     @ResponseStatus( value = HttpStatus.OK )
-    public void setDataValuesFollowUp( @RequestBody List<DataValueFollowUpRequest> request )
+    public void setDataValuesFollowUp( @RequestBody DataValuesFollowUpRequest request )
     {
-        if ( request == null || request.isEmpty() || request.stream().anyMatch( e -> e.getFollowup() == null ) )
+        List<DataValueFollowUpRequest> values = request == null ? null : request.getValues();
+        if ( values == null || values.isEmpty() || values.stream().anyMatch( e -> e.getFollowup() == null ) )
         {
             throw new IllegalQueryException( ErrorCode.E2033 );
         }
 
         List<DataValue> dataValues = new ArrayList<>();
-        for ( DataValueFollowUpRequest e : request )
+        for ( DataValueFollowUpRequest e : values )
         {
             DataValue dataValue = dataValueValidation.getAndValidateDataValue( e );
             dataValue.setFollowup( e.getFollowup() );
