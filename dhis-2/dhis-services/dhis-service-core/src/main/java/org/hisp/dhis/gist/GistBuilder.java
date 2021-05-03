@@ -313,7 +313,7 @@ final class GistBuilder
 
     private boolean isFilterBySharing( RelativePropertyContext context )
     {
-        Property sharing = context.resolve( "sharing" );
+        Property sharing = context.resolve( SHARING_PROPERTY );
         return sharing != null && sharing.isPersisted() && user != null && !user.isSuper();
     }
 
@@ -354,6 +354,7 @@ final class GistBuilder
         if ( isAccessProperty( property ) )
         {
             int sharingFieldIndex = getSameParentFieldIndex( path, SHARING_PROPERTY );
+            @SuppressWarnings( "unchecked" )
             Class<? extends IdentifiableObject> objType = isNonNestedPath( path )
                 ? query.getElementType()
                 : (Class<? extends IdentifiableObject>) property.getKlass();
