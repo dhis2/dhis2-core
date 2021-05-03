@@ -575,7 +575,7 @@ public class DefaultDataValueSetService
 
             if ( organisationUnit != null )
             {
-                if ( IdentifiableProperty.CODE.toString().toLowerCase().equals( ouScheme.toLowerCase() ) )
+                if ( IdentifiableProperty.CODE.toString().equalsIgnoreCase( ouScheme ) )
                 {
                     simpleNode = complexNode.addChild( new SimpleNode( "orgUnit",
                         organisationUnit.getCode() == null ? "" : organisationUnit.getCode() ) );
@@ -778,7 +778,7 @@ public class DefaultDataValueSetService
             handleComplete( dataSetContext.getDataSet(), completeDate, dataSetContext.getOuterPeriod(),
                 dataSetContext.getOuterOrgUnit(),
                 dataSetContext.getFallbackCategoryOptionCombo(),
-                context.getCurrentUserName(), context.getSummary() ); // TODO
+                context.getCurrentUserName(), context.getSummary() );
         }
         else
         {
@@ -822,9 +822,7 @@ public class DefaultDataValueSetService
             // -----------------------------------------------------------------
             // Create data value
             // -----------------------------------------------------------------
-            DataValue internalValue = createDataValue( dataValue, valueContext.getDataElement(),
-                valueContext.getPeriod(), valueContext.getOrgUnit(), valueContext.getCategoryOptionCombo(),
-                valueContext.getAttrOptionCombo(), context.getStoredBy( dataValue ), now );
+            DataValue internalValue = createDataValue( dataValue, context, valueContext, now );
 
             // -----------------------------------------------------------------
             // Save, update or delete data value
@@ -1169,7 +1167,7 @@ public class DefaultDataValueSetService
                 context.getAttributeOptionComboCallable()
                     .setId( trimToNull( dataValueSet.getAttributeOptionCombo() ) ) );
         }
-        else if ( dataValueSet.getAttributeCategoryOptions() != null )
+        else if ( dataValueSet.getAttributeCategoryOptions() != null && dataSet != null )
         {
             outerAttrOptionCombo = inputUtils.getAttributeOptionCombo( dataSet.getCategoryCombo(),
                 new HashSet<>( dataValueSet.getAttributeCategoryOptions() ), context.getIdScheme() );
@@ -1208,19 +1206,18 @@ public class DefaultDataValueSetService
             .build();
     }
 
-    private DataValue createDataValue( org.hisp.dhis.dxf2.datavalue.DataValue dataValue, DataElement dataElement,
-        Period period, OrganisationUnit orgUnit, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attrOptionCombo, String storedBy, Date now )
+    private DataValue createDataValue( org.hisp.dhis.dxf2.datavalue.DataValue dataValue, ImportContext context,
+        ImportContext.DataValueContext valueContext, Date now )
     {
         DataValue internalValue = new DataValue();
 
-        internalValue.setDataElement( dataElement );
-        internalValue.setPeriod( period );
-        internalValue.setSource( orgUnit );
-        internalValue.setCategoryOptionCombo( categoryOptionCombo );
-        internalValue.setAttributeOptionCombo( attrOptionCombo );
+        internalValue.setDataElement( valueContext.getDataElement() );
+        internalValue.setPeriod( valueContext.getPeriod() );
+        internalValue.setSource( valueContext.getOrgUnit() );
+        internalValue.setCategoryOptionCombo( valueContext.getCategoryOptionCombo() );
+        internalValue.setAttributeOptionCombo( valueContext.getAttrOptionCombo() );
         internalValue.setValue( trimToNull( dataValue.getValue() ) );
-        internalValue.setStoredBy( storedBy );
+        internalValue.setStoredBy( context.getStoredBy( dataValue ) );
         internalValue.setCreated( dataValue.hasCreated() ? parseDate( dataValue.getCreated() ) : now );
         internalValue.setLastUpdated( dataValue.hasLastUpdated() ? parseDate( dataValue.getLastUpdated() ) : now );
         internalValue.setComment( trimToNull( dataValue.getComment() ) );

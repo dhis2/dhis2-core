@@ -577,16 +577,20 @@ public class DataValueSetImportValidator
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( !context.getAttrOptionComboOrgUnitMap()
-            .get( valueContext.getAttrOptionCombo().getUid() + valueContext.getOrgUnit().getUid(), () -> {
-                Set<OrganisationUnit> aocOrgUnits = valueContext.getAttrOptionCombo().getOrganisationUnits();
-                return aocOrgUnits == null || valueContext.getOrgUnit().isDescendant( aocOrgUnits );
-            } ) )
+            .get( valueContext.getAttrOptionCombo().getUid() + valueContext.getOrgUnit().getUid(),
+                () -> isOrgUnitValidForAttrOptionCombo( valueContext ) ) )
         {
             context.addConflict( valueContext.getOrgUnit().getUid(),
                 "Organisation unit: " + valueContext.getOrgUnit().getUid()
                     + " is not valid for attribute option combo: "
                     + valueContext.getAttrOptionCombo().getUid() );
         }
+    }
+
+    private static boolean isOrgUnitValidForAttrOptionCombo( DataValueContext valueContext )
+    {
+        Set<OrganisationUnit> aocOrgUnits = valueContext.getAttrOptionCombo().getOrganisationUnits();
+        return aocOrgUnits == null || valueContext.getOrgUnit().isDescendant( aocOrgUnits );
     }
 
     private void checkDataValueTodayNotPastPeriodExpiry( DataValue dataValue, ImportContext context,
