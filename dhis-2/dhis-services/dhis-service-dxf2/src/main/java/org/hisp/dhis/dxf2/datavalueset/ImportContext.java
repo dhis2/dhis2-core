@@ -47,6 +47,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
@@ -60,6 +61,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.user.User;
+import org.hisp.quick.BatchHandler;
 
 /**
  * All the state that needs to be tracked during a {@link DataValueSet} import.
@@ -132,16 +134,6 @@ public final class ImportContext
 
     private final ImportSummary summary;
 
-    private final IdentifiableObjectCallable<DataElement> dataElementCallable;
-
-    private final IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable;
-
-    private final IdentifiableObjectCallable<CategoryOptionCombo> categoryOptionComboCallable;
-
-    private final IdentifiableObjectCallable<CategoryOptionCombo> attributeOptionComboCallable;
-
-    private final IdentifiableObjectCallable<Period> periodCallable;
-
     private final CachingMap<String, DataElement> dataElementMap = new CachingMap<>();
 
     private final CachingMap<String, OrganisationUnit> orgUnitMap = new CachingMap<>();
@@ -177,6 +169,24 @@ public final class ImportContext
     private final CachingMap<String, Boolean> lowestApprovalLevelMap = new CachingMap<>();
 
     private final CachingMap<String, Boolean> periodOpenForDataElement = new CachingMap<>();
+
+    /*
+     * Data fetching and processing
+     */
+
+    private final IdentifiableObjectCallable<DataElement> dataElementCallable;
+
+    private final IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable;
+
+    private final IdentifiableObjectCallable<CategoryOptionCombo> categoryOptionComboCallable;
+
+    private final IdentifiableObjectCallable<CategoryOptionCombo> attributeOptionComboCallable;
+
+    private final IdentifiableObjectCallable<Period> periodCallable;
+
+    private final BatchHandler<org.hisp.dhis.datavalue.DataValue> dataValueBatchHandler;
+
+    private final BatchHandler<DataValueAudit> auditBatchHandler;
 
     public String getCurrentUserName()
     {

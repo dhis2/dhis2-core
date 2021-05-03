@@ -112,7 +112,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.stereotype.Service;
@@ -786,11 +785,6 @@ public class DefaultDataValueSetService
             context.getSummary().setDataSetComplete( Boolean.FALSE.toString() );
         }
 
-        BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory
-            .createBatchHandler( DataValueBatchHandler.class ).init();
-        BatchHandler<DataValueAudit> auditBatchHandler = context.isSkipAudit() ? null
-            : batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init();
-
         int totalCount = 0;
         final ImportCount importCount = new ImportCount();
 
@@ -828,7 +822,6 @@ public class DefaultDataValueSetService
             // -----------------------------------------------------------------
             // Create data value
             // -----------------------------------------------------------------
-
             DataValue internalValue = createDataValue( dataValue, valueContext.getDataElement(),
                 valueContext.getPeriod(), valueContext.getOrgUnit(), valueContext.getCategoryOptionCombo(),
                 valueContext.getAttrOptionCombo(), context.getStoredBy( dataValue ), now );
@@ -836,145 +829,39 @@ public class DefaultDataValueSetService
             // -----------------------------------------------------------------
             // Save, update or delete data value
             // -----------------------------------------------------------------
-
             DataValue existingValue = !context.isSkipExistingCheck()
-                ? dataValueBatchHandler.findObject( internalValue )
+                ? context.getDataValueBatchHandler().findObject( internalValue )
                 : null;
 
             // -----------------------------------------------------------------
             // Check soft deleted data values on update and import
             // -----------------------------------------------------------------
-
             final ImportStrategy strategy = context.getStrategy();
-            final boolean dryRun = context.isDryRun();
-            final boolean skipAudit = context.isSkipAudit();
             if ( !context.isSkipExistingCheck() && existingValue != null && !existingValue.isDeleted() )
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
                 {
-                    AuditType auditType = AuditType.UPDATE;
-
-                    if ( internalValue.isNullValue() || internalValue.isDeleted() )
-                    {
-                        internalValue.setDeleted( true );
-
-                        auditType = AuditType.DELETE;
-
-                        importCount.incrementDeleted();
-                    }
-                    else
-                    {
-                        importCount.incrementUpdated();
-                    }
-
-                    if ( !dryRun )
-                    {
-                        dataValueBatchHandler.updateObject( internalValue );
-
-                        if ( !skipAudit )
-                        {
-                            DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(),
-                                context.getStoredBy( dataValue ), auditType );
-
-                            auditBatchHandler.addObject( auditValue );
-                        }
-
-                        if ( valueContext.getDataElement().isFileType() )
-                        {
-                            FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
-
-                            fr.setAssigned( true );
-
-                            fileResourceService.updateFileResource( fr );
-                        }
-
-                    }
+                    saveDataValueUpdate( context, importCount, dataValue, valueContext, internalValue, existingValue );
                 }
                 else if ( strategy.isDelete() )
                 {
-                    internalValue.setDeleted( true );
-
-                    importCount.incrementDeleted();
-
-                    if ( !dryRun )
-                    {
-                        DataValue actualDataValue = valueContext.getActualDataValue( dataValueService );
-                        if ( valueContext.getDataElement().isFileType() && actualDataValue != null )
-                        {
-                            FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
-
-                            fileResourceService.updateFileResource( fr );
-                        }
-
-                        dataValueBatchHandler.updateObject( internalValue );
-
-                        if ( !skipAudit )
-                        {
-                            DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(),
-                                context.getStoredBy( dataValue ), AuditType.DELETE );
-
-                            auditBatchHandler.addObject( auditValue );
-                        }
-                    }
+                    saveDataValueDelete( context, importCount, dataValue, valueContext, internalValue, existingValue );
                 }
             }
             else
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isCreate() )
                 {
-                    if ( !internalValue.isNullValue() ) // Ignore null values
-                    {
-                        if ( existingValue != null && existingValue.isDeleted() )
-                        {
-                            importCount.incrementImported();
-
-                            if ( !dryRun )
-                            {
-                                dataValueBatchHandler.updateObject( internalValue );
-
-                                if ( valueContext.getDataElement().isFileType() )
-                                {
-                                    FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
-
-                                    fr.setAssigned( true );
-
-                                    fileResourceService.updateFileResource( fr );
-                                }
-                            }
-                        }
-                        else
-                        {
-                            boolean added = false;
-
-                            if ( !dryRun )
-                            {
-                                added = dataValueBatchHandler.addObject( internalValue );
-
-                                if ( added && valueContext.getDataElement().isFileType() )
-                                {
-                                    FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
-
-                                    fr.setAssigned( true );
-
-                                    fileResourceService.updateFileResource( fr );
-                                }
-                            }
-
-                            if ( dryRun || added )
-                            {
-                                importCount.incrementImported();
-                            }
-                        }
-                    }
+                    saveDataValueCreate( context, importCount, valueContext, internalValue, existingValue );
                 }
             }
         }
 
-        dataValueBatchHandler.flush();
+        context.getDataValueBatchHandler().flush();
 
         if ( !context.isSkipAudit() )
         {
-            auditBatchHandler.flush();
+            context.getAuditBatchHandler().flush();
         }
 
         importCount
@@ -994,6 +881,126 @@ public class DefaultDataValueSetService
         dataValueSet.close();
 
         return context.getSummary();
+    }
+
+    private void saveDataValueCreate( ImportContext context, ImportCount importCount,
+        ImportContext.DataValueContext valueContext, DataValue internalValue, DataValue existingValue )
+    {
+        if ( internalValue.isNullValue() )
+        {
+            return; // Ignore null values
+        }
+        if ( existingValue != null && existingValue.isDeleted() )
+        {
+            importCount.incrementImported();
+
+            if ( !context.isDryRun() )
+            {
+                context.getDataValueBatchHandler().updateObject( internalValue );
+
+                if ( valueContext.getDataElement().isFileType() )
+                {
+                    FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
+
+                    fr.setAssigned( true );
+
+                    fileResourceService.updateFileResource( fr );
+                }
+            }
+            return;
+        }
+        boolean added = false;
+
+        if ( !context.isDryRun() )
+        {
+            added = context.getDataValueBatchHandler().addObject( internalValue );
+
+            if ( added && valueContext.getDataElement().isFileType() )
+            {
+                FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
+
+                fr.setAssigned( true );
+
+                fileResourceService.updateFileResource( fr );
+            }
+        }
+
+        if ( context.isDryRun() || added )
+        {
+            importCount.incrementImported();
+        }
+    }
+
+    private void saveDataValueDelete( ImportContext context, ImportCount importCount,
+        org.hisp.dhis.dxf2.datavalue.DataValue dataValue, ImportContext.DataValueContext valueContext,
+        DataValue internalValue, DataValue existingValue )
+    {
+        internalValue.setDeleted( true );
+
+        importCount.incrementDeleted();
+
+        if ( !context.isDryRun() )
+        {
+            DataValue actualDataValue = valueContext.getActualDataValue( dataValueService );
+            if ( valueContext.getDataElement().isFileType() && actualDataValue != null )
+            {
+                FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
+
+                fileResourceService.updateFileResource( fr );
+            }
+
+            context.getDataValueBatchHandler().updateObject( internalValue );
+
+            if ( !context.isSkipAudit() )
+            {
+                DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(),
+                    context.getStoredBy( dataValue ), AuditType.DELETE );
+
+                context.getAuditBatchHandler().addObject( auditValue );
+            }
+        }
+    }
+
+    private void saveDataValueUpdate( ImportContext context, ImportCount importCount,
+        org.hisp.dhis.dxf2.datavalue.DataValue dataValue, ImportContext.DataValueContext valueContext,
+        DataValue internalValue, DataValue existingValue )
+    {
+        AuditType auditType = AuditType.UPDATE;
+        if ( internalValue.isNullValue() || internalValue.isDeleted() )
+        {
+            internalValue.setDeleted( true );
+
+            auditType = AuditType.DELETE;
+
+            importCount.incrementDeleted();
+        }
+        else
+        {
+            importCount.incrementUpdated();
+        }
+
+        if ( !context.isDryRun() )
+        {
+            context.getDataValueBatchHandler().updateObject( internalValue );
+
+            if ( !context.isSkipAudit() )
+            {
+                DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(),
+                    context.getStoredBy( dataValue ), auditType );
+
+                context.getAuditBatchHandler().addObject( auditValue );
+            }
+
+            if ( valueContext.getDataElement().isFileType() )
+            {
+                FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
+
+                fr.setAssigned( true );
+
+                fileResourceService.updateFileResource( fr );
+            }
+
+        }
     }
 
     private void preheatCaches( ImportContext context )
@@ -1107,6 +1114,8 @@ public class DefaultDataValueSetService
             .requireAttrOptionCombo( options.isRequireAttributeOptionCombo()
                 || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO ) )
             .forceDataInput( inputUtils.canForceDataInput( currentUser, options.isForce() ) )
+
+            // data fetching state
             .dataElementCallable( new IdentifiableObjectCallable<>(
                 identifiableObjectManager, DataElement.class, dataElementIdScheme, null ) )
             .orgUnitCallable( new IdentifiableObjectCallable<>(
@@ -1118,8 +1127,13 @@ public class DefaultDataValueSetService
                 categoryService, categoryOptComboIdScheme, null ) )
             .periodCallable( new PeriodCallable( periodService, null,
                 trimToNull( data.getPeriod() ) ) )
-            .build();
 
+            // data processing
+            .dataValueBatchHandler( batchHandlerFactory
+                .createBatchHandler( DataValueBatchHandler.class ).init() )
+            .auditBatchHandler( skipAudit ? null
+                : batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init() )
+            .build();
     }
 
     private void logDataValueSetImportContextInfo( ImportContext context )
