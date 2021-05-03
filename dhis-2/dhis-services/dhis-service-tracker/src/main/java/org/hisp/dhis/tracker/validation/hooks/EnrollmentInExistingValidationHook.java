@@ -87,7 +87,7 @@ public class EnrollmentInExistingValidationHook
             .stream().filter( Objects::nonNull )
             .filter( pi -> pi.getProgram().equals( program.getUid() ) )
             .filter( pi -> pi.getTrackedEntity().equals( tei.getUid() )
-                && !pi.getUid().equals( enrollment.getEnrollment() ) )
+                && !pi.getEnrollment().equals( enrollment.getEnrollment() ) )
             .filter( pi -> EnrollmentStatus.ACTIVE == pi.getStatus() || EnrollmentStatus.COMPLETED == pi.getStatus() )
             .collect( Collectors.toSet() );
 
