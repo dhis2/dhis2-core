@@ -791,6 +791,7 @@ public class DefaultDataValueSetService
         BatchHandler<DataValueAudit> auditBatchHandler = context.isSkipAudit() ? null
             : batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init();
 
+        int totalCount = 0;
         final ImportCount importCount = new ImportCount();
 
         // ---------------------------------------------------------------------
@@ -804,6 +805,7 @@ public class DefaultDataValueSetService
 
         while ( dataValueSet.hasNextDataValue() )
         {
+            totalCount++;
             org.hisp.dhis.dxf2.datavalue.DataValue dataValue = dataValueSet.getNextDataValue();
 
             ImportContext.DataValueContext valueContext = createDataValueContext(
@@ -820,7 +822,6 @@ public class DefaultDataValueSetService
             // -----------------------------------------------------------------
             if ( importValidator.skipDataValue( dataValue, context, dataSetContext, valueContext ) )
             {
-                importCount.incrementIgnored();
                 continue;
             }
 
@@ -976,8 +977,9 @@ public class DefaultDataValueSetService
             auditBatchHandler.flush();
         }
 
-        int totalCount = importCount.getIgnored() + importCount.getImported() + importCount.getUpdated()
-            + importCount.getDeleted();
+        importCount
+            .setIgnored( totalCount - importCount.getImported() - importCount.getUpdated() - importCount.getDeleted() );
+
         context.getSummary()
             .setImportCount( importCount )
             .setStatus( context.getSummary().getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.WARNING )
