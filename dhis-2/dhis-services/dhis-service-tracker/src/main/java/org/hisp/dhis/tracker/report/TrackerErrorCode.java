@@ -81,7 +81,7 @@ public enum TrackerErrorCode
     E1070( "Could not find OrganisationUnit: `{0}`, linked to Enrollment." ),
     E1074( "FeatureType is missing." ),
     E1075( "Attribute: `{0}`, is missing uid." ),
-    E1076( "`{0}` `{1}` is mandatory and can''t be null" ),
+    E1076( "`{0}` `{1}` is mandatory and can't be null" ),
     E1077( "Attribute: `{0}`, text value exceed the maximum allowed length: `{0}`." ),
     E1080( "Enrollment: `{0}`, already exists." ),
     E1081( "Enrollment: `{0}`, do not exist." ),
