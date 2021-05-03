@@ -25,27 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataanalysis;
+package org.hisp.dhis.programrule.engine;
 
-import java.util.Collection;
 import java.util.List;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import lombok.Getter;
 
-/**
- * @author Halvdan Hoem Grelland
- */
-public interface FollowupAnalysisService
+import org.hisp.dhis.rules.models.RuleEffect;
+
+@Getter
+public class RuleEffectByObject
 {
-    /**
-     * @deprecated Use {@link #getFollowupDataValues(FollowupAnalysisRequest)}
-     */
-    @Deprecated
-    List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
-        Collection<DataElement> dataElements, Collection<Period> periods, int limit );
+    private final boolean isEnrollment;
 
-    FollowupAnalysisResponse getFollowupDataValues( FollowupAnalysisRequest params );
+    private final boolean isEvent;
+
+    private final String uid;
+
+    private final List<RuleEffect> effects;
+
+    private RuleEffectByObject( boolean isEnrollment, boolean isEvent, String uid,
+        List<RuleEffect> effects )
+    {
+        this.isEnrollment = isEnrollment;
+        this.isEvent = isEvent;
+        this.uid = uid;
+        this.effects = effects;
+    }
+
+    public static RuleEffectByObject ruleEffectForEnrollment( String uid, List<RuleEffect> effects )
+    {
+        return new RuleEffectByObject( true, false, uid, effects );
+    }
+
+    public static RuleEffectByObject ruleEffectForEvent( String uid, List<RuleEffect> effects )
+    {
+        return new RuleEffectByObject( false, true, uid, effects );
+    }
 }

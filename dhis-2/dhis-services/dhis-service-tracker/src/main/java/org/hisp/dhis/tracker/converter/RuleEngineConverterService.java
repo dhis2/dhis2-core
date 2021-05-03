@@ -25,27 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataanalysis;
+package org.hisp.dhis.tracker.converter;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
- * @author Halvdan Hoem Grelland
+ * Converts rule-engine domain objects to tracker domain objects and vice versa.
+ *
+ * @author Enrico Colasante
  */
-public interface FollowupAnalysisService
+public interface RuleEngineConverterService<From, To>
+    extends TrackerConverterService<From, To>
 {
-    /**
-     * @deprecated Use {@link #getFollowupDataValues(FollowupAnalysisRequest)}
-     */
-    @Deprecated
-    List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
-        Collection<DataElement> dataElements, Collection<Period> periods, int limit );
+    To fromForRuleEngine( TrackerPreheat preheat, From object );
 
-    FollowupAnalysisResponse getFollowupDataValues( FollowupAnalysisRequest params );
+    default List<To> fromForRuleEngine( TrackerPreheat preheat, List<From> objects )
+    {
+        return objects.stream()
+            .map( object -> fromForRuleEngine( preheat, object ) )
+            .collect( Collectors.toList() );
+    }
 }

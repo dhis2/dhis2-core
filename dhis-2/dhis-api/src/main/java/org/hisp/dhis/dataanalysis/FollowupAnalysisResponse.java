@@ -27,25 +27,23 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import java.util.Collection;
 import java.util.List;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Jan Bernitt
  */
-public interface FollowupAnalysisService
+@Getter
+@AllArgsConstructor
+public class FollowupAnalysisResponse
 {
-    /**
-     * @deprecated Use {@link #getFollowupDataValues(FollowupAnalysisRequest)}
-     */
-    @Deprecated
-    List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
-        Collection<DataElement> dataElements, Collection<Period> periods, int limit );
+    @JsonProperty
+    private final FollowupAnalysisMetadata metadata;
 
-    FollowupAnalysisResponse getFollowupDataValues( FollowupAnalysisRequest params );
+    @JsonProperty
+    private final List<FollowupValue> followupValues;
 }
