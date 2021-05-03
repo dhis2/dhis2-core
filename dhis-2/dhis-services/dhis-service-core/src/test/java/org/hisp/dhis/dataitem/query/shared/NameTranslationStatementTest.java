@@ -168,9 +168,9 @@ public class NameTranslationStatementTest
             containsString(
                 "(case when indicator_displayshortname.value is not null then indicator_displayshortname.value" ) );
         assertThat( actualStatement, containsString(
-            "(case when p_displayname.value is not null then p_displayname.value else program.name end) as p_i18n_name" ) );
+            "(case when p_displayname.value is not null then p_displayname.value else program.name end) as i18n_first_name" ) );
         assertThat( actualStatement, containsString(
-            "(case when p_displayshortname.value is not null then p_displayshortname.value else program.shortname end) as p_i18n_shortname" ) );
+            "(case when p_displayshortname.value is not null then p_displayshortname.value else program.shortname end) as i18n_first_shortname" ) );
     }
 
     @Test

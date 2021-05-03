@@ -34,7 +34,6 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_ID;
 import static org.hisp.dhis.node.NodeUtils.createPager;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFilteringParams;
@@ -138,26 +137,23 @@ class ResponseHandler
      * @param filters the query filters used in the count query
      */
     void addPaginationToNode( final RootNode rootNode,
-        final List<Class<? extends BaseIdentifiableObject>> targetEntities, final User currentUser,
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities, final User currentUser,
         final WebOptions options, final Set<String> filters )
     {
         if ( options.hasPaging() && isNotEmpty( targetEntities ) )
         {
             // Defining query params map and setting common params.
-            final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( QueryParam.USER_UID,
-                currentUser.getUid() ).addValue( USER_ID, currentUser.getId() );
+            final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( QueryParam.USER_ID,
+                currentUser.getId() );
 
             setFilteringParams( filters, options, paramsMap, currentUser );
 
             final AtomicInteger count = new AtomicInteger();
 
             // Counting and summing up the results for each entity.
-            for ( final Class<? extends BaseIdentifiableObject> entity : targetEntities )
-            {
-                count.addAndGet( PAGE_COUNTING_CACHE.get(
-                    createPageCountingCacheKey( currentUser, entity, filters, options ),
-                    p -> countEntityRowsTotal( entity, options, paramsMap ) ).orElse( 0 ) );
-            }
+            count.addAndGet( PAGE_COUNTING_CACHE.get(
+                createPageCountingCacheKey( currentUser, targetEntities, filters, options ),
+                p -> countEntityRowsTotal( targetEntities, options, paramsMap ) ).orElse( 0 ) );
 
             final Pager pager = new Pager( options.getPage(), count.get(), options.getPageSize() );
 
@@ -167,8 +163,8 @@ class ResponseHandler
         }
     }
 
-    private int countEntityRowsTotal( final Class<? extends BaseIdentifiableObject> entity, final WebOptions options,
-        final MapSqlParameterSource paramsMap )
+    private int countEntityRowsTotal( final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+        final WebOptions options, final MapSqlParameterSource paramsMap )
     {
         // Calculate pagination.
         if ( options.hasPaging() )
@@ -177,13 +173,14 @@ class ResponseHandler
             paramsMap.addValue( QueryParam.MAX_LIMIT, maxLimit );
         }
 
-        return queryExecutor.count( entity, paramsMap );
+        return queryExecutor.count( targetEntities, paramsMap );
     }
 
     private String createPageCountingCacheKey( final User currentUser,
-        final Class<? extends BaseIdentifiableObject> entity, final Set<String> filters, final WebOptions options )
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities, final Set<String> filters,
+        final WebOptions options )
     {
-        return currentUser.getUsername() + "." + entity + "." + join( "|", filters ) + "."
+        return currentUser.getUsername() + "." + targetEntities + "." + join( "|", filters ) + "."
             + options.getRootJunction().name();
     }
 
