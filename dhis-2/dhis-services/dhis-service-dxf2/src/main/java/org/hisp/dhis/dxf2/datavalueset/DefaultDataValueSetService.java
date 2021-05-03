@@ -757,7 +757,7 @@ public class DefaultDataValueSetService
         // ---------------------------------------------------------------------
         // Get outer meta-data
         // ---------------------------------------------------------------------
-        ImportContext.DataSetContext dataSetContext = createDataSetImportContext( context, dataValueSet );
+        ImportContext.DataSetContext dataSetContext = createDataSetContext( context, dataValueSet );
 
         // ---------------------------------------------------------------------
         // Validation
@@ -791,10 +791,7 @@ public class DefaultDataValueSetService
         BatchHandler<DataValueAudit> auditBatchHandler = context.isSkipAudit() ? null
             : batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init();
 
-        int importCount = 0;
-        int updateCount = 0;
-        int deleteCount = 0;
-        int totalCount = 0;
+        final ImportCount importCount = new ImportCount();
 
         // ---------------------------------------------------------------------
         // Data values
@@ -807,11 +804,9 @@ public class DefaultDataValueSetService
 
         while ( dataValueSet.hasNextDataValue() )
         {
-            totalCount++;
-
             org.hisp.dhis.dxf2.datavalue.DataValue dataValue = dataValueSet.getNextDataValue();
 
-            ImportContext.DataValueContext valueContext = createDataValueImportContext(
+            ImportContext.DataValueContext valueContext = createDataValueContext(
                 dataValue, context, dataSetContext );
 
             // -----------------------------------------------------------------
@@ -825,6 +820,7 @@ public class DefaultDataValueSetService
             // -----------------------------------------------------------------
             if ( importValidator.skipDataValue( dataValue, context, dataSetContext, valueContext ) )
             {
+                importCount.incrementIgnored();
                 continue;
             }
 
@@ -863,11 +859,11 @@ public class DefaultDataValueSetService
 
                         auditType = AuditType.DELETE;
 
-                        deleteCount++;
+                        importCount.incrementDeleted();
                     }
                     else
                     {
-                        updateCount++;
+                        importCount.incrementUpdated();
                     }
 
                     if ( !dryRun )
@@ -897,7 +893,7 @@ public class DefaultDataValueSetService
                 {
                     internalValue.setDeleted( true );
 
-                    deleteCount++;
+                    importCount.incrementDeleted();
 
                     if ( !dryRun )
                     {
@@ -929,7 +925,7 @@ public class DefaultDataValueSetService
                     {
                         if ( existingValue != null && existingValue.isDeleted() )
                         {
-                            importCount++;
+                            importCount.incrementImported();
 
                             if ( !dryRun )
                             {
@@ -965,7 +961,7 @@ public class DefaultDataValueSetService
 
                             if ( dryRun || added )
                             {
-                                importCount++;
+                                importCount.incrementImported();
                             }
                         }
                     }
@@ -980,15 +976,16 @@ public class DefaultDataValueSetService
             auditBatchHandler.flush();
         }
 
-        int ignores = totalCount - importCount - updateCount - deleteCount;
-
+        int totalCount = importCount.getIgnored() + importCount.getImported() + importCount.getUpdated()
+            + importCount.getDeleted();
         context.getSummary()
-            .setImportCount( new ImportCount( importCount, updateCount, ignores, deleteCount ) )
+            .setImportCount( importCount )
             .setStatus( context.getSummary().getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.WARNING )
             .setDescription( "Import process completed successfully" );
 
-        clock.logTime( "Data value import done, total: " + totalCount + ", import: " + importCount + ", update: "
-            + updateCount + ", delete: " + deleteCount );
+        clock.logTime(
+            "Data value import done, total: " + totalCount + ", import: " + importCount.getImported() + ", update: "
+                + importCount.getUpdated() + ", delete: " + importCount.getDeleted() );
         notifier.notify( id, notificationLevel, "Import done", true )
             .addJobSummary( id, notificationLevel, context.getSummary(), ImportSummary.class );
 
@@ -1143,7 +1140,7 @@ public class DefaultDataValueSetService
         return fromData.isNotNull() ? fromData : getter.apply( options.getIdSchemes() );
     }
 
-    private ImportContext.DataSetContext createDataSetImportContext( ImportContext context, DataValueSet dataValueSet )
+    private ImportContext.DataSetContext createDataSetContext( ImportContext context, DataValueSet dataValueSet )
     {
         DataSet dataSet = dataValueSet.getDataSet() != null ? identifiableObjectManager.getObject( DataSet.class,
             context.getDataSetIdScheme(), dataValueSet.getDataSet() ) : null;
@@ -1172,7 +1169,7 @@ public class DefaultDataValueSetService
             .build();
     }
 
-    private ImportContext.DataValueContext createDataValueImportContext(
+    private ImportContext.DataValueContext createDataValueContext(
         org.hisp.dhis.dxf2.datavalue.DataValue dataValue, ImportContext context, DataSetContext dataSetContext )
     {
         return ImportContext.DataValueContext.builder()
