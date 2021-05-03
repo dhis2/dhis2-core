@@ -125,12 +125,12 @@ public class DefaultAclService implements AclService
     @SuppressWarnings( "unchecked" )
     public boolean canRead( User user, IdentifiableObject object )
     {
-        return canRead( user, object, HibernateProxyUtils.getRealClass( object ) );
+        return object == null || canRead( user, object, HibernateProxyUtils.getRealClass( object ) );
     }
 
     private <T extends IdentifiableObject> boolean canRead( User user, T object, Class<? extends T> objType )
     {
-        if ( readWriteCommonCheck( user, object, objType ) )
+        if ( readWriteCommonCheck( user, objType ) )
         {
             return true;
         }
@@ -162,12 +162,12 @@ public class DefaultAclService implements AclService
     @SuppressWarnings( "unchecked" )
     public boolean canDataRead( User user, IdentifiableObject object )
     {
-        return canDataRead( user, object, HibernateProxyUtils.getRealClass( object ) );
+        return object == null || canDataRead( user, object, HibernateProxyUtils.getRealClass( object ) );
     }
 
     private <T extends IdentifiableObject> boolean canDataRead( User user, T object, Class<? extends T> objType )
     {
-        if ( readWriteCommonCheck( user, object, objType ) )
+        if ( readWriteCommonCheck( user, objType ) )
         {
             return true;
         }
@@ -205,12 +205,12 @@ public class DefaultAclService implements AclService
     @SuppressWarnings( "unchecked" )
     public boolean canWrite( User user, IdentifiableObject object )
     {
-        return canWrite( user, object, HibernateProxyUtils.getRealClass( object ) );
+        return object == null || canWrite( user, object, HibernateProxyUtils.getRealClass( object ) );
     }
 
     private <T extends IdentifiableObject> boolean canWrite( User user, T object, Class<? extends T> objType )
     {
-        if ( readWriteCommonCheck( user, object, objType ) )
+        if ( readWriteCommonCheck( user, objType ) )
         {
             return true;
         }
@@ -246,12 +246,12 @@ public class DefaultAclService implements AclService
     @SuppressWarnings( "unchecked" )
     public boolean canDataWrite( User user, IdentifiableObject object )
     {
-        return canDataWrite( user, object, HibernateProxyUtils.getRealClass( object ) );
+        return object == null || canDataWrite( user, object, HibernateProxyUtils.getRealClass( object ) );
     }
 
     private <T extends IdentifiableObject> boolean canDataWrite( User user, T object, Class<? extends T> objType )
     {
-        if ( readWriteCommonCheck( user, object, objType ) )
+        if ( readWriteCommonCheck( user, objType ) )
         {
             return true;
         }
@@ -282,12 +282,12 @@ public class DefaultAclService implements AclService
     @SuppressWarnings( "unchecked" )
     public boolean canUpdate( User user, IdentifiableObject object )
     {
-        return canUpdate( user, object, HibernateProxyUtils.getRealClass( object ) );
+        return object == null || canUpdate( user, object, HibernateProxyUtils.getRealClass( object ) );
     }
 
     private <T extends IdentifiableObject> boolean canUpdate( User user, T object, Class<? extends T> objType )
     {
-        if ( readWriteCommonCheck( user, object, objType ) )
+        if ( readWriteCommonCheck( user, objType ) )
         {
             return true;
         }
@@ -320,12 +320,12 @@ public class DefaultAclService implements AclService
     @SuppressWarnings( "unchecked" )
     public boolean canDelete( User user, IdentifiableObject object )
     {
-        return canDelete( user, object, HibernateProxyUtils.getRealClass( object ) );
+        return object == null || canDelete( user, object, HibernateProxyUtils.getRealClass( object ) );
     }
 
     private <T extends IdentifiableObject> boolean canDelete( User user, T object, Class<? extends T> objType )
     {
-        if ( readWriteCommonCheck( user, object, objType ) )
+        if ( readWriteCommonCheck( user, objType ) )
         {
             return true;
         }
@@ -481,7 +481,9 @@ public class DefaultAclService implements AclService
     @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> Access getAccess( T object, User user )
     {
-        return getAccess( object, user, HibernateProxyUtils.getRealClass( object ) );
+        return object == null
+            ? new Access( true )
+            : getAccess( object, user, HibernateProxyUtils.getRealClass( object ) );
     }
 
     @Override
@@ -809,9 +811,9 @@ public class DefaultAclService implements AclService
         return accessibleOptions.size() == optionCombo.getCategoryOptions().size();
     }
 
-    private boolean readWriteCommonCheck( User user, IdentifiableObject object, Class<?> objType )
+    private boolean readWriteCommonCheck( User user, Class<?> objType )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
+        if ( haveOverrideAuthority( user ) )
         {
             return true;
         }
