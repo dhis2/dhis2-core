@@ -136,7 +136,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     {
         setProgramRuleActionType_ShowError();
 
-        verify( programRuleEngine, never() ).evaluateOldOne( programInstance, Sets.newHashSet() );
+        verify( programRuleEngine, never() ).evaluate( programInstance, Sets.newHashSet() );
         assertEquals( 0, ruleEffects.size() );
     }
 
@@ -152,7 +152,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
-        when( programRuleEngine.evaluateOldOne( any(), any() ) ).thenReturn( effects );
+        when( programRuleEngine.evaluate( any(), any() ) ).thenReturn( effects );
 
         setProgramRuleActionType_SendMessage();
 
@@ -170,7 +170,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
             assertEquals( NOTIFICATION_UID, ruleActionSendMessage.notification() );
         }
 
-        verify( programRuleEngine, times( 1 ) ).evaluateOldOne( argumentCaptor.capture(), any() );
+        verify( programRuleEngine, times( 1 ) ).evaluate( argumentCaptor.capture(), any() );
         assertEquals( programInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( action );
@@ -194,7 +194,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
 
-        when( programRuleEngine.evaluateOldOne( any(), any(), anySet() ) ).thenReturn( effects );
+        when( programRuleEngine.evaluate( any(), any(), anySet() ) ).thenReturn( effects );
 
         setProgramRuleActionType_SendMessage();
 
@@ -204,7 +204,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         assertEquals( 1, ruleEffects.size() );
 
-        verify( programRuleEngine, times( 1 ) ).evaluateOldOne( any(), argumentCaptor.capture(), any() );
+        verify( programRuleEngine, times( 1 ) ).evaluate( any(), argumentCaptor.capture(), any() );
         assertEquals( programStageInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
