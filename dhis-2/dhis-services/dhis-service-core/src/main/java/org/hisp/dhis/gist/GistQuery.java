@@ -275,7 +275,11 @@ public final class GistQuery
         STARTS_WITH( "$ilike", "startswith" ),
         NOT_STARTS_WITH( "!$ilike", "!startswith" ),
         ENDS_WITH( "ilike$", "endswith" ),
-        NOT_ENDS_WITH( "!ilike$", "!endswith" );
+        NOT_ENDS_WITH( "!ilike$", "!endswith" ),
+
+        // access checks
+        CAN_READ( "canread" ),
+        CAN_WRITE( "canwrite" );
 
         private final String[] symbols;
 
@@ -300,6 +304,11 @@ public final class GistQuery
         public boolean isUnary()
         {
             return this == NULL || this == NOT_NULL || this == EMPTY || this == NOT_EMPTY;
+        }
+
+        public boolean isMultiValue()
+        {
+            return this == IN || this == NOT_IN;
         }
 
         public boolean isIdentityCompare()
@@ -335,6 +344,11 @@ public final class GistQuery
         public boolean isContainsCompare()
         {
             return this == IN || this == NOT_IN;
+        }
+
+        public boolean isAccessCompare()
+        {
+            return this == CAN_READ || this == CAN_WRITE;
         }
     }
 
@@ -482,6 +496,11 @@ public final class GistQuery
             return new Filter( path, operator, value );
         }
 
+        public Filter withValue( String... value )
+        {
+            return new Filter( propertyPath, operator, value );
+        }
+
         public static Filter parse( String filter )
         {
             String[] parts = filter.split( "(?:::|:|~|@)" );
@@ -505,7 +524,8 @@ public final class GistQuery
         @Override
         public String toString()
         {
-            return propertyPath + ":" + operator.name().toLowerCase() + ":" + Arrays.toString( value );
+            return propertyPath + ":" + operator.symbols[0] + ":" + Arrays.toString( value );
         }
+
     }
 }

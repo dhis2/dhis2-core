@@ -36,6 +36,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.gist.GistQuery.Field;
+import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.schema.Property;
@@ -43,6 +44,7 @@ import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -59,6 +61,8 @@ final class GistValidator
 
     private final AclService aclService;
 
+    private final UserService userService;
+
     private final IdentifiableObjectManager objectManager;
 
     public void validateQuery( GistQuery query, RelativePropertyContext context )
@@ -70,7 +74,7 @@ final class GistValidator
             validateCollection(
                 context.switchedTo( owner.getType() ).resolveMandatory( owner.getCollectionProperty() ) );
         }
-        query.getFilters().forEach( filter -> validateFilter( context.resolveMandatory( filter.getPropertyPath() ) ) );
+        query.getFilters().forEach( filter -> validateFilter( filter, context ) );
         query.getOrders().forEach( order -> validateOrder( context.resolveMandatory( order.getPropertyPath() ) ) );
         query.getFields().forEach( field -> validateField( field, context ) );
     }
@@ -127,11 +131,56 @@ final class GistValidator
         }
     }
 
-    private void validateFilter( Property filter )
+    private void validateFilter( Filter f, RelativePropertyContext context )
     {
+        Property filter = context.resolveMandatory( f.getPropertyPath() );
         if ( !filter.isPersisted() )
         {
             throw createIllegalProperty( filter, "Property `%s` cannot be used as filter property." );
+        }
+
+        validateFilterArgument( f );
+        validateFilterAccess( f );
+    }
+
+    private void validateFilterAccess( Filter f )
+    {
+        if ( f.getOperator().isAccessCompare() )
+        {
+            String[] ids = f.getValue();
+            if ( ids.length != 1 )
+            {
+                throw createIllegalFilter( f, "Filter `%s` requires a single user ID as argument." );
+            }
+            User user = userService.getUser( ids[0] );
+            if ( user == null )
+            {
+                throw createIllegalFilter( f, "User for filter `%s` does not exist." );
+            }
+            if ( !aclService.canRead( currentUserService.getCurrentUser(), user ) )
+            {
+                throw createIllegalFilter( f,
+                    "Filtering by user access in filter `%s` requires read permissions to the user filter by." );
+            }
+        }
+    }
+
+    private void validateFilterArgument( Filter f )
+    {
+        if ( f.getOperator().isUnary() )
+        {
+            if ( f.getValue().length > 0 )
+            {
+                throw createIllegalFilter( f, "Filter `%s` uses an unary operator and does not need an argument." );
+            }
+        }
+        else if ( f.getValue().length == 0 )
+        {
+            throw createIllegalFilter( f, "Filter `%s` uses a binary operator that does need an argument." );
+        }
+        if ( !f.getOperator().isMultiValue() && f.getValue().length > 1 )
+        {
+            throw createIllegalFilter( f, "Filter `%s` can only be used with a single argument." );
         }
     }
 
@@ -146,6 +195,11 @@ final class GistValidator
     private IllegalArgumentException createIllegalProperty( Property property, String message )
     {
         return new IllegalArgumentException( String.format( message, property.getName() ) );
+    }
+
+    private IllegalArgumentException createIllegalFilter( Filter filter, String message )
+    {
+        return new IllegalArgumentException( String.format( message, filter.toString() ) );
     }
 
     private ReadAccessDeniedException createNoReadAccess( Owner owner )

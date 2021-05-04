@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.gist;
 
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.gist.GistBuilder.createCountBuilder;
 import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
 
@@ -41,10 +42,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -70,6 +73,8 @@ public class DefaultGistService implements GistService
 
     private final SchemaService schemaService;
 
+    private final UserService userService;
+
     private final CurrentUserService currentUserService;
 
     private final ObjectMapper jsonMapper;
@@ -92,7 +97,8 @@ public class DefaultGistService implements GistService
     {
         RelativePropertyContext context = createPropertyContext( query );
         validator.validateQuery( query, context );
-        GistBuilder queryBuilder = createFetchBuilder( query, context, currentUserService.getCurrentUser() );
+        GistBuilder queryBuilder = createFetchBuilder( query, context, currentUserService.getCurrentUser(),
+            this::getUserGroupIdsByUserId );
         List<Object[]> rows = fetchWithParameters( query, queryBuilder,
             getSession().createQuery( queryBuilder.buildFetchHQL(), Object[].class ) );
         queryBuilder.transform( rows );
@@ -116,7 +122,8 @@ public class DefaultGistService implements GistService
             else
             {
                 RelativePropertyContext context = createPropertyContext( query );
-                GistBuilder countBuilder = createCountBuilder( query, context, currentUserService.getCurrentUser() );
+                GistBuilder countBuilder = createCountBuilder( query, context, currentUserService.getCurrentUser(),
+                    this::getUserGroupIdsByUserId );
                 total = countWithParameters( countBuilder,
                     getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
             }
@@ -179,5 +186,10 @@ public class DefaultGistService implements GistService
             throw new IllegalArgumentException(
                 String.format( "Type %s is not compatible with provided filter value: `%s`", type, value ) );
         }
+    }
+
+    private List<String> getUserGroupIdsByUserId( String userId )
+    {
+        return userService.getUser( userId ).getGroups().stream().map( IdentifiableObject::getUid ).collect( toList() );
     }
 }
