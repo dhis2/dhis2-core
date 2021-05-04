@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.fileresource;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -51,6 +50,7 @@ import org.springframework.stereotype.Component;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
+@AllArgsConstructor
 @Component( "fileResourceCleanUpJob" )
 public class FileResourceCleanUpJob
     extends AbstractJob
@@ -60,24 +60,6 @@ public class FileResourceCleanUpJob
     private final SystemSettingManager systemSettingManager;
 
     private final FileResourceContentStore fileResourceContentStore;
-
-    // -------------------------------------------------------------------------
-    // Consructor
-    // -------------------------------------------------------------------------
-
-    public FileResourceCleanUpJob(
-        FileResourceService fileResourceService,
-        SystemSettingManager systemSettingManager,
-        FileResourceContentStore fileResourceContentStore )
-    {
-        checkNotNull( fileResourceService );
-        checkNotNull( systemSettingManager );
-        checkNotNull( fileResourceContentStore );
-
-        this.fileResourceService = fileResourceService;
-        this.systemSettingManager = systemSettingManager;
-        this.fileResourceContentStore = fileResourceContentStore;
-    }
 
     // -------------------------------------------------------------------------
     // Implementation
