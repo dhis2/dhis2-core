@@ -203,7 +203,7 @@ public class ProgramRuleEngine
             return RuleValidationResult.builder().isValid( false ).errorMessage( ERROR ).build();
         }
 
-        return loadRuleEngineForDescription( program ).evaluate( dataExpression );
+        return loadRuleEngineForDescription( program ).evaluateDataFieldExpression( dataExpression );
     }
 
     private RuleEngine loadRuleEngineForDescription( Program program )
