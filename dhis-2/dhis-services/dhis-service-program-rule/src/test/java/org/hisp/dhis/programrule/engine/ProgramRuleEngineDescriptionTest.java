@@ -314,50 +314,43 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testDataFieldExpressionDescription()
     {
-        RuleValidationResult result = programRuleEngineNew.
-                getDataExpressionDescription( "1 + 2 +", program );
+        RuleValidationResult result = programRuleEngineNew.getDataExpressionDescription( "1 + 2 +", program );
         assertNotNull( result );
         assertFalse( result.isValid() );
         assertThat( result.getException(), instanceOf( IllegalStateException.class ) );
 
-        result = programRuleEngineNew.
-                getDataExpressionDescription( "d2:daysBetween(V{completed_date},V{current_date}) > 0 )", program );
+        result = programRuleEngineNew
+            .getDataExpressionDescription( "d2:daysBetween(V{completed_date},V{current_date}) > 0 )", program );
         assertNotNull( result );
         assertFalse( result.isValid() );
         assertThat( result.getException(), instanceOf( IllegalStateException.class ) );
 
-        result = programRuleEngineNew.
-                getDataExpressionDescription( conditionWithD2DaysBetween, program );
+        result = programRuleEngineNew.getDataExpressionDescription( conditionWithD2DaysBetween, program );
         assertNotNull( result );
         assertTrue( result.isValid() );
         assertEquals( "d2:daysBetween(Completed date,Current date) > 0", result.getDescription() );
 
-        result = programRuleEngineNew.
-                getDataExpressionDescription(  programRuleNumericDE.getCondition(), program );
+        result = programRuleEngineNew.getDataExpressionDescription( programRuleNumericDE.getCondition(), program );
         assertNotNull( result );
         assertTrue( result.isValid() );
         assertEquals( "DataElementE == 14", result.getDescription() );
 
-        result = programRuleEngineNew.
-                getDataExpressionDescription(  programRuleNumericAtt.getCondition(), program );
+        result = programRuleEngineNew.getDataExpressionDescription( programRuleNumericAtt.getCondition(), program );
         assertNotNull( result );
         assertTrue( result.isValid() );
         assertEquals( "AttributeB == 12 || Current date", result.getDescription() );
 
-        result = programRuleEngineNew.
-                getDataExpressionDescription(  "'2020-12-12'", program );
+        result = programRuleEngineNew.getDataExpressionDescription( "'2020-12-12'", program );
         assertNotNull( result );
         assertTrue( result.isValid() );
         assertEquals( "'2020-12-12'", result.getDescription() );
 
-        result = programRuleEngineNew.
-                getDataExpressionDescription(  "1 + 1", program );
+        result = programRuleEngineNew.getDataExpressionDescription( "1 + 1", program );
         assertNotNull( result );
         assertTrue( result.isValid() );
         assertEquals( "1 + 1", result.getDescription() );
 
-        result = programRuleEngineNew.
-                getDataExpressionDescription(  "'sample text'", program );
+        result = programRuleEngineNew.getDataExpressionDescription( "'sample text'", program );
         assertNotNull( result );
         assertTrue( result.isValid() );
         assertEquals( "'sample text'", result.getDescription() );
