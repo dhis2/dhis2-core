@@ -49,6 +49,7 @@ import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.util.SharingUtils;
@@ -232,9 +233,9 @@ public class DefaultAclService implements AclService
                 return checkOptionComboSharingPermission( user, object, Permission.WRITE );
             }
 
-            return writeCommonCheck( schema, user, object );
+            return writeCommonCheck( schema, user, object, objType );
         }
-        else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object ) )
+        else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object, objType ) )
         {
             return true;
         }
@@ -305,9 +306,9 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, anyAuthorities ) )
         {
-            return writeCommonCheck( schema, user, object );
+            return writeCommonCheck( schema, user, object, objType );
         }
-        else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object )
+        else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object, objType )
             && (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
         {
             return true;
@@ -348,7 +349,7 @@ public class DefaultAclService implements AclService
                 return true;
             }
 
-            if ( checkSharingAccess( user, object ) &&
+            if ( checkSharingAccess( user, object, objType ) &&
                 (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
             {
                 return true;
@@ -402,11 +403,10 @@ public class DefaultAclService implements AclService
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> boolean canMakePublic( User user, T object )
     {
-        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
-        return !(schema == null || !schema.isShareable())
-            && canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
+        return canMakeClassPublic( user, HibernateProxyUtils.getRealClass( object ) );
     }
 
     @Override
@@ -418,11 +418,10 @@ public class DefaultAclService implements AclService
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> boolean canMakePrivate( User user, T object )
     {
-        Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
-        return !(schema == null || !schema.isShareable())
-            && canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
+        return canMakeClassPrivate( user, HibernateProxyUtils.getRealClass( object ) );
     }
 
     @Override
@@ -712,11 +711,12 @@ public class DefaultAclService implements AclService
      * @return true/false depending on if sharing settings are allowed for given
      *         user
      */
-    private boolean checkSharingAccess( User user, IdentifiableObject object )
+    private <T extends IdentifiableObject> boolean checkSharingAccess( User user, IdentifiableObject object,
+        Class<T> objType )
     {
-        boolean canMakePublic = canMakePublic( user, object );
-        boolean canMakePrivate = canMakePrivate( user, object );
-        boolean canMakeExternal = canMakeExternal( user, object );
+        boolean canMakePublic = canMakeClassPublic( user, objType );
+        boolean canMakePrivate = canMakeClassPrivate( user, objType );
+        boolean canMakeExternal = canMakeClassExternal( user, objType );
 
         if ( AccessStringHelper.DEFAULT.equals( object.getSharing().getPublicAccess() ) )
         {
@@ -752,14 +752,15 @@ public class DefaultAclService implements AclService
      */
     private boolean checkSharingPermission( User user, IdentifiableObject object, Permission permission )
     {
-        if ( AccessStringHelper.isEnabled( object.getSharing().getPublicAccess(), permission ) )
+        Sharing sharing = object.getSharing();
+        if ( AccessStringHelper.isEnabled( sharing.getPublicAccess(), permission ) )
         {
             return true;
         }
 
-        if ( object.getSharing().getUserGroups() != null && !CollectionUtils.isEmpty( user.getGroups() ) )
+        if ( sharing.getUserGroups() != null && !CollectionUtils.isEmpty( user.getGroups() ) )
         {
-            for ( UserGroupAccess userGroupAccess : object.getSharing().getUserGroups().values() )
+            for ( UserGroupAccess userGroupAccess : sharing.getUserGroups().values() )
             {
                 // Check if user is allowed to read this object through group
                 // access
@@ -771,9 +772,9 @@ public class DefaultAclService implements AclService
             }
         }
 
-        if ( object.getSharing().getUsers() != null )
+        if ( sharing.getUsers() != null )
         {
-            for ( UserAccess userAccess : object.getSharing().getUsers().values() )
+            for ( UserAccess userAccess : sharing.getUsers().values() )
             {
                 // Check if user is allowed to read to this object through user
                 // access
@@ -821,14 +822,15 @@ public class DefaultAclService implements AclService
         return schemaService.getSchema( objType ) == null;
     }
 
-    private boolean writeCommonCheck( Schema schema, User user, IdentifiableObject object )
+    private <T extends IdentifiableObject> boolean writeCommonCheck( Schema schema, User user, T object,
+        Class<? extends T> objType )
     {
         if ( !schema.isShareable() )
         {
             return true;
         }
 
-        return checkSharingAccess( user, object ) &&
+        return checkSharingAccess( user, object, objType ) &&
             (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE ));
     }
 
