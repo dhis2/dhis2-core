@@ -762,7 +762,7 @@ public class DefaultDataValueSetService
         // Validation
         // ---------------------------------------------------------------------
 
-        if ( !importValidator.abortDataSetImport( dataValueSet, context, dataSetContext ) )
+        if ( importValidator.abortDataSetImport( dataValueSet, context, dataSetContext ) )
         {
             context.getSummary().setDescription( "Import process was aborted" );
             notifier.notify( id, WARN, "Import process aborted", true )

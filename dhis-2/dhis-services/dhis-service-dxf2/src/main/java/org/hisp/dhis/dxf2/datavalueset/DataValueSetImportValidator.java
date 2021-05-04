@@ -173,8 +173,8 @@ public class DataValueSetImportValidator
     /**
      * Validate {@link DataSet} level of the import.
      *
-     * @return true when valid, false when not valid and import should be
-     *         aborted
+     * @return true when there are data set validation errors and the import
+     *         should be aborted, else false
      */
     public boolean abortDataSetImport( DataValueSet dataValueSet, ImportContext context,
         DataSetContext dataSetContext )
@@ -183,7 +183,7 @@ public class DataValueSetImportValidator
         {
             validation.validate( dataValueSet, context, dataSetContext );
         }
-        return !context.getSummary().isStatus( ImportStatus.ERROR );
+        return context.getSummary().isStatus( ImportStatus.ERROR );
     }
 
     private static void validateDataSetExists( DataValueSet dataValueSet, ImportContext context,
