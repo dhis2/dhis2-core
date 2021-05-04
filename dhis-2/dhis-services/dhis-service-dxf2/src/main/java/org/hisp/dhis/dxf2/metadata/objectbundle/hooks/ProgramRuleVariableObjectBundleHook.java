@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -59,31 +62,35 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, this::processTEA )
         .build();
 
-    /**
-     * Check if a Program Rule Variable to be added or update has a unique name
-     * in the system
-     *
-     * @param object
-     * @param bundle
-     * @param <T>
-     * @return
-     */
+    private static final String FROM_PROGRAM_RULE_VARIABLE = " from ProgramRuleVariable prv where prv.name = :name and prv.program.uid = :programUid";
+
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
-        if ( !(object instanceof ProgramRuleVariable) )
+        if ( (object instanceof ProgramRuleVariable) )
         {
-            return super.validate( object, bundle );
+            ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) object;
+
+            List<ErrorReport> uniqueProgramRuleNameReport = validateUniqueProgramRuleName( bundle,
+                programRuleVariable );
+            List<ErrorReport> programRuleNameKeyWordsErrorReport = validateProgramRuleNameKeyWords(
+                programRuleVariable );
+
+            List<ErrorReport> errorReports = Stream
+                .concat( uniqueProgramRuleNameReport.stream(), programRuleNameKeyWordsErrorReport.stream() )
+                .collect( Collectors.toList() );
+
+            if ( errorReports.size() > 0 )
+                return errorReports;
         }
-        Session session = sessionFactory.getCurrentSession();
-        ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) object;
 
-        Query<ProgramRuleVariable> query = session.createQuery(
-            " from ProgramRuleVariable prv where prv.name = :name and prv.program.uid = :programUid",
-            ProgramRuleVariable.class );
+        return super.validate( object, bundle );
+    }
 
-        query.setParameter( "name", programRuleVariable.getName() );
-        query.setParameter( "programUid", programRuleVariable.getProgram().getUid() );
+    private List<ErrorReport> validateUniqueProgramRuleName( ObjectBundle bundle,
+        ProgramRuleVariable programRuleVariable )
+    {
+        Query<ProgramRuleVariable> query = getProgramRuleVariableQuery( programRuleVariable );
 
         int allowedCount = bundle.getImportMode() == ImportStrategy.UPDATE ? 1 : 0;
 
@@ -94,20 +101,34 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
                     programRuleVariable.getProgram().getUid() ) );
         }
 
-        return super.validate( object, bundle );
+        return new ArrayList<>();
+    }
 
+    private Query<ProgramRuleVariable> getProgramRuleVariableQuery( ProgramRuleVariable programRuleVariable )
+    {
+        Session session = sessionFactory.getCurrentSession();
+        Query<ProgramRuleVariable> query = session.createQuery( FROM_PROGRAM_RULE_VARIABLE, ProgramRuleVariable.class );
+
+        query.setParameter( "name", programRuleVariable.getName() );
+        query.setParameter( "programUid", programRuleVariable.getProgram().getUid() );
+        return query;
+    }
+
+    private List<ErrorReport> validateProgramRuleNameKeyWords( ProgramRuleVariable programRuleVariable )
+    {
+        return new ArrayList<>();
     }
 
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        if ( !ProgramRuleVariable.class.isInstance( object ) )
-            return;
+        if ( (object instanceof ProgramRuleVariable) )
+        {
+            ProgramRuleVariable variable = (ProgramRuleVariable) object;
 
-        ProgramRuleVariable variable = (ProgramRuleVariable) object;
-
-        SOURCE_TYPE_RESOLVER.getOrDefault( variable.getSourceType(), v -> {
-        } ).accept( variable );
+            SOURCE_TYPE_RESOLVER.getOrDefault( variable.getSourceType(), v -> {
+            } ).accept( variable );
+        }
     }
 
     private void processCalculatedValue( ProgramRuleVariable variable )
