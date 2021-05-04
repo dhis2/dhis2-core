@@ -939,7 +939,7 @@ public class RelativePeriods
         add( list, RelativePeriodEnum.THIS_FINANCIAL_YEAR, thisFinancialYear );
         add( list, RelativePeriodEnum.LAST_FINANCIAL_YEAR, lastFinancialYear );
         add( list, RelativePeriodEnum.LAST_5_FINANCIAL_YEARS, last5FinancialYears );
-        add( list, RelativePeriodEnum.LAST_10_FINANCIAL_YEARS, last5FinancialYears );
+        add( list, RelativePeriodEnum.LAST_10_FINANCIAL_YEARS, last10FinancialYears );
         add( list, RelativePeriodEnum.THIS_WEEK, thisWeek );
         add( list, RelativePeriodEnum.LAST_WEEK, lastWeek );
         add( list, RelativePeriodEnum.THIS_BIWEEK, thisBiWeek );
