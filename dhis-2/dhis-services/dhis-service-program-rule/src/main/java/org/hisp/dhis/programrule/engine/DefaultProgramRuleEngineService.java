@@ -110,7 +110,7 @@ public class DefaultProgramRuleEngineService
             return Lists.newArrayList();
         }
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance,
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateOldOne( programInstance,
             programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )
@@ -164,7 +164,7 @@ public class DefaultProgramRuleEngineService
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( psi.getProgramInstance().getId() );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, psi,
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateOldOne( programInstance, psi,
             programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )

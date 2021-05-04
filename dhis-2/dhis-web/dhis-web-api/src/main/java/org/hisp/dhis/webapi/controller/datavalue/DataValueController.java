@@ -68,6 +68,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
+import org.hisp.dhis.webapi.webdomain.DataValuesFollowUpRequest;
 import org.jclouds.rest.AuthorizationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -310,6 +311,7 @@ public class DataValueController
             DataValue newValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo,
                 attributeOptionCombo,
                 StringUtils.trimToNull( value ), storedBy, now, StringUtils.trimToNull( comment ) );
+            newValue.setFollowup( followUp );
 
             dataValueService.addDataValue( newValue );
         }
@@ -528,6 +530,25 @@ public class DataValueController
         DataValue dataValue = dataValueValidation.getAndValidateDataValue( request );
         dataValue.setFollowup( request.getFollowup() );
         dataValueService.updateDataValue( dataValue );
+    }
+
+    @PutMapping( value = "/followups" )
+    @ResponseStatus( value = HttpStatus.OK )
+    public void setDataValuesFollowUp( @RequestBody DataValuesFollowUpRequest request )
+    {
+        List<DataValueFollowUpRequest> values = request == null ? null : request.getValues();
+        if ( values == null || values.isEmpty() || values.stream().anyMatch( e -> e.getFollowup() == null ) )
+        {
+            throw new IllegalQueryException( ErrorCode.E2033 );
+        }
+
+        List<DataValue> dataValues = new ArrayList<>();
+        for ( DataValueFollowUpRequest e : values )
+        {
+            DataValue dataValue = dataValueValidation.getAndValidateDataValue( e );
+            dataValue.setFollowup( e.getFollowup() );
+        }
+        dataValueService.updateDataValues( dataValues );
     }
 
     // ---------------------------------------------------------------------

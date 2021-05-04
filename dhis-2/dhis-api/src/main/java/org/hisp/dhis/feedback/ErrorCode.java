@@ -96,6 +96,10 @@ public enum ErrorCode
     E2207( "Data start date must be before data end date" ),
     E2208( "Non-numeric data values encountered during outlier value detection" ),
 
+    /* Followup analysis */
+    E2300( "At least one data element or data set must be specified" ),
+    E2301( "Start date and end date must be specified directly or indirectly by specifying a period" ),
+
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),
     E3001( "User `{0}` is not allowed to update object `{1}`." ),

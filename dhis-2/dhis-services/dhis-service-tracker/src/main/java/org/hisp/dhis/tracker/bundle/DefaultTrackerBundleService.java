@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.bundle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
@@ -40,7 +39,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.programrule.engine.RuleEffectByObject;
 import org.hisp.dhis.tracker.ParamsConverter;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerObjectDeletionService;
@@ -125,12 +124,9 @@ public class DefaultTrackerBundleService
     @Override
     public TrackerBundle runRuleEngine( TrackerBundle trackerBundle )
     {
-        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
-            .calculateEnrollmentRuleEffects( trackerBundle.getEnrollments(), trackerBundle );
-        Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
-            .calculateEventRuleEffects( trackerBundle.getEvents(), trackerBundle );
-        trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
-        trackerBundle.setEventRuleEffects( eventRuleEffects );
+        List<RuleEffectByObject> ruleEffects = trackerProgramRuleService
+            .calculateRuleEffects( trackerBundle );
+        trackerBundle.setRuleEffects( ruleEffects );
 
         return trackerBundle;
     }

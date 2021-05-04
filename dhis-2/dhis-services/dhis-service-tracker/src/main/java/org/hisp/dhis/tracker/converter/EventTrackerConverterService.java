@@ -44,11 +44,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
@@ -65,7 +61,7 @@ import com.google.api.client.util.Objects;
  */
 @Service
 public class EventTrackerConverterService
-    implements TrackerConverterService<Event, ProgramStageInstance>
+    implements RuleEngineConverterService<Event, ProgramStageInstance>
 {
 
     private final NotesConverterService notesConverterService;
@@ -211,7 +207,9 @@ public class EventTrackerConverterService
             programStageInstance.setUid( !StringUtils.isEmpty( event.getEvent() ) ? event.getEvent() : event.getUid() );
             programStageInstance.setCreated( now );
             programStageInstance.setStoredBy( event.getStoredBy() );
+            programStageInstance.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
         }
+        programStageInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
         programStageInstance.setLastUpdated( now );
         programStageInstance.setDeleted( false );
         programStageInstance.setCreatedAtClient( DateUtils.fromInstant( event.getCreatedAtClient() ) );

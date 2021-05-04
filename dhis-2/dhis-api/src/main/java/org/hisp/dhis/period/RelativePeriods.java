@@ -698,9 +698,8 @@ public class RelativePeriods
             periods.add( getRelativePeriod( financialPeriodType, THIS_FINANCIAL_YEAR, date, dynamicNames, format ) );
         }
 
-        date = new DateTime( date ).minusMonths( MONTHS_IN_YEAR ).toDate(); // Rewind
-                                                                            // one
-                                                                            // year
+        // Rewind one year
+        date = new DateTime( date ).minusMonths( MONTHS_IN_YEAR ).toDate();
 
         if ( isLastFinancialYear() )
         {

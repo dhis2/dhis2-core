@@ -99,6 +99,12 @@ public class Enrollment
     private String storedBy;
 
     @JsonProperty
+    private String createdBy;
+
+    @JsonProperty
+    private String updatedBy;
+
+    @JsonProperty
     private Geometry geometry;
 
     @JsonProperty
