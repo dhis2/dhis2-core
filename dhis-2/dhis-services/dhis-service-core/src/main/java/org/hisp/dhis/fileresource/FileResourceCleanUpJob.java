@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.fileresource;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +42,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,14 +55,29 @@ import org.springframework.stereotype.Component;
 public class FileResourceCleanUpJob
     extends AbstractJob
 {
-    @Autowired
-    private FileResourceService fileResourceService;
+    private final FileResourceService fileResourceService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private FileResourceContentStore fileResourceContentStore;
+    private final FileResourceContentStore fileResourceContentStore;
+
+    // -------------------------------------------------------------------------
+    // Consructor
+    // -------------------------------------------------------------------------
+
+    public FileResourceCleanUpJob(
+        FileResourceService fileResourceService,
+        SystemSettingManager systemSettingManager,
+        FileResourceContentStore fileResourceContentStore )
+    {
+        checkNotNull( fileResourceService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( fileResourceContentStore );
+
+        this.fileResourceService = fileResourceService;
+        this.systemSettingManager = systemSettingManager;
+        this.fileResourceContentStore = fileResourceContentStore;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -154,5 +170,4 @@ public class FileResourceCleanUpJob
 
         return false;
     }
-
 }
