@@ -30,6 +30,7 @@ package org.hisp.dhis.fileresource;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -40,7 +41,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,18 +50,16 @@ import org.springframework.stereotype.Component;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
+@AllArgsConstructor
 @Component( "fileResourceCleanUpJob" )
 public class FileResourceCleanUpJob
     extends AbstractJob
 {
-    @Autowired
-    private FileResourceService fileResourceService;
+    private final FileResourceService fileResourceService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private FileResourceContentStore fileResourceContentStore;
+    private final FileResourceContentStore fileResourceContentStore;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -154,5 +152,4 @@ public class FileResourceCleanUpJob
 
         return false;
     }
-
 }

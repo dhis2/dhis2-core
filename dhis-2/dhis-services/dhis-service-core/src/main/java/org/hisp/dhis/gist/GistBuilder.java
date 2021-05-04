@@ -31,6 +31,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
+import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
@@ -69,9 +70,11 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -98,6 +101,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @RequiredArgsConstructor
 final class GistBuilder
 {
+    interface AccessFromSharing
+    {
+
+        Access getAccess( Sharing sharing, User user, Class<? extends IdentifiableObject> type );
+    }
 
     private static final String GIST_PATH = "/gist";
 
@@ -112,16 +120,19 @@ final class GistBuilder
 
     private static final String ID_PROPERTY = "id";
 
+    private static final String SHARING_PROPERTY = "sharing";
+
     static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context, User user,
-        Function<String, List<String>> userGroupsByUserId )
+        Function<String, List<String>> userGroupsByUserId, AccessFromSharing accessFromSharing )
     {
-        return new GistBuilder( user, addSupportFields( query, context ), context, userGroupsByUserId );
+        return new GistBuilder( user, addSupportFields( query, context ), context, userGroupsByUserId,
+            accessFromSharing );
     }
 
     static GistBuilder createCountBuilder( GistQuery query, RelativePropertyContext context, User user,
         Function<String, List<String>> userGroupsByUserId )
     {
-        return new GistBuilder( user, query, context, userGroupsByUserId );
+        return new GistBuilder( user, query, context, userGroupsByUserId, null );
     }
 
     private final User user;
@@ -131,6 +142,8 @@ final class GistBuilder
     private final RelativePropertyContext context;
 
     private final Function<String, List<String>> userGroupsByUserId;
+
+    private final AccessFromSharing accessFromSharing;
 
     private final List<Consumer<Object[]>> fieldResultTransformers = new ArrayList<>();
 
@@ -154,17 +167,25 @@ final class GistBuilder
                 continue;
             }
             Property p = context.resolveMandatory( f.getPropertyPath() );
+
             // ID column not present but ID column required?
             if ( (isPersistentCollectionField( p ) || isHrefProperty( p ))
                 && !existsSameParentField( extended, f, ID_PROPERTY ) )
             {
                 extended = extended.withField( pathOnSameParent( f.getPropertyPath(), ID_PROPERTY ) );
             }
+
             // translatable fields? => make sure we have translations
             if ( (query.isTranslate() || f.isTranslate()) && p.isTranslatable()
                 && !existsSameParentField( extended, f, TRANSLATIONS_PROPERTY ) )
             {
                 extended = extended.withField( pathOnSameParent( f.getPropertyPath(), TRANSLATIONS_PROPERTY ) );
+            }
+
+            // Access based on Sharing
+            if ( isAccessProperty( p ) && !existsSameParentField( extended, f, SHARING_PROPERTY ) )
+            {
+                extended = extended.withField( pathOnSameParent( f.getPropertyPath(), SHARING_PROPERTY ) );
             }
         }
         return extended;
@@ -297,7 +318,7 @@ final class GistBuilder
 
     private boolean isFilterBySharing( RelativePropertyContext context )
     {
-        Property sharing = context.resolve( "sharing" );
+        Property sharing = context.resolve( SHARING_PROPERTY );
         return sharing != null && sharing.isPersisted() && user != null && !user.isSuper();
     }
 
@@ -333,6 +354,17 @@ final class GistBuilder
             {
                 addTransformer( row -> row[index] = toEndpointURL( endpointRoot, row[idFieldIndex] ) );
             }
+            return HQL_NULL;
+        }
+        if ( isAccessProperty( property ) )
+        {
+            int sharingFieldIndex = getSameParentFieldIndex( path, SHARING_PROPERTY );
+            @SuppressWarnings( "unchecked" )
+            Class<? extends IdentifiableObject> objType = isNonNestedPath( path )
+                ? query.getElementType()
+                : (Class<? extends IdentifiableObject>) property.getKlass();
+            addTransformer(
+                row -> row[index] = accessFromSharing.getAccess( (Sharing) row[sharingFieldIndex], user, objType ) );
             return HQL_NULL;
         }
         if ( isPersistentReferenceField( property ) )

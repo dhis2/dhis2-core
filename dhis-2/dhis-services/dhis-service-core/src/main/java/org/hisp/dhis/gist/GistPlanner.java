@@ -211,6 +211,9 @@ class GistPlanner
         return mapped;
     }
 
+    /**
+     * Transforms {@code field[a,b]} syntax to {@code field.a,field.b}
+     */
     private List<Field> withInnerAsSeparateFields( List<Field> fields )
     {
         List<Field> expanded = new ArrayList<>();
