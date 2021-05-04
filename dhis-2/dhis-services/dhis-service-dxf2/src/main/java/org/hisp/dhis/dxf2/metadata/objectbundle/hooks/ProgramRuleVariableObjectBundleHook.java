@@ -67,7 +67,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
-        if ( (object instanceof ProgramRuleVariable) )
+        if ( object instanceof ProgramRuleVariable )
         {
             ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) object;
 
@@ -122,7 +122,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        if ( (object instanceof ProgramRuleVariable) )
+        if ( object instanceof ProgramRuleVariable )
         {
             ProgramRuleVariable variable = (ProgramRuleVariable) object;
 
