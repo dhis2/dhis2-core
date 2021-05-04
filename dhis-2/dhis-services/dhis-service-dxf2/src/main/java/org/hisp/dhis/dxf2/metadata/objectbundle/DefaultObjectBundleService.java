@@ -313,7 +313,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             if ( bundle.getMergeMode() != MergeMode.NONE )
             {
                 mergeService.merge( new MergeParams<>( object, persistedObject ).setMergeMode( bundle.getMergeMode() )
-                    .setSkipSharing( bundle.isSkipSharing() ) );
+                    .setSkipSharing( bundle.isSkipSharing() )
+                    .setSkipTranslation( bundle.isSkipTranslation() ) );
             }
 
             if ( bundle.getOverrideUser() != null )

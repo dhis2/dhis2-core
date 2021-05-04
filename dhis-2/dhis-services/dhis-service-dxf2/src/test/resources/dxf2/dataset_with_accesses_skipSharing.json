@@ -5,14 +5,14 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "publicAccess": "rw------",
       "aggregationType": "SUM",
       "lastUpdated": "2016-03-08T07:30:07.699+0000",
       "created": "2016-03-08T07:30:07.698+0000",
       "name": "Simple Value",
       "shortName": "Simple Value",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "zeroIsSignificant": false,
       "userGroupAccesses": [
         {
@@ -29,12 +29,12 @@
       "created": "2016-03-08T07:30:58.416+0000",
       "lastUpdated": "2016-03-08T07:30:58.417+0000",
       "zeroIsSignificant": false,
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "id": "VolAzjFe5zP",
       "domainType": "AGGREGATE",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "shortName": "Value with CC",
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "user": {
         "id": "T12jeH7KPzk"
       },
@@ -88,7 +88,7 @@
       "shortName": "Country",
       "description": "",
       "id": "x3gVvpbVgqy",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "path": "/x3gVvpbVgqy",
       "featureType": "NONE",
       "user": {
@@ -100,13 +100,13 @@
   "categoryOptions": [
     {
       "id": "JYiFOMKa25J",
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
+      "userGroupAccesses": [],
+      "attributeValues": [],
       "shortName": "Female",
       "name": "Female",
       "created": "2016-03-08T07:28:50.372+0000",
       "lastUpdated": "2016-03-08T07:28:50.374+0000",
-      "organisationUnits": [ ],
+      "organisationUnits": [],
       "user": {
         "id": "T12jeH7KPzk"
       },
@@ -121,13 +121,13 @@
     },
     {
       "shortName": "Male",
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "id": "tdaMRD34m8o",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "lastUpdated": "2016-03-08T07:28:44.217+0000",
       "name": "Male",
       "created": "2016-03-08T07:28:44.214+0000",
-      "organisationUnits": [ ],
+      "organisationUnits": [],
       "user": {
         "id": "T12jeH7KPzk"
       },
@@ -146,9 +146,9 @@
       "name": "Superuser",
       "created": "2016-03-08T07:26:51.925+0000",
       "lastUpdated": "2016-03-08T07:26:51.925+0000",
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "id": "wSdzlWUHmEu",
-      "dataSets": [ ],
+      "dataSets": [],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
@@ -183,7 +183,7 @@
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
       "publicAccess": "--------",
-      "programs": [ ]
+      "programs": []
     }
   ],
   "categories": [
@@ -202,6 +202,7 @@
       ],
       "created": "2016-03-08T07:28:58.738+0000",
       "name": "Gender",
+      "shortName": "Gender",
       "lastUpdated": "2016-03-08T07:28:58.740+0000",
       "dataDimension": true,
       "dataDimensionType": "DISAGGREGATION",
@@ -219,7 +220,7 @@
     {
       "description": "Person",
       "id": "MDvmqCKmXQM",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "name": "Person",
       "created": "2016-03-08T07:28:58.738+0000",
       "lastUpdated": "2016-03-08T07:28:58.740+0000"
@@ -229,7 +230,7 @@
     {
       "sortOrder": 0,
       "id": "JwcV2ZifEQf",
-      "indicators": [ ],
+      "indicators": [],
       "lastUpdated": "2016-03-08T07:32:29.362+0000",
       "created": "2016-03-08T07:32:29.361+0000",
       "name": "Section Default",
@@ -241,21 +242,21 @@
           "id": "nHwIqKAudKN"
         }
       ],
-      "greyedFields": [ ]
+      "greyedFields": []
     },
     {
       "lastUpdated": "2016-03-08T07:32:42.140+0000",
       "created": "2016-03-08T07:32:42.140+0000",
       "name": "Section Gender",
       "id": "C50M0WxaI7y",
-      "indicators": [ ],
+      "indicators": [],
       "sortOrder": 0,
       "dataElements": [
         {
           "id": "VolAzjFe5zP"
         }
       ],
-      "greyedFields": [ ],
+      "greyedFields": [],
       "dataSet": {
         "id": "em8Bg4LCr5k"
       }
@@ -324,7 +325,7 @@
           }
         }
       ],
-      "compulsoryDataElementOperands": [ ],
+      "compulsoryDataElementOperands": [],
       "timelyDays": 15,
       "fieldCombinationRequired": false,
       "version": 4,
@@ -337,14 +338,26 @@
       "publicAccess": "rw------",
       "noValueRequiresComment": false,
       "shortName": "Data Set",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "id": "em8Bg4LCr5k",
-      "indicators": [ ],
+      "indicators": [],
       "userGroupAccesses": [
         {
           "access": "rwrw----",
           "userGroupUid": "fvz8d3u6jFd",
           "id": "fvz8d3u6jFd"
+        }
+      ],
+      "translations": [
+        {
+          "property": "NAME",
+          "locale": "en_GB",
+          "value": "ART monthly summary"
+        },
+        {
+          "property": "SHORT_NAME",
+          "locale": "en_GB",
+          "value": "ART 2010"
         }
       ],
       "periodType": "Monthly",
@@ -364,6 +377,21 @@
       }
     }
   ],
+  "userGroups": [
+    {
+      "name": "Administrators",
+      "id": "fvz8d3u6jFd",
+      "displayName": "Administrators",
+      "publicAccess": "rw------",
+      "externalAccess": false,
+      "favorite": false,
+      "users": [
+        {
+          "id": "T12jeH7KPzk"
+        }
+      ]
+    }
+  ],
   "users": [
     {
       "organisationUnits": [
@@ -371,10 +399,10 @@
           "id": "x3gVvpbVgqy"
         }
       ],
-      "dataViewOrganisationUnits": [ ],
+      "dataViewOrganisationUnits": [],
       "userCredentials": {
         "id": "m3ww4DWJtMf",
-        "catDimensionConstraints": [ ],
+        "catDimensionConstraints": [],
         "userInfo": {
           "id": "T12jeH7KPzk"
         },
@@ -382,7 +410,7 @@
         "username": "admin",
         "created": "2016-03-08T07:26:52.033+0000",
         "selfRegistered": false,
-        "cogsDimensionConstraints": [ ],
+        "cogsDimensionConstraints": [],
         "passwordLastUpdated": "2016-03-08T07:26:51.942+0000",
         "userRoles": [
           {
@@ -394,12 +422,12 @@
         "lastLogin": "2016-03-08T07:26:51.942+0000"
       },
       "surname": "admin",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "id": "T12jeH7KPzk",
       "created": "2016-03-08T07:26:51.909+0000",
       "firstName": "admin",
       "lastUpdated": "2016-03-08T07:26:51.909+0000",
-      "teiSearchOrganisationUnits": [ ]
+      "teiSearchOrganisationUnits": []
     }
   ],
   "date": "2016-03-08T07:34:13.552+0000"
