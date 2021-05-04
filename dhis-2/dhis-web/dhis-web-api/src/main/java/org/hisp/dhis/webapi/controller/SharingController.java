@@ -88,6 +88,8 @@ public class SharingController
 {
     public static final String RESOURCE_PATH = "/sharing";
 
+    private static final int DEFAULT_SHARING_SEARCH_PAGE_SIZE = 10;
+
     @Autowired
     private CurrentUserService currentUserService;
 
@@ -389,7 +391,7 @@ public class SharingController
             throw new WebMessageException( WebMessageUtils.conflict( "Search key not specified" ) );
         }
 
-        int max = pageSize != null ? pageSize : Integer.MAX_VALUE;
+        int max = pageSize != null ? pageSize : DEFAULT_SHARING_SEARCH_PAGE_SIZE;
 
         List<SharingUserGroupAccess> userGroupAccesses = getSharingUserGroups( key, max );
         List<SharingUserAccess> userAccesses = getSharingUser( key, max );
