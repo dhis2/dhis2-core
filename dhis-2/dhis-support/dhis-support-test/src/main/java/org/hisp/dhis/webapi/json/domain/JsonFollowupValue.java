@@ -69,6 +69,11 @@ public interface JsonFollowupValue extends JsonObject
         return getString( "pe" ).string();
     }
 
+    default String getPeType()
+    {
+        return getString( "peType" ).string();
+    }
+
     default LocalDateTime getPeStartDate()
     {
         return get( "peStartDate", JsonDate.class ).date();
