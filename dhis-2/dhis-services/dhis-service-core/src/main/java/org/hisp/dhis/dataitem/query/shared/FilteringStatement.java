@@ -180,6 +180,7 @@ public class FilteringStatement
         return EMPTY;
     }
 
+    @SuppressWarnings( "unchecked" )
     public static boolean skipValueType( final ValueType valueTypeToSkip, final MapSqlParameterSource paramsMap )
     {
         if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
