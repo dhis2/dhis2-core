@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.hibernate.Session;
@@ -64,6 +67,14 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
 
     private static final String FROM_PROGRAM_RULE_VARIABLE = " from ProgramRuleVariable prv where prv.name = :name and prv.program.uid = :programUid";
 
+    private final String PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REG_EX;
+
+    ProgramRuleVariableObjectBundleHook()
+    {
+        PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REG_EX = "("
+            + String.join( "|", PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS ) + ")";
+    }
+
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
@@ -71,13 +82,13 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         {
             ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) object;
 
-            List<ErrorReport> uniqueProgramRuleNameReport = validateUniqueProgramRuleName( bundle,
+            List<ErrorReport> uniqueProgramRuleNameErrorReport = validateUniqueProgramRuleName( bundle,
                 programRuleVariable );
             List<ErrorReport> programRuleNameKeyWordsErrorReport = validateProgramRuleNameKeyWords(
                 programRuleVariable );
 
             List<ErrorReport> errorReports = Stream
-                .concat( uniqueProgramRuleNameReport.stream(), programRuleNameKeyWordsErrorReport.stream() )
+                .concat( uniqueProgramRuleNameErrorReport.stream(), programRuleNameKeyWordsErrorReport.stream() )
                 .collect( Collectors.toList() );
 
             if ( errorReports.size() > 0 )
@@ -116,6 +127,16 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
 
     private List<ErrorReport> validateProgramRuleNameKeyWords( ProgramRuleVariable programRuleVariable )
     {
+        String[] split = programRuleVariable.getName().split( "\\s" );
+
+        if ( IntStream.range( 0, split.length )
+            .anyMatch( i -> split[i].matches( PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REG_EX ) ) )
+        {
+
+            return ImmutableList.of(
+                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4033, programRuleVariable.getName() ) );
+        }
+
         return new ArrayList<>();
     }
 
