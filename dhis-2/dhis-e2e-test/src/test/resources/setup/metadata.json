@@ -3685,6 +3685,35 @@
       "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2021-03-04T14:56:56.103",
+      "id": "z3Z4TD3oAGR",
+      "created": "2021-03-04T14:56:56.103",
+      "name": "TA Pregnant aggregate",
+      "shortName": "TA Pregnant AG",
+      "code": "TA_PREGNANT_DE_AG",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "valueType": "TRUE_ONLY",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf",
+        "code": "default"
+      },
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "access": "rw------",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
     }
   ],
   "programIndicators": [

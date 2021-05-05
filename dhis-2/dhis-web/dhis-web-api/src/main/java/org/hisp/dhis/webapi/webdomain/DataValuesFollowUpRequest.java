@@ -25,43 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.config;
+package org.hisp.dhis.webapi.webdomain;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-import org.hisp.dhis.tracker.preheat.supplier.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
 
-import com.google.common.collect.ImmutableList;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Configuration
-public class TrackerPreheatConfig
+/**
+ * @author Jan Bernitt
+ */
+@Data
+public class DataValuesFollowUpRequest
 {
-    private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
-        ClassBasedSupplier.class,
-        TrackedEntityProgramInstanceSupplier.class,
-        ProgramInstanceSupplier.class,
-        ProgramInstancesWithAtLeastOneEventSupplier.class,
-        ProgramStageInstanceProgramStageMapSupplier.class,
-        ProgramOrgUnitsSupplier.class,
-        PeriodTypeSupplier.class,
-        UniqueAttributesSupplier.class,
-        UserSupplier.class,
-        FileResourceSupplier.class );
-
-    @Bean( "preheatOrder" )
-    public List<String> getPreheatOrder()
-    {
-        return preheatOrder.stream().map( Class::getSimpleName )
-            .collect( Collectors.toList() );
-    }
-
-    @Bean( "preheatStrategies" )
-    public Map<String, String> getPreheatStrategies()
-    {
-        return new PreheatStrategyScanner().scanSupplierStrategies();
-    }
+    @JsonProperty
+    private List<DataValueFollowUpRequest> values;
 }
