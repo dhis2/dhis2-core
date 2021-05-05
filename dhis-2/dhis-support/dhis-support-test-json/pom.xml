@@ -8,6 +8,7 @@
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis</artifactId>
         <version>2.37-SNAPSHOT</version>
+        <relativePath>../../</relativePath>
     </parent>
 
     <artifactId>dhis-support-test-json</artifactId>
@@ -36,4 +37,8 @@
             <artifactId>junit</artifactId>
         </dependency>
     </dependencies>
+
+    <properties>
+        <rootDir>../../</rootDir>
+    </properties>
 </project>
