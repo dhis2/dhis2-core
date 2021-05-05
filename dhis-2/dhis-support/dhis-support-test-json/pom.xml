@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis</artifactId>
+        <version>2.37-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>dhis-support-test-json</artifactId>
+    <packaging>jar</packaging>
+    <name>DHIS Support Test Json</name>
+
+    <developers>
+        <developer>
+            <id>jbee</id>
+            <name>Jan Bernitt</name>
+            <email>jbernitt@dhis2.org</email>
+        </developer>
+    </developers>
+
+    <description>
+        This module provides a library to parse and browse JSON documents
+        provided as input string. It is build in particular to extract JSON
+        nodes by path with high performance. This is done by skipping nodes
+        that are not of interest and by only building a cheap low level node
+        representation for those nodes that are extracted.
+    </description>
+
+    <properties>
+        <rootDir>../../</rootDir>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+    </dependencies>
+</project>

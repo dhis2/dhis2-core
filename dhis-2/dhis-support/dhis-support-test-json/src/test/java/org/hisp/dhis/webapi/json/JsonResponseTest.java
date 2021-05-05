@@ -30,15 +30,11 @@ package org.hisp.dhis.webapi.json;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
-import org.hisp.dhis.webapi.json.domain.JsonError;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -49,33 +45,6 @@ import org.junit.Test;
  */
 public class JsonResponseTest
 {
-    @Test
-    public void testCustomObjectType()
-    {
-        JsonObject response = createJSON( "{'user': {'id':'foo'}}" );
-
-        assertEquals( "foo", response.get( "user", JsonUser.class ).getId() );
-    }
-
-    @Test
-    public void testCustomObjectTypeList()
-    {
-        JsonObject response = createJSON( "{'users': [ {'id':'foo'} ]}" );
-
-        JsonList<JsonUser> users = response.getList( "users", JsonUser.class );
-        assertEquals( "foo", users.get( 0 ).getId() );
-    }
-
-    @Test
-    public void testCustomObjectTypeMap()
-    {
-        JsonObject response = createJSON( "{'users': {'foo':{'id':'foo'}, 'bar':{'id':'bar'}}}" );
-        JsonMap<JsonUser> usersById = response.getMap( "users", JsonUser.class );
-        assertFalse( usersById.isEmpty() );
-        assertEquals( 2, usersById.size() );
-        assertEquals( "foo", usersById.get( "foo" ).getId() );
-    }
-
     @Test
     public void testCustomObjectTypeMultiMap()
     {
@@ -96,19 +65,8 @@ public class JsonResponseTest
         assertFalse( response.has( "no-a-member" ) );
         assertFalse( createJSON( "[]" ).getObject( "undefined" ).has( "foo" ) );
         JsonObject bar = response.getObject( "users" ).getObject( "bar" );
-        Exception ex = assertThrows( UnsupportedOperationException.class, () -> bar.has( "is-array" ) );
-        assertEquals( "Path `$.users.bar` does not contain a OBJECT but a(n) ARRAY: []", ex.getMessage() );
-    }
-
-    @Test
-    public void testDateType()
-    {
-        JsonObject response = createJSON( "{'user': {'lastUpdated': '2021-01-21T15:14:54.000'}}" );
-
-        JsonUser user = response.get( "user", JsonUser.class );
-        assertEquals( LocalDateTime.of( 2021, 1, 21, 15, 14, 54 ),
-            user.getLastUpdated() );
-        assertNull( user.getCreated() );
+        Exception ex = Assert.assertThrows( UnsupportedOperationException.class, () -> bar.has( "is-array" ) );
+        Assert.assertEquals( "Path `$.users.bar` does not contain a OBJECT but a(n) ARRAY: []", ex.getMessage() );
     }
 
     @Test
@@ -119,7 +77,7 @@ public class JsonResponseTest
         assertEquals( 13, response.getNumber( "number" ).number() );
         assertEquals( 4.2f, response.getNumber( "fraction" ).number().floatValue(), 0.001f );
         assertTrue( response.getNumber( "number" ).exists() );
-        assertNull( response.getNumber( "missing" ).number() );
+        Assert.assertNull( response.getNumber( "missing" ).number() );
     }
 
     @Test
@@ -128,7 +86,7 @@ public class JsonResponseTest
         JsonObject response = createJSON( "{'number':13}" );
         assertEquals( 13, response.getNumber( "number" ).intValue() );
         JsonNumber missing = response.getNumber( "missing" );
-        assertThrows( NoSuchElementException.class, missing::intValue );
+        Assert.assertThrows( NoSuchElementException.class, missing::intValue );
     }
 
     @Test
@@ -138,7 +96,7 @@ public class JsonResponseTest
 
         assertEquals( "plain", response.getString( "text" ).string() );
         assertTrue( response.getString( "text" ).exists() );
-        assertNull( response.getString( "missing" ).string() );
+        Assert.assertNull( response.getString( "missing" ).string() );
     }
 
     @Test
@@ -148,7 +106,7 @@ public class JsonResponseTest
 
         assertTrue( response.getBoolean( "flag" ).bool() );
         assertTrue( response.getBoolean( "flag" ).exists() );
-        assertNull( response.getBoolean( "missing" ).bool() );
+        Assert.assertNull( response.getBoolean( "missing" ).bool() );
     }
 
     @Test
@@ -158,7 +116,7 @@ public class JsonResponseTest
 
         assertTrue( response.getBoolean( "flag" ).booleanValue() );
         JsonBoolean missing = response.getBoolean( "missing" );
-        assertThrows( NoSuchElementException.class, missing::booleanValue );
+        Assert.assertThrows( NoSuchElementException.class, missing::booleanValue );
     }
 
     @Test
@@ -219,7 +177,7 @@ public class JsonResponseTest
         assertTrue( response.getArray( "array" ).isArray() );
         assertFalse( response.getArray( "notAnArray" ).isArray() );
         JsonArray missing = response.getArray( "missing" );
-        assertThrows( NoSuchElementException.class, missing::isArray );
+        Assert.assertThrows( NoSuchElementException.class, missing::isArray );
     }
 
     @Test
@@ -231,31 +189,7 @@ public class JsonResponseTest
         assertTrue( response.getArray( "object" ).isObject() );
         assertFalse( response.getArray( "notAnObject" ).isObject() );
         JsonArray missing = response.getArray( "missing" );
-        assertThrows( NoSuchElementException.class, missing::isObject );
-    }
-
-    @Test
-    public void testErrorSummary_MessageOnly()
-    {
-        JsonObject response = createJSON( "{'message':'my message'}" );
-        assertEquals( "my message", response.as( JsonError.class ).summary() );
-    }
-
-    @Test
-    public void testErrorSummary_MessageAndErrorReports()
-    {
-        JsonObject response = createJSON(
-            "{'message':'my message','response':{'errorReports': [{'errorCode':'E4000','message':'m1'}]}}" );
-        assertEquals( "my message\n" + "  E4000 m1", response.as( JsonError.class ).summary() );
-    }
-
-    @Test
-    public void testErrorSummary_MessageAndObjectReports()
-    {
-        JsonObject response = createJSON(
-            "{'message':'my message','response':{'objectReports':[{'klass':'java.lang.String','errorReports': [{'errorCode':'E4000','message':'m1'}]}]}}" );
-        assertEquals( "my message\n" + "* class java.lang.String\n" + "  E4000 m1",
-            response.as( JsonError.class ).summary() );
+        Assert.assertThrows( NoSuchElementException.class, missing::isObject );
     }
 
     @Test

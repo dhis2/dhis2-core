@@ -26,6 +26,7 @@
     <module>dhis-api</module>
     <module>dhis-services</module>
     <module>dhis-support</module>
+    <module>dhis-support/dhis-support-test-json</module>
   </modules>
 
   <licenses>
@@ -572,9 +573,10 @@
           </dependencies>
           <configuration>
             <xmlOutput>true</xmlOutput>
-            <excludeFilterFile>${rootDir}findbugs-exclude.xml</excludeFilterFile>
+            <excludeFilterFile>${rootDir}findbugs-exclude.xml
+            </excludeFilterFile>
           </configuration>
-        </plugin>        
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
@@ -811,6 +813,12 @@
       <dependency>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-support-test</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-support-test-json</artifactId>
         <version>${project.version}</version>
         <scope>test</scope>
       </dependency>

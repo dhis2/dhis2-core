@@ -29,8 +29,6 @@ package org.hisp.dhis.webapi.json;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 
 import java.util.HashSet;
@@ -39,6 +37,7 @@ import java.util.Map;
 import org.hisp.dhis.webapi.json.JsonDocument.JsonFormatException;
 import org.hisp.dhis.webapi.json.JsonDocument.JsonNodeType;
 import org.hisp.dhis.webapi.json.JsonDocument.JsonPathException;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -82,13 +81,13 @@ public class JsonDocumentTest
     {
         JsonNode node = new JsonDocument( "\"hello\"" ).get( "$" );
         Exception ex = assertThrows( UnsupportedOperationException.class, node::isEmpty );
-        assertEquals( "STRING node has no empty property.", ex.getMessage() );
+        Assert.assertEquals( "STRING node has no empty property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::size );
-        assertEquals( "STRING node has no size property.", ex.getMessage() );
+        Assert.assertEquals( "STRING node has no size property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::elements );
-        assertEquals( "STRING node has no elements property.", ex.getMessage() );
+        Assert.assertEquals( "STRING node has no elements property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::members );
-        assertEquals( "STRING node has no members property.", ex.getMessage() );
+        Assert.assertEquals( "STRING node has no members property.", ex.getMessage() );
     }
 
     @Test
@@ -112,13 +111,13 @@ public class JsonDocumentTest
     {
         JsonNode node = new JsonDocument( "1e-2" ).get( "$" );
         Exception ex = assertThrows( UnsupportedOperationException.class, node::isEmpty );
-        assertEquals( "NUMBER node has no empty property.", ex.getMessage() );
+        Assert.assertEquals( "NUMBER node has no empty property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::size );
-        assertEquals( "NUMBER node has no size property.", ex.getMessage() );
+        Assert.assertEquals( "NUMBER node has no size property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::elements );
-        assertEquals( "NUMBER node has no elements property.", ex.getMessage() );
+        Assert.assertEquals( "NUMBER node has no elements property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::members );
-        assertEquals( "NUMBER node has no members property.", ex.getMessage() );
+        Assert.assertEquals( "NUMBER node has no members property.", ex.getMessage() );
     }
 
     @Test
@@ -150,13 +149,13 @@ public class JsonDocumentTest
     {
         JsonNode node = new JsonDocument( "false" ).get( "$" );
         Exception ex = assertThrows( UnsupportedOperationException.class, node::isEmpty );
-        assertEquals( "BOOLEAN node has no empty property.", ex.getMessage() );
+        Assert.assertEquals( "BOOLEAN node has no empty property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::size );
-        assertEquals( "BOOLEAN node has no size property.", ex.getMessage() );
+        Assert.assertEquals( "BOOLEAN node has no size property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::elements );
-        assertEquals( "BOOLEAN node has no elements property.", ex.getMessage() );
+        Assert.assertEquals( "BOOLEAN node has no elements property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::members );
-        assertEquals( "BOOLEAN node has no members property.", ex.getMessage() );
+        Assert.assertEquals( "BOOLEAN node has no members property.", ex.getMessage() );
     }
 
     @Test
@@ -172,7 +171,7 @@ public class JsonDocumentTest
     {
         JsonNode node = new JsonDocument( "null" ).get( "$" );
         assertEquals( JsonNodeType.NULL, node.getType() );
-        assertNull( node.value() );
+        Assert.assertNull( node.value() );
     }
 
     @Test
@@ -180,13 +179,13 @@ public class JsonDocumentTest
     {
         JsonNode node = new JsonDocument( "null" ).get( "$" );
         Exception ex = assertThrows( UnsupportedOperationException.class, node::isEmpty );
-        assertEquals( "NULL node has no empty property.", ex.getMessage() );
+        Assert.assertEquals( "NULL node has no empty property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::size );
-        assertEquals( "NULL node has no size property.", ex.getMessage() );
+        Assert.assertEquals( "NULL node has no size property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::elements );
-        assertEquals( "NULL node has no elements property.", ex.getMessage() );
+        Assert.assertEquals( "NULL node has no elements property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::members );
-        assertEquals( "NULL node has no members property.", ex.getMessage() );
+        Assert.assertEquals( "NULL node has no members property.", ex.getMessage() );
     }
 
     @Test
@@ -201,7 +200,7 @@ public class JsonDocumentTest
     {
         JsonNode node = new JsonDocument( "[1, 2 ,3]" ).get( "$" );
         assertEquals( JsonNodeType.ARRAY, node.getType() );
-        assertFalse( node.isEmpty() );
+        Assert.assertFalse( node.isEmpty() );
         assertEquals( 3, node.size() );
     }
 
@@ -210,7 +209,7 @@ public class JsonDocumentTest
     {
         JsonNode node = new JsonDocument( "[]" ).get( "$" );
         Exception ex = assertThrows( UnsupportedOperationException.class, node::members );
-        assertEquals( "ARRAY node has no members property.", ex.getMessage() );
+        Assert.assertEquals( "ARRAY node has no members property.", ex.getMessage() );
     }
 
     @Test
@@ -218,10 +217,10 @@ public class JsonDocumentTest
     {
         JsonNode root = new JsonDocument( "{\"a\":1, \"bb\":true , \"ccc\":null }" ).get( "$" );
         assertEquals( JsonNodeType.OBJECT, root.getType() );
-        assertFalse( root.isEmpty() );
+        Assert.assertFalse( root.isEmpty() );
         assertEquals( 3, root.size() );
         Map<String, JsonNode> members = root.members();
-        assertEquals( new HashSet<>( asList( "a", "bb", "ccc" ) ), members.keySet() );
+        Assert.assertEquals( new HashSet<>( asList( "a", "bb", "ccc" ) ), members.keySet() );
     }
 
     @Test
@@ -231,17 +230,17 @@ public class JsonDocumentTest
 
         JsonNode root = doc.get( "$" );
         assertEquals( JsonNodeType.OBJECT, root.getType() );
-        assertFalse( root.isEmpty() );
+        Assert.assertFalse( root.isEmpty() );
         assertEquals( 1, root.size() );
 
         JsonNode a = doc.get( "$.a" );
         assertEquals( JsonNodeType.OBJECT, a.getType() );
-        assertFalse( a.isEmpty() );
+        Assert.assertFalse( a.isEmpty() );
         assertEquals( 1, a.size() );
 
         JsonNode ab = doc.get( "$.a.b" );
         assertEquals( JsonNodeType.ARRAY, ab.getType() );
-        assertFalse( ab.isEmpty() );
+        Assert.assertFalse( ab.isEmpty() );
         assertEquals( 2, ab.size() );
         assertEquals( "[12, false]", ab.getDeclaration() );
 
@@ -289,7 +288,7 @@ public class JsonDocumentTest
     {
         JsonNode node = new JsonDocument( "{}" ).get( "$" );
         Exception ex = assertThrows( UnsupportedOperationException.class, node::elements );
-        assertEquals( "OBJECT node has no elements property.", ex.getMessage() );
+        Assert.assertEquals( "OBJECT node has no elements property.", ex.getMessage() );
     }
 
     @Test
@@ -347,7 +346,7 @@ public class JsonDocumentTest
     {
         JsonNode node = new JsonDocument( "null" ).get( "$" );
         assertEquals( JsonNodeType.NULL, node.getType() );
-        assertNull( node.value() );
+        Assert.assertNull( node.value() );
     }
 
     @Test
