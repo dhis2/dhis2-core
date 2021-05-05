@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.struts2.ServletActionContext;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
@@ -65,9 +64,6 @@ public class LoginAction
 
     @Autowired
     private ResourceBundleManager resourceBundleManager;
-
-    @Autowired
-    private DhisConfigurationProvider configurationProvider;
 
     @Autowired
     private DhisOidcProviderRepository repository;
