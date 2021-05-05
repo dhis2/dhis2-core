@@ -53,6 +53,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.paging.Paging;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -87,8 +88,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class SharingController
 {
     public static final String RESOURCE_PATH = "/sharing";
-
-    private static final int DEFAULT_SHARING_SEARCH_PAGE_SIZE = 10;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -391,7 +390,7 @@ public class SharingController
             throw new WebMessageException( WebMessageUtils.conflict( "Search key not specified" ) );
         }
 
-        int max = pageSize != null ? pageSize : DEFAULT_SHARING_SEARCH_PAGE_SIZE;
+        int max = pageSize != null ? pageSize : Paging.DEFAULT_PAGE_SIZE;
 
         List<SharingUserGroupAccess> userGroupAccesses = getSharingUserGroups( key, max );
         List<SharingUserAccess> userAccesses = getSharingUser( key, max );
