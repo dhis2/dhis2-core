@@ -12,7 +12,7 @@
  * and/or other materials provided with the distribution.
  * Neither the name of the HISP project nor the names of its contributors may
  * be used to endorse or promote products derived from this software without
- * specific prior written permission.
+po * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -28,21 +28,17 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import lombok.Getter;
+import org.hisp.dhis.commons.jsonfiltering.web.FieldFilterCustomizer;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.springframework.stereotype.Component;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.regex.Pattern;
 
-@Component
-@SuppressWarnings( "rawtypes" )
-class PagingWrapperFieldFilterCustomizer extends TrackerFieldFilterCustomizerAdaptor<PagingWrapper>
+abstract class TrackerFieldFilterCustomizerAdaptor<T> implements FieldFilterCustomizer<T>
 {
-    @Getter
-    private final Class<PagingWrapper> applicableClass = PagingWrapper.class;
 
-    @Override
-    public String customize( String filter )
-    {
-        return "instances[" + filter + "]";
-    }
+    @Getter
+    private final Collection<Pattern> supportedUriPatterns = Collections
+        .singleton( Pattern.compile( ".*/api/tracker.*" ) );
 
 }

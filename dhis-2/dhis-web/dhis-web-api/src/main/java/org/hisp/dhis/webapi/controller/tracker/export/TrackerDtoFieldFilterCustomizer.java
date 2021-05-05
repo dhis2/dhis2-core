@@ -29,20 +29,14 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import lombok.Getter;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.springframework.stereotype.Component;
 
 @Component
-@SuppressWarnings( "rawtypes" )
-class PagingWrapperFieldFilterCustomizer extends TrackerFieldFilterCustomizerAdaptor<PagingWrapper>
+public class TrackerDtoFieldFilterCustomizer extends TrackerFieldFilterCustomizerAdaptor<TrackerDto>
 {
-    @Getter
-    private final Class<PagingWrapper> applicableClass = PagingWrapper.class;
 
-    @Override
-    public String customize( String filter )
-    {
-        return "instances[" + filter + "]";
-    }
+    @Getter
+    private Class<TrackerDto> applicableClass = TrackerDto.class;
 
 }
