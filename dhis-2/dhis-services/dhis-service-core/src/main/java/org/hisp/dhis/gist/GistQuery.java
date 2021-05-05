@@ -279,7 +279,10 @@ public final class GistQuery
 
         // access checks
         CAN_READ( "canread" ),
-        CAN_WRITE( "canwrite" );
+        CAN_WRITE( "canwrite" ),
+        CAN_DATA_READ( "candataread" ),
+        CAN_DATA_WRITE( "candatawrite" ),
+        CAN_ACCESS( "canaccess" );
 
         private final String[] symbols;
 
@@ -308,7 +311,7 @@ public final class GistQuery
 
         public boolean isMultiValue()
         {
-            return this == IN || this == NOT_IN;
+            return this == IN || this == NOT_IN || this == CAN_ACCESS;
         }
 
         public boolean isIdentityCompare()
@@ -338,7 +341,7 @@ public final class GistQuery
 
         public boolean isStringCompare()
         {
-            return ordinal() >= LIKE.ordinal();
+            return ordinal() >= LIKE.ordinal() && ordinal() < CAN_READ.ordinal();
         }
 
         public boolean isContainsCompare()
@@ -348,7 +351,7 @@ public final class GistQuery
 
         public boolean isAccessCompare()
         {
-            return this == CAN_READ || this == CAN_WRITE;
+            return ordinal() >= CAN_READ.ordinal();
         }
     }
 

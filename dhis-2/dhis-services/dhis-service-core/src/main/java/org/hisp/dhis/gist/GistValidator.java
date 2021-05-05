@@ -35,6 +35,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
@@ -145,12 +146,29 @@ final class GistValidator
 
     private void validateFilterAccess( Filter f )
     {
-        if ( f.getOperator().isAccessCompare() )
+        Comparison operator = f.getOperator();
+        if ( operator.isAccessCompare() )
         {
             String[] ids = f.getValue();
-            if ( ids.length != 1 )
+            if ( operator != Comparison.CAN_ACCESS && ids.length != 1 )
             {
                 throw createIllegalFilter( f, "Filter `%s` requires a single user ID as argument." );
+            }
+            if ( operator == Comparison.CAN_ACCESS && ids.length != 2 )
+            {
+                throw createIllegalFilter( f, "Filter `%s` requires a user ID and a access pattern argument." );
+            }
+            if ( operator == Comparison.CAN_ACCESS )
+            {
+                // OBS! we include this user input directly in the query so we
+                // have
+                // to make sure it is not malicious
+                String pattern = f.getValue()[1];
+                if ( !pattern.matches( "[_%rw]{2,8}" ) )
+                {
+                    throw createIllegalFilter( f,
+                        "Filter `%s` pattern argument must be 2 to 8 letters allowing letters 'r', 'w', '_' and '%%'." );
+                }
             }
             User user = userService.getUser( ids[0] );
             if ( user == null )

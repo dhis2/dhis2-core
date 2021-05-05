@@ -714,12 +714,28 @@ final class GistBuilder
 
     private String createAccessFilterHQL( Filter filter, String tableName )
     {
-        String access = filter.getOperator() == Comparison.CAN_READ
-            ? AclService.LIKE_READ_METADATA
-            : AclService.LIKE_WRITE_METADATA;
+        String access = getAccessPattern( filter );
         String userId = filter.getValue()[0];
         return JpaQueryUtils.generateHqlQueryForSharingCheck( tableName, access, userId,
             userGroupsByUserId.apply( userId ) );
+    }
+
+    private String getAccessPattern( Filter filter )
+    {
+        switch ( filter.getOperator() )
+        {
+        default:
+        case CAN_READ:
+            return AclService.LIKE_READ_METADATA;
+        case CAN_WRITE:
+            return AclService.LIKE_WRITE_METADATA;
+        case CAN_DATA_READ:
+            return AclService.LIKE_READ_DATA;
+        case CAN_DATA_WRITE:
+            return AclService.LIKE_WRITE_DATA;
+        case CAN_ACCESS:
+            return filter.getValue()[1];
+        }
     }
 
     private String createOrdersHQL()

@@ -611,6 +611,23 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    public void testGistObjectList_Filter_CanAccessMissingPattern()
+    {
+        assertEquals(
+            "Filter `surname:canaccess:[fake-UID]` requires a user ID and a access pattern argument.",
+            GET( "/users/gist?filter=surname:canAccess:fake-UID" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Filter_CanAccessMaliciousPattern()
+    {
+        assertEquals(
+            "Filter `surname:canaccess:[fake-UID, drop tables]` pattern argument must be 2 to 8 letters allowing letters 'r', 'w', '_' and '%'.",
+            GET( "/users/gist?filter=surname:canAccess:[fake-UID,drop tables]" ).error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
     public void testGistObjectList_Order_CollectionProperty()
     {
         assertEquals( "Property `userGroup` cannot be used as order property.",
