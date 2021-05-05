@@ -50,7 +50,8 @@ public class JsonPatchManager
     }
 
     @Transactional
-    public Object apply(JsonPatch patch, Object object )
+    @SuppressWarnings( "unchecked" )
+    public <T> T apply( JsonPatch patch, T object )
         throws JsonPatchException
     {
         if ( patch == null || object == null )
@@ -63,7 +64,7 @@ public class JsonPatchManager
 
         try
         {
-            Object detachedObject = jsonMapper.treeToValue( node, object.getClass() );
+            object = (T) jsonMapper.treeToValue( node, object.getClass() );
             // TODO refresh object
         }
         catch ( JsonProcessingException e )
