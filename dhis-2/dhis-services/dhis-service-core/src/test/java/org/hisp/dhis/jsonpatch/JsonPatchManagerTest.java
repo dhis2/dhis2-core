@@ -30,12 +30,17 @@ package org.hisp.dhis.jsonpatch;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -70,13 +75,13 @@ public class JsonPatchManagerTest
 
         assertNotNull( patch );
 
-        Constant updatedConstant = jsonPatchManager.apply( patch, constant );
+        Constant patchedConstant = jsonPatchManager.apply( patch, constant );
 
         assertEquals( "ConstantA", constant.getName() );
         assertEquals( 1.0d, constant.getValue(), 0 );
 
-        assertEquals( "updated", updatedConstant.getName() );
-        assertEquals( 5.0d, updatedConstant.getValue(), 0 );
+        assertEquals( "updated", patchedConstant.getName() );
+        assertEquals( 5.0d, patchedConstant.getValue(), 0 );
     }
 
     @Test
@@ -106,5 +111,36 @@ public class JsonPatchManagerTest
 
         assertEquals( "updated", patchedConstant.getName() );
         assertEquals( 5.0d, patchedConstant.getValue(), 0 );
+    }
+
+    @Test
+    public void testCollectionAddPatchNoPersist()
+        throws Exception
+    {
+        DataElementGroup dataElementGroup = createDataElementGroup( 'A' );
+        assertEquals( "DataElementGroupA", dataElementGroup.getName() );
+
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+
+        dataElementGroup.getMembers().add( dataElementA );
+        dataElementGroup.getMembers().add( dataElementB );
+
+        assertEquals( 2, dataElementGroup.getMembers().size() );
+
+        JsonPatch patch = jsonMapper.readValue( "[" +
+            "{\"op\": \"add\", \"path\": \"/name\", \"value\": \"updated\"}," +
+            "{\"op\": \"add\", \"path\": \"/dataElements/-\", \"value\": {\"id\": \"my-uid\"}}" +
+            "]", JsonPatch.class );
+
+        assertNotNull( patch );
+
+        DataElementGroup patchedDataElementGroup = jsonPatchManager.apply( patch, dataElementGroup );
+
+        assertEquals( "DataElementGroupA", dataElementGroup.getName() );
+        assertEquals( 2, dataElementGroup.getMembers().size() );
+
+        assertEquals( "updated", patchedDataElementGroup.getName() );
+        assertEquals( 3, patchedDataElementGroup.getMembers().size() );
     }
 }
