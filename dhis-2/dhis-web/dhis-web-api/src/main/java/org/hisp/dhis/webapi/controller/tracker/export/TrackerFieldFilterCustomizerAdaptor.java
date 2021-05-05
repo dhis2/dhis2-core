@@ -12,7 +12,7 @@
  * and/or other materials provided with the distribution.
  * Neither the name of the HISP project nor the names of its contributors may
  * be used to endorse or promote products derived from this software without
-po * specific prior written permission.
+ * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -27,12 +27,13 @@ po * specific prior written permission.
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import lombok.Getter;
-import org.hisp.dhis.commons.jsonfiltering.web.FieldFilterCustomizer;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.regex.Pattern;
+
+import lombok.Getter;
+
+import org.hisp.dhis.commons.jsonfiltering.web.FieldFilterCustomizer;
 
 abstract class TrackerFieldFilterCustomizerAdaptor<T> implements FieldFilterCustomizer<T>
 {
