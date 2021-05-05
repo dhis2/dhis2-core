@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS;
 import static org.hisp.dhis.feedback.ErrorCode.E4032;
 import static org.hisp.dhis.feedback.ErrorCode.E4033;
 import static org.junit.Assert.assertEquals;
@@ -34,7 +35,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -90,8 +90,6 @@ public class ProgramRuleVariableObjectBundleHookTest
     @Captor
     private ArgumentCaptor<Class<ProgramRuleVariable>> classArgumentCaptor;
 
-    private static final List<String> invalidKeyWords = Arrays.asList( "and", "or", "not" );
-
     @Before
     public void setUp()
     {
@@ -103,7 +101,6 @@ public class ProgramRuleVariableObjectBundleHookTest
     @Test
     public void shouldExitObjectNotInstanceOfProgramRuleVariable()
     {
-
         List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( new ProgramRule(),
             objectBundle );
         verifyNoInteractions( sessionFactory );
@@ -125,15 +122,45 @@ public class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
+    public void shouldFailValidationInvalidCountAndInvalidName()
+    {
+        when( programRuleVariable.getProgram() ).thenReturn( program );
+        when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE );
+        when( query.getResultList() ).thenReturn( Collections.singletonList( new ProgramRuleVariable() ) );
+        when( programRuleVariable.getName() )
+            .thenReturn( "Word " + PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS.get( 0 ) + " Word" );
+
+        List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
+            objectBundle );
+
+        assertEquals( 2, errorReports.size() );
+        assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4032 ) ) );
+        assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4033 ) ) );
+    }
+
+    @Test
     public void shouldFailValidationInvalidName()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
+        List<ErrorReport> errorReports;
 
-        for ( String invalidKeyWord : invalidKeyWords )
+        for ( String invalidKeyWord : PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS )
         {
             when( programRuleVariable.getName() ).thenReturn( "Word " + invalidKeyWord + " Word" );
-            List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
+            errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
+                objectBundle );
+            assertEquals( 1, errorReports.size() );
+            assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4033 ) ) );
+
+            when( programRuleVariable.getName() ).thenReturn( invalidKeyWord + " Word" );
+            errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
+                objectBundle );
+            assertEquals( 1, errorReports.size() );
+            assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4033 ) ) );
+
+            when( programRuleVariable.getName() ).thenReturn( "Word " + invalidKeyWord );
+            errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
                 objectBundle );
             assertEquals( 1, errorReports.size() );
             assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4033 ) ) );
@@ -150,5 +177,11 @@ public class ProgramRuleVariableObjectBundleHookTest
         List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
             objectBundle );
         assertEquals( 0, errorReports.size() );
+
+        when( programRuleVariable.getName() ).thenReturn( "Word and_another Word" );
+
+        List<ErrorReport> errorReports1 = programRuleVariableObjectBundleHook.validate( programRuleVariable,
+            objectBundle );
+        assertEquals( 0, errorReports1.size() );
     }
 }
