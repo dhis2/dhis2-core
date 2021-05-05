@@ -27,34 +27,13 @@
  */
 package org.hisp.dhis.visualization;
 
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-
-import java.io.Serializable;
-
-import lombok.Data;
-
-import org.hisp.dhis.common.FontStyle;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
- * This class should be used for Visualization objects that need styling.
+ * Represents the mode in which a text was created.
  *
  * @author maikel arabori
  */
-@Data
-public class StyledObject implements Serializable
+public enum TextMode
 {
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String text;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private TextMode textMode;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private FontStyle fontStyle;
+    AUTO,
+    CUSTOM
 }
