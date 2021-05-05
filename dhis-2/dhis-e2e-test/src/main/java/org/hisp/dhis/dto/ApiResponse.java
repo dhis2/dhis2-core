@@ -28,17 +28,20 @@ package org.hisp.dhis.dto;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.webapi.json.JsonResponse;
+
 import com.google.gson.JsonObject;
+
 import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -50,6 +53,11 @@ public class ApiResponse
     public ApiResponse( Response response )
     {
         raw = response;
+    }
+
+    public JsonResponse asResponse()
+    {
+        return new JsonResponse( raw.asString() );
     }
 
     /**

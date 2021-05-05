@@ -28,6 +28,11 @@
 
 package org.hisp.dhis.metadata.orgunits;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
@@ -36,13 +41,9 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.OrgUnit;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.webapi.json.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -97,10 +98,11 @@ public class OrgUnitsTest
         response = orgUnitActions.get( uid );
 
         // todo create validation helper to check the similarity.
-        response.validate().statusCode( 200 )
-            .body( "shortName", equalTo( orgUnit.getShortName() ) )
-            .body( "name", equalTo( orgUnit.getName() ) )
-            .body( "openingDate", equalTo( orgUnit.getOpeningDate() ) );
+        response.validate().statusCode( 200 );
+        JsonObject ou = response.asResponse();
+        assertEquals( orgUnit.getShortName(), ou.getString( "shortName" ).string() );
+        assertEquals( orgUnit.getName(), ou.getString( "name" ).string() );
+        assertEquals( orgUnit.getOpeningDate(), ou.getString( "openingDate" ).string() );
     }
 
     @Test
