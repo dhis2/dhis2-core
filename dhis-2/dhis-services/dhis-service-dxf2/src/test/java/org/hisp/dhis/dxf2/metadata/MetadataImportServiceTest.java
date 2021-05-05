@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -39,10 +44,12 @@ import java.util.stream.Collectors;
 
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.MappingException;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
@@ -72,7 +79,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -121,10 +129,7 @@ public class MetadataImportServiceTest extends DhisSpringTest
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_sections.json" ).getInputStream(), RenderFormat.JSON );
 
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
 
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
@@ -139,11 +144,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_sections.json" ).getInputStream(), RenderFormat.JSON );
 
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
         params.setAtomicMode( AtomicMode.NONE );
-        params.setObjects( metadata );
 
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.WARNING, report.getStatus() );
@@ -158,10 +160,7 @@ public class MetadataImportServiceTest extends DhisSpringTest
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_sections.json" ).getInputStream(), RenderFormat.JSON );
 
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
 
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.ERROR, report.getStatus() );
@@ -205,29 +204,205 @@ public class MetadataImportServiceTest extends DhisSpringTest
             new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
             RenderFormat.JSON );
 
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setSkipSharing( true );
-        params.setObjects( metadata );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipSharing( false );
         params.setUser( user );
 
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
+        DataSet dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+        assertNotNull( dataSet.getUserGroupAccesses() );
+        assertEquals( 1, dataSet.getUserGroupAccesses().size() );
+        assertEquals( "fvz8d3u6jFd", dataSet.getUserGroupAccesses().iterator().next().getUserGroupUid() );
+
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_accesses_update_skipSharing.json" ).getInputStream(),
             RenderFormat.JSON );
 
-        params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.UPDATE );
+        params = createParams( ImportStrategy.UPDATE, metadata );
         params.setSkipSharing( true );
-        params.setObjects( metadata );
         params.setUser( user );
 
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
+
+        DataSet dataSetUpdated = manager.get( DataSet.class, "em8Bg4LCr5k" );
+        assertNotNull( dataSetUpdated.getUserGroupAccesses() );
+        assertEquals( 1, dataSetUpdated.getUserGroupAccesses().size() );
+        assertTrue( dataSetUpdated.getUserGroupAccesses().stream().filter( uga -> uga.getUid().equals( "fvz8d3u6jFd" ) )
+            .findFirst().isPresent() );
+    }
+
+    @Test
+    public void testImportWithSkipSharingIsFalse()
+        throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipSharing( false );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        DataSet dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+        assertNotNull( dataSet.getUserGroupAccesses() );
+        assertEquals( 1, dataSet.getUserGroupAccesses().size() );
+        assertEquals( "fvz8d3u6jFd", dataSet.getUserGroupAccesses().iterator().next().getUserGroupUid() );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_update_skipSharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        params = createParams( ImportStrategy.UPDATE, metadata );
+        params.setSkipSharing( false );
+        params.setUser( user );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        DataSet dataSetUpdated = manager.get( DataSet.class, "em8Bg4LCr5k" );
+        assertTrue( CollectionUtils.isEmpty( dataSetUpdated.getUserGroupAccesses() ) );
+    }
+
+    @Test
+    public void testImportNewObjectWithSkipTranslationIsTrue()
+        throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipTranslation( true );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+        DataSet dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+
+        // Payload has translations but skipTranslation = true
+        assertEquals( 0, dataSet.getTranslations().size() );
+
+    }
+
+    @Test
+    public void testImportNewObjectWithSkipTranslationIsFalse()
+        throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipTranslation( false );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        DataSet dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+
+        // Payload has translations and skipTranslation = false
+        assertEquals( 2, dataSet.getTranslations().size() );
+    }
+
+    /**
+     * 1. Create object with 2 translations 2. Update object with empty
+     * translations and skipTranslation = false Expected: updated object has
+     * empty translations
+     */
+    @Test
+    public void testUpdateWithSkipTranslationIsFalse()
+        throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipTranslation( false );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        DataSet dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+        assertEquals( 2, dataSet.getTranslations().size() );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_update_skipSharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        params = createParams( ImportStrategy.UPDATE, metadata );
+        params.setSkipTranslation( false );
+        params.setUser( user );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+        assertNotNull( dataSet.getUserGroupAccesses() );
+
+        assertEquals( 0, dataSet.getTranslations().size() );
+    }
+
+    /**
+     * 1. Create object with 2 translations 2. Update object with empty
+     * translations and skipTranslation = true Expected: updated object still
+     * has 2 translations
+     */
+    @Test
+    public void testUpdateWithSkipTranslationIsTrue()
+        throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipTranslation( false );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        DataSet dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+        assertNotNull( dataSet.getUserGroupAccesses() );
+        assertEquals( 2, dataSet.getTranslations().size() );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_update_skipSharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        params = createParams( ImportStrategy.UPDATE, metadata );
+        params.setSkipTranslation( true );
+        params.setUser( user );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+
+        assertEquals( 2, dataSet.getTranslations().size() );
     }
 
     @Test( expected = MappingException.class )
@@ -247,10 +422,7 @@ public class MetadataImportServiceTest extends DhisSpringTest
             new ClassPathResource( "dxf2/favorites/metadata_chart_with_accesses.json" ).getInputStream(),
             RenderFormat.JSON );
 
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
 
         importService.importMetadata( params );
 
@@ -275,10 +447,7 @@ public class MetadataImportServiceTest extends DhisSpringTest
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses.json" ).getInputStream(),
             RenderFormat.JSON );
 
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
 
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
@@ -301,10 +470,7 @@ public class MetadataImportServiceTest extends DhisSpringTest
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
             RenderFormat.JSON );
 
-        params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.UPDATE );
-        params.setObjects( metadata );
+        params = createParams( ImportStrategy.UPDATE, metadata );
         params.setSkipSharing( true );
 
         report = importService.importMetadata( params );
@@ -322,7 +488,6 @@ public class MetadataImportServiceTest extends DhisSpringTest
     public void testImportEmbeddedObjectWithSkipSharingIsFalse()
         throws IOException
     {
-
         User user = createUser( 'A' );
         manager.save( user );
 
@@ -336,10 +501,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses.json" ).getInputStream(),
             RenderFormat.JSON );
 
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipSharing( false );
 
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
@@ -355,10 +518,7 @@ public class MetadataImportServiceTest extends DhisSpringTest
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
             RenderFormat.JSON );
 
-        params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.UPDATE );
-        params.setObjects( metadata );
+        params = createParams( ImportStrategy.UPDATE, metadata );
         params.setSkipSharing( false );
 
         report = importService.importMetadata( params );
@@ -368,6 +528,98 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertNotNull( visualization );
         assertEquals( 0, visualization.getUserGroupAccesses().size() );
         assertEquals( 0, visualization.getUserAccesses().size() );
+    }
+
+    /**
+     * 1. Create an object with UserGroupAccessA 2. Update object with only
+     * UserGroupAccessB in payload and mergeMode=MERGE Expected: updated object
+     * will have 1 UserGroupAccesses
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testImportSharingWithMergeModeMerge()
+        throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        DataSet dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+        assertNotNull( dataSet.getUserGroupAccesses() );
+        assertEquals( 1, dataSet.getUserGroupAccesses().size() );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_merge_mode.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
+        params.setMergeMode( MergeMode.MERGE );
+        params.setUser( user );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+        assertNotNull( dataSet.getUserGroupAccesses() );
+
+        assertEquals( 1, dataSet.getUserGroupAccesses().size() );
+    }
+
+    /**
+     * 1. Create an object with UserGroupAccessA 2. Update object with only
+     * UserGroupAccessB in payload and mergeMode=REPLACE Expected: updated
+     * object will have only UserGroupAccessB
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testImportSharingWithMergeModeReplace()
+        throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        DataSet dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+        assertNotNull( dataSet.getUserGroupAccesses() );
+        assertEquals( 1, dataSet.getUserGroupAccesses().size() );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses_merge_mode.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
+        params.setMergeMode( MergeMode.REPLACE );
+        params.setUser( user );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+        assertNotNull( dataSet.getUserGroupAccesses() );
+
+        assertEquals( 1, dataSet.getUserGroupAccesses().size() );
+        assertTrue( dataSet.getUserGroupAccesses().stream().filter( uga -> uga.getUid().equals( "FnJeHbPOtVF" ) )
+            .findFirst().isPresent() );
     }
 
     @Test
@@ -517,10 +769,7 @@ public class MetadataImportServiceTest extends DhisSpringTest
             new ClassPathResource( "dxf2/dataset_with_sections_and_data_elements.json" ).getInputStream(),
             RenderFormat.JSON );
 
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setObjects( metadata );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
 
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
@@ -541,9 +790,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_data_element_removed.json" ).getInputStream(),
             RenderFormat.JSON );
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setObjects( metadata );
+
+        params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
         params.setMetadataSyncImport( false );
 
         report = importService.importMetadata( params );
@@ -664,5 +912,16 @@ public class MetadataImportServiceTest extends DhisSpringTest
 
         User user = manager.get( User.class, "MwhEJUnTHkn" );
         assertNotNull( user.getUserCredentials().getUser() );
+    }
+
+    private MetadataImportParams createParams( ImportStrategy importStrategy,
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata )
+    {
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( importStrategy );
+        params.setObjects( metadata );
+
+        return params;
     }
 }
