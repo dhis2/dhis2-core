@@ -67,11 +67,11 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
 
     private static final String FROM_PROGRAM_RULE_VARIABLE = " from ProgramRuleVariable prv where prv.name = :name and prv.program.uid = :programUid";
 
-    private final String PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REG_EX;
+    private final String PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REGEX;
 
     ProgramRuleVariableObjectBundleHook()
     {
-        PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REG_EX = "("
+        PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REGEX = "("
             + String.join( "|", PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS ) + ")";
     }
 
@@ -91,7 +91,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
                 .concat( uniqueProgramRuleNameErrorReport.stream(), programRuleNameKeyWordsErrorReport.stream() )
                 .collect( Collectors.toList() );
 
-            if ( errorReports.size() > 0 )
+            if ( !errorReports.isEmpty() )
                 return errorReports;
         }
 
@@ -130,7 +130,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         String[] split = programRuleVariable.getName().split( "\\s" );
 
         if ( IntStream.range( 0, split.length )
-            .anyMatch( i -> split[i].matches( PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REG_EX ) ) )
+            .anyMatch( i -> split[i].matches( PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REGEX ) ) )
         {
 
             return ImmutableList.of(
