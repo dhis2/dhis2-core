@@ -820,7 +820,6 @@
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-support-test-json</artifactId>
         <version>${project.version}</version>
-        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
