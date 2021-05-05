@@ -575,7 +575,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @ResponseBody
     @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json" )
-    @SuppressWarnings( "unchecked" )
     public WebMessage partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request )
