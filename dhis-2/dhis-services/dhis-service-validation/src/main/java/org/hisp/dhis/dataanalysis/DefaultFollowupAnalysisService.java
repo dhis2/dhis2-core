@@ -27,56 +27,60 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptyList;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
 @Service( "org.hisp.dhis.dataanalysis.FollowupAnalysisService" )
+@AllArgsConstructor
 public class DefaultFollowupAnalysisService
     implements FollowupAnalysisService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+
+    private static final int MAX_LIMIT = 10_000;
 
     private final DataAnalysisStore dataAnalysisStore;
 
-    public DefaultFollowupAnalysisService( DataAnalysisStore dataAnalysisStore )
-    {
-        checkNotNull( dataAnalysisStore );
-        this.dataAnalysisStore = dataAnalysisStore;
-    }
+    private final FollowupValueManager followupValueManager;
 
-    // -------------------------------------------------------------------------
-    // FollowupAnalysisService implementation
-    // -------------------------------------------------------------------------
+    private final CurrentUserService currentUserService;
 
     @Override
+    @Transactional( readOnly = true )
     public List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
         Collection<DataElement> dataElements, Collection<Period> periods, int limit )
     {
-        if ( parents == null || parents.size() == 0 || limit < 1 )
+        if ( parents == null || parents.isEmpty() || limit < 1 )
         {
-            return new ArrayList<>();
+            return emptyList();
         }
 
         Set<DataElement> elements = dataElements.stream()
-            .filter( de -> ValueType.NUMERIC_TYPES.contains( de.getValueType() ) )
+            .filter( de -> de.getValueType().isNumeric() )
             .collect( Collectors.toSet() );
 
         Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
@@ -90,5 +94,53 @@ public class DefaultFollowupAnalysisService
             + parents.size() );
 
         return dataAnalysisStore.getFollowupDataValues( elements, categoryOptionCombos, periods, parents, limit );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public FollowupAnalysisResponse getFollowupDataValues( FollowupAnalysisRequest request )
+    {
+        validate( request );
+
+        List<FollowupValue> followupValues = followupValueManager
+            .getFollowupDataValues( currentUserService.getCurrentUser(), request );
+        return new FollowupAnalysisResponse( new FollowupAnalysisMetadata( request ), followupValues );
+    }
+
+    private void validate( FollowupAnalysisRequest request )
+    {
+        if ( isEmpty( request.getDe() ) && isEmpty( request.getDs() ) )
+        {
+            throw validationError( ErrorCode.E2300 );
+        }
+        if ( isEmpty( request.getOu() ) )
+        {
+            throw validationError( ErrorCode.E2203 );
+        }
+        if ( (request.getStartDate() == null || request.getEndDate() == null) && request.getPe() == null )
+        {
+            throw validationError( ErrorCode.E2301 );
+        }
+        if ( request.getStartDate() != null && request.getEndDate() != null
+            && !request.getStartDate().before( request.getEndDate() ) )
+        {
+            throw validationError( ErrorCode.E2202 );
+        }
+        if ( request.getMaxResults() <= 0 )
+        {
+            throw validationError( ErrorCode.E2205 );
+        }
+        if ( request.getMaxResults() > MAX_LIMIT )
+        {
+            throw validationError( ErrorCode.E2206, MAX_LIMIT );
+        }
+    }
+
+    private IllegalQueryException validationError( ErrorCode error, Object... args )
+    {
+        ErrorMessage message = new ErrorMessage( error, args );
+        log.warn( String.format( "Followup analysis request validation failed, code: '%s', message: '%s'",
+            error, message.getMessage() ) );
+        return new IllegalQueryException( message );
     }
 }

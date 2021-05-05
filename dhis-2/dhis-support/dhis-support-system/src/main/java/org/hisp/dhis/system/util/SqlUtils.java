@@ -83,7 +83,7 @@ public class SqlUtils
     }
 
     /**
-     * Single-quotes the given relation (typically a column). Single-quotes part
+     * Single-quotes the given relation (typically a value). Single-quotes part
      * of the given relation are encoded (replaced by double single-quotes that
      * is).
      *

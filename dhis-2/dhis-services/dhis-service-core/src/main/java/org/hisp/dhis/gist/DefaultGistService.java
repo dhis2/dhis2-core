@@ -40,10 +40,16 @@ import lombok.AllArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -70,6 +76,8 @@ public class DefaultGistService implements GistService
 
     private final CurrentUserService currentUserService;
 
+    private final AclService aclService;
+
     private final ObjectMapper jsonMapper;
 
     private final GistValidator validator;
@@ -90,11 +98,19 @@ public class DefaultGistService implements GistService
     {
         RelativePropertyContext context = createPropertyContext( query );
         validator.validateQuery( query, context );
-        GistBuilder queryBuilder = createFetchBuilder( query, context, currentUserService.getCurrentUser() );
+        GistBuilder queryBuilder = createFetchBuilder( query, context, currentUserService.getCurrentUser(),
+            this::getAccessFromSharing );
         List<Object[]> rows = fetchWithParameters( query, queryBuilder,
             getSession().createQuery( queryBuilder.buildFetchHQL(), Object[].class ) );
         queryBuilder.transform( rows );
         return rows;
+    }
+
+    private Access getAccessFromSharing( Sharing sharing, User user, Class<? extends IdentifiableObject> type )
+    {
+        BaseIdentifiableObject object = new BaseIdentifiableObject();
+        object.setSharing( sharing );
+        return aclService.getAccess( object, user, type );
     }
 
     @Override

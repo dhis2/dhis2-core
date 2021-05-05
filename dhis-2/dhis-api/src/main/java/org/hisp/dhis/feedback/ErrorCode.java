@@ -96,6 +96,10 @@ public enum ErrorCode
     E2207( "Data start date must be before data end date" ),
     E2208( "Non-numeric data values encountered during outlier value detection" ),
 
+    /* Followup analysis */
+    E2300( "At least one data element or data set must be specified" ),
+    E2301( "Start date and end date must be specified directly or indirectly by specifying a period" ),
+
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),
     E3001( "User `{0}` is not allowed to update object `{1}`." ),
@@ -151,6 +155,7 @@ public enum ErrorCode
     E4030( "Object could not be deleted because it is associated with another object: {0}" ),
 
     E4032( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
+    E4033( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),
