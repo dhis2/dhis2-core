@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.dataanalysis;
 
+import static org.hisp.dhis.calendar.DateTimeUnit.fromJdkDate;
+
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import org.hisp.dhis.calendar.DateInterval;
-import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.PeriodType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -112,10 +112,8 @@ public final class FollowupValue
     @JsonProperty
     public String getPe()
     {
-        return peType == null ? null
-            : PeriodType.getPeriodTypeByName( peType )
-                .createPeriod(
-                    new DateInterval( DateTimeUnit.fromJdkDate( peStartDate ), DateTimeUnit.fromJdkDate( peEndDate ) ) )
-                .getIsoDate();
+        return peType == null
+            ? null
+            : PeriodType.getPeriodTypeByName( peType ).getIsoDate( fromJdkDate( peStartDate ) );
     }
 }
