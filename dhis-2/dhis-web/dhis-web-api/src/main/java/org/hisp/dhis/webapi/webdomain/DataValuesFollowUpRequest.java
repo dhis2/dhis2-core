@@ -25,14 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2;
+package org.hisp.dhis.webapi.webdomain;
 
-import java.util.Arrays;
 import java.util.List;
 
-public final class Constants
-{
-    public static final String UNKNOWN = "[Unknown]";
+import lombok.Data;
 
-    public static final List<String> PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS = Arrays.asList( "and", "or", "not" );
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * @author Jan Bernitt
+ */
+@Data
+public class DataValuesFollowUpRequest
+{
+    @JsonProperty
+    private List<DataValueFollowUpRequest> values;
 }

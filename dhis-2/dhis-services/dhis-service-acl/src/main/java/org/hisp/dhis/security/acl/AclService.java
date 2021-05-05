@@ -277,6 +277,18 @@ public interface AclService
     <T extends IdentifiableObject> Access getAccess( T object, User user );
 
     /**
+     * Return the access object for a object for a specific user assuming the
+     * object would be of the provided object type.
+     *
+     * @param object Object to check for access
+     * @param user User to check against
+     * @param objType type as which the object should be evaluated. This may be
+     *        a subtype of the actual instance type of object.
+     * @return Populated access instance
+     */
+    <T extends IdentifiableObject> Access getAccess( T object, User user, Class<? extends T> objType );
+
+    /**
      * Sets default sharing props on object, disregarding what is already there.
      *
      * @param object Object to update
