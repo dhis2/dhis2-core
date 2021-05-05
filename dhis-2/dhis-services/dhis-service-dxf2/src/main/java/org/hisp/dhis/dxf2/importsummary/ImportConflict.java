@@ -36,6 +36,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "conflict", namespace = DxfNamespaces.DXF_2_0 )
 public class ImportConflict
 {
+    public static final ImportConflict SKIP = new ImportConflict( "skip", "skip" );
+
     private String object;
 
     private String value;
