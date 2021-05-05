@@ -30,11 +30,12 @@ package org.hisp.dhis.webapi.json;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.NoSuchElementException;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -65,8 +66,8 @@ public class JsonResponseTest
         assertFalse( response.has( "no-a-member" ) );
         assertFalse( createJSON( "[]" ).getObject( "undefined" ).has( "foo" ) );
         JsonObject bar = response.getObject( "users" ).getObject( "bar" );
-        Exception ex = Assert.assertThrows( UnsupportedOperationException.class, () -> bar.has( "is-array" ) );
-        Assert.assertEquals( "Path `$.users.bar` does not contain a OBJECT but a(n) ARRAY: []", ex.getMessage() );
+        Exception ex = assertThrows( UnsupportedOperationException.class, () -> bar.has( "is-array" ) );
+        assertEquals( "Path `$.users.bar` does not contain a OBJECT but a(n) ARRAY: []", ex.getMessage() );
     }
 
     @Test
@@ -77,7 +78,7 @@ public class JsonResponseTest
         assertEquals( 13, response.getNumber( "number" ).number() );
         assertEquals( 4.2f, response.getNumber( "fraction" ).number().floatValue(), 0.001f );
         assertTrue( response.getNumber( "number" ).exists() );
-        Assert.assertNull( response.getNumber( "missing" ).number() );
+        assertNull( response.getNumber( "missing" ).number() );
     }
 
     @Test
@@ -86,7 +87,7 @@ public class JsonResponseTest
         JsonObject response = createJSON( "{'number':13}" );
         assertEquals( 13, response.getNumber( "number" ).intValue() );
         JsonNumber missing = response.getNumber( "missing" );
-        Assert.assertThrows( NoSuchElementException.class, missing::intValue );
+        assertThrows( NoSuchElementException.class, missing::intValue );
     }
 
     @Test
@@ -96,7 +97,7 @@ public class JsonResponseTest
 
         assertEquals( "plain", response.getString( "text" ).string() );
         assertTrue( response.getString( "text" ).exists() );
-        Assert.assertNull( response.getString( "missing" ).string() );
+        assertNull( response.getString( "missing" ).string() );
     }
 
     @Test
@@ -106,7 +107,7 @@ public class JsonResponseTest
 
         assertTrue( response.getBoolean( "flag" ).bool() );
         assertTrue( response.getBoolean( "flag" ).exists() );
-        Assert.assertNull( response.getBoolean( "missing" ).bool() );
+        assertNull( response.getBoolean( "missing" ).bool() );
     }
 
     @Test
@@ -116,7 +117,7 @@ public class JsonResponseTest
 
         assertTrue( response.getBoolean( "flag" ).booleanValue() );
         JsonBoolean missing = response.getBoolean( "missing" );
-        Assert.assertThrows( NoSuchElementException.class, missing::booleanValue );
+        assertThrows( NoSuchElementException.class, missing::booleanValue );
     }
 
     @Test
@@ -177,7 +178,7 @@ public class JsonResponseTest
         assertTrue( response.getArray( "array" ).isArray() );
         assertFalse( response.getArray( "notAnArray" ).isArray() );
         JsonArray missing = response.getArray( "missing" );
-        Assert.assertThrows( NoSuchElementException.class, missing::isArray );
+        assertThrows( NoSuchElementException.class, missing::isArray );
     }
 
     @Test
@@ -189,7 +190,7 @@ public class JsonResponseTest
         assertTrue( response.getArray( "object" ).isObject() );
         assertFalse( response.getArray( "notAnObject" ).isObject() );
         JsonArray missing = response.getArray( "missing" );
-        Assert.assertThrows( NoSuchElementException.class, missing::isObject );
+        assertThrows( NoSuchElementException.class, missing::isObject );
     }
 
     @Test
