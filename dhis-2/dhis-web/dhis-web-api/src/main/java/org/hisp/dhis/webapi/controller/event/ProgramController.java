@@ -65,13 +65,8 @@ import com.google.common.collect.Lists;
 public class ProgramController
     extends AbstractCrudController<Program>
 {
-
-    private final ProgramService programService;
-
-    public ProgramController( @Autowired ProgramService programService )
-    {
-        this.programService = programService;
-    }
+    @Autowired
+    private ProgramService programService;
 
     @Override
     @SuppressWarnings( "unchecked" )
