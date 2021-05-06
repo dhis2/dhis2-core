@@ -34,7 +34,6 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -49,10 +48,12 @@ public class TrackerNtiApiTest
     extends ApiTest
 {
     protected TrackerActions trackerActions;
+
     protected LoginActions loginActions;
 
     @BeforeAll
-    public void beforeTrackerNti() {
+    public void beforeTrackerNti()
+    {
         trackerActions = new TrackerActions();
         loginActions = new LoginActions();
     }
@@ -75,7 +76,8 @@ public class TrackerNtiApiTest
         return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedTeis().get( 0 );
     }
 
-    protected List<String> importTeis() {
+    protected List<String> importTeis()
+    {
         List<String> teis = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/teis.json" ) )
             .validateSuccessfulImport().extractImportedTeis();
 
@@ -105,6 +107,17 @@ public class TrackerNtiApiTest
 
         response.validateSuccessfulImport();
         return response;
+    }
+
+    protected TrackerApiResponse importTeiWithEnrollmentAndEvent()
+        throws Exception
+    {
+        JsonObject object = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) )
+            .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
+
+        return trackerActions.postAndGetJobReport( object )
+            .validateSuccessfulImport();
     }
 
     @AfterEach
