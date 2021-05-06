@@ -60,9 +60,9 @@ public class PagingAndSortingCriteriaAdapterTest
         {
             pagingAndSortingCriteriaAdapter.isPagingRequest();
         }
-        catch ( NullPointerException npe )
+        catch ( Exception e )
         {
-            fail( "Test was not meant to throw exception" );
+            fail( "Test was not meant to throw exception. Thrown exception is: " + e.getMessage() );
         }
 
     }
