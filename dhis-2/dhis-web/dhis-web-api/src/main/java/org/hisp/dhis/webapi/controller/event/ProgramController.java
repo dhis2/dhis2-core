@@ -27,14 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import org.hisp.dhis.association.IdentifiableObjectAssociations;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -68,8 +65,13 @@ import com.google.common.collect.Lists;
 public class ProgramController
     extends AbstractCrudController<Program>
 {
-    @Autowired
-    private ProgramService programService;
+
+    private final ProgramService programService;
+
+    public ProgramController(@Autowired ProgramService programService)
+    {
+        this.programService = programService;
+    }
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -117,14 +119,6 @@ public class ProgramController
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, program, download );
-    }
-
-    @RequestMapping( value = "/names", method = RequestMethod.GET, produces = { APPLICATION_JSON_VALUE,
-        "application/javascript" } )
-    @ResponseBody
-    public String[] getProgramNames()
-    {
-        return programService.getAllPrograms().stream().map( BaseIdentifiableObject::getName ).toArray( String[]::new );
     }
 
     @ResponseBody

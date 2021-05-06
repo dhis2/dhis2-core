@@ -160,7 +160,7 @@ public class JdbcEventAnalyticsTableManager
         List<Program> programs = params.getSkipPrograms().size() == 0 ? idObjectManager.getAllNoAcl( Program.class )
             : idObjectManager.getAllNoAcl( Program.class )
                 .stream()
-                .filter( p -> !params.getSkipPrograms().contains( p.getName() ) )
+                .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
                 .collect( Collectors.toList() );
 
         for ( Program program : programs )
@@ -215,7 +215,7 @@ public class JdbcEventAnalyticsTableManager
         List<Program> programs = params.getSkipPrograms().size() == 0 ? idObjectManager.getAllNoAcl( Program.class )
             : idObjectManager.getAllNoAcl( Program.class )
                 .stream()
-                .filter( p -> !params.getSkipPrograms().contains( p.getName() ) )
+                .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
                 .collect( Collectors.toList() );
 
         for ( Program program : programs )

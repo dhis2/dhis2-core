@@ -158,8 +158,8 @@ public class JdbcEventAnalyticsTableManagerTest
         Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
 
         Set<String> skipPrograms = new HashSet<>();
-        skipPrograms.add( "ProgramC" );
-        skipPrograms.add( "ProgramD" );
+        skipPrograms.add( prC.getUid() );
+        skipPrograms.add( prD.getUid() );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( startTime )
             .withLatestPartition().withSkipPrograms( skipPrograms ).build();
