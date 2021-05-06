@@ -73,6 +73,7 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
             "programStageInstanceFilter", // generator insufficient
             "interpretation", // required ObjectReport not required in schema
             "user", // generator insufficient to understand userCredentials
+            "userCredentials", // see above
             "jobConfiguration", // API requires configurable=true
             "messageConversation", // needs recipients (not a required field)
             "validationRule", // generator insufficient (embedded fields)
