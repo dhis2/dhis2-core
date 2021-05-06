@@ -43,6 +43,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -158,6 +159,7 @@ import com.google.common.collect.Lists;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public abstract class AbstractCrudController<T extends IdentifiableObject>
 {
+
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
 
     protected static final String DEFAULTS = "INCLUDE";
@@ -244,6 +246,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     private GistService gistService;
+
+    @PostConstruct
+    public void register()
+    {
+        DiscoveryController.register( this );
+    }
 
     // --------------------------------------------------------------------------
     // GET
