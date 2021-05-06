@@ -33,6 +33,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSectionService;
@@ -65,6 +66,9 @@ public class ProgramRuleActionValidationService
 
     @Nonnull
     private final DataElementService dataElementService;
+
+    @Nonnull
+    private final OptionService optionService;
 
     @Nonnull
     private final ProgramNotificationTemplateService notificationTemplateService;

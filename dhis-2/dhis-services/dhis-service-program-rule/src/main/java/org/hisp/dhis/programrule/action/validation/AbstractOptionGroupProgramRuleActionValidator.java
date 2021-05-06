@@ -75,6 +75,12 @@ public abstract class AbstractOptionGroupProgramRuleActionValidator extends Abst
 
         if ( optionGroup == null )
         {
+            optionGroup = validationContext.getProgramRuleActionValidationService().getOptionService()
+                .getOptionGroup( programRuleAction.getOptionGroup().getUid() );
+        }
+
+        if ( optionGroup == null )
+        {
             log.debug( String.format( "OptionGroup: %s associated with program rule: %s does not exist",
                 programRuleAction.getOptionGroup().getUid(),
                 rule.getName() ) );

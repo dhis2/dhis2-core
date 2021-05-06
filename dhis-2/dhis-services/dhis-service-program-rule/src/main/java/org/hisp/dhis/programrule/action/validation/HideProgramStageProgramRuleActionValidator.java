@@ -65,6 +65,12 @@ public class HideProgramStageProgramRuleActionValidator implements ProgramRuleAc
 
         if ( programStage == null )
         {
+            programStage = validationContext.getProgramRuleActionValidationService().getProgramStageService()
+                .getProgramStage( programRuleAction.getProgramStage().getUid() );
+        }
+
+        if ( programStage == null )
+        {
             log.debug( String.format( "ProgramStage: %s associated with program rule: %s does not exist",
                 programRuleAction.getProgramStage().getUid(),
                 rule.getName() ) );

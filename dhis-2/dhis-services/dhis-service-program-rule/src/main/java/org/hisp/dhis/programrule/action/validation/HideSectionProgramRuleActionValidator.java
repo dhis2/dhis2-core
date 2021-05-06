@@ -65,6 +65,12 @@ public class HideSectionProgramRuleActionValidator implements ProgramRuleActionV
 
         if ( stageSection == null )
         {
+            stageSection = validationContext.getProgramRuleActionValidationService().getSectionService()
+                .getProgramStageSection( programRuleAction.getProgramStageSection().getUid() );
+        }
+
+        if ( stageSection == null )
+        {
             log.debug( String.format( "ProgramStageSection: %s associated with program rule: %s does not exist",
                 programRuleAction.getProgramStageSection().getUid(),
                 rule.getName() ) );
