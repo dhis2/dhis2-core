@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import static org.hisp.dhis.calendar.DateTimeUnit.fromJdkDate;
-
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
@@ -114,6 +112,6 @@ public final class FollowupValue
     {
         return peType == null
             ? null
-            : PeriodType.getPeriodTypeByName( peType ).getIsoDate( fromJdkDate( peStartDate ) );
+            : PeriodType.getIsoPeriod( PeriodType.getCalendar(), peType, peStartDate );
     }
 }
