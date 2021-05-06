@@ -410,7 +410,7 @@ public class DefaultDataValueSetService
 
         for ( OrganisationUnit unit : params.getOrganisationUnits() )
         {
-            if ( !organisationUnitService.isInUserHierarchy( unit ) )
+            if ( !organisationUnitService.isInUserDataViewHierarchy( unit ) )
             {
                 throw new IllegalQueryException( "User is not allowed to view org unit: " + unit.getUid() );
             }
