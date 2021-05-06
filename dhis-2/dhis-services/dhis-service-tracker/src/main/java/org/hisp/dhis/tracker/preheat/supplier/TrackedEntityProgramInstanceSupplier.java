@@ -90,6 +90,8 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
+        if ( params.getEnrollments().size() == 0 )
+            return;
 
         Map<String, List<ProgramInstance>> trackedEntityToProgramInstanceMap = new HashMap<>();
 
