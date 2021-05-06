@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,7 +58,4 @@ public interface ProgramStageDataElementStore
      * @return Map<String, Set<String>>
      */
     Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
-
-    List<ProgramStageDataElement> getAllProgramStageDataElements( Set<ProgramStage> programStages,
-        DataElement dataElement );
 }

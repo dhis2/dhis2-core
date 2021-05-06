@@ -84,14 +84,6 @@ public class DefaultProgramStageDataElementService
 
     @Override
     @Transactional( readOnly = true )
-    public List<ProgramStageDataElement> getAllProgramStageDataElements( Set<ProgramStage> programStages,
-        DataElement dataElement )
-    {
-        return programStageDataElementStore.getAllProgramStageDataElements( programStages, dataElement );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement )
     {
         return programStageDataElementStore.get( programStage, dataElement );

@@ -81,9 +81,6 @@ public interface ProgramStageDataElementService
      */
     List<ProgramStageDataElement> getAllProgramStageDataElements();
 
-    List<ProgramStageDataElement> getAllProgramStageDataElements( Set<ProgramStage> programStages,
-        DataElement dataElement );
-
     /**
      * Returns Map of ProgramStages containing Set of DataElements (together
      * ProgramStageDataElements) that have skipSynchronization flag set to true
