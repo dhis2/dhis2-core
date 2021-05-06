@@ -45,6 +45,8 @@ public class UserCredentialsSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        return new Schema( UserCredentials.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( UserCredentials.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        return schema;
     }
 }
