@@ -25,15 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.webapi.webdomain;
+
+import java.util.List;
+
+import lombok.Data;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Analytics engine processing hints.
- *
- * @author Lars Helge Overland
+ * @author Jan Bernitt
  */
-public enum ProcessingHint
+@Data
+public class DataValuesFollowUpRequest
 {
-    SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM,
-    SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM
+    @JsonProperty
+    private List<DataValueFollowUpRequest> values;
 }
