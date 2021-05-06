@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18n;
@@ -45,8 +47,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletResponse;
-
 /**
  *
  * @author markusbekken
@@ -60,14 +60,15 @@ public class ProgramRuleActionController
 
     private final ProgramRuleEngineService programRuleEngineService;
 
-    public ProgramRuleActionController(I18nManager i18nManager, ProgramRuleEngineService programRuleEngineService) {
+    public ProgramRuleActionController( I18nManager i18nManager, ProgramRuleEngineService programRuleEngineService )
+    {
         this.i18nManager = i18nManager;
         this.programRuleEngineService = programRuleEngineService;
     }
 
     @RequestMapping( value = "/data/expression/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getDataExpressionDescription(@RequestBody String condition, @RequestParam String programId,
-                                       HttpServletResponse response )
+    public void getDataExpressionDescription( @RequestBody String condition, @RequestParam String programId,
+        HttpServletResponse response )
     {
         I18n i18n = i18nManager.getI18n();
 
@@ -86,7 +87,7 @@ public class ProgramRuleActionController
         else
         {
             message.setDescription(
-                    ObjectUtils.firstNonNull( result.getErrorMessage(), result.getException().getMessage() ) );
+                ObjectUtils.firstNonNull( result.getErrorMessage(), result.getException().getMessage() ) );
 
             message.setStatus( Status.ERROR );
 
