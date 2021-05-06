@@ -155,7 +155,6 @@ public enum ErrorCode
     E4030( "Object could not be deleted because it is associated with another object: {0}" ),
 
     /* ProgramRuleAction validation */
-    E4032( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
     E4033( "A program rule action of type `{0}` associated with program rule name `{1}` is invalid" ),
     E4034( "ProgramNotificationTemplate `{0}` associated with program rule name `{1}` does not exist" ),
     E4035( "ProgramNotificationTemplate cannot be null for program rule name `{0}`" ),
@@ -167,12 +166,15 @@ public enum ErrorCode
     E4041( "Option `{0}` associated with program rule `{1}` does not exist" ),
     E4042( "OptionGroup cannot be null for program rule `{0}`" ),
     E4043( "OptionGroup `{0}` associated with program rule `{1}` does not exist" ),
-
     E4044( "DataElement or TrackedEntityAttribute cannot be null for program rule `{0}`" ),
     E4045( "DataElement `{0}` associated with program rule `{1}` does not exist" ),
     E4046( "TrackedEntityAttribute `{0}` associated with program rule `{1}` does not exist" ),
     E4047( "DataElement `{0}` is not linked to any ProgramStageDataElement for program rule `{1}`" ),
     E4048( "TrackedEntityAttribute `{0}` is not linked to ProgramTrackedEntityAttribute for program rule `{1}`" ),
+
+    /* ProgramRuleVariable validation */
+    E4051( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
+    E4052( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),

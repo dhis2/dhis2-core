@@ -286,6 +286,24 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
         assertEquals( "enhet A", displayName.string() );
     }
 
+    @Test
+    public void testGistPropertyList_Access()
+    {
+        JsonArray groups = GET( "/users/{uid}/userGroups/gist?fields=id,access&headless=true",
+            getSuperuserUid() ).content();
+
+        assertEquals( 1, groups.size() );
+        JsonObject group = groups.getObject( 0 );
+        JsonObject access = group.getObject( "access" );
+        assertTrue( access.has( "manage", "externalize", "write", "read", "update", "delete" ) );
+        assertTrue( access.getBoolean( "manage" ).booleanValue() );
+        assertTrue( access.getBoolean( "externalize" ).booleanValue() );
+        assertTrue( access.getBoolean( "write" ).booleanValue() );
+        assertTrue( access.getBoolean( "read" ).booleanValue() );
+        assertTrue( access.getBoolean( "update" ).booleanValue() );
+        assertTrue( access.getBoolean( "delete" ).booleanValue() );
+    }
+
     /*
      * Tests for filters
      */
