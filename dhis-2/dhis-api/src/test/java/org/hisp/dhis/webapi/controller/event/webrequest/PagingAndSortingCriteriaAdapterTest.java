@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
+import static org.junit.Assert.fail;
+
 import org.junit.Test;
 
 public class PagingAndSortingCriteriaAdapterTest
@@ -54,7 +56,14 @@ public class PagingAndSortingCriteriaAdapterTest
             }
         };
 
-        pagingAndSortingCriteriaAdapter.isPagingRequest();
+        try
+        {
+            pagingAndSortingCriteriaAdapter.isPagingRequest();
+        }
+        catch ( NullPointerException npe )
+        {
+            fail( "Test was not meant to throw exception" );
+        }
 
     }
 }
