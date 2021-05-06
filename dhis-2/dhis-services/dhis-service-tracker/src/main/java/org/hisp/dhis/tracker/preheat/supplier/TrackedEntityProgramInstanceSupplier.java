@@ -91,21 +91,24 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        if ( params.getEnrollments().isEmpty() )
-            return;
-
-        Map<String, List<ProgramInstance>> trackedEntityToProgramInstanceMap = new HashMap<>();
-
         List<String> trackedEntityList = params.getEnrollments().stream().map( Enrollment::getTrackedEntity )
             .collect( Collectors.toList() );
 
         List<String> programList = preheat.getAll( Program.class ).stream().map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
-        List<List<String>> splitList = Lists.partition( new ArrayList<>( trackedEntityList ),
+        List<List<String>> teiList = Lists.partition( new ArrayList<>( trackedEntityList ),
             Constant.SPLIT_LIST_PARTITION_SIZE );
 
-        for ( List<String> trackedEntityListSubList : splitList )
+        if ( programList.isEmpty() || teiList.isEmpty() )
+            return;
+
+        Map<String, List<ProgramInstance>> trackedEntityToProgramInstanceMap = new HashMap<>();
+
+        if ( params.getEnrollments().isEmpty() )
+            return;
+
+        for ( List<String> trackedEntityListSubList : teiList )
         {
             queryTeiAndAddToMap( trackedEntityToProgramInstanceMap, trackedEntityListSubList, programList );
         }
