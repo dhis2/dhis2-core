@@ -134,6 +134,11 @@ public class AnalyticsTableUpdateParams
         return lastSuccessfulUpdate;
     }
 
+    public boolean hasSkipPrograms()
+    {
+        return skipPrograms.size() > 0;
+    }
+
     /**
      * Indicates whether this is a partial update of analytics tables, i.e. if
      * only certain partitions are to be updated and not all partitions
