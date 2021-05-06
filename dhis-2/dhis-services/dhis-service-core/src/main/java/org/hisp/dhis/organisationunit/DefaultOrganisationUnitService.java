@@ -75,6 +75,8 @@ public class DefaultOrganisationUnitService
 
     private static Cache<Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
 
+    private static Cache<Boolean> IN_USER_ORG_UNIT_DATA_VIEW_HIERARCHY_CACHE;
+
     private static Cache<Boolean> USER_CAPTURE_ORG_COUNT_THRESHOLD_CACHE;
 
     // -------------------------------------------------------------------------
@@ -120,6 +122,10 @@ public class DefaultOrganisationUnitService
 
         IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
             .forRegion( "inUserSearchOuHierarchy" ).expireAfterWrite( 1, TimeUnit.HOURS ).withInitialCapacity( 1000 )
+            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+
+        IN_USER_ORG_UNIT_DATA_VIEW_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "inUserDataViewOuHierarchy" ).expireAfterWrite( 1, TimeUnit.HOURS ).withInitialCapacity( 1000 )
             .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
 
         USER_CAPTURE_ORG_COUNT_THRESHOLD_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
@@ -524,6 +530,42 @@ public class DefaultOrganisationUnitService
         OrganisationUnit organisationUnit = organisationUnitStore.getByUid( uid );
 
         return organisationUnit != null && organisationUnit.isDescendant( organisationUnits );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isInUserDataViewHierarchy( OrganisationUnit organisationUnit )
+    {
+        return isInUserDataViewHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isInUserDataViewHierarchyCached( OrganisationUnit organisationUnit )
+    {
+        return isInUserDataViewHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isInUserDataViewHierarchy( User user, OrganisationUnit organisationUnit )
+    {
+        if ( user == null || user.getOrganisationUnits() == null || user.getOrganisationUnits().isEmpty() )
+        {
+            return false;
+        }
+
+        return organisationUnit.isDescendant( user.getDataViewOrganisationUnitsWithFallback() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isInUserDataViewHierarchyCached( User user, OrganisationUnit organisationUnit )
+    {
+        String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
+
+        return IN_USER_ORG_UNIT_DATA_VIEW_HIERARCHY_CACHE
+            .get( cacheKey, ou -> isInUserDataViewHierarchy( user, organisationUnit ) ).orElse( false );
     }
 
     @Override
