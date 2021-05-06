@@ -25,15 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.tracker.converter;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
- * Analytics engine processing hints.
+ * Converts rule-engine domain objects to tracker domain objects and vice versa.
  *
- * @author Lars Helge Overland
+ * @author Enrico Colasante
  */
-public enum ProcessingHint
+public interface RuleEngineConverterService<From, To>
+    extends TrackerConverterService<From, To>
 {
-    SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM,
-    SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM
+    To fromForRuleEngine( TrackerPreheat preheat, From object );
+
+    default List<To> fromForRuleEngine( TrackerPreheat preheat, List<From> objects )
+    {
+        return objects.stream()
+            .map( object -> fromForRuleEngine( preheat, object ) )
+            .collect( Collectors.toList() );
+    }
 }

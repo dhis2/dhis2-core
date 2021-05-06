@@ -275,7 +275,14 @@ public final class GistQuery
         STARTS_WITH( "$ilike", "startswith" ),
         NOT_STARTS_WITH( "!$ilike", "!startswith" ),
         ENDS_WITH( "ilike$", "endswith" ),
-        NOT_ENDS_WITH( "!ilike$", "!endswith" );
+        NOT_ENDS_WITH( "!ilike$", "!endswith" ),
+
+        // access checks
+        CAN_READ( "canread" ),
+        CAN_WRITE( "canwrite" ),
+        CAN_DATA_READ( "candataread" ),
+        CAN_DATA_WRITE( "candatawrite" ),
+        CAN_ACCESS( "canaccess" );
 
         private final String[] symbols;
 
@@ -300,6 +307,11 @@ public final class GistQuery
         public boolean isUnary()
         {
             return this == NULL || this == NOT_NULL || this == EMPTY || this == NOT_EMPTY;
+        }
+
+        public boolean isMultiValue()
+        {
+            return this == IN || this == NOT_IN || this == CAN_ACCESS;
         }
 
         public boolean isIdentityCompare()
@@ -329,12 +341,17 @@ public final class GistQuery
 
         public boolean isStringCompare()
         {
-            return ordinal() >= LIKE.ordinal();
+            return ordinal() >= LIKE.ordinal() && ordinal() < CAN_READ.ordinal();
         }
 
         public boolean isContainsCompare()
         {
             return this == IN || this == NOT_IN;
+        }
+
+        public boolean isAccessCompare()
+        {
+            return ordinal() >= CAN_READ.ordinal();
         }
     }
 
@@ -482,6 +499,11 @@ public final class GistQuery
             return new Filter( path, operator, value );
         }
 
+        public Filter withValue( String... value )
+        {
+            return new Filter( propertyPath, operator, value );
+        }
+
         public static Filter parse( String filter )
         {
             String[] parts = filter.split( "(?:::|:|~|@)" );
@@ -505,7 +527,8 @@ public final class GistQuery
         @Override
         public String toString()
         {
-            return propertyPath + ":" + operator.name().toLowerCase() + ":" + Arrays.toString( value );
+            return propertyPath + ":" + operator.symbols[0] + ":" + Arrays.toString( value );
         }
+
     }
 }

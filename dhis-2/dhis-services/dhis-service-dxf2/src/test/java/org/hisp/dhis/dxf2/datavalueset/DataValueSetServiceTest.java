@@ -993,7 +993,10 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
     public void testImportDataValuesUpdatedAudit()
         throws Exception
     {
-        mockDataValueBatchHandler.withFindSelf( true );
+        // as existing we return the imported DataValue with changed value
+        // to prevent the update from being skipped
+        mockDataValueBatchHandler
+            .withFindObject( dataValue -> dataValue.toBuilder().value( dataValue.getValue() + "42" ).build() );
 
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
 
@@ -1020,7 +1023,10 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
     public void testImportDataValuesUpdatedSkipAudit()
         throws Exception
     {
-        mockDataValueBatchHandler.withFindSelf( true );
+        // as existing we return the imported DataValue with changed comment
+        // to prevent the update from being skipped
+        mockDataValueBatchHandler
+            .withFindObject( dataValue -> dataValue.toBuilder().comment( dataValue.getComment() + "42" ).build() );
 
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
 
@@ -1040,6 +1046,30 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         assertEquals( 3, dataValues.size() );
 
         assertEquals( 0, auditValues.size() );
+    }
+
+    @Test
+    public void testImportDataValuesUpdatedSkipNoChange()
+        throws Exception
+    {
+        mockDataValueBatchHandler.withFindSelf( true );
+
+        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+
+        assertNotNull( summary );
+        assertNotNull( summary.getImportCount() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+
+        Collection<DataValue> dataValues = mockDataValueBatchHandler.getUpdates();
+        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
+
+        assertNotNull( dataValues );
+        assertEquals( 3, summary.getImportCount().getUpdated() );
+        assertEquals( "Updates to unchanged data values were not skipped", 0, dataValues.size() );
+        assertEquals( "Updates to unchanged data value did not skip audit", 0, auditValues.size() );
     }
 
     @Test

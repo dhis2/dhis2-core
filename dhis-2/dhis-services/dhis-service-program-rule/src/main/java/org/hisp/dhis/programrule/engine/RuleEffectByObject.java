@@ -25,15 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.programrule.engine;
 
-/**
- * Analytics engine processing hints.
- *
- * @author Lars Helge Overland
- */
-public enum ProcessingHint
+import java.util.List;
+
+import lombok.Getter;
+
+import org.hisp.dhis.rules.models.RuleEffect;
+
+@Getter
+public class RuleEffectByObject
 {
-    SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM,
-    SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM
+    private final boolean isEnrollment;
+
+    private final boolean isEvent;
+
+    private final String uid;
+
+    private final List<RuleEffect> effects;
+
+    private RuleEffectByObject( boolean isEnrollment, boolean isEvent, String uid,
+        List<RuleEffect> effects )
+    {
+        this.isEnrollment = isEnrollment;
+        this.isEvent = isEvent;
+        this.uid = uid;
+        this.effects = effects;
+    }
+
+    public static RuleEffectByObject ruleEffectForEnrollment( String uid, List<RuleEffect> effects )
+    {
+        return new RuleEffectByObject( true, false, uid, effects );
+    }
+
+    public static RuleEffectByObject ruleEffectForEvent( String uid, List<RuleEffect> effects )
+    {
+        return new RuleEffectByObject( false, true, uid, effects );
+    }
 }
