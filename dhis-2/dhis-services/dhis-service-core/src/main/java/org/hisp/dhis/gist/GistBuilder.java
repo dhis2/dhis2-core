@@ -52,6 +52,7 @@ import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -122,14 +123,16 @@ final class GistBuilder
     private static final String SHARING_PROPERTY = "sharing";
 
     static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context, User user,
-        AccessFromSharing accessFromSharing )
+        Function<String, List<String>> userGroupsByUserId, AccessFromSharing accessFromSharing )
     {
-        return new GistBuilder( user, addSupportFields( query, context ), context, accessFromSharing );
+        return new GistBuilder( user, addSupportFields( query, context ), context, userGroupsByUserId,
+            accessFromSharing );
     }
 
-    static GistBuilder createCountBuilder( GistQuery query, RelativePropertyContext context, User user )
+    static GistBuilder createCountBuilder( GistQuery query, RelativePropertyContext context, User user,
+        Function<String, List<String>> userGroupsByUserId )
     {
-        return new GistBuilder( user, query, context, null );
+        return new GistBuilder( user, query, context, userGroupsByUserId, null );
     }
 
     private final User user;
@@ -137,6 +140,8 @@ final class GistBuilder
     private final GistQuery query;
 
     private final RelativePropertyContext context;
+
+    private final Function<String, List<String>> userGroupsByUserId;
 
     private final AccessFromSharing accessFromSharing;
 
@@ -656,6 +661,11 @@ final class GistBuilder
 
     private String createFilterHQL( int index, Filter filter, String field )
     {
+        Comparison operator = filter.getOperator();
+        if ( operator.isAccessCompare() )
+        {
+            return createAccessFilterHQL( index, filter, field );
+        }
         StringBuilder str = new StringBuilder();
         Property property = context.resolveMandatory( filter.getPropertyPath() );
         String fieldTemplate = "%s";
@@ -668,13 +678,64 @@ final class GistBuilder
             fieldTemplate = "size(%s)";
         }
         str.append( String.format( fieldTemplate, field ) );
-        Comparison operator = filter.getOperator();
         str.append( " " ).append( createOperatorLeftSideHQL( operator ) );
         if ( !operator.isUnary() )
         {
             str.append( " :f_" + index ).append( createOperatorRightSideHQL( operator ) );
         }
         return str.toString();
+    }
+
+    private String createAccessFilterHQL( int index, Filter filter, String field )
+    {
+        String path = filter.getPropertyPath();
+        Property property = context.resolveMandatory( path );
+        String tableName = "ft_" + index;
+
+        if ( isPersistentCollectionField( property )
+            && IdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+        {
+            return String.format( "exists (select %1$s from %2$s %1$s where %1$s in elements(%3$s) and %4$s)",
+                tableName, property.getItemKlass().getSimpleName(), field, createAccessFilterHQL( filter, tableName ) );
+        }
+        if ( isPersistentReferenceField( property ) && property.isIdentifiableObject() )
+        {
+            return String.format( "%3$s in (select %1$s from %2$s %1$s where %4$s)", tableName,
+                property.getKlass().getSimpleName(), field, createAccessFilterHQL( filter, tableName ) );
+        }
+        if ( !isNonNestedPath( path ) )
+        {
+            throw new UnsupportedOperationException( "Access filter not supported for property: " + path );
+        }
+        // trivial case: the filter property is a non nested non-identifiable
+        // property => access check applied to gist item element
+        return createAccessFilterHQL( filter, "e" );
+    }
+
+    private String createAccessFilterHQL( Filter filter, String tableName )
+    {
+        String access = getAccessPattern( filter );
+        String userId = filter.getValue()[0];
+        return JpaQueryUtils.generateHqlQueryForSharingCheck( tableName, access, userId,
+            userGroupsByUserId.apply( userId ) );
+    }
+
+    private String getAccessPattern( Filter filter )
+    {
+        switch ( filter.getOperator() )
+        {
+        default:
+        case CAN_READ:
+            return AclService.LIKE_READ_METADATA;
+        case CAN_WRITE:
+            return AclService.LIKE_WRITE_METADATA;
+        case CAN_DATA_READ:
+            return AclService.LIKE_READ_DATA;
+        case CAN_DATA_WRITE:
+            return AclService.LIKE_WRITE_DATA;
+        case CAN_ACCESS:
+            return filter.getValue()[1];
+        }
     }
 
     private String createOrdersHQL()
@@ -792,7 +853,7 @@ final class GistBuilder
         for ( Filter filter : query.getFilters() )
         {
             Comparison operator = filter.getOperator();
-            if ( !operator.isUnary() )
+            if ( !operator.isUnary() && !operator.isAccessCompare() )
             {
                 Property property = context.resolveMandatory( filter.getPropertyPath() );
                 Object value = getParameterValue( property, filter, argumentParser );
