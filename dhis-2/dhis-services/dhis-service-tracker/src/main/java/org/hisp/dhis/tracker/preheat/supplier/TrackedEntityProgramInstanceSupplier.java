@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
@@ -98,7 +99,7 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
         List<String> trackedEntityList = params.getEnrollments().stream().map( Enrollment::getTrackedEntity )
             .collect( Collectors.toList() );
 
-        List<String> programList = params.getEnrollments().stream().map( Enrollment::getProgram ).distinct()
+        List<String> programList = preheat.getAll( Program.class ).stream().map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
         List<List<String>> splitList = Lists.partition( new ArrayList<>( trackedEntityList ),
