@@ -175,10 +175,11 @@ final class GistValidator
             {
                 throw createIllegalFilter( f, "User for filter `%s` does not exist." );
             }
-            if ( !aclService.canRead( currentUserService.getCurrentUser(), user ) )
+            User currentUser = currentUserService.getCurrentUser();
+            if ( currentUser.canManage( user ) || currentUser.getUid().equals( user.getCreatedBy().getUid() ) )
             {
                 throw createIllegalFilter( f,
-                    "Filtering by user access in filter `%s` requires read permissions to the user filter by." );
+                    "Filtering by user access in filter `%s` requires permissions to manage the user filtered by." );
             }
         }
     }
