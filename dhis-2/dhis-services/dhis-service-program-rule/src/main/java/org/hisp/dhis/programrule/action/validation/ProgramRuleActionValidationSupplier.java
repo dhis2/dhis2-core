@@ -29,9 +29,12 @@ package org.hisp.dhis.programrule.action.validation;
 
 import java.util.function.Supplier;
 
+import javax.annotation.Nonnull;
+
 import lombok.NonNull;
 
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSectionService;
@@ -68,10 +71,16 @@ public class ProgramRuleActionValidationSupplier implements Supplier<ProgramRule
     @NonNull
     private final ProgramNotificationTemplateService programNotificationTemplateService;
 
-    public ProgramRuleActionValidationSupplier( ProgramStageService programStageService, ProgramService programService,
-        ProgramStageSectionService sectionService, ProgramStageDataElementService stageDataElementService,
-        TrackedEntityAttributeService trackedEntityAttributeService, DataElementService dataElementService,
-        ProgramNotificationTemplateService programNotificationTemplateService )
+    @Nonnull
+    private final OptionService optionService;
+
+    public ProgramRuleActionValidationSupplier( @NonNull ProgramStageService programStageService,
+        @NonNull ProgramService programService, @NonNull ProgramStageSectionService sectionService,
+        @NonNull ProgramStageDataElementService stageDataElementService,
+        @NonNull TrackedEntityAttributeService trackedEntityAttributeService,
+        @NonNull DataElementService dataElementService,
+        @NonNull ProgramNotificationTemplateService programNotificationTemplateService,
+        @Nonnull OptionService optionService )
     {
         this.programStageService = programStageService;
         this.programService = programService;
@@ -80,6 +89,7 @@ public class ProgramRuleActionValidationSupplier implements Supplier<ProgramRule
         this.trackedEntityAttributeService = trackedEntityAttributeService;
         this.dataElementService = dataElementService;
         this.programNotificationTemplateService = programNotificationTemplateService;
+        this.optionService = optionService;
     }
 
     @Override
@@ -93,6 +103,7 @@ public class ProgramRuleActionValidationSupplier implements Supplier<ProgramRule
             .trackedEntityAttributeService( trackedEntityAttributeService )
             .dataElementService( dataElementService )
             .notificationTemplateService( programNotificationTemplateService )
+            .optionService( optionService )
             .build();
     }
 }
