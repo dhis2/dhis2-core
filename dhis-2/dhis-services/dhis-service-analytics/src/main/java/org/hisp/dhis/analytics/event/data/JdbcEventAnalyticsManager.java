@@ -255,9 +255,8 @@ public class JdbcEventAnalyticsManager
         }
         else
         {
-            String[] clusterFields = new String[] { params.getCoordinateField(), params.getFallbackCoordinateField() };
-            quotedClusterFieldFraction = "COALESCE(" + quoteAlias( clusterFields[0] ) + ","
-                + quoteAlias( clusterFields[1] ) + ")";
+            quotedClusterFieldFraction = "COALESCE(" + quoteAlias( params.getCoordinateField() ) + ","
+                + quoteAlias( fallback ) + ")";
         }
 
         String sql = "select count(psi) as " + COL_COUNT +
