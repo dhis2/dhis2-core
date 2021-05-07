@@ -342,8 +342,7 @@ public class DefaultEventDataQueryService
             return "pigeometry";
         }
 
-        DataElement dataElement = dataElementService.getAllDataElements().stream()
-            .filter( el -> el.getName() == coordinateField ).findFirst().get();
+        DataElement dataElement = dataElementService.getDataElement( coordinateField );
 
         if ( dataElement != null )
         {
