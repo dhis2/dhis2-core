@@ -222,7 +222,7 @@ public class JdbcEventAnalyticsTableManagerTest
         assertThat( tables, hasSize( 1 ) );
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) ).withTableType( AnalyticsTableType.EVENT )
-            .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withColumnSize( 41 )
+            .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withColumnSize( 42 )
             .withDefaultColumns( subject.getFixedColumns() ).addColumns( periodColumns )
             .addColumn( categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated() )
             .addColumn( categoryB.getUid(), CHARACTER_11, "acs.", categoryB.getCreated() ).build().verify();
@@ -281,7 +281,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 48 ).addColumns( periodColumns )
+            .withColumnSize( 49 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( d2.getUid(), DOUBLE, toAlias( aliasD2, d2.getUid() ) ) // ValueType.PERCENTAGE
             .addColumn( d3.getUid(), INTEGER, toAlias( aliasD3, d3.getUid() ) ) // ValueType.BOOLEAN
@@ -335,7 +335,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 43 ).addColumns( periodColumns )
+            .withColumnSize( 44 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.uid", tea1.getId(), tea1.getUid() ) ) // ValueType.ORGANISATION_UNIT
             // Second Geometry column created from the OU column above
