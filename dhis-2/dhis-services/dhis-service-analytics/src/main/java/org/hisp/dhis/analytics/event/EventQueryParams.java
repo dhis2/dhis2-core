@@ -189,6 +189,12 @@ public class EventQueryParams
     private boolean geometryOnly;
 
     /**
+     * Indicates whether request is intended to fetch events with alternative
+     * coordinates.
+     */
+    private boolean coordinateOuFallback;
+
+    /**
      * Indicates whether the query originates from an aggregate data query.
      */
     private boolean aggregateData;
@@ -202,6 +208,12 @@ public class EventQueryParams
      * The coordinate field to use as basis for spatial event analytics.
      */
     private String coordinateField;
+
+    /**
+     * The fallback coordinate field to use as basis for spatial event
+     * analytics, SQL COALESCE applied on coordinate fields.
+     */
+    private String fallbackCoordinateField;
 
     /**
      * Bounding box for events to include in clustering.
@@ -279,10 +291,12 @@ public class EventQueryParams
         params.eventStatus = this.eventStatus;
         params.collapseDataDimensions = this.collapseDataDimensions;
         params.coordinatesOnly = this.coordinatesOnly;
+        params.coordinateOuFallback = this.coordinateOuFallback;
         params.geometryOnly = this.geometryOnly;
         params.aggregateData = this.aggregateData;
         params.clusterSize = this.clusterSize;
         params.coordinateField = this.coordinateField;
+        params.fallbackCoordinateField = this.fallbackCoordinateField;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
         params.programStatus = this.programStatus;
@@ -384,10 +398,12 @@ public class EventQueryParams
             .addIgnoreNull( "eventStatus", eventStatus )
             .addIgnoreNull( "collapseDataDimensions", collapseDataDimensions )
             .addIgnoreNull( "coordinatesOnly", coordinatesOnly )
+            .addIgnoreNull( "coordinateOuFallback", coordinateOuFallback )
             .addIgnoreNull( "geometryOnly", geometryOnly )
             .addIgnoreNull( "aggregateData", aggregateData )
             .addIgnoreNull( "clusterSize", clusterSize )
             .addIgnoreNull( "coordinateField", coordinateField )
+            .addIgnoreNull( "fallbackCoordinateField", fallbackCoordinateField )
             .addIgnoreNull( "bbox", bbox )
             .addIgnoreNull( "includeClusterPoints", includeClusterPoints )
             .addIgnoreNull( "programStatus", programStatus )
@@ -925,6 +941,11 @@ public class EventQueryParams
         return coordinatesOnly;
     }
 
+    public boolean isCoordinateOuFallback()
+    {
+        return coordinateOuFallback;
+    }
+
     public boolean isGeometryOnly()
     {
         return geometryOnly;
@@ -943,6 +964,11 @@ public class EventQueryParams
     public String getCoordinateField()
     {
         return coordinateField;
+    }
+
+    public String getFallbackCoordinateField()
+    {
+        return fallbackCoordinateField;
     }
 
     public String getBbox()
@@ -1137,6 +1163,12 @@ public class EventQueryParams
             return this;
         }
 
+        public Builder withCoordinateOuFallback( boolean coordinateOuFallback )
+        {
+            this.params.coordinateOuFallback = coordinateOuFallback;
+            return this;
+        }
+
         public Builder withGeometryOnly( boolean geometryOnly )
         {
             this.params.geometryOnly = geometryOnly;
@@ -1260,6 +1292,12 @@ public class EventQueryParams
         public Builder withCoordinateField( String coordinateField )
         {
             this.params.coordinateField = coordinateField;
+            return this;
+        }
+
+        public Builder withFallbackCoordinateField( String fallbackCoordinateField )
+        {
+            this.params.fallbackCoordinateField = fallbackCoordinateField;
             return this;
         }
 

@@ -247,11 +247,21 @@ public class JdbcEventAnalyticsManager
     @Override
     public Rectangle getRectangle( EventQueryParams params )
     {
-        String clusterField = params.getCoordinateField();
-        String quotedClusterField = quoteAlias( clusterField );
+        String fallback = params.getFallbackCoordinateField();
+        String quotedClusterFieldFraction;
+        if ( fallback == null || !params.isCoordinateOuFallback() )
+        {
+            quotedClusterFieldFraction = quoteAlias( params.getCoordinateField() );
+        }
+        else
+        {
+            String[] clusterFields = new String[] { params.getCoordinateField(), params.getFallbackCoordinateField() };
+            quotedClusterFieldFraction = "COALESCE(" + quoteAlias( clusterFields[0] ) + ","
+                + quoteAlias( clusterFields[1] ) + ")";
+        }
 
         String sql = "select count(psi) as " + COL_COUNT +
-            ", ST_Extent(" + quotedClusterField + ") as " + COL_EXTENT + " ";
+            ", ST_Extent(" + quotedClusterFieldFraction + ") as " + COL_EXTENT + " ";
 
         sql += getFromClause( params );
 
@@ -541,9 +551,20 @@ public class JdbcEventAnalyticsManager
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
         {
-            sql += hlp.whereAnd() + " " +
-                quoteAlias( resolveCoordinateFieldColumnName( params.getCoordinateField(), params ) ) +
-                " is not null ";
+            if ( params.isCoordinateOuFallback() )
+            {
+                sql += hlp.whereAnd() + " (" +
+                    quoteAlias( resolveCoordinateFieldColumnName( params.getCoordinateField(), params ) ) +
+                    " is not null or " +
+                    quoteAlias( resolveCoordinateFieldColumnName( params.getFallbackCoordinateField(), params ) ) +
+                    " is not null )";
+            }
+            else
+            {
+                sql += hlp.whereAnd() + " " +
+                    quoteAlias( resolveCoordinateFieldColumnName( params.getCoordinateField(), params ) ) +
+                    " is not null ";
+            }
         }
 
         if ( params.isCompletedOnly() )
