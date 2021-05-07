@@ -187,6 +187,11 @@ public interface IdentifiableObjectManager
 
     List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> klass, Date date );
 
+    /**
+     * Remove given UserGroup UID from all sharing records in database
+     */
+    void removeUserGroupFromSharing( String userGroupUid );
+
     // -------------------------------------------------------------------------
     // NO ACL
     // -------------------------------------------------------------------------
