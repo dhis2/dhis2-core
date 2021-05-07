@@ -27,65 +27,43 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
-import java.util.List;
-import java.util.Optional;
+import static org.junit.Assert.fail;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.junit.Test;
 
-/**
- * simplest implementation of PagingCriteria and SortingCriteria
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@NoArgsConstructor( access = AccessLevel.PROTECTED )
-public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria, SortingCriteria
+public class PagingAndSortingCriteriaAdapterTest
 {
 
     /**
-     * Page number to return.
+     * should not fail when paging=true and pageSize is null
      */
-    private Integer page;
-
-    /**
-     * Page size.
-     */
-    private Integer pageSize = DEFAULT_PAGE_SIZE;
-
-    /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
-     */
-    private boolean totalPages;
-
-    /**
-     * Indicates whether paging should be skipped.
-     */
-    private Boolean skipPaging;
-
-    /**
-     * Indicated whether paging is enabled
-     */
-    private Boolean paging;
-
-    /**
-     * order params
-     */
-    private List<OrderCriteria> order;
-
-    public boolean isPagingRequest()
+    @Test
+    public void shouldNotThrowExceptionWhenPagingTrueAndPageSizeIsNull()
     {
-        return !isSkipPaging() && (paging != null && paging ||
-            pageSize != null ||
-            page != null ||
-            totalPages);
-    }
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter = new PagingAndSortingCriteriaAdapter()
+        {
+            @Override
+            public Boolean getPaging()
+            {
+                return true;
+            }
 
-    private boolean isSkipPaging()
-    {
-        return Optional.ofNullable( skipPaging )
-            .orElse( false );
+            @Override
+            public Integer getPageSize()
+            {
+                // redundant just to make test more readable
+                return null;
+            }
+        };
+
+        try
+        {
+            pagingAndSortingCriteriaAdapter.isPagingRequest();
+        }
+        catch ( Exception e )
+        {
+            fail( "Test was not meant to throw exception. Thrown exception is: " + e.getMessage() );
+        }
+
     }
 }
