@@ -88,7 +88,7 @@ public abstract class AbstractOptionGroupProgramRuleActionValidator extends Abst
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
                 .errorReport(
-                    new ErrorReport( Option.class, ErrorCode.E4041, programRuleAction.getOptionGroup().getUid(),
+                    new ErrorReport( Option.class, ErrorCode.E4043, programRuleAction.getOptionGroup().getUid(),
                         rule.getName() ) )
                 .build();
         }
