@@ -29,7 +29,6 @@ package org.hisp.dhis.period;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -258,7 +257,6 @@ public abstract class PeriodType
      * @return the ISO period name.
      */
     public static String getIsoPeriod( org.hisp.dhis.calendar.Calendar calendar, String periodType, Date startDate )
-        throws SQLException
     {
         final PeriodType pt = PeriodType.getPeriodTypeByName( periodType );
         return pt.createPeriod( startDate, calendar ).getIsoDate();
