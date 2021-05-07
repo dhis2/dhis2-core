@@ -25,15 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-/**
- * Analytics engine processing hints.
- *
- * @author Lars Helge Overland
- */
-public enum ProcessingHint
+import lombok.Getter;
+
+import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.springframework.stereotype.Component;
+
+@Component
+public class TrackerDtoFieldFilterCustomizer extends TrackerFieldFilterCustomizerAdaptor<TrackerDto>
 {
-    SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM,
-    SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM
+
+    @Getter
+    private Class<TrackerDto> applicableClass = TrackerDto.class;
+
 }
