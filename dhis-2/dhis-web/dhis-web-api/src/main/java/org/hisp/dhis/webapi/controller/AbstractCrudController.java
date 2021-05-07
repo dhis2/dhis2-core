@@ -913,7 +913,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         ImportReport importReport = importService.importMetadata( params );
 
-        postDeleteEntity();
+        postDeleteEntity( pvUid );
 
         webMessageService.send( WebMessageUtils.objectReport( importReport ), response, request );
     }
@@ -1266,7 +1266,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
     }
 
-    protected void postDeleteEntity()
+    protected void postDeleteEntity( String entityUid )
     {
     }
 

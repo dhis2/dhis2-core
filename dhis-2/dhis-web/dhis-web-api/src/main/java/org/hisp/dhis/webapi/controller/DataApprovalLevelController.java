@@ -49,7 +49,7 @@ public class DataApprovalLevelController
     }
 
     @Override
-    protected void postDeleteEntity()
+    protected void postDeleteEntity( String entityUID )
     {
         dataApprovalLevelService.postDeleteDataApprovalLevel();
     }
