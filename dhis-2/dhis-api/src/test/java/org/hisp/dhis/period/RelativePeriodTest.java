@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.mock.MockI18nFormat;
 import org.junit.Test;
@@ -539,6 +540,25 @@ public class RelativePeriodTest
             relatives.get( 8 ) );
         assertEquals( new Period( new YearlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 12, 31 ) ),
             relatives.get( 9 ) );
+    }
+
+    @Test
+    public void testGetLast10FinancialYears()
+    {
+        List<Period> relatives = new RelativePeriods().setLast10FinancialYears( true ).getRelativePeriods(
+            getDate( 2001, 1, 1 ),
+            I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
+
+        int year = Iso8601Calendar.getInstance().today().getYear()
+            - (Iso8601Calendar.getInstance().today().getMonth() > 10 ? 10 : 11);
+        assertEquals( 10, relatives.size() );
+        for ( int i = 0; i < 10; i++ )
+        {
+            assertEquals(
+                new Period( new FinancialOctoberPeriodType(), getDate( year, 10, 1 ), getDate( ++year, 9, 30 ) ),
+                relatives.get( i ) );
+        }
     }
 
     @Test
