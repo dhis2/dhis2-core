@@ -30,9 +30,7 @@ package org.hisp.dhis.scheduling;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ScheduledFuture;
-
-import org.springframework.util.concurrent.ListenableFuture;
+import java.util.concurrent.Future;
 
 /**
  * Interface for scheduling jobs.
@@ -59,10 +57,10 @@ public interface SchedulingManager
     /**
      * Check if this job configuration is currently running
      *
-     * @param jobConfiguration the job to check
+     * @param type type of job to check
      * @return true/false
      */
-    boolean isJobConfigurationRunning( JobConfiguration jobConfiguration );
+    boolean isJobConfigurationRunning( JobType type );
 
     /**
      * Set up default behavior for a started job.
@@ -134,9 +132,9 @@ public interface SchedulingManager
      *
      * @param callable the job to execute.
      * @param <T> return type of the supplied {@link Callable}.
-     * @return a ListenableFuture representing the result of the job.
+     * @return a {@link Future} representing the result of the job.
      */
-    <T> ListenableFuture<T> executeJob( Callable<T> callable );
+    <T> Future<T> executeJob( Callable<T> callable );
 
     /**
      * Returns a list of all scheduled jobs sorted based on cron expression and
@@ -144,5 +142,5 @@ public interface SchedulingManager
      *
      * @return list of jobs
      */
-    Map<String, ScheduledFuture<?>> getAllFutureJobs();
+    Map<String, Future<?>> getAllFutureJobs();
 }

@@ -60,7 +60,7 @@
     <dhis-hisp-staxwax.version>1.4</dhis-hisp-staxwax.version>
 
     <!-- Security-->
-    <spring-security.version>5.4.5</spring-security.version>
+    <spring-security.version>5.4.6</spring-security.version>
     <spring-security-oauth2.version>2.5.0.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
@@ -68,7 +68,7 @@
     <cglib.version>3.2.4</cglib.version>
 
     <!-- Spring-->
-    <spring.version>5.3.2</spring.version>
+    <spring.version>5.3.6</spring.version>
     <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
     <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -175,7 +175,7 @@
     <commons-fileupload.version>1.4</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.6</commons-validator.version>
-    <commons-io.version>2.6</commons-io.version>
+    <commons-io.version>2.7</commons-io.version>
     <commons-codec.version>1.14</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.5</commons-email.version>

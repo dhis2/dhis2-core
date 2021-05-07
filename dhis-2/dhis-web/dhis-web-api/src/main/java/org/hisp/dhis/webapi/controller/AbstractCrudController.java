@@ -38,7 +38,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -300,11 +299,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         Class<? extends IdentifiableObject> elementType, GistAutoType autoDefault )
     {
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
+        Locale translationLocale = !params.getString( "locale", "" ).isEmpty()
+            ? Locale.forLanguageTag( params.getString( "locale" ) )
+            : UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
         return GistQuery.builder()
             .elementType( elementType )
             .autoType( params.getEnum( "auto", autoDefault ) )
             .contextRoot( ContextUtils.getRootPath( request ) )
-            .translationLocale( UserContext.getUserSetting( UserSettingKey.DB_LOCALE ) )
+            .translationLocale( translationLocale )
             .build()
             .with( params );
     }
@@ -893,22 +895,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             .setUser( user )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( parsed );
-
-        if ( params.isSkipTranslation() )
-        {
-            // TODO this is a workaround to keep translations, preheat needs fix
-            params.setSkipTranslation( false );
-            T entity = manager.get( getEntityClass(), pvUid );
-            ((BaseIdentifiableObject) parsed).setTranslations( new HashSet<>( entity.getTranslations() ) );
-        }
-
-        if ( params.isSkipSharing() )
-        {
-            // TODO this is a workaround to keep sharing
-            params.setSkipSharing( false );
-            T entity = manager.get( getEntityClass(), pvUid );
-            ((BaseIdentifiableObject) parsed).setSharing( entity.getSharing() );
-        }
 
         ImportReport importReport = importService.importMetadata( params );
         WebMessage webMessage = WebMessageUtils.objectReport( importReport );

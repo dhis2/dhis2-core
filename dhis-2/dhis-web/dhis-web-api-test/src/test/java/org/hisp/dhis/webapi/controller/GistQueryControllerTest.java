@@ -35,11 +35,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.JsonString;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -50,6 +56,9 @@ import org.springframework.http.HttpStatus;
  */
 public class GistQueryControllerTest extends DhisControllerConvenienceTest
 {
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
     private String userGroupId;
 
     private String orgUnitId;
@@ -70,18 +79,6 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
 
         dataSetId = assertStatus( HttpStatus.CREATED, POST( "/dataSets/",
             "{'name':'set1', 'organisationUnits': [{'id':'" + orgUnitId + "'}], 'periodType':'Daily'}" ) );
-    }
-
-    @Test
-    public void testGistPropertyList_FilterByCollectionSize()
-    {
-        String fields = "id,userCredentials.username,userCredentials.twoFA";
-        String filter = "userCredentials.created:gt:2021-01-01,userGroups:gt:0";
-        JsonObject users = GET( "/userGroups/{uid}/users/gist?fields={fields}&filter={filter}&headless=true",
-            userGroupId, fields, filter ).content().getObject( 0 );
-
-        assertTrue( users.has( "id", "userCredentials" ) );
-        assertTrue( users.getObject( "userCredentials" ).has( "username", "twoFA" ) );
     }
 
     @Test
@@ -241,18 +238,6 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGistPropertyList_FilterByIn()
-    {
-        // create some items we can filter
-        createDataSetsForOrganisationUnit( 10, orgUnitId, "plus" );
-
-        String url = "/organisationUnits/{id}/dataSets/gist?filter=name:in:[plus3,plus5]&fields=name&order=name";
-        JsonObject gist = GET( url, orgUnitId ).content();
-
-        assertEquals( asList( "plus3", "plus5" ), gist.getArray( "dataSets" ).stringValues() );
-    }
-
-    @Test
     public void testGistPropertyList_EndpointsWithAbsoluteURLs()
     {
         JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&absoluteUrls=true",
@@ -282,6 +267,371 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
         JsonObject group = groups.getObject( 0 );
         assertEquals( asList( "displayName", "id" ), group.names() );
         assertEquals( "groupX", group.getString( "displayName" ).string() );
+    }
+
+    @Test
+    public void testGistPropertyList_DisplayNameWithLocale()
+    {
+        assertStatus( HttpStatus.NO_CONTENT, PUT( "/organisationUnits/" + orgUnitId + "/translations",
+            "{'translations': [" +
+                "{'locale':'sv', 'property':'name', 'value':'enhet A'}, " +
+                "{'locale':'de', 'property':'name', 'value':'Einheit A'}]}" ) );
+
+        JsonString displayName = GET( "/organisationUnits/{id}/gist?fields=displayName&locale=de&headless=true",
+            orgUnitId ).content();
+        assertEquals( "Einheit A", displayName.string() );
+
+        displayName = GET( "/organisationUnits/{id}/gist?fields=displayName&locale=sv&headless=true",
+            orgUnitId ).content();
+        assertEquals( "enhet A", displayName.string() );
+    }
+
+    @Test
+    public void testGistPropertyList_Access()
+    {
+        JsonArray groups = GET( "/users/{uid}/userGroups/gist?fields=id,access&headless=true",
+            getSuperuserUid() ).content();
+
+        assertEquals( 1, groups.size() );
+        JsonObject group = groups.getObject( 0 );
+        JsonObject access = group.getObject( "access" );
+        assertTrue( access.has( "manage", "externalize", "write", "read", "update", "delete" ) );
+        assertTrue( access.getBoolean( "manage" ).booleanValue() );
+        assertTrue( access.getBoolean( "externalize" ).booleanValue() );
+        assertTrue( access.getBoolean( "write" ).booleanValue() );
+        assertTrue( access.getBoolean( "read" ).booleanValue() );
+        assertTrue( access.getBoolean( "update" ).booleanValue() );
+        assertTrue( access.getBoolean( "delete" ).booleanValue() );
+    }
+
+    /*
+     * Tests for filters
+     */
+
+    @Test
+    public void testGistObjectList_FilterBy_Null()
+    {
+        assertEquals( 1, GET( "/users/gist?filter=skype:null&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=surname:null&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObjectList_FilterBy_NotNull()
+    {
+        assertEquals( 1, GET( "/users/gist?filter=code:!null&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=skype:!null&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObjectList_FilterBy_Eq()
+    {
+        assertEquals( 1, GET( "/users/gist?filter=code:eq:admin&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=code:eq:Hans&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObjectList_FilterBy_NotEq()
+    {
+        assertEquals( 1, GET( "/users/gist?filter=code:!eq:Paul&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=code:neq:Paul&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=code:ne:Paul&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=code:ne:admin&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObjectList_FilterBy_Empty()
+    {
+        OrganisationUnit ou = organisationUnitService.getOrganisationUnit( orgUnitId );
+        ou.setComment( "" );
+        organisationUnitService.updateOrganisationUnit( ou );
+
+        assertEquals( 1, GET( "/organisationUnits/gist?filter=comment:empty&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=surname:empty&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObjectList_FilterBy_NotEmpty()
+    {
+        OrganisationUnit ou = organisationUnitService.getOrganisationUnit( orgUnitId );
+        ou.setComment( "" );
+        organisationUnitService.updateOrganisationUnit( ou );
+
+        assertEquals( 1, GET( "/users/gist?filter=surname:!empty&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/organisationUnits/gist?filter=comment:!empty&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObjectList_FilterBy_LessThan()
+    {
+        assertEquals( 1,
+            GET( "/users/gist?filter=userCredentials.lastUpdated:lt:now&headless=true" ).content().size() );
+        assertEquals( 0,
+            GET( "/users/gist?filter=userCredentials.lastUpdated:lt:2000-01-01&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObjectList_FilterBy_LessThanOrEqual()
+    {
+        assertEquals( 1,
+            GET( "/users/gist?filter=userCredentials.created:le:now&headless=true" ).content().size() );
+        assertEquals( 1,
+            GET( "/users/gist?filter=userCredentials.created:lte:now&headless=true" ).content().size() );
+        assertEquals( 0,
+            GET( "/users/gist?filter=userCredentials.created:lte:2000-01-01&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObjectList_FilterBy_GreaterThan()
+    {
+        assertEquals( 1,
+            GET( "/users/gist?filter=userCredentials.lastUpdated:gt:2000-01-01&headless=true" ).content().size() );
+        assertEquals( 0,
+            GET( "/users/gist?filter=userCredentials.lastUpdated:gt:2525-01-01&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObjectList_FilterBy_GreaterThanOrEqual()
+    {
+        assertEquals( 1,
+            GET( "/users/gist?filter=userCredentials.created:gte:2000-01-01&headless=true" ).content().size() );
+        assertEquals( 1,
+            GET( "/users/gist?filter=userCredentials.created:ge:2000-01-01&headless=true" ).content().size() );
+        assertEquals( 0,
+            GET( "/users/gist?filter=userCredentials.created:ge:2525-01-01&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObjectList_FilterBy_Like()
+    {
+        assertEquals( 1, GET( "/users/gist?filter=surname:like:mi&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=surname:ilike:mi&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=surname:like:?dmin&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=surname:like:ad*&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=surname:like:Zulu&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObject_FilterBy_NotLike()
+    {
+        assertEquals( 1,
+            GET( "/users/gist?filter=userCredentials.username:!like:mike&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=surname:!ilike:?min&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=surname:!like:?min&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=surname:!like:ap*&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=surname:!like:ad?in&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObject_FilterBy_StartsWith()
+    {
+        assertEquals( 1,
+            GET( "/users/gist?filter=userCredentials.username:$like:ad&headless=true" ).content().size() );
+        assertEquals( 1,
+            GET( "/users/gist?filter=userCredentials.username:$ilike:adm&headless=true" ).content().size() );
+        assertEquals( 1,
+            GET( "/users/gist?filter=userCredentials.username:startsWith:admi&headless=true" ).content().size() );
+        assertEquals( 0,
+            GET( "/users/gist?filter=userCredentials.username:startsWith:bat&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObject_FilterBy_NotStartsWith()
+    {
+        assertEquals( 1, GET( "/users/gist?filter=firstName:!$like:mike&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=firstName:!$ilike:bat&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=firstName:!startsWith:tic&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=firstName:!startsWith:ad&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObject_FilterBy_EndsWith()
+    {
+        assertEquals( 1, GET( "/users/gist?filter=firstName:like$:dmin&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=firstName:ilike$:in&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=firstName:endsWith:min&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=firstName:endsWith:bat&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObject_FilterBy_NotEndsWith()
+    {
+        assertEquals( 1, GET( "/users/gist?filter=firstName:!like$:mike&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=firstName:!ilike$:bat&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=firstName:!endsWith:tic&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=firstName:!endsWith:min&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistPropertyList_FilterBy_Name_In()
+    {
+        createDataSetsForOrganisationUnit( 10, orgUnitId, "plus" );
+
+        String url = "/organisationUnits/{id}/dataSets/gist?filter=name:in:[plus3,plus5]&fields=name&order=name";
+        JsonObject gist = GET( url, orgUnitId ).content();
+
+        assertEquals( asList( "plus3", "plus5" ), gist.getArray( "dataSets" ).stringValues() );
+    }
+
+    @Test
+    public void testGistPropertyList_FilterBy_Name_NotIn()
+    {
+        createDataSetsForOrganisationUnit( 10, orgUnitId, "item" );
+
+        assertEquals( asList( "item3", "item4" ),
+            GET( "/dataSets/gist?fields=name&filter=name:in:[item3,item4]&headless=true&order=name", orgUnitId )
+                .content().stringValues() );
+    }
+
+    @Test
+    public void testGistPropertyList_FilterBy_Id_In()
+    {
+        createDataSetsForOrganisationUnit( 10, orgUnitId, "plus" );
+
+        List<String> dsUids = GET( "/dataSets/gist?fields=id&filter=name:in:[plus2,plus6]&headless=true" )
+            .content().stringValues();
+        assertEquals( 2, dsUids.size() );
+
+        String url = "/organisationUnits/{id}/dataSets/gist?filter=id:in:[{ds}]&fields=name&order=name";
+        JsonObject gist = GET( url, orgUnitId, String.join( ",", dsUids ) ).content();
+
+        assertEquals( asList( "plus2", "plus6" ), gist.getArray( "dataSets" ).stringValues() );
+    }
+
+    @Test
+    public void testGistPropertyList_FilterBy_1toMany_Size()
+    {
+        String fields = "id,userCredentials.username,userCredentials.twoFA";
+        String filter = "userCredentials.created:gt:2021-01-01,userGroups:gt:0";
+        JsonObject users = GET( "/userGroups/{uid}/users/gist?fields={fields}&filter={filter}&headless=true",
+            userGroupId, fields, filter ).content().getObject( 0 );
+
+        assertTrue( users.has( "id", "userCredentials" ) );
+        assertTrue( users.getObject( "userCredentials" ).has( "username", "twoFA" ) );
+    }
+
+    @Test
+    public void testGistList_FilterBy_1toMany_In()
+    {
+        createDataSetsForOrganisationUnit( 10, orgUnitId, "in" );
+
+        String url = "/dataSets/gist?filter=organisationUnits.id:in:[{id}]&fields=name&filter=name:startsWith:in&headless=true";
+        assertEquals( 10, GET( url, orgUnitId ).content().size() );
+    }
+
+    @Test
+    public void testGistList_FilterBy_1toMany_NotIn()
+    {
+        createDataSetsForOrganisationUnit( 10, orgUnitId, "notIn" );
+
+        String url = "/dataSets/gist?filter=organisationUnits.id:!in:[{id}]&fields=name&filter=name:startsWith:notIn&headless=true";
+        assertEquals( 10, GET( url, "fakeUid" ).content().size() );
+    }
+
+    @Test
+    public void testGistList_FilterBy_1toMany_Empty()
+    {
+        createDataSetsForOrganisationUnit( 7, orgUnitId, "empty" );
+        String url = "/dataSets/gist?filter=sections:empty&fields=name&filter=name:startsWith:empty&headless=true";
+        assertEquals( 7, GET( url ).content().size() );
+    }
+
+    @Test
+    public void testGistList_FilterBy_1toMany_NotEmpty()
+    {
+        createDataSetsForOrganisationUnit( 8, orgUnitId, "non-empty" );
+
+        String url = "/dataSets/gist?filter=organisationUnits:!empty&fields=name&filter=name:startsWith:non&headless=true";
+        assertEquals( 8, GET( url ).content().size() );
+    }
+
+    /**
+     * When an property is a collection of identifiable objects one is allowed
+     * to use the {@code in} filter on the collection property which has the
+     * same effect as if one would use {@code property.id}.
+     */
+    @Test
+    public void testGistList_FilterBy_1toMany_In_ShortSyntax()
+    {
+        createDataSetsForOrganisationUnit( 10, orgUnitId, "plus" );
+
+        String url = "/dataSets/gist?filter=organisationUnits:in:[{id}]&fields=name&filter=name:startsWith:plus&headless=true";
+        assertEquals( 10, GET( url, orgUnitId ).content().size() );
+    }
+
+    @Test
+    public void testGistList_FilterBy_1toMany_Like()
+    {
+        createDataSetsForOrganisationUnit( 10, orgUnitId, "plus" );
+
+        String orgUnitName = GET( "/organisationUnits/{id}/name/gist", orgUnitId ).content().string();
+        String url = "/dataSets/gist?filter=organisationUnits.name:like:{name}&fields=name&filter=name:startsWith:plus&headless=true";
+        assertEquals( 10, GET( url, orgUnitName ).content().size() );
+    }
+
+    @Test
+    public void testGistObject_FilterBy_1to1_1toMany_Eq()
+    {
+        // filter asks: does the user's userCredential have a user role which
+        // name is equal to "Superuser"
+        assertEquals( getSuperuserUid(),
+            GET( "/users/{id}/gist?fields=id&filter=userCredentials.userRoles.name:eq:Superuser",
+                getSuperuserUid() ).content().string() );
+    }
+
+    /*
+     * Validation
+     */
+
+    @Test
+    public void testGistObjectList_Filter_MisplacedArgument()
+    {
+        assertEquals( "Filter `surname:null:[value]` uses an unary operator and does not need an argument.",
+            GET( "/users/gist?filter=surname:null:value" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Filter_MissingArgument()
+    {
+        assertEquals( "Filter `surname:eq:[]` uses a binary operator that does need an argument.",
+            GET( "/users/gist?filter=surname:eq" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Filter_TooManyArguments()
+    {
+        assertEquals( "Filter `surname:gt:[a, b]` can only be used with a single argument.",
+            GET( "/users/gist?filter=surname:gt:[a,b]" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Filter_UserDoesNotExist()
+    {
+        assertEquals( "User for filter `surname:canread:[not-a-UID]` does not exist.",
+            GET( "/users/gist?filter=surname:canRead:not-a-UID" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Filter_CanAccessMissingPattern()
+    {
+        assertEquals(
+            "Filter `surname:canaccess:[fake-UID]` requires a user ID and a access pattern argument.",
+            GET( "/users/gist?filter=surname:canAccess:fake-UID" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Filter_CanAccessMaliciousPattern()
+    {
+        assertEquals(
+            "Filter `surname:canaccess:[fake-UID, drop tables]` pattern argument must be 2 to 8 letters allowing letters 'r', 'w', '_' and '%'.",
+            GET( "/users/gist?filter=surname:canAccess:[fake-UID,drop tables]" ).error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Order_CollectionProperty()
+    {
+        assertEquals( "Property `userGroup` cannot be used as order property.",
+            GET( "/users/gist?order=userGroups" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
     }
 
     private void createDataSetsForOrganisationUnit( int count, String organisationUnitId, String namePrefix )

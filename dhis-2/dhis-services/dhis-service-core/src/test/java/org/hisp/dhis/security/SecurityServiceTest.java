@@ -108,12 +108,6 @@ public class SecurityServiceTest
         assertFalse( securityService.isLocked( username ) );
 
         securityService.registerFailedLogin( username );
-        assertFalse( securityService.isLocked( username ) );
-
-        securityService.registerFailedLogin( username );
-        assertFalse( securityService.isLocked( username ) );
-
-        securityService.registerFailedLogin( username );
         assertTrue( securityService.isLocked( username ) );
 
         securityService.registerFailedLogin( username );

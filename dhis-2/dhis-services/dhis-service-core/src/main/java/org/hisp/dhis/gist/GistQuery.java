@@ -224,6 +224,11 @@ public final class GistQuery
         return toBuilder().fields( fields ).build();
     }
 
+    public GistQuery withFilters( List<Filter> filters )
+    {
+        return toBuilder().filters( filters ).build();
+    }
+
     private <E> GistQuery withAddedItem( E e, List<E> collection,
         BiFunction<GistQueryBuilder, List<E>, GistQueryBuilder> setter )
     {
@@ -268,9 +273,16 @@ public final class GistQuery
         ILIKE( "ilike" ),
         NOT_ILIKE( "!ilike" ),
         STARTS_WITH( "$ilike", "startswith" ),
-        NOT_STARTS_WITH( "!$ilike" ),
+        NOT_STARTS_WITH( "!$ilike", "!startswith" ),
         ENDS_WITH( "ilike$", "endswith" ),
-        NOT_ENDS_WITH( "!ilike$" );
+        NOT_ENDS_WITH( "!ilike$", "!endswith" ),
+
+        // access checks
+        CAN_READ( "canread" ),
+        CAN_WRITE( "canwrite" ),
+        CAN_DATA_READ( "candataread" ),
+        CAN_DATA_WRITE( "candatawrite" ),
+        CAN_ACCESS( "canaccess" );
 
         private final String[] symbols;
 
@@ -297,6 +309,11 @@ public final class GistQuery
             return this == NULL || this == NOT_NULL || this == EMPTY || this == NOT_EMPTY;
         }
 
+        public boolean isMultiValue()
+        {
+            return this == IN || this == NOT_IN || this == CAN_ACCESS;
+        }
+
         public boolean isIdentityCompare()
         {
             return this == NULL || this == NOT_NULL || this == EQ || this == NE;
@@ -314,7 +331,7 @@ public final class GistQuery
 
         public boolean isCollectionCompare()
         {
-            return this == IN || this == NOT_IN || isSizeCompare();
+            return isContainsCompare() || isSizeCompare();
         }
 
         public boolean isSizeCompare()
@@ -324,7 +341,17 @@ public final class GistQuery
 
         public boolean isStringCompare()
         {
-            return ordinal() >= LIKE.ordinal();
+            return ordinal() >= LIKE.ordinal() && ordinal() < CAN_READ.ordinal();
+        }
+
+        public boolean isContainsCompare()
+        {
+            return this == IN || this == NOT_IN;
+        }
+
+        public boolean isAccessCompare()
+        {
+            return ordinal() >= CAN_READ.ordinal();
         }
     }
 
@@ -467,6 +494,16 @@ public final class GistQuery
             this.value = value;
         }
 
+        public Filter withPropertyPath( String path )
+        {
+            return new Filter( path, operator, value );
+        }
+
+        public Filter withValue( String... value )
+        {
+            return new Filter( propertyPath, operator, value );
+        }
+
         public static Filter parse( String filter )
         {
             String[] parts = filter.split( "(?:::|:|~|@)" );
@@ -490,7 +527,8 @@ public final class GistQuery
         @Override
         public String toString()
         {
-            return propertyPath + ":" + operator.name().toLowerCase() + ":" + Arrays.toString( value );
+            return propertyPath + ":" + operator.symbols[0] + ":" + Arrays.toString( value );
         }
+
     }
 }

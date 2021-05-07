@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.mock.MockI18nFormat;
 import org.junit.Test;
@@ -509,6 +510,55 @@ public class RelativePeriodTest
             relatives.get( 3 ) );
         assertEquals( new Period( new YearlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 12, 31 ) ),
             relatives.get( 4 ) );
+    }
+
+    @Test
+    public void testGetLast10Years()
+    {
+        List<Period> relatives = new RelativePeriods().setLast10Years( true ).getRelativePeriods( getDate( 2001, 1, 1 ),
+            I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
+
+        assertEquals( 10, relatives.size() );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1991, 1, 1 ), getDate( 1991, 12, 31 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1992, 1, 1 ), getDate( 1992, 12, 31 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1993, 1, 1 ), getDate( 1993, 12, 31 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1994, 1, 1 ), getDate( 1994, 12, 31 ) ),
+            relatives.get( 3 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1995, 1, 1 ), getDate( 1995, 12, 31 ) ),
+            relatives.get( 4 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1996, 1, 1 ), getDate( 1996, 12, 31 ) ),
+            relatives.get( 5 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1997, 1, 1 ), getDate( 1997, 12, 31 ) ),
+            relatives.get( 6 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1998, 1, 1 ), getDate( 1998, 12, 31 ) ),
+            relatives.get( 7 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1999, 1, 1 ), getDate( 1999, 12, 31 ) ),
+            relatives.get( 8 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 12, 31 ) ),
+            relatives.get( 9 ) );
+    }
+
+    @Test
+    public void testGetLast10FinancialYears()
+    {
+        List<Period> relatives = new RelativePeriods().setLast10FinancialYears( true ).getRelativePeriods(
+            getDate( 2001, 1, 1 ),
+            I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
+
+        int year = Iso8601Calendar.getInstance().today().getYear()
+            - (Iso8601Calendar.getInstance().today().getMonth() > 10 ? 10 : 11);
+        assertEquals( 10, relatives.size() );
+        for ( int i = 0; i < 10; i++ )
+        {
+            assertEquals(
+                new Period( new FinancialOctoberPeriodType(), getDate( year, 10, 1 ), getDate( ++year, 9, 30 ) ),
+                relatives.get( i ) );
+        }
     }
 
     @Test

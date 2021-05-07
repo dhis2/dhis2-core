@@ -99,14 +99,12 @@ public class EventDataValuesValidationHookTest
 
         when( dataElement.getUid() ).thenReturn( dataElementUid );
         when( dataElement.getValueType() ).thenReturn( ValueType.TEXT );
-
         when( event.getProgramStage() ).thenReturn( programStageUid );
         when( event.getStatus() ).thenReturn( EventStatus.SKIPPED );
 
         when( validationContext.getBundle() ).thenReturn( TrackerBundle.builder().build() );
         when( validationContext.getDataElement( dataElementUid ) ).thenReturn( dataElement );
         when( validationContext.getProgramStage( anyString() ) ).thenReturn( programStage );
-
         DataElement dataElement = new DataElement();
         dataElement.setUid( dataElementUid );
 
@@ -366,6 +364,7 @@ public class EventDataValuesValidationHookTest
 
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
         when( event.getProgramStage() ).thenReturn( programStageUid );
+
         when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
         when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
@@ -393,12 +392,13 @@ public class EventDataValuesValidationHookTest
         String programStageUid = "programStageUid";
 
         ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
-        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
 
+        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
         when( event.getProgramStage() ).thenReturn( programStageUid );
         when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+
         when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
 
         // When

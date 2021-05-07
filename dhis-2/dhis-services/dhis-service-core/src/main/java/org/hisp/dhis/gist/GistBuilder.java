@@ -31,10 +31,13 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
+import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
+import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
 import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
+import static org.hisp.dhis.gist.GistLogic.isStringLengthFilter;
 import static org.hisp.dhis.gist.GistLogic.parentPath;
 import static org.hisp.dhis.gist.GistLogic.pathOnSameParent;
 
@@ -49,16 +52,17 @@ import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
-import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -66,9 +70,11 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -95,6 +101,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @RequiredArgsConstructor
 final class GistBuilder
 {
+    interface AccessFromSharing
+    {
+
+        Access getAccess( Sharing sharing, User user, Class<? extends IdentifiableObject> type );
+    }
 
     private static final String GIST_PATH = "/gist";
 
@@ -109,14 +120,19 @@ final class GistBuilder
 
     private static final String ID_PROPERTY = "id";
 
-    static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context, User user )
+    private static final String SHARING_PROPERTY = "sharing";
+
+    static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context, User user,
+        Function<String, List<String>> userGroupsByUserId, AccessFromSharing accessFromSharing )
     {
-        return new GistBuilder( user, addSupportFields( query, context ), context );
+        return new GistBuilder( user, addSupportFields( query, context ), context, userGroupsByUserId,
+            accessFromSharing );
     }
 
-    static GistBuilder createCountBuilder( GistQuery query, RelativePropertyContext context, User user )
+    static GistBuilder createCountBuilder( GistQuery query, RelativePropertyContext context, User user,
+        Function<String, List<String>> userGroupsByUserId )
     {
-        return new GistBuilder( user, query, context );
+        return new GistBuilder( user, query, context, userGroupsByUserId, null );
     }
 
     private final User user;
@@ -124,6 +140,10 @@ final class GistBuilder
     private final GistQuery query;
 
     private final RelativePropertyContext context;
+
+    private final Function<String, List<String>> userGroupsByUserId;
+
+    private final AccessFromSharing accessFromSharing;
 
     private final List<Consumer<Object[]>> fieldResultTransformers = new ArrayList<>();
 
@@ -147,17 +167,25 @@ final class GistBuilder
                 continue;
             }
             Property p = context.resolveMandatory( f.getPropertyPath() );
+
             // ID column not present but ID column required?
             if ( (isPersistentCollectionField( p ) || isHrefProperty( p ))
                 && !existsSameParentField( extended, f, ID_PROPERTY ) )
             {
                 extended = extended.withField( pathOnSameParent( f.getPropertyPath(), ID_PROPERTY ) );
             }
+
             // translatable fields? => make sure we have translations
             if ( (query.isTranslate() || f.isTranslate()) && p.isTranslatable()
                 && !existsSameParentField( extended, f, TRANSLATIONS_PROPERTY ) )
             {
                 extended = extended.withField( pathOnSameParent( f.getPropertyPath(), TRANSLATIONS_PROPERTY ) );
+            }
+
+            // Access based on Sharing
+            if ( isAccessProperty( p ) && !existsSameParentField( extended, f, SHARING_PROPERTY ) )
+            {
+                extended = extended.withField( pathOnSameParent( f.getPropertyPath(), SHARING_PROPERTY ) );
             }
         }
         return extended;
@@ -285,18 +313,12 @@ final class GistBuilder
         {
             return "1=1";
         }
-        String access = JpaQueryUtils.generateSQlQueryForSharingCheck( tableName + ".sharing", user,
-            AclService.LIKE_READ_METADATA );
-        // HQL does not allow the ->> syntax so we have to substitute with the
-        // named function: jsonb_extract_path_text
-        access = access.replaceAll( tableName + "\\.sharing->>'([^']+)'",
-            JsonbFunctions.EXTRACT_PATH_TEXT + "(" + tableName + ".sharing, '$1')" );
-        return "(" + access + ")";
+        return JpaQueryUtils.generateHqlQueryForSharingCheck( tableName, user, AclService.LIKE_READ_METADATA );
     }
 
     private boolean isFilterBySharing( RelativePropertyContext context )
     {
-        Property sharing = context.resolve( "sharing" );
+        Property sharing = context.resolve( SHARING_PROPERTY );
         return sharing != null && sharing.isPersisted() && user != null && !user.isSuper();
     }
 
@@ -332,6 +354,17 @@ final class GistBuilder
             {
                 addTransformer( row -> row[index] = toEndpointURL( endpointRoot, row[idFieldIndex] ) );
             }
+            return HQL_NULL;
+        }
+        if ( isAccessProperty( property ) )
+        {
+            int sharingFieldIndex = getSameParentFieldIndex( path, SHARING_PROPERTY );
+            @SuppressWarnings( "unchecked" )
+            Class<? extends IdentifiableObject> objType = isNonNestedPath( path )
+                ? query.getElementType()
+                : (Class<? extends IdentifiableObject>) property.getKlass();
+            addTransformer(
+                row -> row[index] = accessFromSharing.getAccess( (Sharing) row[sharingFieldIndex], user, objType ) );
             return HQL_NULL;
         }
         if ( isPersistentReferenceField( property ) )
@@ -465,7 +498,8 @@ final class GistBuilder
             return createSizeTransformerHQL( index, field, property, "" );
         }
         String accessFilter = createAccessFilterHQL( itemContext, tableName );
-        return String.format( "(select array_agg(%1$s.%2$s) from %3$s %1$s where %1$s in elements(e.%4$s) and %5$s)",
+        return String.format(
+            "(select array_agg(%1$s.%2$s) from %3$s %1$s where %1$s in elements(e.%4$s) and %5$s)",
             tableName, propertyName, property.getItemKlass().getSimpleName(),
             getMemberPath( field.getPropertyPath() ), accessFilter );
     }
@@ -589,30 +623,119 @@ final class GistBuilder
     private String createFiltersHQL()
     {
         String rootJunction = query.isAnyFilter() ? " or " : " and ";
-        return join( query.getFilters(), rootJunction, "1=1", this::createFiltersHQL );
+        return join( query.getFilters(), rootJunction, "1=1", this::createFilterHQL );
     }
 
-    private String createFiltersHQL( int index, Filter filter )
+    private String createFilterHQL( int index, Filter filter )
     {
-        StringBuilder str = new StringBuilder();
-        boolean sizeOp = isCollectionSizeFilter( filter,
-            context.resolveMandatory( filter.getPropertyPath() ) );
-        if ( sizeOp )
+        if ( !isNonNestedPath( filter.getPropertyPath() ) )
         {
-            str.append( "size(" );
+            List<Property> path = context.resolvePath( filter.getPropertyPath() );
+            if ( isExistsInCollectionFilter( path ) )
+            {
+                return createExistsFilterHQL( index, filter, path );
+            }
         }
-        str.append( "e." ).append( getMemberPath( filter.getPropertyPath() ) );
-        if ( sizeOp )
-        {
-            str.append( ")" );
-        }
+        return createFilterHQL( index, filter, "e." + getMemberPath( filter.getPropertyPath() ) );
+    }
+
+    private boolean isExistsInCollectionFilter( List<Property> path )
+    {
+        return path.size() == 2 && isPersistentCollectionField( path.get( 0 ) )
+            || path.size() == 3 && isPersistentReferenceField( path.get( 0 ) )
+                && isPersistentCollectionField( path.get( 1 ) );
+    }
+
+    private String createExistsFilterHQL( int index, Filter filter, List<Property> path )
+    {
+        Property compared = path.get( path.size() - 1 );
+        Property collection = path.get( path.size() - 2 );
+        String tableName = "ft_" + index;
+        String pathToCollection = path.size() == 2
+            ? path.get( 0 ).getFieldName()
+            : path.get( 0 ).getFieldName() + "." + path.get( 1 ).getFieldName();
+        return String.format( "exists (select 1 from %2$s %1$s where %1$s in elements(e.%3$s) and %4$s)",
+            tableName, collection.getItemKlass().getSimpleName(), pathToCollection,
+            createFilterHQL( index, filter, tableName + "." + compared.getFieldName() ) );
+    }
+
+    private String createFilterHQL( int index, Filter filter, String field )
+    {
         Comparison operator = filter.getOperator();
+        if ( operator.isAccessCompare() )
+        {
+            return createAccessFilterHQL( index, filter, field );
+        }
+        StringBuilder str = new StringBuilder();
+        Property property = context.resolveMandatory( filter.getPropertyPath() );
+        String fieldTemplate = "%s";
+        if ( isStringLengthFilter( filter, property ) )
+        {
+            fieldTemplate = "length(%s)";
+        }
+        else if ( isCollectionSizeFilter( filter, property ) )
+        {
+            fieldTemplate = "size(%s)";
+        }
+        str.append( String.format( fieldTemplate, field ) );
         str.append( " " ).append( createOperatorLeftSideHQL( operator ) );
         if ( !operator.isUnary() )
         {
             str.append( " :f_" + index ).append( createOperatorRightSideHQL( operator ) );
         }
         return str.toString();
+    }
+
+    private String createAccessFilterHQL( int index, Filter filter, String field )
+    {
+        String path = filter.getPropertyPath();
+        Property property = context.resolveMandatory( path );
+        String tableName = "ft_" + index;
+
+        if ( isPersistentCollectionField( property )
+            && IdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+        {
+            return String.format( "exists (select %1$s from %2$s %1$s where %1$s in elements(%3$s) and %4$s)",
+                tableName, property.getItemKlass().getSimpleName(), field, createAccessFilterHQL( filter, tableName ) );
+        }
+        if ( isPersistentReferenceField( property ) && property.isIdentifiableObject() )
+        {
+            return String.format( "%3$s in (select %1$s from %2$s %1$s where %4$s)", tableName,
+                property.getKlass().getSimpleName(), field, createAccessFilterHQL( filter, tableName ) );
+        }
+        if ( !isNonNestedPath( path ) )
+        {
+            throw new UnsupportedOperationException( "Access filter not supported for property: " + path );
+        }
+        // trivial case: the filter property is a non nested non-identifiable
+        // property => access check applied to gist item element
+        return createAccessFilterHQL( filter, "e" );
+    }
+
+    private String createAccessFilterHQL( Filter filter, String tableName )
+    {
+        String access = getAccessPattern( filter );
+        String userId = filter.getValue()[0];
+        return JpaQueryUtils.generateHqlQueryForSharingCheck( tableName, access, userId,
+            userGroupsByUserId.apply( userId ) );
+    }
+
+    private String getAccessPattern( Filter filter )
+    {
+        switch ( filter.getOperator() )
+        {
+        default:
+        case CAN_READ:
+            return AclService.LIKE_READ_METADATA;
+        case CAN_WRITE:
+            return AclService.LIKE_WRITE_METADATA;
+        case CAN_DATA_READ:
+            return AclService.LIKE_READ_DATA;
+        case CAN_DATA_WRITE:
+            return AclService.LIKE_WRITE_DATA;
+        case CAN_ACCESS:
+            return filter.getValue()[1];
+        }
     }
 
     private String createOrdersHQL()
@@ -647,7 +770,7 @@ final class GistBuilder
         case NOT_IN:
             return "not in (";
         case EMPTY:
-            return "== 0";
+            return "= 0";
         case NOT_EMPTY:
             return "> 0";
         case LIKE:
@@ -730,14 +853,15 @@ final class GistBuilder
         for ( Filter filter : query.getFilters() )
         {
             Comparison operator = filter.getOperator();
-            if ( !operator.isUnary() )
+            if ( !operator.isUnary() && !operator.isAccessCompare() )
             {
                 Property property = context.resolveMandatory( filter.getPropertyPath() );
                 Object value = getParameterValue( property, filter, argumentParser );
-                dest.accept( "f_" + (i++), operator.isStringCompare()
+                dest.accept( "f_" + i, operator.isStringCompare()
                     ? completeLikeExpression( operator, (String) value )
                     : value );
             }
+            i++;
         }
     }
 
@@ -767,13 +891,8 @@ final class GistBuilder
         {
             return argumentParser.apply( value, Integer.class );
         }
-        String valueAsJson = value;
         Class<?> itemType = getBaseType( property );
-        if ( !(Number.class.isAssignableFrom( itemType ) || itemType == Boolean.class || itemType == boolean.class) )
-        {
-            valueAsJson = '"' + value + '"';
-        }
-        return argumentParser.apply( valueAsJson, itemType );
+        return argumentParser.apply( value, itemType );
     }
 
     private static Object completeLikeExpression( Comparison operator, String value )
@@ -781,6 +900,8 @@ final class GistBuilder
         switch ( operator )
         {
         case LIKE:
+        case ILIKE:
+        case NOT_ILIKE:
         case NOT_LIKE:
             return sqlLikeExpressionOf( value );
         case STARTS_LIKE:

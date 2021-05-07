@@ -28,12 +28,9 @@
 package org.hisp.dhis.tracker;
 
 import java.util.List;
-import java.util.Map;
 
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.programrule.engine.RuleEffectByObject;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 
 /**
  * Calculates rule effects calling rule engine on enrollments or events.
@@ -43,23 +40,12 @@ import org.hisp.dhis.tracker.domain.Event;
 public interface TrackerProgramRuleService
 {
     /**
-     * It feeds in enrollments given in {@link TrackerBundle} into rule engine
-     * and return a map of provided enrollments and their associated rule
-     * effects which are returned by rule engine.
+     * It feeds in all enrollments and event from the {@link TrackerBundle} into
+     * rule engine and return a list of rule effects by tracker object.
      *
-     * @param enrollments Enrollments present in the payload
-     * @param bundle The bundle is needed to build the context for rule engine
-     * @return Map containing enrollment uid and its associated rule effects.
+     * @param bundle The bundle to build the context for rule engine
+     * @return List containing tracker object uids and their associated rule
+     *         effects.
      */
-    Map<String, List<RuleEffect>> calculateEnrollmentRuleEffects( List<Enrollment> enrollments, TrackerBundle bundle );
-
-    /**
-     * It feeds in events given in {@link TrackerBundle} into rule engine and
-     * return a map of events and their associated rule effects.
-     *
-     * @param events Events present in the payload
-     * @param bundle The bundle is needed to build the context for rule engine
-     * @return Map containing event uid and its associated rule effects.
-     */
-    Map<String, List<RuleEffect>> calculateEventRuleEffects( List<Event> events, TrackerBundle bundle );
+    List<RuleEffectByObject> calculateRuleEffects( TrackerBundle bundle );
 }

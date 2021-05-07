@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.gist;
 
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.gist.GistBuilder.createCountBuilder;
 import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
 
 import java.net.URI;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -40,10 +42,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -59,11 +68,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class DefaultGistService implements GistService
 {
 
+    /**
+     * Instead of an actual date value users may use string {@code now} to
+     * always get current moment as time for a {@link Date} value.
+     */
+    private static final String NOW_PARAMETER_VALUE = "now";
+
     private final SessionFactory sessionFactory;
 
     private final SchemaService schemaService;
 
+    private final UserService userService;
+
     private final CurrentUserService currentUserService;
+
+    private final AclService aclService;
 
     private final ObjectMapper jsonMapper;
 
@@ -85,11 +104,19 @@ public class DefaultGistService implements GistService
     {
         RelativePropertyContext context = createPropertyContext( query );
         validator.validateQuery( query, context );
-        GistBuilder queryBuilder = createFetchBuilder( query, context, currentUserService.getCurrentUser() );
+        GistBuilder queryBuilder = createFetchBuilder( query, context, currentUserService.getCurrentUser(),
+            this::getUserGroupIdsByUserId, this::getAccessFromSharing );
         List<Object[]> rows = fetchWithParameters( query, queryBuilder,
             getSession().createQuery( queryBuilder.buildFetchHQL(), Object[].class ) );
         queryBuilder.transform( rows );
         return rows;
+    }
+
+    private Access getAccessFromSharing( Sharing sharing, User user, Class<? extends IdentifiableObject> type )
+    {
+        BaseIdentifiableObject object = new BaseIdentifiableObject();
+        object.setSharing( sharing );
+        return aclService.getAccess( object, user, type );
     }
 
     @Override
@@ -109,7 +136,8 @@ public class DefaultGistService implements GistService
             else
             {
                 RelativePropertyContext context = createPropertyContext( query );
-                GistBuilder countBuilder = createCountBuilder( query, context, currentUserService.getCurrentUser() );
+                GistBuilder countBuilder = createCountBuilder( query, context, currentUserService.getCurrentUser(),
+                    this::getUserGroupIdsByUserId );
                 total = countWithParameters( countBuilder,
                     getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
             }
@@ -151,16 +179,31 @@ public class DefaultGistService implements GistService
         return query.getSingleResult().intValue();
     }
 
+    @SuppressWarnings( "unchecked" )
     private <T> T parseFilterArgument( String value, Class<T> type )
     {
+        if ( type == Date.class && NOW_PARAMETER_VALUE.equals( value ) )
+        {
+            return (T) new Date();
+        }
+        String valueAsJson = value;
+        if ( !(Number.class.isAssignableFrom( type ) || type == Boolean.class || type == boolean.class) )
+        {
+            valueAsJson = '"' + value + '"';
+        }
         try
         {
-            return jsonMapper.readValue( value, type );
+            return jsonMapper.readValue( valueAsJson, type );
         }
         catch ( JsonProcessingException e )
         {
             throw new IllegalArgumentException(
                 String.format( "Type %s is not compatible with provided filter value: `%s`", type, value ) );
         }
+    }
+
+    private List<String> getUserGroupIdsByUserId( String userId )
+    {
+        return userService.getUser( userId ).getGroups().stream().map( IdentifiableObject::getUid ).collect( toList() );
     }
 }

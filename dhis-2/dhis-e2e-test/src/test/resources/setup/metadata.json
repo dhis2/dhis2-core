@@ -33,6 +33,7 @@
       "id": "nlXNK4b7LVr",
       "created": "2019-02-28T10:48:46.722",
       "name": "First stage",
+      "code": "TA_TRACKER_PROGRAM_FIRST_STAGE",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
       "publicAccess": "rw------",
@@ -48,7 +49,8 @@
       "blockEntryForm": false,
       "minDaysFromStart": 1,
       "program": {
-        "id": "f1AyMswryyQ"
+        "id": "f1AyMswryyQ",
+        "code": "TA TRACKER_PROGRAM"
       },
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
@@ -77,10 +79,12 @@
             "manage": true
           },
           "programStage": {
-            "id": "nlXNK4b7LVr"
+            "id": "nlXNK4b7LVr",
+            "code": "TA_TRACKER_PROGRAM_FIRST_STAGE"
           },
           "dataElement": {
-            "id": "BuZ5LGNfGEU"
+            "id": "BuZ5LGNfGEU",
+            "code": "TA_AGE_IN_YEARS_DE"
           },
           "favorites": [],
           "translations": [],
@@ -116,10 +120,12 @@
             "manage": true
           },
           "programStage": {
-            "id": "nlXNK4b7LVr"
+            "id": "nlXNK4b7LVr",
+            "code": "TA_TRACKER_PROGRAM_FIRST_STAGE"
           },
           "dataElement": {
-            "id": "ZrqtjjveTFc"
+            "id": "ZrqtjjveTFc",
+            "code": "TA_GENDER_DE"
           },
           "favorites": [],
           "translations": [],
@@ -155,10 +161,12 @@
             "manage": true
           },
           "programStage": {
-            "id": "nlXNK4b7LVr"
+            "id": "nlXNK4b7LVr",
+            "code": "TA_TRACKER_PROGRAM_FIRST_STAGE"
           },
           "dataElement": {
-            "id": "mB2QHw1tU96"
+            "id": "mB2QHw1tU96",
+            "code": "TA_PLACE_OF_BIRTH_DE"
           },
           "favorites": [],
           "translations": [],
@@ -190,6 +198,7 @@
       "id": "jKLB23QZS4I",
       "created": "2019-02-28T11:41:32.082",
       "name": "TA Event_program",
+      "code": "TA_EVENT_PROGRAM_STAGE",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
       "publicAccess": "rw------",
@@ -204,7 +213,8 @@
       "blockEntryForm": false,
       "minDaysFromStart": 0,
       "program": {
-        "id": "Zd2rkv8FsWq"
+        "id": "Zd2rkv8FsWq",
+        "code": "TA EVENT_PROGRAM"
       },
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
@@ -214,34 +224,40 @@
         {
           "id": "cSc37t1TzTj",
           "dataElement": {
-            "id": "BuZ5LGNfGEU"
+            "id": "BuZ5LGNfGEU",
+            "code": "TA_AGE_IN_YEARS_DE"
           }
         },
         {
           "id": "F6AIyOWCnxW",
           "dataElement": {
-            "id": "ZrqtjjveTFc"
+            "id": "ZrqtjjveTFc",
+            "code": "TA_GENDER_DE"
           }
         },
         {
           "id": "sMP1n58QvwT",
           "dataElement": {
-            "id": "mB2QHw1tU96"
+            "id": "mB2QHw1tU96",
+            "code": "TA_PLACE_OF_BIRTH_DE"
           }
         },
         {
           "dataElement": {
-            "id": "ILRgzHhzFkg"
+            "id": "ILRgzHhzFkg",
+            "code": "TA_DIABETES_DE"
           }
         },
         {
           "dataElement": {
-            "id": "z3Z4TD3oBCP"
+            "id": "z3Z4TD3oBCP",
+            "code": "TA_PREGNANT_DE"
           }
         },
         {
           "dataElement": {
-            "id": "inc5BJvr4W5"
+            "id": "inc5BJvr4W5",
+            "code": "TA_COMMENT_DE"
           }
         }
       ],
@@ -260,6 +276,7 @@
     {
       "id": "PaOOjwLVW23",
       "name": "Second stage - repeatable",
+      "code": "TA_TRACKER_PROGRAM_SECOND_STAGE",
       "allowGenerateNextVisit": false,
       "publicAccess": "rwrw----",
       "formType": "DEFAULT",
@@ -281,7 +298,8 @@
       "autoGenerateEvent": false,
       "blockEntryForm": false,
       "program": {
-        "id": "f1AyMswryyQ"
+        "id": "f1AyMswryyQ",
+        "code": "TA TRACKER_PROGRAM"
       },
       "programStageDataElements": [],
       "translations": [],
@@ -323,23 +341,28 @@
       "expiryDays": 0,
       "useFirstStageDuringRegistration": false,
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "bjDvmb4bfuf",
+        "code": "default"
       },
       "programTrackedEntityAttributes": [],
       "notificationTemplates": [],
       "translations": [],
       "organisationUnits": [
         {
-          "id": "g8upMTyEZGZ"
+          "id": "g8upMTyEZGZ",
+          "code": "OU_167609"
         },
         {
-          "id": "O6uvpzGd5pu"
+          "id": "O6uvpzGd5pu",
+          "code": "OU_264"
         },
         {
-          "id": "DiszpKrYNg8"
+          "id": "DiszpKrYNg8",
+          "code": "OU_559"
         },
         {
-          "id": "YuQRtpLP10I"
+          "id": "YuQRtpLP10I",
+          "code": "OU_539"
         }
       ],
       "userGroupAccesses": [
@@ -353,7 +376,8 @@
       "attributeValues": [],
       "programStages": [
         {
-          "id": "jKLB23QZS4I"
+          "id": "jKLB23QZS4I",
+          "code": "TA_EVENT_PROGRAM_STAGE"
         }
       ],
       "userAccesses": []
@@ -382,23 +406,29 @@
       "expiryDays": 0,
       "useFirstStageDuringRegistration": false,
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "bjDvmb4bfuf",
+        "code": "default"
       },
       "trackedEntityType": {
-        "id": "Q9GufDoplCL"
+        "id": "Q9GufDoplCL",
+        "code": "TA_PERSON_TET"
       },
       "organisationUnits": [
         {
-          "id": "g8upMTyEZGZ"
+          "id": "g8upMTyEZGZ",
+          "code": "OU_167609"
         },
         {
-          "id": "O6uvpzGd5pu"
+          "id": "O6uvpzGd5pu",
+          "code": "OU_264"
         },
         {
-          "id": "DiszpKrYNg8"
+          "id": "DiszpKrYNg8",
+          "code": "OU_559"
         },
         {
-          "id": "YuQRtpLP10I"
+          "id": "YuQRtpLP10I",
+          "code": "OU_539"
         }
       ],
       "programTrackedEntityAttributes": [
@@ -426,10 +456,12 @@
             "manage": true
           },
           "program": {
-            "id": "f1AyMswryyQ"
+            "id": "f1AyMswryyQ",
+            "code": "TA TRACKER_PROGRAM"
           },
           "trackedEntityAttribute": {
-            "id": "dIVt4l5vIOa"
+            "id": "dIVt4l5vIOa",
+            "code": "TA_FIRST_NAME_ATT"
           },
           "favorites": [],
           "programTrackedEntityAttributeGroups": [],
@@ -462,10 +494,12 @@
             "manage": true
           },
           "program": {
-            "id": "f1AyMswryyQ"
+            "id": "f1AyMswryyQ",
+            "code": "TA TRACKER_PROGRAM"
           },
           "trackedEntityAttribute": {
-            "id": "kZeSYCgaHTk"
+            "id": "kZeSYCgaHTk",
+            "code": "TA_LAST_NAME_ATT"
           },
           "favorites": [],
           "programTrackedEntityAttributeGroups": [],
@@ -488,10 +522,12 @@
       "attributeValues": [],
       "programStages": [
         {
-          "id": "nlXNK4b7LVr"
+          "id": "nlXNK4b7LVr",
+          "code": "TA_TRACKER_PROGRAM_FIRST_STAGE"
         },
         {
-          "id": "PaOOjwLVW23"
+          "id": "PaOOjwLVW23",
+          "code": "TA_TRACKER_PROGRAM_SECOND_STAGE"
         }
       ],
       "userAccesses": []
@@ -501,6 +537,7 @@
     {
       "lastUpdated": "2019-02-05T13:45:36.361",
       "id": "dIVt4l5vIOa",
+      "code": "TA_FIRST_NAME_ATT",
       "created": "2019-02-05T13:45:36.361",
       "name": "TA First name",
       "shortName": "TA First name",
@@ -534,6 +571,7 @@
       "id": "kZeSYCgaHTk",
       "created": "2019-02-05T13:45:51.759",
       "name": "TA Last name",
+      "code": "TA_LAST_NAME_ATT",
       "shortName": "TA Last name",
       "aggregationType": "NONE",
       "programScope": false,
@@ -566,6 +604,7 @@
       "created": "2019-04-23T09:20:41.834",
       "lastUpdated": "2019-04-23T09:21:18.063",
       "name": "TA Sibling",
+      "code": "TA_SIBLING",
       "id": "xLmPUYJX8Ks",
       "bidirectional": true,
       "publicAccess": "rw------",
@@ -574,13 +613,15 @@
       "fromConstraint": {
         "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
         "trackedEntityType": {
-          "id": "Q9GufDoplCL"
+          "id": "Q9GufDoplCL",
+          "code": "TA_PERSON_TET"
         }
       },
       "toConstraint": {
         "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
         "trackedEntityType": {
-          "id": "Q9GufDoplCL"
+          "id": "Q9GufDoplCL",
+          "code": "TA_PERSON_TET"
         }
       },
       "userGroupAccesses": [
@@ -598,6 +639,7 @@
       "id": "TV9oB9LT3sh",
       "created": "2020-11-20T09:06:23.348",
       "name": "TA Parent to Child",
+      "code": "TA_PARENT_TO_CHILD_RELATIONSHIP",
       "bidirectional": false,
       "displayName": "TA Parent to Child",
       "publicAccess": "rw------",
@@ -608,13 +650,15 @@
       "toConstraint": {
         "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
         "trackedEntityType": {
-          "id": "Q9GufDoplCL"
+          "id": "Q9GufDoplCL",
+          "code": "TA_PERSON_TET"
         }
       },
       "fromConstraint": {
         "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
         "trackedEntityType": {
-          "id": "Q9GufDoplCL"
+          "id": "Q9GufDoplCL",
+          "code": "TA_PERSON_TET"
         }
       },
       "userGroupAccesses": [
@@ -631,6 +675,7 @@
       "created": "2019-02-05T13:46:01.308",
       "lastUpdated": "2019-02-05T13:46:01.309",
       "name": "TA Person",
+      "code": "TA_PERSON_TET",
       "id": "Q9GufDoplCL",
       "publicAccess": "rw------",
       "maxTeiCountToReturn": 0,
@@ -670,10 +715,12 @@
             "manage": true
           },
           "trackedEntityAttribute": {
-            "id": "dIVt4l5vIOa"
+            "id": "dIVt4l5vIOa",
+            "code": "TA_FIRST_NAME_ATT"
           },
           "trackedEntityType": {
-            "id": "Q9GufDoplCL"
+            "id": "Q9GufDoplCL",
+            "code": "TA_PERSON_TET"
           },
           "favorites": [],
           "translations": [],
@@ -708,10 +755,12 @@
             "manage": true
           },
           "trackedEntityAttribute": {
-            "id": "kZeSYCgaHTk"
+            "id": "kZeSYCgaHTk",
+            "code": "TA_LAST_NAME_ATT"
           },
           "trackedEntityType": {
-            "id": "Q9GufDoplCL"
+            "id": "Q9GufDoplCL",
+            "code": "TA_PERSON_TET"
           },
           "favorites": [],
           "translations": [],
@@ -748,7 +797,8 @@
         ]
       },
       "parent": {
-        "id": "YuQRtpLP10I"
+        "id": "YuQRtpLP10I",
+        "code": "OU_539"
       },
       "attributeValues": []
     },
@@ -763,7 +813,8 @@
       "path": "/ImspTQPwCqd/O6uvpzGd5pu/YuQRtpLP10I/g8upMTyEZGZ",
       "openingDate": "2009-01-01T00:00:00.000",
       "parent": {
-        "id": "YuQRtpLP10I"
+        "id": "YuQRtpLP10I",
+        "code": "OU_539"
       },
       "attributeValues": []
     },
@@ -1121,7 +1172,8 @@
         ]
       },
       "parent": {
-        "id": "O6uvpzGd5pu"
+        "id": "O6uvpzGd5pu",
+        "code": "OU_264"
       },
       "attributeValues": []
     },
@@ -3338,7 +3390,8 @@
         ]
       },
       "parent": {
-        "id": "ImspTQPwCqd"
+        "id": "ImspTQPwCqd",
+        "code": "OU_525"
       },
       "attributeValues": []
     },
@@ -3358,36 +3411,34 @@
     {
       "id": "tMbbjys8mS6",
       "name": "TA org unit group",
+      "code": "TA_OU_GROUP",
       "displayName": "TA org unit group",
       "publicAccess": "rw------",
-      "access": {
-        "read": true,
-        "update": true,
-        "externalize": true,
-        "delete": true,
-        "write": true,
-        "manage": true
-      },
       "organisationUnits": [
         {
-          "id": "g8upMTyEZGZ"
+          "id": "g8upMTyEZGZ",
+          "code": "OU_167609"
         },
         {
-          "id": "O6uvpzGd5pu"
+          "id": "O6uvpzGd5pu",
+          "code": "OU_264"
         },
         {
-          "id": "ImspTQPwCqd"
+          "id": "ImspTQPwCqd",
+          "code": "OU_167609"
         },
         {
-          "id": "DiszpKrYNg8"
+          "id": "DiszpKrYNg8",
+          "code": "OU_559"
         },
         {
-          "id": "YuQRtpLP10I"
+          "id": "YuQRtpLP10I",
+          "code": "OU_539"
         }
       ],
       "userGroupAccesses": [
         {
-          "access": "rwrw----",
+          "access": "rw------",
           "userGroupUid": "OPVIvvXzNTw",
           "id": "OPVIvvXzNTw"
         }
@@ -3400,6 +3451,7 @@
       "level": 3,
       "created": "2011-12-24T12:24:22.935",
       "name": "Chiefdom",
+      "code": "TA_CHIEFDOM",
       "id": "tTUf91fCytl",
       "translations": []
     },
@@ -3408,6 +3460,7 @@
       "level": 2,
       "created": "2011-12-24T12:24:22.935",
       "name": "District",
+      "code": "TA_DISTRICT",
       "id": "wjP19dkFeIk",
       "translations": []
     },
@@ -3416,6 +3469,7 @@
       "level": 4,
       "created": "2011-12-24T12:24:22.935",
       "name": "Facility",
+      "code": "TA_FACILITY",
       "id": "m9lBJogzE95",
       "translations": []
     },
@@ -3424,6 +3478,7 @@
       "level": 1,
       "created": "2011-12-24T12:24:22.935",
       "name": "National",
+      "code": "TA_NATIONAL",
       "id": "H1KlN4QIauv",
       "translations": []
     }
@@ -3460,6 +3515,7 @@
       "id": "BuZ5LGNfGEU",
       "created": "2019-02-28T12:49:47.868",
       "name": "TA Age in years",
+      "code": "TA_AGE_IN_YEARS_DE",
       "shortName": "TA Age in years",
       "aggregationType": "AVERAGE",
       "domainType": "TRACKER",
@@ -3467,7 +3523,8 @@
       "valueType": "NUMBER",
       "zeroIsSignificant": false,
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "bjDvmb4bfuf",
+        "code": "default"
       },
       "translations": [],
       "userGroupAccesses": [
@@ -3487,6 +3544,7 @@
       "id": "mB2QHw1tU96",
       "created": "2019-03-04T15:10:43.564",
       "name": "TA Place of birth",
+      "code": "TA_PLACE_OF_BIRTH_DE",
       "shortName": "Place of birth",
       "aggregationType": "NONE",
       "domainType": "TRACKER",
@@ -3494,7 +3552,9 @@
       "valueType": "COORDINATE",
       "zeroIsSignificant": false,
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "bjDvmb4bfuf",
+        "code": "default"
+
       },
       "translations": [],
       "userGroupAccesses": [
@@ -3515,13 +3575,16 @@
       "created": "2019-03-04T14:57:24.360",
       "name": "TA Comment",
       "shortName": "Comment",
+      "code": "TA_COMMENT_DE",
       "aggregationType": "NONE",
       "domainType": "TRACKER",
       "publicAccess": "rw------",
       "valueType": "LONG_TEXT",
       "zeroIsSignificant": false,
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "bjDvmb4bfuf",
+        "code": "default"
+
       },
       "translations": [],
       "userGroupAccesses": [
@@ -3541,6 +3604,7 @@
       "id": "ILRgzHhzFkg",
       "created": "2019-03-04T14:56:05.469",
       "name": "TA Diabetes",
+      "code": "TA_DIABETES_DE",
       "shortName": "TA Diabetes",
       "aggregationType": "COUNT",
       "domainType": "TRACKER",
@@ -3548,7 +3612,8 @@
       "valueType": "BOOLEAN",
       "zeroIsSignificant": false,
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "bjDvmb4bfuf",
+        "code": "default"
       },
       "translations": [],
       "userGroupAccesses": [
@@ -3568,6 +3633,7 @@
       "id": "ZrqtjjveTFc",
       "created": "2019-02-28T12:49:23.981",
       "name": "TA Gender",
+      "code": "TA_GENDER_DE",
       "shortName": "TA Gender",
       "aggregationType": "NONE",
       "domainType": "TRACKER",
@@ -3575,7 +3641,8 @@
       "valueType": "TEXT",
       "zeroIsSignificant": false,
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "bjDvmb4bfuf",
+        "code": "default"
       },
       "translations": [],
       "userGroupAccesses": [
@@ -3596,13 +3663,44 @@
       "created": "2019-03-04T14:56:56.103",
       "name": "TA Pregnant",
       "shortName": "TA Pregnant",
+      "code": "TA_PREGNANT_DE",
       "aggregationType": "SUM",
       "domainType": "TRACKER",
       "publicAccess": "rw------",
       "valueType": "TRUE_ONLY",
       "zeroIsSignificant": false,
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "bjDvmb4bfuf",
+        "code": "default"
+      },
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "access": "rw------",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2021-03-04T14:56:56.103",
+      "id": "z3Z4TD3oAGR",
+      "created": "2021-03-04T14:56:56.103",
+      "name": "TA Pregnant aggregate",
+      "shortName": "TA Pregnant AG",
+      "code": "TA_PREGNANT_DE_AG",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "valueType": "TRUE_ONLY",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf",
+        "code": "default"
       },
       "translations": [],
       "userGroupAccesses": [
@@ -3628,7 +3726,8 @@
       "analyticsType": "EVENT",
       "shortName": "prg-ind-test",
       "program": {
-        "id": "Zd2rkv8FsWq"
+        "id": "Zd2rkv8FsWq",
+        "code": "TA EVENT_PROGRAM"
       },
       "analyticsPeriodBoundaries": [
         {
@@ -3663,10 +3762,12 @@
       "translations": [],
       "options": [
         {
-          "id": "NpP4y21f6fY"
+          "id": "NpP4y21f6fY",
+          "code": "TA_NO"
         },
         {
-          "id": "jqsgAiRoxsG"
+          "id": "jqsgAiRoxsG",
+          "code": "TA_YES"
         }
       ]
     }
@@ -3680,7 +3781,8 @@
       "id": "NpP4y21f6fY",
       "sortOrder": 1,
       "optionSet": {
-        "id": "ZGkmoWb77MW"
+        "id": "ZGkmoWb77MW",
+        "code": "TA_YES_NO"
       },
       "attributeValues": [],
       "translations": []
@@ -3693,7 +3795,8 @@
       "id": "jqsgAiRoxsG",
       "sortOrder": 2,
       "optionSet": {
-        "id": "ZGkmoWb77MW"
+        "id": "ZGkmoWb77MW",
+        "code": "TA_YES_NO"
       },
       "attributeValues": [],
       "translations": []

@@ -48,5 +48,7 @@ public interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events
     @Mapping( target = "enrolledAt", source = "enrollmentDate" )
     @Mapping( target = "occurredAt", source = "incidentDate" )
     @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
     Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
 }

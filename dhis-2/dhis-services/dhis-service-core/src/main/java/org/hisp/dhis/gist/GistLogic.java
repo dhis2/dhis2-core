@@ -32,6 +32,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
+import org.hisp.dhis.security.acl.Access;
 
 /**
  * Contains the "business logic" aspects of building and running a
@@ -100,11 +101,20 @@ final class GistLogic
         return "href".equals( p.key() ) && p.getKlass() == String.class;
     }
 
+    static boolean isAccessProperty( Property p )
+    {
+        return "access".equals( p.key() ) && p.getKlass() == Access.class;
+    }
+
     static boolean isCollectionSizeFilter( Filter filter, Property property )
     {
-        return isNonNestedPath( filter.getPropertyPath() )
-            && (filter.getOperator().isSizeCompare() ||
-                (filter.getOperator().isOrderCompare() && property.isCollection()));
+        return filter.getOperator().isSizeCompare() ||
+            (filter.getOperator().isNumericCompare() && property.isCollection());
+    }
+
+    static boolean isStringLengthFilter( Filter filter, Property property )
+    {
+        return filter.getOperator().isSizeCompare() && property.isSimple() && property.getKlass() == String.class;
     }
 
     static Transform effectiveTransform( Property property, Transform fallback, Transform target )

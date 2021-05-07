@@ -350,7 +350,69 @@
       "rangeAxisMinValue": -10,
       "rangeAxisMaxValue": 20,
       "baseLineValue": -5,
-      "targetLineValue": 15
+      "targetLineValue": 15,
+      "legend": {
+        "label": {
+          "fontStyle": {
+            "textColor": "#G"
+          }
+        },
+        "hidden": false
+      },
+      "axes": [
+        {
+          "index": 0,
+          "type": "RANGE",
+          "label": {
+            "fontStyle": {
+              "textColor": "#C"
+            }
+          },
+          "title": {
+            "text": "Range axis title",
+            "fontStyle": {
+              "textColor": "#D"
+            }
+          },
+          "decimals": 1,
+          "maxValue": 100,
+          "minValue": 20,
+          "steps": 5,
+          "baseLine": {
+            "value": 50,
+            "title": {
+              "text": "My baseline",
+              "fontStyle": {
+                "textColor": "#A"
+              }
+            }
+          },
+          "targetLine": {
+            "value": 80,
+            "title": {
+              "text": "My targetline",
+              "fontStyle": {
+                "textColor": "#B"
+              }
+            }
+          }
+        },
+        {
+          "index": 1,
+          "type": "DOMAIN",
+          "label": {
+            "fontStyle": {
+              "textColor": "#E"
+            }
+          },
+          "title": {
+            "text": "Domain axis title",
+            "fontStyle": {
+              "textColor": "#F"
+            }
+          }
+        }
+      ]
     },
     {
       "organisationUnits": [
@@ -500,7 +562,69 @@
       "rangeAxisMinValue": -10,
       "rangeAxisMaxValue": 20,
       "baseLineValue": -5,
-      "targetLineValue": 15
+      "targetLineValue": 15,
+      "legend": {
+        "label": {
+          "fontStyle": {
+            "textColor": "#G"
+          }
+        },
+        "hidden": false
+      },
+      "axes": [
+        {
+          "index": 0,
+          "type": "RANGE",
+          "label": {
+            "fontStyle": {
+              "textColor": "#C"
+            }
+          },
+          "title": {
+            "text": "Range axis title",
+            "fontStyle": {
+              "textColor": "#D"
+            }
+          },
+          "decimals": 1,
+          "maxValue": 100,
+          "minValue": 20,
+          "steps": 5,
+          "baseLine": {
+            "value": 50,
+            "title": {
+              "text": "My baseline",
+              "fontStyle": {
+                "textColor": "#A"
+              }
+            }
+          },
+          "targetLine": {
+            "value": 80,
+            "title": {
+              "text": "My targetline",
+              "fontStyle": {
+                "textColor": "#B"
+              }
+            }
+          }
+        },
+        {
+          "index": 1,
+          "type": "DOMAIN",
+          "label": {
+            "fontStyle": {
+              "textColor": "#E"
+            }
+          },
+          "title": {
+            "text": "Domain axis title",
+            "fontStyle": {
+              "textColor": "#F"
+            }
+          }
+        }
+      ]
     },
     {
       "aggregationType": "SUM",
@@ -608,6 +732,68 @@
       "organisationUnitGroups": [ ],
       "name": "ChartC",
       "organisationUnitLevels": [ ],
+      "legend": {
+        "label": {
+          "fontStyle": {
+            "textColor": "#G"
+          }
+        },
+        "hidden": false
+      },
+      "axes": [
+        {
+          "index": 0,
+          "type": "RANGE",
+          "label": {
+            "fontStyle": {
+              "textColor": "#C"
+            }
+          },
+          "title": {
+            "text": "Range axis title",
+            "fontStyle": {
+              "textColor": "#D"
+            }
+          },
+          "decimals": 1,
+          "maxValue": 100,
+          "minValue": 20,
+          "steps": 5,
+          "baseLine": {
+            "value": 50,
+            "title": {
+              "text": "My baseline",
+              "fontStyle": {
+                "textColor": "#A"
+              }
+            }
+          },
+          "targetLine": {
+            "value": 80,
+            "title": {
+              "text": "My targetline",
+              "fontStyle": {
+                "textColor": "#B"
+              }
+            }
+          }
+        },
+        {
+          "index": 1,
+          "type": "DOMAIN",
+          "label": {
+            "fontStyle": {
+              "textColor": "#E"
+            }
+          },
+          "title": {
+            "text": "Domain axis title",
+            "fontStyle": {
+              "textColor": "#F"
+            }
+          }
+        }
+      ],
       "fontStyle": {
         "visualizationTitle": {
           "font": "VERDANA",

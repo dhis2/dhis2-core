@@ -25,39 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.tracker.converter;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
- * Paging parameters
+ * Converts rule-engine domain objects to tracker domain objects and vice versa.
  *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * @author Enrico Colasante
  */
-public interface PagingCriteria
+public interface RuleEngineConverterService<From, To>
+    extends TrackerConverterService<From, To>
 {
+    To fromForRuleEngine( TrackerPreheat preheat, From object );
 
-    /**
-     * Page number to return.
-     */
-    Integer getPage();
-
-    /**
-     * Page size.
-     */
-    Integer getPageSize();
-
-    /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
-     */
-    boolean isTotalPages();
-
-    /**
-     * Indicates whether paging should be skipped.
-     */
-    Boolean getSkipPaging();
-
-    /**
-     * Indicated whether paging is enabled
-     */
-    Boolean getPaging();
+    default List<To> fromForRuleEngine( TrackerPreheat preheat, List<From> objects )
+    {
+        return objects.stream()
+            .map( object -> fromForRuleEngine( preheat, object ) )
+            .collect( Collectors.toList() );
+    }
 }
