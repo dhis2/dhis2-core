@@ -8,29 +8,17 @@
         <version>2.37-SNAPSHOT</version>
     </parent>
 
-
     <artifactId>dhis-web-embedded-jetty</artifactId>
     <packaging>jar</packaging>
     <name>DHIS Web Embedded Jetty</name>
 
     <properties>
         <build.time>${maven.build.timestamp}</build.time>
+        <rootDir>../../</rootDir>
     </properties>
 
     <build>
-<!--        <resources>-->
-<!--            <resource>-->
-<!--                <filtering>false</filtering>-->
-<!--                <directory>src/main/resources</directory>-->
-<!--                <targetPath>${project.build.directory}</targetPath>-->
-<!--                <includes>-->
-<!--                    <include>log4j2.xml</include>-->
-<!--                    <include>jetty-logging.properties</include>-->
-<!--                    <include>META-INF/MANIFEST.MF</include>-->
-<!--                </includes>-->
-<!--            </resource>-->
-<!--        </resources>-->
-
+        <finalName>dhis-web-embedded-jetty</finalName>
         <plugins>
 <!--            <plugin>-->
 <!--                <groupId>org.apache.maven.plugins</groupId>-->

@@ -25,16 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.web.embeddedjetty;
 
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 
 /**
@@ -43,6 +42,7 @@ import org.springframework.core.annotation.Order;
 @Configuration
 @Order( 100 )
 @ComponentScan( basePackages = { "org.hisp.dhis" } )
+@Profile( "embeddedJetty" )
 public class SpringConfiguration
 {
     @Primary

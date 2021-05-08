@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import javax.sql.DataSource;
@@ -87,7 +88,6 @@ import org.springframework.security.oauth2.server.resource.web.DefaultBearerToke
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import com.google.common.collect.ImmutableList;
@@ -381,14 +381,27 @@ public class DhisWebApiWebSecurityConfig
         protected void configure( HttpSecurity http )
             throws Exception
         {
-            BasicAuthenticationEntryPoint authenticationEntryPoint = new BasicAuthenticationEntryPoint();
+            String[] activeProfiles = getApplicationContext().getEnvironment().getActiveProfiles();
 
-            http
-                .antMatcher( "/**" )
-                .authorizeRequests( this::configureAccessRestrictions )
-                .httpBasic()
-//                .authenticationEntryPoint( authenticationEntryPoint )
-                .and().csrf().disable();
+            if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
+            {
+                // This config will redirect unauthorized requests to standard
+                // http basic (pop-up login form)
+                http.antMatcher( "/**" )
+                    .authorizeRequests( this::configureAccessRestrictions )
+                    .httpBasic();
+            }
+            else
+            {
+                // This config will redirect unauthorized requests to the
+                // default login form webpage
+                http.antMatcher( apiContextPath + "/**" )
+                    .authorizeRequests( this::configureAccessRestrictions )
+                    .httpBasic()
+                    .authenticationEntryPoint( basicAuthenticationEntryPoint() );
+            }
+
+            http.csrf().disable();
 
             if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
             {

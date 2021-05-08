@@ -185,8 +185,7 @@ public class DataSourceConfig
         Method method = executionContext.getMethod();
         Class<?> targetClass = executionContext.getTarget().getClass();
 
-        // log.info( "JDBC: " + targetClass.getSimpleName() + "#" +
-        // method.getName() );
+        log.info( "JDBC: " + targetClass.getSimpleName() + "#" + method.getName() );
     }
 
     private static class PrettyQueryEntryCreator extends DefaultQueryLogEntryCreator

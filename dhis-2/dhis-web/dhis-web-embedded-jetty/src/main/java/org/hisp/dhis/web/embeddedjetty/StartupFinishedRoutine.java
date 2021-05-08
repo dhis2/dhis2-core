@@ -25,12 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.web.embeddedjetty;
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-
 import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -43,6 +42,6 @@ public class StartupFinishedRoutine extends AbstractStartupRoutine
         throws Exception
     {
         log.info( String.format( "DHIS2 API Server Startup Finished In, %s Seconds!",
-            JettyEmbeddedCoreWeb.getElapsedMsSinceStart()/1000 ) );
+            JettyEmbeddedCoreWeb.getElapsedMsSinceStart() / 1000 ) );
     }
 }
