@@ -87,6 +87,7 @@ import org.springframework.security.oauth2.server.resource.web.DefaultBearerToke
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import com.google.common.collect.ImmutableList;
@@ -380,11 +381,13 @@ public class DhisWebApiWebSecurityConfig
         protected void configure( HttpSecurity http )
             throws Exception
         {
+            BasicAuthenticationEntryPoint authenticationEntryPoint = new BasicAuthenticationEntryPoint();
+
             http
-                .antMatcher( apiContextPath + "/**" )
+                .antMatcher( "/**" )
                 .authorizeRequests( this::configureAccessRestrictions )
                 .httpBasic()
-                .authenticationEntryPoint( basicAuthenticationEntryPoint() )
+//                .authenticationEntryPoint( authenticationEntryPoint )
                 .and().csrf().disable();
 
             if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )

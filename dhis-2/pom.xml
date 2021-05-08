@@ -154,6 +154,10 @@
     <jsmpp-X.version>2.1.0-RELEASE</jsmpp-X.version>
     <jboss-logging.version>3.4.1.Final</jboss-logging.version>
 
+    <!-- Embedded Jetty -->
+    <jetty.version>9.4.38.v20210224</jetty.version>
+    <maven-jetty-plugin.version>9.4.38.v20210224</maven-jetty-plugin.version>
+
     <!-- Div. utils -->
     <guava.version>30.1-jre</guava.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
@@ -1095,7 +1099,7 @@
         <groupId>javax.servlet</groupId>
         <artifactId>javax.servlet-api</artifactId>
         <version>${javax.servlet-api.version}</version>
-        <scope>provided</scope>
+<!--        <scope>provided</scope>-->
       </dependency>
 
       <!-- Struts -->
@@ -1454,6 +1458,11 @@
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-core</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-web</artifactId>
         <version>${log4j.version}</version>
       </dependency>
       <dependency>
@@ -2073,6 +2082,23 @@
         <groupId>org.locationtech.jts.io</groupId>
         <artifactId>jts-io-common</artifactId>
         <version>${jts-io-common.version}</version>
+      </dependency>
+
+
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-util</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-servlet</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-server</artifactId>
+        <version>${jetty.version}</version>
       </dependency>
 
       <!-- Lombok-->
