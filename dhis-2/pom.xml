@@ -226,6 +226,7 @@
     <jrebel-x-maven-plugin.version>1.1.6</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.15</dhis-antlr-expression-parser.version>
     <ow2.asm.version>9.0</ow2.asm.version>
+    <jai-imageio.version>1.1.1</jai-imageio.version>
   </properties>
 
   <distributionManagement>
@@ -257,6 +258,19 @@
         <updatePolicy>daily</updatePolicy>
       </snapshots>
       <releases>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+    </repository>
+    <repository>
+      <id>geotoolkit</id>
+      <name>Geotoolkit</name>
+      <url>http://maven.geotoolkit.org</url>
+      <snapshots>
+        <enabled>false</enabled>
+        <updatePolicy>daily</updatePolicy>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
         <updatePolicy>never</updatePolicy>
       </releases>
     </repository>
@@ -1188,6 +1202,12 @@
         <version>${imgscalr-lib.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>javax.media</groupId>
+        <artifactId>jai_imageio</artifactId>
+        <version>${jai-imageio.version}</version>
+      </dependency>
+
       <!-- Hisp Quick-->
       <dependency>
         <groupId>org.hisp</groupId>
@@ -1829,6 +1849,10 @@
         <artifactId>gt-render</artifactId>
         <version>${geotools.version}</version>
         <exclusions>
+          <exclusion>
+            <groupId>javax.media</groupId>
+            <artifactId>jai_imageio</artifactId>
+          </exclusion>
           <exclusion>
             <groupId>xalan</groupId>
             <artifactId>xalan</artifactId>
