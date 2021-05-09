@@ -4,7 +4,7 @@
 
   <parent>
     <groupId>org.hisp.dhis</groupId>
-    <artifactId>dhis-web</artifactId>
+    <artifactId>dhis</artifactId>
     <version>2.37-SNAPSHOT</version>
   </parent>
 
@@ -163,11 +163,11 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-commons</artifactId>
-      <scope>test</scope>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.hisp.dhis</groupId>-->
+<!--      <artifactId>dhis-web-commons</artifactId>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>com.jayway.jsonpath</groupId>
       <artifactId>json-path</artifactId>
