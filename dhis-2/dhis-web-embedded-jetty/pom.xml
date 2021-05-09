@@ -13,7 +13,7 @@
     <name>DHIS Web Embedded Jetty</name>
 
     <properties>
-        <rootDir>../../</rootDir>
+        <rootDir>../</rootDir>
         <build.time>${maven.build.timestamp}</build.time>
         <mainClass>org.hisp.dhis.web.embeddedjetty.JettyEmbeddedCoreWeb</mainClass>
     </properties>

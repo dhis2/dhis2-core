@@ -26,6 +26,8 @@
     <module>dhis-api</module>
     <module>dhis-services</module>
     <module>dhis-support</module>
+    <module>dhis-web-api</module>
+    <module>dhis-web-api-test</module>
   </modules>
 
   <licenses>

@@ -123,6 +123,6 @@
 
 
   <properties>
-    <rootDir>../../</rootDir>
+    <rootDir>../</rootDir>
   </properties>
 </project>
