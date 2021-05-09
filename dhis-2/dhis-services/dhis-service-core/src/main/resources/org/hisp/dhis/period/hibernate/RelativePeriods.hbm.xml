@@ -50,7 +50,8 @@
     <property name="thisFinancialYear" />
     <property name="lastFinancialYear" />
     <property name="last5FinancialYears" />
-    
+    <property name="last10FinancialYears" />
+
     <property name="thisWeek" />
     <property name="lastWeek" />
     <property name="thisBiWeek" />

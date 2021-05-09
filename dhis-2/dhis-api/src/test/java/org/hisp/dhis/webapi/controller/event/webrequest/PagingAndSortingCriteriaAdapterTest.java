@@ -25,15 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.webapi.controller.event.webrequest;
 
-/**
- * Analytics engine processing hints.
- *
- * @author Lars Helge Overland
- */
-public enum ProcessingHint
+import static org.junit.Assert.fail;
+
+import org.junit.Test;
+
+public class PagingAndSortingCriteriaAdapterTest
 {
-    SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM,
-    SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM
+
+    /**
+     * should not fail when paging=true and pageSize is null
+     */
+    @Test
+    public void shouldNotThrowExceptionWhenPagingTrueAndPageSizeIsNull()
+    {
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter = new PagingAndSortingCriteriaAdapter()
+        {
+            @Override
+            public Boolean getPaging()
+            {
+                return true;
+            }
+
+            @Override
+            public Integer getPageSize()
+            {
+                // redundant just to make test more readable
+                return null;
+            }
+        };
+
+        try
+        {
+            pagingAndSortingCriteriaAdapter.isPagingRequest();
+        }
+        catch ( Exception e )
+        {
+            fail( "Test was not meant to throw exception. Thrown exception is: " + e.getMessage() );
+        }
+
+    }
 }
