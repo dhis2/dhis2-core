@@ -12,10 +12,6 @@
   <packaging>jar</packaging>
   <name>DHIS Web API</name>
 
-  <build>
-    <finalName>dhis-web-api</finalName>
-  </build>
-
   <dependencies>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
