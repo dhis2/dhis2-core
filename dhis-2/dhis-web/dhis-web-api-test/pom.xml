@@ -12,6 +12,10 @@
   <packaging>jar</packaging>
   <name>DHIS Web API Test</name>
 
+  <build>
+    <finalName>dhis-web-api-test</finalName>
+  </build>
+
   <profiles>
     <profile>
       <id>doc</id>
@@ -96,7 +100,7 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-api</artifactId>
       <version>${project.version}</version>
-      <type>jar</type>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -165,11 +169,11 @@
         </exclusion>
       </exclusions>
     </dependency>
-<!--    <dependency>-->
-<!--      <groupId>org.hisp.dhis</groupId>-->
-<!--      <artifactId>dhis-web-commons</artifactId>-->
-<!--      <scope>test</scope>-->
-<!--    </dependency>-->
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-web-commons</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>com.jayway.jsonpath</groupId>
       <artifactId>json-path</artifactId>
