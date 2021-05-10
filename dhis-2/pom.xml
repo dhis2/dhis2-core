@@ -22,13 +22,6 @@
     <url>http://www.dhis2.org</url>
   </organization>
 
-  <modules>
-    <module>dhis-api</module>
-    <module>dhis-services</module>
-    <module>dhis-support</module>
-    <module>dhis-web-api</module>
-  </modules>
-
   <licenses>
     <license>
       <name>BSD</name>
@@ -265,7 +258,7 @@
     <repository>
       <id>geotoolkit</id>
       <name>Geotoolkit</name>
-      <url>http://maven.geotoolkit.org</url>
+      <url>https://maven.geotoolkit.org</url>
       <snapshots>
         <enabled>false</enabled>
         <updatePolicy>daily</updatePolicy>
@@ -359,6 +352,27 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
       </properties>
+    </profile>
+
+    <profile>
+      <id>embeddedJetty</id>
+      <modules>
+        <module>dhis-api</module>
+        <module>dhis-services</module>
+        <module>dhis-support</module>
+        <module>dhis-web-api</module>
+        <module>dhis-web-embedded-jetty</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>defaultModules</id>
+      <modules>
+        <module>dhis-api</module>
+        <module>dhis-services</module>
+        <module>dhis-support</module>
+        <module>dhis-web-api</module>
+      </modules>
     </profile>
 
     <profile>
