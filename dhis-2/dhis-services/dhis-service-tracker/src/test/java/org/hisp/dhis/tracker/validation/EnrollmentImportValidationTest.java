@@ -42,13 +42,11 @@ import lombok.SneakyThrows;
 
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.user.User;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -68,7 +66,7 @@ public class EnrollmentImportValidationTest
     private TrackerBundleService trackerBundleService;
 
     @Autowired
-    private DefaultTrackerValidationService trackerValidationService;
+    private TrackerImportService trackerImportService;
 
     @Override
     protected void initTest()
@@ -568,22 +566,21 @@ public class EnrollmentImportValidationTest
     public void testEnrollmentInAnotherProgramExists()
         throws IOException
     {
-        // TODO: Morten: How do we do this check on an import set, this only
-        // checks when the DB already contains it
+        TrackerImportParams trackerImportParams = createBundleFromJson(
+            "tracker/validations/enrollments_double-tei-enrollment_part1.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit(
-            "tracker/validations/enrollments_double-tei-enrollment_part1.json", TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-        printReport( validationReport );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+
+        TrackerValidationReport validationReport = trackerImportReport.getValidationReport();
 
         assertEquals( 0, validationReport.getErrorReports().size() );
 
-        createAndUpdate = validateAndCommit(
-            "tracker/validations/enrollments_double-tei-enrollment_part2.json", TrackerImportStrategy.CREATE );
+        TrackerImportParams trackerImportParams1 = createBundleFromJson(
+            "tracker/validations/enrollments_double-tei-enrollment_part2.json" );
 
-        validationReport = createAndUpdate.getValidationReport();
-        printReport( validationReport );
+        trackerImportReport = trackerImportService.importTracker( trackerImportParams1 );
+
+        validationReport = trackerImportReport.getValidationReport();
 
         assertEquals( 2, validationReport.getErrorReports().size() );
 

@@ -21,7 +21,7 @@
           }
         }
       ],
-      "compulsoryDataElementOperands": [ ],
+      "compulsoryDataElementOperands": [],
       "timelyDays": 15,
       "fieldCombinationRequired": false,
       "version": 4,
@@ -34,10 +34,28 @@
       "publicAccess": "rw------",
       "noValueRequiresComment": false,
       "shortName": "Data Set",
-      "description" : "update data set",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "id": "em8Bg4LCr5k",
-      "indicators": [ ],
+      "indicators": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "FnJeHbPOtVF",
+          "id": "FnJeHbPOtVF"
+        }
+      ],
+      "translations": [
+        {
+          "property": "NAME",
+          "locale": "en_GB",
+          "value": "ART monthly summary"
+        },
+        {
+          "property": "SHORT_NAME",
+          "locale": "en_GB",
+          "value": "ART 2010"
+        }
+      ],
       "periodType": "Monthly",
       "mobile": false,
       "lastUpdated": "2016-03-08T07:32:42.146+0000",
@@ -54,5 +72,22 @@
         "id": "T12jeH7KPzk"
       }
     }
-  ]
+  ],
+  "userGroups": [
+    {
+      "name": "Administrators 1",
+      "id": "FnJeHbPOtVF",
+      "displayName": "Administrators 1",
+      "publicAccess": "rw------",
+      "externalAccess": false,
+      "favorite": false,
+      "users": [
+        {
+          "id": "T12jeH7KPzk"
+        }
+      ]
+    }
+  ],
+
+  "date": "2016-03-08T07:34:13.552+0000"
 }

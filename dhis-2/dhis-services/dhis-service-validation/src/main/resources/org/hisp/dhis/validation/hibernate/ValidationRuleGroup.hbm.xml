@@ -28,6 +28,8 @@
                     foreign-key="fk_validationrulegroup_validationruleid" />
     </set>
 
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_validationrulegroup_userid" />
+
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>
 

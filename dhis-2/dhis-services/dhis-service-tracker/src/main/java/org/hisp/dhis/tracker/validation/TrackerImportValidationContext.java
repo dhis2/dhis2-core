@@ -234,11 +234,6 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().get( CategoryOption.class, id );
     }
 
-    public Map<String, List<ProgramInstance>> getEventToProgramInstancesMap()
-    {
-        return bundle.getPreheat().getProgramInstances();
-    }
-
     public boolean usernameExists( String username )
     {
         return bundle.getPreheat().getUsernames().contains( username );

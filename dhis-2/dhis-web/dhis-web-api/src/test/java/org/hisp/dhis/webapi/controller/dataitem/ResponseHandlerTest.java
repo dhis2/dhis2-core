@@ -29,8 +29,7 @@ package org.hisp.dhis.webapi.controller.dataitem;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.String.valueOf;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -38,6 +37,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hibernate.validator.internal.util.CollectionHelper.asSet;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
@@ -73,7 +73,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -91,9 +90,6 @@ public class ResponseHandlerTest
 
     @Mock
     private FieldFilterService fieldFilterService;
-
-    @Mock
-    private Environment environment;
 
     @Mock
     private CacheProvider cacheProvider;
@@ -137,7 +133,7 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final List<Class<? extends BaseIdentifiableObject>> anyTargetEntities = asList( Indicator.class,
+        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = asSet( Indicator.class,
             DataSet.class );
         final Set<String> anyFilters = newHashSet( "any" );
         final User anyUser = new User();
@@ -160,7 +156,7 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final List<Class<? extends BaseIdentifiableObject>> anyTargetEntities = asList( Indicator.class,
+        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = asSet( Indicator.class,
             DataSet.class );
         final Set<String> anyFilters = newHashSet( "any" );
         final User anyUser = new User();
@@ -181,7 +177,7 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final List<Class<? extends BaseIdentifiableObject>> emptyTargetEntities = emptyList();
+        final Set<Class<? extends BaseIdentifiableObject>> emptyTargetEntities = emptySet();
         final Set<String> anyFilters = newHashSet( "any" );
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
@@ -194,7 +190,7 @@ public class ResponseHandlerTest
         assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
         assertThat( anyRootNode.getChildren(), is( empty() ) );
         verify( linkService, never() ).generatePagerLinks( any( Pager.class ), anyString() );
-        verify( queryExecutor, never() ).count( any( Class.class ), any( MapSqlParameterSource.class ) );
+        verify( queryExecutor, never() ).count( any( Set.class ), any( MapSqlParameterSource.class ) );
     }
 
     private WebOptions mockWebOptions( final int pageSize, final int pageNumber )

@@ -33,9 +33,11 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.adapter.*;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.util.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +68,12 @@ public class DefaultMergeService implements MergeService
         {
             if ( schema.isIdentifiableObject() )
             {
+                if ( BaseIdentifiableObject_.SHARING.equals( property.getFieldName() )
+                    && SharingUtils.isUseLegacySharing( (BaseIdentifiableObject) target ) )
+                {
+                    continue;
+                }
+
                 if ( mergeParams.isSkipSharing() && ReflectionUtils.isSharingProperty( property ) )
                 {
                     continue;
