@@ -41,7 +41,6 @@ public enum TrackerErrorCode
     E1005( "Could not find TrackedEntityType: `{0}`." ),
     E1006( "Attribute: `{0}`, does not exist." ),
     E1007( "Error validating attribute value type: `{0}`; Error: `{1}`." ),
-    E1008( "Value: `{0}`, does not match the attribute pattern: `{1}`." ),
     E1009( "File resource: `{0}`, has already been assigned to a different object." ),
     E1011( "Could not find OrganisationUnit: `{0}`, linked to Event." ),
     E1012( "Geometry does not conform to FeatureType: `{0}`." ),
@@ -127,8 +126,6 @@ public enum TrackerErrorCode
     E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
     // TODO: See TODO on error usage
     E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
-    // TODO: See TODO on error usage
-    E1111( "We have a generated attribute: `{0}`, but no pattern." ),
     // TODO: See TODO on error usage
     E1040( "Multiple active enrollments exists for Program: `{0}`." ),
     // TODO See TODO on error usage

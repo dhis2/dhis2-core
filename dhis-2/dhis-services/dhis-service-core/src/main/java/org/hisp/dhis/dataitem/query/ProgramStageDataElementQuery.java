@@ -27,15 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
-import static org.hisp.dhis.common.ValueType.fromString;
-import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayNameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayShortNameFiltering;
@@ -52,27 +44,18 @@ import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesColumnsFor;
 import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesJoinsOn;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasNonBlankStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 /**
@@ -86,9 +69,9 @@ import org.springframework.stereotype.Component;
 public class ProgramStageDataElementQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "program.name as program_name, program.uid as program_uid,"
-        + " dataelement.uid, dataelement.name, dataelement.valuetype, dataelement.code,"
-        + " dataelement.sharing as dataelement_sharing, program.sharing as program_sharing,"
-        + " dataelement.shortname, program.shortname as program_shortname";
+        + " program.shortname as program_shortname, dataelement.uid as item_uid, dataelement.name as item_name,"
+        + " dataelement.shortname as item_shortname, dataelement.valuetype as item_valuetype, dataelement.code as item_code,"
+        + " dataelement.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('PROGRAM_DATA_ELEMENT' as text) as item_type";
 
     private static final String COMMON_UIDS = "program.uid, dataelement.uid";
 
@@ -98,78 +81,17 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
     private static final String SPACED_FROM_DATA_ELEMENT = " from dataelement ";
 
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-    public ProgramStageDataElementQuery( @Qualifier( "readOnlyJdbcTemplate" )
-    final JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-
-        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
-    }
-
-    public List<DataItem> find( final MapSqlParameterSource paramsMap )
-    {
-        final List<DataItem> dataItems = new ArrayList<>();
-
-        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( getProgramDataElementQuery( paramsMap ),
-            paramsMap );
-
-        while ( rowSet.next() )
-        {
-            final ValueType valueType = fromString( rowSet.getString( "valuetype" ) );
-
-            final String name = trimToEmpty(
-                rowSet.getString( "program_name" ) ) + SPACE + trimToEmpty( rowSet.getString( "name" ) );
-            final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_name" ) ),
-                rowSet.getString( "program_name" ) ) + SPACE
-                + defaultIfBlank( trimToEmpty( rowSet.getString( "i18n_name" ) ),
-                    trimToEmpty( rowSet.getString( "name" ) ) );
-
-            final String shortName = trimToEmpty(
-                rowSet.getString( "program_shortname" ) ) + SPACE + trimToEmpty( rowSet.getString( "shortname" ) );
-            final String displayShortName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_shortname" ) ),
-                rowSet.getString( "program_shortname" ) ) + SPACE
-                + defaultIfBlank( trimToEmpty( rowSet.getString( "i18n_shortname" ) ),
-                    trimToEmpty( rowSet.getString( "shortname" ) ) );
-
-            final String uid = rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" );
-
-            dataItems.add( builder().name( name ).displayName( displayName ).id( uid )
-                .shortName( shortName ).displayShortName( displayShortName )
-                .code( rowSet.getString( "code" ) ).dimensionItemType( PROGRAM_DATA_ELEMENT )
-                .programId( rowSet.getString( "program_uid" ) ).valueType( valueType ).build() );
-        }
-
-        return dataItems;
-    }
-
     @Override
-    public int count( final MapSqlParameterSource paramsMap )
+    public String getStatement( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( SPACED_SELECT + "count(*) from (" )
-            .append( getProgramDataElementQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
-            .append( ") t" );
-
-        return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
-    }
-
-    @Override
-    public Class<? extends BaseIdentifiableObject> getRootEntity()
-    {
-        return QueryableDataItem.PROGRAM_DATA_ELEMENT.getEntity();
-    }
-
-    private String getProgramDataElementQuery( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder();
+        sql.append( "(" );
 
         // Creating a temp translated table to be queried.
         sql.append( SPACED_SELECT + "* from (" );
 
-        if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
+        if ( hasNonBlankStringPresence( paramsMap, LOCALE ) )
         {
             // Selecting translated names.
             sql.append( selectRowsContainingTranslatedName() );
@@ -181,9 +103,9 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by program.name, program.shortname, dataelement.name, " + COMMON_UIDS
-                + ", dataelement.valuetype, dataelement.code, p_i18n_name, i18n_name, program_sharing, dataelement_sharing, dataelement.shortname,"
-                + " i18n_shortname, p_i18n_shortname" );
+            " group by program.name, program.shortname, item_name, " + COMMON_UIDS
+                + ", item_valuetype, item_code, item_sharing, item_shortname,"
+                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -193,24 +115,24 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.program_sharing",
-            "t.dataelement_sharing", READ_ACCESS, paramsMap ) ) );
+        sql.append( always( sharingConditions( "t.item_sharing", READ_ACCESS, paramsMap ) ) );
         sql.append( " and" );
-        sql.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
+        sql.append( ifSet( valueTypeFiltering( "t.item_valuetype", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
-        optionalFilters.append( ifSet( displayNameFiltering( "t.p_i18n_name", "t.i18n_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_first_name", "t.i18n_second_name", paramsMap ) ) );
         optionalFilters
-            .append( ifSet( displayShortNameFiltering( "t.p_i18n_shortname", "t.i18n_shortname", paramsMap ) ) );
-        optionalFilters.append( ifSet( nameFiltering( "t.program_name", "t.name", paramsMap ) ) );
-        optionalFilters.append( ifSet( shortNameFiltering( "t.program_shortname", "t.shortname", paramsMap ) ) );
+            .append(
+                ifSet( displayShortNameFiltering( "t.i18n_first_shortname", "t.i18n_second_shortname", paramsMap ) ) );
+        optionalFilters.append( ifSet( nameFiltering( "t.program_name", "t.item_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( shortNameFiltering( "t.program_shortname", "t.item_shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( programIdFiltering( "t.program_uid", paramsMap ) ) );
-        optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
+        optionalFilters.append( ifSet( uidFiltering( "t.item_uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
 
-        final String identifiableStatement = identifiableTokenFiltering( "t.uid", "t.code", "t.i18n_name",
-            "t.p_i18n_name", paramsMap );
+        final String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
+            "t.i18n_second_name", "t.i18n_first_name", paramsMap );
 
         if ( isNotBlank( identifiableStatement ) )
         {
@@ -218,16 +140,36 @@ public class ProgramStageDataElementQuery implements DataItemQuery
             sql.append( identifiableStatement );
         }
 
-        sql.append( ifSet( ordering( "t.p_i18n_name, t.i18n_name, t.uid",
-            "t.program_name, t.name, t.uid", "t.i18n_shortname, t.uid",
-            "t.shortname, t.uid", paramsMap ) ) );
+        sql.append( ifSet( ordering( "t.i18n_first_name, t.i18n_second_name, t.item_uid",
+            "t.program_name, t.item_name, t.item_uid",
+            "t.i18n_first_shortname, i18n_second_shortname, t.item_uid",
+            "t.program_name, t.item_shortname, t.item_uid", paramsMap ) ) );
         sql.append( ifSet( maxLimit( paramsMap ) ) );
+        sql.append( ")" );
 
         final String fullStatement = sql.toString();
 
         log.trace( "Full SQL: " + fullStatement );
 
         return fullStatement;
+    }
+
+    /**
+     * No rules required.
+     *
+     * @param paramsMap
+     * @return true
+     */
+    @Override
+    public boolean matchQueryRules( final MapSqlParameterSource paramsMap )
+    {
+        return true;
+    }
+
+    @Override
+    public Class<? extends BaseIdentifiableObject> getRootEntity()
+    {
+        return QueryableDataItem.PROGRAM_DATA_ELEMENT.getEntity();
     }
 
     private String selectRowsContainingTranslatedName()
@@ -244,8 +186,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", program.name as p_i18n_name, dataelement.name as i18n_name," +
-                " program.shortname as p_i18n_shortname, dataelement.shortname as i18n_shortname" )
+            .append( ", program.name as i18n_first_name, dataelement.name as i18n_second_name" )
+            .append( ", program.shortname as i18n_first_shortname, dataelement.shortname as i18n_second_shortname" )
             .append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS ).toString();
     }

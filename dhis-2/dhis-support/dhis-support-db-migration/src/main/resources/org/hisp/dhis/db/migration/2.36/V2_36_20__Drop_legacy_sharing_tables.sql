@@ -97,4 +97,4 @@ DROP TABLE IF EXISTS reporttableusergroupaccesses;
 DROP TABLE IF EXISTS patienttabularreportusergroupaccesses;
 DROP TABLE IF EXISTS patientaggregatereportusergroupacceses;
 DROP TABLE IF EXISTS useraccess CASCADE;
-DROP TABLE IF EXISTS usergroupaccess CASCADE;
+DROP TABLE IF EXISTS usergroupaccess CASCADE; 

@@ -139,7 +139,7 @@ public class EventDataValuesValidationHook
     }
 
     private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter, Event event,
-                                                                        ProgramStage programStage )
+        ProgramStage programStage )
     {
         final Set<String> dataElements = programStage.getProgramStageDataElements()
                 .stream()
