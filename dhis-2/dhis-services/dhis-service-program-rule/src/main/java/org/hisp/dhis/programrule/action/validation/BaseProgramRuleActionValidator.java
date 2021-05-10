@@ -49,7 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
  */
 
 @Slf4j
-public abstract class AbstractProgramRuleActionValidator implements ProgramRuleActionValidator
+public class BaseProgramRuleActionValidator implements ProgramRuleActionValidator
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,

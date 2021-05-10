@@ -27,9 +27,18 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
+
 /**
  * @author Zubair Asghar
  */
-public class HideOptionGroupProgramRuleActionValidator extends AbstractOptionGroupProgramRuleActionValidator
+public class AlwaysValidProgramRuleActionValidator implements ProgramRuleActionValidator
 {
+    @Override
+    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
+        ProgramRuleActionValidationContext validationContext )
+    {
+        return ProgramRuleActionValidationResult.builder().valid( true ).build();
+    }
 }

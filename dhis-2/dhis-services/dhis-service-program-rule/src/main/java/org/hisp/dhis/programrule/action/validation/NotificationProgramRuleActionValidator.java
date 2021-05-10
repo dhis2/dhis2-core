@@ -41,7 +41,7 @@ import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
  */
 
 @Slf4j
-public abstract class AbstractMessageProgramRuleActionValidator implements ProgramRuleActionValidator
+public class NotificationProgramRuleActionValidator implements ProgramRuleActionValidator
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
