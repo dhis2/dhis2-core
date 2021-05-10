@@ -160,7 +160,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                         .findFirst() );
 
                 if ( optionalTea.isPresent() )
-                    addError( reporter, E1076, TrackedEntityAttribute.class.getSimpleName(), attribute );
+                    addError( reporter, E1076, TrackedEntityAttribute.class.getSimpleName(), attribute.getAttribute() );
 
                 continue;
             }
