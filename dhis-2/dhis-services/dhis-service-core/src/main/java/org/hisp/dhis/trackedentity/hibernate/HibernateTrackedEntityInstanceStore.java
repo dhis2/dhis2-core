@@ -1194,7 +1194,6 @@ public class HibernateTrackedEntityInstanceStore
         {
             String start = getMediumDateString( params.getEventStartDate() );
             String end = getMediumDateString( params.getEventEndDate() );
-            events.append( whereHlp.whereAnd() );
 
             if ( params.isEventStatus( EventStatus.COMPLETED ) )
             {
