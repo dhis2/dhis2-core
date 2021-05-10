@@ -127,7 +127,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "select psi,ps,executiondate,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\"  from "
             + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) limit 101";
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" in ('ouabcdefghA') ) limit 101";
 
         assertThat( sql.getValue(), is( expected ) );
     }
@@ -150,7 +150,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
             "as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name"
             + "\"  " +
             "from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) limit 101";
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" in ('ouabcdefghA') ) limit 101";
 
         assertThat( sql.getValue(), is( expected ) );
     }
@@ -165,7 +165,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) limit 101";
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" in ('ouabcdefghA') ) limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -181,7 +181,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" in ('ouabcdefghA') ) and ax.\"ps\" = '"
             + programStage.getUid() + "' limit 101";
 
         assertSql( expected, sql.getValue() );
@@ -198,7 +198,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" in ('ouabcdefghA') ) and ax.\"ps\" = '"
             + programStage.getUid() + "' limit 101";
 
         assertSql( expected, sql.getValue() );
@@ -215,7 +215,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" in ('ouabcdefghA') ) and ax.\"ps\" = '"
             + programStage.getUid() + "' and ax.\"fWIAEtYVEGk\" > '10' limit 101";
 
         assertSql( expected, sql.getValue() );
@@ -232,7 +232,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" in ('ouabcdefghA') ) and ax.\"ps\" = '"
             + programStage.getUid() + "' limit 101";
 
         assertSql( expected, sql.getValue() );
@@ -248,7 +248,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" in ('ouabcdefghA') ) and ax.\"ps\" = '"
             + programStage.getUid() + "' and lower(ax.\"fWIAEtYVEGk\") > '10' limit 101";
 
         assertSql( expected, sql.getValue() );
@@ -276,7 +276,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
             + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" in ('ouabcdefghA') ) and ax.\"ps\" = '"
             + programStage.getUid() + "' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
 
         assertThat( sql.getValue(), is( expected ) );
@@ -304,7 +304,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
         String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
             + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" in ('ouabcdefghA') ) and ax.\"ps\" = '"
             + programStage.getUid()
             + "' and lower(ax.\"fWIAEtYVEGk\") > '10' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
         assertThat( sql.getValue(), is( expected ) );
