@@ -40,6 +40,7 @@ import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair Asghar
@@ -47,6 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
 @Getter
 @Builder
+@Component( "org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationService" )
 public class ProgramRuleActionValidationService
 {
     @Nonnull

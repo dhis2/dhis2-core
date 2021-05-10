@@ -44,7 +44,6 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationContext;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationContextLoader;
-import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationSupplier;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -64,18 +63,13 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
     private final Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap;
 
     @Nonnull
-    private final ProgramRuleActionValidationSupplier actionValidationServiceSupplier;
-
-    @Nonnull
     private final ProgramRuleActionValidationContextLoader contextLoader;
 
     public ProgramRuleActionObjectBundleHook(
         @NonNull Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap,
-        @Nonnull ProgramRuleActionValidationSupplier actionValidationServiceSupplier,
         @Nonnull ProgramRuleActionValidationContextLoader contextLoader )
     {
         this.validatorMap = validatorMap;
-        this.actionValidationServiceSupplier = actionValidationServiceSupplier;
         this.contextLoader = contextLoader;
     }
 
@@ -105,8 +99,7 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
         ProgramRuleActionValidationResult validationResult;
 
         ProgramRuleActionValidationContext validationContext = contextLoader
-            .load( bundle.getPreheat(), bundle.getPreheatIdentifier(), ruleAction,
-                actionValidationServiceSupplier.get() );
+            .load( bundle.getPreheat(), bundle.getPreheatIdentifier(), ruleAction );
 
         try
         {

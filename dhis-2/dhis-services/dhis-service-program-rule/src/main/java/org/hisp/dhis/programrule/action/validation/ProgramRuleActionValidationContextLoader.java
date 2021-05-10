@@ -30,6 +30,8 @@ package org.hisp.dhis.programrule.action.validation;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
@@ -52,10 +54,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class ProgramRuleActionValidationContextLoader
 {
+    @Nonnull
+    private final ProgramRuleActionValidationService validationService;
+
+    public ProgramRuleActionValidationContextLoader(
+        @Nonnull ProgramRuleActionValidationService actionValidationService )
+    {
+        this.validationService = actionValidationService;
+    }
+
     @Transactional( readOnly = true )
     public ProgramRuleActionValidationContext load( Preheat preheat, PreheatIdentifier preheatIdentifier,
-        ProgramRuleAction ruleAction,
-        ProgramRuleActionValidationService validationService )
+        ProgramRuleAction ruleAction )
     {
         ProgramRule rule = preheat.get( preheatIdentifier, ProgramRule.class,
             ruleAction.getProgramRule() );
