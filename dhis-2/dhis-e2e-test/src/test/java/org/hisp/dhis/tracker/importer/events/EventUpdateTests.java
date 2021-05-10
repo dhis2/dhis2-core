@@ -29,22 +29,20 @@
 package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonObject;
+import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
-import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.hasSize;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventNotesTests
+public class EventUpdateTests
     extends TrackerNtiApiTest
 {
     @BeforeAll
@@ -54,61 +52,24 @@ public class EventNotesTests
     }
 
     @Test
-    public void shouldUpdateEventWithANote()
+    public void shouldNotUpdateImmutableProperties()
+        throws Exception
     {
-        //arrange
-        JsonObject ob = buildEventWithNote();
+        String eventId = importTeiWithEnrollmentAndEvent().extractImportedEvents().get( 0 );
+        String enrollmentId = importEnrollment();
+        JsonObject object = trackerActions.get( "/events/" + eventId ).getBody();
 
-        String eventId = trackerActions.postAndGetJobReport( ob )
-            .validateSuccessfulImport()
-            .extractImportedEvents().get( 0 );
+        object = JsonObjectBuilder.jsonObject( object )
+            .addProperty( "programStage", Constants.EVENT_PROGRAM_STAGE_ID )
+            .addProperty( "program", Constants.EVENT_PROGRAM_ID )
+            .addProperty( "enrollment", enrollmentId )
+            .wrapIntoArray( "events" );
 
-        JsonObjectBuilder.jsonObject( ob ).addPropertyByJsonPath( "events[0]", "event", eventId );
-
-        // act
-
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( ob );
-
-        // assert
-        response.validateSuccessfulImport()
-            .validate()
-            .body( "stats.updated", equalTo( 1 ) );
+        trackerActions.postAndGetJobReport( object )
+            .validateErrorReport()
+            .body( "", hasSize( Matchers.greaterThanOrEqualTo( 3 ) ) )
+            .body( "errorCode", hasItems( "E1128", "E1128", "E1128" ) )
+            .body( "message", allOf( Matchers.hasItem( Matchers.containsString( "programStage" ) ),
+                hasItem( Matchers.containsString( "program" ) ), hasItem( Matchers.containsString( "enrollment" ) ) ) );
     }
-
-    @Test
-    public void shouldNotAddAnotherNote()
-    {
-        //arrange
-        JsonObject ob = buildEventWithNote();
-
-        String eventId = trackerActions.postAndGetJobReport( ob )
-            .validateSuccessfulImport()
-            .extractImportedEvents().get( 0 );
-
-        ob = trackerActions.get( "/events/" + eventId ).getBody();
-
-        ob = JsonObjectBuilder.jsonObject( ob ).wrapIntoArray( "events" );
-
-        // act
-
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( ob );
-
-        // assert
-        response.validateSuccessfulImport()
-            .validateWarningReport()
-            .body( "trackerType", everyItem( equalTo( "EVENT" ) ) )
-            .body( "warningCode", hasItem( "E1119" ) );
-    }
-
-    private JsonObject buildEventWithNote()
-    {
-        JsonObject ob = trackerActions
-            .buildEvent( Constants.ORG_UNIT_IDS[1], Constants.EVENT_PROGRAM_ID, Constants.EVENT_PROGRAM_STAGE_ID );
-
-        JsonObjectBuilder.jsonObject( ob )
-            .addArrayByJsonPath( "events[0]", "notes",
-                new JsonObjectBuilder().addProperty( "value", DataGenerator.randomString() ).build() );
-        return ob;
-    }
-
 }
