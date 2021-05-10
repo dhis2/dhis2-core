@@ -28,6 +28,9 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang.time.DateUtils.addYears;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
@@ -48,7 +51,9 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -429,20 +434,8 @@ public class JdbcEventAnalyticsManager
         }
         else // Descendants
         {
-            String orgUnitAlias = getOrgUnitAlias( params );
-
-            sql += hlp.whereAnd() + " (";
-
-            for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
-            {
-                OrganisationUnit unit = (OrganisationUnit) object;
-
-                String orgUnitCol = quote( orgUnitAlias, "uidlevel" + unit.getLevel() );
-
-                sql += orgUnitCol + " = '" + unit.getUid() + "' or ";
-            }
-
-            sql = removeLastOr( sql ) + ") ";
+            sql += descendantsOrgUnitStatement( getOrgUnitAlias( params ),
+                params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ), hlp );
         }
 
         // ---------------------------------------------------------------------
@@ -451,8 +444,6 @@ public class JdbcEventAnalyticsManager
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
             Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
-
-        // Apply pre-authorized dimensions filtering
 
         for ( DimensionalObject dim : dynamicDimensions )
         {
@@ -578,6 +569,49 @@ public class JdbcEventAnalyticsManager
         }
 
         return sql;
+    }
+
+    /**
+     * Creates a SQL statement of descendants org units. When there are multiple
+     * levels the "or" operator will be used as junction.
+     *
+     * @param orgUnitAlias
+     * @param dimensionalItems
+     * @param helper
+     * @return a SQL statement in the format "where/and (ax."uidlevel0" in
+     *         ('orgUid-1', 'orgUid-2', 'orgUid-2') )"
+     */
+    private String descendantsOrgUnitStatement( final String orgUnitAlias,
+        final List<DimensionalItemObject> dimensionalItems, final SqlHelper helper )
+    {
+        final StringBuilder statement = new StringBuilder();
+        final Map<String, String> orgUnitColsAndUnitUids = new HashMap<>();
+
+        statement.append( helper.whereAnd() + " (" );
+
+        for ( final DimensionalItemObject itemObject : dimensionalItems )
+        {
+            final OrganisationUnit unit = (OrganisationUnit) itemObject;
+
+            final String orgUnitCol = quote( orgUnitAlias, "uidlevel" + unit.getLevel() );
+
+            if ( isNotBlank( orgUnitColsAndUnitUids.get( orgUnitCol ) ) )
+            {
+                orgUnitColsAndUnitUids.put( orgUnitCol,
+                    trimToEmpty( orgUnitColsAndUnitUids.get( orgUnitCol ) ) + ", " + wrap( unit.getUid(), "'" ) );
+            }
+            else
+            {
+                orgUnitColsAndUnitUids.put( orgUnitCol, wrap( unit.getUid(), "'" ) );
+            }
+        }
+
+        for ( final Map.Entry<String, String> entry : orgUnitColsAndUnitUids.entrySet() )
+        {
+            statement.append( entry.getKey() + OPEN_IN + entry.getValue() + ") or " );
+        }
+
+        return removeLastOr( statement.toString() ) + ") ";
     }
 
     /**

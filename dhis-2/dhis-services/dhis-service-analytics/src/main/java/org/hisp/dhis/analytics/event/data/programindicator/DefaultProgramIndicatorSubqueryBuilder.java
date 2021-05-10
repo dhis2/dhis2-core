@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.event.data.programindicator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.util.Date;
 
@@ -171,7 +172,7 @@ public class DefaultProgramIndicatorSubqueryBuilder
             }
         }
 
-        return " WHERE " + condition;
+        return isNotBlank( condition ) ? " WHERE " + condition : condition;
     }
 
     private boolean isEnrollment( AnalyticsType outerSqlEntity )
