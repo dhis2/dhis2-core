@@ -29,16 +29,14 @@
 package org.hisp.dhis.tracker.importer.tei;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -51,10 +49,8 @@ import static org.hamcrest.Matchers.hasItem;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TeiValidationTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
-    private TrackerActions trackerActions;
-
     private String trackedEntityType;
 
     private String program;
@@ -70,9 +66,7 @@ public class TeiValidationTests
     @BeforeAll
     public void beforeAll()
     {
-        trackerActions = new TrackerActions();
-
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
 
         setupData();
     }
@@ -157,28 +151,30 @@ public class TeiValidationTests
     }
 
     @Test
-    public void shouldReturnErrorWhenAttributeWithOptionSetInvalid() {
+    public void shouldReturnErrorWhenAttributeWithOptionSetInvalid()
+    {
         JsonObject trackedEntities = new JsonObjectBuilder()
             .addProperty( "trackedEntityType", trackedEntityType )
             .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
             .addArray( "attributes", new JsonObjectBuilder()
-                .addProperty( "attribute", mandatoryTetAttribute )
-                .addProperty( "value", DataGenerator.randomString() )
-                .build(),
+                    .addProperty( "attribute", mandatoryTetAttribute )
+                    .addProperty( "value", DataGenerator.randomString() )
+                    .build(),
                 new JsonObjectBuilder()
                     .addProperty( "attribute", attributeWithOptionSet )
                     .addProperty( "value", DataGenerator.randomString() )
-                    .build())
+                    .build() )
             .wrapIntoArray( "trackedEntities" );
 
-        trackerActions.postAndGetJobReport( trackedEntities, new QueryParamsBuilder().add( "async=false" ))
+        trackerActions.postAndGetJobReport( trackedEntities, new QueryParamsBuilder().add( "async=false" ) )
             .validateErrorReport()
             .body( "errorCode", hasItem( "E1125" ) )
             .body( "trackerType", hasItem( "TRACKED_ENTITY" ) );
     }
 
     @Test
-    public void shouldNotReturnErrorWhenAttributeWithOptionSetIsPresent() {
+    public void shouldNotReturnErrorWhenAttributeWithOptionSetIsPresent()
+    {
         JsonObject trackedEntities = new JsonObjectBuilder()
             .addProperty( "trackedEntityType", trackedEntityType )
             .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
@@ -190,12 +186,13 @@ public class TeiValidationTests
                 new JsonObjectBuilder()
                     .addProperty( "attribute", attributeWithOptionSet )
                     .addProperty( "value", "TA_YES" )
-                    .build())
+                    .build() )
             .wrapIntoArray( "trackedEntities" );
 
         trackerActions.postAndGetJobReport( trackedEntities ).validateSuccessfulImport();
 
     }
+
     private void setupData()
     {
         // create attributes
@@ -224,7 +221,7 @@ public class TeiValidationTests
                     .addObject( "trackedEntityAttribute", new JsonObjectBuilder()
                         .addProperty( "id", attributeWithOptionSet ) )
                     .build()
-                )
+            )
             .build();
 
         trackedEntityType = trackedEntityTypeActions.create( trackedEntityTypePayload );
@@ -260,7 +257,8 @@ public class TeiValidationTests
             .build();
     }
 
-    private JsonObject dummyTeiAttributeWithOptionSet() {
+    private JsonObject dummyTeiAttributeWithOptionSet()
+    {
         return JsonObjectBuilder.jsonObject()
             .addProperty( "name", "TA attribute " + DataGenerator.randomEntityName() )
             .addProperty( "valueType", "TEXT" )
