@@ -59,6 +59,9 @@ public class ProgramActions
     {
         JsonObject object = getDummy( programType );
 
+        if (programType.equalsIgnoreCase( "with_registration" )) {
+            object.addProperty( "trackedEntityType", "Q9GufDoplCL" );
+        }
         return post( object );
     }
 
@@ -144,20 +147,27 @@ public class ProgramActions
     {
         JsonObject object = programStageActions.get( programStageId, new QueryParamsBuilder().add( "fields=*" ) ).getBody();
 
-        JsonArray programStageDataElements = object.getAsJsonArray( "programStageDataElements" );
+        JsonObjectBuilder.jsonObject( object )
+            .addOrAppendToArray( "programStageDataElements", new JsonObjectBuilder()
+                .addProperty( "compulsory", String.valueOf( isMandatory ) )
+                .addObject( "dataElement", new JsonObjectBuilder().addProperty( "id", dataElementId ) )
+                .build());
 
-        JsonObject programStageDataElement = new JsonObject();
-        programStageDataElement.addProperty( "compulsory", String.valueOf( isMandatory ) );
-
-        JsonObject dataElement = new JsonObject();
-        dataElement.addProperty( "id", dataElementId );
-
-        programStageDataElement.add( "dataElement", dataElement );
-        programStageDataElements.add( programStageDataElement );
-
-        object.add( "programStageDataElements", programStageDataElements );
 
         return programStageActions.update( programStageId, object );
+    }
+
+    public ApiResponse addAttribute( String programId, String teiAttributeId, boolean isMandatory ) {
+        JsonObject object = this.get( programId, new QueryParamsBuilder().add( "fields=*" ) ).getBody();
+
+        JsonObjectBuilder.jsonObject( object )
+            .addOrAppendToArray( "programTrackedEntityAttributes", new JsonObjectBuilder()
+                .addProperty( "mandatory", String.valueOf( isMandatory ) )
+                .addObject( "trackedEntityAttribute", new JsonObjectBuilder().addProperty( "id", teiAttributeId ) )
+                .build());
+
+
+        return this.update( programId, object );
     }
 
     public JsonObject getDummy()
