@@ -31,6 +31,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -44,6 +46,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -353,6 +356,35 @@ public class TrackedEntityInstanceStoreTest
         assertThat( grid, hasSize( 1 ) );
         assertThat( grid.get( 0 ).keySet(), hasSize( 8 ) );
         assertThat( grid.get( 0 ).get( atC.getUid() ), is( "OrganisationUnitC" ) );
+
+    }
+
+    @Test
+    public void testGridQueryWithEventFilters()
+    {
+        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+        teiA.setTrackedEntityType( trackedEntityTypeA );
+        teiStore.save( teiA );
+        attributeValueService
+            .addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atC, teiA, ouC.getUid() ) );
+        programInstanceService.enrollTrackedEntityInstance( teiA, prA, new Date(), new Date(), ouA );
+
+        dbmsManager.flushSession();
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+        params.setProgram( prA );
+        params.setEventStatus( EventStatus.ACTIVE );
+        params.setEventStartDate( Date.from( Instant.now().minus( 10, ChronoUnit.DAYS ) ) );
+        params.setEventEndDate( Date.from( Instant.now().plus( 10, ChronoUnit.DAYS ) ) );
+
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
+
+        List<Map<String, String>> grid = teiStore.getTrackedEntityInstancesGrid( params );
+
+        assertThat( grid, hasSize( 0 ) );
 
     }
 }
