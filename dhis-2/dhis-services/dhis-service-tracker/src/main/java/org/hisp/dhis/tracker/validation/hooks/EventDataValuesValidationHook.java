@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 
 import java.util.List;
@@ -54,7 +55,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EventDataValuesValidationHook
-    extends AbstractTrackerDtoValidationHook
+        extends AbstractTrackerDtoValidationHook
 {
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
@@ -77,7 +78,7 @@ public class EventDataValuesValidationHook
                 continue;
             }
 
-            validateDataElement( reporter, dataElement, dataValue, programStage );
+            validateDataElement( reporter, dataElement, dataValue, programStage, event );
             validateOptionSet( reporter, dataElement, dataValue.getValue() );
         }
 
@@ -86,24 +87,24 @@ public class EventDataValuesValidationHook
     }
 
     private void validateMandatoryDataValues( Event event, TrackerImportValidationContext context,
-        ValidationErrorReporter reporter )
+                                              ValidationErrorReporter reporter )
     {
         if ( StringUtils.isNotEmpty( event.getProgramStage() ) )
         {
             ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
             final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
-                .stream()
-                .filter( ProgramStageDataElement::isCompulsory )
-                .map( de -> de.getDataElement().getUid() )
-                .collect( Collectors.toList() );
+                    .stream()
+                    .filter( ProgramStageDataElement::isCompulsory )
+                    .map( de -> de.getDataElement().getUid() )
+                    .collect( Collectors.toList() );
             List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
-                mandatoryDataElements );
-            wrongMandatoryDataValue.forEach( de -> addError( reporter, TrackerErrorCode.E1303, de ) );
+                    mandatoryDataElements );
+            wrongMandatoryDataValue.forEach( de -> addError( reporter, E1303, de ) );
         }
     }
 
     private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
-        DataValue dataValue, ProgramStage programStage )
+                                      DataValue dataValue, ProgramStage programStage, Event event )
     {
         final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
 
@@ -113,38 +114,41 @@ public class EventDataValuesValidationHook
         }
         else
         {
-            validateDataElement( reporter, dataElement, programStage, dataValue );
+            validateNullDataValues( reporter, dataElement, programStage, dataValue, event );
             validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
         }
     }
 
-    private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
-        ProgramStage programStage, DataValue dataValue )
+    private void validateNullDataValues( ValidationErrorReporter reporter, DataElement dataElement,
+                                         ProgramStage programStage, DataValue dataValue, Event event )
     {
-        Optional<ProgramStageDataElement> optionalPsde = Optional.of( programStage )
-            .map( ps -> ps.getProgramStageDataElements().stream() ).flatMap( psdes -> psdes
-                .filter(
-                    psde -> psde.getDataElement().getUid().equals( dataElement.getUid() ) && psde.isCompulsory() )
-                .findFirst() );
+        if ( dataValue.getValue() != null || !needsToValidateDataValues( event, programStage ) )
+            return;
 
-        if ( optionalPsde.isPresent() && dataValue.getValue() == null )
+        Optional<ProgramStageDataElement> optionalPsde = Optional.of( programStage )
+                .map( ps -> ps.getProgramStageDataElements().stream() ).flatMap( psdes -> psdes
+                        .filter(
+                                psde -> psde.getDataElement().getUid().equals( dataElement.getUid() ) && psde.isCompulsory() )
+                        .findFirst() );
+
+        if ( optionalPsde.isPresent() )
         {
             addError( reporter, E1076, DataElement.class.getSimpleName(),
-                dataElement.getUid() );
+                    dataElement.getUid() );
         }
     }
 
     private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter, Event event,
-        ProgramStage programStage )
+                                                                        ProgramStage programStage )
     {
         final Set<String> dataElements = programStage.getProgramStageDataElements()
-            .stream()
-            .map( de -> de.getDataElement().getUid() )
-            .collect( Collectors.toSet() );
+                .stream()
+                .map( de -> de.getDataElement().getUid() )
+                .collect( Collectors.toSet() );
 
         Set<String> payloadDataElements = event.getDataValues().stream()
-            .map( DataValue::getDataElement )
-            .collect( Collectors.toSet() );
+                .map( DataValue::getDataElement )
+                .collect( Collectors.toSet() );
 
         for ( String payloadDataElement : payloadDataElements )
         {
@@ -156,7 +160,7 @@ public class EventDataValuesValidationHook
     }
 
     private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, DataValue dataValue,
-        DataElement dataElement )
+                                                 DataElement dataElement )
     {
         if ( dataValue == null || dataValue.getValue() == null )
         {

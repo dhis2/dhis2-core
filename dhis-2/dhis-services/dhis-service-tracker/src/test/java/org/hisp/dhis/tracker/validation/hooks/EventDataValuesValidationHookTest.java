@@ -99,19 +99,17 @@ public class EventDataValuesValidationHookTest
 
         when( dataElement.getUid() ).thenReturn( dataElementUid );
         when( dataElement.getValueType() ).thenReturn( ValueType.TEXT );
-
         when( event.getProgramStage() ).thenReturn( programStageUid );
         when( event.getStatus() ).thenReturn( EventStatus.SKIPPED );
 
         when( validationContext.getBundle() ).thenReturn( TrackerBundle.builder().build() );
         when( validationContext.getDataElement( dataElementUid ) ).thenReturn( dataElement );
         when( validationContext.getProgramStage( anyString() ) ).thenReturn( programStage );
-
         DataElement dataElement = new DataElement();
         dataElement.setUid( dataElementUid );
 
         when( programStage.getProgramStageDataElements() ).thenReturn(
-            new HashSet<>( Collections.singletonList( new ProgramStageDataElement( programStage, dataElement ) ) ) );
+                new HashSet<>( Collections.singletonList( new ProgramStageDataElement( programStage, dataElement ) ) ) );
     }
 
     @Test
@@ -266,7 +264,7 @@ public class EventDataValuesValidationHookTest
         when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
         when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
         when( validationContext.getDataElement( "de_not_present_in_progam_stage" ) )
-            .thenReturn( notPresentDataElement );
+                .thenReturn( notPresentDataElement );
 
         // When
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
@@ -366,6 +364,7 @@ public class EventDataValuesValidationHookTest
 
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
         when( event.getProgramStage() ).thenReturn( programStageUid );
+
         when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
         when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
@@ -393,12 +392,13 @@ public class EventDataValuesValidationHookTest
         String programStageUid = "programStageUid";
 
         ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
-        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
 
+        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
         when( event.getProgramStage() ).thenReturn( programStageUid );
         when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+
         when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
 
         // When
@@ -636,7 +636,7 @@ public class EventDataValuesValidationHookTest
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( 1, reporter.getReportList().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1125 ).count() );
+                .filter( e -> e.getErrorCode() == TrackerErrorCode.E1125 ).count() );
     }
 
     private void runAndAssertValidationForDataValue( ValueType valueType, String value )
@@ -677,13 +677,13 @@ public class EventDataValuesValidationHookTest
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( programStageUid );
         programStage
-            .setProgramStageDataElements( getProgramStageDataElements( validDataElement, programStage, compulsory ) );
+                .setProgramStageDataElements( getProgramStageDataElements( validDataElement, programStage, compulsory ) );
 
         return programStage;
     }
 
     private HashSet<ProgramStageDataElement> getProgramStageDataElements( DataElement validDataElement,
-        ProgramStage programStage, boolean compulsory )
+                                                                          ProgramStage programStage, boolean compulsory )
     {
         return new HashSet<ProgramStageDataElement>()
         {
