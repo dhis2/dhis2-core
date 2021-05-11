@@ -64,14 +64,11 @@ public class JsonPatchManager
 
         try
         {
-            object = (T) jsonMapper.treeToValue( node, object.getClass() );
-            // TODO refresh object
+            return (T) jsonMapper.treeToValue( node, object.getClass() );
         }
         catch ( JsonProcessingException e )
         {
             throw new JsonPatchException( e.getMessage() );
         }
-
-        return object;
     }
 }
