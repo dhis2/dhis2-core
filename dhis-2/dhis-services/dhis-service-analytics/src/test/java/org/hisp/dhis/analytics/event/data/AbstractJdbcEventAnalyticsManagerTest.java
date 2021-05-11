@@ -324,7 +324,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void testGetWhereClauseWithOrgUnitTDescendants()
+    public void testGetWhereClauseWithOrgUnitDescendants()
     {
         // Given
         final DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,

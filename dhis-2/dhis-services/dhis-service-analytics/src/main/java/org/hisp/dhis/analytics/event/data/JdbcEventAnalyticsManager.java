@@ -43,7 +43,6 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
@@ -600,12 +599,13 @@ public class JdbcEventAnalyticsManager
             orgUnitColsAndUnitUids.put( orgUnitCol, orgUnitValue );
         }
 
-        for ( final Map.Entry<String, String> entry : orgUnitColsAndUnitUids.entrySet() )
-        {
-            statement.append( entry.getKey() ).append( OPEN_IN ).append( entry.getValue() ).append( ") or " );
-        }
+        // Generates a code like: ax."uidlevel0" in ('orgUid-1', 'orgUid-2',
+        // 'orgUid-2') or ax."uidlevel0" in ('orgUid-1') or ...
+        statement.append( orgUnitColsAndUnitUids.entrySet().stream()
+            .map( entry -> (entry.getKey()).concat( OPEN_IN ).concat( entry.getValue() ).concat( ")" ) )
+            .collect( Collectors.joining( " or " ) ) ).toString();
 
-        return removeLastOr( statement.toString() ).concat( ") " );
+        return statement.append( " ) " ).toString();
     }
 
     /**
