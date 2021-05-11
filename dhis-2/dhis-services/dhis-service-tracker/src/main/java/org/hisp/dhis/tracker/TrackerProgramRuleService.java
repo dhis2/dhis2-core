@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker;
 
 import java.util.List;
 
-import org.hisp.dhis.programrule.engine.RuleEffectByObject;
+import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 /**
@@ -47,5 +47,5 @@ public interface TrackerProgramRuleService
      * @return List containing tracker object uids and their associated rule
      *         effects.
      */
-    List<RuleEffectByObject> calculateRuleEffects( TrackerBundle bundle );
+    List<RuleEffects> calculateRuleEffects( TrackerBundle bundle );
 }
