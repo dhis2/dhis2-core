@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.programrule;
 
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
+import static org.hisp.dhis.rules.models.TrackerObjectType.ENROLLMENT;
+import static org.hisp.dhis.rules.models.TrackerObjectType.EVENT;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.junit.Assert.*;
@@ -43,7 +45,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.programrule.engine.RuleEffectByObject;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -510,27 +511,26 @@ public class AssignValueImplementerTest
         return Lists.newArrayList( attribute );
     }
 
-    private List<RuleEffectByObject> getRuleEventEffects( List<Event> events )
+    private List<RuleEffects> getRuleEventEffects( List<Event> events )
     {
-        List<RuleEffectByObject> ruleEffectsByEvent = Lists.newArrayList();
+        List<RuleEffects> ruleEffectsByEvent = Lists.newArrayList();
 
         for ( Event event : events )
         {
-            ruleEffectsByEvent.add( RuleEffectByObject.ruleEffectForEvent( event.getEvent(), getRuleEventEffects() ) );
+            ruleEffectsByEvent.add( new RuleEffects( EVENT, event.getEvent(), getRuleEventEffects() ) );
 
         }
         return ruleEffectsByEvent;
     }
 
-    private List<RuleEffectByObject> getRuleEnrollmentEffects( List<Enrollment> enrollments )
+    private List<RuleEffects> getRuleEnrollmentEffects( List<Enrollment> enrollments )
     {
-        List<RuleEffectByObject> ruleEffectsByEnrollment = Lists.newArrayList();
+        List<RuleEffects> ruleEffectsByEnrollment = Lists.newArrayList();
 
         for ( Enrollment enrollment : enrollments )
         {
             ruleEffectsByEnrollment
-                .add( RuleEffectByObject
-                    .ruleEffectForEnrollment( enrollment.getEnrollment(), getRuleEnrollmentEffects() ) );
+                .add( new RuleEffects( ENROLLMENT, enrollment.getEnrollment(), getRuleEnrollmentEffects() ) );
 
         }
         return ruleEffectsByEnrollment;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,25 +26,24 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.importer;
+package org.hisp.dhis.tracker.importer.enrollments;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hamcrest.Matchers;
+import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AtomicModeTests
+public class EnrollmentsUpdateTests
     extends TrackerNtiApiTest
 {
     @BeforeAll
@@ -54,50 +53,24 @@ public class AtomicModeTests
     }
 
     @Test
-    public void shouldNotImportWhenErrorsWithoutAtomicMode()
+    public void shouldNotUpdateImmutableProperties()
         throws Exception
     {
-        TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().add( "atomicMode=ALL" ) );
+        String enrollmentId = importEnrollment();
+        String program = new ProgramActions().createProgram( "WITH_REGISTRATION" ).extractUid();
+        JsonObject body = trackerActions.get( "/enrollments/" + enrollmentId ).getBody();
 
-        response.validate()
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "stats.ignored", equalTo( 3 ) );
+        body = JsonObjectBuilder.jsonObject( body )
+            .addProperty( "enrollment", enrollmentId )
+            .addProperty( "trackedEntity", importTei() )
+            .addProperty( "program", program )
+            .wrapIntoArray( "enrollments" );
 
-        response.validateErrorReport()
-            .body( "", hasSize( 2 ) )
-            .body( "trackerType", contains( "TRACKED_ENTITY", "RELATIONSHIP" ) );
-    }
-
-    @Test
-    public void shouldImportWhenErrorsWithAtomicMode()
-        throws Exception
-    {
-        TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().addAll( "atomicMode=OBJECT" ) );
-
-        response.validate()
-            .body( "status", equalTo( "OK" ) )
-            .body( "stats.ignored", equalTo( 2 ) )
-            .body( "stats.created", equalTo( 1 ) );
-
-        response.validateErrorReport()
-            .body( "", hasSize( 2 ) )
-            .body( "trackerType", contains( "TRACKED_ENTITY", "RELATIONSHIP" ) );
-
-    }
-
-    private JsonObject createWrongPayload()
-        throws Exception
-    {
-        JsonObject object = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) )
-            .get( JsonObject.class );
-
-        object = JsonObjectBuilder.jsonObject( object )
-            .addPropertyByJsonPath( "trackedEntities[0].trackedEntityType", "" )
-            .build();
-
-        return object;
+        trackerActions.postAndGetJobReport( body, new QueryParamsBuilder().add( "importStrategy=UPDATE" ) )
+            .validateErrorReport()
+            .body( "", hasSize( Matchers.greaterThanOrEqualTo( 2 ) ) )
+            .body( "errorCode", hasItems( "E1127", "E1127" ) )
+            .body( "message", Matchers.hasItem( Matchers.containsString( "trackedEntity" ) ) )
+            .body( "message", Matchers.hasItem( Matchers.containsString( "program" ) ) );
     }
 }

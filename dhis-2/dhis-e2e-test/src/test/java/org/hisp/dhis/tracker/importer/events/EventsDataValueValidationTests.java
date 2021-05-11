@@ -31,17 +31,15 @@ package org.hisp.dhis.tracker.importer.events;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.SharingActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -56,11 +54,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventsDataValueValidationTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
     private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
-
-    private TrackerActions trackerActions;
 
     private ProgramActions programActions;
 
@@ -77,12 +73,11 @@ public class EventsDataValueValidationTests
     @BeforeAll
     public void beforeAll()
     {
-        trackerActions = new TrackerActions();
         programActions = new ProgramActions();
         sharingActions = new SharingActions();
         dataElementActions = new RestApiActions( "/dataElements" );
 
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
 
         setupData();
     }
