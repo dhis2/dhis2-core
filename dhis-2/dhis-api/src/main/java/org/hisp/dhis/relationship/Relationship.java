@@ -29,7 +29,6 @@ package org.hisp.dhis.relationship;
 
 import java.io.Serializable;
 
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -56,7 +55,6 @@ public class Relationship
 
     private RelationshipType relationshipType;
 
-    @AuditAttribute
     private RelationshipItem from;
 
     private RelationshipItem to;
