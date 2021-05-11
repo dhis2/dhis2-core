@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,8 @@
 
 package org.hisp.dhis.tracker.importer;
 
-import com.google.gson.JsonObject;
-import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -44,7 +41,7 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AtomicModeTests
+public class TrackerImporterImportModeTests
     extends TrackerNtiApiTest
 {
     @BeforeAll
@@ -54,50 +51,20 @@ public class AtomicModeTests
     }
 
     @Test
-    public void shouldNotImportWhenErrorsWithoutAtomicMode()
-        throws Exception
+    public void shouldNotCommitWhenImportModeIsValidate()
     {
-        TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().add( "atomicMode=ALL" ) );
+        ApiResponse response = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/tei.json" ),
+            new QueryParamsBuilder().add( "importMode=VALIDATE" ) );
 
         response.validate()
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "stats.ignored", equalTo( 3 ) );
-
-        response.validateErrorReport()
-            .body( "", hasSize( 2 ) )
-            .body( "trackerType", contains( "TRACKED_ENTITY", "RELATIONSHIP" ) );
-    }
-
-    @Test
-    public void shouldImportWhenErrorsWithAtomicMode()
-        throws Exception
-    {
-        TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().addAll( "atomicMode=OBJECT" ) );
-
-        response.validate()
+            .statusCode( 200 )
             .body( "status", equalTo( "OK" ) )
-            .body( "stats.ignored", equalTo( 2 ) )
-            .body( "stats.created", equalTo( 1 ) );
-
-        response.validateErrorReport()
-            .body( "", hasSize( 2 ) )
-            .body( "trackerType", contains( "TRACKED_ENTITY", "RELATIONSHIP" ) );
+            .body( "stats.created", equalTo( 0 ) )
+            .body( "stats.total", equalTo( 0 ) )
+            .body( "validationReport", notNullValue() )
+            .body( "validationReport.errorReports", empty() )
+            .body( "validationReport.warningReports", empty() );
 
     }
 
-    private JsonObject createWrongPayload()
-        throws Exception
-    {
-        JsonObject object = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) )
-            .get( JsonObject.class );
-
-        object = JsonObjectBuilder.jsonObject( object )
-            .addPropertyByJsonPath( "trackedEntities[0].trackedEntityType", "" )
-            .build();
-
-        return object;
-    }
 }

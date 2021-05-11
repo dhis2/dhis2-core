@@ -99,14 +99,12 @@ public class EventDataValuesValidationHookTest
 
         when( dataElement.getUid() ).thenReturn( dataElementUid );
         when( dataElement.getValueType() ).thenReturn( ValueType.TEXT );
-
         when( event.getProgramStage() ).thenReturn( programStageUid );
-        when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
+        when( event.getStatus() ).thenReturn( EventStatus.SKIPPED );
 
         when( validationContext.getBundle() ).thenReturn( TrackerBundle.builder().build() );
         when( validationContext.getDataElement( dataElementUid ) ).thenReturn( dataElement );
         when( validationContext.getProgramStage( anyString() ) ).thenReturn( programStage );
-
         DataElement dataElement = new DataElement();
         dataElement.setUid( dataElementUid );
 
@@ -338,8 +336,8 @@ public class EventDataValuesValidationHookTest
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
-        when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
         when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
+        when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
 
         // When
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
@@ -366,6 +364,8 @@ public class EventDataValuesValidationHookTest
 
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
         when( event.getProgramStage() ).thenReturn( programStageUid );
+
+        when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
         when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
@@ -379,7 +379,89 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenDataElementValueIsNullAndDataElementIsCompulsory()
+    public void validationWhenDataElementValueIsNullAndValidationStrategyOnUpdate()
+    {
+        // Given
+        DataValue validDataValue = getDataValue();
+        validDataValue.setValue( null );
+
+        DataElement validDataElement = new DataElement();
+        validDataElement.setUid( validDataValue.getDataElement() );
+        validDataElement.setValueType( ValueType.TEXT );
+
+        String programStageUid = "programStageUid";
+
+        ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
+
+        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
+        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
+        when( event.getProgramStage() ).thenReturn( programStageUid );
+        when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
+        when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+
+        when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
+
+        // When
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        hookToTest.validateEvent( reporter, event );
+
+        // Then
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
+
+        when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
+
+        // When
+        reporter = new ValidationErrorReporter( validationContext, event );
+        hookToTest.validateEvent( reporter, event );
+
+        // Then
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void validationWhenDataElementValueIsNullAndValidationStrategyOnComplete()
+    {
+        // Given
+        DataValue validDataValue = getDataValue();
+        validDataValue.setValue( null );
+
+        DataElement validDataElement = new DataElement();
+        validDataElement.setUid( validDataValue.getDataElement() );
+        validDataElement.setValueType( ValueType.TEXT );
+
+        String programStageUid = "programStageUid";
+
+        ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
+        programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
+
+        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
+        when( event.getProgramStage() ).thenReturn( programStageUid );
+        when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
+        when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+        when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
+
+        // When
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        hookToTest.validateEvent( reporter, event );
+
+        // Then
+        assertThat( reporter.getReportList(), hasSize( 0 ) );
+
+        when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
+
+        // When
+        reporter = new ValidationErrorReporter( validationContext, event );
+        hookToTest.validateEvent( reporter, event );
+
+        // Then
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void validationWhenDataElementValueIsNullAndEventStatusSkippedOrScheduled()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -397,15 +479,23 @@ public class EventDataValuesValidationHookTest
         when( event.getProgramStage() ).thenReturn( programStageUid );
         when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
+        when( event.getStatus() ).thenReturn( EventStatus.SCHEDULE );
 
         // When
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getReportList(), hasSize( 0 ) );
+
+        when( event.getStatus() ).thenReturn( EventStatus.SKIPPED );
+
+        // When
+        reporter = new ValidationErrorReporter( validationContext, event );
+        hookToTest.validateEvent( reporter, event );
+
+        // Then
+        assertThat( reporter.getReportList(), hasSize( 0 ) );
     }
 
     @Test
@@ -588,7 +678,6 @@ public class EventDataValuesValidationHookTest
         programStage.setUid( programStageUid );
         programStage
             .setProgramStageDataElements( getProgramStageDataElements( validDataElement, programStage, compulsory ) );
-        programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
 
         return programStage;
     }
