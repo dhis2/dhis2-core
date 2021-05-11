@@ -50,6 +50,7 @@ import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.snippets.SomeUserId;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -59,6 +60,7 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
+@Ignore
 public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 {
     @Test

@@ -61,7 +61,6 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
-import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -92,6 +91,7 @@ import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -575,9 +575,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @ResponseBody
     @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json" )
-    public WebMessage partialUpdateObject(
-        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request )
+    public void partialUpdateObject(
+        @PathVariable( "uid" ) String pvUid,
+        @RequestParam Map<String, String> rpParameters,
+        HttpServletRequest request,
+        HttpServletResponse response )
         throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
@@ -600,13 +602,31 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         prePatchEntity( persistedObject );
 
         final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
-        final T updatedObject = (T) jsonPatchManager.apply( patch, persistedObject );
-        validateAndThrowErrors( () -> schemaValidator.validate( updatedObject ) );
-        manager.update( updatedObject );
+        final T patchedObject = (T) jsonPatchManager.apply( patch, persistedObject );
 
-        postPatchEntity( persistedObject );
+        // we don't allow changing UIDs
+        ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
 
-        return WebMessageUtils.ok( "Patched successfully." );
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( patchedObject );
+
+        ImportReport importReport = importService.importMetadata( params );
+        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
+
+        if ( importReport.getStatus() == Status.OK )
+        {
+            T entity = manager.get( getEntityClass(), pvUid );
+            postPatchEntity( entity );
+        }
+        else
+        {
+            webMessage.setStatus( Status.ERROR );
+        }
+
+        webMessageService.send( webMessage, response, request );
     }
 
     @SuppressWarnings( "unchecked" )

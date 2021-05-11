@@ -44,6 +44,7 @@ import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonString;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -54,6 +55,7 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
+@Ignore
 public class GistQueryControllerTest extends DhisControllerConvenienceTest
 {
     @Autowired
