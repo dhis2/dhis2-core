@@ -29,16 +29,14 @@
 package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -55,31 +53,24 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class UserAssignmentTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
     private static final String programStageId = "l8oDIfJJhtg";
 
     private static final String programId = "BJ42SUrAvHo";
 
-    private LoginActions loginActions;
-
     private ProgramActions programActions;
 
     private MetadataActions metadataActions;
 
-    private TrackerActions trackerActions;
-
     @BeforeAll
     public void beforeAll()
     {
-        loginActions = new LoginActions();
         programActions = new ProgramActions();
         metadataActions = new MetadataActions();
-        trackerActions = new TrackerActions();
 
         loginActions.loginAsSuperUser();
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
-
     }
 
     @ParameterizedTest

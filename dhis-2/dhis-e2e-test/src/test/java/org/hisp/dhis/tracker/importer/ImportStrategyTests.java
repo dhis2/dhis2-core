@@ -30,15 +30,11 @@ package org.hisp.dhis.tracker.importer;
 
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.MaintenanceActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.junit.jupiter.api.AfterEach;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,42 +42,18 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class ImportStrategyTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
-    private TrackerActions trackerActions;
-
     @BeforeAll
     public void beforeAll()
     {
-        trackerActions = new TrackerActions();
-
-        new LoginActions().loginAsSuperUser();
-    }
-
-    @ParameterizedTest
-    @ValueSource( strings = { "UPDATE", "DELETE" } )
-    public void shouldReturnErrorWhenTeiDoesntExist( String importStrategy )
-        throws Exception
-    {
-        JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
-
-        ApiResponse response = trackerActions
-            .postAndGetJobReport( teiBody, new QueryParamsBuilder().add( String.format( "importStrategy=%s", importStrategy ) ) );
-
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "stats.ignored", equalTo( 1 ) )
-            .body( "validationReport.errorReports", notNullValue() )
-            .rootPath( "validationReport.errorReports[0]" )
-            .body( "errorCode", equalTo( "E1063" ) )
-            .body( "message", containsStringIgnoringCase( "does not exist" ) );
+        loginActions.loginAsSuperUser();
     }
 
     @ParameterizedTest
@@ -143,11 +115,12 @@ public class ImportStrategyTests
 
     @Test
     public void shouldDeleteReferencingEventsWhenEnrollmentIsDeletedInNestedPayload()
-            throws Exception
+        throws Exception
     {
         // arrange
         JsonObject body = new FileReaderUtils()
-                .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) );
+            .readJsonAndGenerateData(
+                new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( body ).validateSuccessfulImport();
         String teiId = response.extractImportedTeis().get( 0 );
@@ -159,53 +132,19 @@ public class ImportStrategyTests
 
         // act
         response = trackerActions.postAndGetJobReport( body, new QueryParamsBuilder().add( "importStrategy=DELETE" ) )
-                .validateSuccessfulImport();
+            .validateSuccessfulImport();
 
         // assert
         response.validateSuccessfulImport()
-                .validate().body( "stats.deleted", Matchers.equalTo( 4 ) );
+            .validate().body( "stats.deleted", Matchers.equalTo( 4 ) );
 
         trackerActions.get( "/trackedEntities/" + teiId )
-                .validate().statusCode( 404 );
+            .validate().statusCode( 404 );
         trackerActions.get( "/enrollments/" + enrollmentId )
-                .validate().statusCode( 404 );
+            .validate().statusCode( 404 );
         trackerActions.get( "/events/" + eventId1 )
-                .validate().statusCode( 404 );
+            .validate().statusCode( 404 );
         trackerActions.get( "/events/" + eventId2 )
-                .validate().statusCode( 404 );
-    }
-
-    @Test
-    public void shouldUpdateWithUpdateStrategy()
-        throws Exception
-    {
-        String teiId = importTei();
-
-        JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
-        teiBody.getAsJsonArray( "trackedEntities" ).get( 0 ).getAsJsonObject().addProperty( "trackedEntity", teiId );
-
-        ApiResponse response = trackerActions
-            .postAndGetJobReport( teiBody, new QueryParamsBuilder().add( "importStrategy=UPDATE" ) );
-
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "OK" ) )
-            .body( "stats.updated", equalTo( 1 ) );
-    }
-
-    private String importTei()
-        throws Exception
-    {
-        JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
-
-        return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedTeis().get( 0 );
-
-    }
-
-    @AfterEach
-    public void afterEach()
-    {
-        new MaintenanceActions().removeSoftDeletedData();
+            .validate().statusCode( 404 );
     }
 }
