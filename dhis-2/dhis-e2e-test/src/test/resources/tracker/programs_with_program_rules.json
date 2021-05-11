@@ -1241,8 +1241,8 @@
       "programRule": {
         "id": "Xh9idCUkyaF"
       },
-      "dataElement": {
-        "id": "inc5BJvr4W5"
+      "trackedEntityAttribute": {
+        "id": "dIVt4l5vIOa"
       },
       "favorites": [],
       "evaluationEnvironments": [
