@@ -92,6 +92,26 @@ public enum ErrorCode
     E4028( "Option set `{0}` already contains option `{1}`" ),
     E4029( "Job parameters cannot be null for job type: {0}" ),
 
+    E4030( "Object could not be deleted because it is associated with another object: {0}" ),
+
+    E4032( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
+    E4033( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
+
+    /* SQL views */
+    E4300( "SQL query is null" ),
+    E4301( "SQL query must be a select query" ),
+    E4302( "SQL query can only contain a single semi-colon at the end of the query" ),
+    E4303( "Variables contain null key" ),
+    E4304( "Variables contain null value" ),
+    E4305( "Variable params are invalid: `{0}`" ),
+    E4306( "Variables are invalid: `{0}`" ),
+    E4307( "SQL query contains variables not provided in request: `{0}`" ),
+    E4308( "Criteria params are invalid: `{0}`" ),
+    E4309( "Criteria values are invalid: `{0}`" ),
+    E4310( "SQL query contains references to protected tables" ),
+    E4311( "SQL query contains illegal keywords" ),
+    E4312( "Current user is not authorised to read data from SQL view: `{0}`" ),
+
     /* Preheat */
     E5000(
         "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
