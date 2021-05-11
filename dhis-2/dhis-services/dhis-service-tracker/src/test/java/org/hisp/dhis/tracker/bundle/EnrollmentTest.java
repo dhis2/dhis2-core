@@ -149,8 +149,8 @@ public class EnrollmentTest
 
         List<ProgramInstance> pis = manager.getAll( ProgramInstance.class );
 
-        assertEquals( 1, pis.size() );
-        ProgramInstance pi = pis.iterator().next();
+        assertEquals( 2, pis.size() );
+        ProgramInstance pi = pis.stream().filter( e -> e.getUid().equals( "TvctPPhpD8u" ) ).findAny().get();
 
         compareEnrollmentBasicProperties( pi, enrollmentParams.getEnrollments().get( 0 ) );
 
@@ -170,8 +170,8 @@ public class EnrollmentTest
 
         pis = manager.getAll( ProgramInstance.class );
 
-        assertEquals( 1, pis.size() );
-        pi = pis.iterator().next();
+        assertEquals( 2, pis.size() );
+        pi = pis.stream().filter( e -> e.getUid().equals( "TvctPPhpD8u" ) ).findAny().get();
         compareEnrollmentBasicProperties( pi, updatedEnrollment );
     }
 

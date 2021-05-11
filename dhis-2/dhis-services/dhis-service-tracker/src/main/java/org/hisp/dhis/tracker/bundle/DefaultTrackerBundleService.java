@@ -39,7 +39,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.programrule.engine.RuleEffectByObject;
+import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.ParamsConverter;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerObjectDeletionService;
@@ -124,7 +124,7 @@ public class DefaultTrackerBundleService
     @Override
     public TrackerBundle runRuleEngine( TrackerBundle trackerBundle )
     {
-        List<RuleEffectByObject> ruleEffects = trackerProgramRuleService
+        List<RuleEffects> ruleEffects = trackerProgramRuleService
             .calculateRuleEffects( trackerBundle );
         trackerBundle.setRuleEffects( ruleEffects );
 
