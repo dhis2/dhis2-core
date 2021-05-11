@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang.time.DateUtils.addYears;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
@@ -587,31 +587,25 @@ public class JdbcEventAnalyticsManager
         final StringBuilder statement = new StringBuilder();
         final Map<String, String> orgUnitColsAndUnitUids = new HashMap<>();
 
-        statement.append( helper.whereAnd() + " (" );
+        statement.append( helper.whereAnd() ).append( " (" );
 
         for ( final DimensionalItemObject itemObject : dimensionalItems )
         {
             final OrganisationUnit unit = (OrganisationUnit) itemObject;
-
             final String orgUnitCol = quote( orgUnitAlias, "uidlevel" + unit.getLevel() );
+            final String orgUnitValue = isBlank( orgUnitColsAndUnitUids.get( orgUnitCol ) )
+                ? wrap( unit.getUid(), "'" )
+                : trimToEmpty( orgUnitColsAndUnitUids.get( orgUnitCol ) ) + ", " + wrap( unit.getUid(), "'" );
 
-            if ( isNotBlank( orgUnitColsAndUnitUids.get( orgUnitCol ) ) )
-            {
-                orgUnitColsAndUnitUids.put( orgUnitCol,
-                    trimToEmpty( orgUnitColsAndUnitUids.get( orgUnitCol ) ) + ", " + wrap( unit.getUid(), "'" ) );
-            }
-            else
-            {
-                orgUnitColsAndUnitUids.put( orgUnitCol, wrap( unit.getUid(), "'" ) );
-            }
+            orgUnitColsAndUnitUids.put( orgUnitCol, orgUnitValue );
         }
 
         for ( final Map.Entry<String, String> entry : orgUnitColsAndUnitUids.entrySet() )
         {
-            statement.append( entry.getKey() + OPEN_IN + entry.getValue() + ") or " );
+            statement.append( entry.getKey() ).append( OPEN_IN ).append( entry.getValue() ).append( ") or " );
         }
 
-        return removeLastOr( statement.toString() ) + ") ";
+        return removeLastOr( statement.toString() ).concat( ") " );
     }
 
     /**
