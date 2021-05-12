@@ -57,7 +57,7 @@ public class SpringConfiguration
     {
         StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
         startupRoutine.setName( "StartupFinishedRoutine" );
-        startupRoutine.setRunlevel( 33 );
+        startupRoutine.setRunlevel( 42 );
         startupRoutine.setSkipInTests( true );
         return startupRoutine;
     }

@@ -61,7 +61,6 @@ public final class EmbeddedJettyUncaughtExceptionHandler
 
     static final class Exiter implements Thread.UncaughtExceptionHandler
     {
-
         private final Runtime runtime;
 
         private final Logger logger;

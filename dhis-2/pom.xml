@@ -29,6 +29,14 @@
     </license>
   </licenses>
 
+  <modules>
+    <module>dhis-api</module>
+    <module>dhis-services</module>
+    <module>dhis-support</module>
+    <module>dhis-web-api</module>
+    <module>dhis-web-embedded-jetty</module>
+  </modules>
+
   <properties>
     <!-- Build Properties-->
     <rootDir></rootDir>
@@ -354,27 +362,7 @@
       </properties>
     </profile>
 
-    <profile>
-      <id>embeddedJetty</id>
-      <modules>
-        <module>dhis-api</module>
-        <module>dhis-services</module>
-        <module>dhis-support</module>
-        <module>dhis-web-api</module>
-        <module>dhis-web-embedded-jetty</module>
-      </modules>
-    </profile>
-
-    <profile>
-      <id>defaultModules</id>
-      <modules>
-        <module>dhis-api</module>
-        <module>dhis-services</module>
-        <module>dhis-support</module>
-        <module>dhis-web-api</module>
-      </modules>
-    </profile>
-
+    <!-- Default profile will run all unit-tests, but not the integration tests -->
     <profile>
       <id>default</id>
       <build>
@@ -401,7 +389,7 @@
       </build>
     </profile>
 
-    <!-- Integration test profile -->
+    <!-- Integration test profile, this runs all the integrations tests, but not the unit tests -->
     <profile>
       <id>integration</id>
       <build>
