@@ -54,7 +54,7 @@ public class JobConfigurationSerializationTest
 {
     private static final String UID1 = "ajsdglkjASG";
 
-    private static final String UID2 = "aksjfhakjdsfh";
+    private static final String UID2 = "aksjfhakHg2";
 
     @Test
     public void xmlWithArray()
