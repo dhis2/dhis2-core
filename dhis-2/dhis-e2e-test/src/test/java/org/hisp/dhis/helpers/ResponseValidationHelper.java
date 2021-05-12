@@ -28,9 +28,10 @@
 
 package org.hisp.dhis.helpers;
 
-import org.hisp.dhis.dto.ApiResponse;
-
 import static org.hamcrest.CoreMatchers.isA;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.dto.ApiResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -39,7 +40,7 @@ public class ResponseValidationHelper
 {
     public static void validateObjectRemoval( ApiResponse response, String message )
     {
-        response.validate().statusCode( 200 );
+        assertEquals( 200, response.statusCode(), message );
         validateObjectUpdateResponse( response );
     }
 

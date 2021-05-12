@@ -26,89 +26,78 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.importer.events;
+package org.hisp.dhis.tracker.importer.tei;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hamcrest.Matchers;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.hasItem;
+import java.io.File;
+
+import static org.hamcrest.CoreMatchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventNotesTests
+public class TeiUpdateTests
     extends TrackerNtiApiTest
 {
     @BeforeAll
     public void beforeAll()
     {
+
         loginActions.loginAsSuperUser();
     }
 
     @Test
-    public void shouldUpdateEventWithANote()
+    public void shouldUpdateWithUpdateStrategy()
+        throws Exception
     {
-        //arrange
-        JsonObject ob = buildEventWithNote();
+        // arrange
+        String teiId = importTei();
 
-        String eventId = trackerActions.postAndGetJobReport( ob )
-            .validateSuccessfulImport()
-            .extractImportedEvents().get( 0 );
-
-        JsonObjectBuilder.jsonObject( ob ).addPropertyByJsonPath( "events[0]", "event", eventId );
+        JsonObject teiBody = trackerActions.get( "/trackedEntities/" + teiId ).getBody();
+        teiBody = JsonObjectBuilder.jsonObject( teiBody )
+            .addProperty( "trackedEntity", teiId )
+            .wrapIntoArray( "trackedEntities" );
 
         // act
-
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( ob );
+        ApiResponse response = trackerActions
+            .postAndGetJobReport( teiBody, new QueryParamsBuilder().add( "importStrategy=UPDATE" ) );
 
         // assert
-        response.validateSuccessfulImport()
-            .validate()
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo( "OK" ) )
             .body( "stats.updated", equalTo( 1 ) );
     }
 
-    @Test
-    public void shouldNotAddAnotherNote()
+    @ParameterizedTest
+    @ValueSource( strings = { "UPDATE", "DELETE" } )
+    public void shouldReturnErrorWhenTeiDoesntExist( String importStrategy )
+        throws Exception
     {
-        //arrange
-        JsonObject ob = buildEventWithNote();
+        JsonObject teiBody = new FileReaderUtils()
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
 
-        String eventId = trackerActions.postAndGetJobReport( ob )
-            .validateSuccessfulImport()
-            .extractImportedEvents().get( 0 );
+        ApiResponse response = trackerActions
+            .postAndGetJobReport( teiBody, new QueryParamsBuilder().add( String.format( "importStrategy=%s", importStrategy ) ) );
 
-        ob = trackerActions.get( "/events/" + eventId ).getBody();
-
-        ob = JsonObjectBuilder.jsonObject( ob ).wrapIntoArray( "events" );
-
-        // act
-
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( ob );
-
-        // assert
-        response.validateSuccessfulImport()
-            .validateWarningReport()
-            .body( "trackerType", everyItem( equalTo( "EVENT" ) ) )
-            .body( "warningCode", hasItem( "E1119" ) );
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "stats.ignored", equalTo( 1 ) )
+            .body( "validationReport.errorReports", notNullValue() )
+            .rootPath( "validationReport.errorReports[0]" )
+            .body( "errorCode", equalTo( "E1063" ) )
+            .body( "message", containsStringIgnoringCase( "does not exist" ) );
     }
-
-    private JsonObject buildEventWithNote()
-    {
-        JsonObject ob = trackerActions
-            .buildEvent( Constants.ORG_UNIT_IDS[1], Constants.EVENT_PROGRAM_ID, Constants.EVENT_PROGRAM_STAGE_ID );
-
-        JsonObjectBuilder.jsonObject( ob )
-            .addArrayByJsonPath( "events[0]", "notes",
-                new JsonObjectBuilder().addProperty( "value", DataGenerator.randomString() ).build() );
-        return ob;
-    }
-
 }

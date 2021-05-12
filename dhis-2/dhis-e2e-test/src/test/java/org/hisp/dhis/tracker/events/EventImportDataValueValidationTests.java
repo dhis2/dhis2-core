@@ -92,7 +92,7 @@ public class EventImportDataValueValidationTests
     @Test
     public void shouldNotValidateDataValuesOnUpdateWithOnCompleteStrategy()
     {
-        setValidationStrategy( programStageId, "ON_COMPLETE" );
+        programActions.programStageActions.setValidationStrategy( programStageId, "ON_COMPLETE" );
 
         JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
 
@@ -107,7 +107,7 @@ public class EventImportDataValueValidationTests
     @Test
     public void shouldValidateDataValuesOnCompleteWhenEventIsCompleted()
     {
-        setValidationStrategy( programStageId, "ON_COMPLETE" );
+        programActions.programStageActions.setValidationStrategy( programStageId, "ON_COMPLETE" );
 
         JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
         event.addProperty( "status", "COMPLETED" );
@@ -125,7 +125,7 @@ public class EventImportDataValueValidationTests
     @Test
     public void shouldValidateCompletedOnInsert()
     {
-        setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
+        programActions.programStageActions.setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
 
         JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
         event.addProperty( "status", "COMPLETED" );
@@ -143,7 +143,7 @@ public class EventImportDataValueValidationTests
     @Test
     public void shouldValidateDataValuesOnUpdate()
     {
-        setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
+        programActions.programStageActions.setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
 
         JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
 
@@ -218,19 +218,4 @@ public class EventImportDataValueValidationTests
         dataValues.add( dataValue );
         body.add( "dataValues", dataValues );
     }
-
-    private void setValidationStrategy( String programStageId, String strategy )
-    {
-        JsonObject body = JsonObjectBuilder.jsonObject()
-            .addProperty( "validationStrategy", strategy )
-            .build();
-
-        programActions.programStageActions.patch( programStageId, body )
-            .validate().statusCode( 204 );
-
-        programActions.programStageActions.get( programStageId )
-            .validate().body( "validationStrategy", equalTo( strategy ) );
-
-    }
-
 }

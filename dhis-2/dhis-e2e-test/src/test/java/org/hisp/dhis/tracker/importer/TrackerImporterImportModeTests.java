@@ -28,11 +28,9 @@
 
 package org.hisp.dhis.tracker.importer;
 
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -43,21 +41,17 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImporterTests
-    extends ApiTest
+public class TrackerImporterImportModeTests
+    extends TrackerNtiApiTest
 {
-    private TrackerActions trackerActions;
-
     @BeforeAll
     public void beforeAll()
     {
-        trackerActions = new TrackerActions();
-
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
     }
 
     @Test
-    public void shouldNotCommitWhenStrategyIsValidate()
+    public void shouldNotCommitWhenImportModeIsValidate()
     {
         ApiResponse response = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/tei.json" ),
             new QueryParamsBuilder().add( "importMode=VALIDATE" ) );
