@@ -44,7 +44,6 @@ import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonString;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
