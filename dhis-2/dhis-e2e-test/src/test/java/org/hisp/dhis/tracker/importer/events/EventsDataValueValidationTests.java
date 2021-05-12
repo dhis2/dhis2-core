@@ -126,7 +126,7 @@ public class EventsDataValueValidationTests
 
     @ParameterizedTest
     @CsvSource(
-        { "ON_COMPLETE,ACTIVE" }
+        { "ON_COMPLETE,ACTIVE", "ON_UPDATE_AND_INSERT,SCHEDULE", "ON_UPDATE_AND_INSERT,SKIPPED" }
     )
     public void shouldRemoveMandatoryDataValue( String validationStrategy, String eventStatus )
     {

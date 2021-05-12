@@ -52,23 +52,25 @@ public class ProgramActions
     public ProgramActions()
     {
         super( "/programs" );
-        this.programStageActions = new ProgramStageActions( );
+        this.programStageActions = new ProgramStageActions();
     }
 
     public ApiResponse createProgram( String programType )
     {
         JsonObject object = getDummy( programType );
 
-        if (programType.equalsIgnoreCase( "with_registration" )) {
-            object.addProperty( "trackedEntityType", "Q9GufDoplCL" );
+        if ( programType.equalsIgnoreCase( "WITH_REGISTRATION" ) )
+        {
+            JsonObjectBuilder.jsonObject( object )
+                .addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", "Q9GufDoplCL" ) );
         }
+
         return post( object );
     }
 
     public ApiResponse createTrackerProgram( String... orgUnitIds )
     {
         return createProgram( "WITH_REGISTRATION", orgUnitIds );
-
     }
 
     public ApiResponse createEventProgram( String... orgUnitsIds )
@@ -151,21 +153,20 @@ public class ProgramActions
             .addOrAppendToArray( "programStageDataElements", new JsonObjectBuilder()
                 .addProperty( "compulsory", String.valueOf( isMandatory ) )
                 .addObject( "dataElement", new JsonObjectBuilder().addProperty( "id", dataElementId ) )
-                .build());
-
+                .build() );
 
         return programStageActions.update( programStageId, object );
     }
 
-    public ApiResponse addAttribute( String programId, String teiAttributeId, boolean isMandatory ) {
+    public ApiResponse addAttribute( String programId, String teiAttributeId, boolean isMandatory )
+    {
         JsonObject object = this.get( programId, new QueryParamsBuilder().add( "fields=*" ) ).getBody();
 
         JsonObjectBuilder.jsonObject( object )
             .addOrAppendToArray( "programTrackedEntityAttributes", new JsonObjectBuilder()
                 .addProperty( "mandatory", String.valueOf( isMandatory ) )
                 .addObject( "trackedEntityAttribute", new JsonObjectBuilder().addProperty( "id", teiAttributeId ) )
-                .build());
-
+                .build() );
 
         return this.update( programId, object );
     }
@@ -210,11 +211,11 @@ public class ProgramActions
         return object;
     }
 
-    public ApiResponse getOrgUnitsAssociations(String... programUids)
+    public ApiResponse getOrgUnitsAssociations( String... programUids )
     {
-        return get("/orgUnits", new QueryParamsBuilder().add(
-                Arrays.stream(programUids)
-                        .collect(Collectors.joining(",", "programs=", ""))));
+        return get( "/orgUnits", new QueryParamsBuilder().add(
+            Arrays.stream( programUids )
+                .collect( Collectors.joining( ",", "programs=", "" ) ) ) );
     }
 
 }

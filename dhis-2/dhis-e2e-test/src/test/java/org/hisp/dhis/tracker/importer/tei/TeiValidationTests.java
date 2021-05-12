@@ -135,7 +135,8 @@ public class TeiValidationTests
             .body( "message", hasItem( allOf( containsStringIgnoringCase( "TrackedEntityAttribute" ),
                 containsStringIgnoringCase( mandatoryTetAttribute ) ) ) )
             .body( "message", hasItem(
-                allOf( containsStringIgnoringCase( "Attribute" ), containsStringIgnoringCase( mandatoryProgramAttribute ) ) ) );
+                allOf( containsStringIgnoringCase( "TrackedEntityAttribute" ),
+                    containsStringIgnoringCase( mandatoryProgramAttribute ) ) ) );
     }
 
     @Test
