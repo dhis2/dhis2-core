@@ -27,28 +27,26 @@
  */
 package org.hisp.dhis.user;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
+@AllArgsConstructor
 @Component( "org.hisp.dhis.user.UserDeletionHandler" )
 public class UserDeletionHandler
     extends DeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
 
-    public UserDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
-
-        this.idObjectManager = idObjectManager;
-    }
+    private final JdbcTemplate jdbcTemplate;
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -105,5 +103,13 @@ public class UserDeletionHandler
         }
 
         return null;
+    }
+
+    @Override
+    public String allowDeleteFileResource( FileResource fileResource )
+    {
+        String sql = "SELECT COUNT(*) FROM userinfo where avatar=" + fileResource.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
 }

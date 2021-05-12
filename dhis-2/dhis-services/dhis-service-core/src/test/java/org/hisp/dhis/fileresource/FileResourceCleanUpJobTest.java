@@ -51,6 +51,8 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.junit.Before;
@@ -94,6 +96,9 @@ public class FileResourceCleanUpJobTest
     @Autowired
     private ExternalFileResourceService externalFileResourceService;
 
+    @Autowired
+    private UserService _userService;
+
     @Mock
     private FileResourceContentStore fileResourceContentStore;
 
@@ -111,6 +116,8 @@ public class FileResourceCleanUpJobTest
     @Before
     public void init()
     {
+        userService = _userService;
+
         cleanUpJob = new FileResourceCleanUpJob( fileResourceService, systemSettingManager, fileResourceContentStore );
 
         period = createPeriod( PeriodType.getPeriodTypeByName( "Monthly" ), new Date(), new Date() );
@@ -179,15 +186,33 @@ public class FileResourceCleanUpJobTest
             FileResourceRetentionStrategy.NONE );
 
         content = "filecontentA".getBytes( StandardCharsets.UTF_8 );
-        FileResource fileResource = createFileResource( 'A', content );
-        fileResource.setCreated( DateTime.now().minus( Days.ONE ).toDate() );
-        String uid = fileResourceService.saveFileResource( fileResource, content );
+        FileResource fileResourceA = createFileResource( 'A', content );
+        fileResourceA.setCreated( DateTime.now().minus( Days.ONE ).toDate() );
+        String uidA = fileResourceService.saveFileResource( fileResourceA, content );
 
-        assertNotNull( fileResourceService.getFileResource( uid ) );
+        content = "filecontentB".getBytes( StandardCharsets.UTF_8 );
+        FileResource fileResourceB = createFileResource( 'A', content );
+        fileResourceB.setCreated( DateTime.now().minus( Days.ONE ).toDate() );
+        String uidB = fileResourceService.saveFileResource( fileResourceB, content );
+
+        User userB = createUser( 'B' );
+        userB.setAvatar( fileResourceB );
+        userService.addUser( userB );
+
+        assertNotNull( fileResourceService.getFileResource( uidA ) );
+        assertNotNull( fileResourceService.getFileResource( uidB ) );
 
         cleanUpJob.execute( null );
 
-        assertNull( fileResourceService.getFileResource( uid ) );
+        assertNull( fileResourceService.getFileResource( uidA ) );
+        assertNotNull( fileResourceService.getFileResource( uidB ) );
+
+        // The following is needed because HibernateDbmsManager.emptyDatabase
+        // empties fileresource before userinfo (which it must because
+        // fileresource references userinfo).
+
+        userB.setAvatar( null );
+        userService.updateUser( userB );
     }
 
     @Test
