@@ -468,7 +468,7 @@ public class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( subject.getFixedColumns().size() + PeriodType.getAvailablePeriodTypes().size()
-                + ouGroupSet.size() + (programA.isRegistration() ? 2 : 0) )
+                + ouGroupSet.size() + (programA.isRegistration() ? 1 : 0) )
             .addColumns( periodColumns ).withDefaultColumns( subject.getFixedColumns() )
             .addColumn( quote( ouGroupSet.get( 0 ).getUid() ), col -> match( ouGroupSet.get( 0 ), col ) )
             .addColumn( quote( ouGroupSet.get( 1 ).getUid() ), col -> match( ouGroupSet.get( 1 ), col ) ).build()

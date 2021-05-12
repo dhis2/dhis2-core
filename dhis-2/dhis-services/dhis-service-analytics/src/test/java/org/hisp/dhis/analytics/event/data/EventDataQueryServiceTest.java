@@ -179,6 +179,7 @@ public class EventDataQueryServiceTest
     public void testGetFromUrlA()
     {
         final String coordinateField = "EVENT";
+        final String fallbackCoordinateField = "ougeometry";
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
         dimensionParams.add( atA.getUid() + ":LE:5" );
@@ -190,7 +191,7 @@ public class EventDataQueryServiceTest
             .program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams )
             .coordinateField( coordinateField )
-            .fallbackCoordinateField( coordinateField )
+            .fallbackCoordinateField( fallbackCoordinateField )
             .coordinateOuFallback( true )
             .build();
 
@@ -201,7 +202,7 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getItems().size() );
         assertEquals( 2, params.getFilterPeriods().size() );
         assertEquals( "psigeometry", params.getCoordinateField() );
-        assertEquals( "ougeometry", params.getFallbackCoordinateField() );
+        assertEquals( fallbackCoordinateField, params.getFallbackCoordinateField() );
         assertTrue( params.isCoordinateOuFallback() );
     }
 
