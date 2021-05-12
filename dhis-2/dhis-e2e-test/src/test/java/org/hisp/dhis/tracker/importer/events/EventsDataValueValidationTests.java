@@ -30,22 +30,24 @@ package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.SharingActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
@@ -56,11 +58,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventsDataValueValidationTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
     private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
-
-    private TrackerActions trackerActions;
 
     private ProgramActions programActions;
 
@@ -74,15 +74,16 @@ public class EventsDataValueValidationTests
 
     private String mandatoryDataElementId;
 
+    private String notMandatoryDataElementId;
+
     @BeforeAll
     public void beforeAll()
     {
-        trackerActions = new TrackerActions();
         programActions = new ProgramActions();
         sharingActions = new SharingActions();
         dataElementActions = new RestApiActions( "/dataElements" );
 
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
 
         setupData();
     }
@@ -93,7 +94,7 @@ public class EventsDataValueValidationTests
     )
     public void shouldNotValidateWhenDataValueExists( String validationStrategy, String eventStatus )
     {
-        setValidationStrategy( programStageId, validationStrategy );
+        programActions.programStageActions.setValidationStrategy( programStageId, validationStrategy );
 
         JsonObject events = createEventBodyWithStatus( eventStatus );
 
@@ -112,7 +113,7 @@ public class EventsDataValueValidationTests
     )
     public void shouldValidateWhenNoDataValue( String validationStrategy, String eventStatus )
     {
-        setValidationStrategy( programStageId, validationStrategy );
+        programActions.programStageActions.setValidationStrategy( programStageId, validationStrategy );
 
         JsonObject event = createEventBodyWithStatus( eventStatus );
 
@@ -124,6 +125,75 @@ public class EventsDataValueValidationTests
 
         response.validateErrorReport()
             .body( "errorCode", hasItem( "E1303" ) );
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        { "ON_COMPLETE,ACTIVE", "ON_UPDATE_AND_INSERT,SCHEDULE", "ON_UPDATE_AND_INSERT,SKIPPED" }
+    )
+    public void shouldRemoveMandatoryDataValue( String validationStrategy, String eventStatus )
+    {
+        programActions.programStageActions.setValidationStrategy( programStageId, validationStrategy );
+
+        JsonObject event = createEventBodyWithStatus( eventStatus );
+
+        addDataValue( event.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject(), mandatoryDataElementId, "TEXT VALUE" );
+
+        String eventId = trackerActions.postAndGetJobReport( event ).validateSuccessfulImport().extractImportedEvents().get( 0 );
+
+        event = trackerActions.get( "/events/" + eventId ).getBody();
+
+        event = JsonObjectBuilder.jsonObject( event )
+            .addPropertyByJsonPath( "dataValues[0].value", null )
+            .wrapIntoArray( "events" );
+
+        trackerActions.postAndGetJobReport( event )
+            .validateSuccessfulImport();
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        { "ON_UPDATE_AND_INSERT,ACTIVE" }
+    )
+    public void shouldNotRemoveMandatoryDataValue( String validationStrategy, String eventStatus )
+    {
+        programActions.programStageActions.setValidationStrategy( programStageId, validationStrategy );
+
+        JsonObject event = createEventBodyWithStatus( eventStatus );
+
+        addDataValue( event.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject(), mandatoryDataElementId, "TEXT VALUE" );
+
+        String eventId = trackerActions.postAndGetJobReport( event ).validateSuccessfulImport().extractImportedEvents().get( 0 );
+
+        event = trackerActions.get( "/events/" + eventId ).getBody();
+
+        event = JsonObjectBuilder.jsonObject( event )
+            .addPropertyByJsonPath( "dataValues[0].value", null )
+            .wrapIntoArray( "events" );
+
+        trackerActions.postAndGetJobReport( event )
+            .validateErrorReport()
+            .body( "message", hasItem( CoreMatchers.containsString( "DataElement" ) ) )
+            .body( "message", hasItem( CoreMatchers.containsString( mandatoryDataElementId ) ) );
+    }
+
+    @Test
+    public void shouldRemoveNotMandatoryDataValue()
+    {
+        JsonObject event = createEventBodyWithStatus( "ACTIVE" );
+
+        addDataValue( event.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject(), notMandatoryDataElementId, "TEXT VALUE" );
+
+        String eventId = trackerActions.postAndGetJobReport( event ).validateSuccessfulImport().extractImportedEvents().get( 0 );
+
+        event = trackerActions.get( "/events/" + eventId ).getBody();
+
+        event = JsonObjectBuilder.jsonObject( event )
+            .addPropertyByJsonPath( "dataValues[0].value", null )
+            .wrapIntoArray( "events" );
+
+        trackerActions.postAndGetJobReport( event )
+            .validateSuccessfulImport();
     }
 
     @Test
@@ -142,7 +212,6 @@ public class EventsDataValueValidationTests
             .body( "objectReports[0].errorReports", empty() );
 
         String eventId = response.extractImportedEvents().get( 0 );
-        assertNotNull( eventId, "Failed to extract eventId" );
 
         trackerActions.get( "/events/" + eventId )
             .validate()
@@ -154,6 +223,12 @@ public class EventsDataValueValidationTests
     private JsonObject createEventBodyWithStatus( String status )
     {
         JsonObject body = trackerActions.buildEvent( OU_ID, programId, programStageId );
+
+        if ( status.equalsIgnoreCase( "SCHEDULE" ) )
+        {
+            body.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject()
+                .addProperty( "scheduledAt", Instant.now().plus( 1, ChronoUnit.DAYS ).toString() );
+        }
 
         body.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "status", status );
         return body;
@@ -172,14 +247,19 @@ public class EventsDataValueValidationTests
 
         assertNotNull( programStageId, "Failed to create a programStage" );
 
-        String dataElementId = dataElementActions
-            .get( "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:eq:TEXT&pageSize=1" )
+        ApiResponse dataelements = dataElementActions
+            .get( "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:in:[TEXT,LONG_TEXT]&pageSize=2" );
+        dataelements.validate().body( "dataElements", hasSize( 2 ) );
+
+        mandatoryDataElementId = dataelements
             .extractString( "dataElements.id[0]" );
+        notMandatoryDataElementId = dataelements.extractString(
+            "dataElements.id[1]"
+        );
 
-        assertNotNull( dataElementId, "Failed to find data elements" );
-        mandatoryDataElementId = dataElementId;
+        programActions.addDataElement( programStageId, mandatoryDataElementId, true ).validate().statusCode( 200 );
+        programActions.addDataElement( programStageId, notMandatoryDataElementId, false ).validate().statusCode( 200 );
 
-        programActions.addDataElement( programStageId, dataElementId, true ).validate().statusCode( 200 );
     }
 
     private void addDataValue( JsonObject body, String dataElementId, String value )
@@ -193,18 +273,5 @@ public class EventsDataValueValidationTests
 
         dataValues.add( dataValue );
         body.add( "dataValues", dataValues );
-    }
-
-    private void setValidationStrategy( String programStageId, String strategy )
-    {
-        JsonObject body = JsonObjectBuilder.jsonObject()
-            .addProperty( "validationStrategy", strategy )
-            .build();
-
-        programActions.programStageActions.patch( programStageId, body )
-            .validate().statusCode( 204 );
-
-        programActions.programStageActions.get( programStageId )
-            .validate().body( "validationStrategy", equalTo( strategy ) );
     }
 }
