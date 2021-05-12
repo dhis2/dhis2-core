@@ -319,12 +319,6 @@ public class DefaultEventDataQueryService
         return getCoordinateField( coordinateField, "psigeometry" );
     }
 
-    @Override
-    public String getFallbackCoordinateField()
-    {
-        return getCoordinateField( null, "ougeometry" );
-    }
-
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
