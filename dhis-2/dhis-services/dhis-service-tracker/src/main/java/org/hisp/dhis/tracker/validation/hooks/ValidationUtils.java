@@ -130,8 +130,19 @@ public class ValidationUtils
 
     public static boolean needsToValidateDataValues( Event event, ProgramStage programStage )
     {
-        return !event.getStatus().equals( EventStatus.ACTIVE ) ||
-            !programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE );
+        if ( event.getStatus().equals( EventStatus.SCHEDULE ) || event.getStatus().equals( EventStatus.SKIPPED ) )
+        {
+            return false;
+        }
+        else if ( programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE )
+            && event.getStatus().equals( EventStatus.COMPLETED ) )
+        {
+            return true;
+        }
+        else
+        {
+            return !programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE );
+        }
     }
 
     public static void addIssuesToReporter( ValidationErrorReporter reporter, List<ProgramRuleIssue> programRuleIssues )
