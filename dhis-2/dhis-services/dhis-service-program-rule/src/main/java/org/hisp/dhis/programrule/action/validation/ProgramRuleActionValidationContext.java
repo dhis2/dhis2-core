@@ -25,38 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.programrule.action.validation;
 
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataentryform.DataEntryForm;
+import lombok.Builder;
+import lombok.Data;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
- * @author Chau Thu Tran
+ * @author Zubair Asghar
  */
-public interface ProgramStageStore
-    extends IdentifiableObjectStore<ProgramStage>
+
+@Data
+@Builder
+public class ProgramRuleActionValidationContext
 {
+    private Program program;
 
-    /**
-     * Retrieve a program stage by name and a program
-     *
-     * @param name Name of program stage
-     * @param program Specify a {@link Program} for retrieving a program stage.
-     *        The system allows the name of program stages are duplicated on
-     *        different programs
-     * @return ProgramStage
-     */
-    ProgramStage getByNameAndProgram( String name, Program program );
+    private ProgramRule programRule;
 
-    /**
-     * Get all ProgramStages associated with the given DataEntryForm.
-     *
-     * @param dataEntryForm the DataEntryForm.
-     * @return a list of ProgramStages.
-     */
-    List<ProgramStage> getByDataEntryForm( DataEntryForm dataEntryForm );
+    private DataElement dataElement;
 
-    List<ProgramStage> getByProgram( Program program );
+    private TrackedEntityAttribute trackedEntityAttribute;
+
+    private ProgramStageSection programStageSection;
+
+    private ProgramStage programStage;
+
+    private Option option;
+
+    private OptionGroup optionGroup;
+
+    private ProgramNotificationTemplate notificationTemplate;
+
+    private ProgramRuleActionValidationService programRuleActionValidationService;
+
+    private List<ProgramStage> programStages;
 }

@@ -25,38 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.programrule.action.validation;
 
-import java.util.List;
+import javax.annotation.Nonnull;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataentryform.DataEntryForm;
+import lombok.Builder;
+import lombok.Getter;
+
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Chau Thu Tran
+ * @author Zubair Asghar
  */
-public interface ProgramStageStore
-    extends IdentifiableObjectStore<ProgramStage>
+
+@Getter
+@Builder
+@Component( "org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationService" )
+public class ProgramRuleActionValidationService
 {
+    @Nonnull
+    private final ProgramStageService programStageService;
 
-    /**
-     * Retrieve a program stage by name and a program
-     *
-     * @param name Name of program stage
-     * @param program Specify a {@link Program} for retrieving a program stage.
-     *        The system allows the name of program stages are duplicated on
-     *        different programs
-     * @return ProgramStage
-     */
-    ProgramStage getByNameAndProgram( String name, Program program );
+    @Nonnull
+    private final ProgramService programService;
 
-    /**
-     * Get all ProgramStages associated with the given DataEntryForm.
-     *
-     * @param dataEntryForm the DataEntryForm.
-     * @return a list of ProgramStages.
-     */
-    List<ProgramStage> getByDataEntryForm( DataEntryForm dataEntryForm );
+    @Nonnull
+    private final ProgramStageSectionService sectionService;
 
-    List<ProgramStage> getByProgram( Program program );
+    @Nonnull
+    private final ProgramStageDataElementService stageDataElementService;
+
+    @Nonnull
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
+
+    @Nonnull
+    private final DataElementService dataElementService;
+
+    @Nonnull
+    private final OptionService optionService;
+
+    @Nonnull
+    private final ProgramNotificationTemplateService notificationTemplateService;
 }

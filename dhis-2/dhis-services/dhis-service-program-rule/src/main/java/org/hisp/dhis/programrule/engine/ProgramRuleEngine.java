@@ -59,6 +59,8 @@ import com.google.api.client.util.Lists;
 @RequiredArgsConstructor
 public class ProgramRuleEngine
 {
+    private static final String ERROR = "Program cannot be null";
+
     @NonNull
     private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
@@ -188,16 +190,38 @@ public class ProgramRuleEngine
     {
         if ( program == null )
         {
-            log.error( "Program cannot be null" );
-            return RuleValidationResult.builder().isValid( false ).errorMessage( "Program cannot be null" ).build();
+            log.error( ERROR );
+            return RuleValidationResult.builder().isValid( false ).errorMessage( ERROR ).build();
         }
 
+        return loadRuleEngineForDescription( program ).evaluate( condition );
+    }
+
+    /**
+     * To get description for program rule action data field.
+     *
+     * @param dataExpression of program rule action data field expression.
+     * @param program {@link Program} which the programRule is associated with.
+     * @return RuleValidationResult contains description of program rule
+     *         condition or errorMessage
+     */
+    public RuleValidationResult getDataExpressionDescription( String dataExpression, Program program )
+    {
+        if ( program == null )
+        {
+            log.error( ERROR );
+            return RuleValidationResult.builder().isValid( false ).errorMessage( ERROR ).build();
+        }
+
+        return loadRuleEngineForDescription( program ).evaluateDataFieldExpression( dataExpression );
+    }
+
+    private RuleEngine loadRuleEngineForDescription( Program program )
+    {
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( program );
 
-        RuleEngine ruleEngine = ruleEngineBuilder( ListUtils.newList(), programRuleVariables,
+        return ruleEngineBuilder( ListUtils.newList(), programRuleVariables,
             RuleEngineIntent.DESCRIPTION ).build();
-
-        return ruleEngine.evaluate( condition );
     }
 
     private RuleEngineContext getRuleEngineContext( Program program, List<ProgramRule> programRules )

@@ -25,38 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.programrule;
 
-import java.util.List;
+import lombok.Builder;
+import lombok.Data;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * @author Chau Thu Tran
+ * @author Zubair Asghar
  */
-public interface ProgramStageStore
-    extends IdentifiableObjectStore<ProgramStage>
+
+@Data
+@Builder
+public class ProgramRuleActionValidationResult
 {
+    private String description;
 
-    /**
-     * Retrieve a program stage by name and a program
-     *
-     * @param name Name of program stage
-     * @param program Specify a {@link Program} for retrieving a program stage.
-     *        The system allows the name of program stages are duplicated on
-     *        different programs
-     * @return ProgramStage
-     */
-    ProgramStage getByNameAndProgram( String name, Program program );
+    private boolean valid;
 
-    /**
-     * Get all ProgramStages associated with the given DataEntryForm.
-     *
-     * @param dataEntryForm the DataEntryForm.
-     * @return a list of ProgramStages.
-     */
-    List<ProgramStage> getByDataEntryForm( DataEntryForm dataEntryForm );
-
-    List<ProgramStage> getByProgram( Program program );
+    private ErrorReport errorReport;
 }
