@@ -46,6 +46,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.*;
@@ -221,6 +223,10 @@ public class EventsDataValueValidationTests
     {
         JsonObject body = trackerActions.buildEvent( OU_ID, programId, programStageId );
 
+        if ( status.equalsIgnoreCase( "SCHEDULE" ) ) {
+            body.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "scheduledAt", Instant.now().plus( 1, ChronoUnit.DAYS ).toString());
+        }
+        
         body.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "status", status );
         return body;
     }
