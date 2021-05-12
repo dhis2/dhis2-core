@@ -52,9 +52,9 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
  */
 public class JobConfigurationSerializationTest
 {
-    private static final String PROGRAM1 = "Information Campaign";
+    private static final String UID1 = "ajsdglkjASG";
 
-    private static final String PROGRAM2 = "Malaria case diagnosis, treatment and investigation";
+    private static final String UID2 = "aksjfhakjdsfh";
 
     @Test
     public void xmlWithArray()
@@ -94,8 +94,8 @@ public class JobConfigurationSerializationTest
                 "          <skipTableType>VALIDATION_RESULT</skipTableType>\n" +
                 "        </skipTableTypes>" +
                 "        <skipPrograms>\n" +
-                "          <String>" + PROGRAM1 + "</String>\n" +
-                "          <String>" + PROGRAM2 + "</String>\n" +
+                "          <String>" + UID1 + "</String>\n" +
+                "          <String>" + UID2 + "</String>\n" +
                 "        </skipPrograms>" +
                 "      </jobParameters>\n" +
                 "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
@@ -118,7 +118,7 @@ public class JobConfigurationSerializationTest
         assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
             AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
         assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(), Matchers.hasItems(
-            PROGRAM1, PROGRAM2 ) );
+            UID1, UID2 ) );
 
     }
 
@@ -219,8 +219,8 @@ public class JobConfigurationSerializationTest
                 "          <skipTableType>VALIDATION_RESULT</skipTableType>\n" +
                 "        </skipTableTypes>" +
                 "        <skipPrograms>\n" +
-                "          <String>" + PROGRAM1 + "</String>\n" +
-                "          <String>" + PROGRAM2 + "</String>\n" +
+                "          <String>" + UID1 + "</String>\n" +
+                "          <String>" + UID2 + "</String>\n" +
                 "        </skipPrograms>" +
                 "      </jobParameters>\n" +
                 "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
@@ -244,7 +244,7 @@ public class JobConfigurationSerializationTest
         assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
             AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
         assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(), Matchers.hasItems(
-            PROGRAM1, PROGRAM2 ) );
+            UID1, UID2 ) );
 
     }
 
@@ -284,7 +284,7 @@ public class JobConfigurationSerializationTest
             "      },\n" +
             "      \"jobParameters\":{\"lastYears\":2,\"skipResourceTables\":true," +
             "      \"skipTableTypes\":[\"ENROLLMENT\",\"ORG_UNIT_TARGET\",\"VALIDATION_RESULT\"]," +
-            "      \"skipPrograms\":[\"" + PROGRAM1 + "\"" + ",\"" + PROGRAM2 + "\"]" +
+            "      \"skipPrograms\":[\"" + UID1 + "\"" + ",\"" + UID2 + "\"]" +
             "      }," +
             "      \"favorites\": [],\n" +
             "      \"translations\": [],\n" +
@@ -310,7 +310,7 @@ public class JobConfigurationSerializationTest
         assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
             AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
         assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(),
-            Matchers.hasItems( PROGRAM1, PROGRAM2 ) );
+            Matchers.hasItems( UID1, UID2 ) );
     }
 
     @Test
@@ -349,7 +349,7 @@ public class JobConfigurationSerializationTest
             "      },\n" +
             "      \"jobParameters\":{\"lastYears\":2,\"skipResourceTables\":true," +
             "      \"skipTableTypes\":[\"ENROLLMENT\",\"ORG_UNIT_TARGET\",\"VALIDATION_RESULT\"]," +
-            "      \"skipPrograms\":[\"" + PROGRAM1 + "\"" + ",\"" + PROGRAM2 + "\"]" +
+            "      \"skipPrograms\":[\"" + UID1 + "\"" + ",\"" + UID2 + "\"]" +
             "      }," +
             "      \"favorites\": [],\n" +
             "      \"translations\": [],\n" +
@@ -375,7 +375,7 @@ public class JobConfigurationSerializationTest
         assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
             AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
         assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipPrograms(), Matchers.hasItems(
-            PROGRAM1, PROGRAM2 ) );
+            UID1, UID2 ) );
 
     }
 }

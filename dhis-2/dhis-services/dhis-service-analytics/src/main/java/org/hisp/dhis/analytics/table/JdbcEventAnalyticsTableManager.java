@@ -157,7 +157,7 @@ public class JdbcEventAnalyticsTableManager
 
         Calendar calendar = PeriodType.getCalendar();
 
-        List<Program> programs = params.hasSkipPrograms() ? idObjectManager.getAllNoAcl( Program.class )
+        List<Program> programs = params.isSkipPrograms() ? idObjectManager.getAllNoAcl( Program.class )
             : idObjectManager.getAllNoAcl( Program.class )
                 .stream()
                 .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
@@ -212,11 +212,10 @@ public class JdbcEventAnalyticsTableManager
 
         List<AnalyticsTable> tables = new ArrayList<>();
 
-        List<Program> programs = params.getSkipPrograms().size() == 0 ? idObjectManager.getAllNoAcl( Program.class )
-            : idObjectManager.getAllNoAcl( Program.class )
-                .stream()
-                .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
-                .collect( Collectors.toList() );
+        List<Program> programs = params.isSkipPrograms() ? idObjectManager.getAllNoAcl( Program.class )
+            .stream()
+            .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
+            .collect( Collectors.toList() ) : idObjectManager.getAllNoAcl( Program.class );
 
         for ( Program program : programs )
         {

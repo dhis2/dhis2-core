@@ -134,9 +134,9 @@ public class AnalyticsTableUpdateParams
         return lastSuccessfulUpdate;
     }
 
-    public boolean hasSkipPrograms()
+    public boolean isSkipPrograms()
     {
-        return skipPrograms.size() > 0;
+        return !skipPrograms.isEmpty();
     }
 
     /**
