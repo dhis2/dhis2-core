@@ -38,7 +38,6 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -139,39 +138,5 @@ public class JsonPatchManagerTest
 
         assertEquals( "updated", patchedDataElementGroup.getName() );
         assertEquals( 3, patchedDataElementGroup.getMembers().size() );
-    }
-
-    @Test
-    @Ignore
-    public void testCollectionAddPatchAddPersist()
-        throws Exception
-    {
-        DataElementGroup dataElementGroup = createDataElementGroup( 'A' );
-        assertEquals( "DataElementGroupA", dataElementGroup.getName() );
-
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-
-        manager.save( dataElementA );
-        manager.save( dataElementB );
-
-        dataElementGroup.getMembers().add( dataElementA );
-        dataElementGroup.getMembers().add( dataElementB );
-
-        assertEquals( 2, dataElementGroup.getMembers().size() );
-
-        manager.save( dataElementGroup );
-
-        JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"/id\", \"value\": \"" + CodeGenerator.generateUid() + "\"}," +
-            "{\"op\": \"add\", \"path\": \"/code\", \"value\": \"new code\"}," +
-            "{\"op\": \"add\", \"path\": \"/name\", \"value\": \"new name\"}," +
-            "{\"op\": \"add\", \"path\": \"/shortName\", \"value\": \"new short name\"}" +
-            "]", JsonPatch.class );
-
-        assertNotNull( patch );
-
-        DataElementGroup patchedDataElementGroup = jsonPatchManager.apply( patch, dataElementGroup );
-        manager.save( patchedDataElementGroup );
     }
 }

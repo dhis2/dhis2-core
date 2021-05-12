@@ -574,7 +574,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @ResponseBody
-    @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json" )
+    @PatchMapping( path = "/{uid}", consumes = { "application/json-patch+json", "application/json" } )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,

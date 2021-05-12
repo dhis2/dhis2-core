@@ -60,7 +60,6 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-@Ignore
 public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 {
     @Test

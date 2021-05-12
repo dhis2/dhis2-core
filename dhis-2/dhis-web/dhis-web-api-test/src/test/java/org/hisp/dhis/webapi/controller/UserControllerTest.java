@@ -55,7 +55,6 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-@Ignore
 public class UserControllerTest extends DhisControllerConvenienceTest
 {
 
