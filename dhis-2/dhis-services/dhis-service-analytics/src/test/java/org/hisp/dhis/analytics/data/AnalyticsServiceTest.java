@@ -567,7 +567,7 @@ public class AnalyticsServiceTest
             .withIndicators( Lists.newArrayList( indicatorG ) )
             .withAggregationType( AnalyticsAggregationType.SUM )
             .withPeriod( peJuly )
-            /* .withOutputFormat( OutputFormat.DATA_VALUE_SET ) */.build();
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
         // Max value - org unit B and C - data element A - 2017 Feb
         DataQueryParams deA_ouB_ouC_2017_02_params = DataQueryParams.newBuilder()
@@ -773,7 +773,7 @@ public class AnalyticsServiceTest
 
             aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping( params );
 
-            AnalyticsTestUtils.assertResultMapping( aggregatedDataValueMapping, results.get( key ) );
+            AnalyticsTestUtils.assertResultMapping( key, aggregatedDataValueMapping, results.get( key ) );
         }
 
         for ( Map.Entry<String, AnalyticalObject> entry : analyticalObjectHashMap.entrySet() )
@@ -783,7 +783,7 @@ public class AnalyticsServiceTest
 
             aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping( params );
 
-            AnalyticsTestUtils.assertResultMapping( aggregatedDataValueMapping, results.get( key ) );
+            AnalyticsTestUtils.assertResultMapping( key, aggregatedDataValueMapping, results.get( key ) );
         }
     }
 

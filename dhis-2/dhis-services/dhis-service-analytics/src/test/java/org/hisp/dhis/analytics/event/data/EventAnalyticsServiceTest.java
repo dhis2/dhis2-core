@@ -54,7 +54,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -226,8 +225,6 @@ public class EventAnalyticsServiceTest
         analyticsTableGenerator.dropTables();
     }
 
-    @Ignore // FIXME jimgrace This test returns no grid rows, so it fails now.
-            // It needs fixing.
     @Test
     public void testGridAggregation()
     {
