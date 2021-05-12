@@ -323,7 +323,7 @@ public class DefaultEventDataQueryService
     @Override
     public String getFallbackCoordinateField( String fallbackCoordinateField )
     {
-        return getCoordinateField( fallbackCoordinateField, "ougeometry" );
+        return fallbackCoordinateField == null ? "ougeometry" : fallbackCoordinateField;
     }
 
     // -------------------------------------------------------------------------

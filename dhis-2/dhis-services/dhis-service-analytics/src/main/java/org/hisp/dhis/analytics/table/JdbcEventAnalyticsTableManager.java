@@ -128,6 +128,8 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "ouname" ), TEXT, NOT_NULL, "ou.name" ),
         new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" ),
         new AnalyticsTableColumn( quote( "ougeometry" ), GEOMETRY, "ou.geometry" )
+            .withIndexType( IndexType.GIST ),
+        new AnalyticsTableColumn( quote( "pigeometry" ), GEOMETRY, "pi.geometry" )
             .withIndexType( IndexType.GIST ) );
 
     @Override
@@ -380,7 +382,6 @@ public class JdbcEventAnalyticsTableManager
         if ( program.isRegistration() )
         {
             columns.add( new AnalyticsTableColumn( quote( "tei" ), CHARACTER_11, "tei.uid" ) );
-            columns.add( new AnalyticsTableColumn( quote( "pigeometry" ), GEOMETRY, "pi.geometry" ) );
         }
 
         return filterDimensionColumns( columns );
