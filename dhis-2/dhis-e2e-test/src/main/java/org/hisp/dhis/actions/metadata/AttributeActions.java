@@ -64,8 +64,4 @@ public class AttributeActions extends RestApiActions
         }
         return this.create( ob );
     }
-
-    public String createTeiAttribute( String valueType ) {
-        return createAttribute( valueType, false, "program" );
-    }
 }
