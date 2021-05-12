@@ -30,6 +30,7 @@ package org.hisp.dhis.user;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
