@@ -29,17 +29,25 @@ package org.hisp.dhis.program;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Data
+@Accessors( chain = true )
 public class ProgramInstanceQueryParams
 {
     public static final int DEFAULT_PAGE = 1;
@@ -128,6 +136,11 @@ public class ProgramInstanceQueryParams
      * Indicates whether to include soft-deleted enrollments
      */
     private boolean includeDeleted;
+
+    /**
+     * List or order params
+     */
+    private List<OrderParam> order;
 
     // -------------------------------------------------------------------------
     // Transient properties
@@ -291,194 +304,8 @@ public class ProgramInstanceQueryParams
         this.skipPaging = false;
     }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    public Date getLastUpdated()
+    public boolean isSorting()
     {
-        return lastUpdated;
-    }
-
-    public ProgramInstanceQueryParams setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-        return this;
-    }
-
-    public String getLastUpdatedDuration()
-    {
-        return lastUpdatedDuration;
-    }
-
-    public ProgramInstanceQueryParams setLastUpdatedDuration( String lastUpdatedDuration )
-    {
-        this.lastUpdatedDuration = lastUpdatedDuration;
-        return this;
-    }
-
-    public Set<OrganisationUnit> getOrganisationUnits()
-    {
-        return organisationUnits;
-    }
-
-    public ProgramInstanceQueryParams setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
-    {
-        this.organisationUnits = organisationUnits;
-        return this;
-    }
-
-    public OrganisationUnitSelectionMode getOrganisationUnitMode()
-    {
-        return organisationUnitMode;
-    }
-
-    public ProgramInstanceQueryParams setOrganisationUnitMode( OrganisationUnitSelectionMode organisationUnitMode )
-    {
-        this.organisationUnitMode = organisationUnitMode;
-        return this;
-    }
-
-    public Program getProgram()
-    {
-        return program;
-    }
-
-    public ProgramInstanceQueryParams setProgram( Program program )
-    {
-        this.program = program;
-        return this;
-    }
-
-    public ProgramStatus getProgramStatus()
-    {
-        return programStatus;
-    }
-
-    public ProgramInstanceQueryParams setProgramStatus( ProgramStatus programStatus )
-    {
-        this.programStatus = programStatus;
-        return this;
-    }
-
-    public Boolean getFollowUp()
-    {
-        return followUp;
-    }
-
-    public ProgramInstanceQueryParams setFollowUp( Boolean followUp )
-    {
-        this.followUp = followUp;
-        return this;
-    }
-
-    public Date getProgramStartDate()
-    {
-        return programStartDate;
-    }
-
-    public ProgramInstanceQueryParams setProgramStartDate( Date programStartDate )
-    {
-        this.programStartDate = programStartDate;
-        return this;
-    }
-
-    public Date getProgramEndDate()
-    {
-        return programEndDate;
-    }
-
-    public ProgramInstanceQueryParams setProgramEndDate( Date programEndDate )
-    {
-        this.programEndDate = programEndDate;
-        return this;
-    }
-
-    public TrackedEntityType getTrackedEntityType()
-    {
-        return trackedEntityType;
-    }
-
-    public ProgramInstanceQueryParams setTrackedEntityType( TrackedEntityType trackedEntityType )
-    {
-        this.trackedEntityType = trackedEntityType;
-        return this;
-    }
-
-    public String getTrackedEntityInstanceUid()
-    {
-        return trackedEntityInstanceUid;
-    }
-
-    public ProgramInstanceQueryParams setTrackedEntityInstanceUid( String trackedEntityInstanceUid )
-    {
-        this.trackedEntityInstanceUid = trackedEntityInstanceUid;
-        return this;
-    }
-
-    public Integer getPage()
-    {
-        return page;
-    }
-
-    public ProgramInstanceQueryParams setPage( Integer page )
-    {
-        this.page = page;
-        return this;
-    }
-
-    public Integer getPageSize()
-    {
-        return pageSize;
-    }
-
-    public ProgramInstanceQueryParams setPageSize( Integer pageSize )
-    {
-        this.pageSize = pageSize;
-        return this;
-    }
-
-    public boolean isTotalPages()
-    {
-        return totalPages;
-    }
-
-    public ProgramInstanceQueryParams setTotalPages( boolean totalPages )
-    {
-        this.totalPages = totalPages;
-        return this;
-    }
-
-    public boolean isSkipPaging()
-    {
-        return skipPaging;
-    }
-
-    public ProgramInstanceQueryParams setSkipPaging( boolean skipPaging )
-    {
-        this.skipPaging = skipPaging;
-        return this;
-    }
-
-    public boolean isIncludeDeleted()
-    {
-        return includeDeleted;
-    }
-
-    public ProgramInstanceQueryParams setIncludeDeleted( boolean includeDeleted )
-    {
-        this.includeDeleted = includeDeleted;
-        return this;
-    }
-
-    public User getUser()
-    {
-        return user;
-    }
-
-    public ProgramInstanceQueryParams setUser( User user )
-    {
-        this.user = user;
-        return this;
+        return !CollectionUtils.emptyIfNull( order ).isEmpty();
     }
 }

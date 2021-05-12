@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.event.mapper;
 
+import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
+
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -51,6 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEnrollmentCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -97,7 +101,7 @@ public class EnrollmentCriteriaMapper
         Date lastUpdated, String lastUpdatedDuration, String program, ProgramStatus programStatus,
         Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance,
         Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
-        boolean includeDeleted )
+        boolean includeDeleted, List<OrderCriteria> orderCriteria )
     {
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
 
@@ -172,6 +176,7 @@ public class EnrollmentCriteriaMapper
         params.setSkipPaging( skipPaging );
         params.setIncludeDeleted( includeDeleted );
         params.setUser( user );
+        params.setOrder( toOrderParams( orderCriteria ) );
 
         return params;
     }
@@ -195,6 +200,7 @@ public class EnrollmentCriteriaMapper
             trackerEnrollmentCriteria.getPageSize(),
             trackerEnrollmentCriteria.isTotalPages(),
             PagerUtils.isSkipPaging( trackerEnrollmentCriteria.getSkipPaging(), trackerEnrollmentCriteria.getPaging() ),
-            trackerEnrollmentCriteria.isIncludeDeleted() );
+            trackerEnrollmentCriteria.isIncludeDeleted(),
+            trackerEnrollmentCriteria.getOrder() );
     }
 }

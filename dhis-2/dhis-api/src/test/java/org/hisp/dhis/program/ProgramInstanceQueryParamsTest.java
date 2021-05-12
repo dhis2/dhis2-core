@@ -25,40 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.program;
 
-import java.util.Collections;
-import java.util.List;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-/**
- * Sorting parameters
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-public interface SortingCriteria
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.junit.Test;
+
+import com.google.common.collect.ImmutableList;
+
+public class ProgramInstanceQueryParamsTest
 {
 
-    /**
-     * order params
-     */
-    List<OrderCriteria> getOrder();
-
-    /**
-     * Implementors should return a list of fields on which it is allowed to
-     * perform ordering Defaults to empty list which means all fields are
-     * allowed for ordering
-     */
-    default List<String> getAllowedOrderingFields()
+    @Test
+    public void verifyIsSorting()
     {
-        return Collections.emptyList();
-    }
+        ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
 
-    /**
-     * By default it does not translate any field
-     */
-    default String translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return dtoFieldName;
-    }
+        assertFalse( programInstanceQueryParams.isSorting() );
 
+        programInstanceQueryParams.setOrder(
+            ImmutableList.of( OrderParam.builder()
+                .field( "aField" )
+                .direction( OrderParam.SortDirection.ASC )
+                .build() ) );
+
+        assertTrue( programInstanceQueryParams.isSorting() );
+    }
 }
