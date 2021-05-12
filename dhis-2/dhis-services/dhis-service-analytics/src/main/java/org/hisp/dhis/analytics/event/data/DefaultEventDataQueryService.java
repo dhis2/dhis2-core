@@ -249,7 +249,6 @@ public class DefaultEventDataQueryService
             .withTimeField( request.getTimeField() )
             .withOrgUnitField( request.getOrgUnitField() )
             .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
-            .withFallbackCoordinateField( getFallbackCoordinateField( request.getFallbackCoordinateField() ) )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
             .withProgramStatus( request.getProgramStatus() )
@@ -321,9 +320,9 @@ public class DefaultEventDataQueryService
     }
 
     @Override
-    public String getFallbackCoordinateField( String fallbackCoordinateField )
+    public String getFallbackCoordinateField()
     {
-        return getCoordinateField( fallbackCoordinateField, "ougeometry" );
+        return getCoordinateField( null, "ougeometry" );
     }
 
     // -------------------------------------------------------------------------

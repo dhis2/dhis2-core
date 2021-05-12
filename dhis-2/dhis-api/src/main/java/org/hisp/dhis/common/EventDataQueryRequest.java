@@ -116,8 +116,6 @@ public class EventDataQueryRequest
 
     private String coordinateField;
 
-    private String fallbackCoordinateField;
-
     private Integer page;
 
     private Integer pageSize;
@@ -163,7 +161,6 @@ public class EventDataQueryRequest
         queryRequest.timeField = this.timeField;
         queryRequest.coordinatesOnly = this.coordinatesOnly;
         queryRequest.coordinateField = this.coordinateField;
-        queryRequest.fallbackCoordinateField = this.fallbackCoordinateField;
         queryRequest.page = this.page;
         queryRequest.pageSize = this.pageSize;
         return request;
@@ -184,7 +181,6 @@ public class EventDataQueryRequest
                 .collapseDataDimensions( criteria.isCollapseDataDimensions() )
                 .completedOnly( criteria.isCompletedOnly() )
                 .coordinateField( criteria.getCoordinateField() )
-                .fallbackCoordinateField( criteria.getFallbackCoordinateField() )
                 .desc( criteria.getDesc() )
                 .dimension( criteria.getDimension() )
                 .displayProperty( criteria.getDisplayProperty() )

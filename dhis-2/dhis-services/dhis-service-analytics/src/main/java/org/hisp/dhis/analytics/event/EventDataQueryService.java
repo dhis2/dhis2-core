@@ -74,5 +74,5 @@ public interface EventDataQueryService
      * @return the coordinate column field.
      * @throws IllegalQueryException if the coordinate field is not valid.
      */
-    String getFallbackCoordinateField( String coordinate );
+    String getFallbackCoordinateField();
 }

@@ -222,12 +222,6 @@ public class EventsAnalyticsQueryCriteria
     // -------------------------------------------------------------------------
 
     /**
-     * Field to base geospatial event analytics on. Default is event. Can be set
-     * to identifiers of attributes and data elements of value type coordinate.
-     */
-    private String fallbackCoordinateField;
-
-    /**
      * The mode of selecting organisation units. Default is DESCENDANTS, meaning
      * all sub units in the hierarchy. CHILDREN refers to immediate children in
      * the hierarchy; SELECTED refers to the selected organisation units only.
