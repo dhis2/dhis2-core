@@ -190,6 +190,7 @@ public class EventDataQueryServiceTest
             .program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams )
             .coordinateField( coordinateField )
+            .fallbackCoordinateField( coordinateField )
             .coordinateOuFallback( true )
             .build();
 
@@ -200,6 +201,7 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getItems().size() );
         assertEquals( 2, params.getFilterPeriods().size() );
         assertEquals( "psigeometry", params.getCoordinateField() );
+        assertEquals( "ougeometry", params.getFallbackCoordinateField() );
         assertTrue( params.isCoordinateOuFallback() );
     }
 
@@ -227,6 +229,7 @@ public class EventDataQueryServiceTest
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
         assertFalse( params.isCoordinateOuFallback() );
         assertEquals( "psigeometry", params.getCoordinateField() );
+        assertEquals( "ougeometry", params.getFallbackCoordinateField() );
 
     }
 

@@ -247,15 +247,16 @@ public class JdbcEventAnalyticsManager
     @Override
     public Rectangle getRectangle( EventQueryParams params )
     {
+        String fallback = params.getFallbackCoordinateField();
         String quotedClusterFieldFraction;
-        if ( !params.isCoordinateOuFallback() )
+        if ( fallback == null || !params.isCoordinateOuFallback() )
         {
             quotedClusterFieldFraction = quoteAlias( params.getCoordinateField() );
         }
         else
         {
             quotedClusterFieldFraction = "COALESCE(" + quoteAlias( params.getCoordinateField() ) + ","
-                + quoteAlias( "ougeometry" ) + ")";
+                + quoteAlias( fallback ) + ")";
         }
 
         String sql = "select count(psi) as " + COL_COUNT +
@@ -554,7 +555,7 @@ public class JdbcEventAnalyticsManager
                 sql += hlp.whereAnd() + " (" +
                     quoteAlias( resolveCoordinateFieldColumnName( params.getCoordinateField(), params ) ) +
                     " is not null or " +
-                    quoteAlias( resolveCoordinateFieldColumnName( "ougeometry", params ) ) +
+                    quoteAlias( resolveCoordinateFieldColumnName( params.getFallbackCoordinateField(), params ) ) +
                     " is not null )";
             }
             else

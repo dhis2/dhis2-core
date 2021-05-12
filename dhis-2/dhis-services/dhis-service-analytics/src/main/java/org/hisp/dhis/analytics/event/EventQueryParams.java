@@ -210,6 +210,12 @@ public class EventQueryParams
     private String coordinateField;
 
     /**
+     * The fallback coordinate field to use as basis for spatial event
+     * analytics, SQL COALESCE applied on coordinate fields.
+     */
+    private String fallbackCoordinateField;
+
+    /**
      * Bounding box for events to include in clustering.
      */
     private String bbox;
@@ -290,6 +296,7 @@ public class EventQueryParams
         params.aggregateData = this.aggregateData;
         params.clusterSize = this.clusterSize;
         params.coordinateField = this.coordinateField;
+        params.fallbackCoordinateField = this.fallbackCoordinateField;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
         params.programStatus = this.programStatus;
@@ -396,6 +403,7 @@ public class EventQueryParams
             .addIgnoreNull( "aggregateData", aggregateData )
             .addIgnoreNull( "clusterSize", clusterSize )
             .addIgnoreNull( "coordinateField", coordinateField )
+            .addIgnoreNull( "fallbackCoordinateField", fallbackCoordinateField )
             .addIgnoreNull( "bbox", bbox )
             .addIgnoreNull( "includeClusterPoints", includeClusterPoints )
             .addIgnoreNull( "programStatus", programStatus )
@@ -958,6 +966,11 @@ public class EventQueryParams
         return coordinateField;
     }
 
+    public String getFallbackCoordinateField()
+    {
+        return fallbackCoordinateField;
+    }
+
     public String getBbox()
     {
         return bbox;
@@ -1279,6 +1292,12 @@ public class EventQueryParams
         public Builder withCoordinateField( String coordinateField )
         {
             this.params.coordinateField = coordinateField;
+            return this;
+        }
+
+        public Builder withFallbackCoordinateField( String fallbackCoordinateField )
+        {
+            this.params.fallbackCoordinateField = fallbackCoordinateField;
             return this;
         }
 
