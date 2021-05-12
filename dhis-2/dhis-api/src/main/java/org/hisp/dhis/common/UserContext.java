@@ -37,9 +37,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
 
+import jdk.nashorn.internal.ir.annotations.Ignore;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Ignore
 public final class UserContext
 {
     private static final ThreadLocal<User> threadUser = new ThreadLocal<>();

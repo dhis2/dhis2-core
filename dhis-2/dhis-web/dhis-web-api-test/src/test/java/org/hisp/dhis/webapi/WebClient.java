@@ -132,15 +132,12 @@ public interface WebClient
 
     default HttpResponse PATCH( String url, Object... args )
     {
-        return webRequest(
-            patch( substitutePlaceholders( url, args ) ).contentType( "application/json-patch+json" ),
-            requestComponentsIn( args ) );
+        return webRequest( patch( substitutePlaceholders( url, args ) ), requestComponentsIn( args ) );
     }
 
     default HttpResponse PATCH( String url, String body )
     {
-        return webRequest( patch( url ).contentType( "application/json-patch+json" ),
-            new Body( body ) );
+        return webRequest( patch( url ), new Body( body ) );
     }
 
     default HttpResponse PUT( String url, Object... args )

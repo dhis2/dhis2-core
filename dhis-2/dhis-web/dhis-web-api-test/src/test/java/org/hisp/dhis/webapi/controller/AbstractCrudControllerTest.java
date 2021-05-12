@@ -53,12 +53,15 @@ import org.hisp.dhis.webapi.snippets.SomeUserId;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
+import jdk.nashorn.internal.ir.annotations.Ignore;
+
 /**
  * Tests the generic operations offered by the {@link AbstractCrudController}
  * using specific endpoints.
  *
  * @author Jan Bernitt
  */
+@Ignore
 public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 {
     @Test
