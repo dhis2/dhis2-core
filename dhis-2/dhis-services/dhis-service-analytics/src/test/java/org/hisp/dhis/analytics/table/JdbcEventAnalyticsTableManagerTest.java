@@ -440,7 +440,7 @@ public class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( subject.getFixedColumns().size() + PeriodType.getAvailablePeriodTypes().size()
-                + ouLevels.size() + (programA.isRegistration() ? 2 : 0) )
+                + ouLevels.size() + (programA.isRegistration() ? 1 : 0) )
             .addColumns( periodColumns ).withDefaultColumns( subject.getFixedColumns() )
             .addColumn( quote( "uidlevel" + ouLevels.get( 0 ).getLevel() ), col -> match( ouLevels.get( 0 ), col ) )
             .addColumn( quote( "uidlevel" + ouLevels.get( 1 ).getLevel() ), col -> match( ouLevels.get( 1 ), col ) )
@@ -496,7 +496,7 @@ public class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( subject.getFixedColumns().size() + PeriodType.getAvailablePeriodTypes().size()
-                + cogs.size() + (programA.isRegistration() ? 2 : 0) )
+                + cogs.size() + (programA.isRegistration() ? 1 : 0) )
             .addColumns( periodColumns ).withDefaultColumns( subject.getFixedColumns() )
             .addColumn( quote( cogs.get( 0 ).getUid() ), col -> match( cogs.get( 0 ), col ) )
             .addColumn( quote( cogs.get( 1 ).getUid() ), col -> match( cogs.get( 1 ), col ) ).build().verify();
