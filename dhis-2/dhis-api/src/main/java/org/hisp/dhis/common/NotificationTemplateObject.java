@@ -25,28 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.notification;
+package org.hisp.dhis.common;
 
-import java.util.Set;
+import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.translation.Translatable;
 
-import org.hisp.dhis.common.DeliveryChannel;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-/**
- * @author Halvdan Hoem Grelland
- */
-public interface NotificationTemplate
+public abstract class NotificationTemplateObject
+    extends BaseIdentifiableObject
+    implements NotificationTemplate
 {
-    String getSubjectTemplate();
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "subjectTemplate", key = "SUBJECT_TEMPLATE" )
+    public String getDisplaySubjectTemplate()
+    {
+        return getTranslation( "SUBJECT_TEMPLATE", getSubjectTemplate() );
+    }
 
-    String getDisplaySubjectTemplate();
-
-    String getMessageTemplate();
-
-    String getDisplayMessageTemplate();
-
-    Set<DeliveryChannel> getDeliveryChannels();
-
-    Boolean getNotifyUsersInHierarchyOnly();
-
-    Boolean getNotifyParentOrganisationUnitOnly();
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "messageTemplate", key = "MESSAGE_TEMPLATE" )
+    public String getDisplayMessageTemplate()
+    {
+        return getTranslation( "MESSAGE_TEMPLATE", getMessageTemplate() );
+    }
 }
