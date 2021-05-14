@@ -92,7 +92,8 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
      */
     private boolean isLegacy = true;
 
-    private final Function<List<OrderCriteria>, List<OrderCriteria>> dtoNameToDatabaseNameTranslator = orderCriteria -> orderCriteria
+    private final Function<List<OrderCriteria>, List<OrderCriteria>> dtoNameToDatabaseNameTranslator = orderCriteria -> CollectionUtils
+        .emptyIfNull( orderCriteria )
         .stream()
         .map( oc -> OrderCriteria.of( translateField( oc.getField(), isLegacy() ), oc.getDirection() ) )
         .collect( Collectors.toList() );
