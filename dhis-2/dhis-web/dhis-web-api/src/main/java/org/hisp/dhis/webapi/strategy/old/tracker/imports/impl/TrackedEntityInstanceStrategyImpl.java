@@ -25,25 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.old.tracker.imports.request;
+package org.hisp.dhis.webapi.strategy.old.tracker.imports.impl;
 
-import java.io.InputStream;
+import java.io.IOException;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceStrategyHandler;
+import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 
-@Data
-@Builder
-public class TrackerEntityInstanceRequest
+/**
+ * @author Luca Cambi <luca@dhis2.org>
+ */
+@Primary
+@Component
+@RequiredArgsConstructor
+public class TrackedEntityInstanceStrategyImpl implements TrackedEntityInstanceStrategyHandler
 {
-    InputStream inputStream;
 
-    ImportOptions importOptions;
+    final TrackedEntityInstanceSyncStrategyImpl trackedEntityInstanceSyncStrategy;
 
-    String mediaType;
+    final TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
 
-    JobConfiguration jobConfiguration;
+    @Override
+    public ImportSummaries mergeOrDeleteTrackedEntityInstances(
+        TrackerEntityInstanceRequest trackerEntityInstanceRequest )
+        throws IOException,
+        BadRequestException
+    {
+        if ( trackerEntityInstanceRequest.getImportOptions().isAsync() )
+        {
+            return trackedEntityInstanceAsyncStrategy
+                .mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
+        }
+        else
+        {
+            return trackedEntityInstanceSyncStrategy
+                .mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
+        }
+    }
+
 }

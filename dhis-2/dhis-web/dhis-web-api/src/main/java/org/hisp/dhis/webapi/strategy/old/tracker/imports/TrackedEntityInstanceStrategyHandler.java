@@ -25,25 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.old.tracker.imports.request;
+package org.hisp.dhis.webapi.strategy.old.tracker.imports;
 
-import java.io.InputStream;
+import java.io.IOException;
 
-import lombok.Builder;
-import lombok.Data;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.scheduling.JobConfiguration;
-
-@Data
-@Builder
-public class TrackerEntityInstanceRequest
+public interface TrackedEntityInstanceStrategyHandler
 {
-    InputStream inputStream;
 
-    ImportOptions importOptions;
+    ImportSummaries mergeOrDeleteTrackedEntityInstances( TrackerEntityInstanceRequest trackerEntityInstanceRequest )
+        throws IOException,
+        BadRequestException;
 
-    String mediaType;
-
-    JobConfiguration jobConfiguration;
 }
