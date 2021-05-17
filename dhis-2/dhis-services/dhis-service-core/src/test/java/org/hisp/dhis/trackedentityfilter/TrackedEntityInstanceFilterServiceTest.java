@@ -38,6 +38,8 @@ import java.util.List;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.user.UserService;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,16 +50,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class TrackedEntityInstanceFilterServiceTest
     extends DhisSpringTest
 {
-
     @Autowired
     private ProgramService programService;
 
     @Autowired
     private TrackedEntityInstanceFilterService trackedEntityInstanceFilterService;
 
+    @Autowired
+    private UserService _userService;
+
     private Program programA;
 
     private Program programB;
+
+    @Before
+    public void init()
+    {
+        userService = _userService;
+    }
 
     @Override
     public void setUpTest()
@@ -163,4 +173,29 @@ public class TrackedEntityInstanceFilterServiceTest
         assertNull( trackedEntityInstanceFilterService.get( idA ) );
         assertNotNull( trackedEntityInstanceFilterService.get( idB ) );
     }
+
+    @Test
+    public void testSaveWithoutAuthority()
+    {
+        createUserAndInjectSecurityContext( false );
+
+        TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+
+        trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
+
+        assertNotNull( trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA ) );
+    }
+
+    @Test
+    public void testSaveWithAuthority()
+    {
+        createUserAndInjectSecurityContext( false, "F_PROGRAMSTAGE_ADD" );
+
+        TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+
+        long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
+
+        assertNotNull( trackedEntityInstanceFilterService.get( idA ) );
+    }
+
 }
