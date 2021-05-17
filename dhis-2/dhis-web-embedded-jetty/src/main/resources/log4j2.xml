@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="warn">
     <Appenders>
-
         <Console name="console" target="SYSTEM_OUT">
             <PatternLayout pattern="* %-5p %d{ISO8601} %m (%F [%t])%n"/>
         </Console>
@@ -18,6 +17,7 @@
         <Logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>
         <Logger name="org.apache.activemq" level="error" additivity="true"/>
         <Logger name="org.hibernate" level="error" additivity="true"/>
+
         <Root level="WARN">
             <AppenderRef ref="console"/>
         </Root>
