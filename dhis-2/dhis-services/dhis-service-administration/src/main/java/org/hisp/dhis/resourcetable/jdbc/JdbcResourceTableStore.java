@@ -42,6 +42,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.system.util.Clock;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -66,7 +67,7 @@ public class JdbcResourceTableStore
     private final JdbcTemplate jdbcTemplate;
 
     public JdbcResourceTableStore( AnalyticsTableHookService analyticsTableHookService, DbmsManager dbmsManager,
-        StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate )
+        StatementBuilder statementBuilder, @Qualifier( "analyticsJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         checkNotNull( analyticsTableHookService );
         checkNotNull( dbmsManager );

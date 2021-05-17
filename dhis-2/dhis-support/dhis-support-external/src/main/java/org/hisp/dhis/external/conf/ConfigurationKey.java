@@ -51,6 +51,7 @@ public enum ConfigurationKey
     CONNECTION_DIALECT( "connection.dialect", "", false ),
     CONNECTION_DRIVER_CLASS( "connection.driver_class", "", false ),
     CONNECTION_URL( "connection.url", "", false ),
+    ANALYTICS_CONNECTION_URL( "analytics.connection.url", "", false ),
     CONNECTION_USERNAME( "connection.username", "", false ),
     CONNECTION_PASSWORD( "connection.password", "", true ),
     CONNECTION_SCHEMA( "connection.schema", "", false ),

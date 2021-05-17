@@ -79,6 +79,16 @@ public class DataSourceConfig
         return new NamedParameterJdbcTemplate( dataSource );
     }
 
+    @Bean( "analyticsJdbcTemplate" )
+    @DependsOn( "analyticsDataSource" )
+    public JdbcTemplate analyticsJdbcTemplate( @Qualifier( "analyticsDataSource" ) DataSource dataSource )
+    {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );
+        jdbcTemplate.setFetchSize( 1000 );
+
+        return jdbcTemplate;
+    }
+
     @Bean( "jdbcTemplate" )
     @DependsOn( "dataSource" )
     @Primary
@@ -90,8 +100,8 @@ public class DataSourceConfig
     }
 
     @Bean( "readOnlyJdbcTemplate" )
-    @DependsOn( "dataSource" )
-    public JdbcTemplate readOnlyJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
+    @DependsOn( "analyticsDataSource" )
+    public JdbcTemplate readOnlyJdbcTemplate( @Qualifier( "analyticsDataSource" ) DataSource dataSource )
     {
         DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager( dhisConfig );
 
@@ -128,6 +138,44 @@ public class DataSourceConfig
 
             throw new IllegalStateException( message, e );
         }
+    }
+
+    @Bean( "actualAnalyticsDataSource" )
+    public DataSource actualAnalyticsDataSource( HibernateConfigurationProvider hibernateConfigurationProvider )
+    {
+
+        String jdbcUrl = dhisConfig.getProperty( ConfigurationKey.ANALYTICS_CONNECTION_URL );
+        String username = dhisConfig.getProperty( ConfigurationKey.CONNECTION_USERNAME );
+        String dbPoolType = dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE );
+
+        DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
+        builder.dhisConfig( dhisConfig );
+        builder.hibernateConfig( hibernateConfigurationProvider );
+        builder.jdbcUrl( jdbcUrl );
+        builder.dbPoolType( dbPoolType );
+        try
+        {
+            return DatabasePoolUtils.createDbPool( builder.build() );
+        }
+        catch ( SQLException | PropertyVetoException e )
+        {
+            String message = String.format( "Connection test failed for main database pool, " +
+                "jdbcUrl: '%s', user: '%s'", jdbcUrl, username );
+
+            log.error( message );
+            log.error( DebugUtils.getStackTrace( e ) );
+
+            throw new IllegalStateException( message, e );
+        }
+    }
+
+    @Bean( "analyticsDataSource" )
+    @DependsOn( "actualAnalyticsDataSource" )
+    public DataSource analyticsDataSource(
+        @Qualifier( "actualAnalyticsDataSource" ) DataSource actualAnalyticsDataSource )
+    {
+        // return dataSource(actualAnalyticsDataSource);
+        return actualAnalyticsDataSource;
     }
 
     @Bean( "dataSource" )

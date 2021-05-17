@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
@@ -57,7 +58,7 @@ public class JdbcOrgUnitAnalyticsManager
 {
     private final JdbcTemplate jdbcTemplate;
 
-    public JdbcOrgUnitAnalyticsManager( JdbcTemplate jdbcTemplate )
+    public JdbcOrgUnitAnalyticsManager( @Qualifier( "analyticsJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
 

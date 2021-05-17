@@ -153,7 +153,6 @@ public class DatabasePoolUtils
         SQLException
     {
         DhisConfigurationProvider dhisConfig = config.getDhisConfig();
-
         final String driverClassName = dhisConfig.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS );
         final String jdbcUrl = MoreObjects.firstNonNull( config.getJdbcUrl(),
             dhisConfig.getProperty( ConfigurationKey.CONNECTION_URL ) );

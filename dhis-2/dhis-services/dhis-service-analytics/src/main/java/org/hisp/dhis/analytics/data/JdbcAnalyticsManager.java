@@ -128,7 +128,8 @@ public class JdbcAnalyticsManager
     private final JdbcTemplate jdbcTemplate;
 
     public JdbcAnalyticsManager( QueryPlanner queryPlanner,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+        // @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+        @Qualifier( "analyticsJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         checkNotNull( queryPlanner );
         checkNotNull( jdbcTemplate );
