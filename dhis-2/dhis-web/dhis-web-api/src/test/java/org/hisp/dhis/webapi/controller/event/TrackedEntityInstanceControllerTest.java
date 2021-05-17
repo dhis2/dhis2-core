@@ -34,9 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.IOException;
 
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -52,6 +50,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -85,11 +84,13 @@ public class TrackedEntityInstanceControllerTest
         throws BadRequestException,
         IOException
     {
-        final TrackedEntityInstanceController controller = new TrackedEntityInstanceController(
-            mock( TrackedEntityInstanceService.class ), null, null, null, null, mock( WebMessageService.class ),
-            currentUserService, null, null, mock( SchedulingManager.class ), null, null,
-            new TrackedEntityInstanceStrategyImpl(
-                trackedEntityInstanceSyncStrategy, trackedEntityInstanceAsyncStrategy ) );
+        final TrackedEntityInstanceController controller = new TrackedEntityInstanceController();
+
+        ReflectionTestUtils.setField( controller, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( controller, "webMessageService", mock( WebMessageService.class ) );
+        ReflectionTestUtils.setField( controller, "trackedEntityInstanceStrategyHandler",
+            new TrackedEntityInstanceStrategyImpl( trackedEntityInstanceSyncStrategy,
+                trackedEntityInstanceAsyncStrategy ) );
 
         mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
         when( currentUserService.getCurrentUser() ).thenReturn( user );
