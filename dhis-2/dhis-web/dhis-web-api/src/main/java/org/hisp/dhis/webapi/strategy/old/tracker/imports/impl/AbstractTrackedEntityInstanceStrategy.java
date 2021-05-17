@@ -25,25 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.old.tracker.imports.request;
+package org.hisp.dhis.webapi.strategy.old.tracker.imports.impl;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.springframework.http.MediaType;
 
-@Data
-@Builder
-public class TrackerEntityInstanceRequest
+@RequiredArgsConstructor
+public class AbstractTrackedEntityInstanceStrategy
 {
-    InputStream inputStream;
+    final protected TrackedEntityInstanceService trackedEntityInstanceService;
 
-    ImportOptions importOptions;
+    final SchedulingManager schedulingManager;
 
-    String mediaType;
+    protected List<TrackedEntityInstance> getTrackedEntityInstancesListByMediaType( String mediaType,
+        InputStream inputStream )
+        throws IOException,
+        BadRequestException
+    {
 
-    JobConfiguration jobConfiguration;
+        if ( MediaType.valueOf( mediaType ).equals( MediaType.APPLICATION_JSON ) )
+        {
+            return trackedEntityInstanceService.getTrackedEntityInstancesJson( inputStream );
+        }
+        else if ( mediaType
+            .equals( MediaType.APPLICATION_XML_VALUE ) )
+        {
+            return trackedEntityInstanceService.getTrackedEntityInstancesXml( inputStream );
+        }
+        else
+        {
+            throw new BadRequestException( "Value " + mediaType + " not allowed as Media Type " );
+        }
+    }
 }
