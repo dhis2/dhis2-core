@@ -1,4 +1,4 @@
-/*
+package org.hisp.dhis.webapi.strategy.old.tracker.imports.request;/*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
@@ -25,7 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 package org.hisp.dhis.webapi.strategy.old.tracker.imports.request;
+=======
+package org.hisp.dhis.webapi.strategy.old.tracker.imports;
+>>>>>>> 21c4f24af9 (fix: add unit tests for trackedEntityInstanceService merge or delete)
 
 import java.io.InputStream;
 
@@ -33,7 +37,10 @@ import lombok.Builder;
 import lombok.Data;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
+<<<<<<< HEAD
 import org.hisp.dhis.scheduling.JobConfiguration;
+=======
+>>>>>>> 21c4f24af9 (fix: add unit tests for trackedEntityInstanceService merge or delete)
 
 @Data
 @Builder
@@ -45,5 +52,9 @@ public class TrackerEntityInstanceRequest
 
     String mediaType;
 
+<<<<<<< HEAD
     JobConfiguration jobConfiguration;
+=======
+    boolean isAsync;
+>>>>>>> 21c4f24af9 (fix: add unit tests for trackedEntityInstanceService merge or delete)
 }
