@@ -147,6 +147,14 @@ public class DefaultProgramRuleEngineService
         return programRuleEngine.getDescription( condition, program );
     }
 
+    @Override
+    public RuleValidationResult getDataExpressionDescription( String dataExpression, String programId )
+    {
+        Program program = programService.getProgram( programId );
+
+        return programRuleEngine.getDataExpressionDescription( dataExpression, program );
+    }
+
     private List<RuleEffect> evaluateEventAndRunEffects( ProgramStageInstance psi )
     {
         if ( psi == null )

@@ -102,7 +102,7 @@ public class ImportSummary extends AbstractWebMessageResponse
 
     public boolean isStatus( ImportStatus status )
     {
-        return this.status != null && this.status.equals( status );
+        return this.status != null && this.status == status;
     }
 
     public static ImportSummary success()

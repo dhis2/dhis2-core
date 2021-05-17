@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.programrule;
 
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
+import static org.hisp.dhis.rules.models.TrackerObjectType.ENROLLMENT;
+import static org.hisp.dhis.rules.models.TrackerObjectType.EVENT;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
@@ -57,7 +59,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 @RunWith( MockitoJUnitRunner.class )
@@ -122,8 +123,7 @@ public class SetMandatoryFieldValidatorTest
         when( preheat.get( ProgramStage.class, secondProgramStage.getUid() ) ).thenReturn( secondProgramStage );
 
         bundle = new TrackerBundle();
-        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects() );
-        bundle.setEventRuleEffects( getRuleEventEffects() );
+        bundle.setRuleEffects( getRuleEventAndEnrollmentEffects() );
         bundle.setPreheat( preheat );
     }
 
@@ -275,20 +275,15 @@ public class SetMandatoryFieldValidatorTest
         return Lists.newArrayList( attribute );
     }
 
-    private Map<String, List<RuleEffect>> getRuleEventEffects()
+    private List<RuleEffects> getRuleEventAndEnrollmentEffects()
     {
-        Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
-        ruleEffectsByEvent.put( FIRST_EVENT_ID, getRuleEffects() );
-        ruleEffectsByEvent.put( SECOND_EVENT_ID, getRuleEffects() );
+        List<RuleEffects> ruleEffectsByEvent = Lists.newArrayList();
+        ruleEffectsByEvent.add( new RuleEffects( EVENT, FIRST_EVENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( new RuleEffects( EVENT, SECOND_EVENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( new RuleEffects( ENROLLMENT, ACTIVE_ENROLLMENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent
+            .add( new RuleEffects( ENROLLMENT, COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
         return ruleEffectsByEvent;
-    }
-
-    private Map<String, List<RuleEffect>> getRuleEnrollmentEffects()
-    {
-        Map<String, List<RuleEffect>> ruleEffectsByEnrollment = Maps.newHashMap();
-        ruleEffectsByEnrollment.put( ACTIVE_ENROLLMENT_ID, getRuleEffects() );
-        ruleEffectsByEnrollment.put( COMPLETED_ENROLLMENT_ID, getRuleEffects() );
-        return ruleEffectsByEnrollment;
     }
 
     private List<RuleEffect> getRuleEffects()

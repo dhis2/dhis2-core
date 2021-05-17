@@ -286,6 +286,24 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
         assertEquals( "enhet A", displayName.string() );
     }
 
+    @Test
+    public void testGistPropertyList_Access()
+    {
+        JsonArray groups = GET( "/users/{uid}/userGroups/gist?fields=id,access&headless=true",
+            getSuperuserUid() ).content();
+
+        assertEquals( 1, groups.size() );
+        JsonObject group = groups.getObject( 0 );
+        JsonObject access = group.getObject( "access" );
+        assertTrue( access.has( "manage", "externalize", "write", "read", "update", "delete" ) );
+        assertTrue( access.getBoolean( "manage" ).booleanValue() );
+        assertTrue( access.getBoolean( "externalize" ).booleanValue() );
+        assertTrue( access.getBoolean( "write" ).booleanValue() );
+        assertTrue( access.getBoolean( "read" ).booleanValue() );
+        assertTrue( access.getBoolean( "update" ).booleanValue() );
+        assertTrue( access.getBoolean( "delete" ).booleanValue() );
+    }
+
     /*
      * Tests for filters
      */
@@ -558,6 +576,62 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
         assertEquals( getSuperuserUid(),
             GET( "/users/{id}/gist?fields=id&filter=userCredentials.userRoles.name:eq:Superuser",
                 getSuperuserUid() ).content().string() );
+    }
+
+    /*
+     * Validation
+     */
+
+    @Test
+    public void testGistObjectList_Filter_MisplacedArgument()
+    {
+        assertEquals( "Filter `surname:null:[value]` uses an unary operator and does not need an argument.",
+            GET( "/users/gist?filter=surname:null:value" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Filter_MissingArgument()
+    {
+        assertEquals( "Filter `surname:eq:[]` uses a binary operator that does need an argument.",
+            GET( "/users/gist?filter=surname:eq" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Filter_TooManyArguments()
+    {
+        assertEquals( "Filter `surname:gt:[a, b]` can only be used with a single argument.",
+            GET( "/users/gist?filter=surname:gt:[a,b]" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Filter_UserDoesNotExist()
+    {
+        assertEquals( "User for filter `surname:canread:[not-a-UID]` does not exist.",
+            GET( "/users/gist?filter=surname:canRead:not-a-UID" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Filter_CanAccessMissingPattern()
+    {
+        assertEquals(
+            "Filter `surname:canaccess:[fake-UID]` requires a user ID and a access pattern argument.",
+            GET( "/users/gist?filter=surname:canAccess:fake-UID" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Filter_CanAccessMaliciousPattern()
+    {
+        assertEquals(
+            "Filter `surname:canaccess:[fake-UID, drop tables]` pattern argument must be 2 to 8 letters allowing letters 'r', 'w', '_' and '%'.",
+            GET( "/users/gist?filter=surname:canAccess:[fake-UID,drop tables]" ).error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Order_CollectionProperty()
+    {
+        assertEquals( "Property `userGroup` cannot be used as order property.",
+            GET( "/users/gist?order=userGroups" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
     }
 
     private void createDataSetsForOrganisationUnit( int count, String organisationUnitId, String namePrefix )

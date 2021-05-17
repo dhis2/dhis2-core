@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -40,13 +39,11 @@ import java.util.Arrays;
 
 import org.hisp.dhis.dataanalysis.FollowupAnalysisRequest;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonFollowupValue;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -57,42 +54,8 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTest
+public class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest
 {
-
-    private String dataElementId;
-
-    private String orgUnitId;
-
-    private String ccId;
-
-    private String cocId;
-
-    @Before
-    public void setUp()
-    {
-        orgUnitId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
-        // add OU to users hierarchy
-        assertStatus( HttpStatus.NO_CONTENT,
-            POST( "/users/{id}/organisationUnits", getCurrentUser().getUid(),
-                Body( "{'additions':[{'id':'" + orgUnitId + "'}]}" ) ) );
-
-        JsonObject ccDefault = GET(
-            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 );
-        ccId = ccDefault.getString( "id" ).string();
-        cocId = ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
-
-        dataElementId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements/",
-                "{'name':'My data element', 'shortName':'DE1', 'code':'DE1', 'valueType':'INTEGER', " +
-                    "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', " +
-                    "'categoryCombo': {'id': '" + ccId + "'}}" ) );
-
-    }
-
     /**
      * This test makes sure the fields returned by a
      * {@link org.hisp.dhis.dataanalysis.FollowupValue} are mapped correctly.
@@ -113,12 +76,13 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
         assertEquals( orgUnitId, value.getOu() );
         assertEquals( "My Unit", value.getOuName() );
         assertEquals( "/" + orgUnitId, value.getOuPath() );
-        assertEquals( "Monthly", value.getPe() );
+        assertEquals( "202103", value.getPe() );
+        assertEquals( "Monthly", value.getPeType() );
         assertEquals( LocalDate.of( 2021, 03, 01 ).atStartOfDay(), value.getPeStartDate() );
         assertEquals( LocalDate.of( 2021, 03, 31 ).atStartOfDay(), value.getPeEndDate() );
-        assertEquals( cocId, value.getCoc() );
+        assertEquals( categoryOptionId, value.getCoc() );
         assertEquals( "default", value.getCocName() );
-        assertEquals( cocId, value.getAoc() );
+        assertEquals( categoryOptionId, value.getAoc() );
         assertEquals( "default", value.getAocName() );
         assertEquals( "5", value.getValue() );
         assertEquals( "admin", value.getStoredBy() );
@@ -179,7 +143,7 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
             POST( "/dataElements/",
                 "{'name':'Another DE', 'shortName':'DE2', 'code':'DE2', 'valueType':'INTEGER', " +
                     "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', " +
-                    "'categoryCombo': {'id': '" + ccId + "'}}" ) );
+                    "'categoryCombo': {'id': '" + categoryComboId + "'}}" ) );
 
         addDataValue( "2021-01", "13", "Needs check DE1", true, dataElementId, orgUnitId );
         addDataValue( "2021-01", "14", "Needs check DE2", true, de2, orgUnitId );
@@ -273,18 +237,5 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
         JsonObject metadata = body.getObject( "metadata" );
         assertTrue( metadata.exists() );
         assertEquals( asList( "de", "coc", "ou", "startDate", "endDate", "maxResults" ), metadata.names() );
-    }
-
-    private void addDataValue( String period, String value, String comment, boolean followup )
-    {
-        addDataValue( period, value, comment, followup, dataElementId, orgUnitId );
-    }
-
-    private void addDataValue( String period, String value, String comment, boolean followup, String dataElementId,
-        String orgUnitId )
-    {
-        assertStatus( HttpStatus.CREATED,
-            POST( "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
-                dataElementId, period, orgUnitId, cocId, value, comment, followup ) );
     }
 }
