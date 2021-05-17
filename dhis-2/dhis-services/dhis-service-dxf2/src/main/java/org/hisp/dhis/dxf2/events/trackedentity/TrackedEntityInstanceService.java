@@ -72,24 +72,18 @@ public interface TrackedEntityInstanceService
     TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
         TrackedEntityInstanceParams params );
 
-    // -------------------------------------------------------------------------
-    // CREATE
-    // -------------------------------------------------------------------------
-
-    ImportSummaries addTrackedEntityInstanceXml( InputStream inputStream, ImportOptions importOptions )
-        throws IOException;
-
-    ImportSummaries addTrackedEntityInstanceJson( InputStream inputStream, ImportOptions importOptions )
-        throws IOException;
-
     TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
         TrackedEntityInstanceParams params, User user );
 
-    ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions );
+    // -------------------------------------------------------------------------
+    // CREATE, UPDATE or DELETE
+    // -------------------------------------------------------------------------
+
+    ImportSummaries mergeOrDeleteTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
+        ImportOptions importOptions, JobConfiguration jobId );
 
     ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions, JobConfiguration jobId );
+        ImportOptions importOptions );
 
     ImportSummary addTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions );
 
@@ -104,9 +98,6 @@ public interface TrackedEntityInstanceService
     ImportSummary updateTrackedEntityInstanceJson( String id, String programId, InputStream inputStream,
         ImportOptions importOptions )
         throws IOException;
-
-    ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions );
 
     ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, String programId,
         ImportOptions importOptions, boolean singleUpdate );
