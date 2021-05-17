@@ -36,15 +36,23 @@ import java.io.IOException;
 
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceSyncStrategyImpl;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -86,8 +94,12 @@ public class TrackedEntityInstanceControllerTest
         IOException
     {
         final TrackedEntityInstanceController controller = new TrackedEntityInstanceController(
-            mock( TrackedEntityInstanceService.class ), null, null, null, null, mock( WebMessageService.class ),
-            currentUserService, null, null, mock( SchedulingManager.class ), null, null,
+            mock( TrackedEntityInstanceService.class ),
+            mock( org.hisp.dhis.trackedentity.TrackedEntityInstanceService.class ),
+            mock( TrackedEntityTypeService.class ), mock( ContextUtils.class ), mock( FieldFilterService.class ),
+            mock( ContextService.class ), mock( WebMessageService.class ),
+            currentUserService, mock( FileResourceService.class ), mock( TrackerAccessManager.class ),
+            mock( SchedulingManager.class ), mock( ProgramService.class ), mock( TrackedEntityCriteriaMapper.class ),
             new TrackedEntityInstanceStrategyImpl(
                 trackedEntityInstanceSyncStrategy, trackedEntityInstanceAsyncStrategy ) );
 
