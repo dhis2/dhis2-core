@@ -672,6 +672,7 @@
     },
     "deliveryChannels": []
   }],
+
   "programRuleActions": [{
     "created": "2020-12-17T12:52:51.570",
     "lastUpdated": "2020-12-17T12:52:51.570",
@@ -722,31 +723,6 @@
     {
       "created": "2020-12-17T12:52:51.569",
       "lastUpdated": "2020-12-17T12:52:51.569",
-      "id": "hyJMNkTi9YF",
-      "programRuleActionType": "SHOWWARNING",
-      "evaluationTime": "ALWAYS",
-      "content": "Warning",
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
-      "evaluationEnvironments": [
-        "WEB",
-        "ANDROID"
-      ],
-      "dataElement": {
-        "id": "z3Z4TD3oBCP"
-      },
-      "programRule":{
-        "id" : "Xh9idCUkyaF"
-      },
-      "translations": []
-    },
-    {
-      "created": "2020-12-17T12:52:51.569",
-      "lastUpdated": "2020-12-17T12:52:51.569",
       "id": "hyJMNkTi9YG",
       "programRuleActionType": "SHOWERROR",
       "evaluationTime": "ALWAYS",
@@ -782,7 +758,7 @@
         "username": "admin"
       },
       "dataElement": {
-        "id": "z3Z4TD3oBCP"
+        "id": "q3Z4TD3oBZZ"
       },
       "evaluationEnvironments": [
         "WEB",
@@ -1064,7 +1040,7 @@
     "categoryOptions": [
       {
         "id": "xYerKDKCefk"
-    }]
+      }]
   }],
   "relationshipTypes": [{
     "created": "2019-04-23T09:20:41.834",
@@ -1532,6 +1508,7 @@
       "userAccesses": []
     }
   ],
+
   "programRules": [{
     "created": "2020-12-17T12:52:51.602",
     "lastUpdated": "2020-12-17T12:52:51.602",
@@ -2642,6 +2619,44 @@
       "created": "2019-03-04T14:56:56.103",
       "name": "TA Pregnant",
       "shortName": "TA Pregnant",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "valueType": "TRUE_ONLY",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "code": "admin",
+        "displayName": "admin admin",
+        "id": "M5zQapPyTZI",
+        "username": "admin"
+      },
+      "user": {
+        "code": "admin",
+        "displayName": "admin admin",
+        "id": "M5zQapPyTZI",
+        "username": "admin"
+      },
+      "translations": [],
+      "userGroupAccesses": [{
+        "access": "rw------",
+        "userGroupUid": "OPVIvvXzNTw",
+        "displayName": "TA user group",
+        "id": "OPVIvvXzNTw"
+      }],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2020-12-17T12:52:27.276",
+      "id": "q3Z4TD3oBZZ",
+      "created": "2019-03-04T14:56:56.103",
+      "name": "TA Pregnant1",
+      "shortName": "TA Pregnant1",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
       "publicAccess": "rw------",
