@@ -255,7 +255,7 @@ public class JdbcEventAnalyticsManager
         }
         else
         {
-            quotedClusterFieldFraction = "COALESCE(" + quoteAlias( params.getCoordinateField() ) + ","
+            quotedClusterFieldFraction = "coalesce(" + quoteAlias( params.getCoordinateField() ) + ","
                 + quoteAlias( fallback ) + ")";
         }
 
