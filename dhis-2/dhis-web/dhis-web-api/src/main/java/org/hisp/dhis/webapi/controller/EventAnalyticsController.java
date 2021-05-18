@@ -32,9 +32,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
-
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
@@ -47,11 +44,15 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.view.EventGridHeaderMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 
 /**
  * @author Lars Helge Overland
@@ -68,6 +69,9 @@ public class EventAnalyticsController
 
     @NonNull
     private final EventAnalyticsService analyticsService;
+
+    @NonNull
+    private final EventGridHeaderMapper eventGridHeaderMapper;
 
     @NonNull
     private final ContextUtils contextUtils;
@@ -227,8 +231,12 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        GridUtils.toXml( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_XML,
-            "events.xml", response ), response.getOutputStream() );
+        final Grid grid = getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_XML,
+            "events.xml", response );
+
+        eventGridHeaderMapper.maybeOverrideHeaderNames( grid );
+
+        GridUtils.toXml( grid, response.getOutputStream() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/{program}.xls" )
@@ -239,8 +247,12 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        GridUtils.toXls( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL,
-            "events.xls", response ), response.getOutputStream() );
+        final Grid grid = getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL,
+            "events.xls", response );
+
+        eventGridHeaderMapper.maybeOverrideHeaderNames( grid );
+
+        GridUtils.toXls( grid, response.getOutputStream() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/{program}.csv" )
@@ -251,9 +263,12 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
+        final Grid grid = getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_CSV,
+            "events.csv", response );
 
-        GridUtils.toCsv( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_CSV,
-            "events.csv", response ), response.getWriter() );
+        eventGridHeaderMapper.maybeOverrideHeaderNames( grid );
+
+        GridUtils.toCsv( grid, response.getWriter() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/{program}.html" )
@@ -264,8 +279,12 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        GridUtils.toHtml( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
-            "events.html", response ), response.getWriter() );
+        final Grid grid = getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
+            "events.html", response );
+
+        eventGridHeaderMapper.maybeOverrideHeaderNames( grid );
+
+        GridUtils.toHtml( grid, response.getWriter() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/{program}.html+css" )
@@ -276,8 +295,12 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        GridUtils.toHtmlCss( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
-            "events.html", response ), response.getWriter() );
+        final Grid grid = getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
+            "events.html", response );
+
+        eventGridHeaderMapper.maybeOverrideHeaderNames( grid );
+
+        GridUtils.toHtmlCss( grid, response.getWriter() );
     }
 
     private Grid getAggregatedGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,

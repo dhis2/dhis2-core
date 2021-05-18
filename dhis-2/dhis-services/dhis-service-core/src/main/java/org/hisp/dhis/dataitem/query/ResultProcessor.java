@@ -30,6 +30,7 @@ package org.hisp.dhis.dataitem.query;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionItemType.valueOf;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.DataItem.builder;
@@ -108,7 +109,7 @@ class ResultProcessor
 
     private static String getUid( final SqlRowSet rowSet )
     {
-        if ( isNotBlank( rowSet.getString( PROGRAM_UID ) ) )
+        if ( isNotBlank( rowSet.getString( PROGRAM_UID ) ) && getItemType( rowSet ) != PROGRAM_INDICATOR )
         {
             return rowSet.getString( PROGRAM_UID ) + "." + rowSet.getString( "item_uid" );
         }
