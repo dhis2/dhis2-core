@@ -28,9 +28,7 @@
 package org.hisp.dhis.datasource;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
+import static org.hisp.dhis.external.conf.ConfigurationKey.*;
 
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
@@ -60,6 +58,9 @@ public class DefaultReadOnlyDataSourceManager
 
     private static final String FORMAT_CONNECTION_URL = FORMAT_READ_PREFIX + CONNECTION_URL.getKey();
 
+    private static final String FORMAT_ANALYTICS_CONNECTION_URL = FORMAT_READ_PREFIX
+        + ANALYTICS_CONNECTION_URL.getKey();
+
     private static final String FORMAT_CONNECTION_USERNAME = FORMAT_READ_PREFIX + CONNECTION_USERNAME.getKey();
 
     private static final String FORMAT_CONNECTION_PASSWORD = FORMAT_READ_PREFIX + CONNECTION_PASSWORD.getKey();
@@ -86,17 +87,35 @@ public class DefaultReadOnlyDataSourceManager
     private DataSource internalReadOnlyDataSource;
 
     /**
+     * State holder for the resolved read only data source.
+     */
+    private DataSource internalAnalyticsReadOnlyDataSource;
+
+    /**
      * State holder for explicitly defined read only data sources.
      */
     private List<DataSource> internalReadOnlyInstanceList;
 
+    /**
+     * State holder for explicitly defined read only data sources.
+     */
+    private List<DataSource> internalAnalyticsReadOnlyInstanceList;
+
     @Override
     public void afterPropertiesSet()
     {
-        List<DataSource> ds = getReadOnlyDataSources();
+        List<DataSource> readOnlyDataSources = getReadOnlyDataSources( false );
+        List<DataSource> analyticsReadOnlyDataSources = getReadOnlyDataSources( true );
 
-        this.internalReadOnlyInstanceList = ds;
-        this.internalReadOnlyDataSource = !ds.isEmpty() ? new CircularRoutingDataSource( ds ) : null;
+        this.internalReadOnlyInstanceList = readOnlyDataSources;
+        this.internalReadOnlyDataSource = !readOnlyDataSources.isEmpty()
+            ? new CircularRoutingDataSource( readOnlyDataSources )
+            : null;
+
+        this.internalAnalyticsReadOnlyInstanceList = analyticsReadOnlyDataSources;
+        this.internalAnalyticsReadOnlyDataSource = !analyticsReadOnlyDataSources.isEmpty()
+            ? new CircularRoutingDataSource( analyticsReadOnlyDataSources )
+            : null;
     }
 
     // -------------------------------------------------------------------------
@@ -104,9 +123,9 @@ public class DefaultReadOnlyDataSourceManager
     // -------------------------------------------------------------------------
 
     @Override
-    public DataSource getReadOnlyDataSource()
+    public DataSource getReadOnlyDataSource( boolean isAnalytics )
     {
-        return internalReadOnlyDataSource;
+        return isAnalytics ? internalAnalyticsReadOnlyDataSource : internalReadOnlyDataSource;
     }
 
     @Override
@@ -119,7 +138,7 @@ public class DefaultReadOnlyDataSourceManager
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private List<DataSource> getReadOnlyDataSources()
+    private List<DataSource> getReadOnlyDataSources( boolean isAnalytics )
     {
         String mainUser = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
         String mainPassword = config.getProperty( ConfigurationKey.CONNECTION_PASSWORD );
@@ -134,7 +153,8 @@ public class DefaultReadOnlyDataSourceManager
 
         for ( int i = 1; i <= MAX_READ_REPLICAS; i++ )
         {
-            String jdbcUrl = props.getProperty( String.format( FORMAT_CONNECTION_URL, i ) );
+            String jdbcUrl = props.getProperty( isAnalytics ? String.format( FORMAT_ANALYTICS_CONNECTION_URL, i )
+                : String.format( FORMAT_CONNECTION_URL, i ) );
             String username = props.getProperty( String.format( FORMAT_CONNECTION_USERNAME, i ) );
             String password = props.getProperty( String.format( FORMAT_CONNECTION_PASSWORD, i ) );
 

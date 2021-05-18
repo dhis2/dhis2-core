@@ -70,7 +70,7 @@ public class JdbcRawAnalyticsManager
 
     private final JdbcTemplate jdbcTemplate;
 
-    public JdbcRawAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public JdbcRawAnalyticsManager( @Qualifier( "analyticsReadOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
         this.jdbcTemplate = jdbcTemplate;

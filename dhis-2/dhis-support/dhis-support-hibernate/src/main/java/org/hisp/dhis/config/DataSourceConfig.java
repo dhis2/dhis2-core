@@ -100,13 +100,26 @@ public class DataSourceConfig
     }
 
     @Bean( "readOnlyJdbcTemplate" )
-    @DependsOn( "analyticsDataSource" )
-    public JdbcTemplate readOnlyJdbcTemplate( @Qualifier( "analyticsDataSource" ) DataSource dataSource )
+    @DependsOn( "dataSource" )
+    public JdbcTemplate readOnlyJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
     {
         DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager( dhisConfig );
 
         JdbcTemplate jdbcTemplate = new JdbcTemplate(
-            MoreObjects.firstNonNull( manager.getReadOnlyDataSource(), dataSource ) );
+            MoreObjects.firstNonNull( manager.getReadOnlyDataSource( false ), dataSource ) );
+        jdbcTemplate.setFetchSize( 1000 );
+
+        return jdbcTemplate;
+    }
+
+    @Bean( "analyticsReadOnlyJdbcTemplate" )
+    @DependsOn( { "dataSource", "analyticsDataSource" } )
+    public JdbcTemplate analyticsReadOnlyJdbcTemplate( @Qualifier( "analyticsDataSource" ) DataSource dataSource )
+    {
+        DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager( dhisConfig );
+
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(
+            MoreObjects.firstNonNull( manager.getReadOnlyDataSource( true ), dataSource ) );
         jdbcTemplate.setFetchSize( 1000 );
 
         return jdbcTemplate;
@@ -174,14 +187,18 @@ public class DataSourceConfig
     public DataSource analyticsDataSource(
         @Qualifier( "actualAnalyticsDataSource" ) DataSource actualAnalyticsDataSource )
     {
-        // return dataSource(actualAnalyticsDataSource);
-        return actualAnalyticsDataSource;
+        return getDataSource( actualAnalyticsDataSource );
     }
 
     @Bean( "dataSource" )
     @DependsOn( "actualDataSource" )
     @Primary
     public DataSource dataSource( @Qualifier( "actualDataSource" ) DataSource actualDataSource )
+    {
+        return getDataSource( actualDataSource );
+    }
+
+    private DataSource getDataSource( DataSource actualDataSource )
     {
         boolean enableQueryLogging = dhisConfig.getBoolean( ConfigurationKey.ENABLE_QUERY_LOGGING );
 

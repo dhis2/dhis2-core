@@ -43,7 +43,7 @@ public interface ReadOnlyDataSourceManager
      *
      * @return a DataSource instance.
      */
-    DataSource getReadOnlyDataSource();
+    DataSource getReadOnlyDataSource( boolean isAnalytics );
 
     /**
      * Returns the number of explicitly defined read only database instances.
