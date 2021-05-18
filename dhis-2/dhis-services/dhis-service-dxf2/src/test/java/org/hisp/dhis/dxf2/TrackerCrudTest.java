@@ -68,7 +68,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class TrackerUnitTest
+public class TrackerCrudTest
 {
 
     @Rule
