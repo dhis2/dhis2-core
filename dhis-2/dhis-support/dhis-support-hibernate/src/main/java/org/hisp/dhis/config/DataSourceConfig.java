@@ -158,6 +158,10 @@ public class DataSourceConfig
     {
 
         String jdbcUrl = dhisConfig.getProperty( ConfigurationKey.ANALYTICS_CONNECTION_URL );
+        if ( jdbcUrl == null || jdbcUrl.trim().isEmpty() )
+        {
+            jdbcUrl = dhisConfig.getProperty( ConfigurationKey.CONNECTION_URL );
+        }
         String username = dhisConfig.getProperty( ConfigurationKey.CONNECTION_USERNAME );
         String dbPoolType = dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE );
 

@@ -59,7 +59,9 @@ public class DefaultReadOnlyDataSourceManager
     private static final String FORMAT_CONNECTION_URL = FORMAT_READ_PREFIX + CONNECTION_URL.getKey();
 
     private static final String FORMAT_ANALYTICS_CONNECTION_URL = FORMAT_READ_PREFIX
-        + ANALYTICS_CONNECTION_URL.getKey();
+        + (ANALYTICS_CONNECTION_URL.getKey() != null && !ANALYTICS_CONNECTION_URL.getKey().trim().isEmpty()
+            ? ANALYTICS_CONNECTION_URL.getKey()
+            : CONNECTION_URL.getKey());
 
     private static final String FORMAT_CONNECTION_USERNAME = FORMAT_READ_PREFIX + CONNECTION_USERNAME.getKey();
 
