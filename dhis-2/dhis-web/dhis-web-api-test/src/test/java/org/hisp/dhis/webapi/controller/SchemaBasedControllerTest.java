@@ -75,6 +75,8 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
             "user", // generator insufficient to understand userCredentials
             "jobConfiguration", // API requires configurable=true
             "messageConversation", // needs recipients (not a required field)
+            "programRuleAction", // needs DataElement and TrackedEntityAttribute
+                                 // (not a required field)
             "validationRule", // generator insufficient (embedded fields)
 
             // presumably server errors/bugs
@@ -127,7 +129,7 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
 
             }
         }
-        assertTrue( "make sure we actually test schemas", testedSchemas >= 60 );
+        assertTrue( "make sure we actually test schemas", testedSchemas >= 59 );
     }
 
     /**
