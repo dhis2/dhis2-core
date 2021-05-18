@@ -405,6 +405,7 @@ public class TrackedEntityInstanceController
         TrackerEntityInstanceRequest trackerEntityInstanceRequest = TrackerEntityInstanceRequest.builder()
             .inputStream( inputStream )
             .importOptions( importOptions )
+            .mediaType( mediaType )
             .jobConfiguration( jobId ).build();
 
         ImportSummaries importSummaries = trackedEntityInstanceStrategyHandler
