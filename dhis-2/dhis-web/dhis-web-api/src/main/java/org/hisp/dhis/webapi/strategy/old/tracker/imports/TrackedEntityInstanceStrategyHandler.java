@@ -35,9 +35,7 @@ import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityIn
 
 public interface TrackedEntityInstanceStrategyHandler
 {
-
     ImportSummaries mergeOrDeleteTrackedEntityInstances( TrackerEntityInstanceRequest trackerEntityInstanceRequest )
         throws IOException,
         BadRequestException;
-
 }

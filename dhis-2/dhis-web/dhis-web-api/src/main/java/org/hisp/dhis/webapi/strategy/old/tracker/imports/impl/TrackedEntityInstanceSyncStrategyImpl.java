@@ -35,7 +35,6 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceStrategyHandler;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
 import org.springframework.stereotype.Component;
 
@@ -44,9 +43,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TrackedEntityInstanceSyncStrategyImpl extends AbstractTrackedEntityInstanceStrategy
-    implements TrackedEntityInstanceStrategyHandler
 {
-
     public TrackedEntityInstanceSyncStrategyImpl( TrackedEntityInstanceService trackedEntityInstanceService,
         SchedulingManager schedulingManager )
     {
