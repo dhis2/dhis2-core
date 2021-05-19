@@ -63,6 +63,7 @@ import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserInfo;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -1198,6 +1199,17 @@ public class DefaultIdentifiableObjectManager
         IdentifiableObject defaultObject = defaults.get( realClass );
 
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
+    }
+
+    @Override
+    @Transactional
+    public void removeUserGroupFromSharing( String userGroupUid )
+    {
+        List<Schema> schemas = schemaService.getSchemas().stream().filter( s -> s.isShareable() ).collect(
+            Collectors.toList() );
+
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( UserGroup.class );
+        schemas.forEach( schema -> store.removeUserGroupFromSharing( userGroupUid, schema.getTableName() ) );
     }
 
     @SuppressWarnings( "unchecked" )

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -54,6 +55,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -616,5 +618,33 @@ public class IdentifiableObjectManagerTest
         assertEquals( dataElementA, map.get( "DataElementCodeA" ) );
         assertEquals( dataElementB, map.get( "DataElementCodeB" ) );
         assertNull( map.get( "DataElementCodeX" ) );
+    }
+
+    @Test
+    public void testRemoveUserGroupFromSharing()
+    {
+        User userA = createUser( 'A' );
+        userService.addUser( userA );
+
+        UserGroup userGroupA = createUserGroup( 'A', Sets.newHashSet( userA ) );
+        identifiableObjectManager.save( userGroupA );
+        String userGroupUid = userGroupA.getUid();
+
+        DataElement de = createDataElement( 'A' );
+        Sharing sharing = new Sharing();
+        sharing.setUserGroupAccess( singleton( new UserGroupAccess( "rw------", userGroupA.getUid() ) ) );
+        de.setSharing( sharing );
+
+        identifiableObjectManager.save( de, false );
+
+        de = identifiableObjectManager.get( de.getUid() );
+        assertEquals( 1, de.getSharing().getUserGroups().size() );
+
+        identifiableObjectManager.delete( userGroupA );
+        identifiableObjectManager.removeUserGroupFromSharing( userGroupUid );
+        dbmsManager.clearSession();
+
+        de = identifiableObjectManager.get( de.getUid() );
+        assertEquals( 0, de.getSharing().getUserGroups().size() );
     }
 }
