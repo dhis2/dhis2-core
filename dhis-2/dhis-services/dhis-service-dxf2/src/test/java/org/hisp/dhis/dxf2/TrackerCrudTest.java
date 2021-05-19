@@ -145,8 +145,6 @@ public class TrackerCrudTest
             anyBoolean() ) ).thenReturn( notifier );
         when( notifier.clear( any() ) ).thenReturn( notifier );
 
-        when( defaultTrackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceUid, user ) )
-            .thenReturn( new org.hisp.dhis.trackedentity.TrackedEntityInstance() );
         when( defaultTrackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceUid ) )
             .thenReturn( new org.hisp.dhis.trackedentity.TrackedEntityInstance() );
         when( defaultTrackedEntityInstanceService.getTrackedEntityInstancesUidsIncludingDeleted( anyList() ) )
@@ -231,8 +229,7 @@ public class TrackerCrudTest
         assertFalse(
             importSummaries.getImportSummaries().stream().anyMatch( is -> is.isStatus( ImportStatus.ERROR ) ) );
 
-        verify( defaultTrackedEntityInstanceService, times( 1 ) ).getTrackedEntityInstance( trackedEntityInstanceUid,
-            user );
+        verify( defaultTrackedEntityInstanceService, times( 1 ) ).getTrackedEntityInstance( trackedEntityInstanceUid );
         verify( defaultTrackedEntityInstanceService, times( 1 ) ).updateTrackedEntityInstance( any() );
     }
 
