@@ -151,8 +151,8 @@ public class DefaultQueryValidator
             error = new ErrorMessage( ErrorCode.E7107 );
             ;
         }
-
-        if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
+        else if ( (!params.getFilterIndicators().isEmpty() || !params.getFilterProgramIndicators().isEmpty())
+            && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
         {
             error = new ErrorMessage( ErrorCode.E7108 );
         }
@@ -221,7 +221,6 @@ public class DefaultQueryValidator
             if ( !params.hasDimension( ORGUNIT_DIM_ID ) )
             {
                 error = new ErrorMessage( ErrorCode.E7119 );
-                ;
             }
         }
 

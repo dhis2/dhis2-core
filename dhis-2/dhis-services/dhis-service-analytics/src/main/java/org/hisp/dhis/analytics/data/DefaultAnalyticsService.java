@@ -390,14 +390,18 @@ public class DefaultAnalyticsService
      */
     private DataQueryParams preHandleQuery( DataQueryParams params )
     {
-        if ( params.hasSingleIndicatorAsDataFilter() || params.hasSingleReportingRateAsDataFilter() )
+        if ( params.hasSingleIndicatorAsDataFilter() || params.hasSingleProgramIndicatorAsDataFilter()
+            || params.hasSingleReportingRateAsDataFilter() )
         {
             DimensionalObject dx = params.getFilter( DATA_X_DIM_ID );
 
             params = DataQueryParams.newBuilder( params )
                 .addDimension( dx )
                 .removeFilter( DATA_X_DIM_ID )
-                .addProcessingHint( ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ).build();
+                .addProcessingHint(
+                    params.hasSingleIndicatorAsDataFilter() ? ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM
+                        : ProcessingHint.SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM )
+                .build();
         }
 
         return params;
@@ -414,7 +418,8 @@ public class DefaultAnalyticsService
      */
     private void postHandleGrid( DataQueryParams params, Grid grid )
     {
-        if ( params.hasProcessingHint( ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ) )
+        if ( params.hasProcessingHint( ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM )
+            || params.hasProcessingHint( ProcessingHint.SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM ) )
         {
             grid.removeColumn( DataQueryParams.DX_INDEX );
         }
