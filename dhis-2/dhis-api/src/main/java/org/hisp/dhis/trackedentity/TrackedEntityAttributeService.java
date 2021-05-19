@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -110,6 +111,9 @@ public interface TrackedEntityAttributeService
 
     Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user, List<Program> programs,
         List<TrackedEntityType> trackedEntityTypes );
+
+    ProgramTrackedEntityAttribute getProgramTrackedEntityAttribute( Program program,
+        TrackedEntityAttribute trackedEntityAttribute );
 
     /**
      * Returns all {@link TrackedEntityAttribute}

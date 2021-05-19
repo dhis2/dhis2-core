@@ -25,52 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.tracker.importer;
-
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import java.io.File;
-
-import static org.hamcrest.Matchers.*;
+package org.hisp.dhis.visualization;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * Represents the mode in which a text was created.
+ *
+ * @author maikel arabori
  */
-public class TrackerImporterTests
-    extends ApiTest
+public enum TextMode
 {
-    private TrackerActions trackerActions;
-
-    @BeforeAll
-    public void beforeAll()
-    {
-        trackerActions = new TrackerActions();
-
-        new LoginActions().loginAsSuperUser();
-    }
-
-    @Test
-    public void shouldNotCommitWhenStrategyIsValidate()
-    {
-        ApiResponse response = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/tei.json" ),
-            new QueryParamsBuilder().add( "importMode=VALIDATE" ) );
-
-        response.validate()
-            .statusCode( 200 )
-            .body( "status", equalTo( "OK" ) )
-            .body( "stats.created", equalTo( 0 ) )
-            .body( "stats.total", equalTo( 0 ) )
-            .body( "validationReport", notNullValue() )
-            .body( "validationReport.errorReports", empty() )
-            .body( "validationReport.warningReports", empty() );
-
-    }
-
+    AUTO,
+    CUSTOM
 }

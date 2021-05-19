@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.bundle;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +36,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.*;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -147,6 +149,12 @@ public class TrackerBundle
      * Rule effects for Enrollments.
      */
     @Builder.Default
+    private List<RuleEffects> ruleEffects = new ArrayList<>();
+
+    /**
+     * Rule effects for Enrollments.
+     */
+    @Builder.Default
     private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
     /**
@@ -174,5 +182,21 @@ public class TrackerBundle
     public Optional<Enrollment> getEnrollment( String id )
     {
         return this.enrollments.stream().filter( t -> t.getEnrollment().equals( id ) ).findFirst();
+    }
+
+    public Map<String, List<RuleEffect>> getEnrollmentRuleEffects()
+    {
+        return ruleEffects.stream()
+            .filter( RuleEffects::isEnrollment )
+            .filter( e -> getEnrollment( e.getTrackerObjectUid() ).isPresent() )
+            .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
+    }
+
+    public Map<String, List<RuleEffect>> getEventRuleEffects()
+    {
+        return ruleEffects.stream()
+            .filter( RuleEffects::isEvent )
+            .filter( e -> getEvent( e.getTrackerObjectUid() ).isPresent() )
+            .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
     }
 }

@@ -30,20 +30,17 @@ package org.hisp.dhis.tracker.importer.relationships;
 
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.IdGenerator;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,18 +52,19 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class RelationshipsTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
     private static final String relationshipType = "xLmPUYJX8Ks";
 
@@ -76,15 +74,11 @@ public class RelationshipsTests
 
     private List<String> createdRelationships = new ArrayList<>();
 
-    private TrackerActions trackerActions;
-
     private RestApiActions relationshipTypeActions;
 
     private TEIActions teiActions;
 
     private MetadataActions metadataActions;
-
-    private EventActions eventActions;
 
     private static Stream<Arguments> provideRelationshipData()
     {
@@ -114,24 +108,49 @@ public class RelationshipsTests
     public void beforeAll()
         throws Exception
     {
-        trackerActions = new TrackerActions();
         teiActions = new TEIActions();
         metadataActions = new MetadataActions();
-        eventActions = new EventActions();
         relationshipTypeActions = new RestApiActions( "/relationshipTypes" );
 
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
 
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/relationshipTypes.json" ) );
 
-        teis = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/teis.json" ) )
-            .validateSuccessfulImport().extractImportedTeis();
+        teis = importTeis();
+        events = importEvents();
+    }
 
-        JsonObject eventObject = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/events.json" ) )
-            .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
+    @Test
+    public void shouldNotUpdateRelationship()
+    {
+        // arrange
+        String relationshipId = new IdGenerator().generateUniqueId();
 
-        events = trackerActions.postAndGetJobReport( eventObject )
-            .validateSuccessfulImport().extractImportedEvents();
+        JsonObject relationship = JsonObjectBuilder.jsonObject()
+            .addProperty( "relationship", relationshipId )
+            .addProperty( "relationshipType", relationshipType )
+            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 0 ) ) )
+            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 1 ) ) )
+            .wrapIntoArray( "relationships" );
+
+        trackerActions.postAndGetJobReport( relationship ).validate().statusCode( 200 );
+
+        JsonObject relationshipBody = trackerActions.get( "/relationships/" + relationshipId ).getBody();
+
+        JsonObjectBuilder.jsonObject( relationship )
+            .addObjectByJsonPath( "relationships[0]", "from",
+                JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 1 ) ).build() )
+            .addObjectByJsonPath( "relationships[0]", "to",
+                JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 0 ) ).build() )
+            .build();
+
+        // act
+        TrackerApiResponse response = trackerActions
+            .postAndGetJobReport( relationship, new QueryParamsBuilder().add( "importStrategy=UPDATE" ) );
+
+        // assert
+        response.validateErrorReport();
+        assertThat( trackerActions.get( "/relationships/" + relationshipId ).getBody(), matchesJSON( relationshipBody ) );
     }
 
     @ParameterizedTest
@@ -178,9 +197,9 @@ public class RelationshipsTests
         String trackedEntity_2 = idGenerator.generateUniqueId();
 
         JsonObject jsonObject = trackerActions.buildTrackedEntityAndRelationships(
-                trackedEntity_1,
-                trackedEntity_2,
-                trackerActions::buildNonBidirectionalTrackedEntityRelationship);
+            trackedEntity_1,
+            trackedEntity_2,
+            trackerActions::buildNonBidirectionalTrackedEntityRelationship );
 
         trackerActions.postAndGetJobReport( jsonObject )
             .validateSuccessfulImport()
@@ -221,9 +240,9 @@ public class RelationshipsTests
         String trackedEntity_2 = idGenerator.generateUniqueId();
 
         JsonObject jsonObject = trackerActions.buildTrackedEntityAndRelationships(
-                trackedEntity_1,
-                trackedEntity_2,
-                trackerActions::buildBidirectionalTrackedEntityRelationship);
+            trackedEntity_1,
+            trackedEntity_2,
+            trackerActions::buildBidirectionalTrackedEntityRelationship );
 
         TrackerApiResponse trackerApiResponse = trackerActions.postAndGetJobReport( jsonObject )
             .validateSuccessfulImport();
