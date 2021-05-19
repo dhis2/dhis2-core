@@ -77,7 +77,7 @@ public class EnrollmentAnalyticsQueryCriteria
 
     private Integer pageSize;
 
-    private Boolean paging = true;
+    private boolean paging;
 
     private DisplayProperty displayProperty;
 
