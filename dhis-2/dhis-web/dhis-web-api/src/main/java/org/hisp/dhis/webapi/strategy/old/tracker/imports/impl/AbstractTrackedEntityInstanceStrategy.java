@@ -37,10 +37,11 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceStrategyHandler;
 import org.springframework.http.MediaType;
 
 @RequiredArgsConstructor
-public class AbstractTrackedEntityInstanceStrategy
+public abstract class AbstractTrackedEntityInstanceStrategy implements TrackedEntityInstanceStrategyHandler
 {
     final protected TrackedEntityInstanceService trackedEntityInstanceService;
 
@@ -51,7 +52,6 @@ public class AbstractTrackedEntityInstanceStrategy
         throws IOException,
         BadRequestException
     {
-
         if ( MediaType.valueOf( mediaType ).equals( MediaType.APPLICATION_JSON ) )
         {
             return trackedEntityInstanceService.getTrackedEntityInstancesJson( inputStream );

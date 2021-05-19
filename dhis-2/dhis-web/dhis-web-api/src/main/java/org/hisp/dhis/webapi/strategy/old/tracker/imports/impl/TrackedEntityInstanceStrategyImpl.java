@@ -46,7 +46,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TrackedEntityInstanceStrategyImpl implements TrackedEntityInstanceStrategyHandler
 {
-
     final TrackedEntityInstanceSyncStrategyImpl trackedEntityInstanceSyncStrategy;
 
     final TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
