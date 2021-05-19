@@ -138,7 +138,7 @@ public class ProgramInstanceQueryParams
     private boolean includeDeleted;
 
     /**
-     * List or order params
+     * List of order params
      */
     private List<OrderParam> order;
 

@@ -139,7 +139,7 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
     protected Consumer<OrderCriteria> disallowedOrderFieldConsumer()
     {
         return orderCriteria -> log.warn( "Ordering by " + orderCriteria.getField() + " is not supported" );
-    };
+    }
 
     public boolean isSortingRequest()
     {
