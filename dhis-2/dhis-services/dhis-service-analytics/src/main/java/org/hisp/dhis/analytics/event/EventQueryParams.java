@@ -32,6 +32,8 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import static org.hisp.dhis.common.FallbackCoordinateFieldType.OU_GEOMETRY;
+import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,15 +51,7 @@ import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -75,6 +69,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Class representing query parameters for retrieving event data from the event
@@ -99,6 +94,9 @@ public class EventQueryParams
     public static final String EVENT_COORDINATE_FIELD = "EVENT";
 
     public static final String ENROLLMENT_COORDINATE_FIELD = "ENROLLMENT";
+
+    public static final ImmutableSet<FallbackCoordinateFieldType> FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
+        OU_GEOMETRY, PSI_GEOMETRY );
 
     /**
      * The query items.
@@ -568,6 +566,16 @@ public class EventQueryParams
         }
 
         return false;
+    }
+
+    /**
+     * Indicates whether the given fallbackCoordinateField is valid, i.e.
+     * whether it matches to the query geometry.
+     */
+    public boolean fallbackCoordinateFieldIsValid()
+    {
+        return EventQueryParams.FALLBACK_COORDINATE_FIELD_TYPES.stream()
+            .anyMatch( t -> t.getValue().equals( fallbackCoordinateField ) );
     }
 
     private boolean validateProgramHasOrgUnitField( Program program )

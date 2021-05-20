@@ -271,6 +271,7 @@ public enum ErrorCode
     E7225( "Program stage is mandatory for data element dimensions in enrollment analytics queries: `{0}`" ),
     E7226( "Dimension is not a valid query item: `{0}`" ),
     E7227( "Relationship entity type not supported: `{0}`" ),
+    E7228( "Fallback coordinate field is invalid: `{0}` " ),
 
     /* Org unit analytics */
     E7300( "At least one organisation unit must be specified" ),
