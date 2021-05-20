@@ -34,15 +34,15 @@ import static org.hisp.dhis.analytics.event.HeaderName.NAME_PROGRAM_STAGE;
 import java.util.List;
 import java.util.Objects;
 
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+
 import org.hisp.dhis.analytics.event.HeaderName;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageStore;
 import org.springframework.stereotype.Component;
-
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
 
 /**
  * Specific component responsible for overriding Grid headers based on internal
@@ -52,7 +52,7 @@ import lombok.NonNull;
  * and endpoints. The client/frontend also relies on the Grid objects for
  * several applications. If this component requires any changes be sure to check
  * what will be the impact.
- * 
+ *
  * @author maikel arabori
  */
 @Component
@@ -65,7 +65,7 @@ public class GridHeaderMapper
     /**
      * This method overrides some GridHeader's based on internal rules. See
      * {@link #maybeOverrideHeaderName} to check the current rules.
-     * 
+     *
      * @param grid
      */
     public void maybeOverrideHeaderNames( final Grid grid )
@@ -95,7 +95,7 @@ public class GridHeaderMapper
      * This method (maybe) overrides the given HeaderName using the respective
      * ProgramStage label defined by the user, if any. If no label is defined by
      * the user for the given HeaderName, nothing will be overridden.
-     * 
+     *
      * @param programStage the ProgramStage found in the GridHeader
      * @param gridHeader the current event GridHeader
      * @param headerName the header name to be overridden
@@ -136,7 +136,7 @@ public class GridHeaderMapper
     /**
      * Based on the given Grid and ProgramStage index, this method load the
      * respective ProgramStage and returns it.
-     * 
+     *
      * @param grid the current event grid
      * @param programStageIndex the ProgramStage index in the Grid
      * @return the respective instance of the Program Stage
