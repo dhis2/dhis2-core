@@ -60,7 +60,7 @@ jobs:
       - name: Build core
         run: mvn clean install -f ./dhis-2/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl -dhis-web-embedded-jetty
       - name: Build web
-        run: mvn clean install -f ./dhis-2/dhis-web/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl -dhis-web-embedded-jetty
+        run: mvn clean install -f ./dhis-2/dhis-web/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
