@@ -1,0 +1,1 @@
+create index if not exists in_reservedvalue_owneruid_value on reservedvalue (owneruid,value);
