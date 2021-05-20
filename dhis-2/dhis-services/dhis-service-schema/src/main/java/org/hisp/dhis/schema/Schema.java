@@ -197,6 +197,11 @@ public class Schema implements Ordered, Klass
     private boolean implicitPrivateAuthority;
 
     /**
+     * Database table name of this class
+     */
+    private String tableName;
+
+    /**
      * List of authorities required for doing operations on this class.
      */
     private List<Authority> authorities = Lists.newArrayList();
@@ -505,6 +510,17 @@ public class Schema implements Ordered, Klass
     public void setImplicitPrivateAuthority( boolean implicitPrivateAuthority )
     {
         this.implicitPrivateAuthority = implicitPrivateAuthority;
+    }
+
+    @JsonIgnore
+    public String getTableName()
+    {
+        return tableName;
+    }
+
+    public void setTableName( String tableName )
+    {
+        this.tableName = tableName;
     }
 
     @JsonProperty
