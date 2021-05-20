@@ -20,7 +20,7 @@ jobs:
           restore-keys: ${{ runner.os }}-maven-
 
       - name: Check formatting in core
-        run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/pom.xml
 
       - name: Check formatting in web
         run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml
