@@ -571,14 +571,7 @@ public abstract class AbstractJdbcTableManager
     protected void invokeTimeAndLog( String sql, String logMessage )
     {
         log.debug( String.format( "%s with SQL: '%s'", logMessage, sql ) );
-
         Timer timer = new SystemTimer().start();
-        log.info( "**************************" );
-        log.info( "**************************" );
-        log.info( sql );
-        log.info( "**************************" );
-        log.info( "**************************" );
-
         jdbcTemplate.execute( sql );
 
         log.info( String.format( "%s in: %s", logMessage, timer.stop().toString() ) );
