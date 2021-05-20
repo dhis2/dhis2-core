@@ -32,6 +32,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.event.HeaderName.NAME_PROGRAM_STAGE;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.hisp.dhis.analytics.event.HeaderName;
 import org.hisp.dhis.common.Grid;
@@ -44,8 +45,8 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
 /**
- * Specific component responsible for overriding Event Grid headers based on
- * business conditions.
+ * Specific component responsible for overriding Grid headers based on internal
+ * business rules.
  *
  * IMPORTANT: The Grid object is used and shared across many analytics features
  * and endpoints. The client/frontend also relies on the Grid objects for
@@ -56,7 +57,7 @@ import lombok.NonNull;
  */
 @Component
 @AllArgsConstructor
-public class EventGridHeaderMapper
+public class GridHeaderMapper
 {
     @NonNull
     private final ProgramStageStore programStageStore;
@@ -72,20 +73,19 @@ public class EventGridHeaderMapper
         if ( grid != null && isNotEmpty( grid.getHeaders() ) )
         {
             final int programStageIndex = getProgramStageIndex( grid.getHeaders() );
-            final ProgramStage programStage = getProgramStage( grid, programStageIndex );
+            final boolean hasProgramStageSet = programStageIndex != -1;
 
-            if ( programStage != null )
+            if ( hasProgramStageSet )
             {
-                final List<GridHeader> currentHeaders = grid.getHeaders();
+                final ProgramStage programStage = getProgramStage( grid, programStageIndex );
 
-                for ( final GridHeader gridHeader : currentHeaders )
+                if ( programStage != null )
                 {
-                    if ( gridHeader != null )
-                    {
-                        final HeaderName headerName = HeaderName.from( gridHeader.getColumn() );
+                    final List<GridHeader> currentHeaders = grid.getHeaders();
 
-                        maybeOverrideHeaderName( programStage, gridHeader, headerName );
-                    }
+                    currentHeaders.stream().filter( Objects::nonNull )
+                        .forEachOrdered( gridHeader -> maybeOverrideHeaderName( programStage, gridHeader,
+                            HeaderName.from( gridHeader.getColumn() ) ) );
                 }
             }
         }
@@ -127,6 +127,8 @@ public class EventGridHeaderMapper
                     gridHeader.setColumn( programStage.getProgram().getIncidentDateLabel() );
                 }
                 break;
+            default:
+                // Nothing to replace.
             }
         }
     }
@@ -145,7 +147,9 @@ public class EventGridHeaderMapper
 
         if ( isNotEmpty( grid.getRows() ) && isNotEmpty( grid.getHeaders() ) )
         {
-            if ( programStageIndex != -1 )
+            final boolean programStageIsPresent = programStageIndex != -1;
+
+            if ( programStageIsPresent )
             {
                 final String programStageUid = (String) grid.getRow( 0 ).get( programStageIndex );
                 programStage = programStageStore.getByUid( programStageUid );
@@ -163,18 +167,19 @@ public class EventGridHeaderMapper
      */
     private int getProgramStageIndex( final List<GridHeader> currentHeaders )
     {
-        int index = -1;
+        final int notFound = -1;
+        int index = 0;
 
         for ( final GridHeader gridHeader : currentHeaders )
         {
-            index++;
-
             if ( gridHeader != null && NAME_PROGRAM_STAGE == HeaderName.from( gridHeader.getColumn() ) )
             {
                 return index;
             }
+
+            index++;
         }
 
-        return index;
+        return notFound;
     }
 }
