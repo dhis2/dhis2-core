@@ -38,8 +38,8 @@ print() {
 
 print "Building dhis2-core..."
 
-mvn clean install -T1C -PembeddedJetty -Pdev -Pjdk11 -f $DIR/pom.xml
-mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/dhis-web/pom.xml
+mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/pom.xml -pl -dhis-web-embedded-jetty
+mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/dhis-web/pom.xml -pl -dhis-web-embedded-jetty
 
 rm -rf "$ARTIFACTS/*"
 mkdir -p "$ARTIFACTS"
