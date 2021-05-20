@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.dataapproval.DataApprovalLevel;
-import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.schema.descriptors.DataApprovalLevelSchemaDescriptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-@Controller
-@RequestMapping( value = DataApprovalLevelSchemaDescriptor.API_ENDPOINT )
-public class DataApprovalLevelController
-    extends AbstractCrudController<DataApprovalLevel>
+/**
+ * @author Dusan Bernat
+ */
+public enum FallbackCoordinateFieldType
 {
-    @Autowired
-    private DataApprovalLevelService dataApprovalLevelService;
+    OU_GEOMETRY( "ougeometry" ),
+    PSI_GEOMETRY( "psigeometry" );
 
-    @Override
-    protected void preCreateEntity( DataApprovalLevel entity )
+    private final String value;
+
+    FallbackCoordinateFieldType( String value )
     {
-        dataApprovalLevelService.prepareAddDataApproval( entity );
+        this.value = value;
     }
 
-    @Override
-    protected void postDeleteEntity( String entityUID )
+    public String getValue()
     {
-        dataApprovalLevelService.postDeleteDataApprovalLevel();
+        return value;
     }
 }

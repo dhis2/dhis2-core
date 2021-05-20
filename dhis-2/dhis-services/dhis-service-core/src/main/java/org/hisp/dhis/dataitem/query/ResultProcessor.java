@@ -109,7 +109,9 @@ class ResultProcessor
 
     private static String getUid( final SqlRowSet rowSet )
     {
-        if ( isNotBlank( rowSet.getString( PROGRAM_UID ) ) && getItemType( rowSet ) != PROGRAM_INDICATOR )
+        final boolean ignoreProgramUid = PROGRAM_INDICATOR.name().equalsIgnoreCase( rowSet.getString( "item_type" ) );
+
+        if ( isNotBlank( rowSet.getString( PROGRAM_UID ) ) && !ignoreProgramUid )
         {
             return rowSet.getString( PROGRAM_UID ) + "." + rowSet.getString( "item_uid" );
         }

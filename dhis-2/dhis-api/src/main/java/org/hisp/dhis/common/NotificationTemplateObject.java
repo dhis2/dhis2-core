@@ -25,32 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.dataapproval.DataApprovalLevel;
-import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.schema.descriptors.DataApprovalLevelSchemaDescriptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.translation.Translatable;
 
-@Controller
-@RequestMapping( value = DataApprovalLevelSchemaDescriptor.API_ENDPOINT )
-public class DataApprovalLevelController
-    extends AbstractCrudController<DataApprovalLevel>
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
+public abstract class NotificationTemplateObject
+    extends BaseIdentifiableObject
+    implements NotificationTemplate
 {
-    @Autowired
-    private DataApprovalLevelService dataApprovalLevelService;
-
     @Override
-    protected void preCreateEntity( DataApprovalLevel entity )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "subjectTemplate", key = "SUBJECT_TEMPLATE" )
+    public String getDisplaySubjectTemplate()
     {
-        dataApprovalLevelService.prepareAddDataApproval( entity );
+        return getTranslation( "SUBJECT_TEMPLATE", getSubjectTemplate() );
     }
 
     @Override
-    protected void postDeleteEntity( String entityUID )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "messageTemplate", key = "MESSAGE_TEMPLATE" )
+    public String getDisplayMessageTemplate()
     {
-        dataApprovalLevelService.postDeleteDataApprovalLevel();
+        return getTranslation( "MESSAGE_TEMPLATE", getMessageTemplate() );
     }
 }
