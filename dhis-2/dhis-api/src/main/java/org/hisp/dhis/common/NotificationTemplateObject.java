@@ -25,25 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.user;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.schema.descriptors.UserGroupSchemaDescriptor;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.translation.Translatable;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Controller
-@RequestMapping( value = UserGroupSchemaDescriptor.API_ENDPOINT )
-public class UserGroupController
-    extends AbstractCrudController<UserGroup>
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
+public abstract class NotificationTemplateObject
+    extends BaseIdentifiableObject
+    implements NotificationTemplate
 {
     @Override
-    protected void postUpdateEntity( UserGroup entity )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "subjectTemplate", key = "SUBJECT_TEMPLATE" )
+    public String getDisplaySubjectTemplate()
     {
-        hibernateCacheManager.clearCache();
+        return getTranslation( "SUBJECT_TEMPLATE", getSubjectTemplate() );
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "messageTemplate", key = "MESSAGE_TEMPLATE" )
+    public String getDisplayMessageTemplate()
+    {
+        return getTranslation( "MESSAGE_TEMPLATE", getMessageTemplate() );
     }
 }

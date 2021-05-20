@@ -64,4 +64,15 @@ public interface EventDataQueryService
      * @throws IllegalQueryException if the coordinate field is not valid.
      */
     String getCoordinateField( String coordinate );
+
+    /**
+     * Returns the coordinate column field to use for the given coordinate
+     * field. Coordinate field must match EVENT, a data element identifier or an
+     * attribute identifier.
+     *
+     * @param coordinate the coordinate field.
+     * @return the coordinate column field.
+     * @throws IllegalQueryException if the coordinate field is not valid.
+     */
+    String getFallbackCoordinateField( String coordinate );
 }

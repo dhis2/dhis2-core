@@ -88,6 +88,11 @@
       <artifactId>gt-referencing</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>javax.media</groupId>
+      <artifactId>jai_imageio</artifactId>
+    </dependency>
+
     <!-- Test -->
 
     <dependency>

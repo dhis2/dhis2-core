@@ -383,7 +383,7 @@ public class JpaQueryUtils
             ? null
             : "{" + String.join( ",", userGroupIds ) + "}";
 
-        String sql = " ( %1$s->>'owner' is not null and %1$s->>'owner' = '%2$s') "
+        String sql = " ( %1$s->>'owner' is null or %1$s->>'owner' = '%2$s') "
             + " or %1$s->>'public' like '%4$s' or %1$s->>'public' is null "
             + " or (" + JsonbFunctions.HAS_USER_ID + "( %1$s, '%2$s') = true "
             + " and " + JsonbFunctions.CHECK_USER_ACCESS + "( %1$s, '%2$s', '%4$s' ) = true )  "
