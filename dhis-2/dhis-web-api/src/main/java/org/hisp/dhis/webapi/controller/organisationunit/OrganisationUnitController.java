@@ -42,7 +42,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitByLevelComparator;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -57,7 +60,11 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -371,7 +378,7 @@ public class OrganisationUnitController
     }
 
     @Override
-    protected void postDeleteEntity()
+    protected void postDeleteEntity( String entityUID )
     {
         versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
     }

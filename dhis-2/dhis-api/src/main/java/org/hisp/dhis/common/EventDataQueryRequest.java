@@ -112,7 +112,11 @@ public class EventDataQueryRequest
 
     private boolean coordinatesOnly;
 
+    private boolean coordinateOuFallback;
+
     private String coordinateField;
+
+    private String fallbackCoordinateField;
 
     private Integer page;
 
@@ -161,6 +165,7 @@ public class EventDataQueryRequest
         queryRequest.timeField = this.timeField;
         queryRequest.coordinatesOnly = this.coordinatesOnly;
         queryRequest.coordinateField = this.coordinateField;
+        queryRequest.fallbackCoordinateField = this.fallbackCoordinateField;
         queryRequest.page = this.page;
         queryRequest.pageSize = this.pageSize;
         queryRequest.paging = this.paging;
@@ -182,6 +187,7 @@ public class EventDataQueryRequest
                 .collapseDataDimensions( criteria.isCollapseDataDimensions() )
                 .completedOnly( criteria.isCompletedOnly() )
                 .coordinateField( criteria.getCoordinateField() )
+                .fallbackCoordinateField( criteria.getFallbackCoordinateField() )
                 .desc( criteria.getDesc() )
                 .dimension( criteria.getDimension() )
                 .displayProperty( criteria.getDisplayProperty() )
@@ -210,7 +216,8 @@ public class EventDataQueryRequest
                 .value( criteria.getValue() )
                 .dataIdScheme( criteria.getDataIdScheme() )
                 .orgUnitField( criteria.getOrgUnitField() )
-                .coordinatesOnly( criteria.isCoordinatesOnly() );
+                .coordinatesOnly( criteria.isCoordinatesOnly() )
+                .coordinateOuFallback( criteria.isCoordinateOuFallback() );
         }
 
         public EventDataQueryRequestBuilder fromCriteria( EnrollmentAnalyticsQueryCriteria criteria )

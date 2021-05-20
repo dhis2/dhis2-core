@@ -241,6 +241,7 @@ public class DefaultEventDataQueryService
             .withCompletedOnly( request.isCompletedOnly() )
             .withHierarchyMeta( request.isHierarchyMeta() )
             .withCoordinatesOnly( request.isCoordinatesOnly() )
+            .withCoordinateOuFallback( request.isCoordinateOuFallback() )
             .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
             .withDataIdScheme( request.getDataIdScheme() )
             .withEventStatus( request.getEventStatus() )
@@ -248,6 +249,7 @@ public class DefaultEventDataQueryService
             .withTimeField( request.getTimeField() )
             .withOrgUnitField( request.getOrgUnitField() )
             .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
+            .withFallbackCoordinateField( getFallbackCoordinateField( request.getFallbackCoordinateField() ) )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
             .withPaging( request.isPaging() )
@@ -316,9 +318,24 @@ public class DefaultEventDataQueryService
     @Override
     public String getCoordinateField( String coordinateField )
     {
+        return getCoordinateField( coordinateField, "psigeometry" );
+    }
+
+    @Override
+    public String getFallbackCoordinateField( String fallbackCoordinateField )
+    {
+        return fallbackCoordinateField == null ? "ougeometry" : fallbackCoordinateField;
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private String getCoordinateField( String coordinateField, String defaultEventCoordinateField )
+    {
         if ( coordinateField == null || EventQueryParams.EVENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            return "psigeometry";
+            return defaultEventCoordinateField;
         }
 
         if ( EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals( coordinateField ) )
@@ -342,10 +359,6 @@ public class DefaultEventDataQueryService
 
         throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7221, coordinateField ) );
     }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
 
     private QueryItem getQueryItem( String dimension, String filter, Program program, EventOutputType type )
     {
