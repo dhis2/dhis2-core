@@ -159,6 +159,10 @@ public class DefaultEventQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7214 );
         }
+        else if ( params.getFallbackCoordinateField() != null && !params.fallbackCoordinateFieldIsValid() )
+        {
+            error = new ErrorMessage( ErrorCode.E7228, params.getFallbackCoordinateField() );
+        }
 
         for ( QueryItem item : params.getItemsAndItemFilters() )
         {
