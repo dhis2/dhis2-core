@@ -213,7 +213,7 @@ public class QueryValidatorTest
 
         ErrorMessage error = queryValidator.validateForErrorMessage( params );
 
-        assertEquals( ErrorCode.E7108, error.getErrorCode() );
+        assertEquals( ErrorCode.E7104, error.getErrorCode() );
     }
 
     @Test( expected = IllegalQueryException.class )
@@ -269,7 +269,7 @@ public class QueryValidatorTest
 
         ErrorMessage error = queryValidator.validateForErrorMessage( params );
 
-        assertEquals( ErrorCode.E7112, error.getErrorCode() );
+        assertEquals( ErrorCode.E7104, error.getErrorCode() );
     }
 
     @Test( expected = IllegalQueryException.class )
