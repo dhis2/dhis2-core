@@ -38,9 +38,6 @@
                                 <includes>
                                     <include>*:*</include>
                                 </includes>
-                                <!--                                <excludes>-->
-                                <!--                                    <exclude>org.bouncycastle:bcprov-jdk15on</exclude>-->
-                                <!--                                </excludes>-->
                             </artifactSet>
                             <filters>
                                 <filter>
