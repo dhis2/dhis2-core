@@ -103,7 +103,8 @@ public class MetadataImportBasedOnSchemasTest
             "relationshipTypes",
             "messageConversations",
             "users",
-            "organisationUnitLevels"); //blacklisted because contains conditionally required properties, which are not marked as required
+            "organisationUnitLevels",
+            "programRuleActions"); //blacklisted because contains conditionally required properties, which are not marked as required
 
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 
@@ -114,6 +115,7 @@ public class MetadataImportBasedOnSchemasTest
 
         // post
         JsonObject object = DataGenerator.generateObjectMatchingSchema( schemaProperties );
+
         ApiResponse response = apiActions.post( object );
 
         // validate response;

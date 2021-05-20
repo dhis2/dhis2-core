@@ -31,6 +31,9 @@ package org.hisp.dhis.actions.metadata;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+
+import static org.hamcrest.CoreMatchers.equalTo;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -53,5 +56,18 @@ public class ProgramStageActions extends RestApiActions
         response.validate().statusCode( 200 );
 
         return response;
+    }
+
+    public void setValidationStrategy( String programStageId, String strategy )
+    {
+        JsonObject body = JsonObjectBuilder.jsonObject()
+            .addProperty( "validationStrategy", strategy )
+            .build();
+
+        this.patch( programStageId, body )
+            .validate().statusCode( 204 );
+
+        this.get( programStageId )
+            .validate().body( "validationStrategy", equalTo( strategy ) );
     }
 }

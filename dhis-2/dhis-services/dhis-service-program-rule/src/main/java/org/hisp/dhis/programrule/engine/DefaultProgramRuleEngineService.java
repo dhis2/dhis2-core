@@ -110,7 +110,7 @@ public class DefaultProgramRuleEngineService
             return Lists.newArrayList();
         }
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluateOldOne( programInstance,
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance,
             programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )
@@ -147,6 +147,14 @@ public class DefaultProgramRuleEngineService
         return programRuleEngine.getDescription( condition, program );
     }
 
+    @Override
+    public RuleValidationResult getDataExpressionDescription( String dataExpression, String programId )
+    {
+        Program program = programService.getProgram( programId );
+
+        return programRuleEngine.getDataExpressionDescription( dataExpression, program );
+    }
+
     private List<RuleEffect> evaluateEventAndRunEffects( ProgramStageInstance psi )
     {
         if ( psi == null )
@@ -156,7 +164,7 @@ public class DefaultProgramRuleEngineService
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( psi.getProgramInstance().getId() );
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluateOldOne( programInstance, psi,
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, psi,
             programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )

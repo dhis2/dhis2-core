@@ -100,6 +100,8 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     protected void mockCurrentUserService()
     {
         User user = createUser( "testUser" );
+        user.addOrganisationUnit( organisationUnitA );
+        userService.updateUser( user );
 
         makeUserSuper( user );
 
@@ -212,6 +214,71 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
             .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( limitedTTrackedEntityInstances, hasSize( 0 ) );
+    }
+
+    @Test
+    public void testFetchTrackedEntityInstancesWithEventFilters()
+    {
+        doInTransaction( () -> {
+            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+        } );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setProgram( programA );
+        queryParams.setEventStatus( EventStatus.COMPLETED );
+        queryParams.setEventStartDate( Date.from( Instant.now().minus( 10, ChronoUnit.DAYS ) ) );
+        queryParams.setEventEndDate( Date.from( Instant.now().plus( 10, ChronoUnit.DAYS ) ) );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+
+        assertThat( trackedEntityInstances, hasSize( 4 ) );
+
+        // Update status to active
+        queryParams.setEventStatus( EventStatus.ACTIVE );
+
+        final List<TrackedEntityInstance> limitedTrackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+
+        assertThat( limitedTrackedEntityInstances, hasSize( 0 ) );
+
+        // Update status to overdue
+        queryParams.setEventStatus( EventStatus.OVERDUE );
+
+        final List<TrackedEntityInstance> limitedTrackedEntityInstances2 = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+
+        assertThat( limitedTrackedEntityInstances2, hasSize( 0 ) );
+
+        // Update status to schedule
+        queryParams.setEventStatus( EventStatus.SCHEDULE );
+
+        final List<TrackedEntityInstance> limitedTrackedEntityInstances3 = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+
+        assertThat( limitedTrackedEntityInstances3, hasSize( 0 ) );
+
+        // Update status to schedule
+        queryParams.setEventStatus( EventStatus.SKIPPED );
+
+        final List<TrackedEntityInstance> limitedTrackedEntityInstances4 = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+
+        assertThat( limitedTrackedEntityInstances4, hasSize( 0 ) );
+
+        // Update status to visited
+        queryParams.setEventStatus( EventStatus.VISITED );
+
+        final List<TrackedEntityInstance> limitedTrackedEntityInstances5 = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+
+        assertThat( limitedTrackedEntityInstances5, hasSize( 0 ) );
     }
 
     @Test
