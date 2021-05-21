@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
+import static java.util.Collections.emptyList;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.joinObjects;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -45,11 +48,13 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.sharing.Sharing;
 
 /**
  * @author Luciano Fiandesio
@@ -63,26 +68,19 @@ public class ReferencesCheck
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext ctx )
     {
-        TypeReport typeReport = new TypeReport( klass );
-
-        List<IdentifiableObject> objects = ValidationUtils.joinObjects( persistedObjects, nonPersistedObjects );
-
-        if ( objects.isEmpty() )
+        if ( persistedObjects.isEmpty() && nonPersistedObjects.isEmpty() )
         {
-            return typeReport;
+            return TypeReport.empty( klass );
         }
 
-        for ( IdentifiableObject object : objects )
+        TypeReport typeReport = new TypeReport( klass );
+
+        for ( IdentifiableObject object : joinObjects( persistedObjects, nonPersistedObjects ) )
         {
             List<PreheatErrorReport> errorReports = checkReferences( object, bundle.getPreheat(),
                 bundle.getPreheatIdentifier(), bundle.isSkipSharing(), ctx );
 
-            if ( errorReports.isEmpty() )
-            {
-                continue;
-            }
-
-            if ( object != null )
+            if ( !errorReports.isEmpty() && object != null )
             {
                 ObjectReport objectReport = new ObjectReport( object, bundle );
                 objectReport.addErrorReports( errorReports );
@@ -101,12 +99,12 @@ public class ReferencesCheck
     private List<PreheatErrorReport> checkReferences( IdentifiableObject object, Preheat preheat,
         PreheatIdentifier identifier, boolean skipSharing, ValidationContext ctx )
     {
-        List<PreheatErrorReport> preheatErrorReports = new ArrayList<>();
-
         if ( object == null )
         {
-            return preheatErrorReports;
+            return emptyList();
         }
+
+        List<PreheatErrorReport> preheatErrorReports = new ArrayList<>();
 
         Schema schema = ctx.getSchemaService().getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
         schema.getProperties().stream().filter( p -> p.isPersisted() && p.isOwner()
@@ -119,97 +117,119 @@ public class ReferencesCheck
 
                 if ( !p.isCollection() )
                 {
-                    IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
-                    IdentifiableObject ref = preheat.get( identifier, refObject );
-
-                    if ( ref == null && refObject != null && !preheat.isDefault( refObject ) )
-                    {
-                        // HACK this needs to be redone when the move to using
-                        // uuid as user identifiers is ready
-                        boolean isUserReference = User.class.isAssignableFrom( p.getKlass() ) &&
-                            ("user".equals( p.getName() ) || "lastUpdatedBy".equals( p.getName() ));
-
-                        if ( !(isUserReference && skipSharing) )
-                        {
-                            preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
-                                ErrorCode.E5002, identifier.getIdentifiersWithName( refObject ),
-                                identifier.getIdentifiersWithName( object ), p.getName() ) );
-                        }
-                    }
+                    checkReference( object, preheat, identifier, skipSharing, preheatErrorReports, p );
                 }
                 else
                 {
-                    Collection<IdentifiableObject> objects = ReflectionUtils.newCollectionInstance( p.getKlass() );
-                    Collection<IdentifiableObject> refObjects = ReflectionUtils.invokeMethod( object,
-                        p.getGetterMethod() );
-
-                    for ( IdentifiableObject refObject : refObjects )
-                    {
-                        if ( preheat.isDefault( refObject ) )
-                            continue;
-
-                        IdentifiableObject ref = preheat.get( identifier, refObject );
-
-                        if ( ref == null && refObject != null )
-                        {
-                            preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
-                                ErrorCode.E5002, identifier.getIdentifiersWithName( refObject ),
-                                identifier.getIdentifiersWithName( object ), p.getCollectionName() ) );
-                        }
-                        else
-                        {
-                            objects.add( refObject );
-                        }
-                    }
-
-                    ReflectionUtils.invokeMethod( object, p.getSetterMethod(), objects );
+                    checkCollection( object, preheat, identifier, preheatErrorReports, p );
                 }
             } );
 
         if ( schema.havePersistedProperty( "attributeValues" ) )
         {
-            object.getAttributeValues().stream()
-                .filter( attributeValue -> attributeValue.getAttribute() != null
-                    && preheat.get( identifier, attributeValue.getAttribute() ) == null )
-                .forEach(
-                    attributeValue -> preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
-                        ErrorCode.E5002, identifier.getIdentifiersWithName( attributeValue.getAttribute() ),
-                        identifier.getIdentifiersWithName( object ), "attributeValues" ) ) );
+            checkAttributeValues( object, preheat, identifier, preheatErrorReports );
         }
 
-        if ( schema.havePersistedProperty( "sharing" ) && !skipSharing )
+        if ( schema.havePersistedProperty( "sharing" ) && !skipSharing && object.getSharing() != null )
         {
-            if ( object.getSharing() != null )
-            {
-                if ( object.getSharing().hasUserGroupAccesses() )
-                {
-                    object.getSharing().getUserGroups().values().stream()
-                        .filter( userGroupAccess -> preheat.get( PreheatIdentifier.UID,
-                            userGroupAccess.toDtoObject().getUserGroup() ) == null )
-                        .forEach(
-                            userGroupAccess -> preheatErrorReports
-                                .add( new PreheatErrorReport( PreheatIdentifier.UID, object.getClass(),
-                                    ErrorCode.E5002,
-                                    PreheatIdentifier.UID
-                                        .getIdentifiersWithName( userGroupAccess.toDtoObject().getUserGroup() ),
-                                    PreheatIdentifier.UID.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
-                }
-
-                if ( object.getSharing().hasUserAccesses() )
-                {
-                    object.getSharing().getUsers().values().stream()
-                        .filter( userAccess -> preheat.get( PreheatIdentifier.UID,
-                            userAccess.toDtoObject().getUser() ) == null )
-                        .forEach(
-                            userAccesses -> preheatErrorReports.add( new PreheatErrorReport( PreheatIdentifier.UID,
-                                object.getClass(), ErrorCode.E5002,
-                                PreheatIdentifier.UID.getIdentifiersWithName( userAccesses.toDtoObject().getUser() ),
-                                PreheatIdentifier.UID.getIdentifiersWithName( object ), "userAccesses" ) ) );
-                }
-            }
+            checkSharing( object, preheat, preheatErrorReports );
         }
 
         return preheatErrorReports;
+    }
+
+    private void checkReference( IdentifiableObject object, Preheat preheat, PreheatIdentifier identifier,
+        boolean skipSharing, List<PreheatErrorReport> preheatErrorReports, Property property )
+    {
+        IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+        IdentifiableObject ref = preheat.get( identifier, refObject );
+
+        if ( ref == null && refObject != null && !preheat.isDefault( refObject ) )
+        {
+            // HACK this needs to be redone when the move to using
+            // uuid as user identifiers is ready
+            boolean isUserReference = User.class.isAssignableFrom( property.getKlass() ) &&
+                ("user".equals( property.getName() ) || "lastUpdatedBy".equals( property.getName() ));
+
+            if ( !(isUserReference && skipSharing) )
+            {
+                preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
+                    ErrorCode.E5002, identifier.getIdentifiersWithName( refObject ),
+                    identifier.getIdentifiersWithName( object ), property.getName() ) );
+            }
+        }
+    }
+
+    private void checkCollection( IdentifiableObject object, Preheat preheat, PreheatIdentifier identifier,
+        List<PreheatErrorReport> preheatErrorReports, Property property )
+    {
+        Collection<IdentifiableObject> objects = ReflectionUtils.newCollectionInstance( property.getKlass() );
+        Collection<IdentifiableObject> refObjects = ReflectionUtils.invokeMethod( object,
+            property.getGetterMethod() );
+
+        for ( IdentifiableObject refObject : refObjects )
+        {
+            if ( preheat.isDefault( refObject ) )
+                continue;
+
+            IdentifiableObject ref = preheat.get( identifier, refObject );
+
+            if ( ref == null && refObject != null )
+            {
+                preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
+                    ErrorCode.E5002, identifier.getIdentifiersWithName( refObject ),
+                    identifier.getIdentifiersWithName( object ), property.getCollectionName() ) );
+            }
+            else
+            {
+                objects.add( refObject );
+            }
+        }
+
+        ReflectionUtils.invokeMethod( object, property.getSetterMethod(), objects );
+    }
+
+    private void checkAttributeValues( IdentifiableObject object, Preheat preheat, PreheatIdentifier identifier,
+        List<PreheatErrorReport> preheatErrorReports )
+    {
+        object.getAttributeValues().stream()
+            .filter( attributeValue -> attributeValue.getAttribute() != null
+                && preheat.get( identifier, attributeValue.getAttribute() ) == null )
+            .forEach(
+                attributeValue -> preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
+                    ErrorCode.E5002, identifier.getIdentifiersWithName( attributeValue.getAttribute() ),
+                    identifier.getIdentifiersWithName( object ), "attributeValues" ) ) );
+    }
+
+    private void checkSharing( IdentifiableObject object, Preheat preheat,
+        List<PreheatErrorReport> preheatErrorReports )
+    {
+        Sharing sharing = object.getSharing();
+        if ( sharing.hasUserGroupAccesses() )
+        {
+            sharing.getUserGroups().values().stream()
+                .filter( userGroupAccess -> preheat.get( PreheatIdentifier.UID,
+                    userGroupAccess.toDtoObject().getUserGroup() ) == null )
+                .forEach(
+                    userGroupAccess -> preheatErrorReports
+                        .add( new PreheatErrorReport( PreheatIdentifier.UID, object.getClass(),
+                            ErrorCode.E5002,
+                            PreheatIdentifier.UID
+                                .getIdentifiersWithName( userGroupAccess.toDtoObject().getUserGroup() ),
+                            PreheatIdentifier.UID.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
+        }
+
+        if ( sharing.hasUserAccesses() )
+        {
+            sharing.getUsers().values().stream()
+                .filter( userAccess -> preheat.get( PreheatIdentifier.UID,
+                    userAccess.toDtoObject().getUser() ) == null )
+                .forEach(
+                    userAccesses -> preheatErrorReports.add( new PreheatErrorReport( PreheatIdentifier.UID,
+                        object.getClass(), ErrorCode.E5002,
+                        PreheatIdentifier.UID.getIdentifiersWithName( userAccesses.toDtoObject().getUser() ),
+                        PreheatIdentifier.UID.getIdentifiersWithName( object ), "userAccesses" ) ) );
+        }
     }
 
     private boolean skipCheck( Class<?> klass )
