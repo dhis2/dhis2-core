@@ -2,7 +2,7 @@
 # Build the base DHIS2 image
 #
 
-FROM maven:3.6.3-jdk-8-slim as build
+FROM 3.8.1-jdk-11-slim as build
 
 ARG IDENTIFIER=unknown
 LABEL identifier=${IDENTIFIER}
@@ -19,8 +19,8 @@ WORKDIR /src
 COPY . .
 
 # TODO: We should be able to achieve much faster incremental builds and cached dependencies using
-RUN mvn clean install -f dhis-2/pom.xml -DskipTests
-RUN mvn clean install -U -f dhis-2/dhis-web/pom.xml -DskipTests
+RUN mvn clean install -Pdev -Pjdk11 -f dhis-2/pom.xml -DskipTests -pl -dhis-web-embedded-jetty
+RUN mvn clean install -Pdev -Pjdk11 -U -f dhis-2/dhis-web/pom.xml -DskipTests
 
 RUN cp dhis-2/dhis-web/dhis-web-portal/target/dhis.war /dhis.war && \
     cd / && \
