@@ -102,7 +102,7 @@ public class DuplicateRelationshipsPreProcessorTest
                 .build() )
             .build();
 
-        TrackerBundle bundle = TrackerBundle.builder()
+        TrackerBundle bundle = new TrackerBundle().toBuilder()
             .preheat( this.preheat )
             .relationships( Lists.newArrayList( relationship1, relationship2 ) ).build();
 
@@ -147,7 +147,7 @@ public class DuplicateRelationshipsPreProcessorTest
                 .build() )
             .build();
 
-        TrackerBundle bundle = TrackerBundle.builder()
+        TrackerBundle bundle = new TrackerBundle().toBuilder()
             .preheat( this.preheat )
             .relationships( Lists.newArrayList( relationship1, relationship2 ) ).build();
 
@@ -191,7 +191,7 @@ public class DuplicateRelationshipsPreProcessorTest
                 .build() )
             .build();
 
-        TrackerBundle bundle = TrackerBundle.builder()
+        TrackerBundle bundle = new TrackerBundle().toBuilder()
             .preheat( this.preheat )
             .relationships( Lists.newArrayList( relationship1, relationship2 ) ).build();
 
@@ -238,7 +238,7 @@ public class DuplicateRelationshipsPreProcessorTest
                 .build() )
             .build();
 
-        TrackerBundle bundle = TrackerBundle.builder()
+        TrackerBundle bundle = new TrackerBundle().toBuilder()
             .preheat( this.preheat )
             .relationships( Lists.newArrayList( relationship1, relationship2 ) ).build();
 
@@ -285,7 +285,7 @@ public class DuplicateRelationshipsPreProcessorTest
                 .build() )
             .build();
 
-        TrackerBundle bundle = TrackerBundle.builder()
+        TrackerBundle bundle = new TrackerBundle().toBuilder()
             .preheat( this.preheat )
             .relationships( Lists.newArrayList( relationship1, relationship2 ) ).build();
 
@@ -334,7 +334,7 @@ public class DuplicateRelationshipsPreProcessorTest
                 .build() )
             .build();
 
-        TrackerBundle bundle = TrackerBundle.builder()
+        TrackerBundle bundle = new TrackerBundle().toBuilder()
             .preheat( this.preheat )
             .relationships( Lists.newArrayList( relationship1, relationship2 ) ).build();
 

@@ -68,7 +68,7 @@ public class EnrollmentGeoValidationHookTest
     {
         hookToTest = new EnrollmentGeoValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
+        TrackerBundle bundle = new TrackerBundle().toBuilder().build();
 
         when( validationContext.getBundle() ).thenReturn( bundle );
 

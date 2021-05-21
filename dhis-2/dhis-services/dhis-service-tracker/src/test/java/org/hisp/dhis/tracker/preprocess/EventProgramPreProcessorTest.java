@@ -55,7 +55,7 @@ public class EventProgramPreProcessorTest
         event.setProgram( null );
         event.setProgramStage( "programStageUid" );
 
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
+        TrackerBundle bundle = new TrackerBundle().toBuilder().events( Collections.singletonList( event ) ).build();
 
         Program program = new Program();
         program.setUid( "programUid" );

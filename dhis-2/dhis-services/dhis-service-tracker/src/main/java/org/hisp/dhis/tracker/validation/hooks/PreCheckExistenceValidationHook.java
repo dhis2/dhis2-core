@@ -70,11 +70,11 @@ public class PreCheckExistenceValidationHook
         {
             if ( existingTe == null )
             {
-                context.setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
+                bundle.setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
             }
             else
             {
-                context.setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
+                bundle.setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
             }
         }
         else if ( existingTe != null && importStrategy.isCreate() )
@@ -87,7 +87,7 @@ public class PreCheckExistenceValidationHook
         }
         else
         {
-            context.setStrategy( trackedEntity, importStrategy );
+            bundle.setStrategy( trackedEntity, importStrategy );
         }
     }
 
@@ -111,11 +111,11 @@ public class PreCheckExistenceValidationHook
         {
             if ( existingPi == null )
             {
-                context.setStrategy( enrollment, TrackerImportStrategy.CREATE );
+                bundle.setStrategy( enrollment, TrackerImportStrategy.CREATE );
             }
             else
             {
-                context.setStrategy( enrollment, TrackerImportStrategy.UPDATE );
+                bundle.setStrategy( enrollment, TrackerImportStrategy.UPDATE );
             }
         }
         else if ( existingPi != null && importStrategy.isCreate() )
@@ -128,7 +128,7 @@ public class PreCheckExistenceValidationHook
         }
         else
         {
-            context.setStrategy( enrollment, importStrategy );
+            bundle.setStrategy( enrollment, importStrategy );
         }
     }
 
@@ -152,11 +152,11 @@ public class PreCheckExistenceValidationHook
         {
             if ( existingPsi == null )
             {
-                context.setStrategy( event, TrackerImportStrategy.CREATE );
+                bundle.setStrategy( event, TrackerImportStrategy.CREATE );
             }
             else
             {
-                context.setStrategy( event, TrackerImportStrategy.UPDATE );
+                bundle.setStrategy( event, TrackerImportStrategy.UPDATE );
             }
         }
         else if ( existingPsi != null && importStrategy.isCreate() )
@@ -169,7 +169,7 @@ public class PreCheckExistenceValidationHook
         }
         else
         {
-            context.setStrategy( event, importStrategy );
+            bundle.setStrategy( event, importStrategy );
         }
     }
 

@@ -36,7 +36,7 @@ public class ParamsConverter
 {
     public static TrackerBundle convert( TrackerImportParams params )
     {
-        return TrackerBundle.builder()
+        return new TrackerBundle().toBuilder()
             .importMode( params.getImportMode() )
             .importStrategy( params.getImportStrategy() )
             .skipTextPatternValidation( params.isSkipPatternValidation() )

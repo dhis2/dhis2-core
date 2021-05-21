@@ -68,7 +68,7 @@ public class EventGeoValidationHookTest
     {
         hookToTest = new EventGeoValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
+        TrackerBundle bundle = new TrackerBundle().toBuilder().build();
 
         when( validationContext.getBundle() ).thenReturn( bundle );
 

@@ -124,7 +124,7 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
+        verify( bundle ).setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
     }
 
     @Test
@@ -141,7 +141,7 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
+        verify( bundle ).setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
     }
 
     @Test
@@ -158,7 +158,7 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
+        verify( bundle ).setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
     }
 
     @Test
@@ -232,7 +232,7 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( enrollment, TrackerImportStrategy.CREATE );
+        verify( bundle ).setStrategy( enrollment, TrackerImportStrategy.CREATE );
     }
 
     @Test
@@ -249,7 +249,7 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( enrollment, TrackerImportStrategy.CREATE );
+        verify( bundle ).setStrategy( enrollment, TrackerImportStrategy.CREATE );
     }
 
     @Test
@@ -266,7 +266,7 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( enrollment, TrackerImportStrategy.UPDATE );
+        verify( bundle ).setStrategy( enrollment, TrackerImportStrategy.UPDATE );
     }
 
     @Test
@@ -340,7 +340,7 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( event, TrackerImportStrategy.CREATE );
+        verify( bundle ).setStrategy( event, TrackerImportStrategy.CREATE );
     }
 
     @Test
@@ -357,7 +357,7 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( event, TrackerImportStrategy.CREATE );
+        verify( bundle ).setStrategy( event, TrackerImportStrategy.CREATE );
     }
 
     @Test
@@ -374,7 +374,7 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( event, TrackerImportStrategy.UPDATE );
+        verify( bundle ).setStrategy( event, TrackerImportStrategy.UPDATE );
     }
 
     @Test

@@ -71,7 +71,7 @@ public class AssignedUserValidationHookTest
     {
         hookToTest = new AssignedUserValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
+        TrackerBundle bundle = new TrackerBundle().toBuilder().build();
         TrackerPreheat preheat = new TrackerPreheat();
 
         User user = new User();
@@ -133,7 +133,7 @@ public class AssignedUserValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
 
         // when
-        TrackerBundle bundle = TrackerBundle.builder().build();
+        TrackerBundle bundle = new TrackerBundle().toBuilder().build();
         bundle.setPreheat( new TrackerPreheat() );
         when( validationContext.getBundle() ).thenReturn( bundle );
 

@@ -33,15 +33,11 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.*;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 
@@ -51,8 +47,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
-@Builder
-@NoArgsConstructor
+@Builder( toBuilder = true )
 @AllArgsConstructor
 public class TrackerBundle
 {
@@ -64,19 +59,16 @@ public class TrackerBundle
     /**
      * Should import be imported or just validated.
      */
-    @Builder.Default
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
     /**
      * What identifiers to match on.
      */
-    @Builder.Default
     private TrackerIdScheme identifier = TrackerIdScheme.UID;
 
     /**
      * Sets import strategy (create, update, etc).
      */
-    @Builder.Default
     private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
 
     /**
@@ -100,19 +92,16 @@ public class TrackerBundle
     /**
      * Should import be treated as a atomic import (all or nothing).
      */
-    @Builder.Default
     private AtomicMode atomicMode = AtomicMode.ALL;
 
     /**
      * Flush for every object or per type.
      */
-    @Builder.Default
     private FlushMode flushMode = FlushMode.AUTO;
 
     /**
      * Validation mode to use, defaults to fully validated objects.
      */
-    @Builder.Default
     private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
@@ -124,44 +113,48 @@ public class TrackerBundle
     /**
      * Tracked entities to import.
      */
-    @Builder.Default
     private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     /**
      * Enrollments to import.
      */
-    @Builder.Default
     private List<Enrollment> enrollments = new ArrayList<>();
 
     /**
      * Events to import.
      */
-    @Builder.Default
     private List<Event> events = new ArrayList<>();
 
     /**
      * Relationships to import.
      */
-    @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
 
     /**
      * Rule effects for Enrollments.
      */
-    @Builder.Default
     private List<RuleEffects> ruleEffects = new ArrayList<>();
 
     /**
      * Rule effects for Enrollments.
      */
-    @Builder.Default
     private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
     /**
      * Rule effects for Events.
      */
-    @Builder.Default
     private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+
+    private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedStrategyMap;
+
+    public TrackerBundle()
+    {
+        this.resolvedStrategyMap = new HashMap<>();
+
+        resolvedStrategyMap.put( Event.class, new HashMap<>() );
+        resolvedStrategyMap.put( Enrollment.class, new HashMap<>() );
+        resolvedStrategyMap.put( TrackedEntity.class, new HashMap<>() );
+    }
 
     @JsonProperty
     public String getUsername()
@@ -198,5 +191,20 @@ public class TrackerBundle
             .filter( RuleEffects::isEvent )
             .filter( e -> getEvent( e.getTrackerObjectUid() ).isPresent() )
             .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
+    }
+
+    public TrackerImportStrategy setStrategy( Event event, TrackerImportStrategy strategy )
+    {
+        return this.getResolvedStrategyMap().get( Event.class ).put( event.getUid(), strategy );
+    }
+
+    public TrackerImportStrategy setStrategy( Enrollment enrollment, TrackerImportStrategy strategy )
+    {
+        return this.getResolvedStrategyMap().get( Enrollment.class ).put( enrollment.getUid(), strategy );
+    }
+
+    public TrackerImportStrategy setStrategy( TrackedEntity tei, TrackerImportStrategy strategy )
+    {
+        return this.getResolvedStrategyMap().get( TrackedEntity.class ).put( tei.getUid(), strategy );
     }
 }

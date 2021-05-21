@@ -116,7 +116,7 @@ public class EnrollmentAttributeValidationHookTest
 
         enrollment.setTrackedEntity( trackedEntity );
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
+        TrackerBundle bundle = new TrackerBundle().toBuilder().build();
         bundle.setPreheat( preheat );
 
         when( validationContext.getBundle() ).thenReturn( bundle );

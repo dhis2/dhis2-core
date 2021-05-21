@@ -57,7 +57,7 @@ public class EventWithoutRegistrationPreProcessorTest
         // Given
         Event event = new Event();
         event.setProgram( "programUid" );
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
+        TrackerBundle bundle = new TrackerBundle().toBuilder().events( Collections.singletonList( event ) ).build();
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setUid( "programInstanceUid" );
         TrackerPreheat preheat = new TrackerPreheat();

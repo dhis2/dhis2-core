@@ -63,7 +63,7 @@ public class BidirectionalRelationshipsPreProcessorTest
         biDirectionalRelationship.setRelationshipType( BIDIRECTIONAL_RELATIONSHIP_TYPE_UID );
         biDirectionalRelationship.setBidirectional( false );
 
-        TrackerBundle bundle = TrackerBundle.builder()
+        TrackerBundle bundle = new TrackerBundle().toBuilder()
             .relationships( Lists.newArrayList( uniDirectionalRelationship, biDirectionalRelationship ) )
             .preheat( getPreheat() )
             .build();

@@ -66,8 +66,6 @@ import com.google.common.base.Preconditions;
 @Data
 public class TrackerImportValidationContext
 {
-    private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new HashMap<>();
-
     private Map<String, CategoryOptionCombo> eventCocCacheMap = new HashMap<>();
 
     private Map<String, String> cachedEventAOCProgramCC = new HashMap<>();
@@ -83,44 +81,22 @@ public class TrackerImportValidationContext
     {
         // Create a copy of the bundle
         this.bundle = bundle;
-
-        Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
-            .getResolvedStrategyMap();
-
-        resolvedMap.put( Event.class, new HashMap<>() );
-        resolvedMap.put( Enrollment.class, new HashMap<>() );
-        resolvedMap.put( TrackedEntity.class, new HashMap<>() );
         this.rootReporter = ValidationErrorReporter.emptyReporter();
     }
 
     public TrackerImportStrategy getStrategy( Enrollment enrollment )
     {
-        return getResolvedStrategyMap().get( Enrollment.class ).get( enrollment.getEnrollment() );
-    }
-
-    public TrackerImportStrategy setStrategy( Enrollment enrollment, TrackerImportStrategy strategy )
-    {
-        return getResolvedStrategyMap().get( Enrollment.class ).put( enrollment.getEnrollment(), strategy );
+        return bundle.getResolvedStrategyMap().get( Enrollment.class ).get( enrollment.getEnrollment() );
     }
 
     public TrackerImportStrategy getStrategy( Event event )
     {
-        return getResolvedStrategyMap().get( Event.class ).get( event.getEvent() );
-    }
-
-    public TrackerImportStrategy setStrategy( Event event, TrackerImportStrategy strategy )
-    {
-        return getResolvedStrategyMap().get( Event.class ).put( event.getEvent(), strategy );
+        return bundle.getResolvedStrategyMap().get( Event.class ).get( event.getEvent() );
     }
 
     public TrackerImportStrategy getStrategy( TrackedEntity tei )
     {
-        return getResolvedStrategyMap().get( TrackedEntity.class ).get( tei.getTrackedEntity() );
-    }
-
-    public TrackerImportStrategy setStrategy( TrackedEntity trackedEntity, TrackerImportStrategy strategy )
-    {
-        return getResolvedStrategyMap().get( TrackedEntity.class ).put( trackedEntity.getTrackedEntity(), strategy );
+        return bundle.getResolvedStrategyMap().get( TrackedEntity.class ).get( tei.getTrackedEntity() );
     }
 
     public void cacheEventCategoryOptionCombo( String key, CategoryOptionCombo categoryOptionCombo )

@@ -88,7 +88,7 @@ public class PreCheckMetaValidationHookTest
     {
         validatorToTest = new PreCheckMetaValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
+        TrackerBundle bundle = new TrackerBundle().toBuilder().build();
 
         when( ctx.getBundle() ).thenReturn( bundle );
     }
