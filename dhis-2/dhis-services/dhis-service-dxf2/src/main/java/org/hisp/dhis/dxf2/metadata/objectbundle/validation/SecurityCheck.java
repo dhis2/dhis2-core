@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
 
-import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.user.User;
@@ -44,55 +44,36 @@ import org.hisp.dhis.user.User;
 /**
  * @author Luciano Fiandesio
  */
-public class SecurityCheck
-    implements
-    ValidationCheck
+public class SecurityCheck implements ObjectValidationCheck
 {
     @Override
-    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context )
+        ImportStrategy importStrategy, ValidationContext context, Consumer<ObjectReport> addReports )
     {
-
-        if ( importStrategy.isCreateAndUpdate() )
+        if ( importStrategy.isUpdate() || importStrategy.isCreateAndUpdate() )
         {
-            TypeReport report = runValidationCheck( bundle, klass, persistedObjects, ImportStrategy.UPDATE, context );
-            report.merge( runValidationCheck( bundle, klass, nonPersistedObjects, ImportStrategy.CREATE, context ) );
-            return report;
+            runValidationCheck( bundle, klass, persistedObjects, ImportStrategy.UPDATE, context, addReports );
         }
-        else if ( importStrategy.isCreate() )
+        if ( importStrategy.isCreate() || importStrategy.isCreateAndUpdate() )
         {
-            return runValidationCheck( bundle, klass, nonPersistedObjects, ImportStrategy.CREATE, context );
+            runValidationCheck( bundle, klass, nonPersistedObjects, ImportStrategy.CREATE, context, addReports );
         }
-        else if ( importStrategy.isUpdate() )
-        {
-            return runValidationCheck( bundle, klass, persistedObjects, ImportStrategy.UPDATE, context );
-        }
-        else
-        {
-            return new TypeReport( klass );
-        }
-
     }
 
-    private TypeReport runValidationCheck( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> objects, ImportStrategy importMode, ValidationContext ctx )
+    private void runValidationCheck( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+        List<IdentifiableObject> objects, ImportStrategy importMode, ValidationContext ctx,
+        Consumer<ObjectReport> addReports )
     {
-
-        TypeReport typeReport = new TypeReport( klass );
-
         if ( objects == null || objects.isEmpty() )
         {
-            return typeReport;
+            return;
         }
 
-        Iterator<IdentifiableObject> iterator = objects.iterator();
         PreheatIdentifier identifier = bundle.getPreheatIdentifier();
 
-        while ( iterator.hasNext() )
+        for ( IdentifiableObject object : objects )
         {
-            IdentifiableObject object = iterator.next();
-
             if ( importMode.isCreate() )
             {
                 if ( !ctx.getAclService().canCreate( bundle.getUser(), klass ) )
@@ -101,7 +82,7 @@ public class SecurityCheck
                         identifier.getIdentifiersWithName( bundle.getUser() ),
                         identifier.getIdentifiersWithName( object ) );
 
-                    ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
+                    addReports.accept( createObjectReport( errorReport, object, bundle ) );
                     ctx.markForRemoval( object );
                     continue;
                 }
@@ -118,24 +99,20 @@ public class SecurityCheck
                             identifier.getIdentifiersWithName( bundle.getUser() ),
                             identifier.getIdentifiersWithName( object ) );
 
-                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
+                        addReports.accept( createObjectReport( errorReport, object, bundle ) );
                         ctx.markForRemoval( object );
                         continue;
                     }
                 }
-                else if ( importMode.isDelete() )
+                else if ( importMode.isDelete() && !ctx.getAclService().canDelete( bundle.getUser(), persistedObject ) )
                 {
-                    if ( !ctx.getAclService().canDelete( bundle.getUser(), persistedObject ) )
-                    {
-                        ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E3002,
-                            identifier.getIdentifiersWithName( bundle.getUser() ),
-                            identifier.getIdentifiersWithName( object ) );
+                    ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E3002,
+                        identifier.getIdentifiersWithName( bundle.getUser() ),
+                        identifier.getIdentifiersWithName( object ) );
 
-                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
-
-                        ctx.markForRemoval( object );
-                        continue;
-                    }
+                    addReports.accept( createObjectReport( errorReport, object, bundle ) );
+                    ctx.markForRemoval( object );
+                    continue;
                 }
             }
 
@@ -146,8 +123,7 @@ public class SecurityCheck
 
                 if ( !errorReports.isEmpty() )
                 {
-
-                    addObjectReports( errorReports, typeReport, object, bundle );
+                    addReports.accept( createObjectReport( errorReports, object, bundle ) );
                     ctx.markForRemoval( object );
                 }
             }
@@ -155,13 +131,9 @@ public class SecurityCheck
             List<ErrorReport> sharingErrorReports = ctx.getAclService().verifySharing( object, bundle.getUser() );
             if ( !sharingErrorReports.isEmpty() )
             {
-                addObjectReports( sharingErrorReports, typeReport, object, bundle );
+                addReports.accept( createObjectReport( sharingErrorReports, object, bundle ) );
                 ctx.markForRemoval( object );
-
             }
         }
-
-        return typeReport;
     }
-
 }

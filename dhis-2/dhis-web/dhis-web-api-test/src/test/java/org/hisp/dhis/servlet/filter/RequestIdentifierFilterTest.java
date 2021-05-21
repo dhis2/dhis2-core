@@ -116,7 +116,7 @@ public class RequestIdentifierFilterTest
         throws ServletException,
         IOException
     {
-        init( -1, "RIJKA", true );
+        init( -1, "NO-SUCH-ALGORITHM", true );
         doFilter();
 
         assertNull( MDC.get( "sessionId" ) );
