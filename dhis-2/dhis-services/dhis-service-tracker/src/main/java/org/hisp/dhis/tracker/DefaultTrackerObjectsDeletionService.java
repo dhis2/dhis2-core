@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,10 +36,8 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.RelationshipService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.EnrollmentTrackerConverterService;
 import org.hisp.dhis.tracker.converter.EventTrackerConverterService;
@@ -48,11 +45,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerObjectReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
@@ -73,8 +66,6 @@ public class DefaultTrackerObjectsDeletionService
 
     private final RelationshipService relationshipService;
 
-    private final TrackerAccessManager trackerAccessManager;
-
     private final EnrollmentTrackerConverterService enrollmentTrackerConverterService;
 
     private final EventTrackerConverterService eventTrackerConverterService;
@@ -83,7 +74,6 @@ public class DefaultTrackerObjectsDeletionService
         TrackedEntityInstanceService entityInstanceService,
         ProgramStageInstanceService stageInstanceService,
         RelationshipService relationshipService,
-        TrackerAccessManager trackerAccessManager,
         EnrollmentTrackerConverterService enrollmentTrackerConverterService,
         EventTrackerConverterService eventTrackerConverterService )
     {
@@ -91,7 +81,6 @@ public class DefaultTrackerObjectsDeletionService
         this.teiService = entityInstanceService;
         this.programStageInstanceService = stageInstanceService;
         this.relationshipService = relationshipService;
-        this.trackerAccessManager = trackerAccessManager;
         this.enrollmentTrackerConverterService = enrollmentTrackerConverterService;
         this.eventTrackerConverterService = eventTrackerConverterService;
     }
@@ -107,22 +96,7 @@ public class DefaultTrackerObjectsDeletionService
         {
             String uid = enrollments.get( idx ).getEnrollment();
 
-            TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TrackerType.ENROLLMENT );
-
             ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
-
-            if ( bundle.getUser() != null )
-            {
-                // TODO authority check should be part of validation phase. This
-                // check will be moved in validation hooks.
-                List<TrackerErrorReport> trackerErrorReports = isAllowedToDeleteEnrollment( idx, bundle.getUser(),
-                    programInstance, bundle );
-
-                if ( !trackerErrorReports.isEmpty() )
-                {
-                    return addErrorToTypeReport( typeReport, trackerObjectReport, trackerErrorReports, idx, uid );
-                }
-            }
 
             List<Event> events = eventTrackerConverterService
                 .to( Lists.newArrayList( programInstance.getProgramStageInstances()
@@ -131,8 +105,6 @@ public class DefaultTrackerObjectsDeletionService
 
             TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() ).build();
 
-            // Associated events should be deleted provided user has authority
-            // for that.
             deleteEvents( trackerBundle, TrackerType.EVENT );
 
             TrackedEntityInstance tei = programInstance.getEntityInstance();
@@ -141,7 +113,6 @@ public class DefaultTrackerObjectsDeletionService
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( tei );
 
-            typeReport.addObjectReport( trackerObjectReport );
             typeReport.getStats().incDeleted();
         }
 
@@ -159,30 +130,7 @@ public class DefaultTrackerObjectsDeletionService
         {
             String uid = events.get( idx ).getEvent();
 
-            TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TrackerType.EVENT );
-
-            List<TrackerErrorReport> trackerErrorReports = new ArrayList<>();
-
             ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
-
-            // TODO authority check should be part of validation phase. This
-            // check will be moved in validation hooks.
-            List<String> errors = trackerAccessManager.canDelete( bundle.getUser(), programStageInstance, false );
-
-            if ( !errors.isEmpty() )
-            {
-                errors.forEach( error -> trackerErrorReports.add( TrackerErrorReport.builder()
-                    .errorMessage( error )
-                    .build( bundle ) ) );
-
-                trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
-                trackerObjectReport.setIndex( idx );
-                trackerObjectReport.setUid( uid );
-
-                typeReport.addObjectReport( trackerObjectReport );
-                typeReport.getStats().incIgnored();
-                return typeReport;
-            }
 
             ProgramInstance programInstance = programStageInstance.getProgramInstance();
 
@@ -196,7 +144,6 @@ public class DefaultTrackerObjectsDeletionService
                 programInstanceService.updateProgramInstance( programInstance );
             }
 
-            typeReport.addObjectReport( trackerObjectReport );
             typeReport.getStats().incDeleted();
         }
 
@@ -214,23 +161,8 @@ public class DefaultTrackerObjectsDeletionService
         {
             String uid = trackedEntities.get( idx ).getTrackedEntity();
 
-            TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY );
-
             org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
                 .getTrackedEntityInstance( uid );
-
-            // TODO authority check should be part of validation phase. This
-            // check will be moved in validation hooks.
-            if ( bundle.getUser() != null )
-            {
-                List<TrackerErrorReport> trackerErrorReports = isAllowedToDeleteTrackedEntity( idx, bundle.getUser(),
-                    daoEntityInstance, bundle );
-
-                if ( !trackerErrorReports.isEmpty() )
-                {
-                    return addErrorToTypeReport( typeReport, trackerObjectReport, trackerErrorReports, idx, uid );
-                }
-            }
 
             Set<ProgramInstance> programInstances = daoEntityInstance.getProgramInstances();
 
@@ -242,13 +174,10 @@ public class DefaultTrackerObjectsDeletionService
             TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments ).user( bundle.getUser() )
                 .build();
 
-            // Associated enrollments should be deleted provided user has
-            // authority for that.
             deleteEnrollments( trackerBundle, TrackerType.ENROLLMENT );
 
             teiService.deleteTrackedEntityInstance( daoEntityInstance );
 
-            typeReport.addObjectReport( trackerObjectReport );
             typeReport.getStats().incDeleted();
         }
 
@@ -266,112 +195,13 @@ public class DefaultTrackerObjectsDeletionService
         {
             String uid = relationships.get( idx ).getRelationship();
 
-            TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TrackerType.RELATIONSHIP );
-
-            List<TrackerErrorReport> trackerErrorReports = new ArrayList<>();
-
             org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( uid );
-
-            // TODO authority check should be part of validation phase. This
-            // check will be moved in validation hooks.
-            List<String> errors = trackerAccessManager.canWrite( bundle.getUser(), relationship );
-
-            if ( !errors.isEmpty() )
-            {
-                errors.forEach( error -> trackerErrorReports.add( TrackerErrorReport.builder()
-                    .errorMessage( error )
-                    .build( bundle ) ) );
-
-                trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
-                trackerObjectReport.setIndex( idx );
-                trackerObjectReport.setUid( uid );
-
-                typeReport.addObjectReport( trackerObjectReport );
-                typeReport.getStats().incIgnored();
-                return typeReport;
-            }
 
             relationshipService.deleteRelationship( relationship );
 
             typeReport.getStats().incDeleted();
         }
 
-        return typeReport;
-    }
-
-    private List<TrackerErrorReport> isAllowedToDeleteEnrollment( int index, User user, ProgramInstance pi,
-        TrackerBundle bundle )
-    {
-        List<TrackerErrorReport> errorReports = new ArrayList<>();
-
-        Set<ProgramStageInstance> notDeletedProgramStageInstances = pi.getProgramStageInstances().stream()
-            .filter( psi -> !psi.isDeleted() )
-            .collect( Collectors.toSet() );
-
-        if ( !notDeletedProgramStageInstances.isEmpty()
-            && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
-        {
-            TrackerErrorReport trackerErrorReport = TrackerErrorReport.builder()
-                .errorCode( TrackerErrorCode.E1091 )
-                .addArg( bundle.getUser().getSurname() ).addArg( pi.getUid() )
-                .build( bundle );
-
-            errorReports.add( trackerErrorReport );
-        }
-
-        List<String> errors = trackerAccessManager.canDelete( user, pi, false );
-
-        if ( !errors.isEmpty() )
-        {
-            errors.forEach( error -> errorReports.add( TrackerErrorReport.builder()
-                .errorMessage( error )
-                .build( bundle ) ) );
-        }
-
-        return errorReports;
-    }
-
-    private List<TrackerErrorReport> isAllowedToDeleteTrackedEntity( int index, User user,
-        org.hisp.dhis.trackedentity.TrackedEntityInstance tei, TrackerBundle bundle )
-    {
-        List<TrackerErrorReport> errorReports = new ArrayList<>();
-
-        Set<ProgramInstance> programInstances = tei.getProgramInstances().stream()
-            .filter( pi -> !pi.isDeleted() )
-            .collect( Collectors.toSet() );
-
-        if ( !programInstances.isEmpty() && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
-        {
-            TrackerErrorReport trackerErrorReport = TrackerErrorReport.builder()
-                .errorCode( TrackerErrorCode.E1100 )
-                .addArg( bundle.getUser().getSurname() ).addArg( tei.getUid() )
-                .build( bundle );
-
-            errorReports.add( trackerErrorReport );
-        }
-
-        List<String> errors = trackerAccessManager.canWrite( user, tei );
-
-        if ( !errors.isEmpty() )
-        {
-            errors.forEach( error -> errorReports.add( TrackerErrorReport.builder()
-                .errorMessage( error )
-                .build( bundle ) ) );
-        }
-
-        return errorReports;
-    }
-
-    private TrackerTypeReport addErrorToTypeReport( TrackerTypeReport typeReport,
-        TrackerObjectReport trackerObjectReport,
-        List<TrackerErrorReport> trackerErrorReports, int index, String uid )
-    {
-        trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
-        trackerObjectReport.setIndex( index );
-        trackerObjectReport.setUid( uid );
-
-        typeReport.addObjectReport( trackerObjectReport );
-        typeReport.getStats().incIgnored();
         return typeReport;
     }
 }
