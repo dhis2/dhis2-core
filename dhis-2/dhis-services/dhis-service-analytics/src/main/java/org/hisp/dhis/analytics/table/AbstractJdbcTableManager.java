@@ -400,7 +400,7 @@ public abstract class AbstractJdbcTableManager
 
         log.info( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );
 
-        log.debug( "Create SQL: " + sqlCreate );
+        log.info( "Createdddddd SQL: " + sqlCreate );
 
         jdbcTemplate.execute( sqlCreate );
     }
@@ -430,7 +430,7 @@ public abstract class AbstractJdbcTableManager
 
             log.info( String.format( "Creating partition table: %s", tableName ) );
 
-            log.debug( "Create SQL: " + sqlCreate );
+            log.info( "Create SQL: " + sqlCreate );
 
             jdbcTemplate.execute( sqlCreate );
         }
@@ -644,7 +644,7 @@ public abstract class AbstractJdbcTableManager
     {
         final String sql = "drop table if exists " + realTableName + " cascade; " +
             "alter table " + tempTableName + " rename to " + realTableName + ";";
-
+        log.info( sql );
         executeSilently( sql );
     }
 
@@ -660,7 +660,7 @@ public abstract class AbstractJdbcTableManager
     {
         final String sql = "alter table " + partitionTableName + " inherit " + realMasterTableName + ";" +
             "alter table " + partitionTableName + " no inherit " + tempMasterTableName + ";";
-
+        log.info( sql );
         executeSilently( sql );
     }
 }
