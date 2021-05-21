@@ -25,16 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.web.embeddedjetty;
 
-import java.util.Collection;
+import org.hisp.dhis.security.SystemAuthoritiesProvider;
+import org.hisp.dhis.startup.DefaultAdminUserPopulator;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 
 /**
- * @author Torgeir Lorange Ostby
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface SystemAuthoritiesProvider
+@Configuration
+@Order( 100 )
+@ComponentScan( basePackages = { "org.hisp.dhis" } )
+@Profile( "embeddedJetty" )
+public class SpringConfiguration
 {
-    String ID = SystemAuthoritiesProvider.class.getName();
+    @Primary
+    @Bean( "org.hisp.dhis.security.SystemAuthoritiesProvider" )
+    public SystemAuthoritiesProvider systemAuthoritiesProvider()
+    {
+        return () -> DefaultAdminUserPopulator.ALL_AUTHORITIES;
+    }
 
-    Collection<String> getSystemAuthorities();
+    @Bean( "org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine" )
+    public StartupFinishedRoutine startupFinishedRoutine()
+    {
+        StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
+        startupRoutine.setName( "StartupFinishedRoutine" );
+        startupRoutine.setRunlevel( 42 );
+        startupRoutine.setSkipInTests( true );
+        return startupRoutine;
+    }
 }

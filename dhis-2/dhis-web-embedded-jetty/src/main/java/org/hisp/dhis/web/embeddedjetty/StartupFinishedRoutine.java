@@ -25,16 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.web.embeddedjetty;
 
-import java.util.Collection;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 
 /**
- * @author Torgeir Lorange Ostby
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface SystemAuthoritiesProvider
+@Slf4j
+public class StartupFinishedRoutine extends AbstractStartupRoutine
 {
-    String ID = SystemAuthoritiesProvider.class.getName();
-
-    Collection<String> getSystemAuthorities();
+    @Override
+    public void execute()
+        throws Exception
+    {
+        log.info( String.format( "DHIS2 API Server Startup Finished In %s Seconds!",
+            JettyEmbeddedCoreWeb.getElapsedMsSinceStart() / 1000 ) );
+    }
 }

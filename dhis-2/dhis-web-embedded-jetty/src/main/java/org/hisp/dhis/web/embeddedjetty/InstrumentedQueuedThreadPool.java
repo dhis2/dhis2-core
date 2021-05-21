@@ -25,16 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.web.embeddedjetty;
 
-import java.util.Collection;
+import java.util.concurrent.BlockingQueue;
+
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 /**
- * @author Torgeir Lorange Ostby
+ * DHIS2 specific implementation of
+ * {@link io.micrometer.core.instrument.binder.jetty.InstrumentedQueuedThreadPool}
+ * Created to implement support for more fine grained control over thread
+ * parameters
  */
-public interface SystemAuthoritiesProvider
+public class InstrumentedQueuedThreadPool extends QueuedThreadPool
 {
-    String ID = SystemAuthoritiesProvider.class.getName();
+    public InstrumentedQueuedThreadPool(
+        int maxThreads,
+        int minThreads,
+        int idleTimeout,
+        BlockingQueue<Runnable> queue )
+    {
+        super( maxThreads, minThreads, idleTimeout, queue );
+    }
 
-    Collection<String> getSystemAuthorities();
+    @Override
+    protected void doStart()
+        throws Exception
+    {
+        super.doStart();
+    }
 }
