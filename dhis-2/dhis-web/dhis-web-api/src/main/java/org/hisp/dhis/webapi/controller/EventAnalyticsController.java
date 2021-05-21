@@ -47,7 +47,6 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.view.GridHeaderMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,9 +68,6 @@ public class EventAnalyticsController
 
     @NonNull
     private final EventAnalyticsService analyticsService;
-
-    @NonNull
-    private final GridHeaderMapper gridHeaderMapper;
 
     @NonNull
     private final ContextUtils contextUtils;
@@ -234,8 +230,6 @@ public class EventAnalyticsController
         final Grid grid = getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_XML,
             "events.xml", response );
 
-        gridHeaderMapper.maybeOverrideHeaderNames( grid );
-
         GridUtils.toXml( grid, response.getOutputStream() );
     }
 
@@ -249,8 +243,6 @@ public class EventAnalyticsController
     {
         final Grid grid = getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL,
             "events.xls", response );
-
-        gridHeaderMapper.maybeOverrideHeaderNames( grid );
 
         GridUtils.toXls( grid, response.getOutputStream() );
     }
@@ -266,8 +258,6 @@ public class EventAnalyticsController
         final Grid grid = getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_CSV,
             "events.csv", response );
 
-        gridHeaderMapper.maybeOverrideHeaderNames( grid );
-
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
@@ -282,8 +272,6 @@ public class EventAnalyticsController
         final Grid grid = getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
             "events.html", response );
 
-        gridHeaderMapper.maybeOverrideHeaderNames( grid );
-
         GridUtils.toHtml( grid, response.getWriter() );
     }
 
@@ -297,8 +285,6 @@ public class EventAnalyticsController
     {
         final Grid grid = getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
             "events.html", response );
-
-        gridHeaderMapper.maybeOverrideHeaderNames( grid );
 
         GridUtils.toHtmlCss( grid, response.getWriter() );
     }

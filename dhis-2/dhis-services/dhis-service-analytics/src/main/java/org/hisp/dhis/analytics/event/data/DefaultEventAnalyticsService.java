@@ -58,6 +58,7 @@ import static org.hisp.dhis.analytics.event.HeaderName.NAME_POINTS;
 import static org.hisp.dhis.analytics.event.HeaderName.NAME_PROGRAM_INSTANCE;
 import static org.hisp.dhis.analytics.event.HeaderName.NAME_PROGRAM_STAGE;
 import static org.hisp.dhis.analytics.event.HeaderName.NAME_TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.analytics.event.data.GridHeaderMapper.getHeaderName;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -645,15 +646,16 @@ public class DefaultEventAnalyticsService
         grid
             .addHeader( new GridHeader( ITEM_EVENT, NAME_EVENT.value(), TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE.value(), TEXT, false, true ) )
-            .addHeader( new GridHeader( ITEM_EVENT_DATE, NAME_EVENT_DATE.value(), DATE, false, true ) );
+            .addHeader( new GridHeader( ITEM_EVENT_DATE, getHeaderName( params.getProgramStage(), NAME_EVENT_DATE ),
+                DATE, false, true ) );
 
         if ( params.getProgram().isRegistration() )
         {
             grid
-                .addHeader( new GridHeader(
-                    ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE.value(), DATE, false, true ) )
-                .addHeader( new GridHeader(
-                    ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE.value(), DATE, false, true ) )
+                .addHeader( new GridHeader( ITEM_ENROLLMENT_DATE,
+                    getHeaderName( params.getProgramStage(), NAME_ENROLLMENT_DATE ), DATE, false, true ) )
+                .addHeader( new GridHeader( ITEM_INCIDENT_DATE,
+                    getHeaderName( params.getProgramStage(), NAME_INCIDENT_DATE ), DATE, false, true ) )
                 .addHeader( new GridHeader(
                     ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE.value(), TEXT, false, true ) )
                 .addHeader( new GridHeader(

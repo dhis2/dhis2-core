@@ -185,11 +185,6 @@ public class GridHeader
         return column;
     }
 
-    public void setColumn( String column )
-    {
-        this.column = column;
-    }
-
     @JsonProperty
     public ValueType getValueType()
     {
