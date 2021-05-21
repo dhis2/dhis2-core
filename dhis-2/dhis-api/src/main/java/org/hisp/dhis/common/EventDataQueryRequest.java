@@ -111,6 +111,8 @@ public class EventDataQueryRequest
 
     protected Integer pageSize;
 
+    protected boolean paging;
+
     public String getProgram()
     {
         return program;
@@ -179,6 +181,11 @@ public class EventDataQueryRequest
     public boolean isShowHierarchy()
     {
         return showHierarchy;
+    }
+
+    public boolean isPaging()
+    {
+        return paging;
     }
 
     public SortOrder getSortOrder()
@@ -333,6 +340,7 @@ public class EventDataQueryRequest
         request.coordinateField = this.coordinateField;
         request.page = this.page;
         request.pageSize = this.pageSize;
+        request.paging = this.paging;
         return request;
     }
 
@@ -580,6 +588,12 @@ public class EventDataQueryRequest
             return this;
         }
 
+        public EventDataQueryRequestBuilder paging( boolean paging )
+        {
+            this.request.paging = paging;
+            return this;
+        }
+
         public EventDataQueryRequestBuilder fromCriteria( EventsAnalyticsQueryCriteria criteria )
         {
             this.request.aggregationType = criteria.getAggregationType();
@@ -602,6 +616,7 @@ public class EventDataQueryRequest
             this.request.outputType = criteria.getOutputType();
             this.request.page = criteria.getPage();
             this.request.pageSize = criteria.getPageSize();
+            this.request.paging = criteria.isPaging();
             this.request.programStatus = criteria.getProgramStatus();
             this.request.relativePeriodDate = criteria.getRelativePeriodDate();
             this.request.showHierarchy = criteria.isShowHierarchy();

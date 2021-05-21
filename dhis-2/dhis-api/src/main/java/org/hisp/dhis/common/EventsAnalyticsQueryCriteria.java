@@ -261,5 +261,11 @@ public class EventsAnalyticsQueryCriteria
     /**
      * The page size.
      */
-    private Integer pageSize = 50;
+    private Integer pageSize;
+
+    /**
+     * The paging parameter. When set to false we should not paginate. The
+     * default is true (always paginate).
+     */
+    private boolean paging = true;
 }

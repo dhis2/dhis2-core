@@ -91,6 +91,7 @@ public class EnrollmentAnalyticsController
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) boolean paging,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
@@ -107,7 +108,8 @@ public class EnrollmentAnalyticsController
             .includeMetadataDetails( includeMetadataDetails )
             .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
+            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).pageSize( pageSize ).paging( paging )
+            .apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -136,6 +138,7 @@ public class EnrollmentAnalyticsController
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) boolean paging,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
@@ -153,7 +156,8 @@ public class EnrollmentAnalyticsController
             .includeMetadataDetails( includeMetadataDetails )
             .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
+            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).paging( paging )
+            .apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
