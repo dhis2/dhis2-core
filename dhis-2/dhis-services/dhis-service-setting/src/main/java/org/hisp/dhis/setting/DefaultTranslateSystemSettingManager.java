@@ -33,7 +33,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import java.util.Hashtable;
 import java.util.Map;
 
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,7 +46,7 @@ public class DefaultTranslateSystemSettingManager
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
     public DefaultTranslateSystemSettingManager( SystemSettingManager systemSettingManager )
     {
@@ -85,11 +84,7 @@ public class DefaultTranslateSystemSettingManager
 
     private String getSystemSettingWithFallbacks( SettingKey keyName, String localeStr, String defaultValue )
     {
-        String settingValue = EMPTY;
-
-        settingValue = (String) ObjectUtils.firstNonNull( systemSettingManager.getSystemSetting( keyName ),
-            defaultValue );
-
-        return settingValue;
+        return systemSettingManager.getSystemSettingTranslation( keyName, localeStr )
+            .orElse( defaultValue );
     }
 }
