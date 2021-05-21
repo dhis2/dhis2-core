@@ -2,7 +2,7 @@
 # Build the base DHIS2 image
 #
 
-FROM 3.8.1-jdk-11-slim as build
+FROM maven:3.8.1-jdk-11-slim as build
 
 ARG IDENTIFIER=unknown
 LABEL identifier=${IDENTIFIER}
