@@ -85,7 +85,7 @@ public class MinMaxValueController
     private SystemSettingManager systemSettingManager;
 
     @RequestMapping( method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_GENERATE_MIN_MAX_VALUES')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void generateMinMaxValue( @RequestBody MinMaxValueParams minMaxValueParams )
         throws WebMessageException
@@ -119,7 +119,7 @@ public class MinMaxValueController
     }
 
     @RequestMapping( value = "/{ou}", method = RequestMethod.DELETE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_GENERATE_MIN_MAX_VALUES')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeMinMaxValue( @PathVariable( "ou" ) String organisationUnitId,
         @RequestParam( "ds" ) List<String> dataSetIds )
