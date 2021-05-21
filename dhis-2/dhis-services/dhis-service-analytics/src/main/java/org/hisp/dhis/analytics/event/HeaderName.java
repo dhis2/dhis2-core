@@ -34,22 +34,22 @@ package org.hisp.dhis.analytics.event;
  */
 public enum HeaderName
 {
-    NAME_EVENT( "Event" ),
-    NAME_TRACKED_ENTITY_INSTANCE( "Tracked entity instance" ),
-    NAME_PROGRAM_INSTANCE( "Program instance" ),
-    NAME_PROGRAM_STAGE( "Program stage" ),
-    NAME_EVENT_DATE( "Event date" ),
-    NAME_ENROLLMENT_DATE( "Enrollment date" ),
-    NAME_INCIDENT_DATE( "Incident date" ),
-    NAME_GEOMETRY( "Geometry" ),
-    NAME_LONGITUDE( "Longitude" ),
-    NAME_LATITUDE( "Latitude" ),
-    NAME_ORG_UNIT_NAME( "Organisation unit name" ),
-    NAME_ORG_UNIT_CODE( "Organisation unit code" ),
-    NAME_COUNT( "Count" ),
-    NAME_CENTER( "Center" ),
-    NAME_EXTENT( "Extent" ),
-    NAME_POINTS( "Points" );
+    EVENT( "Event" ),
+    TRACKED_ENTITY_INSTANCE( "Tracked entity instance" ),
+    PROGRAM_INSTANCE( "Program instance" ),
+    PROGRAM_STAGE( "Program stage" ),
+    EVENT_DATE( "Event date" ),
+    ENROLLMENT_DATE( "Enrollment date" ),
+    INCIDENT_DATE( "Incident date" ),
+    GEOMETRY( "Geometry" ),
+    LONGITUDE( "Longitude" ),
+    LATITUDE( "Latitude" ),
+    ORG_UNIT_NAME( "Organisation unit name" ),
+    ORG_UNIT_CODE( "Organisation unit code" ),
+    COUNT( "Count" ),
+    CENTER( "Center" ),
+    EXTENT( "Extent" ),
+    POINTS( "Points" );
 
     private final String value;
 

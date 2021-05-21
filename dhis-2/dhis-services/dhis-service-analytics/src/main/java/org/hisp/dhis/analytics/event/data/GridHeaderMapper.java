@@ -29,9 +29,9 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.analytics.event.HeaderName.NAME_ENROLLMENT_DATE;
-import static org.hisp.dhis.analytics.event.HeaderName.NAME_EVENT_DATE;
-import static org.hisp.dhis.analytics.event.HeaderName.NAME_INCIDENT_DATE;
+import static org.hisp.dhis.analytics.event.HeaderName.ENROLLMENT_DATE;
+import static org.hisp.dhis.analytics.event.HeaderName.EVENT_DATE;
+import static org.hisp.dhis.analytics.event.HeaderName.INCIDENT_DATE;
 
 import org.hisp.dhis.analytics.event.HeaderName;
 import org.hisp.dhis.program.ProgramStage;
@@ -72,28 +72,28 @@ public class GridHeaderMapper
         {
             switch ( headerName )
             {
-            case NAME_EVENT_DATE:
+            case EVENT_DATE:
                 if ( programStage != null && isNotBlank( programStage.getExecutionDateLabel() ) )
                 {
                     return programStage.getExecutionDateLabel();
                 }
-                return NAME_EVENT_DATE.value();
+                return EVENT_DATE.value();
 
-            case NAME_ENROLLMENT_DATE:
+            case ENROLLMENT_DATE:
                 if ( programStage != null && programStage.getProgram() != null
                     && isNotBlank( programStage.getProgram().getEnrollmentDateLabel() ) )
                 {
                     return programStage.getProgram().getEnrollmentDateLabel();
                 }
-                return NAME_ENROLLMENT_DATE.value();
+                return ENROLLMENT_DATE.value();
 
-            case NAME_INCIDENT_DATE:
+            case INCIDENT_DATE:
                 if ( programStage != null && programStage.getProgram() != null
                     && isNotBlank( programStage.getProgram().getIncidentDateLabel() ) )
                 {
                     return programStage.getProgram().getIncidentDateLabel();
                 }
-                return NAME_INCIDENT_DATE.value();
+                return INCIDENT_DATE.value();
 
             default:
                 // Do nothing
