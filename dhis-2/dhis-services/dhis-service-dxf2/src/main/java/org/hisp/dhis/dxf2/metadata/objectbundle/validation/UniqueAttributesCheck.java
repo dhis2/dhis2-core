@@ -27,48 +27,43 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
+import static java.util.Collections.emptyList;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Luciano Fiandesio
  */
-public class UniqueAttributesCheck
-    implements
-    ValidationCheck
+public class UniqueAttributesCheck implements ObjectValidationCheck
 {
     @Override
-    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx )
+        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
     {
-        TypeReport typeReport = new TypeReport( klass );
-        Schema schema = ctx.getSchemaService().getDynamicSchema( klass );
-
         List<IdentifiableObject> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
 
-        if ( objects.isEmpty() || !schema.havePersistedProperty( "attributeValues" ) )
+        if ( objects.isEmpty()
+            || !ctx.getSchemaService().getDynamicSchema( klass ).havePersistedProperty( "attributeValues" ) )
         {
-            return typeReport;
+            return;
         }
 
         for ( IdentifiableObject object : objects )
@@ -79,43 +74,29 @@ public class UniqueAttributesCheck
             if ( !errorReports.isEmpty() )
             {
 
-                addObjectReports( errorReports, typeReport, object, bundle );
+                addReports.accept( createObjectReport( errorReports, object, bundle ) );
                 ctx.markForRemoval( object );
             }
         }
-
-        return typeReport;
     }
 
     private List<ErrorReport> checkUniqueAttributes( Class<? extends IdentifiableObject> klass,
         IdentifiableObject object, Preheat preheat, PreheatIdentifier identifier )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
         if ( object == null || preheat.isDefault( object ) || !preheat.getUniqueAttributes().containsKey( klass ) )
         {
-            return errorReports;
+            return emptyList();
         }
-
-        Set<AttributeValue> attributeValues = object.getAttributeValues();
-        List<String> uniqueAttributes = new ArrayList<>( preheat.getUniqueAttributes().get( klass ) ); // make
-                                                                                                       // copy
-                                                                                                       // for
-                                                                                                       // modification
-
-        if ( !preheat.getUniqueAttributeValues().containsKey( klass ) )
+        if ( preheat.getUniqueAttributes().get( klass ).isEmpty() )
         {
-            preheat.getUniqueAttributeValues().put( klass, new HashMap<>() );
+            return emptyList();
         }
 
-        Map<String, Map<String, String>> uniqueAttributeValues = preheat.getUniqueAttributeValues().get( klass );
+        Map<String, Map<String, String>> uniqueAttributeValues = preheat.getUniqueAttributeValues()
+            .computeIfAbsent( klass, key -> new HashMap<>() );
 
-        if ( uniqueAttributes.isEmpty() )
-        {
-            return errorReports;
-        }
-
-        attributeValues.forEach( attributeValue -> {
+        List<ErrorReport> errorReports = new ArrayList<>();
+        object.getAttributeValues().forEach( attributeValue -> {
             Attribute attribute = preheat.get( identifier, attributeValue.getAttribute() );
 
             if ( attribute == null || !attribute.isUnique() || StringUtils.isEmpty( attributeValue.getValue() ) )
