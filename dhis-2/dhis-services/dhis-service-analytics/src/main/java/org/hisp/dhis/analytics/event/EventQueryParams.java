@@ -151,6 +151,11 @@ public class EventQueryParams
     private Integer pageSize;
 
     /**
+     * The paging flag.
+     */
+    private boolean paging;
+
+    /**
      * The value sort order.
      */
     private SortOrder sortOrder;
@@ -273,6 +278,7 @@ public class EventQueryParams
         params.organisationUnitMode = this.organisationUnitMode;
         params.page = this.page;
         params.pageSize = this.pageSize;
+        params.paging = this.paging;
         params.sortOrder = this.sortOrder;
         params.limit = this.limit;
         params.outputType = this.outputType;
@@ -702,7 +708,7 @@ public class EventQueryParams
 
     public boolean isPaging()
     {
-        return page != null || pageSize != null;
+        return paging || page != null || pageSize != null;
     }
 
     public int getPageWithDefault()
@@ -893,6 +899,11 @@ public class EventQueryParams
     public Integer getPageSize()
     {
         return pageSize;
+    }
+
+    public boolean getPaging()
+    {
+        return paging;
     }
 
     public SortOrder getSortOrder()
@@ -1158,6 +1169,12 @@ public class EventQueryParams
         public Builder withPageSize( Integer pageSize )
         {
             this.params.pageSize = pageSize;
+            return this;
+        }
+
+        public Builder withPaging( boolean paging )
+        {
+            this.params.paging = paging;
             return this;
         }
 
