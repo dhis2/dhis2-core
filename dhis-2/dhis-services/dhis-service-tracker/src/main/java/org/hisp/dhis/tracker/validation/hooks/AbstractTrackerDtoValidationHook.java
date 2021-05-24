@@ -73,8 +73,6 @@ public abstract class AbstractTrackerDtoValidationHook
         this.order = order;
     }
 
-    private final TrackerImportStrategy strategy;
-
     private final Map<TrackerType, BiConsumer<ValidationErrorReporter, TrackerDto>> validationMap = ImmutableMap
         .<TrackerType, BiConsumer<ValidationErrorReporter, TrackerDto>> builder()
         .put( TrackerType.TRACKED_ENTITY, (( report, dto ) -> validateTrackedEntity( report, (TrackedEntity) dto )) )
@@ -88,13 +86,6 @@ public abstract class AbstractTrackerDtoValidationHook
      */
     public AbstractTrackerDtoValidationHook()
     {
-        this.strategy = null;
-    }
-
-    public AbstractTrackerDtoValidationHook( TrackerImportStrategy strategy )
-    {
-        checkNotNull( strategy );
-        this.strategy = strategy;
     }
 
     /**
@@ -186,11 +177,14 @@ public abstract class AbstractTrackerDtoValidationHook
         while ( iter.hasNext() )
         {
             TrackerDto dto = iter.next();
-            final ValidationErrorReporter reporter = validateTrackerDto( context, dto, trackerType );
-            context.getRootReporter().merge( reporter );
-            if ( removeOnError() && didNotPassValidation( reporter, dto.getUid() ) )
+            if ( needsToRun( context.getStrategy( dto, trackerType ) ) )
             {
-                iter.remove();
+                final ValidationErrorReporter reporter = validateTrackerDto( context, dto, trackerType );
+                context.getRootReporter().merge( reporter );
+                if ( removeOnError() && didNotPassValidation( reporter, dto.getUid() ) )
+                {
+                    iter.remove();
+                }
             }
         }
     }
@@ -237,6 +231,11 @@ public abstract class AbstractTrackerDtoValidationHook
         {
             addError( report, errorCode, args );
         }
+    }
+
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return strategy != TrackerImportStrategy.DELETE;
     }
 
     /**

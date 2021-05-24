@@ -52,6 +52,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
@@ -86,17 +87,22 @@ public class TrackerImportValidationContext
 
     public TrackerImportStrategy getStrategy( Enrollment enrollment )
     {
-        return bundle.getResolvedStrategyMap().get( Enrollment.class ).get( enrollment.getEnrollment() );
+        return bundle.getResolvedStrategyMap().get( TrackerType.ENROLLMENT ).get( enrollment.getEnrollment() );
     }
 
     public TrackerImportStrategy getStrategy( Event event )
     {
-        return bundle.getResolvedStrategyMap().get( Event.class ).get( event.getEvent() );
+        return bundle.getResolvedStrategyMap().get( TrackerType.EVENT ).get( event.getEvent() );
     }
 
     public TrackerImportStrategy getStrategy( TrackedEntity tei )
     {
-        return bundle.getResolvedStrategyMap().get( TrackedEntity.class ).get( tei.getTrackedEntity() );
+        return bundle.getResolvedStrategyMap().get( TrackerType.TRACKED_ENTITY ).get( tei.getTrackedEntity() );
+    }
+
+    public TrackerImportStrategy getStrategy( TrackerDto dto, TrackerType trackerType )
+    {
+        return bundle.getResolvedStrategyMap().get( trackerType ).get( dto.getUid() );
     }
 
     public void cacheEventCategoryOptionCombo( String key, CategoryOptionCombo categoryOptionCombo )

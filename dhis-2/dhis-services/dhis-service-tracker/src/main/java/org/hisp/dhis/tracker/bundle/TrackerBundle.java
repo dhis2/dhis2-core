@@ -145,15 +145,16 @@ public class TrackerBundle
      */
     private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
-    private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedStrategyMap;
+    private final Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap;
 
     public TrackerBundle()
     {
         this.resolvedStrategyMap = new HashMap<>();
 
-        resolvedStrategyMap.put( Event.class, new HashMap<>() );
-        resolvedStrategyMap.put( Enrollment.class, new HashMap<>() );
-        resolvedStrategyMap.put( TrackedEntity.class, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.RELATIONSHIP, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.EVENT, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.ENROLLMENT, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.TRACKED_ENTITY, new HashMap<>() );
     }
 
     @JsonProperty
@@ -193,18 +194,23 @@ public class TrackerBundle
             .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
     }
 
+    public TrackerImportStrategy setStrategy( Relationship relationship, TrackerImportStrategy strategy )
+    {
+        return this.getResolvedStrategyMap().get( TrackerType.RELATIONSHIP ).put( relationship.getUid(), strategy );
+    }
+
     public TrackerImportStrategy setStrategy( Event event, TrackerImportStrategy strategy )
     {
-        return this.getResolvedStrategyMap().get( Event.class ).put( event.getUid(), strategy );
+        return this.getResolvedStrategyMap().get( TrackerType.EVENT ).put( event.getUid(), strategy );
     }
 
     public TrackerImportStrategy setStrategy( Enrollment enrollment, TrackerImportStrategy strategy )
     {
-        return this.getResolvedStrategyMap().get( Enrollment.class ).put( enrollment.getUid(), strategy );
+        return this.getResolvedStrategyMap().get( TrackerType.ENROLLMENT ).put( enrollment.getUid(), strategy );
     }
 
     public TrackerImportStrategy setStrategy( TrackedEntity tei, TrackerImportStrategy strategy )
     {
-        return this.getResolvedStrategyMap().get( TrackedEntity.class ).put( tei.getUid(), strategy );
+        return this.getResolvedStrategyMap().get( TrackerType.TRACKED_ENTITY ).put( tei.getUid(), strategy );
     }
 }
