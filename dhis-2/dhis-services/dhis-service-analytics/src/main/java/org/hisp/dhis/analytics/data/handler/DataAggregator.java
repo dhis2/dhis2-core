@@ -151,14 +151,16 @@ public class DataAggregator
      */
     private DataQueryParams preHandleQuery( DataQueryParams params )
     {
-        if ( params.hasSingleIndicatorAsDataFilter() || params.hasSingleReportingRateAsDataFilter() )
+        if ( params.hasSingleIndicatorAsDataFilter() || params.hasSingleProgramIndicatorAsDataFilter()
+            || params.hasSingleReportingRateAsDataFilter() )
         {
             DimensionalObject dx = params.getFilter( DATA_X_DIM_ID );
 
             params = newBuilder( params )
                 .addDimension( dx )
                 .removeFilter( DATA_X_DIM_ID )
-                .addProcessingHint( SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ).build();
+                .addProcessingHint( SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM )
+                .build();
         }
 
         return params;
