@@ -43,7 +43,7 @@ import org.springframework.http.MediaType;
 @RequiredArgsConstructor
 public abstract class AbstractTrackedEntityInstanceStrategy implements TrackedEntityInstanceStrategyHandler
 {
-    final protected TrackedEntityInstanceService trackedEntityInstanceService;
+    protected final TrackedEntityInstanceService trackedEntityInstanceService;
 
     final SchedulingManager schedulingManager;
 

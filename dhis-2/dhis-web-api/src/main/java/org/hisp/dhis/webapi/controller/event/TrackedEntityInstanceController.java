@@ -273,7 +273,7 @@ public class TrackedEntityInstanceController
             MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
         response.setContentType( fileResource.getContentType() );
-        response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
+        response.setContentLength( (int) fileResource.getContentLength() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
         try ( InputStream inputStream = fileResourceService.getFileResourceContent( fileResource ) )
