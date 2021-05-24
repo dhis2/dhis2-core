@@ -25,42 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.trackedentity;
+package org.hisp.dhis.webapi.strategy.old.tracker.imports.request;
 
-import java.util.List;
+import java.io.InputStream;
+
+import lombok.Builder;
+import lombok.Data;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.security.SecurityContextRunnable;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class ImportTrackedEntitiesTask
-    extends SecurityContextRunnable
+@Data
+@Builder
+public class TrackerEntityInstanceRequest
 {
-    private final List<TrackedEntityInstance> trackedEntityInstances;
+    InputStream inputStream;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    ImportOptions importOptions;
 
-    private final ImportOptions importOptions;
+    String mediaType;
 
-    private final JobConfiguration id;
-
-    public ImportTrackedEntitiesTask( List<TrackedEntityInstance> trackedEntityInstances,
-        TrackedEntityInstanceService trackedEntityInstanceService,
-        ImportOptions importOptions, JobConfiguration id )
-    {
-        super();
-        this.trackedEntityInstances = trackedEntityInstances;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.importOptions = importOptions;
-        this.id = id;
-    }
-
-    @Override
-    public void call()
-    {
-        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( trackedEntityInstances, importOptions, id );
-    }
+    JobConfiguration jobConfiguration;
 }
