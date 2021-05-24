@@ -149,7 +149,7 @@ public class TrackerBundle
 
     public TrackerBundle()
     {
-        this.resolvedStrategyMap = new HashMap<>();
+        this.resolvedStrategyMap = new EnumMap<>( TrackerType.class );
 
         resolvedStrategyMap.put( TrackerType.RELATIONSHIP, new HashMap<>() );
         resolvedStrategyMap.put( TrackerType.EVENT, new HashMap<>() );
