@@ -25,32 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.web.embeddedjetty;
 
-import org.hisp.dhis.dataapproval.DataApprovalLevel;
-import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.schema.descriptors.DataApprovalLevelSchemaDescriptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import lombok.extern.slf4j.Slf4j;
 
-@Controller
-@RequestMapping( value = DataApprovalLevelSchemaDescriptor.API_ENDPOINT )
-public class DataApprovalLevelController
-    extends AbstractCrudController<DataApprovalLevel>
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Slf4j
+public class StartupFinishedRoutine extends AbstractStartupRoutine
 {
-    @Autowired
-    private DataApprovalLevelService dataApprovalLevelService;
-
     @Override
-    protected void preCreateEntity( DataApprovalLevel entity )
+    public void execute()
+        throws Exception
     {
-        dataApprovalLevelService.prepareAddDataApproval( entity );
-    }
-
-    @Override
-    protected void postDeleteEntity()
-    {
-        dataApprovalLevelService.postDeleteDataApprovalLevel();
+        log.info( String.format( "DHIS2 API Server Startup Finished In %s Seconds!",
+            JettyEmbeddedCoreWeb.getElapsedMsSinceStart() / 1000 ) );
     }
 }

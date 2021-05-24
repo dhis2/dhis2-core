@@ -27,19 +27,22 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
+import static java.util.Collections.emptyList;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.joinObjects;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
@@ -48,39 +51,36 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 
 /**
  * @author Luciano Fiandesio
  */
-public class UniquenessCheck
-    implements
-    ValidationCheck
+public class UniquenessCheck implements ObjectValidationCheck
 {
-
     @Override
-    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx )
+        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
     {
-        TypeReport typeReport = new TypeReport( klass );
-
         List<IdentifiableObject> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
 
         if ( objects.isEmpty() )
         {
-            return typeReport;
+            return;
         }
 
         for ( IdentifiableObject object : objects )
         {
-            List<ErrorReport> errorReports = new ArrayList<>();
+            List<ErrorReport> errorReports;
 
             if ( object instanceof User )
             {
                 User user = (User) object;
-                errorReports.addAll( checkUniqueness( user, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx ) );
-                errorReports.addAll( checkUniqueness( user.getUserCredentials(), bundle.getPreheat(),
-                    bundle.getPreheatIdentifier(), ctx ) );
+                UserCredentials userCredentials = user.getUserCredentials();
+                errorReports = joinObjects(
+                    checkUniqueness( user, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx ),
+                    checkUniqueness( userCredentials, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx ) );
             }
             else
             {
@@ -89,47 +89,48 @@ public class UniquenessCheck
 
             if ( !errorReports.isEmpty() )
             {
-                addObjectReports( errorReports, typeReport, object, bundle );
+                addReports.accept( createObjectReport( errorReports, object, bundle ) );
                 ctx.markForRemoval( object );
             }
         }
-
-        return typeReport;
-
     }
 
     private List<ErrorReport> checkUniqueness( IdentifiableObject object, Preheat preheat, PreheatIdentifier identifier,
         ValidationContext ctx )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
         if ( object == null || preheat.isDefault( object ) )
-            return errorReports;
-
-        if ( !preheat.getUniquenessMap().containsKey( HibernateProxyUtils.getRealClass( object ) ) )
         {
-            preheat.getUniquenessMap().put( HibernateProxyUtils.getRealClass( object ), new HashMap<>() );
+            return emptyList();
         }
 
+        @SuppressWarnings( "unchecked" )
+        Class<? extends IdentifiableObject> objType = HibernateProxyUtils.getRealClass( object );
         Map<String, Map<Object, String>> uniquenessMap = preheat.getUniquenessMap()
-            .get( HibernateProxyUtils.getRealClass( object ) );
+            .computeIfAbsent( objType, key -> new HashMap<>() );
 
-        Schema schema = ctx.getSchemaService().getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+        Schema schema = ctx.getSchemaService().getDynamicSchema( objType );
         List<Property> uniqueProperties = schema.getProperties().stream()
             .filter( p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple() )
             .collect( Collectors.toList() );
 
-        uniqueProperties.forEach( property -> {
-            if ( !uniquenessMap.containsKey( property.getName() ) )
-            {
-                uniquenessMap.put( property.getName(), new HashMap<>() );
-            }
+        if ( uniqueProperties.isEmpty() )
+        {
+            return emptyList();
+        }
+        return checkUniqueness( object, identifier, uniquenessMap, uniqueProperties );
+    }
 
+    private List<ErrorReport> checkUniqueness( IdentifiableObject object, PreheatIdentifier identifier,
+        Map<String, Map<Object, String>> uniquenessMap, List<Property> uniqueProperties )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>();
+        uniqueProperties.forEach( property -> {
             Object value = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
             if ( value != null )
             {
-                String objectIdentifier = uniquenessMap.get( property.getName() ).get( value );
+                String objectIdentifier = uniquenessMap.computeIfAbsent( property.getName(), key -> new HashMap<>() )
+                    .get( value );
 
                 if ( objectIdentifier != null )
                 {

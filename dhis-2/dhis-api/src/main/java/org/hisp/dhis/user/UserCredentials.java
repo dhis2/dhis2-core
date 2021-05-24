@@ -290,8 +290,7 @@ public class UserCredentials
      */
     public boolean hasAnyAuthority( Collection<String> auths )
     {
-        Set<String> all = new HashSet<>( getAllAuthorities() );
-        return all.removeAll( auths );
+        return getAllAuthorities().stream().anyMatch( auths::contains );
     }
 
     /**

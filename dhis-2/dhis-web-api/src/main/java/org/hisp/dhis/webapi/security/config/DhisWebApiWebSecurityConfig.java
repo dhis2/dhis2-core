@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import javax.sql.DataSource;
@@ -380,12 +381,27 @@ public class DhisWebApiWebSecurityConfig
         protected void configure( HttpSecurity http )
             throws Exception
         {
-            http
-                .antMatcher( apiContextPath + "/**" )
-                .authorizeRequests( this::configureAccessRestrictions )
-                .httpBasic()
-                .authenticationEntryPoint( basicAuthenticationEntryPoint() )
-                .and().csrf().disable();
+            String[] activeProfiles = getApplicationContext().getEnvironment().getActiveProfiles();
+
+            if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
+            {
+                // This config will redirect unauthorized requests to standard
+                // http basic (pop-up login form)
+                http.antMatcher( "/**" )
+                    .authorizeRequests( this::configureAccessRestrictions )
+                    .httpBasic();
+            }
+            else
+            {
+                // This config will redirect unauthorized requests to the
+                // default login form webpage
+                http.antMatcher( apiContextPath + "/**" )
+                    .authorizeRequests( this::configureAccessRestrictions )
+                    .httpBasic()
+                    .authenticationEntryPoint( basicAuthenticationEntryPoint() );
+            }
+
+            http.csrf().disable();
 
             if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
             {

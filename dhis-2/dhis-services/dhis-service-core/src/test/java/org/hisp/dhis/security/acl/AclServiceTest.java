@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.security.acl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
@@ -45,17 +47,21 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.google.common.collect.Sets;
 
@@ -75,6 +81,9 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private CurrentUserService currentUserService;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -1229,5 +1238,34 @@ public class AclServiceTest extends TransactionalIntegrationTest
         manager.save( categoryOption, false );
 
         assertTrue( aclService.canDataOrMetadataRead( user1, categoryOption ) );
+    }
+
+    @Test
+    public void testAccessObjectWithoutOwner()
+    {
+        DataElement de = createDataElement( 'A' );
+        Sharing sharing = Sharing.builder()
+            .publicAccess( AccessStringHelper.DEFAULT )
+            .owner( null ).build();
+        de.setSharing( sharing );
+
+        manager.save( de, false );
+        User userA = createUser( 'A' );
+        manager.save( userA );
+        dbmsManager.flushSession();
+
+        de = manager.get( de.getUid() );
+
+        assertEquals( AccessStringHelper.DEFAULT, de.getPublicAccess() );
+        assertEquals( null, de.getSharing().getOwner() );
+        assertTrue( de.getSharing().getUsers().isEmpty() );
+
+        assertTrue( aclService.canRead( userA, de ) );
+
+        String sql = "select uid as uid from dataelement where "
+            + JpaQueryUtils.generateSQlQueryForSharingCheck( "sharing", userA, AccessStringHelper.READ );
+        SqlRowSet row = jdbcTemplate.queryForRowSet( sql );
+        assertEquals( true, row.next() );
+        assertEquals( de.getUid(), row.getString( "uid" ) );
     }
 }

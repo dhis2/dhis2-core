@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.hisp.dhis.common.DxfNamespaces;
 
@@ -47,16 +48,31 @@ import com.google.common.base.MoreObjects;
 @JacksonXmlRootElement( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
 public class TypeReport
 {
-    private Class<?> klass;
+    private static final Map<Class<?>, TypeReport> EMPTY_BY_TYPE = new ConcurrentHashMap<>();
 
-    private Stats stats = new Stats();
+    private final Class<?> klass;
 
-    private Map<Integer, ObjectReport> objectReportMap = new HashMap<>();
+    private final boolean empty;
+
+    private final Stats stats = new Stats();
+
+    private final Map<Integer, ObjectReport> objectReportMap = new HashMap<>();
+
+    public static TypeReport empty( Class<?> klass )
+    {
+        return EMPTY_BY_TYPE.computeIfAbsent( klass, type -> new TypeReport( type, true ) );
+    }
 
     @JsonCreator
     public TypeReport( @JsonProperty( "klass" ) Class<?> klass )
     {
+        this( klass, false );
+    }
+
+    private TypeReport( Class<?> klass, boolean empty )
+    {
         this.klass = klass;
+        this.empty = empty;
     }
 
     // -----------------------------------------------------------------------------------
@@ -65,6 +81,14 @@ public class TypeReport
 
     public void merge( TypeReport typeReport )
     {
+        if ( empty )
+        {
+            throw new IllegalStateException( "Empty report cannot be changed." );
+        }
+        if ( typeReport.empty )
+        {
+            return; // done: nothing to merge with
+        }
         stats.merge( typeReport.getStats() );
 
         typeReport.getObjectReportMap().forEach( ( index, objectReport ) -> {
