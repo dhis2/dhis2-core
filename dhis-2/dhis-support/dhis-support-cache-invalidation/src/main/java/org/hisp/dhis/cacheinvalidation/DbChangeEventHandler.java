@@ -58,7 +58,6 @@ import io.debezium.engine.RecordChangeEvent;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-
 @Slf4j
 @Component
 public class DbChangeEventHandler

@@ -31,27 +31,27 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.kafka.connect.source.SourceRecord;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import io.debezium.config.Configuration;
 import io.debezium.embedded.Connect;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.RecordChangeEvent;
 import io.debezium.engine.format.ChangeEventFormat;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.connect.source.SourceRecord;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Profile( { "!test", "!test-h2" } )
 @Service
 @Slf4j
 public class DebeziumService

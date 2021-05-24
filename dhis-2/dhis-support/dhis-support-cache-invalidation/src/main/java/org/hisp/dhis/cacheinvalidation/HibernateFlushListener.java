@@ -32,11 +32,13 @@ import org.hibernate.HibernateException;
 import org.hibernate.event.spi.FlushEvent;
 import org.hibernate.event.spi.FlushEventListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Profile( "!test-h2" )
 @Component
 public class HibernateFlushListener implements FlushEventListener
 {
