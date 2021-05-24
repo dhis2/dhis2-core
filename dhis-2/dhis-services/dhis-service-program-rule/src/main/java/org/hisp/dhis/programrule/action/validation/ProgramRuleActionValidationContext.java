@@ -25,43 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.action.validation;
 
-package org.hisp.dhis.actions.metadata;
+import java.util.List;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.utils.DataGenerator;
+import lombok.Builder;
+import lombok.Data;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Zubair Asghar
  */
-public class AttributeActions extends RestApiActions
+
+@Data
+@Builder
+public class ProgramRuleActionValidationContext
 {
-    public AttributeActions(  )
-    {
-        super( "/attributes" );
-    }
+    private Program program;
 
-    public String createUniqueAttribute(String valueType, String... metadataObjects) {
-        return createAttribute( valueType, true, metadataObjects );
-    }
+    private ProgramRule programRule;
 
-    public String createAttribute(String valueType, boolean unique, String... metadataObjects) {
-        JsonObject ob = new JsonObjectBuilder()
-            .addProperty( "name", String.format( "TA attribute %s", DataGenerator.randomString() ) )
-            .addProperty( "unique", String.valueOf( unique ) )
-            .addProperty( "valueType", valueType )
-            .addUserGroupAccess()
-            .build();
+    private DataElement dataElement;
 
-        for ( String metadataObject : metadataObjects
-        )
-        {
-            ob.addProperty( metadataObject + "Attribute", "true" );
+    private TrackedEntityAttribute trackedEntityAttribute;
 
-        }
-        return this.create( ob );
-    }
+    private ProgramStageSection programStageSection;
+
+    private ProgramStage programStage;
+
+    private Option option;
+
+    private OptionGroup optionGroup;
+
+    private ProgramNotificationTemplate notificationTemplate;
+
+    private ProgramRuleActionValidationService programRuleActionValidationService;
+
+    private List<ProgramStage> programStages;
 }

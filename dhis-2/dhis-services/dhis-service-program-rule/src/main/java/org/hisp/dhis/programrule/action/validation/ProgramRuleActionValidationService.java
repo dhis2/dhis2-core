@@ -25,43 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.action.validation;
 
-package org.hisp.dhis.actions.metadata;
+import javax.annotation.Nonnull;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.utils.DataGenerator;
+import lombok.Builder;
+import lombok.Getter;
+
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Zubair Asghar
  */
-public class AttributeActions extends RestApiActions
+
+@Getter
+@Builder
+@Component( "org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationService" )
+public class ProgramRuleActionValidationService
 {
-    public AttributeActions(  )
-    {
-        super( "/attributes" );
-    }
+    @Nonnull
+    private final ProgramStageService programStageService;
 
-    public String createUniqueAttribute(String valueType, String... metadataObjects) {
-        return createAttribute( valueType, true, metadataObjects );
-    }
+    @Nonnull
+    private final ProgramService programService;
 
-    public String createAttribute(String valueType, boolean unique, String... metadataObjects) {
-        JsonObject ob = new JsonObjectBuilder()
-            .addProperty( "name", String.format( "TA attribute %s", DataGenerator.randomString() ) )
-            .addProperty( "unique", String.valueOf( unique ) )
-            .addProperty( "valueType", valueType )
-            .addUserGroupAccess()
-            .build();
+    @Nonnull
+    private final ProgramStageSectionService sectionService;
 
-        for ( String metadataObject : metadataObjects
-        )
-        {
-            ob.addProperty( metadataObject + "Attribute", "true" );
+    @Nonnull
+    private final ProgramStageDataElementService stageDataElementService;
 
-        }
-        return this.create( ob );
-    }
+    @Nonnull
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
+
+    @Nonnull
+    private final DataElementService dataElementService;
+
+    @Nonnull
+    private final OptionService optionService;
+
+    @Nonnull
+    private final ProgramNotificationTemplateService notificationTemplateService;
 }

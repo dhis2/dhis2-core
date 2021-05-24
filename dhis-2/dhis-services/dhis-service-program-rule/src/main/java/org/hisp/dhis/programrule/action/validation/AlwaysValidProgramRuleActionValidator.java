@@ -25,43 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.action.validation;
 
-package org.hisp.dhis.actions.metadata;
-
-import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Zubair Asghar
  */
-public class AttributeActions extends RestApiActions
+public class AlwaysValidProgramRuleActionValidator implements ProgramRuleActionValidator
 {
-    public AttributeActions(  )
+    @Override
+    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
+        ProgramRuleActionValidationContext validationContext )
     {
-        super( "/attributes" );
-    }
-
-    public String createUniqueAttribute(String valueType, String... metadataObjects) {
-        return createAttribute( valueType, true, metadataObjects );
-    }
-
-    public String createAttribute(String valueType, boolean unique, String... metadataObjects) {
-        JsonObject ob = new JsonObjectBuilder()
-            .addProperty( "name", String.format( "TA attribute %s", DataGenerator.randomString() ) )
-            .addProperty( "unique", String.valueOf( unique ) )
-            .addProperty( "valueType", valueType )
-            .addUserGroupAccess()
-            .build();
-
-        for ( String metadataObject : metadataObjects
-        )
-        {
-            ob.addProperty( metadataObject + "Attribute", "true" );
-
-        }
-        return this.create( ob );
+        return ProgramRuleActionValidationResult.builder().valid( true ).build();
     }
 }

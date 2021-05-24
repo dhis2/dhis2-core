@@ -25,43 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule;
 
-package org.hisp.dhis.actions.metadata;
+import lombok.Builder;
+import lombok.Data;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Zubair Asghar
  */
-public class AttributeActions extends RestApiActions
+
+@Data
+@Builder
+public class ProgramRuleActionValidationResult
 {
-    public AttributeActions(  )
-    {
-        super( "/attributes" );
-    }
+    private String description;
 
-    public String createUniqueAttribute(String valueType, String... metadataObjects) {
-        return createAttribute( valueType, true, metadataObjects );
-    }
+    private boolean valid;
 
-    public String createAttribute(String valueType, boolean unique, String... metadataObjects) {
-        JsonObject ob = new JsonObjectBuilder()
-            .addProperty( "name", String.format( "TA attribute %s", DataGenerator.randomString() ) )
-            .addProperty( "unique", String.valueOf( unique ) )
-            .addProperty( "valueType", valueType )
-            .addUserGroupAccess()
-            .build();
-
-        for ( String metadataObject : metadataObjects
-        )
-        {
-            ob.addProperty( metadataObject + "Attribute", "true" );
-
-        }
-        return this.create( ob );
-    }
+    private ErrorReport errorReport;
 }

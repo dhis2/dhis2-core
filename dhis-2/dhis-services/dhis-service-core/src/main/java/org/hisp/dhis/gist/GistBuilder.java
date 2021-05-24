@@ -559,6 +559,7 @@ final class GistBuilder
             getMemberPath( field.getPropertyPath() ), field.getPropertyPath(), accessFilter, compare );
     }
 
+    @SuppressWarnings( "unchecked" )
     private void addEndpointURL( Object[] row, int refIndex, Field field, String url )
     {
         if ( url == null || url.isEmpty() )

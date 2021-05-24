@@ -118,6 +118,8 @@ public class EventDataQueryRequest
 
     private Integer pageSize;
 
+    private boolean paging;
+
     /**
      * Copies all properties of this request onto the given request.
      *
@@ -161,6 +163,7 @@ public class EventDataQueryRequest
         queryRequest.coordinateField = this.coordinateField;
         queryRequest.page = this.page;
         queryRequest.pageSize = this.pageSize;
+        queryRequest.paging = this.paging;
         return request;
     }
 
@@ -192,6 +195,7 @@ public class EventDataQueryRequest
                 .outputType( criteria.getOutputType() )
                 .page( criteria.getPage() )
                 .pageSize( criteria.getPageSize() )
+                .paging( criteria.isPaging() )
                 .programStatus( criteria.getProgramStatus() )
                 .relativePeriodDate( criteria.getRelativePeriodDate() )
                 .showHierarchy( criteria.isShowHierarchy() )
