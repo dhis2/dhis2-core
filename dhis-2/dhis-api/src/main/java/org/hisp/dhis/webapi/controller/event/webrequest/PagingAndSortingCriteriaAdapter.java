@@ -76,11 +76,6 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
     private Boolean skipPaging;
 
     /**
-     * Indicated whether paging is enabled
-     */
-    private Boolean paging;
-
-    /**
      * order params
      */
     private List<OrderCriteria> order;
@@ -100,13 +95,10 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
 
     public boolean isPagingRequest()
     {
-        return !isSkipPaging() && (paging != null && paging ||
-            pageSize != null ||
-            page != null ||
-            totalPages);
+        return !isSkipPaging();
     }
 
-    private boolean isSkipPaging()
+    public boolean isSkipPaging()
     {
         return Optional.ofNullable( skipPaging )
             .orElse( false );
