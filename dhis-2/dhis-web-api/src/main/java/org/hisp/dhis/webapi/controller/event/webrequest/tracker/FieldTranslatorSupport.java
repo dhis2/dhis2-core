@@ -27,83 +27,25 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
-import java.util.Date;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.Optional;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-/**
- * Class to hold EventController request parameters into a handy place
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-@Data
-@NoArgsConstructor
-public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
+import com.google.common.base.CaseFormat;
+
+class FieldTranslatorSupport
 {
-    private String program;
 
-    private String programStage;
-
-    private ProgramStatus programStatus;
-
-    private Boolean followUp;
-
-    private String trackedEntity;
-
-    private String orgUnit;
-
-    private OrganisationUnitSelectionMode ouMode;
-
-    private AssignedUserSelectionMode assignedUserMode;
-
-    private String assignedUser;
-
-    private Date occurredAfter;
-
-    private Date occurredBefore;
-
-    private Date scheduledAfter;
-
-    private Date scheduledBefore;
-
-    private Date updatedAfter;
-
-    private Date updatedBefore;
-
-    private String updatedWithin;
-
-    private EventStatus status;
-
-    private String attributeCc;
-
-    private String attributeCos;
-
-    private boolean skipMeta;
-
-    private String attachment;
-
-    private boolean includeDeleted;
-
-    private String event;
-
-    private Boolean skipEventId;
-
-    private Set<String> filter;
-
-    private IdSchemes idSchemes = new IdSchemes();
-
-    @Override
-    public boolean isLegacy()
+    static Optional<String> translate( String dtoFieldName,
+        Enum<? extends PagingAndSortingCriteriaAdapter.EntityNameSupplier>[] translator )
     {
-        return false;
+        String upperSnakeCase = CaseFormat.LOWER_CAMEL.to( CaseFormat.UPPER_UNDERSCORE, dtoFieldName );
+        return Arrays.stream( translator )
+            .filter( fieldTranslator -> fieldTranslator.name().equals( upperSnakeCase ) )
+            .findFirst()
+            .map( anEnum -> (PagingAndSortingCriteriaAdapter.EntityNameSupplier) anEnum )
+            .map( PagingAndSortingCriteriaAdapter.EntityNameSupplier::getEntityName );
     }
+
 }

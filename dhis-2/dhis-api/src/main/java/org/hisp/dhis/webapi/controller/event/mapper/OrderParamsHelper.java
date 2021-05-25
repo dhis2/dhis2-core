@@ -25,40 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.webapi.controller.event.mapper;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-/**
- * Sorting parameters
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-public interface SortingCriteria
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+public class OrderParamsHelper
 {
 
-    /**
-     * order params
-     */
-    List<OrderCriteria> getOrder();
-
-    /**
-     * Implementors should return a list of fields on which it is allowed to
-     * perform ordering Defaults to empty list which means all fields are
-     * allowed for ordering
-     */
-    default List<String> getAllowedOrderingFields()
+    public static List<OrderParam> toOrderParams( List<OrderCriteria> criteria )
     {
-        return Collections.emptyList();
+        return Optional.ofNullable( criteria )
+            .orElse( Collections.emptyList() )
+            .stream()
+            .filter( Objects::nonNull )
+            .map( orderCriteria -> OrderParam.builder()
+                .direction( orderCriteria.getDirection() )
+                .field( orderCriteria.getField() )
+                .build() )
+            .collect( Collectors.toList() );
     }
-
-    /**
-     * By default it does not translate any field
-     */
-    default String translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return dtoFieldName;
-    }
-
 }

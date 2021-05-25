@@ -25,40 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
-import java.util.Collections;
-import java.util.List;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-/**
- * Sorting parameters
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-public interface SortingCriteria
+import org.junit.Test;
+
+public class TrackerEnrollmentCriteriaTest
 {
 
-    /**
-     * order params
-     */
-    List<OrderCriteria> getOrder();
-
-    /**
-     * Implementors should return a list of fields on which it is allowed to
-     * perform ordering Defaults to empty list which means all fields are
-     * allowed for ordering
-     */
-    default List<String> getAllowedOrderingFields()
+    @Test
+    public void testFieldTranslation()
     {
-        return Collections.emptyList();
-    }
+        TrackerEnrollmentCriteria trackerEnrollmentCriteria = new TrackerEnrollmentCriteria();
 
-    /**
-     * By default it does not translate any field
-     */
-    default String translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return dtoFieldName;
-    }
+        assertThat(
+            trackerEnrollmentCriteria.translateField( "created", true ),
+            is( "created" ) );
 
+        assertThat( trackerEnrollmentCriteria.translateField( "createdAt", false ),
+            is( "created" ) );
+
+    }
 }

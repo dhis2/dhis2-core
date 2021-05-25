@@ -30,14 +30,12 @@ package org.hisp.dhis.webapi.controller.event.mapper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
+import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -62,7 +60,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper.TrackerTrackedEntityCriteriaMapper;
@@ -350,19 +347,6 @@ public class TrackedEntityCriteriaMapper
             throw new IllegalQueryException(
                 "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
         }
-    }
-
-    private List<OrderParam> toOrderParams( List<OrderCriteria> criteria )
-    {
-        return Optional.ofNullable( criteria )
-            .orElse( Collections.emptyList() )
-            .stream()
-            .filter( Objects::nonNull )
-            .map( orderCriteria -> OrderParam.builder()
-                .direction( orderCriteria.getDirection() )
-                .field( orderCriteria.getField() )
-                .build() )
-            .collect( Collectors.toList() );
     }
 
     private ProgramStage getProgramStageFromProgram( Program program, String programStage )

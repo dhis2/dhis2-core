@@ -39,13 +39,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.*;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +63,9 @@ public class EnrollmentAttrValidationTest
     private DefaultTrackerValidationService trackerValidationService;
 
     @Autowired
+    private TrackerImportService trackerImportService;
+
+    @Autowired
     private TrackedEntityAttributeService trackedEntityAttributeService;
 
     @Override
@@ -76,14 +76,10 @@ public class EnrollmentAttrValidationTest
 
         TrackerImportParams trackerBundleParams = fromJson( "tracker/validations/enrollments_te_te-data_2.json" );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
-        assertEquals( 1, trackerBundle.getTrackedEntities().size() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        assertEquals( 0, report.getErrorReports().size() );
-
-        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
-        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         manager.flush();
     }
@@ -94,13 +90,12 @@ public class EnrollmentAttrValidationTest
     {
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_with_invalid_option_value.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 1, report.getErrorReports().size() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
 
-        assertThat( report.getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1125 ) ) ) );
     }
 
@@ -111,10 +106,10 @@ public class EnrollmentAttrValidationTest
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_with_valid_option_value.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 0, report.getErrorReports().size() );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
     }
 
     @Test
@@ -123,15 +118,13 @@ public class EnrollmentAttrValidationTest
     {
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-missing-uuid.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-        printReport( validationReport );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
 
-        assertEquals( 1, validationReport.getErrorReports().size() );
-
-        assertThat( validationReport.getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1075 ) ) ) );
     }
 
@@ -141,15 +134,13 @@ public class EnrollmentAttrValidationTest
     {
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-missing-value.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-        printReport( validationReport );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
 
-        assertEquals( 1, validationReport.getErrorReports().size() );
-
-        assertThat( validationReport.getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1076 ) ) ) );
     }
 
@@ -171,12 +162,11 @@ public class EnrollmentAttrValidationTest
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 
-        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-        printReport( validationReport );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertEquals( 1, validationReport.getErrorReports().size() );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
 
-        assertThat( validationReport.getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1017 ) ) ) );
     }
 
@@ -186,15 +176,13 @@ public class EnrollmentAttrValidationTest
     {
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-missing-mandatory.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-        printReport( validationReport );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
 
-        assertEquals( 1, validationReport.getErrorReports().size() );
-
-        assertThat( validationReport.getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1018 ) ) ) );
     }
 
@@ -204,15 +192,13 @@ public class EnrollmentAttrValidationTest
     {
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-only-program-attr.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-        printReport( validationReport );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
 
-        assertEquals( 1, validationReport.getErrorReports().size() );
-
-        assertThat( validationReport.getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1019 ) ) ) );
     }
 }

@@ -29,9 +29,21 @@ package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.fail;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import lombok.SneakyThrows;
+
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.junit.Test;
+
+import com.google.common.collect.ImmutableList;
 
 public class PagingAndSortingCriteriaAdapterTest
 {
@@ -73,4 +85,38 @@ public class PagingAndSortingCriteriaAdapterTest
         assertFalse( pagingAndSortingCriteriaAdapter.isSkipPaging() );
         assertTrue( pagingAndSortingCriteriaAdapter.isPagingRequest() );
     }
+
+    @Test
+    @SneakyThrows
+    public void verifyGetOrder()
+    {
+        PagingAndSortingCriteriaAdapter tested = new PagingAndSortingCriteriaAdapter()
+        {
+            @Override
+            public List<String> getAllowedOrderingFields()
+            {
+                return ImmutableList.of( "field1", "field2" );
+            }
+
+            @Override
+            public String translateField( String dtoFieldName, boolean isLegacy )
+            {
+                return dtoFieldName.equals( "field1" ) ? "translatedField1" : dtoFieldName;
+            }
+        };
+
+        tested.setOrder(
+            ImmutableList.of(
+                OrderCriteria.of( "field1", OrderParam.SortDirection.ASC ),
+                OrderCriteria.of( "field2", OrderParam.SortDirection.ASC ),
+                OrderCriteria.of( "field3", OrderParam.SortDirection.ASC ) ) );
+
+        Collection<String> orderField = tested.getOrder().stream()
+            .map( OrderCriteria::getField )
+            .collect( Collectors.toList() );
+
+        assertThat( orderField, hasSize( 2 ) );
+        assertThat( orderField, containsInAnyOrder( "translatedField1", "field2" ) );
+    }
+
 }

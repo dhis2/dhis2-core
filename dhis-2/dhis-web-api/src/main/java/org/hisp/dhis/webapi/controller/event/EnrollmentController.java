@@ -68,6 +68,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -144,6 +145,7 @@ public class EnrollmentController
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false ) List<OrderCriteria> order,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -166,7 +168,7 @@ public class EnrollmentController
         {
             ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl( orgUnits, ouMode, lastUpdated,
                 lastUpdatedDuration, program, programStatus, programStartDate, programEndDate, trackedEntityType,
-                trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging, includeDeleted );
+                trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging, includeDeleted, order );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
