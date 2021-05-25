@@ -111,6 +111,8 @@ public class EventDataQueryRequest
 
     protected Integer pageSize;
 
+    protected boolean paging;
+
     public String getProgram()
     {
         return program;
@@ -179,6 +181,11 @@ public class EventDataQueryRequest
     public boolean isShowHierarchy()
     {
         return showHierarchy;
+    }
+
+    public boolean isPaging()
+    {
+        return paging;
     }
 
     public SortOrder getSortOrder()
@@ -333,6 +340,7 @@ public class EventDataQueryRequest
         request.coordinateField = this.coordinateField;
         request.page = this.page;
         request.pageSize = this.pageSize;
+        request.paging = this.paging;
         return request;
     }
 
@@ -577,6 +585,12 @@ public class EventDataQueryRequest
         public EventDataQueryRequestBuilder pageSize( Integer pageSize )
         {
             this.request.pageSize = pageSize;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder paging( boolean paging )
+        {
+            this.request.paging = paging;
             return this;
         }
 
