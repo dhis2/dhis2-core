@@ -59,13 +59,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.user.User;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -86,6 +84,9 @@ public class EventSecurityImportValidationTest
 
     @Autowired
     private DefaultTrackerValidationService trackerValidationService;
+
+    @Autowired
+    private TrackerImportService trackerImportService;
 
     @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
@@ -144,14 +145,10 @@ public class EventSecurityImportValidationTest
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
-        assertEquals( 5, trackerBundle.getTrackedEntities().size() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        assertEquals( 0, report.getErrorReports().size() );
-
-        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
-        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         trackerBundleParams = renderService
             .fromJson(
@@ -160,14 +157,10 @@ public class EventSecurityImportValidationTest
 
         trackerBundleParams.setUser( user );
 
-        trackerBundle = trackerBundleService.create( trackerBundleParams );
-        assertEquals( 4, trackerBundle.getEnrollments().size() );
+        trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
 
-        report = trackerValidationService.validate( trackerBundle );
-        assertEquals( 0, report.getErrorReports().size() );
-
-        bundleReport = trackerBundleService.commit( trackerBundle );
-        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         manager.flush();
     }
@@ -283,18 +276,14 @@ public class EventSecurityImportValidationTest
         User user = userService.getUser( USER_3 );
         trackerBundleParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
-        assertEquals( 1, trackerBundle.getEvents().size() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        printReport( report );
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
 
-        assertEquals( 2, report.getErrorReports().size() );
-
-        assertThat( report.getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
 
-        assertThat( report.getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
     }
 

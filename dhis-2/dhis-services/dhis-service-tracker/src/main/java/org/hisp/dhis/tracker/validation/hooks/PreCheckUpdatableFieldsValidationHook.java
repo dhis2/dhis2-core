@@ -58,55 +58,49 @@ public class PreCheckUpdatableFieldsValidationHook
         TrackedEntity trackedEntity )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( trackedEntity );
 
-        if ( strategy.isUpdate() )
-        {
-            TrackedEntityInstance trackedEntityInstance = context
-                .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+        TrackedEntityInstance trackedEntityInstance = context
+            .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
-            addErrorIf( () -> !trackedEntityInstance.getTrackedEntityType().getUid()
-                .equals( trackedEntity.getTrackedEntityType() ), reporter, E1126, "trackedEntityType" );
-        }
+        addErrorIf( () -> !trackedEntityInstance.getTrackedEntityType().getUid()
+            .equals( trackedEntity.getTrackedEntityType() ), reporter, E1126, "trackedEntityType" );
     }
 
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( enrollment );
 
-        if ( strategy.isUpdate() )
-        {
-            ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );
-            Program program = pi.getProgram();
-            TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
+        ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );
+        Program program = pi.getProgram();
+        TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
 
-            addErrorIf( () -> !program.getUid().equals( enrollment.getProgram() ), reporter, E1127, "program" );
-            addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ), reporter, E1127,
-                "trackedEntity" );
-        }
+        addErrorIf( () -> !program.getUid().equals( enrollment.getProgram() ), reporter, E1127, "program" );
+        addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ), reporter, E1127,
+            "trackedEntity" );
     }
 
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( event );
 
-        if ( strategy.isUpdate() )
-        {
-            ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
-            Program program = programStageInstance.getProgramInstance().getProgram();
-            ProgramStage programStage = programStageInstance.getProgramStage();
-            ProgramInstance programInstance = programStageInstance.getProgramInstance();
+        ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
+        Program program = programStageInstance.getProgramInstance().getProgram();
+        ProgramStage programStage = programStageInstance.getProgramStage();
+        ProgramInstance programInstance = programStageInstance.getProgramInstance();
 
-            addErrorIf( () -> !event.getProgram().equals( program.getUid() ), reporter, E1128, "program" );
-            addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ), reporter, E1128,
-                "programStage" );
-            addErrorIf( () -> !event.getEnrollment().equals( programInstance.getUid() ), reporter, E1128,
-                "enrollment" );
-        }
+        addErrorIf( () -> !event.getProgram().equals( program.getUid() ), reporter, E1128, "program" );
+        addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ), reporter, E1128,
+            "programStage" );
+        addErrorIf( () -> !event.getEnrollment().equals( programInstance.getUid() ), reporter, E1128,
+            "enrollment" );
+    }
+
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return strategy == TrackerImportStrategy.UPDATE;
     }
 
     @Override
