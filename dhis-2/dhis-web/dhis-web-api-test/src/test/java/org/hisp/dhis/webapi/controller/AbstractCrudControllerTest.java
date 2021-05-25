@@ -50,10 +50,9 @@ import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.snippets.SomeUserId;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-
-import jdk.nashorn.internal.ir.annotations.Ignore;
 
 /**
  * Tests the generic operations offered by the {@link AbstractCrudController}
