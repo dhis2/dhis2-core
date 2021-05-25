@@ -32,8 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
@@ -42,7 +40,6 @@ import org.hisp.dhis.user.UserSettingKey;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Ignore
 public final class UserContext
 {
     private static final ThreadLocal<User> threadUser = new ThreadLocal<>();
