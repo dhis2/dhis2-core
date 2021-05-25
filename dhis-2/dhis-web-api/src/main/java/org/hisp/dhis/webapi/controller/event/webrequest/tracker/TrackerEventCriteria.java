@@ -100,4 +100,10 @@ public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
     private Set<String> filter;
 
     private IdSchemes idSchemes = new IdSchemes();
+
+    @Override
+    public boolean isLegacy()
+    {
+        return false;
+    }
 }

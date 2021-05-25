@@ -110,7 +110,7 @@ public class ShowErrorWarningImplementerTest
     @Before
     public void setUpTest()
     {
-        bundle = new TrackerBundle();
+        bundle = TrackerBundle.builder().build();
         bundle.setEvents( getEvents() );
         bundle.setEnrollments( getEnrollments() );
         bundle.setRuleEffects( getRuleEventAndEnrollmentEffects() );
