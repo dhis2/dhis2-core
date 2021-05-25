@@ -104,7 +104,6 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
             .orElse( false );
     }
 
-
     @Override
     public List<OrderCriteria> getOrder()
     {
