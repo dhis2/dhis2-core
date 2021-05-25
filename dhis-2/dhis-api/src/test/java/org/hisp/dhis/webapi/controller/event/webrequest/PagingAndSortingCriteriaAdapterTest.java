@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
@@ -42,12 +44,6 @@ public class PagingAndSortingCriteriaAdapterTest
     {
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter = new PagingAndSortingCriteriaAdapter()
         {
-            @Override
-            public Boolean getPaging()
-            {
-                return true;
-            }
-
             @Override
             public Integer getPageSize()
             {
@@ -65,5 +61,16 @@ public class PagingAndSortingCriteriaAdapterTest
             fail( "Test was not meant to throw exception. Thrown exception is: " + e.getMessage() );
         }
 
+    }
+
+    @Test
+    public void pagingIsEnabledByDefault()
+    {
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter = new PagingAndSortingCriteriaAdapter()
+        {
+        };
+
+        assertFalse( pagingAndSortingCriteriaAdapter.isSkipPaging() );
+        assertTrue( pagingAndSortingCriteriaAdapter.isPagingRequest() );
     }
 }
