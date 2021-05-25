@@ -90,10 +90,13 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
+import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceStrategyHandler;
+import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.http.HttpHeaders;
@@ -153,13 +156,16 @@ public class TrackedEntityInstanceController
 
     private final TrackedEntityCriteriaMapper criteriaMapper;
 
+    private final TrackedEntityInstanceStrategyHandler trackedEntityInstanceStrategyHandler;
+
     public TrackedEntityInstanceController( TrackedEntityInstanceService trackedEntityInstanceService,
         org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService,
         TrackedEntityTypeService trackedEntityTypeService, ContextUtils contextUtils,
         FieldFilterService fieldFilterService, ContextService contextService, WebMessageService webMessageService,
         CurrentUserService currentUserService, FileResourceService fileResourceService,
         TrackerAccessManager trackerAccessManager, SchedulingManager schedulingManager, ProgramService programService,
-        TrackedEntityCriteriaMapper criteriaMapper )
+        TrackedEntityCriteriaMapper criteriaMapper,
+        TrackedEntityInstanceStrategyHandler trackedEntityInstanceStrategyHandler )
     {
         checkNotNull( trackedEntityInstanceService );
         checkNotNull( instanceService );
@@ -188,6 +194,7 @@ public class TrackedEntityInstanceController
         this.schedulingManager = schedulingManager;
         this.programService = programService;
         this.criteriaMapper = criteriaMapper;
+        this.trackedEntityInstanceStrategyHandler = trackedEntityInstanceStrategyHandler;
     }
 
     // -------------------------------------------------------------------------
@@ -422,99 +429,85 @@ public class TrackedEntityInstanceController
     public void postTrackedEntityInstanceJson(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+        throws IOException,
+        BadRequestException
     {
-        importOptions.setStrategy( strategy );
-        importOptions.setSkipLastUpdated( true );
-        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-
-        if ( !importOptions.isAsync() )
-        {
-            ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstanceJson( inputStream,
-                importOptions );
-            importSummaries.setImportOptions( importOptions );
-            response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-
-            importSummaries.getImportSummaries().stream()
-                .filter(
-                    importSummary -> !importOptions.isDryRun() &&
-                        !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                        !importOptions.getImportStrategy().isDelete() &&
-                        (!importOptions.getImportStrategy().isSync()
-                            || importSummary.getImportCount().getDeleted() == 0) )
-                .forEach( importSummary -> importSummary.setHref(
-                    ContextUtils.getRootPath( request ) + TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT + "/"
-                        + importSummary.getReference() ) );
-
-            if ( importSummaries.getImportSummaries().size() == 1 )
-            {
-                ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
-                importSummary.setImportOptions( importOptions );
-
-                if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
-                {
-                    response.setHeader( "Location", getResourcePath( request, importSummary ) );
-                }
-            }
-
-            response.setStatus( HttpServletResponse.SC_CREATED );
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
-        }
-        else
-        {
-            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-                .getTrackedEntityInstancesJson( inputStream );
-            startAsyncImport( importOptions, trackedEntityInstances, request, response );
-        }
+        postTrackedEntityInstance( strategy, importOptions, request, response, MediaType.APPLICATION_JSON_VALUE );
     }
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
     public void postTrackedEntityInstanceXml(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+        throws IOException,
+        BadRequestException
+    {
+        postTrackedEntityInstance( strategy, importOptions, request, response, MediaType.APPLICATION_XML_VALUE );
+    }
+
+    private void postTrackedEntityInstance( ImportStrategy strategy, ImportOptions importOptions,
+        HttpServletRequest request, HttpServletResponse response, String mediaType )
+        throws IOException,
+        BadRequestException
     {
         importOptions.setStrategy( strategy );
+        importOptions.setSkipLastUpdated( true );
+
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+
+        // For in memory Jobs
+        JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
+            TEI_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+
+        TrackerEntityInstanceRequest trackerEntityInstanceRequest = TrackerEntityInstanceRequest.builder()
+            .inputStream( inputStream )
+            .importOptions( importOptions )
+            .mediaType( mediaType )
+            .jobConfiguration( jobId ).build();
+
+        ImportSummaries importSummaries = trackedEntityInstanceStrategyHandler
+            .mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
 
         if ( !importOptions.isAsync() )
         {
-            ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstanceXml( inputStream,
-                importOptions );
-            importSummaries.setImportOptions( importOptions );
-            response.setContentType( MediaType.APPLICATION_XML_VALUE );
-
-            importSummaries.getImportSummaries().stream()
-                .filter(
-                    importSummary -> !importOptions.isDryRun() &&
-                        !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-                        !importOptions.getImportStrategy().isDelete() &&
-                        (!importOptions.getImportStrategy().isSync()
-                            || importSummary.getImportCount().getDeleted() == 0) )
-                .forEach( importSummary -> importSummary.setHref(
-                    ContextUtils.getRootPath( request ) + TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT + "/"
-                        + importSummary.getReference() ) );
-
-            if ( importSummaries.getImportSummaries().size() == 1 )
-            {
-                ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
-                importSummary.setImportOptions( importOptions );
-
-                if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
-                {
-                    response.setHeader( "Location", getResourcePath( request, importSummary ) );
-                }
-            }
-
-            response.setStatus( HttpServletResponse.SC_CREATED );
+            finalizeTrackedEntityInstancePostRequest( importOptions, request, response, importSummaries, mediaType );
             webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
         }
         else
         {
-            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-                .getTrackedEntityInstancesXml( inputStream );
-            startAsyncImport( importOptions, trackedEntityInstances, request, response );
+            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TEI_IMPORT );
+            webMessageService.send( jobConfigurationReport( jobId ), response, request );
         }
+    }
+
+    private void finalizeTrackedEntityInstancePostRequest( ImportOptions importOptions, HttpServletRequest request,
+        HttpServletResponse response, ImportSummaries importSummaries, String mediaType )
+    {
+
+        importSummaries.setImportOptions( importOptions );
+        importSummaries.getImportSummaries().stream()
+            .filter(
+                importSummary -> !importOptions.isDryRun() &&
+                    !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
+                    !importOptions.getImportStrategy().isDelete() &&
+                    (!importOptions.getImportStrategy().isSync()
+                        || importSummary.getImportCount().getDeleted() == 0) )
+            .forEach( importSummary -> importSummary.setHref(
+                ContextUtils.getRootPath( request ) + TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT + "/"
+                    + importSummary.getReference() ) );
+
+        if ( importSummaries.getImportSummaries().size() == 1 )
+        {
+            ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
+            importSummary.setImportOptions( importOptions );
+
+            if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
+            {
+                response.setHeader( "Location", getResourcePath( request, importSummary ) );
+            }
+        }
+
+        response.setContentType( mediaType );
     }
 
     // -------------------------------------------------------------------------
