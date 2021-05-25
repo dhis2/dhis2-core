@@ -120,7 +120,7 @@ public class ProgramActions
         body.addProperty( "name", name );
 
         ApiResponse response = programStageActions.post( body );
-        response.validate().statusCode( Matchers.isOneOf( 201, 200 ) );
+        response.validate().statusCode( Matchers.is( Matchers.oneOf( 201, 200 ) ) );
 
         return response.extractUid();
     }

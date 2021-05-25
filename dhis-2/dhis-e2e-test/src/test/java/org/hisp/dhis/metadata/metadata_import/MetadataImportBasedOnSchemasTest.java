@@ -99,7 +99,7 @@ public class MetadataImportBasedOnSchemasTest
     {
         RestApiActions apiActions = new RestApiActions( endpoint );
 
-        List blacklistedEndpoints = Arrays.asList( "jobConfigurations",
+        List<String> blacklistedEndpoints = Arrays.asList( "jobConfigurations",
             "relationshipTypes",
             "messageConversations",
             "users",
@@ -135,7 +135,7 @@ public class MetadataImportBasedOnSchemasTest
         List<String> apiEndpoints = apiResponse.extractList( jsonPathIdentifier + ".plural" );
         List<String> schemaEndpoints = apiResponse.extractList( jsonPathIdentifier + ".singular" );
 
-        ArrayList<Arguments> arguments = new ArrayList<>();
+        List<Arguments> arguments = new ArrayList<>();
         for ( int i = 0; i < apiEndpoints.size(); i++ )
         {
             arguments.add( Arguments.of( apiEndpoints.get( i ), schemaEndpoints.get( i ) ) );
