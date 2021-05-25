@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
+import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
+
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
@@ -42,4 +46,63 @@ public class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
     private String enrollment;
 
     private String event;
+
+    @Override
+    public boolean isLegacy()
+    {
+        return false;
+    }
+
+    @Override
+    public String translateField( String dtoFieldName, boolean isLegacy )
+    {
+        return (isLegacy ? translate( dtoFieldName, LegacyDtoToEntityFieldTranslator.values() )
+            : translate( dtoFieldName, DtoToEntityFieldTranslator.values() )).orElse( dtoFieldName );
+    }
+
+    /**
+     * Dto to database field translator for new tracker Enrollment export
+     * controller
+     */
+    @RequiredArgsConstructor
+    private enum DtoToEntityFieldTranslator implements EntityNameSupplier
+    {
+        /**
+         * this enum names must be the same as
+         * org.hisp.dhis.tracker.domain.Enrollment fields, just with different
+         * case
+         *
+         * example: org.hisp.dhis.tracker.domain.Enrollment.updatedAtClient -->
+         * UPDATED_AT_CLIENT
+         */
+        CREATED_AT( "created" ),
+        UPDATED_AT( "lastUpdated" );
+
+        @Getter
+        private final String entityName;
+
+    }
+
+    /**
+     * Dto to database field translator for old tracker Enrollment export
+     * controller
+     */
+    @RequiredArgsConstructor
+    private enum LegacyDtoToEntityFieldTranslator implements EntityNameSupplier
+    {
+        /**
+         * this enum names must be the same as
+         * org.hisp.dhis.dxf2.events.enrollment.Enrollment fields, just with
+         * different case
+         *
+         * example: org.hisp.dhis.dxf2.events.enrollment.Enrollment.lastUpdated
+         * --> LAST_UPDATED
+         */
+        RELATIONSHIP( "uid" );
+
+        @Getter
+        private final String entityName;
+
+    }
+
 }

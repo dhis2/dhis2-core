@@ -33,15 +33,11 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.*;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 
@@ -52,7 +48,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public class TrackerBundle
 {
@@ -163,6 +158,25 @@ public class TrackerBundle
     @Builder.Default
     private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
+    @Builder.Default
+    private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = initStrategyMap();
+
+    private TrackerBundle()
+    {
+    }
+
+    private static Map<TrackerType, Map<String, TrackerImportStrategy>> initStrategyMap()
+    {
+        Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new EnumMap<>( TrackerType.class );
+
+        resolvedStrategyMap.put( TrackerType.RELATIONSHIP, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.EVENT, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.ENROLLMENT, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.TRACKED_ENTITY, new HashMap<>() );
+
+        return resolvedStrategyMap;
+    }
+
     @JsonProperty
     public String getUsername()
     {
@@ -198,5 +212,25 @@ public class TrackerBundle
             .filter( RuleEffects::isEvent )
             .filter( e -> getEvent( e.getTrackerObjectUid() ).isPresent() )
             .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
+    }
+
+    public TrackerImportStrategy setStrategy( Relationship relationship, TrackerImportStrategy strategy )
+    {
+        return this.getResolvedStrategyMap().get( TrackerType.RELATIONSHIP ).put( relationship.getUid(), strategy );
+    }
+
+    public TrackerImportStrategy setStrategy( Event event, TrackerImportStrategy strategy )
+    {
+        return this.getResolvedStrategyMap().get( TrackerType.EVENT ).put( event.getUid(), strategy );
+    }
+
+    public TrackerImportStrategy setStrategy( Enrollment enrollment, TrackerImportStrategy strategy )
+    {
+        return this.getResolvedStrategyMap().get( TrackerType.ENROLLMENT ).put( enrollment.getUid(), strategy );
+    }
+
+    public TrackerImportStrategy setStrategy( TrackedEntity tei, TrackerImportStrategy strategy )
+    {
+        return this.getResolvedStrategyMap().get( TrackerType.TRACKED_ENTITY ).put( tei.getUid(), strategy );
     }
 }
