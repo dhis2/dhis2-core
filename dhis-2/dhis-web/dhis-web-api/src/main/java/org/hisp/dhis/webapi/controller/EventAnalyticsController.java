@@ -39,7 +39,13 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.EventDataQueryRequest;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
@@ -538,6 +544,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) boolean paging,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
@@ -553,8 +560,8 @@ public class EventAnalyticsController
             .includeMetadataDetails( includeMetadataDetails )
             .dataIdScheme( dataIdScheme ).eventStatus( eventStatus ).programStatus( programStatus )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion )
-            .outputType( EventOutputType.EVENT ).build();
+            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).paging( paging )
+            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -585,6 +592,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) boolean paging,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
@@ -602,7 +610,7 @@ public class EventAnalyticsController
             .dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
+            .paging( paging ).apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 

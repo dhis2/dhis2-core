@@ -37,7 +37,12 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.EventDataQueryRequest;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -91,6 +96,7 @@ public class EnrollmentAnalyticsController
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) boolean paging,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
@@ -107,7 +113,8 @@ public class EnrollmentAnalyticsController
             .includeMetadataDetails( includeMetadataDetails )
             .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
+            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).paging( paging )
+            .apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -136,6 +143,7 @@ public class EnrollmentAnalyticsController
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) boolean paging,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
@@ -153,7 +161,8 @@ public class EnrollmentAnalyticsController
             .includeMetadataDetails( includeMetadataDetails )
             .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
+            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).paging( paging )
+            .apiVersion( apiVersion ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 

@@ -184,6 +184,7 @@ public class DashboardController
                     case PIE:
                     case RADAR:
                     case SINGLE_VALUE:
+                    case STACKED_AREA:
                     case STACKED_BAR:
                     case STACKED_COLUMN:
                     case YEAR_OVER_YEAR_COLUMN:

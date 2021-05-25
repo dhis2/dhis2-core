@@ -250,6 +250,7 @@ public class DefaultEventDataQueryService
             .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
+            .withPaging( request.isPaging() )
             .withProgramStatus( request.getProgramStatus() )
             .withApiVersion( request.getApiVersion() )
             .build();
