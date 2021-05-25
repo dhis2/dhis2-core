@@ -107,6 +107,7 @@ public class RemoveOperationTest
         root.set( "props", jsonMapper.valueToTree( map ) );
 
         assertTrue( root.has( "props" ) );
+        assertTrue( root.get( "props" ).has( "id" ) );
         root = (ObjectNode) patch.apply( root );
         assertTrue( root.has( "props" ) );
         assertFalse( root.get( "props" ).has( "id" ) );
