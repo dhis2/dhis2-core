@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.schema.descriptors.UserGroupSchemaDescriptor;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -41,9 +44,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class UserGroupController
     extends AbstractCrudController<UserGroup>
 {
+    @Autowired
+    private Environment env;
+
     @Override
     protected void postUpdateEntity( UserGroup entity )
     {
         hibernateCacheManager.clearCache();
+    }
+
+    @Override
+    protected void postDeleteEntity( String entityUid )
+    {
+        /*
+         * This function will caused error in
+         * SchemaBasedControllerTest.testCreateAndDeleteSchemaObjects because of
+         * H2 database being used. The test is instead covered in
+         * IdentifiableObjectManagerTest.testRemoveUserGroupFromSharing()
+         */
+        if ( SystemUtils.isTestRun( env.getActiveProfiles() ) )
+        {
+            return;
+        }
+
+        manager.removeUserGroupFromSharing( entityUid );
     }
 }
