@@ -225,4 +225,10 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             .map( DateUtils::fromInstant )
             .orElseGet( Date::new );
     }
+
+    @Override
+    protected void persistOwnership( TrackerPreheat preheat, ProgramStageInstance entity )
+    {
+        // DO NOTHING. Event creation does not create ownership records.
+    }
 }
