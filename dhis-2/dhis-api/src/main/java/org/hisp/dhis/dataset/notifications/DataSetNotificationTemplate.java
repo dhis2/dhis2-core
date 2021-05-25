@@ -30,12 +30,11 @@ package org.hisp.dhis.dataset.notifications;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.NotificationTemplateObject;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -52,7 +51,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
 public class DataSetNotificationTemplate
-    extends BaseIdentifiableObject implements NotificationTemplate, MetadataObject
+    extends NotificationTemplateObject
+    implements MetadataObject
 {
     private String messageTemplate;
 

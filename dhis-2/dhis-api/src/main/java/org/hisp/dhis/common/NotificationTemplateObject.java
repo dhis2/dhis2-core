@@ -25,42 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.trackedentity;
+package org.hisp.dhis.common;
 
-import java.util.List;
+import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.translation.Translatable;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.security.SecurityContextRunnable;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class ImportTrackedEntitiesTask
-    extends SecurityContextRunnable
+public abstract class NotificationTemplateObject
+    extends BaseIdentifiableObject
+    implements NotificationTemplate
 {
-    private final List<TrackedEntityInstance> trackedEntityInstances;
-
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
-
-    private final ImportOptions importOptions;
-
-    private final JobConfiguration id;
-
-    public ImportTrackedEntitiesTask( List<TrackedEntityInstance> trackedEntityInstances,
-        TrackedEntityInstanceService trackedEntityInstanceService,
-        ImportOptions importOptions, JobConfiguration id )
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "subjectTemplate", key = "SUBJECT_TEMPLATE" )
+    public String getDisplaySubjectTemplate()
     {
-        super();
-        this.trackedEntityInstances = trackedEntityInstances;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.importOptions = importOptions;
-        this.id = id;
+        return getTranslation( "SUBJECT_TEMPLATE", getSubjectTemplate() );
     }
 
     @Override
-    public void call()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "messageTemplate", key = "MESSAGE_TEMPLATE" )
+    public String getDisplayMessageTemplate()
     {
-        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( trackedEntityInstances, importOptions, id );
+        return getTranslation( "MESSAGE_TEMPLATE", getMessageTemplate() );
     }
 }

@@ -25,42 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.trackedentity;
+package org.hisp.dhis.webapi.strategy.old.tracker.imports.impl;
 
-import java.util.List;
+import java.io.IOException;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.security.SecurityContextRunnable;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceStrategyHandler;
+import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luca Cambi <luca@dhis2.org>
  */
-public class ImportTrackedEntitiesTask
-    extends SecurityContextRunnable
+@Primary
+@Component
+@RequiredArgsConstructor
+public class TrackedEntityInstanceStrategyImpl implements TrackedEntityInstanceStrategyHandler
 {
-    private final List<TrackedEntityInstance> trackedEntityInstances;
+    final TrackedEntityInstanceSyncStrategyImpl trackedEntityInstanceSyncStrategy;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
-
-    private final ImportOptions importOptions;
-
-    private final JobConfiguration id;
-
-    public ImportTrackedEntitiesTask( List<TrackedEntityInstance> trackedEntityInstances,
-        TrackedEntityInstanceService trackedEntityInstanceService,
-        ImportOptions importOptions, JobConfiguration id )
-    {
-        super();
-        this.trackedEntityInstances = trackedEntityInstances;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.importOptions = importOptions;
-        this.id = id;
-    }
+    final TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
 
     @Override
-    public void call()
+    public ImportSummaries mergeOrDeleteTrackedEntityInstances(
+        TrackerEntityInstanceRequest trackerEntityInstanceRequest )
+        throws IOException,
+        BadRequestException
     {
-        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( trackedEntityInstances, importOptions, id );
+        if ( trackerEntityInstanceRequest.getImportOptions().isAsync() )
+        {
+            return trackedEntityInstanceAsyncStrategy
+                .mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
+        }
+        else
+        {
+            return trackedEntityInstanceSyncStrategy
+                .mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
+        }
     }
+
 }
