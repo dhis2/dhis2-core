@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 import java.util.HashSet;
 import java.util.List;
@@ -179,6 +178,8 @@ public class EventDataQueryServiceTest
     @Test
     public void testGetFromUrlA()
     {
+        final String coordinateField = "EVENT";
+        final String fallbackCoordinateField = "ougeometry";
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
         dimensionParams.add( atA.getUid() + ":LE:5" );
@@ -186,8 +187,13 @@ public class EventDataQueryServiceTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401;201402" );
 
-        EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).build();
+        EventDataQueryRequest request = EventDataQueryRequest.builder()
+            .program( prA.getUid() )
+            .dimension( dimensionParams ).filter( filterParams )
+            .coordinateField( coordinateField )
+            .fallbackCoordinateField( fallbackCoordinateField )
+            .coordinateOuFallback( true )
+            .build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -195,6 +201,9 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getOrganisationUnits().size() );
         assertEquals( 1, params.getItems().size() );
         assertEquals( 2, params.getFilterPeriods().size() );
+        assertEquals( "psigeometry", params.getCoordinateField() );
+        assertEquals( fallbackCoordinateField, params.getFallbackCoordinateField() );
+        assertTrue( params.isCoordinateOuFallback() );
     }
 
     @Test
@@ -219,6 +228,10 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
+        assertFalse( params.isCoordinateOuFallback() );
+        assertEquals( "psigeometry", params.getCoordinateField() );
+        assertEquals( "ougeometry", params.getFallbackCoordinateField() );
+
     }
 
     @Test

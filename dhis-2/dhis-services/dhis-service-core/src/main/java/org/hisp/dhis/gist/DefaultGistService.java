@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -62,7 +61,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Jan Bernitt
  */
-@Slf4j
 @Service
 @AllArgsConstructor
 public class DefaultGistService implements GistService

@@ -222,6 +222,12 @@ public class EventsAnalyticsQueryCriteria
     // -------------------------------------------------------------------------
 
     /**
+     * Field to base geospatial event analytics on. Default is event. Can be set
+     * to identifiers of attributes and data elements of value type coordinate.
+     */
+    private String fallbackCoordinateField;
+
+    /**
      * The mode of selecting organisation units. Default is DESCENDANTS, meaning
      * all sub units in the hierarchy. CHILDREN refers to immediate children in
      * the hierarchy; SELECTED refers to the selected organisation units only.
@@ -246,6 +252,12 @@ public class EventsAnalyticsQueryCriteria
     private boolean coordinatesOnly;
 
     /**
+     * Whether to return events which ou coordinates when primary coordinates do
+     * not exist.
+     */
+    private boolean coordinateOuFallback;
+
+    /**
      * d scheme to be used for data, more specifically data elements and
      * attributes which have an option set or legend set, e.g. return the name
      * of the option instead of the code, or the name of the legend instead of
@@ -262,4 +274,10 @@ public class EventsAnalyticsQueryCriteria
      * The page size.
      */
     private Integer pageSize = 50;
+
+    /**
+     * The paging parameter. When set to false we should not paginate. The
+     * default is true (always paginate).
+     */
+    private boolean paging = true;
 }

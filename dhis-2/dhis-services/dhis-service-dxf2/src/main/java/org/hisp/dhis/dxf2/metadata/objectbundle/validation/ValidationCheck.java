@@ -41,6 +41,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
  *
  * @author Luciano Fiandesio
  */
+@FunctionalInterface
 public interface ValidationCheck
 {
     /**

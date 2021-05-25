@@ -125,8 +125,10 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .findFirst();
 
         if ( optionalTrackedAttr.isPresent() )
-            addErrorIfNull( attribute.getValue(), reporter, E1076, Attribute.class.getSimpleName(),
+        {
+            addErrorIfNull( attribute.getValue(), reporter, E1076, TrackedEntityAttribute.class.getSimpleName(),
                 attribute.getAttribute() );
+        }
 
         if ( attribute.getAttribute() != null )
         {

@@ -264,8 +264,8 @@ public class RuleEngineTests
 
         response
             .validateWarningReport()
-            .body( "", hasSize( greaterThanOrEqualTo( 2 ) ) )
-            .body( "trackerType", hasItems( "EVENT", "ENROLLMENT" ) )
+            .body( "", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "trackerType", hasItems( "ENROLLMENT" ) )
             .body( "warningCode", everyItem( equalTo( "E1300" ) ) );
     }
 
