@@ -38,10 +38,7 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 
@@ -68,21 +65,6 @@ public class UserTest extends ApiTest
         userActions.addUser( username, password );
         loginActions.loginAsUser( username, password );
     }
-
-    private Stream<Arguments> provideParams() {
-        return Stream.of( new Arguments[] {
-            Arguments.of( password, password, "Password must not be one of the previous 24 passwords", "newPassword is the same as old" ),
-            Arguments.of( password, "Test1?", "Password must have at least 8, and at most 40 characters", "newPassword is too short" ),
-            Arguments.of( password, DataGenerator.randomString(41) + "1?", "Password must have at least 8, and at most 40 characters", "newPassword is too-long" ),
-            Arguments.of( password, "", "OldPassword and newPassword must be provided", "newPassword is empty" ),
-            Arguments.of( "not-an-old-password", "Test1212???", "OldPassword is incorrect", "oldPassword is incorrect" ),
-            Arguments.of( password, "test1212?", "Password must have at least one upper case", "newPassword doesn't contain uppercase" ),
-            Arguments.of( password, "Testtest1212", "Password must have at least one special character", "newPassword doesn't contain a special character" ),
-            Arguments.of( password, "Testtest?", "Password must have at least one digit", "newPassword doesn't contain a digit" )
-
-        } );
-    }
-
 
     @ParameterizedTest(name = "[{index}] {3}")
     @MethodSource("provideParams")

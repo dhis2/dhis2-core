@@ -34,8 +34,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.SchemasActions;
 import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.dto.ApiResponse;
