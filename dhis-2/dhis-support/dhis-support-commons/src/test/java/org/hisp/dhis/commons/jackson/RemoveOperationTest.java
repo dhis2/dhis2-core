@@ -32,6 +32,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
@@ -84,6 +87,29 @@ public class RemoveOperationTest
         assertTrue( root.has( "aaa" ) );
         root = (ObjectNode) patch.apply( root );
         assertFalse( root.has( "aaa" ) );
+    }
+
+    @Test
+    public void testRemovePropertyFromMap()
+        throws JsonProcessingException,
+        JsonPatchException
+    {
+        JsonPatch patch = jsonMapper.readValue( "[" +
+            "{\"op\": \"remove\", \"path\": \"/props/id\"}" +
+            "]", JsonPatch.class );
+
+        assertNotNull( patch );
+
+        Map<String, String> map = new HashMap<>();
+        map.put( "id", "123" );
+
+        ObjectNode root = jsonMapper.createObjectNode();
+        root.set( "props", jsonMapper.valueToTree( map ) );
+
+        assertTrue( root.has( "props" ) );
+        root = (ObjectNode) patch.apply( root );
+        assertTrue( root.has( "props" ) );
+        assertFalse( root.get( "props" ).has( "id" ) );
     }
 
     @Test
