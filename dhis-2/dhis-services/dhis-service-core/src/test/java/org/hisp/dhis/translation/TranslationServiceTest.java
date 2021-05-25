@@ -40,6 +40,9 @@ import org.hisp.dhis.mapping.*;
 import org.hisp.dhis.option.*;
 import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.relationship.*;
 import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.user.*;
@@ -335,6 +338,34 @@ public class TranslationServiceTest
 
         ExternalMapLayer updatedMap = manager.get( ExternalMapLayer.class, map.getUid() );
         assertEquals( "translated Name", updatedMap.getDisplayName() );
+
+    }
+
+    @Test
+    public void testNotificationTemplateTranslations()
+    {
+        ProgramNotificationTemplate template = createProgramNotificationTemplate( "", 0,
+            NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            Calendar.getInstance().getTime() );
+
+        manager.save( template );
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.NAME,
+            "translated Name" ) );
+
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.SUBJECT_TEMPLATE,
+            "translated SUBJECT TEMPLATE" ) );
+
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.MESSAGE_TEMPLATE,
+            "translated MESSAGE TEMPLATE" ) );
+
+        manager.updateTranslations( template, translations );
+
+        template = manager.get( ProgramNotificationTemplate.class, template.getUid() );
+        assertEquals( "translated Name", template.getDisplayName() );
+        assertEquals( "translated SUBJECT TEMPLATE", template.getDisplaySubjectTemplate() );
+        assertEquals( "translated MESSAGE TEMPLATE", template.getDisplayMessageTemplate() );
 
     }
 }

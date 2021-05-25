@@ -355,9 +355,21 @@ public class BaseNotificationMessageRendererTest
         }
 
         @Override
+        public String getDisplaySubjectTemplate()
+        {
+            return null;
+        }
+
+        @Override
         public String getMessageTemplate()
         {
             return messageTemplate;
+        }
+
+        @Override
+        public String getDisplayMessageTemplate()
+        {
+            return null;
         }
 
         @Override
