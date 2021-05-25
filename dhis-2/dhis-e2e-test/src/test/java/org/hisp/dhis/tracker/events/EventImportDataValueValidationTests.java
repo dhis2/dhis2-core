@@ -38,7 +38,6 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -67,8 +66,6 @@ public class EventImportDataValueValidationTests
 
     private RestApiActions dataElementActions;
 
-    private SharingActions sharingActions;
-
     private String programId;
 
     private String programStageId;
@@ -82,7 +79,6 @@ public class EventImportDataValueValidationTests
         programActions = new ProgramActions();
         eventActions = new EventActions();
         dataElementActions = new RestApiActions( "/dataElements" );
-        sharingActions = new SharingActions();
 
         new LoginActions().loginAsAdmin();
 
