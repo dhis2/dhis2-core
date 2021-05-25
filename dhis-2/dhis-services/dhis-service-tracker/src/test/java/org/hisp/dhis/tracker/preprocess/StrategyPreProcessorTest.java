@@ -149,7 +149,7 @@ public class StrategyPreProcessorTest
     @Test
     public void testStrategyPreprocessForCreateAndUpdate()
     {
-        TrackerBundle bundle = new TrackerBundle().toBuilder()
+        TrackerBundle bundle = TrackerBundle.builder()
             .trackedEntities( Lists.newArrayList( trackedEntity, newTrackedEntity ) )
             .enrollments( Lists.newArrayList( enrollment, newEnrollment ) )
             .events( Lists.newArrayList( event, newEvent ) )
@@ -184,7 +184,7 @@ public class StrategyPreProcessorTest
     @Test
     public void testStrategyPreprocessForDelete()
     {
-        TrackerBundle bundle = new TrackerBundle().toBuilder()
+        TrackerBundle bundle = TrackerBundle.builder()
             .trackedEntities( Lists.newArrayList( trackedEntity, newTrackedEntity ) )
             .enrollments( Lists.newArrayList( enrollment, newEnrollment ) )
             .events( Lists.newArrayList( event, newEvent ) )

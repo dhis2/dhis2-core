@@ -47,7 +47,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
-@Builder( toBuilder = true )
+@Builder
 @AllArgsConstructor
 public class TrackerBundle
 {
@@ -59,16 +59,19 @@ public class TrackerBundle
     /**
      * Should import be imported or just validated.
      */
+    @Builder.Default
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
     /**
      * What identifiers to match on.
      */
+    @Builder.Default
     private TrackerIdScheme identifier = TrackerIdScheme.UID;
 
     /**
      * Sets import strategy (create, update, etc).
      */
+    @Builder.Default
     private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
 
     /**
@@ -92,16 +95,19 @@ public class TrackerBundle
     /**
      * Should import be treated as a atomic import (all or nothing).
      */
+    @Builder.Default
     private AtomicMode atomicMode = AtomicMode.ALL;
 
     /**
      * Flush for every object or per type.
      */
+    @Builder.Default
     private FlushMode flushMode = FlushMode.AUTO;
 
     /**
      * Validation mode to use, defaults to fully validated objects.
      */
+    @Builder.Default
     private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
@@ -113,48 +119,62 @@ public class TrackerBundle
     /**
      * Tracked entities to import.
      */
+    @Builder.Default
     private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     /**
      * Enrollments to import.
      */
+    @Builder.Default
     private List<Enrollment> enrollments = new ArrayList<>();
 
     /**
      * Events to import.
      */
+    @Builder.Default
     private List<Event> events = new ArrayList<>();
 
     /**
      * Relationships to import.
      */
+    @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
 
     /**
      * Rule effects for Enrollments.
      */
+    @Builder.Default
     private List<RuleEffects> ruleEffects = new ArrayList<>();
 
     /**
      * Rule effects for Enrollments.
      */
+    @Builder.Default
     private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
     /**
      * Rule effects for Events.
      */
+    @Builder.Default
     private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
-    private final Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap;
+    @Builder.Default
+    private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = initStrategyMap();
 
-    public TrackerBundle()
+    private TrackerBundle()
     {
-        this.resolvedStrategyMap = new EnumMap<>( TrackerType.class );
+    }
+
+    private static Map<TrackerType, Map<String, TrackerImportStrategy>> initStrategyMap()
+    {
+        Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new EnumMap<>( TrackerType.class );
 
         resolvedStrategyMap.put( TrackerType.RELATIONSHIP, new HashMap<>() );
         resolvedStrategyMap.put( TrackerType.EVENT, new HashMap<>() );
         resolvedStrategyMap.put( TrackerType.ENROLLMENT, new HashMap<>() );
         resolvedStrategyMap.put( TrackerType.TRACKED_ENTITY, new HashMap<>() );
+
+        return resolvedStrategyMap;
     }
 
     @JsonProperty

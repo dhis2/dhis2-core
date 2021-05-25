@@ -102,7 +102,7 @@ public class EventDataValuesValidationHookTest
         when( event.getProgramStage() ).thenReturn( programStageUid );
         when( event.getStatus() ).thenReturn( EventStatus.SKIPPED );
 
-        when( validationContext.getBundle() ).thenReturn( new TrackerBundle().toBuilder().build() );
+        when( validationContext.getBundle() ).thenReturn( TrackerBundle.builder().build() );
         when( validationContext.getDataElement( dataElementUid ) ).thenReturn( dataElement );
         when( validationContext.getProgramStage( anyString() ) ).thenReturn( programStage );
         DataElement dataElement = new DataElement();

@@ -88,7 +88,7 @@ public class EventDateValidationHookTest
 
         User user = createUser( 'A' );
 
-        TrackerBundle bundle = new TrackerBundle().toBuilder().user( user ).build();
+        TrackerBundle bundle = TrackerBundle.builder().user( user ).build();
 
         when( validationContext.getBundle() ).thenReturn( bundle );
 
@@ -108,7 +108,7 @@ public class EventDateValidationHookTest
         event.setOccurredAt( now() );
         event.setStatus( EventStatus.ACTIVE );
 
-        TrackerBundle bundle = new TrackerBundle().toBuilder().user( getEditExpiredUser() ).build();
+        TrackerBundle bundle = TrackerBundle.builder().user( getEditExpiredUser() ).build();
 
         when( validationContext.getBundle() ).thenReturn( bundle );
 

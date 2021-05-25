@@ -103,7 +103,7 @@ public class DefaultTrackerObjectsDeletionService
                     .stream().filter( psi -> !psi.isDeleted() )
                     .collect( Collectors.toList() ) ) );
 
-            TrackerBundle trackerBundle = new TrackerBundle().toBuilder().events( events ).user( bundle.getUser() )
+            TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() )
                 .build();
 
             deleteEvents( trackerBundle, TrackerType.EVENT );
@@ -172,7 +172,7 @@ public class DefaultTrackerObjectsDeletionService
                     .filter( pi -> !pi.isDeleted() )
                     .collect( Collectors.toList() ) ) );
 
-            TrackerBundle trackerBundle = new TrackerBundle().toBuilder().enrollments( enrollments )
+            TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments )
                 .user( bundle.getUser() )
                 .build();
 

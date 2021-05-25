@@ -80,7 +80,7 @@ public class TrackedEntityAttributeValidationHookTest
     @Before
     public void setUp()
     {
-        TrackerBundle bundle = new TrackerBundle().toBuilder().build();
+        TrackerBundle bundle = TrackerBundle.builder().build();
         when( validationContext.getBundle() ).thenReturn( bundle );
         when( dhisConfigurationProvider.getEncryptionStatus() ).thenReturn( EncryptionStatus.OK );
     }

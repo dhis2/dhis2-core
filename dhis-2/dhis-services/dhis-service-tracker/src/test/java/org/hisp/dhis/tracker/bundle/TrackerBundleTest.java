@@ -49,7 +49,7 @@ public class TrackerBundleTest
     @Test
     public void testBasicSetup1()
     {
-        TrackerBundle trackerBundle = new TrackerBundle().toBuilder()
+        TrackerBundle trackerBundle = TrackerBundle.builder()
             .atomicMode( AtomicMode.ALL )
             .validationMode( ValidationMode.SKIP )
             .trackedEntities( Collections.singletonList( new TrackedEntity() ) )
@@ -67,7 +67,7 @@ public class TrackerBundleTest
     @Test
     public void testBasicSetup2()
     {
-        TrackerBundle trackerBundle = new TrackerBundle().toBuilder()
+        TrackerBundle trackerBundle = TrackerBundle.builder()
             .atomicMode( AtomicMode.ALL )
             .validationMode( ValidationMode.SKIP )
             .trackedEntities( Arrays.asList( new TrackedEntity(), new TrackedEntity() ) )
