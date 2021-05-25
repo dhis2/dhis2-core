@@ -181,4 +181,9 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
      */
     private String attachment;
 
+    @Override
+    public boolean isLegacy()
+    {
+        return false;
+    }
 }
