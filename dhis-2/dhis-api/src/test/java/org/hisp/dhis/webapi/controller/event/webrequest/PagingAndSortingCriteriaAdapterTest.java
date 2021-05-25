@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller.event.webrequest;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Collection;
@@ -55,12 +57,6 @@ public class PagingAndSortingCriteriaAdapterTest
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter = new PagingAndSortingCriteriaAdapter()
         {
             @Override
-            public Boolean getPaging()
-            {
-                return true;
-            }
-
-            @Override
             public Integer getPageSize()
             {
                 // redundant just to make test more readable
@@ -77,6 +73,17 @@ public class PagingAndSortingCriteriaAdapterTest
             fail( "Test was not meant to throw exception. Thrown exception is: " + e.getMessage() );
         }
 
+    }
+
+    @Test
+    public void pagingIsEnabledByDefault()
+    {
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter = new PagingAndSortingCriteriaAdapter()
+        {
+        };
+
+        assertFalse( pagingAndSortingCriteriaAdapter.isSkipPaging() );
+        assertTrue( pagingAndSortingCriteriaAdapter.isPagingRequest() );
     }
 
     @Test
