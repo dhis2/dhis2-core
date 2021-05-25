@@ -90,6 +90,7 @@ public class DefaultCacheProvider
         allConstantsCache,
         inUserOuHierarchy,
         inUserSearchOuHierarchy,
+        inUserViewOuHierHierarchy,
         userCaptureOuCountThreshold,
         periodIdCache,
         userAccountRecoverAttempt,
@@ -217,6 +218,17 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.userCaptureOuCountThreshold.name() )
             .expireAfterWrite( 1, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createInUserViewOrgUnitHierarchyCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.inUserViewOuHierHierarchy.name() )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );

@@ -57,6 +57,8 @@ public interface CacheProvider
 
     <V> Cache<V> createInUserSearchOrgUnitHierarchyCache();
 
+    <V> Cache<V> createInUserViewOrgUnitHierarchyCache();
+
     <V> Cache<V> createUserCaptureOrgUnitThresholdCache();
 
     <V> Cache<V> createPeriodIdCache();
