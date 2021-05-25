@@ -36,6 +36,7 @@ public enum ChartType
     STACKED_COLUMN,
     BAR,
     STACKED_BAR,
+    STACKED_AREA,
     LINE,
     AREA,
     PIE,
