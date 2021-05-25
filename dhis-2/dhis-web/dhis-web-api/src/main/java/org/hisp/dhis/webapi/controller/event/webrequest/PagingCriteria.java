@@ -51,13 +51,4 @@ public interface PagingCriteria
      */
     boolean isTotalPages();
 
-    /**
-     * Indicates whether paging should be skipped.
-     */
-    Boolean getSkipPaging();
-
-    /**
-     * Indicated whether paging is enabled
-     */
-    Boolean getPaging();
 }
