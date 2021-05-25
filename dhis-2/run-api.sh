@@ -4,9 +4,9 @@
 
 # Define DHIS2_HOME folder here or set it before you run this script
 # DHIS2_HOME=<directory>
-# Hostname or IP for Jetty to listen
+# Hostname or IP for DHIS2/Jetty to listen
 DHIS2_HOSTNAME=localhost
-# Port number for Jetty to listen
+# Port number for DHIS2/Jetty to listen
 DHIS2_PORT=9090
 
 echo "Starting build.."
