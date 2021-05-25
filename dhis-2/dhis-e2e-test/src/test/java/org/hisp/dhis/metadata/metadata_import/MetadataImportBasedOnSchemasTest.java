@@ -42,10 +42,13 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -122,5 +125,22 @@ public class MetadataImportBasedOnSchemasTest
         response = apiActions.delete( response.extractUid() );
 
         ResponseValidationHelper.validateObjectRemoval( response, endpoint + " was not deleted" );
+    }
+
+    private Stream<Arguments> getSchemaEndpoints()
+    {
+        ApiResponse apiResponse = schemasActions.get();
+
+        String jsonPathIdentifier = "schemas.findAll{it.relativeApiEndpoint && it.metadata && it.singular != 'externalFileResource'}";
+        List<String> apiEndpoints = apiResponse.extractList( jsonPathIdentifier + ".plural" );
+        List<String> schemaEndpoints = apiResponse.extractList( jsonPathIdentifier + ".singular" );
+
+        List<Arguments> arguments = new ArrayList<>();
+        for ( int i = 0; i < apiEndpoints.size(); i++ )
+        {
+            arguments.add( Arguments.of( apiEndpoints.get( i ), schemaEndpoints.get( i ) ) );
+        }
+
+        return arguments.stream();
     }
 }

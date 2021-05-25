@@ -29,6 +29,9 @@ package org.hisp.dhis.metadata;
  */
 
 import com.google.gson.JsonObject;
+
+import java.util.stream.Stream;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -37,6 +40,7 @@ import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
@@ -50,6 +54,15 @@ public class DataElementsTest
     private RestApiActions categoryComboActions;
 
     private LoginActions loginActions;
+
+    private Stream<Arguments> getDataElementCombinations()
+    {
+        return Stream.of( new Arguments[] {
+            Arguments.of( "AGGREGATE", "NUMBER", "SUM", false, null ),
+            Arguments.of( "TRACKER", "TEXT", "CUSTOM", true, "DISAGGREGATION" ),
+            Arguments.of( "TRACKER", "AGE", "NONE", true, "ATTRIBUTE" )
+        } );
+    }
 
     @BeforeAll
     public void beforeAll()
