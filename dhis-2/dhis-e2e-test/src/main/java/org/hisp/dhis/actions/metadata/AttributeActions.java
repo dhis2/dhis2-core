@@ -31,6 +31,7 @@ package org.hisp.dhis.actions.metadata;
 import com.google.common.base.Strings;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 
 /**
@@ -44,19 +45,23 @@ public class AttributeActions extends RestApiActions
     }
 
     public String createUniqueAttribute(String valueType, String... metadataObjects) {
-        JsonObject object = new JsonObject();
+        return createAttribute( valueType, true, metadataObjects );
+    }
 
-        object.addProperty( "name", String.format( "TA attribute %s", DataGenerator.randomString() ) );
-        object.addProperty( "unique", "false" );
+    public String createAttribute(String valueType, boolean unique, String... metadataObjects) {
+        JsonObject ob = new JsonObjectBuilder()
+            .addProperty( "name", String.format( "TA attribute %s", DataGenerator.randomString() ) )
+            .addProperty( "unique", String.valueOf( unique ) )
+            .addProperty( "valueType", valueType )
+            .addUserGroupAccess()
+            .build();
+
         for ( String metadataObject : metadataObjects
-               )
+        )
         {
-            object.addProperty( metadataObject + "Attribute", "true" );
+            ob.addProperty( metadataObject + "Attribute", "true" );
 
         }
-
-        object.addProperty( "valueType", valueType);
-
-        return this.create( object );
+        return this.create( ob );
     }
 }

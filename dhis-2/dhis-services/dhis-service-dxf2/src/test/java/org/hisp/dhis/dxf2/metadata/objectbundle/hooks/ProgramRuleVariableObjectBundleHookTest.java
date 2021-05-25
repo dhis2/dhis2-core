@@ -28,8 +28,8 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS;
-import static org.hisp.dhis.feedback.ErrorCode.E4032;
-import static org.hisp.dhis.feedback.ErrorCode.E4033;
+import static org.hisp.dhis.feedback.ErrorCode.E4051;
+import static org.hisp.dhis.feedback.ErrorCode.E4052;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -118,7 +118,7 @@ public class ProgramRuleVariableObjectBundleHookTest
         List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
             objectBundle );
         assertEquals( 1, errorReports.size() );
-        assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4032 ) ) );
+        assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4051 ) ) );
     }
 
     @Test
@@ -134,8 +134,8 @@ public class ProgramRuleVariableObjectBundleHookTest
             objectBundle );
 
         assertEquals( 2, errorReports.size() );
-        assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4032 ) ) );
-        assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4033 ) ) );
+        assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4051 ) ) );
+        assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4052 ) ) );
     }
 
     @Test
@@ -151,19 +151,19 @@ public class ProgramRuleVariableObjectBundleHookTest
             errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
                 objectBundle );
             assertEquals( 1, errorReports.size() );
-            assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4033 ) ) );
+            assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4052 ) ) );
 
             when( programRuleVariable.getName() ).thenReturn( invalidKeyWord + " Word" );
             errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
                 objectBundle );
             assertEquals( 1, errorReports.size() );
-            assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4033 ) ) );
+            assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4052 ) ) );
 
             when( programRuleVariable.getName() ).thenReturn( "Word " + invalidKeyWord );
             errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
                 objectBundle );
             assertEquals( 1, errorReports.size() );
-            assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4033 ) ) );
+            assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4052 ) ) );
         }
     }
 

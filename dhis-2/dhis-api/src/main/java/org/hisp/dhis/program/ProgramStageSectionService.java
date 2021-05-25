@@ -68,4 +68,12 @@ public interface ProgramStageSectionService
      * @return the ProgramStageSection with the given id
      */
     ProgramStageSection getProgramStageSection( long id );
+
+    /**
+     * Returns a {@link ProgramStageSection}.
+     *
+     * @param uid the uid of the ProgramStageSection to return.
+     * @return the ProgramStageSection with the given id
+     */
+    ProgramStageSection getProgramStageSection( String uid );
 }

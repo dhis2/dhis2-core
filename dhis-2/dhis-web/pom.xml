@@ -12,15 +12,13 @@
   <description>This project is a web based GUI for the DHIS 2 system.</description>
 
   <modules>
+    <module>dhis-web-api-test</module>
     <module>dhis-web-commons</module>
     <module>dhis-web-commons-resources</module>
-    <module>dhis-web-api</module>
-    <module>dhis-web-api-test</module>
     <module>dhis-web-dataentry</module>
     <module>dhis-web-approval</module>
     <module>dhis-web-portal</module>
     <module>dhis-web-apps</module>
-
   </modules>
 
   <profiles>
@@ -157,6 +155,14 @@
           </webAppConfig>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>11</source>
+          <target>11</target>
+        </configuration>
+      </plugin>
 
     </plugins>
   </build>
@@ -197,7 +203,7 @@
   <properties>
     <rootDir>../</rootDir>
     <useWarCompression>true</useWarCompression>
-    <maven-jetty-plugin.version>9.4.38.v20210224</maven-jetty-plugin.version>
+
     <tomcat.version>8.5.47</tomcat.version>
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
     <maven-war-plugin.version>3.3.1</maven-war-plugin.version>
