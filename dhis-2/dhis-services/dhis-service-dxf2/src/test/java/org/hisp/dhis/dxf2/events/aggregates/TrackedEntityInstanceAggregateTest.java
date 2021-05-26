@@ -692,7 +692,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
                 .persistTrackedEntityInstanceWithEnrollmentAndEvents();
             sessionFactory.getCurrentSession().flush();
             sessionFactory.getCurrentSession().clear();
-            t2 = manager.get( org.hisp.dhis.trackedentity.TrackedEntityInstance.class,
+            t2 = manager.getByUid( org.hisp.dhis.trackedentity.TrackedEntityInstance.class,
                 Collections.singletonList( t2.getUid() ) ).get( 0 );
             ProgramInstance pi = t2.getProgramInstances().iterator().next();
             final ProgramStageInstance psi = pi.getProgramStageInstances().iterator().next();

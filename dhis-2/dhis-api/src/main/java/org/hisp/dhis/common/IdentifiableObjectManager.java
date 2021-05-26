@@ -179,8 +179,6 @@ public interface IdentifiableObjectManager
 
     void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations );
 
-    <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
-
     <T extends IdentifiableObject> List<T> getNoAcl( Class<T> clazz, Collection<String> uids );
 
     boolean isDefault( IdentifiableObject object );
