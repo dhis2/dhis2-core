@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.orgunitprofile.impl;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -105,37 +109,57 @@ public class DefaultOrgUnitProfileService
 
         OrgUnitProfileData data = new OrgUnitProfileData();
 
-        // Populate info
-
         OrgUnitInfo info = getOrgUnitInfo( orgUnit );
 
         data.setInfo( info );
+        data.setAttributes( getAttributes( profile, orgUnit ) );
 
-        // Populate attributes
+        // Populate data items
 
-        List<Attribute> attributes = idObjectManager.get( Attribute.class, profile.getAttributes() );
+        List<IdentifiableObject> dataItems = idObjectManager.getByUid( DATA_ITEM_CLASSES, profile.getDataItems() );
+
+        return data;
+    }
+
+    private OrgUnitInfo getOrgUnitInfo( OrganisationUnit orgUnit )
+    {
+        OrgUnitInfo info = new OrgUnitInfo();
+        // Populate info from orgUnit
+        return info;
+    }
+
+    private List<ProfileItem> getAttributes( OrgUnitProfile profile, OrganisationUnit orgUnit )
+    {
+        List<ProfileItem> items = new ArrayList<>();
+
+        List<Attribute> attributes = idObjectManager.getByUid( Attribute.class, profile.getAttributes() );
 
         for ( Attribute attribute : attributes )
         {
             AttributeValue attributeValue = orgUnit.getAttributeValue( attribute );
 
-            ProfileItem item = new ProfileItem( attribute.getUid(), attribute.getDisplayName(),
-                attributeValue.getValue() );
-
-            data.getAttributes().add( item );
+            items.add( new ProfileItem( attribute.getUid(), attribute.getDisplayName(),
+                attributeValue.getValue() ) );
         }
 
-        // Populate data items
-
-        // idObjectManager.get( DATA_ITEM_CLASSES, profile.getDataItems() );
-
-        return data;
+        return items;
     }
 
-    public OrgUnitInfo getOrgUnitInfo( OrganisationUnit unit )
+    private List<ProfileItem> getDataItems( OrgUnitProfile profile, OrganisationUnit orgUnit )
     {
-        OrgUnitInfo info = new OrgUnitInfo();
-        // Populate info
-        return info;
+        List<ProfileItem> items = new ArrayList<>();
+
+        List<DimensionalItemObject> dataItems = idObjectManager.getByUid( DATA_ITEM_CLASSES, profile.getDataItems() );
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataDimensionItems( dataItems )
+            .withOrganisationUnit( orgUnit )
+            .withPeriod( period )
+            .build();
+
+        Map<String, Object> values = analyticsService.getAggregatedDataValueMapping( params );
+
+        return items;
     }
+
 }
