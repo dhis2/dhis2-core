@@ -836,7 +836,7 @@ public class RelativePeriods
      */
     public static List<Period> getRelativePeriodsFromEnum( RelativePeriodEnum relativePeriod, Date date )
     {
-        return getRelativePeriodsFromEnum( relativePeriod, new Date(), null, false,
+        return getRelativePeriodsFromEnum( relativePeriod, date, null, false,
             AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER );
     }
 
