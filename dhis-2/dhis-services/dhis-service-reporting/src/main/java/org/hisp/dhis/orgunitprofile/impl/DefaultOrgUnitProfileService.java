@@ -49,6 +49,8 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.orgunitprofile.OrgUnitInfo;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
@@ -126,6 +128,7 @@ public class DefaultOrgUnitProfileService
 
         data.setInfo( getOrgUnitInfo( unit ) );
         data.setAttributes( getAttributes( profile, unit ) );
+        data.setGroupSets( getGroupSets( profile, unit ) );
         data.setDataItems( getDataItems( profile, unit, period ) );
 
         return data;
@@ -166,6 +169,26 @@ public class DefaultOrgUnitProfileService
 
             items.add( new ProfileItem( attribute.getUid(), attribute.getDisplayName(),
                 attributeValue.getValue() ) );
+        }
+
+        return items;
+    }
+
+    private List<ProfileItem> getGroupSets( OrgUnitProfile profile, OrganisationUnit orgUnit )
+    {
+        List<ProfileItem> items = new ArrayList<>();
+
+        List<OrganisationUnitGroupSet> groupSets = idObjectManager
+            .getByUid( OrganisationUnitGroupSet.class, profile.getGroupSets() );
+
+        for ( OrganisationUnitGroupSet groupSet : groupSets )
+        {
+            // Add query method in OrganisationUnitService instead, this might
+            // be very slow on large databases
+
+            OrganisationUnitGroup group = orgUnit.getGroupInGroupSet( groupSet );
+
+            items.add( new ProfileItem( groupSet.getUid(), groupSet.getDisplayName(), group.getDisplayName() ) );
         }
 
         return items;
