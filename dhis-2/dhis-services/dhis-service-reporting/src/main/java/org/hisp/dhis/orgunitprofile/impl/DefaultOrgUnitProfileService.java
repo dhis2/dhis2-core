@@ -53,6 +53,7 @@ import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
 import org.hisp.dhis.orgunitprofile.ProfileItem;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -99,13 +100,6 @@ public class DefaultOrgUnitProfileService
 
     public OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod )
     {
-        OrganisationUnit unit = idObjectManager.get( OrganisationUnit.class, orgUnit );
-
-        if ( unit == null )
-        {
-            throw new IllegalQueryException( ErrorCode.E1102 );
-        }
-
         OrgUnitProfile profile = getOrgUnitProfile();
 
         if ( profile == null )
@@ -113,11 +107,20 @@ public class DefaultOrgUnitProfileService
             throw new IllegalQueryException( ErrorCode.E1500 );
         }
 
+        OrganisationUnit unit = idObjectManager.get( OrganisationUnit.class, orgUnit );
+
+        if ( unit == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E1102 );
+        }
+
+        Period period = getPeriod( isoPeriod );
+
         OrgUnitProfileData data = new OrgUnitProfileData();
 
         data.setInfo( getOrgUnitInfo( unit ) );
         data.setAttributes( getAttributes( profile, unit ) );
-        data.setDataItems( getDataItems( profile, unit ) );
+        data.setDataItems( getDataItems( profile, unit, period ) );
 
         return data;
     }
@@ -140,7 +143,7 @@ public class DefaultOrgUnitProfileService
         info.setEmail( orgUnit.getEmail() );
         info.setPhoneNumber( orgUnit.getPhoneNumber() );
 
-        // TODO Set longitude and latitude, get from geometry
+        // Set longitude and latitude based on from geometry
 
         return info;
     }
@@ -162,18 +165,16 @@ public class DefaultOrgUnitProfileService
         return items;
     }
 
-    private List<ProfileItem> getDataItems( OrgUnitProfile profile, OrganisationUnit orgUnit )
+    private List<ProfileItem> getDataItems( OrgUnitProfile profile, OrganisationUnit orgUnit, Period period )
     {
         List<ProfileItem> items = new ArrayList<>();
 
         List<DimensionalItemObject> dataItems = idObjectManager.getByUid( DATA_ITEM_CLASSES, profile.getDataItems() );
 
-        List<Period> periods = RelativePeriods.getRelativePeriodsFromEnum( RelativePeriodEnum.THIS_YEAR, new Date() );
-
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataDimensionItems( dataItems )
             .withFilterOrganisationUnit( orgUnit )
-            .withFilterPeriods( periods )
+            .withFilterPeriod( period )
             .build();
 
         Map<String, Object> values = analyticsService.getAggregatedDataValueMapping( params );
@@ -186,6 +187,30 @@ public class DefaultOrgUnitProfileService
         }
 
         return items;
+    }
+
+    /**
+     * Returns the a period based on the given ISO period string. If the ISO
+     * period is not defined or invalid, the current year is used as fall back.
+     *
+     * @param isoPeriod the ISO period string, can be null.
+     * @return a {@link Period}.
+     */
+    private Period getPeriod( String isoPeriod )
+    {
+        Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
+
+        if ( period != null )
+        {
+            return period;
+        }
+        else
+        {
+            return RelativePeriods
+                .getRelativePeriodsFromEnum(
+                    RelativePeriodEnum.THIS_YEAR, new Date() )
+                .get( 0 );
+        }
     }
 
 }
