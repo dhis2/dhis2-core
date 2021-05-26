@@ -33,8 +33,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import org.locationtech.jts.geom.Geometry;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -49,13 +47,16 @@ public class OrgUnitInfo
     private String id;
 
     @JsonProperty
+    private String code;
+
+    @JsonProperty
     private String name;
 
     @JsonProperty
     private String shortName;
 
     @JsonProperty
-    private String code;
+    private String description;
 
     @JsonProperty
     private Date openingDate;
@@ -82,5 +83,8 @@ public class OrgUnitInfo
     private String phoneNumber;
 
     @JsonProperty
-    private Geometry geometry;
+    private Double longitude;
+
+    @JsonProperty
+    private Double latitude;
 }

@@ -48,9 +48,9 @@ public class ProfileItem
     private String label;
 
     @JsonProperty
-    private String value;
+    private Object value;
 
-    public ProfileItem( String id, String label, String value )
+    public ProfileItem( String id, String label, Object value )
     {
         this.id = id;
         this.label = label;

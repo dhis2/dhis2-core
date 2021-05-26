@@ -32,6 +32,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
@@ -95,27 +97,27 @@ public class DefaultOrgUnitProfileService
         return null;
     }
 
-    public OrgUnitProfileData getOrgUnitProfileData( String uid )
+    public OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod )
     {
-        OrgUnitProfile profile = getOrgUnitProfile();
+        OrganisationUnit unit = idObjectManager.get( OrganisationUnit.class, orgUnit );
 
-        if ( profile == null )
-        {
-            // throw new IllegalQueryException with new error code
-        }
-
-        OrganisationUnit orgUnit = idObjectManager.get( OrganisationUnit.class, uid );
-
-        if ( orgUnit == null )
+        if ( unit == null )
         {
             throw new IllegalQueryException( ErrorCode.E1102 );
         }
 
+        OrgUnitProfile profile = getOrgUnitProfile();
+
+        if ( profile == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E1500 );
+        }
+
         OrgUnitProfileData data = new OrgUnitProfileData();
 
-        data.setInfo( getOrgUnitInfo( orgUnit ) );
-        data.setAttributes( getAttributes( profile, orgUnit ) );
-        data.setDataItems( getDataItems( profile, orgUnit ) );
+        data.setInfo( getOrgUnitInfo( unit ) );
+        data.setAttributes( getAttributes( profile, unit ) );
+        data.setDataItems( getDataItems( profile, unit ) );
 
         return data;
     }
@@ -123,7 +125,23 @@ public class DefaultOrgUnitProfileService
     private OrgUnitInfo getOrgUnitInfo( OrganisationUnit orgUnit )
     {
         OrgUnitInfo info = new OrgUnitInfo();
-        // Populate info from orgUnit
+
+        info.setId( orgUnit.getUid() );
+        info.setCode( orgUnit.getCode() );
+        info.setName( orgUnit.getDisplayName() );
+        info.setShortName( orgUnit.getDisplayShortName() );
+        info.setDescription( orgUnit.getDisplayDescription() );
+        info.setOpeningDate( orgUnit.getOpeningDate() );
+        info.setClosedDate( orgUnit.getClosedDate() );
+        info.setComment( orgUnit.getComment() );
+        info.setUrl( orgUnit.getUrl() );
+        info.setContactPerson( orgUnit.getContactPerson() );
+        info.setAddress( orgUnit.getAddress() );
+        info.setEmail( orgUnit.getEmail() );
+        info.setPhoneNumber( orgUnit.getPhoneNumber() );
+
+        // TODO Set longitude and latitude, get from geometry
+
         return info;
     }
 
@@ -154,13 +172,18 @@ public class DefaultOrgUnitProfileService
 
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataDimensionItems( dataItems )
-            .withOrganisationUnit( orgUnit )
-            .withPeriods( periods )
+            .withFilterOrganisationUnit( orgUnit )
+            .withFilterPeriods( periods )
             .build();
 
         Map<String, Object> values = analyticsService.getAggregatedDataValueMapping( params );
 
-        // Populate values
+        for ( DimensionalItemObject dataItem : dataItems )
+        {
+            Object value = values.get( dataItem.getUid() );
+
+            items.add( new ProfileItem( dataItem.getUid(), dataItem.getDisplayName(), value ) );
+        }
 
         return items;
     }
