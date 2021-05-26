@@ -712,6 +712,28 @@ public class RelativePeriodTest
     }
 
     @Test
+    public void testGetRelativePeriodsFromEnumA()
+    {
+        List<Period> periods = RelativePeriods.getRelativePeriodsFromEnum( RelativePeriodEnum.THIS_YEAR,
+            getDate( 2020, 10, 15 ) );
+
+        assertEquals( 1, periods.size() );
+        assertEquals( new YearlyPeriodType(), periods.get( 0 ).getPeriodType() );
+        assertEquals( getDate( 2020, 1, 1 ), periods.get( 0 ).getStartDate() );
+    }
+
+    @Test
+    public void testGetRelativePeriodsFromEnumB()
+    {
+        List<Period> periods = RelativePeriods.getRelativePeriodsFromEnum( RelativePeriodEnum.THIS_QUARTER,
+            getDate( 2020, 1, 15 ) );
+
+        assertEquals( 1, periods.size() );
+        assertEquals( new QuarterlyPeriodType(), periods.get( 0 ).getPeriodType() );
+        assertEquals( getDate( 2020, 1, 1 ), periods.get( 0 ).getStartDate() );
+    }
+
+    @Test
     public void testEnumContains()
     {
         assertTrue( RelativePeriodEnum.contains( "LAST_30_DAYS" ) );
