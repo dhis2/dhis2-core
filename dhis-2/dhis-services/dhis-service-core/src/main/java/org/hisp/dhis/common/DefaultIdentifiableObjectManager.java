@@ -590,6 +590,22 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> classes,
+        Collection<String> uids )
+    {
+        List<T> list = new ArrayList<>();
+
+        for ( Class<? extends IdentifiableObject> clazz : classes )
+        {
+            list.addAll( (List<T>) getByUid( clazz, uids ) );
+        }
+
+        return list;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
