@@ -159,9 +159,6 @@ public class EnrollmentAttrValidationTest
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-data.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
         assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
