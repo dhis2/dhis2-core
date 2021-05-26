@@ -43,7 +43,6 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.user.User;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -191,9 +190,8 @@ public class EnrollmentImportValidationTest
                 TrackerImportParams.class );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        TrackerValidationReport report = trackerImportReport.getValidationReport();
-        printReport( report );
-        assertEquals( 0, report.getErrorReports().size() );
+
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         manager.flush();
@@ -228,9 +226,7 @@ public class EnrollmentImportValidationTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        TrackerValidationReport report = trackerImportReport.getValidationReport();
-        printReport( report );
-        assertEquals( 0, report.getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
     }
 
@@ -261,34 +257,6 @@ public class EnrollmentImportValidationTest
 
         assertThat( validationReport.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
-    }
-
-    // TODO: E1093 can't reproduce
-    @Test
-    @Ignore( "Not possible to provoke, maybe be removed in the new importer" )
-    public void testEnrollmentNoAccessToCheck()
-        throws IOException
-    {
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit(
-            "tracker/validations/enrollments_no-access-check_part1.json", TrackerImportStrategy.CREATE );
-
-        assertEquals( 0, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-        printReport( validationReport );
-
-        assertEquals( 0, validationReport.getErrorReports().size() );
-
-        createAndUpdate = validateAndCommit(
-            "tracker/validations/enrollments_no-access-check_part2.json", TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-
-        validationReport = createAndUpdate.getValidationReport();
-        printReport( validationReport );
-
-        assertEquals( 1, validationReport.getErrorReports().size() );
-
-        assertThat( validationReport.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1093 ) ) ) );
     }
 
     /**
