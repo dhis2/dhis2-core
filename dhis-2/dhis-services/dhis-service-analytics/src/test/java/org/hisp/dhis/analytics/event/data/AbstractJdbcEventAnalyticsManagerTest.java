@@ -31,6 +31,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -150,6 +151,25 @@ public class AbstractJdbcEventAnalyticsManagerTest
         String column = subject.getColumn( item );
 
         assertThat( column, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
+    }
+
+    @Test
+    public void verifyGetCoordinateColumn()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+        QueryItem item = new QueryItem( dio );
+
+        // When
+        String column = subject.getCoordinateColumn( item );
+
+        // Then
+        String colName = quote( item.getItemName() );
+
+        assertThat( column, is( "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
+            + ")::numeric, 6) || ']' as " + colName ) );
+
+        return;
     }
 
     @Override
