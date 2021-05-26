@@ -97,20 +97,18 @@ public class DefaultOrgUnitProfileService
     {
         // Fetch org unit profile from data store
 
-        KeyJsonValue value = null;
-
-        // Deserialize with Jackson
-
-        OrgUnitProfile profile = null;
+        KeyJsonValue value = dataStore.getKeyJsonValue( "", "" );
 
         // If no profile is defined, return an empty profile
 
-        if ( profile == null )
+        if ( value == null )
         {
-            profile = new OrgUnitProfile();
+            return new OrgUnitProfile();
         }
 
-        return profile;
+        // Deserialize OrgUnitProfile with Jackson from JSON value and return it
+
+        return null;
     }
 
     public OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod )
