@@ -113,14 +113,9 @@ public class DefaultOrgUnitProfileService
 
         OrgUnitProfileData data = new OrgUnitProfileData();
 
-        OrgUnitInfo info = getOrgUnitInfo( orgUnit );
-
-        data.setInfo( info );
+        data.setInfo( getOrgUnitInfo( orgUnit ) );
         data.setAttributes( getAttributes( profile, orgUnit ) );
-
-        // Populate data items
-
-        List<IdentifiableObject> dataItems = idObjectManager.getByUid( DATA_ITEM_CLASSES, profile.getDataItems() );
+        data.setDataItems( getDataItems( profile, orgUnit ) );
 
         return data;
     }
