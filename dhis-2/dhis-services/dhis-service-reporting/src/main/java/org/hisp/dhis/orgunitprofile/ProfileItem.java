@@ -33,7 +33,7 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Profile item DTO class.
+ * Profile item DTO object.
  */
 @Getter
 @NoArgsConstructor

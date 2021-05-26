@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.orgunitprofile.OrgUnitInfo;
@@ -94,26 +95,31 @@ public class DefaultOrgUnitProfileService
 
     public OrgUnitProfile getOrgUnitProfile()
     {
-        // Fetch org unit profile from data store, no manipulation
+        // Fetch org unit profile from data store
 
-        return null;
+        KeyJsonValue value = null;
+
+        // Deserialize with Jackson
+
+        OrgUnitProfile profile = null;
+
+        // If no profile is defined, return an empty profile
+
+        if ( profile == null )
+        {
+            profile = new OrgUnitProfile();
+        }
+
+        return profile;
     }
 
     public OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod )
     {
+        // If profile is empty, only fixed info will be included
+
         OrgUnitProfile profile = getOrgUnitProfile();
 
-        if ( profile == null )
-        {
-            throw new IllegalQueryException( ErrorCode.E1500 );
-        }
-
-        OrganisationUnit unit = idObjectManager.get( OrganisationUnit.class, orgUnit );
-
-        if ( unit == null )
-        {
-            throw new IllegalQueryException( ErrorCode.E1102 );
-        }
+        OrganisationUnit unit = getOrgUnit( orgUnit );
 
         Period period = getPeriod( isoPeriod );
 
@@ -188,6 +194,18 @@ public class DefaultOrgUnitProfileService
         }
 
         return items;
+    }
+
+    private OrganisationUnit getOrgUnit( String orgUnit )
+    {
+        OrganisationUnit unit = idObjectManager.get( OrganisationUnit.class, orgUnit );
+
+        if ( unit == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E1102 );
+        }
+
+        return unit;
     }
 
     /**
