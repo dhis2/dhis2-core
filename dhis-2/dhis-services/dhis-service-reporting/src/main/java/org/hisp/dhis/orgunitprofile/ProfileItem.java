@@ -33,9 +33,7 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- *
- * @author Lars Helge Overland
- *
+ * Profile item DTO class.
  */
 @Getter
 @NoArgsConstructor
