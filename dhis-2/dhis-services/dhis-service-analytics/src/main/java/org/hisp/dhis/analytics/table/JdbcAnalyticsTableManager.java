@@ -234,6 +234,12 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
+    protected String getPartitionColumn()
+    {
+        return "year";
+    }
+
+    @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
@@ -334,6 +340,8 @@ public class JdbcAnalyticsTableManager
         {
             sql += "and " + whereClause;
         }
+
+        log.info( sql );
         invokeTimeAndLog( sql, String.format( "Populate %s %s", tableName, valueTypes ) );
     }
 

@@ -145,6 +145,12 @@ public class JdbcEnrollmentAnalyticsTableManager
     }
 
     @Override
+    protected String getPartitionColumn()
+    {
+        return null;
+    }
+
+    @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final Program program = partition.getMasterTable().getProgram();
