@@ -50,7 +50,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -324,7 +323,7 @@ public class RequestToSearchParamsMapper
             eventCriteria.getPage(),
             eventCriteria.getPageSize(),
             eventCriteria.isTotalPages(),
-            PagerUtils.isSkipPaging( eventCriteria.getSkipPaging(), eventCriteria.getPaging() ),
+            eventCriteria.isSkipPaging(),
             getOrderParams( eventCriteria.getOrder() ),
             getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ),
             false,

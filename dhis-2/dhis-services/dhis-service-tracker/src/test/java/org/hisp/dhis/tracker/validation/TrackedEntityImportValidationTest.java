@@ -52,12 +52,11 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -74,16 +73,13 @@ public class TrackedEntityImportValidationTest
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private TrackerBundleService trackerBundleService;
-
-    @Autowired
     private ObjectBundleService objectBundleService;
 
     @Autowired
     private ObjectBundleValidationService objectBundleValidationService;
 
     @Autowired
-    private DefaultTrackerValidationService trackerValidationService;
+    private TrackerImportService trackerImportService;
 
     @Autowired
     private RenderService _renderService;
@@ -127,13 +123,13 @@ public class TrackedEntityImportValidationTest
     {
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/te-with_invalid_option_value.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 1, report.getErrorReports().size() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertThat( report.getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
+
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1125 ) ) ) );
     }
 
@@ -143,11 +139,11 @@ public class TrackedEntityImportValidationTest
     {
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/te-with_valid_option_value.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 0, report.getErrorReports().size() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
     }
 
     @Test
@@ -155,12 +151,12 @@ public class TrackedEntityImportValidationTest
         throws IOException
     {
         TrackerImportParams params = createBundleFromJson( "tracker/validations/te-data_ok.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
     }
 
     @Test
@@ -171,16 +167,14 @@ public class TrackedEntityImportValidationTest
 
         User user = userService.getUser( USER_2 );
         params.setUser( user );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 13, report.getErrorReports().size() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertThat( report.getErrorReports(),
+        assertEquals( 13, trackerImportReport.getValidationReport().getErrorReports().size() );
+
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
-
-        printReport( report );
     }
 
     @Test
@@ -191,16 +185,14 @@ public class TrackedEntityImportValidationTest
 
         User user = userService.getUser( USER_2 );
         params.setUser( user );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 13, report.getErrorReports().size() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertThat( report.getErrorReports(),
+        assertEquals( 13, trackerImportReport.getValidationReport().getErrorReports().size() );
+
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
-
-        printReport( report );
     }
 
     @Test
@@ -211,16 +203,14 @@ public class TrackedEntityImportValidationTest
 
         User user = userService.getUser( USER_1 );
         params.setUser( user );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 13, report.getErrorReports().size() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertThat( report.getErrorReports(),
+        assertEquals( 13, trackerImportReport.getValidationReport().getErrorReports().size() );
+
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1001 ) ) ) );
-
-        printReport( report );
     }
 
     @Test
@@ -234,12 +224,12 @@ public class TrackedEntityImportValidationTest
         params.setUser( user );
         user.getUserCredentials().setPassword( "user4password" );
         injectSecurityContext( user );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
     }
 
     @Test
@@ -248,12 +238,11 @@ public class TrackedEntityImportValidationTest
     {
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/te-data_error_geo-ok.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        printReport( report );
-        assertEquals( 0, report.getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
     }
 
     @Test
@@ -262,35 +251,35 @@ public class TrackedEntityImportValidationTest
     {
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/te-data_error_attr-non-existing.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 2, report.getErrorReports().size() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertThat( report.getErrorReports(),
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
+
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1006 ) ) ) );
-
-        printReport( report );
     }
 
     @Test
     public void testDeleteCascadeProgramInstances()
         throws IOException
     {
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit(
-            "tracker/validations/enrollments_te_te-data.json",
-            TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+        TrackerImportParams params = createBundleFromJson(
+            "tracker/validations/enrollments_te_te-data.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         importProgramInstances();
 
+        manager.flush();
         manager.clear();
 
-        TrackerImportParams params = renderService
+        params = renderService
             .fromJson( new ClassPathResource( "tracker/validations/enrollments_te_te-data.json" ).getInputStream(),
                 TrackerImportParams.class );
 
@@ -298,14 +287,11 @@ public class TrackedEntityImportValidationTest
         params.setUser( user2 );
         params.setImportStrategy( TrackerImportStrategy.DELETE );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( params );
-        assertEquals( 5, trackerBundle.getTrackedEntities().size() );
+        trackerImportReport = trackerImportService.importTracker( params );
 
-        report = trackerValidationService.validate( trackerBundle );
-        printReport( report );
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
 
-        assertThat( report.getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1100 ) ) ) );
     }
 
@@ -314,11 +300,11 @@ public class TrackedEntityImportValidationTest
     {
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
     }
 }

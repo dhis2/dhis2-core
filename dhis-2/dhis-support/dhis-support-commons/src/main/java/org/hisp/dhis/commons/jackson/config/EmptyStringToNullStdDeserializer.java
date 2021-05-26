@@ -29,7 +29,7 @@ package org.hisp.dhis.commons.jackson.config;
 
 import java.io.IOException;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
