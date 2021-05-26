@@ -28,6 +28,7 @@
 package org.hisp.dhis.orgunitprofile.impl;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,9 @@ import org.hisp.dhis.orgunitprofile.OrgUnitInfo;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
 import org.hisp.dhis.orgunitprofile.ProfileItem;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.stereotype.Service;
 
@@ -151,13 +155,17 @@ public class DefaultOrgUnitProfileService
 
         List<DimensionalItemObject> dataItems = idObjectManager.getByUid( DATA_ITEM_CLASSES, profile.getDataItems() );
 
+        List<Period> periods = RelativePeriods.getRelativePeriodsFromEnum( RelativePeriodEnum.THIS_YEAR, new Date() );
+
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataDimensionItems( dataItems )
             .withOrganisationUnit( orgUnit )
-            .withPeriod( period )
+            .withPeriods( periods )
             .build();
 
         Map<String, Object> values = analyticsService.getAggregatedDataValueMapping( params );
+
+        // Populate values
 
         return items;
     }
