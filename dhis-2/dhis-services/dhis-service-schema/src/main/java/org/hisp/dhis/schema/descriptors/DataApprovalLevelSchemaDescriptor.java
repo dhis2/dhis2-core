@@ -51,10 +51,13 @@ public class DataApprovalLevelSchemaDescriptor implements SchemaDescriptor
         schema.setOrder( 1370 );
 
         schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_SYSTEM_SETTING" ) ) );
+            .add( new Authority( AuthorityType.CREATE_PUBLIC,
+                Lists.newArrayList( "F_DATA_APPROVAL_LEVEL" ) ) );
         schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_SYSTEM_SETTING" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_SYSTEM_SETTING" ) ) );
+            .add( new Authority( AuthorityType.CREATE_PRIVATE,
+                Lists.newArrayList( "F_DATA_APPROVAL_LEVEL" ) ) );
+        schema.getAuthorities().add(
+            new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_DATA_APPROVAL_LEVEL" ) ) );
 
         return schema;
     }

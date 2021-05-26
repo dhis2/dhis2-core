@@ -214,23 +214,8 @@ public class TrackerBundle
             .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
     }
 
-    public TrackerImportStrategy setStrategy( Relationship relationship, TrackerImportStrategy strategy )
+    public TrackerImportStrategy setStrategy( TrackerDto dto, TrackerImportStrategy strategy )
     {
-        return this.getResolvedStrategyMap().get( TrackerType.RELATIONSHIP ).put( relationship.getUid(), strategy );
-    }
-
-    public TrackerImportStrategy setStrategy( Event event, TrackerImportStrategy strategy )
-    {
-        return this.getResolvedStrategyMap().get( TrackerType.EVENT ).put( event.getUid(), strategy );
-    }
-
-    public TrackerImportStrategy setStrategy( Enrollment enrollment, TrackerImportStrategy strategy )
-    {
-        return this.getResolvedStrategyMap().get( TrackerType.ENROLLMENT ).put( enrollment.getUid(), strategy );
-    }
-
-    public TrackerImportStrategy setStrategy( TrackedEntity tei, TrackerImportStrategy strategy )
-    {
-        return this.getResolvedStrategyMap().get( TrackerType.TRACKED_ENTITY ).put( tei.getUid(), strategy );
+        return this.getResolvedStrategyMap().get( dto.getTrackerType() ).put( dto.getUid(), strategy );
     }
 }

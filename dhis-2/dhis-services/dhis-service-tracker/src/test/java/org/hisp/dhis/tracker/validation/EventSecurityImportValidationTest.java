@@ -55,17 +55,12 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.user.User;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -80,16 +75,13 @@ public class EventSecurityImportValidationTest
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private TrackerBundleService trackerBundleService;
-
-    @Autowired
-    private DefaultTrackerValidationService trackerValidationService;
-
-    @Autowired
     private TrackerImportService trackerImportService;
 
     @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
+
+    @Autowired
+    private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
     @Autowired
     private ProgramService programService;
@@ -171,6 +163,8 @@ public class EventSecurityImportValidationTest
         organisationUnitB = createOrganisationUnit( 'B' );
         manager.save( organisationUnitA );
         manager.save( organisationUnitB );
+        organisationUnitA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( organisationUnitA );
 
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
@@ -245,8 +239,11 @@ public class EventSecurityImportValidationTest
         Date dateApr10 = getDate( testYear, 4, 10 );
 
         ProgramInstance programInstance = programInstanceService
-            .enrollTrackedEntityInstance( maleA, programA, dateMar20, dateApr10, organisationUnitA );
+            .enrollTrackedEntityInstance( maleA, programA, dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX" );
         programInstanceService.addProgramInstance( programInstance );
+
+        trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( maleA.getUid(), programA.getUid(),
+            organisationUnitA.getUid() );
 
         manager.update( programA );
 
@@ -256,12 +253,16 @@ public class EventSecurityImportValidationTest
         user.addOrganisationUnit( qfUVllTs6cS );
         user.addOrganisationUnit( organisationUnitA );
 
+        User adminUser = userService.getUser( ADMIN_USER_UID );
+        adminUser.addOrganisationUnit( organisationUnitA );
+
         Program p = programService.getProgram( "prabcdefghA" );
         p.addOrganisationUnit( qfUVllTs6cS );
 
         programService.updateProgram( p );
 
         manager.update( user );
+        manager.update( adminUser );
     }
 
     @Test
@@ -275,6 +276,8 @@ public class EventSecurityImportValidationTest
 
         User user = userService.getUser( USER_3 );
         trackerBundleParams.setUser( user );
+        user.addOrganisationUnit( organisationUnitA );
+        manager.update( user );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
@@ -288,20 +291,18 @@ public class EventSecurityImportValidationTest
     }
 
     @Test
-    @Ignore( "This is broken by feat: Period offset for Indicator formula (#5772) Luciano Fiandesio* 06.07.2020, 15:24 2c5a6f7bbbb00d0e4ff8028fde972fd6f4413f8c " )
     public void testNoUncompleteEventAuth()
         throws IOException
     {
         setupMetadata();
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit(
-            "tracker/validations/events_error-no-uncomplete.json", TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        TrackerImportParams params = createBundleFromJson( "tracker/validations/events_error-no-uncomplete.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        printReport( report );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         // Change just inserted Event to status COMPLETED...
         ProgramStageInstance zwwuwNp6gVd = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
@@ -311,25 +312,26 @@ public class EventSecurityImportValidationTest
         TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-no-uncomplete.json" );
 
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.FULL );
         manager.update( programA );
 
-        programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programStageA.setPublicAccess( AccessStringHelper.FULL );
         manager.update( programStageA );
 
+        maleA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( maleA );
+
         User user = userService.getUser( USER_4 );
+        user.addOrganisationUnit( organisationUnitA );
+        manager.update( user );
 
         trackerBundleParams.setUserId( user.getUid() );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
-        assertEquals( 1, trackerBundle.getEvents().size() );
-        report = trackerValidationService.validate( trackerBundle );
+        trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
-        printReport( report );
-
-        assertEquals( 1, report.getErrorReports().size() );
-        assertThat( report.getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1083 ) ) ) );
     }
 }
