@@ -27,26 +27,27 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.analytics.event.HeaderName.ENROLLMENT_DATE;
-import static org.hisp.dhis.analytics.event.HeaderName.EVENT_DATE;
-import static org.hisp.dhis.analytics.event.HeaderName.INCIDENT_DATE;
-import static org.hisp.dhis.analytics.event.data.GridHeaderMapper.getHeaderName;
 
-import org.hisp.dhis.analytics.event.HeaderName;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.junit.Test;
 
 /**
- * Unit tests for GridHeaderMapper.
+ * Unit tests for LabelMapper.
  *
  * @author maikel arabori
  */
-public class GridHeaderMapperTest
+public class LabelMapperTest
 {
+
+    public static final String EVENT_DATE = "Event date";
+
+    public static final String INCIDENT_DATE = "Incident date";
+
+    public static final String ENROLLMENT_DATE = "Enrollment date";
+
     @Test
     public void testGetHeaderNameFor_NAME_EVENT_DATE()
     {
@@ -54,7 +55,7 @@ public class GridHeaderMapperTest
         final ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
 
         // When
-        final String actualName = getHeaderName( aMockedProgramStageWithLabels, EVENT_DATE );
+        final String actualName = LabelMapper.getEventDateLabel( aMockedProgramStageWithLabels, EVENT_DATE );
 
         // Then
         assertThat( actualName, is( aMockedProgramStageWithLabels.getExecutionDateLabel() ) );
@@ -67,7 +68,8 @@ public class GridHeaderMapperTest
         final ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
 
         // When
-        final String actualName = getHeaderName( aMockedProgramStageWithLabels, ENROLLMENT_DATE );
+        final String actualName = LabelMapper.getEnrollmentDateLabel( aMockedProgramStageWithLabels,
+            ENROLLMENT_DATE );
 
         // Then
         assertThat( actualName, is( aMockedProgramStageWithLabels.getProgram().getEnrollmentDateLabel() ) );
@@ -80,7 +82,7 @@ public class GridHeaderMapperTest
         final ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
 
         // When
-        final String actualName = getHeaderName( aMockedProgramStageWithLabels, INCIDENT_DATE );
+        final String actualName = LabelMapper.getIncidentDateLabel( aMockedProgramStageWithLabels, INCIDENT_DATE );
 
         // Then
         assertThat( actualName, is( aMockedProgramStageWithLabels.getProgram().getIncidentDateLabel() ) );
@@ -93,10 +95,10 @@ public class GridHeaderMapperTest
         final ProgramStage aMockedProgramStageWithNoLabels = mockProgramStageWithoutLabels();
 
         // When
-        final String actualName = getHeaderName( aMockedProgramStageWithNoLabels, EVENT_DATE );
+        final String actualName = LabelMapper.getEventDateLabel( aMockedProgramStageWithNoLabels, EVENT_DATE );
 
         // Then
-        assertThat( actualName, is( EVENT_DATE.value() ) );
+        assertThat( actualName, is( EVENT_DATE ) );
     }
 
     @Test
@@ -106,10 +108,11 @@ public class GridHeaderMapperTest
         final ProgramStage aMockedProgramStageWithNoLabels = mockProgramStageWithoutLabels();
 
         // When
-        final String actualName = getHeaderName( aMockedProgramStageWithNoLabels, ENROLLMENT_DATE );
+        final String actualName = LabelMapper.getEnrollmentDateLabel( aMockedProgramStageWithNoLabels,
+            ENROLLMENT_DATE );
 
         // Then
-        assertThat( actualName, is( ENROLLMENT_DATE.value() ) );
+        assertThat( actualName, is( ENROLLMENT_DATE ) );
     }
 
     @Test
@@ -119,10 +122,10 @@ public class GridHeaderMapperTest
         final ProgramStage aMockedProgramStageWithNoLabels = mockProgramStageWithoutLabels();
 
         // When
-        final String actualName = getHeaderName( aMockedProgramStageWithNoLabels, INCIDENT_DATE );
+        final String actualName = LabelMapper.getIncidentDateLabel( aMockedProgramStageWithNoLabels, INCIDENT_DATE );
 
         // Then
-        assertThat( actualName, is( INCIDENT_DATE.value() ) );
+        assertThat( actualName, is( INCIDENT_DATE ) );
     }
 
     @Test
@@ -132,10 +135,10 @@ public class GridHeaderMapperTest
         final ProgramStage nullProgramStage = null;
 
         // When
-        final String actualName = getHeaderName( nullProgramStage, INCIDENT_DATE );
+        final String actualName = LabelMapper.getIncidentDateLabel( nullProgramStage, INCIDENT_DATE );
 
         // Then
-        assertThat( actualName, is( INCIDENT_DATE.value() ) );
+        assertThat( actualName, is( INCIDENT_DATE ) );
     }
 
     @Test
@@ -145,24 +148,10 @@ public class GridHeaderMapperTest
         final ProgramStage programStageWithNullProgram = mockProgramStageWithNullProgram();
 
         // When
-        final String actualName = getHeaderName( programStageWithNullProgram, ENROLLMENT_DATE );
+        final String actualName = LabelMapper.getEnrollmentDateLabel( programStageWithNullProgram, ENROLLMENT_DATE );
 
         // Then
-        assertThat( actualName, is( ENROLLMENT_DATE.value() ) );
-    }
-
-    @Test
-    public void testGetHeaderNameWhenHeaderNameIsNull()
-    {
-        // Given
-        final ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
-        final HeaderName aNullHeaderName = null;
-
-        // When
-        final String actualName = getHeaderName( aMockedProgramStageWithLabels, aNullHeaderName );
-
-        // Then
-        assertThat( actualName, is( EMPTY ) );
+        assertThat( actualName, is( ENROLLMENT_DATE ) );
     }
 
     private ProgramStage mockProgramStageWithLabels()
