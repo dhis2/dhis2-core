@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
-import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
@@ -269,7 +268,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
             {
-                columns.add( getColumn( queryItem, OU_NAME_COL_SUFFIX ) );
+                // In 2.33 we do not export OrgUnit name, so we query the uid
+                columns.add( getColumn( queryItem ) );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
