@@ -82,9 +82,9 @@ public enum TrackerErrorCode
     E1075( "Attribute: `{0}`, is missing uid." ),
     E1076( "`{0}` `{1}` is mandatory and cannot be null" ),
     E1077( "Attribute: `{0}`, text value exceed the maximum allowed length: `{0}`." ),
+    E1079( "Event: `{0}`, program: `{1}` is different from program defined in enrollment `{2}`." ),
     E1080( "Enrollment: `{0}`, already exists." ),
     E1081( "Enrollment: `{0}`, do not exist." ),
-    // TODO: Delete not working yet
     E1082( "Event: `{0}`, is already deleted and cannot be modified." ),
     E1083( "User: `{0}`, is not authorized to modify completed events." ),
     E1084( "File resource: `{0}`, reference could not be found." ),
@@ -120,7 +120,6 @@ public enum TrackerErrorCode
     E1127( "Not allowed to update Enrollment property: {0}." ),
     E1128( "Not allowed to update Event property: {0}." ),
     E1017( "Attribute: `{0}`, does not exist." ),
-    E1093( "User: `{0}`, has no search access to OrganisationUnit: `{1}`." ),
     E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
     E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
     E1045( "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event." ),

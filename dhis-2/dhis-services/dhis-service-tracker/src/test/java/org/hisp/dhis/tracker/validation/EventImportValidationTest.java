@@ -188,11 +188,9 @@ public class EventImportValidationTest
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        TrackerValidationReport report = trackerImportReport.getValidationReport();
-        printReport( report );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
-        assertEquals( 0, report.getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
 
     }
 
@@ -251,12 +249,10 @@ public class EventImportValidationTest
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        TrackerValidationReport report = trackerImportReport.getValidationReport();
-        printReport( report );
 
-        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
 
-        assertThat( report.getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
     }
 

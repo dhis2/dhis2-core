@@ -177,7 +177,7 @@ public abstract class AbstractTrackerDtoValidationHook
         while ( iter.hasNext() )
         {
             TrackerDto dto = iter.next();
-            if ( needsToRun( context.getStrategy( dto, trackerType ) ) )
+            if ( needsToRun( context.getStrategy( dto ) ) )
             {
                 final ValidationErrorReporter reporter = validateTrackerDto( context, dto, trackerType );
                 context.getRootReporter().merge( reporter );

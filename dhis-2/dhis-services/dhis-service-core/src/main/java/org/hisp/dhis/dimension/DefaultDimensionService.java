@@ -516,7 +516,7 @@ public class DefaultDimensionService
         for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> entry : atomicIds.entrySet() )
         {
             atomicObjects.putEntries( entry.getKey(),
-                idObjectManager.get( entry.getKey(), entry.getValue() ).stream()
+                idObjectManager.getByUid( entry.getKey(), entry.getValue() ).stream()
                     .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
         }
 
