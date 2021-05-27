@@ -337,6 +337,12 @@ public class PreCheckOwnershipValidationHook
     }
 
     @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return true;
+    }
+
+    @Override
     public boolean removeOnError()
     {
         return true;

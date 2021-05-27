@@ -48,8 +48,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.converter.EnrollmentTrackerConverterService;
-import org.hisp.dhis.tracker.converter.EventTrackerConverterService;
+import org.hisp.dhis.tracker.converter.RuleEngineConverterService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -73,10 +72,10 @@ public class DefaultTrackerProgramRuleService
     private final ProgramRuleEngine programRuleEngine;
 
     @NonNull
-    private final EnrollmentTrackerConverterService enrollmentTrackerConverterService;
+    private final RuleEngineConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
 
     @NonNull
-    private final EventTrackerConverterService eventTrackerConverterService;
+    private final RuleEngineConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
 
     @NonNull
     private final TrackerConverterService<Attribute, TrackedEntityAttributeValue> attributeValueTrackerConverterService;
@@ -198,7 +197,7 @@ public class DefaultTrackerProgramRuleService
         Stream<ProgramStageInstance> bundleEvents = events
             .stream()
             .filter( e -> e.getEnrollment().equals( enrollment ) )
-            .map( event -> eventTrackerConverterService.from( bundle.getPreheat(), event ) );
+            .map( event -> eventTrackerConverterService.fromForRuleEngine( bundle.getPreheat(), event ) );
 
         return Stream.concat( programStageInstances, bundleEvents ).collect( Collectors.toSet() );
 

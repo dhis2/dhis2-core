@@ -827,14 +827,31 @@ public class RelativePeriods
     }
 
     /**
-     * Returns a RelativePeriods instance based on the given list of
+     * Returns a RelativePeriods instance based on the given
      * RelativePeriodsEnum.
      *
      * @param relativePeriod a list of RelativePeriodsEnum.
-     * @param financialYearStart the start of a financial year. Configurable
-     *        through system settings and should be one of the values in the
-     *        enum {@link AnalyticsFinancialYearStartKey}
-     * @return a RelativePeriods instance.
+     * @param date the relative date to use for generating the relative periods.
+     * @return a list of {@link Period}.
+     */
+    public static List<Period> getRelativePeriodsFromEnum( RelativePeriodEnum relativePeriod, Date date )
+    {
+        return getRelativePeriodsFromEnum( relativePeriod, date, null, false,
+            AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER );
+    }
+
+    /**
+     * Returns a RelativePeriods instance based on the given
+     * RelativePeriodsEnum.
+     *
+     * @param relativePeriod a list of RelativePeriodsEnum.
+     * @param date the relative date to use for generating the relative periods.
+     * @param I18nFormat format the {@link I18nFormat}, can be null.
+     * @param boolean dynamicNames indicates whether to set dynamic names on the
+     *        periods.
+     * @param financialYearStart the start of a financial year per
+     *        {@link AnalyticsFinancialYearStartKey}.
+     * @return a list of {@link Period}.
      */
     public static List<Period> getRelativePeriodsFromEnum( RelativePeriodEnum relativePeriod, Date date,
         I18nFormat format, boolean dynamicNames, AnalyticsFinancialYearStartKey financialYearStart )

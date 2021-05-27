@@ -335,21 +335,6 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids )
-    {
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
-
-        if ( store == null )
-        {
-            return null;
-        }
-
-        return (List<T>) store.getByUid( uids );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getNoAcl( Class<T> clazz, Collection<String> uids )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
@@ -600,6 +585,22 @@ public class DefaultIdentifiableObjectManager
         }
 
         return (List<T>) store.getByUid( uids );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> classes,
+        Collection<String> uids )
+    {
+        List<T> list = new ArrayList<>();
+
+        for ( Class<? extends IdentifiableObject> clazz : classes )
+        {
+            list.addAll( (List<T>) getByUid( clazz, uids ) );
+        }
+
+        return list;
     }
 
     @Override

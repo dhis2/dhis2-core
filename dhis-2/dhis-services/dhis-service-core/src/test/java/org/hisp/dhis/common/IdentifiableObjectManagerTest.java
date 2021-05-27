@@ -149,6 +149,34 @@ public class IdentifiableObjectManagerTest
     }
 
     @Test
+    public void testGetByUidWithClassesAndUids()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+
+        dataElementService.addDataElement( dataElementA );
+        dataElementService.addDataElement( dataElementB );
+
+        OrganisationUnit unitA = createOrganisationUnit( 'A' );
+        OrganisationUnit unitB = createOrganisationUnit( 'B' );
+
+        identifiableObjectManager.save( unitA );
+        identifiableObjectManager.save( unitB );
+
+        Set<Class<? extends IdentifiableObject>> classes = ImmutableSet.<Class<? extends IdentifiableObject>> builder()
+            .add( DataElement.class ).add( OrganisationUnit.class ).build();
+
+        Set<String> uids = ImmutableSet.of( dataElementA.getUid(), unitB.getUid() );
+
+        assertEquals( 2, identifiableObjectManager.getByUid( classes, uids ).size() );
+        assertTrue( identifiableObjectManager.getByUid( classes, uids ).contains( dataElementA ) );
+        assertTrue( identifiableObjectManager.getByUid( classes, uids ).contains( unitB ) );
+
+        assertFalse( identifiableObjectManager.getByUid( classes, uids ).contains( dataElementB ) );
+        assertFalse( identifiableObjectManager.getByUid( classes, uids ).contains( unitA ) );
+    }
+
+    @Test
     public void publicAccessSetIfNoUser()
     {
         DataElement dataElement = createDataElement( 'A' );
