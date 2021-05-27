@@ -266,13 +266,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 }
                 
             }
+            else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
+            {
+                // In 2.33 we do not export OrgUnit name, so we query the uid
+                columns.add( getColumn( queryItem ) );
+            }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
-                String colName = quote( queryItem.getItemName() );
-
-                String coordSql =  "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName + ")::numeric, 6) || ']' as " + colName;
-
-                columns.add( coordSql );
+                columns.add( getCoordinateColumn( queryItem ) );
             }
             else
             {
@@ -521,6 +522,33 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected String getColumn( QueryItem item )
     {
         return quoteAlias( item.getItemName() );
+    }
+
+    /**
+     * Creates a coordinate base column "selector" for the given item name. The
+     * item is expected to be of type Coordinate.
+     *
+     * @param item the {@link QueryItem}
+     * @return the column select statement for the given item
+     */
+    protected String getCoordinateColumn( final QueryItem item )
+    {
+        final String colName = quote( item.getItemName() );
+
+        return "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
+                + ")::numeric, 6) || ']' as " + colName;
+    }
+
+    /**
+     * Creates a column "selector" for the given item name. The suffix will be
+     * appended as part of the item name.
+     *
+     * @param item
+     * @return the the column select statement for the given item
+     */
+    protected String getColumn( final QueryItem item, final String suffix )
+    {
+        return quote( item.getItemName() + suffix );
     }
 
     /**

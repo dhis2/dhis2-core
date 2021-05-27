@@ -51,6 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -96,7 +97,9 @@ public class IdentifiableObjectUtils
      */
     public static <T extends IdentifiableObject> List<String> getUids( Collection<T> objects )
     {
-        return objects != null ? objects.stream().map( o -> o.getUid() ).collect( Collectors.toList() ) : null;
+        return objects != null
+                ? objects.stream().filter( Objects::nonNull ).map(o -> o.getUid() ).collect( Collectors.toList() )
+                : null;
     }
 
     /**

@@ -28,9 +28,12 @@
 
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.StringUtils.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,6 +42,9 @@ import java.util.Date;
 
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -327,5 +333,131 @@ public class EnrollmentAnalyticsManagerTest
             + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
 
         assertSql( sql.getValue(), expected );
+    }
+
+    @Test
+    public void verifyGetColumnOfTypeCoordinateAndNoProgramStages()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+
+        // When
+        String columnSql = subject.getColumn( item );
+
+        // Then
+        assertThat( columnSql, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
+    }
+
+    @Test
+    public void verifyGetColumnOfTypeCoordinateAndWithProgramStages()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+        item.setProgramStage( programStage );
+        item.setProgram( programA );
+
+        // When
+        String columnSql = subject.getColumn( item );
+
+        // Then
+        assertThat( columnSql,
+                is( "(select \"" + dataElementA.getUid()
+                        + "\" from analytics_event_" + programA.getUid() + " where analytics_event_" + programA.getUid()
+                        + ".pi = ax.pi and \"" + dataElementA.getUid() + "\" is not null and ps = '" + programStage.getUid()
+                        + "' order by executiondate desc limit 1 )" ) );
+    }
+
+    @Test
+    public void verifyGetCoordinateColumnAndNoProgramStage()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+        item.setProgram( programA );
+
+        // When
+        String columnSql = subject.getCoordinateColumn( item );
+
+        // Then
+        String colName = quote( item.getItemName() );
+        String eventTableName = "analytics_event_" + item.getProgram().getUid();
+
+        assertThat( columnSql,
+                is( "(select " +
+                        "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
+                        + ")::numeric, 6) || ']' as " + colName +
+                        " from " + eventTableName +
+                        " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+                        "and " + colName + " is not null " +
+                        "order by executiondate " + "desc limit 1 )" ) );
+    }
+
+    @Test
+    public void verifyGetCoordinateColumnWithProgramStage()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+        item.setProgramStage( programStage );
+        item.setProgram( programA );
+
+        // When
+        String columnSql = subject.getCoordinateColumn( item );
+
+        // Then
+        String colName = quote( item.getItemName() );
+        String eventTableName = "analytics_event_" + item.getProgram().getUid();
+
+        assertThat( columnSql,
+                is( "(select " +
+                        "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
+                        + ")::numeric, 6) || ']' as " + colName + " from " + eventTableName +
+                        " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+                        "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() +
+                        "' order by executiondate " + "desc limit 1 )" ) );
+    }
+
+    @Test
+    public void verifyGetCoordinateColumnWithNoProgram()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+        item.setProgramStage( programStage );
+
+        // When
+        String columnSql = subject.getCoordinateColumn( item );
+
+        // Then
+        assertThat( columnSql, is( EMPTY ) );
+    }
+
+    @Test
+    public void verifyGetCoordinateColumnWithNonSupportedValueType()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.NUMBER );
+        item.setProgram( programA );
+
+        // When
+        String columnSql = subject.getCoordinateColumn( item );
+
+        // Then
+        assertThat( columnSql, is( EMPTY ) );
     }
 }
