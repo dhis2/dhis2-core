@@ -78,7 +78,7 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
     public boolean isSkipPaging()
     {
         return Optional.ofNullable( skipPaging )
-                .orElse( false );
+            .orElse( false );
     }
 
 }
