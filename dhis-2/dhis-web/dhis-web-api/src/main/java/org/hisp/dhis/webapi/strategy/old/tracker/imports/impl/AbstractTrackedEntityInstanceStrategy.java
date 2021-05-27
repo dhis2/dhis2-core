@@ -25,42 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.trackedentity;
+package org.hisp.dhis.webapi.strategy.old.tracker.imports.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.security.SecurityContextRunnable;
+import lombok.RequiredArgsConstructor;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class ImportTrackedEntitiesTask
-    extends SecurityContextRunnable
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceStrategyHandler;
+import org.springframework.http.MediaType;
+
+@RequiredArgsConstructor
+public abstract class AbstractTrackedEntityInstanceStrategy implements TrackedEntityInstanceStrategyHandler
 {
-    private final List<TrackedEntityInstance> trackedEntityInstances;
+    final protected TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    final SchedulingManager schedulingManager;
 
-    private final ImportOptions importOptions;
-
-    private final JobConfiguration id;
-
-    public ImportTrackedEntitiesTask( List<TrackedEntityInstance> trackedEntityInstances,
-        TrackedEntityInstanceService trackedEntityInstanceService,
-        ImportOptions importOptions, JobConfiguration id )
+    protected List<TrackedEntityInstance> getTrackedEntityInstancesListByMediaType( String mediaType,
+        InputStream inputStream )
+        throws IOException,
+        BadRequestException
     {
-        super();
-        this.trackedEntityInstances = trackedEntityInstances;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.importOptions = importOptions;
-        this.id = id;
-    }
-
-    @Override
-    public void call()
-    {
-        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( trackedEntityInstances, importOptions, id );
+        if ( MediaType.valueOf( mediaType ).equals( MediaType.APPLICATION_JSON ) )
+        {
+            return trackedEntityInstanceService.getTrackedEntityInstancesJson( inputStream );
+        }
+        else if ( mediaType
+            .equals( MediaType.APPLICATION_XML_VALUE ) )
+        {
+            return trackedEntityInstanceService.getTrackedEntityInstancesXml( inputStream );
+        }
+        else
+        {
+            throw new BadRequestException( "Value " + mediaType + " not allowed as Media Type " );
+        }
     }
 }

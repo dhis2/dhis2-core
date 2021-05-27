@@ -25,42 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.trackedentity;
+package org.hisp.dhis.webapi.strategy.old.tracker.imports;
 
-import java.util.List;
+import java.io.IOException;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class ImportTrackedEntitiesTask
-    extends SecurityContextRunnable
+public interface TrackedEntityInstanceStrategyHandler
 {
-    private final List<TrackedEntityInstance> trackedEntityInstances;
-
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
-
-    private final ImportOptions importOptions;
-
-    private final JobConfiguration id;
-
-    public ImportTrackedEntitiesTask( List<TrackedEntityInstance> trackedEntityInstances,
-        TrackedEntityInstanceService trackedEntityInstanceService,
-        ImportOptions importOptions, JobConfiguration id )
-    {
-        super();
-        this.trackedEntityInstances = trackedEntityInstances;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.importOptions = importOptions;
-        this.id = id;
-    }
-
-    @Override
-    public void call()
-    {
-        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( trackedEntityInstances, importOptions, id );
-    }
+    ImportSummaries mergeOrDeleteTrackedEntityInstances( TrackerEntityInstanceRequest trackerEntityInstanceRequest )
+        throws IOException,
+        BadRequestException;
 }
