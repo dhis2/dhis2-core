@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
+import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
@@ -266,13 +267,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 }
                 
             }
+            else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
+            {
+                columns.add( getColumn( queryItem, OU_NAME_COL_SUFFIX ) );
+            }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
-                String colName = quote( queryItem.getItemName() );
-
-                String coordSql =  "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName + ")::numeric, 6) || ']' as " + colName;
-
-                columns.add( coordSql );
+                columns.add( getCoordinateColumn( queryItem ) );
             }
             else
             {
@@ -521,6 +522,33 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected String getColumn( QueryItem item )
     {
         return quoteAlias( item.getItemName() );
+    }
+
+    /**
+     * Creates a coordinate base column "selector" for the given item name. The
+     * item is expected to be of type Coordinate.
+     *
+     * @param item the {@link QueryItem}
+     * @return the column select statement for the given item
+     */
+    protected String getCoordinateColumn( final QueryItem item )
+    {
+        final String colName = quote( item.getItemName() );
+
+        return "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
+                + ")::numeric, 6) || ']' as " + colName;
+    }
+
+    /**
+     * Creates a column "selector" for the given item name. The suffix will be
+     * appended as part of the item name.
+     *
+     * @param item
+     * @return the the column select statement for the given item
+     */
+    protected String getColumn( final QueryItem item, final String suffix )
+    {
+        return quote( item.getItemName() + suffix );
     }
 
     /**
