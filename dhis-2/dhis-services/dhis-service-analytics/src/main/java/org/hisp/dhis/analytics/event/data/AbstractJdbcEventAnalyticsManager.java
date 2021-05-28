@@ -279,28 +279,17 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
-                String colName = quote( queryItem.getItemName() );
-
-                String coordSql = "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
-                    + ")::numeric, 6) || ']' as " + colName;
-
-                columns.add( coordSql );
+                columns.add( getCoordinateColumn( queryItem ) );
             }
             else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
             {
                 if ( queryItem.getItem().getUid().equals( params.getCoordinateField() ) )
                 {
-                    String colName = quote( queryItem.getItemId() + OU_GEOMETRY_COL_SUFFIX );
-
-                    String coordSql = "'[' || round(ST_X(ST_Centroid(" + colName
-                        + "))::numeric, 6) || ',' || round(ST_Y(ST_Centroid(" + colName + "))::numeric, 6) || ']' as "
-                        + colName;
-
-                    columns.add( coordSql );
+                    columns.add( getCoordinateColumn( queryItem, OU_GEOMETRY_COL_SUFFIX ) );
                 }
                 else
                 {
-                    columns.add( quote( queryItem.getItemName() + OU_NAME_COL_SUFFIX ) );
+                    columns.add( getColumn( queryItem, OU_NAME_COL_SUFFIX ) );
                 }
             }
             else
@@ -548,6 +537,50 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             return value + itemValue;
         }
+    }
+
+    /**
+     * Creates a coordinate base column "selector" for the given item name. The
+     * item is expected to be of type Coordinate.
+     *
+     * @param item the {@link QueryItem}
+     * @return the column select statement for the given item
+     */
+    protected String getCoordinateColumn( final QueryItem item )
+    {
+        final String colName = quote( item.getItemName() );
+
+        return "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
+            + ")::numeric, 6) || ']' as " + colName;
+    }
+
+    /**
+     * Creates a coordinate base column "selector" for the given item name. The
+     * item is expected to be of type Coordinate.
+     *
+     * @param item the {@link QueryItem}
+     * @param suffix the suffix to append to the item id
+     * @return the column select statement for the given item
+     */
+    protected String getCoordinateColumn( final QueryItem item, final String suffix )
+    {
+        final String colName = quote( item.getItemId() + suffix );
+
+        return "'[' || round(ST_X(ST_Centroid(" + colName
+            + "))::numeric, 6) || ',' || round(ST_Y(ST_Centroid(" + colName + "))::numeric, 6) || ']' as "
+            + colName;
+    }
+
+    /**
+     * Creates a column "selector" for the given item name. The suffix will be
+     * appended as part of the item name.
+     *
+     * @param item
+     * @return the the column select statement for the given item
+     */
+    protected String getColumn( final QueryItem item, final String suffix )
+    {
+        return quote( item.getItemName() + suffix );
     }
 
     /**
