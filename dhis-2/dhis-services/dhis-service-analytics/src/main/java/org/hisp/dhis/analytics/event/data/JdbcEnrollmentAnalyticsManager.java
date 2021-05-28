@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.*;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -44,7 +46,16 @@ import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -73,6 +84,10 @@ public class JdbcEnrollmentAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
     implements EnrollmentAnalyticsManager
 {
+    private static final String ANALYTICS_EVENT = "analytics_event_";
+
+    private static final String ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 = "order by executiondate desc limit 1";
+
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
@@ -410,14 +425,13 @@ public class JdbcEnrollmentAnalyticsManager
         {
             final String colName = quote( item.getItemId() + StringUtils.trimToEmpty( suffix ) );
 
-            final String eventTableName = "analytics_event_" + item.getProgram().getUid();
+            final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
 
             String psCondition = "";
 
             if ( item.hasProgramStage() )
             {
-                Assert.isTrue( item.hasProgram(),
-                    "Can not query item with program stage but no program:" + item.getItemName() );
+                assertProgram( item );
 
                 psCondition = "and ps = '" + item.getProgramStage().getUid() + "' ";
             }
@@ -427,7 +441,7 @@ public class JdbcEnrollmentAnalyticsManager
                 + ")::numeric, 6) || ']' as " + colName + " from " + eventTableName +
                 " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + psCondition +
-                "order by executiondate " + "desc limit 1 )";
+                ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
         }
 
         return StringUtils.EMPTY;
@@ -459,13 +473,15 @@ public class JdbcEnrollmentAnalyticsManager
         if ( item.hasProgramStage() )
         {
             colName = quote( colName );
-            Assert.isTrue( item.hasProgram(),
-                "Can not query item with program stage but no program:" + item.getItemName() );
-            String eventTableName = "analytics_event_" + item.getProgram().getUid();
+
+            assertProgram( item );
+
+            String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+
             return "(select " + colName + " from " + eventTableName +
                 " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                "order by executiondate " + "desc limit 1 )";
+                ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
         }
         else
         {
@@ -495,12 +511,11 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( item.hasProgramStage() )
         {
-            Assert.isTrue( item.hasProgram(),
-                "Can not query item with program stage but no program:" + item.getItemName() );
+            assertProgram( item );
 
             colName = quote( colName );
 
-            final String eventTableName = "analytics_event_" + item.getProgram().getUid();
+            final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
 
             return "(select " + colName + " from " + eventTableName +
                 " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
@@ -511,6 +526,12 @@ public class JdbcEnrollmentAnalyticsManager
         {
             return quoteAlias( colName );
         }
+    }
+
+    private void assertProgram( final QueryItem item )
+    {
+        Assert.isTrue( item.hasProgram(),
+            "Can not query item with program stage but no program:" + item.getItemName() );
     }
 
     @Override
