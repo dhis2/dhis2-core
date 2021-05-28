@@ -185,11 +185,6 @@ public class DefaultTrackedEntityInstanceService
 
         params.setUser( user );
 
-        if ( !params.isPaging() && !params.isSkipPaging() )
-        {
-            params.setDefaultPaging();
-        }
-
         params.handleCurrentUserSelectionMode();
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore
@@ -242,11 +237,6 @@ public class DefaultTrackedEntityInstanceService
         User user = currentUserService.getCurrentUser();
 
         params.setUser( user );
-
-        if ( !params.isPaging() && !params.isSkipPaging() )
-        {
-            params.setDefaultPaging();
-        }
 
         params.handleCurrentUserSelectionMode();
 
