@@ -86,7 +86,6 @@ public class PreCheckUpdatableFieldsValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
-        Program program = programStageInstance.getProgramInstance().getProgram();
         ProgramStage programStage = programStageInstance.getProgramStage();
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
 

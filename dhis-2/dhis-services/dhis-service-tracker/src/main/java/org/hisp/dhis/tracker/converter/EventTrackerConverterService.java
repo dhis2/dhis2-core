@@ -117,8 +117,6 @@ public class EventTrackerConverterService
                 event.setOrgUnitName( ou.getName() );
             }
 
-            Program program = psi.getProgramInstance().getProgram();
-
             event.setEnrollment( psi.getProgramInstance().getUid() );
             event.setProgramStage( psi.getProgramStage().getUid() );
             event.setAttributeOptionCombo( psi.getAttributeOptionCombo().getUid() );
