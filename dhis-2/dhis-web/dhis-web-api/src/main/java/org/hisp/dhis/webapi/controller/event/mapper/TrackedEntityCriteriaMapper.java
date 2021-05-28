@@ -47,7 +47,6 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -206,7 +205,7 @@ public class TrackedEntityCriteriaMapper
             .setPage( criteria.getPage() )
             .setPageSize( criteria.getPageSize() )
             .setTotalPages( criteria.isTotalPages() )
-            .setSkipPaging( PagerUtils.isSkipPaging( criteria.getSkipPaging(), criteria.getPaging() ) )
+            .setSkipPaging( criteria.isSkipPaging() )
             .setIncludeDeleted( criteria.isIncludeDeleted() )
             .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
             .setUser( user )

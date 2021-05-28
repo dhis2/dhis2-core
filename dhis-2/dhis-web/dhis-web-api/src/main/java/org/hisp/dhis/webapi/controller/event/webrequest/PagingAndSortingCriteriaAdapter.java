@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import java.util.List;
+import java.util.Optional;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -65,21 +66,19 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
     private Boolean skipPaging;
 
     /**
-     * Indicated whether paging is enabled
-     */
-    private Boolean paging;
-
-    /**
      * order params
      */
     private List<OrderCriteria> order;
 
     public boolean isPagingRequest()
     {
-        return paging != null && paging ||
-            pageSize != null ||
-            page != null ||
-            totalPages;
+        return !isSkipPaging();
+    }
+
+    public boolean isSkipPaging()
+    {
+        return Optional.ofNullable( skipPaging )
+            .orElse( false );
     }
 
 }

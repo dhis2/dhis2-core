@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -194,7 +193,7 @@ public class EnrollmentCriteriaMapper
             trackerEnrollmentCriteria.getPage(),
             trackerEnrollmentCriteria.getPageSize(),
             trackerEnrollmentCriteria.isTotalPages(),
-            PagerUtils.isSkipPaging( trackerEnrollmentCriteria.getSkipPaging(), trackerEnrollmentCriteria.getPaging() ),
+            trackerEnrollmentCriteria.isSkipPaging(),
             trackerEnrollmentCriteria.isIncludeDeleted() );
     }
 }
