@@ -637,7 +637,7 @@
       "programStages": [
         {
           "id": "PaOOjwLVW2X",
-          "code": "TA_TRACKER_ANOTHER_PROGRAM_STAGE"
+          "code": "TA_ANOTHER_TRACKER_PROGRAM_STAGE"
         }
       ],
       "userAccesses": []
