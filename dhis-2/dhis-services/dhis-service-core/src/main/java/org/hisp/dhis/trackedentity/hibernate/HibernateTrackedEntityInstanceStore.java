@@ -179,7 +179,7 @@ public class HibernateTrackedEntityInstanceStore
 
         Query query = getQuery( hql );
 
-        if ( params.isPaging() )
+        if ( !params.isSkipPaging() )
         {
             query.setFirstResult( params.getOffset() );
             query.setMaxResults( params.getPageSizeWithDefault() );
