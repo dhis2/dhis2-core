@@ -119,7 +119,6 @@ public class EventTrackerConverterService
 
             Program program = psi.getProgramInstance().getProgram();
 
-            event.setProgram( program.getUid() );
             event.setEnrollment( psi.getProgramInstance().getUid() );
             event.setProgramStage( psi.getProgramStage().getUid() );
             event.setAttributeOptionCombo( psi.getAttributeOptionCombo().getUid() );
@@ -196,7 +195,7 @@ public class EventTrackerConverterService
     private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
     {
         ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
-        Program program = preheat.get( Program.class, event.getProgram() );
+        Program program = programStage.getProgram();
         OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class, event.getOrgUnit() );
 
         Date now = new Date();
