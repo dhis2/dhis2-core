@@ -367,7 +367,7 @@ public class JdbcEnrollmentAnalyticsManager
      *         round(ST_X("GyJHQUWZ9Rl")::numeric, 6) || ',' ||
      *         round(ST_Y("GyJHQUWZ9Rl")::numeric, 6) || ']' as "GyJHQUWZ9Rl"
      *         from analytics_event_qDkgAbB5Jlk where
-     *         analytics_event_qDkgAbB5Jlk.pi = ax.pi and "GyJHQUWZ9Rl" is not
+     *         analytics_event_qDkgAbB5Jlk.pi = ax.pi and "SzVk2KvkSSd" is not
      *         null and ps = 'hYyB7FUS5eR' order by executiondate desc limit 1 )
      *
      * @throws NullPointerException if item is null
@@ -375,57 +375,31 @@ public class JdbcEnrollmentAnalyticsManager
     @Override
     protected String getCoordinateColumn( final QueryItem item )
     {
-        return coordinateColumnSelector( item, null );
+        return getCoordinateColumn( item, null );
     }
 
     /**
      * Returns an encoded column name respecting the geometry/coordinate format.
-     * The given QueryItem must be of type COORDINATE.
+     * The given QueryItem can be of type COORDINATE or ORGANISATION_UNIT.
      *
+     * @param suffix is currently ignored. Not currently used for enrollments
      * @param item the {@link QueryItem}
-     * @param suffix the suffix to append to the item name
      * @return the column selector or EMPTY if the item valueType is not
-     *         COORDINATE. ie.: ( select '[' ||
-     *         round(ST_X("GyJHQUWZ9Rl+SUFFIX")::numeric, 6) || ',' ||
-     *         round(ST_Y("GyJHQUWZ9Rl+SUFFIX")::numeric, 6) || ']' as
-     *         "GyJHQUWZ9Rl+SUFFIX" from analytics_event_qDkgAbB5Jlk where
-     *         analytics_event_qDkgAbB5Jlk.pi = ax.pi and "GyJHQUWZ9Rl+SUFFIX"
-     *         is not null and ps = 'hYyB7FUS5eR' order by executiondate desc
-     *         limit 1 )
+     *         COORDINATE. ie.: ( select '[' || round(ST_X("colName")::numeric,
+     *         6) || ',' || round(ST_Y("colName")::numeric, 6) || ']' as
+     *         "colName" from analytics_event_qDkgAbB5Jlk where
+     *         analytics_event_qDkgAbB5Jlk.pi = ax.pi and "colName" is not null
+     *         and ps = 'hYyB7FUS5eR' order by executiondate desc limit 1 )
      *
      * @throws NullPointerException if item is null
      */
     @Override
     protected String getCoordinateColumn( final QueryItem item, final String suffix )
     {
-        return coordinateColumnSelector( item, suffix );
-    }
-
-    /**
-     * Returns an encoded column name respecting the geometry/coordinate format.
-     * The given QueryItem must be of type COORDINATE.
-     *
-     * @param item the {@link QueryItem}
-     * @param suffix the suffix to append to the item name. If NULL, nothing is
-     *        appended.
-     * @return the column selector or EMPTY if the item valueType is not
-     *         COORDINATE. ie.: ( select '[' ||
-     *         round(ST_X("GyJHQUWZ9Rl+SUFFIX")::numeric, 6) || ',' ||
-     *         round(ST_Y("GyJHQUWZ9Rl+SUFFIX")::numeric, 6) || ']' as
-     *         "GyJHQUWZ9Rl+SUFFIX" from analytics_event_qDkgAbB5Jlk where
-     *         analytics_event_qDkgAbB5Jlk.pi = ax.pi and "GyJHQUWZ9Rl+SUFFIX"
-     *         is not null and ps = 'hYyB7FUS5eR' order by executiondate desc
-     *         limit 1 )
-     *
-     * @throws NullPointerException if item is null
-     */
-    private String coordinateColumnSelector( final QueryItem item, final String suffix )
-    {
-        if ( ValueType.COORDINATE == item.getValueType() && item.getProgram() != null )
+        if ( item.getProgram() != null )
         {
-            final String colName = quote( item.getItemId() + StringUtils.trimToEmpty( suffix ) );
-
             final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+            final String colName = quote( item.getItemId() );
 
             String psCondition = "";
 
@@ -436,27 +410,64 @@ public class JdbcEnrollmentAnalyticsManager
                 psCondition = "and ps = '" + item.getProgramStage().getUid() + "' ";
             }
 
+            String stCentroidFunction = "";
+
+            if ( ValueType.ORGANISATION_UNIT == item.getValueType() )
+            {
+                stCentroidFunction = "ST_Centroid";
+
+            }
+
             return "(select " +
-                "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
-                + ")::numeric, 6) || ']' as " + colName + " from " + eventTableName +
-                " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-                "and " + colName + " is not null " + psCondition +
-                ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
+                "'[' || round(ST_X(" + stCentroidFunction + "(" + colName + "))::numeric, 6) || ',' || round(ST_Y("
+                + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName + " from "
+                + eventTableName + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+                "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
         }
 
         return StringUtils.EMPTY;
     }
 
     /**
-     * Returns a column "selector" for the given item and the given suffix.
+     * Creates a column "selector" for the given item name. The suffix will be
+     * appended as part of the item name. The column selection is based on
+     * events analytics tables.
      *
      * @param item the {@link QueryItem}
-     * @return the selector column statement
+     * @param suffix is currently ignored. Not currently used for enrollments
+     * @return 1) when there is a program stage: returns the column select
+     *         statement for the given item and suffix. ie.: ( select
+     *         "GyJHQUWZ9Rl_name" from analytics_event_qDkgAbB5Jlk where
+     *         analytics_event_qDkgAbB5Jlk.pi = ax.pi and "GyJHQUWZ9Rl_name" is
+     *         not null and ps = 'hYyB7FUS5eR' order by executiondate desc limit
+     *         1
+     *
+     *         2) when there is no program stage associated: returns the item
+     *         name quoted and prefixed with the table prefix. ie.:
+     *         ax."enrollmentdate"
      */
     @Override
     protected String getColumn( final QueryItem item, final String suffix )
     {
-        return getColumnStatement( item, suffix );
+        String colName = item.getItemName();
+
+        if ( item.hasProgramStage() )
+        {
+            assertProgram( item );
+
+            colName = quote( colName );
+
+            final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+
+            return "(select " + colName + " from " + eventTableName +
+                " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+                "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
+                "order by executiondate " + "desc limit 1 )";
+        }
+        else
+        {
+            return quoteAlias( colName );
+        }
     }
 
     /**
@@ -482,45 +493,6 @@ public class JdbcEnrollmentAnalyticsManager
                 " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
                 ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
-        }
-        else
-        {
-            return quoteAlias( colName );
-        }
-    }
-
-    /**
-     * Creates a column "selector" for the given item name. The suffix will be
-     * appended as part of the item name. The column selection is based on
-     * events analytics tables.
-     *
-     * @param item the {@link QueryItem}
-     * @return 1) when there is a program stage: returns the column select
-     *         statement for the given item and suffix. ie.: ( select
-     *         "GyJHQUWZ9Rl_name" from analytics_event_qDkgAbB5Jlk where
-     *         analytics_event_qDkgAbB5Jlk.pi = ax.pi and "GyJHQUWZ9Rl_name" is
-     *         not null and ps = 'hYyB7FUS5eR' order by executiondate desc limit
-     *
-     *         2) when there is no program stage associated: returns the item
-     *         name quoted and prefixed with the table prefix. ie.:
-     *         ax."enrollmentdate"
-     */
-    private String getColumnStatement( final QueryItem item, final String suffix )
-    {
-        String colName = item.getItemName() + StringUtils.trimToEmpty( suffix );
-
-        if ( item.hasProgramStage() )
-        {
-            assertProgram( item );
-
-            colName = quote( colName );
-
-            final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
-
-            return "(select " + colName + " from " + eventTableName +
-                " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-                "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                "order by executiondate " + "desc limit 1 )";
         }
         else
         {

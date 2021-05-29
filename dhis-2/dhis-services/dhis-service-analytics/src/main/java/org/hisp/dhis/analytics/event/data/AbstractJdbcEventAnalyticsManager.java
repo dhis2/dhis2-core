@@ -566,9 +566,16 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         final String colName = quote( item.getItemId() + suffix );
 
-        return "'[' || round(ST_X(ST_Centroid(" + colName
-            + "))::numeric, 6) || ',' || round(ST_Y(ST_Centroid(" + colName + "))::numeric, 6) || ']' as "
-            + colName;
+        String stCentroidFunction = "";
+
+        if ( ValueType.ORGANISATION_UNIT == item.getValueType() )
+        {
+            stCentroidFunction = "ST_Centroid";
+
+        }
+
+        return "'[' || round(ST_X(" + stCentroidFunction + "(" + colName + "))::numeric, 6) || ',' || round(ST_Y("
+            + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName;
     }
 
     /**

@@ -408,8 +408,8 @@ public class EnrollmentAnalyticsManagerTest
 
         assertThat( columnSql,
             is( "(select " +
-                "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
-                + ")::numeric, 6) || ']' as " + colName +
+                "'[' || round(ST_X((" + colName + "))::numeric, 6) || ',' || round(ST_Y((" + colName
+                + "))::numeric, 6) || ']' as " + colName +
                 " from " + eventTableName +
                 " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " +
@@ -436,8 +436,8 @@ public class EnrollmentAnalyticsManagerTest
 
         assertThat( columnSql,
             is( "(select " +
-                "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
-                + ")::numeric, 6) || ']' as " + colName + " from " + eventTableName +
+                "'[' || round(ST_X((" + colName + "))::numeric, 6) || ',' || round(ST_Y((" + colName
+                + "))::numeric, 6) || ']' as " + colName + " from " + eventTableName +
                 " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() +
                 "' order by executiondate " + "desc limit 1 )" ) );
@@ -452,23 +452,6 @@ public class EnrollmentAnalyticsManagerTest
         QueryItem item = new QueryItem( dio );
         item.setValueType( ValueType.COORDINATE );
         item.setProgramStage( programStage );
-
-        // When
-        String columnSql = subject.getCoordinateColumn( item );
-
-        // Then
-        assertThat( columnSql, is( EMPTY ) );
-    }
-
-    @Test
-    public void verifyGetCoordinateColumnWithNonSupportedValueType()
-    {
-        // Given
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
-
-        QueryItem item = new QueryItem( dio );
-        item.setValueType( ValueType.NUMBER );
-        item.setProgram( programA );
 
         // When
         String columnSql = subject.getCoordinateColumn( item );
