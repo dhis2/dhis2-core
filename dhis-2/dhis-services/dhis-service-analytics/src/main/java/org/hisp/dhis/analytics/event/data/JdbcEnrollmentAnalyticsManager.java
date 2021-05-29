@@ -462,7 +462,7 @@ public class JdbcEnrollmentAnalyticsManager
             return "(select " + colName + " from " + eventTableName +
                 " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                "order by executiondate " + "desc limit 1 )";
+                ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
         }
         else
         {
