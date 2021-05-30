@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.webapi.controller;
 
-import java.util.Set;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockMultipartFile;
 
-/**
- * @author Halvdan Hoem Grelland
- */
-public enum FileResourceDomain
+public class FileResourceControllerTest extends DhisControllerConvenienceTest
 {
-    DATA_VALUE( "dataValue" ),
-    PUSH_ANALYSIS( "pushAnalysis" ),
-    DOCUMENT( "document" ),
-    MESSAGE_ATTACHMENT( "messageAttachment" ),
-    USER_AVATAR( "userAvatar" ),
-    ORG_UNIT( "organisationUnit" );
-
-    /**
-     * Container name to use when storing blobs of this FileResourceDomain
-     */
-    private String containerName;
-
-    private static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES = new ImmutableSet.Builder<FileResourceDomain>()
-        .add( DATA_VALUE, USER_AVATAR, ORG_UNIT ).build();
-
-    FileResourceDomain( String containerName )
+    @Test
+    public void testSaveOrgUnitImage()
     {
-        this.containerName = containerName;
-    }
+        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
+            "<<png data>>".getBytes() );
 
-    public String getContainerName()
-    {
-        return containerName;
-    }
-
-    public static Set<FileResourceDomain> getDomainForMultipleImages()
-    {
-        return DOMAIN_FOR_MULTIPLE_IMAGES;
+        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
+        assertEquals( HttpStatus.OK, response.status() );
+        JsonObject savedObject = response.contentUnchecked().getObject( "response" ).getObject( "fileResource" );
+        assertNotNull( savedObject );
+        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
     }
 }

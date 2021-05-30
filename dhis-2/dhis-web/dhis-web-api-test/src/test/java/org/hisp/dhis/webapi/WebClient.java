@@ -41,10 +41,12 @@ import static org.junit.Assert.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -56,6 +58,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.testcontainers.shaded.com.google.common.io.ByteStreams;
 
@@ -128,6 +131,11 @@ public interface WebClient
     default HttpResponse POST( String url, String body )
     {
         return webRequest( post( url ), new Body( body ) );
+    }
+
+    default HttpResponse POST_MULTIPART( String url, MockMultipartFile part )
+    {
+        return webRequest( multipart( url ).file( part ) );
     }
 
     default HttpResponse PATCH( String url, Object... args )
@@ -225,6 +233,12 @@ public interface WebClient
         public boolean success()
         {
             return series() == Series.SUCCESSFUL;
+        }
+
+        public String contentAsString()
+            throws UnsupportedEncodingException
+        {
+            return response.getContentAsString();
         }
 
         public JsonResponse content()
