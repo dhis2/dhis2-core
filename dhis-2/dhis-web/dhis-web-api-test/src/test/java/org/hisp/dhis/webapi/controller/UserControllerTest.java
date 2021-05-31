@@ -71,7 +71,7 @@ public class UserControllerTest extends DhisControllerConvenienceTest
         switchToSuperuser();
         assertStatus( HttpStatus.OK,
             PATCH( "/users/{id}", peter.getUid(),
-                Body( "[{'op': 'add', 'path': '/email', 'value': 'peter@pan.net'}]" ) ) );
+                Body( "[{'op': 'replace', 'path': '/email', 'value': 'peter@pan.net'}]" ) ) );
     }
 
     @Test

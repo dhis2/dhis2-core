@@ -64,12 +64,12 @@ public class AddOperation extends JsonPatchValueOperation
 
         if ( parentNode.isMissingNode() )
         {
-            throw new JsonPatchException( "isMissingNode" );
+            throw new JsonPatchException( "Path does not exist: " + path );
         }
 
         if ( !parentNode.isContainerNode() )
         {
-            throw new JsonPatchException( "isContainerNode" );
+            throw new JsonPatchException( "parent node is not a container, unable to proceed" );
         }
 
         if ( parentNode.isObject() )
