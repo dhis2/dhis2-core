@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -118,7 +119,7 @@ public class HibernateProgramInstanceStore
 
         Query<ProgramInstance> query = getQuery( hql );
 
-        if ( params.isPaging() )
+        if ( !params.isSkipPaging() )
         {
             query.setFirstResult( params.getOffset() );
             query.setMaxResults( params.getPageSizeWithDefault() );
@@ -205,6 +206,14 @@ public class HibernateProgramInstanceStore
         if ( !params.isIncludeDeleted() )
         {
             hql += hlp.whereAnd() + " pi.deleted is false ";
+        }
+
+        if ( params.isSorting() )
+        {
+            hql += " order by " + params.getOrder().stream()
+                .map( orderParam -> orderParam.getField() + " "
+                    + (orderParam.getDirection().isAscending() ? "asc" : "desc") )
+                .collect( Collectors.joining( ", " ) );
         }
 
         return hql;

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 
 import java.util.List;
@@ -77,7 +78,7 @@ public class EventDataValuesValidationHook
                 continue;
             }
 
-            validateDataElement( reporter, dataElement, dataValue, programStage );
+            validateDataElement( reporter, dataElement, dataValue, programStage, event );
             validateOptionSet( reporter, dataElement, dataValue.getValue() );
         }
 
@@ -103,7 +104,7 @@ public class EventDataValuesValidationHook
     }
 
     private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
-        DataValue dataValue, ProgramStage programStage )
+        DataValue dataValue, ProgramStage programStage, Event event )
     {
         final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
 
@@ -113,21 +114,24 @@ public class EventDataValuesValidationHook
         }
         else
         {
-            validateDataElement( reporter, dataElement, programStage, dataValue );
+            validateNullDataValues( reporter, dataElement, programStage, dataValue, event );
             validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
         }
     }
 
-    private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
-        ProgramStage programStage, DataValue dataValue )
+    private void validateNullDataValues( ValidationErrorReporter reporter, DataElement dataElement,
+        ProgramStage programStage, DataValue dataValue, Event event )
     {
+        if ( dataValue.getValue() != null || !needsToValidateDataValues( event, programStage ) )
+            return;
+
         Optional<ProgramStageDataElement> optionalPsde = Optional.of( programStage )
             .map( ps -> ps.getProgramStageDataElements().stream() ).flatMap( psdes -> psdes
                 .filter(
                     psde -> psde.getDataElement().getUid().equals( dataElement.getUid() ) && psde.isCompulsory() )
                 .findFirst() );
 
-        if ( optionalPsde.isPresent() && dataValue.getValue() == null )
+        if ( optionalPsde.isPresent() )
         {
             addError( reporter, E1076, DataElement.class.getSimpleName(),
                 dataElement.getUid() );

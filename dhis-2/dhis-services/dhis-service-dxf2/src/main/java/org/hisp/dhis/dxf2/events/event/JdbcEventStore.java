@@ -1413,7 +1413,7 @@ public class JdbcEventStore implements EventStore
     {
         StringBuilder sqlBuilder = new StringBuilder().append( " " );
 
-        if ( params.isPaging() )
+        if ( !params.isSkipPaging() )
         {
             sqlBuilder.append( "limit " ).append( params.getPageSizeWithDefault() ).append( " offset " )
                 .append( params.getOffset() ).append( " " );
@@ -1462,7 +1462,7 @@ public class JdbcEventStore implements EventStore
 
     private String getOrderQuery( EventSearchParams params )
     {
-        ArrayList<String> orderFields = new ArrayList<String>();
+        ArrayList<String> orderFields = new ArrayList<>();
 
         if ( params.getGridOrders() != null )
         {
@@ -1787,7 +1787,7 @@ public class JdbcEventStore implements EventStore
 
         if ( !idScheme.isAttribute() )
         {
-            List<DataElement> dataElements = manager.get( DataElement.class, deUids );
+            List<DataElement> dataElements = manager.getByUid( DataElement.class, deUids );
             dataElements.forEach( de -> dataElementUidToIdentifierCache.put( de.getUid(), de.getCode() ) );
         }
         else

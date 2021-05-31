@@ -43,17 +43,6 @@ public interface TrackerImportAccessManager
 {
     /**
      * Same as
-     * {@link OrganisationUnitService#isInUserSearchHierarchyCached(User, OrganisationUnit)}
-     * Checks the importing user has access to "search hierarchy" of the input
-     * OrganisationUnit.
-     *
-     * @param reporter error reporter instance
-     * @param orgUnit input orgUnit to validate against
-     */
-    void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit );
-
-    /**
-     * Same as
      * {@link OrganisationUnitService#isInUserHierarchyCached(User, OrganisationUnit)}
      * Checks the importing user has access to "capture hierarchy" of the input
      * OrganisationUnit.
@@ -71,29 +60,6 @@ public interface TrackerImportAccessManager
      *        to
      */
     void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, TrackedEntityType trackedEntityType );
-
-    /**
-     * Checks the importing user has read access enrollment.
-     * <p>
-     * If enrollment is a registration:
-     * <p>
-     * 1. Check has read access to program and if it is a registration program
-     * <p>
-     * 2. Check that user has read access to program tei type.
-     * <p>
-     * 3. Check has access to the tei - program combination.
-     * <p>
-     * If enrollment is a non registration:
-     * <p>
-     * 1. Check user is in "search scope" of the program's org. unit.
-     *
-     * @param reporter error reporter instance
-     * @param program program to check user has read access
-     * @param organisationUnit organisationUnit to check user has read access
-     * @param trackedEntity trackedEntity to check user has read access
-     */
-    void checkReadEnrollmentAccess( ValidationErrorReporter reporter, Program program,
-        OrganisationUnit organisationUnit, String trackedEntity );
 
     /**
      * Check importing user has write access to enrollment. 1. Check user has
