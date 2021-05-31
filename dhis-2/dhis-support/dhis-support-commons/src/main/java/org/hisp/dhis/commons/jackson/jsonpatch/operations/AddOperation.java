@@ -69,7 +69,7 @@ public class AddOperation extends JsonPatchValueOperation
 
         if ( !parentNode.isContainerNode() )
         {
-            throw new JsonPatchException( "parent node is not a container, unable to proceed" );
+            throw new JsonPatchException( "Parent node is not a container, unable to proceed" );
         }
 
         if ( parentNode.isObject() )
