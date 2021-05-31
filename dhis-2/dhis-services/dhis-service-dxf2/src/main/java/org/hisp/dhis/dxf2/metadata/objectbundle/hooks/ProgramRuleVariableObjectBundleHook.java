@@ -108,7 +108,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         if ( query.getResultList().size() > allowedCount )
         {
             return ImmutableList.of(
-                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4032, programRuleVariable.getName(),
+                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4051, programRuleVariable.getName(),
                     programRuleVariable.getProgram().getUid() ) );
         }
 
@@ -134,7 +134,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         {
 
             return ImmutableList.of(
-                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4033, programRuleVariable.getName() ) );
+                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4052, programRuleVariable.getName() ) );
         }
 
         return new ArrayList<>();

@@ -41,9 +41,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.stream.Stream;
-
 import static org.hamcrest.CoreMatchers.equalTo;
+
+import java.util.stream.Stream;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -82,7 +82,6 @@ public class UserTest extends ApiTest
 
         } );
     }
-
 
     @ParameterizedTest(name = "[{index}] {3}")
     @MethodSource("provideParams")

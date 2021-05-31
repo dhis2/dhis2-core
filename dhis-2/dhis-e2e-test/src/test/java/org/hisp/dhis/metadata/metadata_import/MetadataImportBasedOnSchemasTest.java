@@ -99,11 +99,12 @@ public class MetadataImportBasedOnSchemasTest
     {
         RestApiActions apiActions = new RestApiActions( endpoint );
 
-        List blacklistedEndpoints = Arrays.asList( "jobConfigurations",
+        List<String> blacklistedEndpoints = Arrays.asList( "jobConfigurations",
             "relationshipTypes",
             "messageConversations",
             "users",
-            "organisationUnitLevels"); //blacklisted because contains conditionally required properties, which are not marked as required
+            "organisationUnitLevels",
+            "programRuleActions"); //blacklisted because contains conditionally required properties, which are not marked as required
 
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 
@@ -114,6 +115,7 @@ public class MetadataImportBasedOnSchemasTest
 
         // post
         JsonObject object = DataGenerator.generateObjectMatchingSchema( schemaProperties );
+
         ApiResponse response = apiActions.post( object );
 
         // validate response;
@@ -133,7 +135,7 @@ public class MetadataImportBasedOnSchemasTest
         List<String> apiEndpoints = apiResponse.extractList( jsonPathIdentifier + ".plural" );
         List<String> schemaEndpoints = apiResponse.extractList( jsonPathIdentifier + ".singular" );
 
-        ArrayList<Arguments> arguments = new ArrayList<>();
+        List<Arguments> arguments = new ArrayList<>();
         for ( int i = 0; i < apiEndpoints.size(); i++ )
         {
             arguments.add( Arguments.of( apiEndpoints.get( i ), schemaEndpoints.get( i ) ) );

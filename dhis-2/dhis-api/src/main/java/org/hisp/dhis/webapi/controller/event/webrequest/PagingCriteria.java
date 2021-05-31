@@ -61,11 +61,6 @@ public interface PagingCriteria
      */
     Boolean getSkipPaging();
 
-    /**
-     * Indicated whether paging is enabled
-     */
-    Boolean getPaging();
-
     default Integer getFirstResult()
     {
         Integer page = Optional.ofNullable( getPage() )

@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.programrule;
 
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
+import static org.hisp.dhis.rules.models.TrackerObjectType.ENROLLMENT;
+import static org.hisp.dhis.rules.models.TrackerObjectType.EVENT;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
@@ -44,7 +46,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.programrule.engine.RuleEffectByObject;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.*;
@@ -121,7 +122,7 @@ public class SetMandatoryFieldValidatorTest
         when( preheat.get( ProgramStage.class, firstProgramStage.getUid() ) ).thenReturn( firstProgramStage );
         when( preheat.get( ProgramStage.class, secondProgramStage.getUid() ) ).thenReturn( secondProgramStage );
 
-        bundle = new TrackerBundle();
+        bundle = TrackerBundle.builder().build();
         bundle.setRuleEffects( getRuleEventAndEnrollmentEffects() );
         bundle.setPreheat( preheat );
     }
@@ -274,14 +275,14 @@ public class SetMandatoryFieldValidatorTest
         return Lists.newArrayList( attribute );
     }
 
-    private List<RuleEffectByObject> getRuleEventAndEnrollmentEffects()
+    private List<RuleEffects> getRuleEventAndEnrollmentEffects()
     {
-        List<RuleEffectByObject> ruleEffectsByEvent = Lists.newArrayList();
-        ruleEffectsByEvent.add( RuleEffectByObject.ruleEffectForEvent( FIRST_EVENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( RuleEffectByObject.ruleEffectForEvent( SECOND_EVENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent.add( RuleEffectByObject.ruleEffectForEnrollment( ACTIVE_ENROLLMENT_ID, getRuleEffects() ) );
+        List<RuleEffects> ruleEffectsByEvent = Lists.newArrayList();
+        ruleEffectsByEvent.add( new RuleEffects( EVENT, FIRST_EVENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( new RuleEffects( EVENT, SECOND_EVENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( new RuleEffects( ENROLLMENT, ACTIVE_ENROLLMENT_ID, getRuleEffects() ) );
         ruleEffectsByEvent
-            .add( RuleEffectByObject.ruleEffectForEnrollment( COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
+            .add( new RuleEffects( ENROLLMENT, COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
         return ruleEffectsByEvent;
     }
 

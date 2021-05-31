@@ -833,6 +833,14 @@ public class DefaultDataValueSetService
                 : null;
 
             // -----------------------------------------------------------------
+            // Preserve any existing created date unless overwritten by import
+            // -----------------------------------------------------------------
+            if ( existingValue != null && !dataValue.hasCreated() )
+            {
+                internalValue.setCreated( existingValue.getCreated() );
+            }
+
+            // -----------------------------------------------------------------
             // Check soft deleted data values on update and import
             // -----------------------------------------------------------------
             final ImportStrategy strategy = context.getStrategy();

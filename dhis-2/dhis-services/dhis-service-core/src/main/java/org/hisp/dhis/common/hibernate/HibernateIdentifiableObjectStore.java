@@ -45,6 +45,7 @@ import javax.persistence.criteria.Root;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
@@ -1088,6 +1089,25 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         Set<String> groupIds = user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() );
 
         return getDataSharingPredicates( builder, user.getUid(), groupIds, access );
+    }
+
+    /**
+     * Remove given UserGroup UID from all sharing records in given tableName
+     */
+    @Override
+    public void removeUserGroupFromSharing( String userGroupUid, String tableName )
+    {
+        if ( !ObjectUtils.allNotNull( userGroupUid, tableName ) )
+        {
+            return;
+        }
+
+        String sql = String.format( "update %1$s set sharing = sharing #- '{userGroups, %2$s }'", tableName,
+            userGroupUid );
+
+        log.debug( "Executing query: " + sql );
+
+        jdbcTemplate.execute( sql );
     }
 
     /**

@@ -222,7 +222,7 @@ public class JdbcEventAnalyticsTableManagerTest
         assertThat( tables, hasSize( 1 ) );
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) ).withTableType( AnalyticsTableType.EVENT )
-            .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withColumnSize( 41 )
+            .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withColumnSize( 42 )
             .withDefaultColumns( subject.getFixedColumns() ).addColumns( periodColumns )
             .addColumn( categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated() )
             .addColumn( categoryB.getUid(), CHARACTER_11, "acs.", categoryB.getCreated() ).build().verify();
@@ -281,7 +281,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 48 ).addColumns( periodColumns )
+            .withColumnSize( 49 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( d2.getUid(), DOUBLE, toAlias( aliasD2, d2.getUid() ) ) // ValueType.PERCENTAGE
             .addColumn( d3.getUid(), INTEGER, toAlias( aliasD3, d3.getUid() ) ) // ValueType.BOOLEAN
@@ -335,7 +335,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 43 ).addColumns( periodColumns )
+            .withColumnSize( 44 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.uid", tea1.getId(), tea1.getUid() ) ) // ValueType.ORGANISATION_UNIT
             // Second Geometry column created from the OU column above
@@ -440,7 +440,7 @@ public class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( subject.getFixedColumns().size() + PeriodType.getAvailablePeriodTypes().size()
-                + ouLevels.size() + (programA.isRegistration() ? 2 : 0) )
+                + ouLevels.size() + (programA.isRegistration() ? 1 : 0) )
             .addColumns( periodColumns ).withDefaultColumns( subject.getFixedColumns() )
             .addColumn( quote( "uidlevel" + ouLevels.get( 0 ).getLevel() ), col -> match( ouLevels.get( 0 ), col ) )
             .addColumn( quote( "uidlevel" + ouLevels.get( 1 ).getLevel() ), col -> match( ouLevels.get( 1 ), col ) )
@@ -468,7 +468,7 @@ public class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( subject.getFixedColumns().size() + PeriodType.getAvailablePeriodTypes().size()
-                + ouGroupSet.size() + (programA.isRegistration() ? 2 : 0) )
+                + ouGroupSet.size() + (programA.isRegistration() ? 1 : 0) )
             .addColumns( periodColumns ).withDefaultColumns( subject.getFixedColumns() )
             .addColumn( quote( ouGroupSet.get( 0 ).getUid() ), col -> match( ouGroupSet.get( 0 ), col ) )
             .addColumn( quote( ouGroupSet.get( 1 ).getUid() ), col -> match( ouGroupSet.get( 1 ), col ) ).build()
@@ -496,7 +496,7 @@ public class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( subject.getFixedColumns().size() + PeriodType.getAvailablePeriodTypes().size()
-                + cogs.size() + (programA.isRegistration() ? 2 : 0) )
+                + cogs.size() + (programA.isRegistration() ? 1 : 0) )
             .addColumns( periodColumns ).withDefaultColumns( subject.getFixedColumns() )
             .addColumn( quote( cogs.get( 0 ).getUid() ), col -> match( cogs.get( 0 ), col ) )
             .addColumn( quote( cogs.get( 1 ).getUid() ), col -> match( cogs.get( 1 ), col ) ).build().verify();
