@@ -42,7 +42,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
-import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -180,76 +179,83 @@ public class RelationshipTypeObjectBundleHook
     private void validateRelationshipConstraint( RelationshipConstraint constraint,
         Consumer<ErrorReport> addReports )
     {
-        RelationshipEntity entity = constraint.getRelationshipEntity();
-
-        if ( entity.equals( TRACKED_ENTITY_INSTANCE ) )
+        switch ( constraint.getRelationshipEntity() )
         {
-
-            // Should be not be null
-            if ( constraint.getTrackedEntityType() == null )
-            {
-                addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, "trackedEntityType",
-                    "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
-            }
-
-            // Should be null
-            if ( constraint.getProgramStage() != null )
-            {
-                addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage",
-                    "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
-            }
-
+        case TRACKED_ENTITY_INSTANCE:
+            validateTrackedEntityInstance( constraint, addReports );
+            break;
+        case PROGRAM_INSTANCE:
+            validateProgramInstance( constraint, addReports );
+            break;
+        case PROGRAM_STAGE_INSTANCE:
+            validateProgramStrageInstance( constraint, addReports );
+            break;
         }
-        else if ( entity.equals( PROGRAM_INSTANCE ) )
+    }
+
+    private void validateTrackedEntityInstance( RelationshipConstraint constraint, Consumer<ErrorReport> addReports )
+    {
+        // Should be not be null
+        if ( constraint.getTrackedEntityType() == null )
         {
-
-            // Should be null
-            if ( constraint.getTrackedEntityType() != null )
-            {
-                addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "trackedEntityType",
-                    "relationshipEntity", PROGRAM_INSTANCE ) );
-            }
-
-            // Should be not be null
-            if ( constraint.getProgram() == null )
-            {
-                addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, "program",
-                    "relationshipEntity", PROGRAM_INSTANCE ) );
-            }
-
-            // Should be null
-            if ( constraint.getProgramStage() != null )
-            {
-                addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage",
-                    "relationshipEntity", PROGRAM_INSTANCE ) );
-            }
-
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, "trackedEntityType",
+                "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
         }
-        else if ( entity.equals( PROGRAM_STAGE_INSTANCE ) )
-        {
 
-            // Should be null
-            if ( constraint.getTrackedEntityType() != null )
-            {
-                addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "trackedEntityType",
+        // Should be null
+        if ( constraint.getProgramStage() != null )
+        {
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage",
+                "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
+        }
+    }
+
+    private void validateProgramInstance( RelationshipConstraint constraint, Consumer<ErrorReport> addReports )
+    {
+        // Should be null
+        if ( constraint.getTrackedEntityType() != null )
+        {
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "trackedEntityType",
+                "relationshipEntity", PROGRAM_INSTANCE ) );
+        }
+
+        // Should be not be null
+        if ( constraint.getProgram() == null )
+        {
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, "program",
+                "relationshipEntity", PROGRAM_INSTANCE ) );
+        }
+
+        // Should be null
+        if ( constraint.getProgramStage() != null )
+        {
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage",
+                "relationshipEntity", PROGRAM_INSTANCE ) );
+        }
+    }
+
+    private void validateProgramStrageInstance( RelationshipConstraint constraint, Consumer<ErrorReport> addReports )
+    {
+        // Should be null
+        if ( constraint.getTrackedEntityType() != null )
+        {
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "trackedEntityType",
+                "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
+        }
+
+        // Should be null
+        if ( constraint.getProgram() != null && constraint.getProgramStage() != null )
+        {
+            addReports.accept(
+                new ErrorReport( RelationshipConstraint.class, ErrorCode.E4025, "program", "programStage" ) );
+        }
+
+        // Should be null
+        if ( constraint.getProgram() == null && constraint.getProgramStage() == null )
+        {
+            addReports
+                .accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4026, "program", "programStage",
                     "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
-            }
-
-            // Should be null
-            if ( constraint.getProgram() != null && constraint.getProgramStage() != null )
-            {
-                addReports.accept(
-                    new ErrorReport( RelationshipConstraint.class, ErrorCode.E4025, "program", "programStage" ) );
-            }
-
-            // Should be null
-            if ( constraint.getProgram() == null && constraint.getProgramStage() == null )
-            {
-                addReports
-                    .accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4026, "program", "programStage",
-                        "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
-            }
-
         }
     }
 }

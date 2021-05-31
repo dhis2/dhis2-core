@@ -65,7 +65,7 @@ public class AbstractObjectBundleHook implements ObjectBundleHook
     public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
-
+        // by default nothing to validate
     }
 
     @Override
