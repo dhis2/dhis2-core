@@ -46,7 +46,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -233,12 +232,6 @@ public interface WebClient
         public boolean success()
         {
             return series() == Series.SUCCESSFUL;
-        }
-
-        public String contentAsString()
-            throws UnsupportedEncodingException
-        {
-            return response.getContentAsString();
         }
 
         public JsonResponse content()

@@ -45,8 +45,7 @@ public class FileResourceControllerTest extends DhisControllerConvenienceTest
             "<<png data>>".getBytes() );
 
         HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        assertEquals( HttpStatus.OK, response.status() );
-        JsonObject savedObject = response.contentUnchecked().getObject( "response" ).getObject( "fileResource" );
+        JsonObject savedObject = response.content( HttpStatus.OK ).getObject( "response" ).getObject( "fileResource" );
         assertNotNull( savedObject );
         assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
     }
