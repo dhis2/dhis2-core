@@ -28,9 +28,9 @@
 package org.hisp.dhis.reservedvalue;
 
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -73,7 +73,7 @@ public class ValueGeneratorService
             generatedValues.addAll(
                 generatedNumbers
                     .stream()
-                    .map( ( n ) -> String.format( "%0" + segment.getParameter().length() + "d", n ) )
+                    .map( n -> String.format( "%0" + segment.getParameter().length() + "d", n ) )
                     .collect( Collectors.toList() ) );
 
             break;
@@ -82,7 +82,8 @@ public class ValueGeneratorService
 
             for ( int i = 0; i < numberOfValues; i++ )
             {
-                generatedValues.add( TextPatternMethodUtils.generateRandom( new Random(), segment.getParameter() ) );
+                generatedValues
+                    .add( TextPatternMethodUtils.generateRandom( new SecureRandom(), segment.getParameter() ) );
             }
 
             break;

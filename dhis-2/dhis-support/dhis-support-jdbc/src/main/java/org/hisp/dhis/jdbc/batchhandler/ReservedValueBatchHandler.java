@@ -118,19 +118,19 @@ public class ReservedValueBatchHandler
     {
         Calendar expires = Calendar.getInstance();
 
-        ReservedValue rv = new ReservedValue();
+        ReservedValue.ReservedValueBuilder rv = ReservedValue.builder();
 
         expires.setTime( resultSet.getDate( "expirydate" ) );
 
-        rv.setId( resultSet.getInt( "reservedvalueid" ) );
-        rv.setOwnerObject( resultSet.getString( "ownerobject" ) );
-        rv.setOwnerUid( resultSet.getString( "ownerUid" ) );
-        rv.setKey( resultSet.getString( "key" ) );
-        rv.setValue( resultSet.getString( "value" ) );
-        rv.setExpiryDate( expires.getTime() );
-        rv.setCreated( resultSet.getDate( "created" ) );
+        rv.id( resultSet.getInt( "reservedvalueid" ) );
+        rv.ownerObject( resultSet.getString( "ownerobject" ) );
+        rv.ownerUid( resultSet.getString( "ownerUid" ) );
+        rv.key( resultSet.getString( "key" ) );
+        rv.value( resultSet.getString( "value" ) );
+        rv.expiryDate( expires.getTime() );
+        rv.created( resultSet.getDate( "created" ) );
 
-        return rv;
+        return rv.build();
     }
 
     @Override
