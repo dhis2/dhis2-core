@@ -126,10 +126,13 @@ public class ReservedValueServiceIntegrationTest extends IntegrationTestBase
     {
         reservedValueService.reserve( simpleTextPattern, 1, new HashMap<>(), future );
 
-        try{
+        try
+        {
             reservedValueService.reserve( simpleTextPattern, 1, new HashMap<>(), future );
-        }catch (Exception e) {
-            assertTrue( e instanceof ReserveValueException);
+        }
+        catch ( Exception e )
+        {
+            assertTrue( e instanceof ReserveValueException );
         }
 
         assertEquals( 1, reservedValueStore.getCount() );
@@ -138,10 +141,13 @@ public class ReservedValueServiceIntegrationTest extends IntegrationTestBase
     @Test
     public void testReserveReserveATwoSimpleValuesShouldFail()
     {
-        try{
+        try
+        {
             reservedValueService.reserve( simpleTextPattern, 2, new HashMap<>(), future );
-        }catch (Exception e) {
-            assertTrue( e instanceof ReserveValueException);
+        }
+        catch ( Exception e )
+        {
+            assertTrue( e instanceof ReserveValueException );
         }
 
         assertEquals( 0, reservedValueStore.getCount() );
