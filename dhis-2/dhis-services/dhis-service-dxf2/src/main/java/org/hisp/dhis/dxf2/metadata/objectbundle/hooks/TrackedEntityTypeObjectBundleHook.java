@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -52,9 +51,9 @@ import org.springframework.stereotype.Component;
 public class TrackedEntityTypeObjectBundleHook extends AbstractObjectBundleHook
 {
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
 
         Optional.ofNullable( object ).filter( o -> o.getClass().isAssignableFrom( TrackedEntityType.class ) )
             .map( TrackedEntityType.class::cast )
@@ -64,7 +63,7 @@ public class TrackedEntityTypeObjectBundleHook extends AbstractObjectBundleHook
 
                 if ( bundle.getPreheat().get( preheatIdentifier, tea ) == null )
                 {
-                    errorReports.add(
+                    addReports.accept(
                         new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E5001, preheatIdentifier,
                             preheatIdentifier.getIdentifiersWithName( tea ) ).setErrorProperty( "id" )
                                 .setMainId( tea.getUid() ) );
@@ -72,6 +71,5 @@ public class TrackedEntityTypeObjectBundleHook extends AbstractObjectBundleHook
 
             } ) );
 
-        return errorReports;
     }
 }

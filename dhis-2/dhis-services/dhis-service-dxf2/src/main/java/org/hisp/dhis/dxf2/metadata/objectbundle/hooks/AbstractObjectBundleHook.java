@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -62,9 +62,10 @@ public class AbstractObjectBundleHook implements ObjectBundleHook
     protected MergeService mergeService;
 
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
-        return new ArrayList<>();
+
     }
 
     @Override
