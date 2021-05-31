@@ -38,6 +38,7 @@ import java.util.Map;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -54,6 +55,7 @@ public class RemoveOperationTest
 {
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
+    @Ignore // for now we will allow 'removal' of invalid path keys
     @Test( expected = JsonPatchException.class )
     public void testRemoveInvalidKeyShouldThrowException()
         throws JsonProcessingException,
