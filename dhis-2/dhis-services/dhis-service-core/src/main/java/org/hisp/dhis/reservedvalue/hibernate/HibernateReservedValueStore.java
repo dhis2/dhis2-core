@@ -80,7 +80,7 @@ public class HibernateReservedValueStore
         BatchHandler<ReservedValue> batchHandler = batchHandlerFactory
             .createBatchHandler( ReservedValueBatchHandler.class ).init();
 
-        toAdd.forEach( rv -> batchHandler.addObject( rv ) );
+        toAdd.forEach( batchHandler::addObject );
         batchHandler.flush();
 
         return toAdd;
@@ -92,7 +92,7 @@ public class HibernateReservedValueStore
         BatchHandler<ReservedValue> batchHandler = batchHandlerFactory
             .createBatchHandler( ReservedValueBatchHandler.class ).init();
 
-        reservedValues.forEach( rv -> batchHandler.addObject( rv ) );
+        reservedValues.forEach( batchHandler::addObject );
         batchHandler.flush();
     }
 
@@ -102,7 +102,7 @@ public class HibernateReservedValueStore
         List<ReservedValue> toAdd = values.stream()
             .map( value -> reservedValue.toBuilder().value( value ).build() ).collect( Collectors.toList() );
 
-        toAdd.forEach( rv -> save( rv ) );
+        toAdd.forEach( this::save );
         return toAdd;
     }
 
