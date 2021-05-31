@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -832,6 +833,14 @@ public class DefaultDataValueSetService
                 : null;
 
             // -----------------------------------------------------------------
+            // Preserve any existing created date unless overwritten by import
+            // -----------------------------------------------------------------
+            if ( existingValue != null && !dataValue.hasCreated() )
+            {
+                internalValue.setCreated( existingValue.getCreated() );
+            }
+
+            // -----------------------------------------------------------------
             // Check soft deleted data values on update and import
             // -----------------------------------------------------------------
             final ImportStrategy strategy = context.getStrategy();
@@ -976,7 +985,12 @@ public class DefaultDataValueSetService
         {
             importCount.incrementUpdated();
         }
-
+        if ( !internalValue.isDeleted()
+            && Objects.equals( existingValue.getValue(), internalValue.getValue() )
+            && Objects.equals( existingValue.getComment(), internalValue.getComment() ) )
+        {
+            return; // avoid performing unnecessary updates
+        }
         if ( !context.isDryRun() )
         {
             context.getDataValueBatchHandler().updateObject( internalValue );

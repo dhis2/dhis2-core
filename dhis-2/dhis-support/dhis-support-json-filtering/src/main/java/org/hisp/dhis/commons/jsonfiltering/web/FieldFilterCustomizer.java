@@ -33,8 +33,22 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * An interface which allow to define Field Filtering for rest endpoints.
+ *
+ * @param <T>
+ */
 public interface FieldFilterCustomizer<T>
 {
+    /**
+     * It's usually not needed to override this method. Rather it would be
+     * better to override {@link #getSupportedUriPatterns()} and
+     * {@link #getApplicableClass()}
+     *
+     * @param requestUri request to enable this filtering on
+     * @param beanClass The class on which the filtering should be enabled on
+     * @return true if filtering is applicable, false otherwise
+     */
     default boolean isApplicable( String requestUri, Class<?> beanClass )
     {
         if ( isUriSupported( requestUri ) )
@@ -44,6 +58,13 @@ public interface FieldFilterCustomizer<T>
         return false;
     }
 
+    /**
+     * It's usually not needed to override this method. Rather it would be
+     * better to override {@link #getSupportedUriPatterns()}
+     *
+     * @param requestUri request URI received by the controller
+     * @return true if request should be filed-filtered, false otherwise
+     */
     default boolean isUriSupported( String requestUri )
     {
         return Optional.ofNullable( getSupportedUriPatterns() )
@@ -53,9 +74,25 @@ public interface FieldFilterCustomizer<T>
             .anyMatch( Matcher::matches );
     }
 
+    /**
+     * @return a collection of patterns that match URIs from controller on which
+     *         to enable field filtering
+     */
     Collection<Pattern> getSupportedUriPatterns();
 
+    /**
+     * @return a class on which field filtering is enabled
+     */
     Class<T> getApplicableClass();
 
-    String customize( String filter );
+    /**
+     *
+     * @param filter filter string from controller request parameters
+     * @return a customized filter
+     */
+    default String customize( String filter )
+    {
+        return filter;
+    }
+
 }

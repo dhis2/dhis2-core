@@ -29,6 +29,9 @@ package org.hisp.dhis.metadata;
  */
 
 import com.google.gson.JsonObject;
+
+import java.util.stream.Stream;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -39,8 +42,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.stream.Stream;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

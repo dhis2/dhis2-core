@@ -30,21 +30,18 @@ package org.hisp.dhis.tracker.importer;
 
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.MessageConversationsActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -59,15 +56,11 @@ import static org.hamcrest.Matchers.*;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class RuleEngineTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
     private String trackerProgramId = "U5HE4IRrZ7S";
 
     private String eventProgramId = "uHi4GZJOD3n";
-
-    private TrackerActions trackerActions;
-
-    private LoginActions loginActions;
 
     private MessageConversationsActions messageConversationsActions;
 
@@ -75,16 +68,16 @@ public class RuleEngineTests
     public void beforeAll()
     {
         messageConversationsActions = new MessageConversationsActions();
-        trackerActions = new TrackerActions();
-        loginActions = new LoginActions();
 
         loginActions.loginAsSuperUser();
+
         new MetadataActions()
             .importAndValidateMetadata( new File( "src/test/resources/tracker/programs_with_program_rules.json" ) );
     }
 
     @BeforeEach
-    public void beforeEach() {
+    public void beforeEach()
+    {
         loginActions.loginAsSuperUser();
     }
 
@@ -271,8 +264,8 @@ public class RuleEngineTests
 
         response
             .validateWarningReport()
-            .body( "", hasSize( greaterThanOrEqualTo( 2 ) ) )
-            .body( "trackerType", hasItems( "EVENT", "ENROLLMENT" ) )
+            .body( "", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "trackerType", hasItems( "ENROLLMENT" ) )
             .body( "warningCode", everyItem( equalTo( "E1300" ) ) );
     }
 

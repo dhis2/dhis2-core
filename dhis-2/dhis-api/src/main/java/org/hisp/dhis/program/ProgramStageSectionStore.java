@@ -31,7 +31,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Chau Thu Tran
- * @version $ ProgramStageSectionStore.java Apr 8, 2013 3:48:37 PM $
  */
 public interface ProgramStageSectionStore
     extends IdentifiableObjectStore<ProgramStageSection>

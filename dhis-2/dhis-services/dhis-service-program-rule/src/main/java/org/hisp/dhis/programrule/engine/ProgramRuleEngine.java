@@ -34,7 +34,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.math3.util.Pair;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
@@ -60,6 +59,8 @@ import com.google.api.client.util.Lists;
 @RequiredArgsConstructor
 public class ProgramRuleEngine
 {
+    private static final String ERROR = "Program cannot be null";
+
     @NonNull
     private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
@@ -75,64 +76,48 @@ public class ProgramRuleEngine
     @NonNull
     private final SupplementaryDataProvider supplementaryDataProvider;
 
-    public List<RuleEffect> evaluateOldOne( ProgramInstance enrollment, Set<ProgramStageInstance> events )
+    public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events )
     {
-        return evaluateProgramRules( enrollment, null, events, enrollment.getProgram(), Lists.newArrayList() );
+        return evaluateProgramRules( enrollment, null, enrollment.getProgram(), Lists.newArrayList(),
+            getRuleEvents( events, null ) );
     }
 
-    public List<RuleEffectByObject> evaluateNTI( ProgramInstance enrollment, Set<ProgramStageInstance> events,
+    public List<RuleEffects> evaluateEnrollmentAndEvents( ProgramInstance enrollment, Set<ProgramStageInstance> events,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
-        return evaluateProgramRulesNTI( enrollment, events, enrollment.getProgram(), trackedEntityAttributeValues );
+        return evaluateProgramRulesForMultipleTrackerObjects( enrollment, events.stream().findAny().orElse( null ),
+            enrollment.getProgram(), trackedEntityAttributeValues, getRuleEvents( events, null ) );
     }
 
-    public List<RuleEffectByObject> evaluateProgramEventNTI( Set<ProgramStageInstance> events, Program program )
+    public List<RuleEffects> evaluateProgramEvents( Set<ProgramStageInstance> events, Program program )
     {
-        return evaluateProgramRulesNTI( null, events, program, Lists.newArrayList() );
+        return evaluateProgramRulesForMultipleTrackerObjects( null, null, program, null,
+            getRuleEvents( events, null ) );
     }
 
-    public List<RuleEffect> evaluateOldOne( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
+    public List<RuleEffect> evaluate( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
         Set<ProgramStageInstance> events )
     {
-        return evaluateProgramRules( enrollment, programStageInstance, events, enrollment.getProgram(),
-            Lists.newArrayList() );
+        return evaluateProgramRules( enrollment, programStageInstance, enrollment.getProgram(),
+            Lists.newArrayList(), getRuleEvents( events, programStageInstance ) );
     }
 
     private List<RuleEffect> evaluateProgramRules( ProgramInstance enrollment,
-        ProgramStageInstance programStageInstance, Set<ProgramStageInstance> events, Program program,
-        List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
+        ProgramStageInstance programStageInstance, Program program,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues, List<RuleEvent> ruleEvents )
     {
-        String programStageUid = Optional.ofNullable( programStageInstance ).map( p -> p.getProgramStage().getUid() )
-            .orElse( null );
-
-        List<ProgramRule> programRules = implementableRuleService.getProgramRules( program, programStageUid );
-
-        if ( programRules.isEmpty() )
-        {
-            return Collections.emptyList();
-        }
-
-        List<RuleEvent> ruleEvents = getRuleEvents( events, programStageInstance );
-
-        RuleEnrollment ruleEnrollment = getRuleEnrollment( enrollment, trackedEntityAttributeValues );
 
         try
         {
-            RuleEngine.Builder builder = getRuleEngineContext( program,
-                programRules )
-                    .toEngineBuilder()
-                    .triggerEnvironment( TriggerEnvironment.SERVER )
-                    .events( ruleEvents );
-
-            if ( ruleEnrollment != null )
+            RuleEngine ruleEngine = getRuleEngine( programStageInstance, program, enrollment,
+                trackedEntityAttributeValues, ruleEvents );
+            if ( ruleEngine == null )
             {
-                builder.enrollment( ruleEnrollment );
+                return Collections.emptyList();
             }
 
-            RuleEngine ruleEngine = builder.build();
-
-            return getRuleEngineEvaluation( ruleEngine, ruleEnrollment,
-                programStageInstance );
+            return getRuleEngineEvaluation( ruleEngine, enrollment,
+                programStageInstance, trackedEntityAttributeValues );
         }
         catch ( Exception e )
         {
@@ -141,34 +126,56 @@ public class ProgramRuleEngine
         }
     }
 
-    private List<RuleEffectByObject> evaluateProgramRulesNTI( ProgramInstance enrollment,
-        Set<ProgramStageInstance> events, Program program,
-        List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
+    private List<RuleEffects> evaluateProgramRulesForMultipleTrackerObjects( ProgramInstance enrollment,
+        ProgramStageInstance programStageInstance, Program program,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues, List<RuleEvent> ruleEvents )
     {
-
-        List<RuleEffectByObject> ruleEffects = Lists.newArrayList();
-
-        if ( enrollment != null )
+        try
         {
-            List<RuleEffect> effects = evaluateProgramRules( enrollment, null, events, program,
-                trackedEntityAttributeValues );
+            RuleEngine ruleEngine = getRuleEngine( programStageInstance, program, enrollment,
+                trackedEntityAttributeValues, ruleEvents );
+            if ( ruleEngine == null )
+            {
+                return Collections.emptyList();
+            }
+            return ruleEngine.evaluate().call();
+        }
+        catch ( Exception e )
+        {
+            log.error( DebugUtils.getStackTrace( e ) );
+            return Collections.emptyList();
+        }
+    }
 
-            RuleEffectByObject ruleEffectsForEnrollment = RuleEffectByObject
-                .ruleEffectForEnrollment( enrollment.getUid(), effects );
+    private RuleEngine getRuleEngine( ProgramStageInstance programStageInstance, Program program,
+        ProgramInstance enrollment,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues,
+        List<RuleEvent> ruleEvents )
+    {
+        String programStageUid = Optional.ofNullable( programStageInstance ).map( p -> p.getProgramStage().getUid() )
+            .orElse( null );
 
-            ruleEffects.add( ruleEffectsForEnrollment );
+        List<ProgramRule> programRules = implementableRuleService.getProgramRules( program, programStageUid );
+
+        if ( programRules.isEmpty() )
+        {
+            return null;
         }
 
-        List<RuleEffectByObject> ruleEffectsForEvents = events.stream()
-            .map( event -> Pair
-                .create( event.getUid(), evaluateProgramRules( enrollment, event, events, program,
-                    trackedEntityAttributeValues ) ) )
-            .map( pair -> RuleEffectByObject.ruleEffectForEvent( pair.getFirst(), pair.getSecond() ) )
-            .collect( Collectors.toList() );
+        RuleEnrollment ruleEnrollment = getRuleEnrollment( enrollment, trackedEntityAttributeValues );
 
-        ruleEffects.addAll( ruleEffectsForEvents );
+        RuleEngine.Builder builder = getRuleEngineContext( program,
+            programRules )
+                .toEngineBuilder()
+                .triggerEnvironment( TriggerEnvironment.SERVER )
+                .events( ruleEvents );
 
-        return ruleEffects;
+        if ( ruleEnrollment != null )
+        {
+            builder.enrollment( ruleEnrollment );
+        }
+
+        return builder.build();
     }
 
     /**
@@ -183,16 +190,38 @@ public class ProgramRuleEngine
     {
         if ( program == null )
         {
-            log.error( "Program cannot be null" );
-            return RuleValidationResult.builder().isValid( false ).errorMessage( "Program cannot be null" ).build();
+            log.error( ERROR );
+            return RuleValidationResult.builder().isValid( false ).errorMessage( ERROR ).build();
         }
 
+        return loadRuleEngineForDescription( program ).evaluate( condition );
+    }
+
+    /**
+     * To get description for program rule action data field.
+     *
+     * @param dataExpression of program rule action data field expression.
+     * @param program {@link Program} which the programRule is associated with.
+     * @return RuleValidationResult contains description of program rule
+     *         condition or errorMessage
+     */
+    public RuleValidationResult getDataExpressionDescription( String dataExpression, Program program )
+    {
+        if ( program == null )
+        {
+            log.error( ERROR );
+            return RuleValidationResult.builder().isValid( false ).errorMessage( ERROR ).build();
+        }
+
+        return loadRuleEngineForDescription( program ).evaluateDataFieldExpression( dataExpression );
+    }
+
+    private RuleEngine loadRuleEngineForDescription( Program program )
+    {
         List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( program );
 
-        RuleEngine ruleEngine = ruleEngineBuilder( ListUtils.newList(), programRuleVariables,
+        return ruleEngineBuilder( ListUtils.newList(), programRuleVariables,
             RuleEngineIntent.DESCRIPTION ).build();
-
-        return ruleEngine.evaluate( condition );
     }
 
     private RuleEngineContext getRuleEngineContext( Program program, List<ProgramRule> programRules )
@@ -266,13 +295,13 @@ public class ProgramRuleEngine
         return programRuleEntityMapperService.toMappedRuleEnrollment( enrollment, trackedEntityAttributeValues );
     }
 
-    private List<RuleEffect> getRuleEngineEvaluation( RuleEngine ruleEngine, RuleEnrollment enrollment,
-        ProgramStageInstance event )
+    private List<RuleEffect> getRuleEngineEvaluation( RuleEngine ruleEngine, ProgramInstance enrollment,
+        ProgramStageInstance event, List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
         throws Exception
     {
         if ( event == null )
         {
-            return ruleEngine.evaluate( enrollment ).call();
+            return ruleEngine.evaluate( getRuleEnrollment( enrollment, trackedEntityAttributeValues ) ).call();
         }
         else
         {

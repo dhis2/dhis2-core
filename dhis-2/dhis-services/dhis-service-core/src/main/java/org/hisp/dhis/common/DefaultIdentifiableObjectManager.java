@@ -63,6 +63,7 @@ import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserInfo;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -334,21 +335,6 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids )
-    {
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
-
-        if ( store == null )
-        {
-            return null;
-        }
-
-        return (List<T>) store.getByUid( uids );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getNoAcl( Class<T> clazz, Collection<String> uids )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
@@ -599,6 +585,22 @@ public class DefaultIdentifiableObjectManager
         }
 
         return (List<T>) store.getByUid( uids );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> classes,
+        Collection<String> uids )
+    {
+        List<T> list = new ArrayList<>();
+
+        for ( Class<? extends IdentifiableObject> clazz : classes )
+        {
+            list.addAll( (List<T>) getByUid( clazz, uids ) );
+        }
+
+        return list;
     }
 
     @Override
@@ -1198,6 +1200,17 @@ public class DefaultIdentifiableObjectManager
         IdentifiableObject defaultObject = defaults.get( realClass );
 
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
+    }
+
+    @Override
+    @Transactional
+    public void removeUserGroupFromSharing( String userGroupUid )
+    {
+        List<Schema> schemas = schemaService.getSchemas().stream().filter( s -> s.isShareable() ).collect(
+            Collectors.toList() );
+
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( UserGroup.class );
+        schemas.forEach( schema -> store.removeUserGroupFromSharing( userGroupUid, schema.getTableName() ) );
     }
 
     @SuppressWarnings( "unchecked" )

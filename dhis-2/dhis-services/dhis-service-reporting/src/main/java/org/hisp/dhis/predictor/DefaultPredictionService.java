@@ -222,12 +222,13 @@ public class DefaultPredictionService
         {
             if ( !CollectionUtils.isEmpty( predictors ) )
             {
-                predictorList = idObjectManager.get( Predictor.class, predictors );
+                predictorList = idObjectManager.getByUid( Predictor.class, predictors );
             }
 
             if ( !CollectionUtils.isEmpty( predictorGroups ) )
             {
-                List<PredictorGroup> predictorGroupList = idObjectManager.get( PredictorGroup.class, predictorGroups );
+                List<PredictorGroup> predictorGroupList = idObjectManager.getByUid( PredictorGroup.class,
+                    predictorGroups );
 
                 for ( PredictorGroup predictorGroup : predictorGroupList )
                 {

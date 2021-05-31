@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -60,7 +59,6 @@ import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -269,36 +267,15 @@ public class HibernateGenericStore<T>
     }
 
     /**
-     * Get List objects return by querying given JpaQueryParameters
-     *
-     * @param parameters JpaQueryParameters
-     * @return list objects
-     */
-    protected final List<T> getList( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
-    {
-        return getList( builder, parameters, null );
-    }
-
-    /**
      * Get List objects return by querying given JpaQueryParameters with
      * Pagination
      *
      * @param parameters JpaQueryParameters
      * @return list objects
      */
-    protected final List<T> getList( CriteriaBuilder builder, JpaQueryParameters<T> parameters,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
+    protected final List<T> getList( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
     {
-        TypedQuery<T> typedQuery = getTypedQuery( builder, parameters );
-
-        if ( Objects.nonNull( pagingAndSortingCriteriaAdapter ) && pagingAndSortingCriteriaAdapter.isPagingRequest() )
-        {
-            typedQuery = typedQuery
-                .setFirstResult( pagingAndSortingCriteriaAdapter.getFirstResult() )
-                .setMaxResults( pagingAndSortingCriteriaAdapter.getPageSize() );
-        }
-
-        return typedQuery.getResultList();
+        return getTypedQuery( builder, parameters ).getResultList();
     }
 
     /**

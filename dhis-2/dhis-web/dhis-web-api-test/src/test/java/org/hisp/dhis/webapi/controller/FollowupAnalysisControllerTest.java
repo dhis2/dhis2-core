@@ -76,7 +76,8 @@ public class FollowupAnalysisControllerTest extends AbstractDataValueControllerT
         assertEquals( orgUnitId, value.getOu() );
         assertEquals( "My Unit", value.getOuName() );
         assertEquals( "/" + orgUnitId, value.getOuPath() );
-        assertEquals( "Monthly", value.getPe() );
+        assertEquals( "202103", value.getPe() );
+        assertEquals( "Monthly", value.getPeType() );
         assertEquals( LocalDate.of( 2021, 03, 01 ).atStartOfDay(), value.getPeStartDate() );
         assertEquals( LocalDate.of( 2021, 03, 31 ).atStartOfDay(), value.getPeEndDate() );
         assertEquals( categoryOptionId, value.getCoc() );
