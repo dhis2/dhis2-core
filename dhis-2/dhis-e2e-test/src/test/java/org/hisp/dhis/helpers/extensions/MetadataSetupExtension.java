@@ -55,7 +55,7 @@ public class MetadataSetupExtension
 {
     private static boolean started = false;
 
-    private static Map<String, String> createdData = new LinkedHashMap();
+    private static Map<String, String> createdData = new LinkedHashMap<>();
 
     private static Logger logger = Logger.getLogger( MetadataSetupExtension.class.getName() );
 
@@ -120,16 +120,15 @@ public class MetadataSetupExtension
             userActions.addUserToUserGroup( userId, userGroupId );
             TestRunStorage.removeEntity( "users", userId );
         }
-
     }
 
     private void iterateCreatedData( Consumer<String> stringConsumer )
     {
-        Iterator iterator = createdData.keySet().iterator();
+        Iterator<String> iterator = createdData.keySet().iterator();
 
         while ( iterator.hasNext() )
         {
-            String id = (String) iterator.next();
+            String id = iterator.next();
             stringConsumer.accept( id );
         }
     }
@@ -137,7 +136,8 @@ public class MetadataSetupExtension
     @Override
     public void close()
     {
-        if ( TestConfiguration.get().shouldCleanUp() ) {
+        if ( TestConfiguration.get().shouldCleanUp() )
+        {
             TestCleanUp testCleanUp = new TestCleanUp();
 
             iterateCreatedData( id -> {

@@ -77,6 +77,8 @@ public class EnrollmentAnalyticsQueryCriteria
 
     private Integer pageSize;
 
+    private boolean paging;
+
     private DisplayProperty displayProperty;
 
     private Date relativePeriodDate;

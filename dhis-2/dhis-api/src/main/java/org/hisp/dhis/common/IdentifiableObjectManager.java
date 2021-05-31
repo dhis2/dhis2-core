@@ -109,6 +109,9 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
 
+    <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> classes,
+        Collection<String> uids );
+
     <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids );
 
     <T extends IdentifiableObject> List<T> getOrdered( Class<T> clazz, IdScheme idScheme, Collection<String> values );
@@ -178,8 +181,6 @@ public interface IdentifiableObjectManager
     Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults();
 
     void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations );
-
-    <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
 
     <T extends IdentifiableObject> List<T> getNoAcl( Class<T> clazz, Collection<String> uids );
 
