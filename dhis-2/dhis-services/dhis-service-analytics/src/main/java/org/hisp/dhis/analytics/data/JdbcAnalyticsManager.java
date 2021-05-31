@@ -175,7 +175,7 @@ public class JdbcAnalyticsManager
                 sql += getMeasureCriteriaSql( params );
             }
 
-            log.debug( sql );
+            log.info( sql );
 
             Map<String, Object> map;
 
