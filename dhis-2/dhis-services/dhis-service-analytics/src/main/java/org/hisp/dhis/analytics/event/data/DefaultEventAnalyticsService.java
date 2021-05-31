@@ -680,14 +680,17 @@ public class DefaultEventAnalyticsService
         grid.addHeader( new GridHeader( ITEM_EVENT, NAME_EVENT, ValueType.TEXT, String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, ValueType.TEXT, String.class.getName(),
                 false, true ) )
-            .addHeader(
-                new GridHeader( ITEM_EVENT_DATE, NAME_EVENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) );
+            .addHeader( new GridHeader( ITEM_EVENT_DATE,
+                LabelMapper.getEventDateLabel( params.getProgramStage(), NAME_EVENT_DATE ), ValueType.DATE,
+                Date.class.getName(), false, true ) );
 
         if ( params.getProgram().isRegistration() )
         {
-            grid.addHeader( new GridHeader( ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, ValueType.DATE,
+            grid.addHeader( new GridHeader( ITEM_ENROLLMENT_DATE,
+                LabelMapper.getEnrollmentDateLabel( params.getProgramStage(), NAME_ENROLLMENT_DATE ), ValueType.DATE,
                 Date.class.getName(), false, true ) )
-                .addHeader( new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE,
+                .addHeader( new GridHeader( ITEM_INCIDENT_DATE,
+                    LabelMapper.getIncidentDateLabel( params.getProgramStage(), NAME_INCIDENT_DATE ), ValueType.DATE,
                     Date.class.getName(), false, true ) )
                 .addHeader( new GridHeader( ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, ValueType.TEXT,
                     String.class.getName(), false, true ) )
