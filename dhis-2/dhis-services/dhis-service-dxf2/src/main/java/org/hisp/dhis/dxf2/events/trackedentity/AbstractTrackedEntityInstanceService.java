@@ -1324,18 +1324,6 @@ public abstract class AbstractTrackedEntityInstanceService
         }
     }
 
-    private void validateTextPatternValue( TrackedEntityAttribute attribute, String value, String oldValue,
-        Set<ImportConflict> importConflicts )
-    {
-        if ( !TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
-            && !reservedValueService.isReserved( attribute.getTextPattern(), value )
-            && !Objects.equals( value, oldValue ) )
-        {
-            importConflicts
-                .add( new ImportConflict( "Attribute.value", "Value does not match the attribute pattern" ) );
-        }
-    }
-
     private void checkAttributeUniquenessWithinScope( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
         TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit,
         Set<ImportConflict> importConflicts )
@@ -1370,9 +1358,6 @@ public abstract class AbstractTrackedEntityInstanceService
                 .forEach( attrVal -> fileValues.add( attrVal.getValue() ) );
         }
 
-        Map<String, TrackedEntityAttributeValue> teiAttributeValueMap = getTeiAttributeValueMap(
-            trackedEntityAttributeValueService.getTrackedEntityAttributeValues( daoEntityInstance ) );
-
         for ( Attribute attribute : dtoEntityInstance.getAttributes() )
         {
             if ( StringUtils.isNotEmpty( attribute.getValue() ) )
@@ -1396,18 +1381,6 @@ public abstract class AbstractTrackedEntityInstanceService
                     importConflicts.add( new ImportConflict( "Attribute.value",
                         String.format( "Value exceeds the character limit of %s characters: '%s...'",
                             TEA_VALUE_MAX_LENGTH, attribute.getValue().substring( 0, 25 ) ) ) );
-                }
-
-                TrackedEntityAttributeValue trackedEntityAttributeValue = teiAttributeValueMap
-                    .get( daoEntityAttribute.getUid() );
-
-                if ( daoEntityAttribute.isGenerated() && daoEntityAttribute.getTextPattern() != null
-                    && !importOptions.isSkipPatternValidation() )
-                {
-
-                    validateTextPatternValue( daoEntityAttribute, attribute.getValue(),
-                        trackedEntityAttributeValue != null ? trackedEntityAttributeValue.getValue() : null,
-                        importConflicts );
                 }
 
                 if ( daoEntityAttribute.isUnique() )
