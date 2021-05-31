@@ -50,7 +50,6 @@ import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.snippets.SomeUserId;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -60,7 +59,6 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-@Ignore
 public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 {
     @Test
@@ -100,7 +98,8 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     public void testPartialUpdateObject()
     {
         String id = run( SomeUserId::new );
-        assertStatus( HttpStatus.NO_CONTENT, PATCH( "/users/" + id, "{'surname':'Peter'}" ) );
+        assertStatus( HttpStatus.OK, PATCH( "/users/" + id,
+            "[{'op': 'add', 'path': '/surname', 'value': 'Peter'}]" ) );
 
         assertEquals( "Peter", GET( "/users/{id}", id ).content().as( JsonUser.class ).getSurname() );
     }
@@ -109,7 +108,8 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     public void testPartialUpdateObject_Validation()
     {
         String id = run( SomeUserId::new );
-        JsonError error = PATCH( "/users/" + id, "{'email':'Not-valid'}" ).error();
+        JsonError error = PATCH( "/users/" + id, "[{'op': 'add', 'path': '/email', 'value': 'Not-valid'}]" ).error();
+
         assertEquals( "Property `email` requires a valid email address, was given `Not-valid`.",
             error.getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
@@ -166,18 +166,11 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     public void testUpdateObjectProperty()
     {
         String id = getCurrentUser().getUid();
-        assertStatus( HttpStatus.NO_CONTENT,
-            PATCH( "/users/" + id + "/firstName", "{'firstName':'Fancy Mike'}" ) );
+        assertStatus( HttpStatus.OK,
+            PATCH( "/users/" + id, "[{'op': 'add', 'path': '/firstName', 'value': 'Fancy Mike'}]" ) );
+
         assertEquals( "Fancy Mike", GET( "/users/{id}", id )
             .content().as( JsonUser.class ).getFirstName() );
-    }
-
-    @Test
-    public void testUpdateObjectProperty_ReadOnlyProperty()
-    {
-        String id = getCurrentUser().getUid();
-        assertStatus( HttpStatus.FORBIDDEN,
-            PATCH( "/users/" + id + "/displayName", "{'displayName':'Fancy Mike'}" ) );
     }
 
     @Test

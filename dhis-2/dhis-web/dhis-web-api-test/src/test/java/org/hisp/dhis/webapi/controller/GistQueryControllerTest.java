@@ -44,7 +44,6 @@ import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonString;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -55,7 +54,6 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-@Ignore
 public class GistQueryControllerTest extends DhisControllerConvenienceTest
 {
     @Autowired
@@ -73,8 +71,9 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
         userGroupId = assertStatus( HttpStatus.CREATED,
             POST( "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
 
-        assertStatus( HttpStatus.NO_CONTENT,
-            PATCH( "/users/{id}/birthday", getSuperuserUid(), Body( "{'birthday': '1980-12-12'}" ) ) );
+        assertStatus( HttpStatus.OK,
+            PATCH( "/users/{id}", getSuperuserUid(),
+                Body( "[{'op': 'add', 'path': '/birthday', 'value': '1980-12-12'}]" ) ) );
 
         orgUnitId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'unitA', 'shortName':'unitA', 'openingDate':'2021-01-01'}" ) );
