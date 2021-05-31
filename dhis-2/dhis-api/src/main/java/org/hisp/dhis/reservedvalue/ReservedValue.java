@@ -31,6 +31,10 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -39,6 +43,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 /**
  * @author Stian Sandvold
  */
+@Builder( toBuilder = true )
+@AllArgsConstructor( access = AccessLevel.PROTECTED )
 public class ReservedValue
     implements Serializable
 {
@@ -63,17 +69,6 @@ public class ReservedValue
 
     public ReservedValue()
     {
-        created = new Date();
-    }
-
-    public ReservedValue( String ownerObject, String ownerUid, String key, String value, Date expiryDate )
-    {
-        this.ownerObject = ownerObject;
-        this.ownerUid = ownerUid;
-        this.key = key;
-        this.value = value;
-        this.expiryDate = expiryDate;
-        this.created = new Date();
     }
 
     public int getId()
