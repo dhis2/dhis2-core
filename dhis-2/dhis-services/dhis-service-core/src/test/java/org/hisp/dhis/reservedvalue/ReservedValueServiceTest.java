@@ -143,7 +143,7 @@ public class ReservedValueServiceTest
         ReserveValueException
     {
         when( reservedValueStore.reserveValuesAndCheckUniqueness( any(), any() ) )
-            .thenReturn( Arrays.asList( new ReservedValue(), new ReservedValue() ) );
+            .thenReturn( Arrays.asList( ReservedValue.builder().build(), ReservedValue.builder().build() ) );
 
         assertEquals( 2,
             reservedValueService
