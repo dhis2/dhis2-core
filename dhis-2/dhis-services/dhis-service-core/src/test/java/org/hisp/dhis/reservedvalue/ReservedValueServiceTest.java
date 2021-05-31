@@ -29,8 +29,7 @@ package org.hisp.dhis.reservedvalue;
 
 import static java.util.Calendar.DATE;
 import static org.hisp.dhis.util.Constants.RESERVED_VALUE_GENERATION_ATTEMPT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
@@ -104,10 +103,16 @@ public class ReservedValueServiceTest
     {
         when( reservedValueStore.getNumberOfUsedValues( reservedValue.capture() ) ).thenReturn( 1 );
 
-        assertThrows( ReserveValueException.class,
-            () -> reservedValueService.reserve(
+        try
+        {
+            reservedValueService.reserve(
                 createTextPattern( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, simpleText ),
-                1, new HashMap<>(), futureDate ) );
+                1, new HashMap<>(), futureDate );
+        }
+        catch ( Exception e )
+        {
+            assertTrue( e instanceof ReserveValueException );
+        }
 
         assertEquals( Objects.TRACKEDENTITYATTRIBUTE.name(), reservedValue.getValue().getOwnerObject() );
         assertEquals( ownerUid, reservedValue.getValue().getOwnerUid() );
