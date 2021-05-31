@@ -803,7 +803,7 @@ public class TrackedEntityInstanceQueryParams
      */
     public boolean isPaging()
     {
-        return page != null || pageSize != null;
+        return !isSkipPaging();
     }
 
     /**
@@ -830,16 +830,6 @@ public class TrackedEntityInstanceQueryParams
     public int getOffset()
     {
         return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-    }
-
-    /**
-     * Sets paging properties to default values.
-     */
-    public void setDefaultPaging()
-    {
-        this.page = DEFAULT_PAGE;
-        this.pageSize = DEFAULT_PAGE_SIZE;
-        this.skipPaging = false;
     }
 
     // -------------------------------------------------------------------------

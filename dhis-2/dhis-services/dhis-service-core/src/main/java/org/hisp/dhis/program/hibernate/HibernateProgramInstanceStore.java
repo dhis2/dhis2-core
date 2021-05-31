@@ -118,7 +118,7 @@ public class HibernateProgramInstanceStore
 
         Query<ProgramInstance> query = getQuery( hql );
 
-        if ( params.isPaging() )
+        if ( !params.isSkipPaging() )
         {
             query.setFirstResult( params.getOffset() );
             query.setMaxResults( params.getPageSizeWithDefault() );
