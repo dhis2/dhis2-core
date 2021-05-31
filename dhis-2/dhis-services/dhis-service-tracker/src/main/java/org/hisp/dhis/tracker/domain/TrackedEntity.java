@@ -33,6 +33,7 @@ import java.util.List;
 
 import lombok.*;
 
+import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -106,5 +107,11 @@ public class TrackedEntity
     public String getUid()
     {
         return this.trackedEntity;
+    }
+
+    @Override
+    public TrackerType getTrackerType()
+    {
+        return TrackerType.TRACKED_ENTITY;
     }
 }

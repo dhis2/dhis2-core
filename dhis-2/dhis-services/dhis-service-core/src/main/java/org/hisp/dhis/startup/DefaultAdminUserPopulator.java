@@ -46,6 +46,10 @@ import com.google.common.collect.ImmutableSet;
 public class DefaultAdminUserPopulator
     extends TransactionContextStartupRoutine
 {
+    /**
+     * Authorities which are not part of schema descriptors/associated with
+     * metadata CRUD operations.
+     */
     public static final Set<String> ALL_AUTHORITIES = ImmutableSet.of(
         "ALL",
         "F_VIEW_EVENT_ANALYTICS",

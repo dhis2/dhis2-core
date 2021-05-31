@@ -32,6 +32,8 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import static org.hisp.dhis.common.FallbackCoordinateFieldType.OU_GEOMETRY;
+import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,15 +51,7 @@ import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -75,6 +69,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Class representing query parameters for retrieving event data from the event
@@ -99,6 +94,9 @@ public class EventQueryParams
     public static final String EVENT_COORDINATE_FIELD = "EVENT";
 
     public static final String ENROLLMENT_COORDINATE_FIELD = "ENROLLMENT";
+
+    public static final ImmutableSet<FallbackCoordinateFieldType> FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
+        OU_GEOMETRY, PSI_GEOMETRY );
 
     /**
      * The query items.
@@ -151,6 +149,11 @@ public class EventQueryParams
     private Integer pageSize;
 
     /**
+     * The paging flag.
+     */
+    private boolean paging;
+
+    /**
      * The value sort order.
      */
     private SortOrder sortOrder;
@@ -189,6 +192,12 @@ public class EventQueryParams
     private boolean geometryOnly;
 
     /**
+     * Indicates whether request is intended to fetch events with alternative
+     * coordinates.
+     */
+    private boolean coordinateOuFallback;
+
+    /**
      * Indicates whether the query originates from an aggregate data query.
      */
     private boolean aggregateData;
@@ -202,6 +211,12 @@ public class EventQueryParams
      * The coordinate field to use as basis for spatial event analytics.
      */
     private String coordinateField;
+
+    /**
+     * The fallback coordinate field to use as basis for spatial event
+     * analytics, SQL COALESCE applied on coordinate fields.
+     */
+    private String fallbackCoordinateField;
 
     /**
      * Bounding box for events to include in clustering.
@@ -273,16 +288,19 @@ public class EventQueryParams
         params.organisationUnitMode = this.organisationUnitMode;
         params.page = this.page;
         params.pageSize = this.pageSize;
+        params.paging = this.paging;
         params.sortOrder = this.sortOrder;
         params.limit = this.limit;
         params.outputType = this.outputType;
         params.eventStatus = this.eventStatus;
         params.collapseDataDimensions = this.collapseDataDimensions;
         params.coordinatesOnly = this.coordinatesOnly;
+        params.coordinateOuFallback = this.coordinateOuFallback;
         params.geometryOnly = this.geometryOnly;
         params.aggregateData = this.aggregateData;
         params.clusterSize = this.clusterSize;
         params.coordinateField = this.coordinateField;
+        params.fallbackCoordinateField = this.fallbackCoordinateField;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
         params.programStatus = this.programStatus;
@@ -378,16 +396,19 @@ public class EventQueryParams
             .addIgnoreNull( "organisationUnitMode", organisationUnitMode )
             .addIgnoreNull( "page", page )
             .addIgnoreNull( "pageSize", pageSize )
+            .addIgnoreNull( "paging", paging )
             .addIgnoreNull( "sortOrder", sortOrder )
             .addIgnoreNull( "limit", limit )
             .addIgnoreNull( "outputType", outputType )
             .addIgnoreNull( "eventStatus", eventStatus )
             .addIgnoreNull( "collapseDataDimensions", collapseDataDimensions )
             .addIgnoreNull( "coordinatesOnly", coordinatesOnly )
+            .addIgnoreNull( "coordinateOuFallback", coordinateOuFallback )
             .addIgnoreNull( "geometryOnly", geometryOnly )
             .addIgnoreNull( "aggregateData", aggregateData )
             .addIgnoreNull( "clusterSize", clusterSize )
             .addIgnoreNull( "coordinateField", coordinateField )
+            .addIgnoreNull( "fallbackCoordinateField", fallbackCoordinateField )
             .addIgnoreNull( "bbox", bbox )
             .addIgnoreNull( "includeClusterPoints", includeClusterPoints )
             .addIgnoreNull( "programStatus", programStatus )
@@ -554,6 +575,16 @@ public class EventQueryParams
         return false;
     }
 
+    /**
+     * Indicates whether the given fallbackCoordinateField is valid, i.e.
+     * whether it matches to the query geometry.
+     */
+    public boolean fallbackCoordinateFieldIsValid()
+    {
+        return EventQueryParams.FALLBACK_COORDINATE_FIELD_TYPES.stream()
+            .anyMatch( t -> t.getValue().equals( fallbackCoordinateField ) );
+    }
+
     private boolean validateProgramHasOrgUnitField( Program program )
     {
 
@@ -702,7 +733,7 @@ public class EventQueryParams
 
     public boolean isPaging()
     {
-        return page != null || pageSize != null;
+        return paging || page != null || pageSize != null;
     }
 
     public int getPageWithDefault()
@@ -895,6 +926,11 @@ public class EventQueryParams
         return pageSize;
     }
 
+    public boolean getPaging()
+    {
+        return paging;
+    }
+
     public SortOrder getSortOrder()
     {
         return sortOrder;
@@ -925,6 +961,11 @@ public class EventQueryParams
         return coordinatesOnly;
     }
 
+    public boolean isCoordinateOuFallback()
+    {
+        return coordinateOuFallback;
+    }
+
     public boolean isGeometryOnly()
     {
         return geometryOnly;
@@ -943,6 +984,11 @@ public class EventQueryParams
     public String getCoordinateField()
     {
         return coordinateField;
+    }
+
+    public String getFallbackCoordinateField()
+    {
+        return fallbackCoordinateField;
     }
 
     public String getBbox()
@@ -1137,6 +1183,12 @@ public class EventQueryParams
             return this;
         }
 
+        public Builder withCoordinateOuFallback( boolean coordinateOuFallback )
+        {
+            this.params.coordinateOuFallback = coordinateOuFallback;
+            return this;
+        }
+
         public Builder withGeometryOnly( boolean geometryOnly )
         {
             this.params.geometryOnly = geometryOnly;
@@ -1158,6 +1210,12 @@ public class EventQueryParams
         public Builder withPageSize( Integer pageSize )
         {
             this.params.pageSize = pageSize;
+            return this;
+        }
+
+        public Builder withPaging( boolean paging )
+        {
+            this.params.paging = paging;
             return this;
         }
 
@@ -1260,6 +1318,12 @@ public class EventQueryParams
         public Builder withCoordinateField( String coordinateField )
         {
             this.params.coordinateField = coordinateField;
+            return this;
+        }
+
+        public Builder withFallbackCoordinateField( String fallbackCoordinateField )
+        {
+            this.params.fallbackCoordinateField = fallbackCoordinateField;
             return this;
         }
 

@@ -39,6 +39,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -81,6 +82,36 @@ public class EnrollmentTest
         assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
 
         manager.flush();
+    }
+
+    @Test
+    public void testProgramOwnerWhenEnrolled()
+        throws IOException
+    {
+
+        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );
+
+        List<TrackedEntityInstance> teis = manager.getAll( TrackedEntityInstance.class );
+        assertEquals( 1, teis.size() );
+
+        TrackedEntityInstance tei = teis.get( 0 );
+
+        assertNotNull( tei.getProgramOwners() );
+
+        Set<TrackedEntityProgramOwner> tepos = tei.getProgramOwners();
+        assertEquals( 1, tepos.size() );
+        TrackedEntityProgramOwner tepo = tepos.iterator().next();
+
+        assertNotNull( tepo.getEntityInstance() );
+        assertNotNull( tepo.getProgram() );
+        assertNotNull( tepo.getOrganisationUnit() );
+
+        assertEquals( enrollmentParams.getEnrollments().get( 0 ).getProgram(),
+            tepo.getProgram().getUid() );
+        assertEquals( enrollmentParams.getEnrollments().get( 0 ).getOrgUnit(),
+            tepo.getOrganisationUnit().getUid() );
+        assertEquals( enrollmentParams.getEnrollments().get( 0 ).getTrackedEntity(),
+            tepo.getEntityInstance().getUid() );
     }
 
     @Test
@@ -149,8 +180,8 @@ public class EnrollmentTest
 
         List<ProgramInstance> pis = manager.getAll( ProgramInstance.class );
 
-        assertEquals( 1, pis.size() );
-        ProgramInstance pi = pis.iterator().next();
+        assertEquals( 2, pis.size() );
+        ProgramInstance pi = pis.stream().filter( e -> e.getUid().equals( "TvctPPhpD8u" ) ).findAny().get();
 
         compareEnrollmentBasicProperties( pi, enrollmentParams.getEnrollments().get( 0 ) );
 
@@ -170,8 +201,8 @@ public class EnrollmentTest
 
         pis = manager.getAll( ProgramInstance.class );
 
-        assertEquals( 1, pis.size() );
-        pi = pis.iterator().next();
+        assertEquals( 2, pis.size() );
+        pi = pis.stream().filter( e -> e.getUid().equals( "TvctPPhpD8u" ) ).findAny().get();
         compareEnrollmentBasicProperties( pi, updatedEnrollment );
     }
 

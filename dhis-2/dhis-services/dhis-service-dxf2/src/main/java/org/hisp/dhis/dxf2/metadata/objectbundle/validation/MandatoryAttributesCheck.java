@@ -27,20 +27,21 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
+import static java.util.Collections.emptyList;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Schema;
@@ -48,22 +49,19 @@ import org.hisp.dhis.schema.Schema;
 /**
  * @author Luciano Fiandesio
  */
-public class MandatoryAttributesCheck
-    implements
-    ValidationCheck
+public class MandatoryAttributesCheck implements ObjectValidationCheck
 {
     @Override
-    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx )
+        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
     {
-        TypeReport typeReport = new TypeReport( klass );
         Schema schema = ctx.getSchemaService().getDynamicSchema( klass );
         List<IdentifiableObject> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
 
         if ( objects.isEmpty() || !schema.havePersistedProperty( "attributeValues" ) )
         {
-            return typeReport;
+            return;
         }
 
         for ( IdentifiableObject object : objects )
@@ -72,39 +70,33 @@ public class MandatoryAttributesCheck
 
             if ( !errorReports.isEmpty() )
             {
-                addObjectReports( errorReports, typeReport, object, bundle );
-
+                addReports.accept( createObjectReport( errorReports, object, bundle ) );
                 ctx.markForRemoval( object );
             }
         }
-
-        return typeReport;
     }
 
     private List<ErrorReport> checkMandatoryAttributes( Class<? extends IdentifiableObject> klass,
         IdentifiableObject object, Preheat preheat )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
         if ( object == null || preheat.isDefault( object ) || !preheat.getMandatoryAttributes().containsKey( klass ) )
         {
-            return errorReports;
+            return emptyList();
         }
 
-        Set<AttributeValue> attributeValues = object.getAttributeValues();
-        Set<String> mandatoryAttributes = new HashSet<>( preheat.getMandatoryAttributes().get( klass ) ); // make
-                                                                                                          // copy
-                                                                                                          // for
+        Set<String> mandatoryAttributes = preheat.getMandatoryAttributes().get( klass );
         if ( mandatoryAttributes.isEmpty() )
         {
-            return errorReports;
+            return emptyList();
         }
+        Set<String> missingMandatoryAttributes = new HashSet<>( mandatoryAttributes );
+        object.getAttributeValues()
+            .forEach( attributeValue -> missingMandatoryAttributes.remove( attributeValue.getAttribute().getUid() ) );
 
-        attributeValues
-            .forEach( attributeValue -> mandatoryAttributes.remove( attributeValue.getAttribute().getUid() ) );
-        mandatoryAttributes.forEach( att -> errorReports.add(
-            new ErrorReport( Attribute.class, ErrorCode.E4011, att ).setMainId( att ).setErrorProperty( "value" ) ) );
-
-        return errorReports;
+        return missingMandatoryAttributes.stream()
+            .map( att -> new ErrorReport( Attribute.class, ErrorCode.E4011, att )
+                .setMainId( att )
+                .setErrorProperty( "value" ) )
+            .collect( Collectors.toList() );
     }
 }

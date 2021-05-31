@@ -38,7 +38,6 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -67,8 +66,6 @@ public class EventImportDataValueValidationTests
 
     private RestApiActions dataElementActions;
 
-    private SharingActions sharingActions;
-
     private String programId;
 
     private String programStageId;
@@ -82,7 +79,6 @@ public class EventImportDataValueValidationTests
         programActions = new ProgramActions();
         eventActions = new EventActions();
         dataElementActions = new RestApiActions( "/dataElements" );
-        sharingActions = new SharingActions();
 
         new LoginActions().loginAsAdmin();
 
@@ -92,7 +88,7 @@ public class EventImportDataValueValidationTests
     @Test
     public void shouldNotValidateDataValuesOnUpdateWithOnCompleteStrategy()
     {
-        setValidationStrategy( programStageId, "ON_COMPLETE" );
+        programActions.programStageActions.setValidationStrategy( programStageId, "ON_COMPLETE" );
 
         JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
 
@@ -107,7 +103,7 @@ public class EventImportDataValueValidationTests
     @Test
     public void shouldValidateDataValuesOnCompleteWhenEventIsCompleted()
     {
-        setValidationStrategy( programStageId, "ON_COMPLETE" );
+        programActions.programStageActions.setValidationStrategy( programStageId, "ON_COMPLETE" );
 
         JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
         event.addProperty( "status", "COMPLETED" );
@@ -125,7 +121,7 @@ public class EventImportDataValueValidationTests
     @Test
     public void shouldValidateCompletedOnInsert()
     {
-        setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
+        programActions.programStageActions.setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
 
         JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
         event.addProperty( "status", "COMPLETED" );
@@ -143,7 +139,7 @@ public class EventImportDataValueValidationTests
     @Test
     public void shouldValidateDataValuesOnUpdate()
     {
-        setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
+        programActions.programStageActions.setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
 
         JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
 
@@ -218,19 +214,4 @@ public class EventImportDataValueValidationTests
         dataValues.add( dataValue );
         body.add( "dataValues", dataValues );
     }
-
-    private void setValidationStrategy( String programStageId, String strategy )
-    {
-        JsonObject body = JsonObjectBuilder.jsonObject()
-            .addProperty( "validationStrategy", strategy )
-            .build();
-
-        programActions.programStageActions.patch( programStageId, body )
-            .validate().statusCode( 204 );
-
-        programActions.programStageActions.get( programStageId )
-            .validate().body( "validationStrategy", equalTo( strategy ) );
-
-    }
-
 }
