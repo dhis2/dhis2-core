@@ -36,27 +36,23 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.AllArgsConstructor;
 
 /**
  * @author Jan Bernitt
@@ -100,21 +96,15 @@ public class DefaultGistService implements GistService
     @Override
     public List<?> gist( GistQuery query )
     {
+        GistAccessControl access = createGistAccessControl();
         RelativePropertyContext context = createPropertyContext( query );
         validator.validateQuery( query, context );
-        GistBuilder queryBuilder = createFetchBuilder( query, context, currentUserService.getCurrentUser(),
-            this::getUserGroupIdsByUserId, this::getAccessFromSharing );
+        GistBuilder queryBuilder = createFetchBuilder( query, context, access,
+            this::getUserGroupIdsByUserId );
         List<Object[]> rows = fetchWithParameters( query, queryBuilder,
             getSession().createQuery( queryBuilder.buildFetchHQL(), Object[].class ) );
         queryBuilder.transform( rows );
         return rows;
-    }
-
-    private Access getAccessFromSharing( Sharing sharing, User user, Class<? extends IdentifiableObject> type )
-    {
-        BaseIdentifiableObject object = new BaseIdentifiableObject();
-        object.setSharing( sharing );
-        return aclService.getAccess( object, user, type );
     }
 
     @Override
@@ -135,8 +125,9 @@ public class DefaultGistService implements GistService
             }
             else
             {
+                GistAccessControl access = createGistAccessControl();
                 RelativePropertyContext context = createPropertyContext( query );
-                GistBuilder countBuilder = createCountBuilder( query, context, currentUserService.getCurrentUser(),
+                GistBuilder countBuilder = createCountBuilder( query, context, access,
                     this::getUserGroupIdsByUserId );
                 total = countWithParameters( countBuilder,
                     getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
@@ -156,6 +147,11 @@ public class DefaultGistService implements GistService
             }
         }
         return new GistPager( page, query.getPageSize(), total, prev, next );
+    }
+
+    private GistAccessControl createGistAccessControl()
+    {
+        return new DefaultGistAccessControl( currentUserService.getCurrentUser(), aclService );
     }
 
     private RelativePropertyContext createPropertyContext( GistQuery query )

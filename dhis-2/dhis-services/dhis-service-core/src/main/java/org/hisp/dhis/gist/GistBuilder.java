@@ -54,10 +54,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
@@ -77,6 +73,10 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Purpose of this helper is to avoid passing around same state while building
@@ -122,28 +122,25 @@ final class GistBuilder
 
     private static final String SHARING_PROPERTY = "sharing";
 
-    static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context, User user,
-        Function<String, List<String>> userGroupsByUserId, AccessFromSharing accessFromSharing )
-    {
-        return new GistBuilder( user, addSupportFields( query, context ), context, userGroupsByUserId,
-            accessFromSharing );
-    }
-
-    static GistBuilder createCountBuilder( GistQuery query, RelativePropertyContext context, User user,
+    static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context, GistAccessControl access,
         Function<String, List<String>> userGroupsByUserId )
     {
-        return new GistBuilder( user, query, context, userGroupsByUserId, null );
+        return new GistBuilder( access, addSupportFields( query, context ), context, userGroupsByUserId );
     }
 
-    private final User user;
+    static GistBuilder createCountBuilder( GistQuery query, RelativePropertyContext context, GistAccessControl access,
+        Function<String, List<String>> userGroupsByUserId )
+    {
+        return new GistBuilder( access, query, context, userGroupsByUserId );
+    }
+
+    private final GistAccessControl access;
 
     private final GistQuery query;
 
     private final RelativePropertyContext context;
 
     private final Function<String, List<String>> userGroupsByUserId;
-
-    private final AccessFromSharing accessFromSharing;
 
     private final List<Consumer<Object[]>> fieldResultTransformers = new ArrayList<>();
 
@@ -313,13 +310,14 @@ final class GistBuilder
         {
             return "1=1";
         }
-        return JpaQueryUtils.generateHqlQueryForSharingCheck( tableName, user, AclService.LIKE_READ_METADATA );
+        return JpaQueryUtils.generateHqlQueryForSharingCheck( tableName, access.getCurrentUser(),
+            AclService.LIKE_READ_METADATA );
     }
 
     private boolean isFilterBySharing( RelativePropertyContext context )
     {
         Property sharing = context.resolve( SHARING_PROPERTY );
-        return sharing != null && sharing.isPersisted() && user != null && !user.isSuper();
+        return sharing != null && sharing.isPersisted() && access.isSuperuser();
     }
 
     private String createFieldsHQL()
@@ -363,8 +361,7 @@ final class GistBuilder
             Class<? extends IdentifiableObject> objType = isNonNestedPath( path )
                 ? query.getElementType()
                 : (Class<? extends IdentifiableObject>) property.getKlass();
-            addTransformer(
-                row -> row[index] = accessFromSharing.getAccess( (Sharing) row[sharingFieldIndex], user, objType ) );
+            addTransformer( row -> row[index] = access.canAccess( objType, (Sharing) row[sharingFieldIndex] ) );
             return HQL_NULL;
         }
         if ( isPersistentReferenceField( property ) )
