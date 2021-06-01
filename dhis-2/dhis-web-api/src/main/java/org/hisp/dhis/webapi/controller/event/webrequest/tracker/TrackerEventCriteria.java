@@ -27,22 +27,22 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
+import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
+
 import java.util.Date;
 import java.util.Set;
 
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-
-import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
 /**
  * Class to hold EventController request parameters into a handy place
@@ -128,8 +128,7 @@ public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
     {
         /**
          * this enum names must be the same as
-         * org.hisp.dhis.tracker.domain.Event fields, just with different
-         * case
+         * org.hisp.dhis.tracker.domain.Event fields, just with different case
          *
          * example: org.hisp.dhis.tracker.domain.Event.updatedAtClient -->
          * UPDATED_AT_CLIENT
@@ -153,12 +152,10 @@ public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
     private enum LegacyDtoToEntityFieldTranslator implements EntityNameSupplier
     {
         /**
-         * this enum names must be the same as
-         * org.hisp.dhis.dxf2.events.Event fields, just with
-         * different case
+         * this enum names must be the same as org.hisp.dhis.dxf2.events.Event
+         * fields, just with different case
          *
-         * example: org.hisp.dhis.dxf2.events.Event.lastUpdated
-         * --> LAST_UPDATED
+         * example: org.hisp.dhis.dxf2.events.Event.lastUpdated --> LAST_UPDATED
          */
         EVENT( "uid" );
 

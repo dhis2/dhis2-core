@@ -27,22 +27,22 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
+import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
+
 import java.util.Date;
 import java.util.Set;
 
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.tracker.export.TrackerTrackedEntitiesExportController;
-
-import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
 /**
  * This class represent a container to hold parameters from new tracker GET
@@ -194,8 +194,9 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
     @Override
     public String translateField( String dtoFieldName, boolean isLegacy )
     {
-        return (isLegacy ? translate( dtoFieldName, TrackerTrackedEntityCriteria.LegacyDtoToEntityFieldTranslator.values() )
-                : translate( dtoFieldName, TrackerTrackedEntityCriteria.DtoToEntityFieldTranslator.values() ))
+        return (isLegacy
+            ? translate( dtoFieldName, TrackerTrackedEntityCriteria.LegacyDtoToEntityFieldTranslator.values() )
+            : translate( dtoFieldName, TrackerTrackedEntityCriteria.DtoToEntityFieldTranslator.values() ))
                 .orElse( dtoFieldName );
     }
 
@@ -208,11 +209,11 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
     {
         /**
          * this enum names must be the same as
-         * org.hisp.dhis.tracker.domain.TrackedEntity fields, just with different
-         * case
+         * org.hisp.dhis.tracker.domain.TrackedEntity fields, just with
+         * different case
          *
-         * example: org.hisp.dhis.tracker.domain.TrackedEntity.updatedAtClient -->
-         * UPDATED_AT_CLIENT
+         * example: org.hisp.dhis.tracker.domain.TrackedEntity.updatedAtClient
+         * --> UPDATED_AT_CLIENT
          */
         TRACKED_ENTITY( "trackedEntityInstance" ),
         CREATED_AT( "created" ),
