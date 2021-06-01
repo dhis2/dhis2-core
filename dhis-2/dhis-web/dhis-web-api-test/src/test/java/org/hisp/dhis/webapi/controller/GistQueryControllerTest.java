@@ -652,6 +652,13 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
             GET( "/organisationUnits/gist?fields=lastUpdatedBy" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
+    @Test
+    public void testGistObjectList_Field_UnknownPreset()
+    {
+        assertEquals( "Field not supported: `:unknown`",
+            GET( "/organisationUnits/gist?fields=:unknown" ).error( HttpStatus.CONFLICT ).getMessage() );
+    }
+
     private void createDataSetsForOrganisationUnit( int count, String organisationUnitId, String namePrefix )
     {
         for ( int i = 0; i < count; i++ )
