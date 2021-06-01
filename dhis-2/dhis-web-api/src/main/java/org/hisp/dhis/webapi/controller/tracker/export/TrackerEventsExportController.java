@@ -96,14 +96,6 @@ public class TrackerEventsExportController
 
     private final ProgramStageInstanceService programStageInstanceService;
 
-    private Schema schema;
-
-    @PostConstruct
-    void setupSchema()
-    {
-        schema = schemaService.getDynamicSchema( Event.class );
-    }
-
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public PagingWrapper<org.hisp.dhis.tracker.domain.Event> getEvents(
         TrackerEventCriteria eventCriteria, @RequestParam Map<String, String> parameters, HttpServletRequest request )
@@ -162,67 +154,6 @@ public class TrackerEventsExportController
         }
 
         return false;
-    }
-
-    private List<Order> getOrderParams( String order )
-    {
-        if ( order != null && !StringUtils.isEmpty( order ) )
-        {
-            OrderParams op = new OrderParams( Sets.newLinkedHashSet( Arrays.asList( order.split( "," ) ) ) );
-            return op.getOrders( schema );
-        }
-
-        return null;
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private Map<String, String> getDataElementsFromOrder( String allOrders )
-    {
-        Map<String, String> dataElements = new HashMap<>();
-
-        if ( allOrders != null )
-        {
-            for ( String order : TextUtils.splitToArray( allOrders, TextUtils.SEMICOLON ) )
-            {
-                String[] orderParts = order.split( ":" );
-                DataElement de = dataElementService.getDataElement( orderParts[0] );
-                if ( de != null )
-                {
-                    String direction = "asc";
-                    if ( orderParts.length == 2 && orderParts[1].equalsIgnoreCase( "desc" ) )
-                    {
-                        direction = "desc";
-                    }
-                    dataElements.put( de.getUid(), direction );
-                }
-            }
-        }
-        return dataElements;
-    }
-
-    private List<String> getGridOrderParams( String order, Map<String, String> dataElementOrders )
-    {
-        List<String> dataElementOrderList = new ArrayList<>();
-
-        if ( !StringUtils.isEmpty( order ) && dataElementOrders != null && dataElementOrders.size() > 0 )
-        {
-            String[] orders = order.split( ";" );
-
-            for ( String orderItem : orders )
-            {
-                String dataElementCandidate = orderItem.split( ":" )[0];
-                if ( dataElementOrders.containsKey( dataElementCandidate ) )
-                {
-                    dataElementOrderList
-                        .add( dataElementCandidate + ":" + dataElementOrders.get( dataElementCandidate ) );
-                }
-            }
-        }
-
-        return dataElementOrderList;
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET )

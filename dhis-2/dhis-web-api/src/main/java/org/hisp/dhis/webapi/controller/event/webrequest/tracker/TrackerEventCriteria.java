@@ -31,14 +31,18 @@ import java.util.Date;
 import java.util.Set;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+
+import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
 /**
  * Class to hold EventController request parameters into a handy place
@@ -105,5 +109,61 @@ public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
     public boolean isLegacy()
     {
         return false;
+    }
+
+    @Override
+    public String translateField( String dtoFieldName, boolean isLegacy )
+    {
+        return (isLegacy ? translate( dtoFieldName, TrackerEventCriteria.LegacyDtoToEntityFieldTranslator.values() )
+            : translate( dtoFieldName, TrackerEventCriteria.DtoToEntityFieldTranslator.values() ))
+                .orElse( dtoFieldName );
+    }
+
+    /**
+     * Dto to database field translator for new tracker Enrollment export
+     * controller
+     */
+    @RequiredArgsConstructor
+    private enum DtoToEntityFieldTranslator implements EntityNameSupplier
+    {
+        /**
+         * this enum names must be the same as
+         * org.hisp.dhis.tracker.domain.Event fields, just with different
+         * case
+         *
+         * example: org.hisp.dhis.tracker.domain.Event.updatedAtClient -->
+         * UPDATED_AT_CLIENT
+         */
+        OCCURRED_AT( "eventDate" ),
+        SCHEDULED_AT( "dueDate" ),
+        CREATED_AT( "created" ),
+        UPDATED_AT( "lastUpdated" ),
+        COMPLETED_AT( "completedDate" );
+
+        @Getter
+        private final String entityName;
+
+    }
+
+    /**
+     * Dto to database field translator for old tracker Enrollment export
+     * controller
+     */
+    @RequiredArgsConstructor
+    private enum LegacyDtoToEntityFieldTranslator implements EntityNameSupplier
+    {
+        /**
+         * this enum names must be the same as
+         * org.hisp.dhis.dxf2.events.Event fields, just with
+         * different case
+         *
+         * example: org.hisp.dhis.dxf2.events.Event.lastUpdated
+         * --> LAST_UPDATED
+         */
+        EVENT( "uid" );
+
+        @Getter
+        private final String entityName;
+
     }
 }
