@@ -30,25 +30,29 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -60,18 +64,41 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import com.google.api.client.util.Maps;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 /**
  * @author Enrico Colasante
  */
-public class PreCheckDataRelationsValidationHookTest
+public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 {
+    private static final String PROGRAM_WITHOUT_REGISTRATION_ID = "PROGRAM_WITHOUT_REGISTRATION_ID";
+
+    private static final String PROGRAM_WITH_REGISTRATION_ID = "PROGRAM_WITH_REGISTRATION_ID";
+
+    private static final String PROGRAM_STAGE_ID = "PROGRAM_STAGE_ID";
+
+    private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
+
+    private static final String ANOTHER_ORG_UNIT_ID = "ANOTHER_ORG_UNIT_ID";
+
+    private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
+
+    private static final String TEI_ID = "TEI_ID";
+
+    private static final String ANOTHER_TEI_TYPE_ID = "ANOTHER_TEI_TYPE_ID";
+
+    private static final String ANOTHER_TEI_ID = "ANOTHER_TEI_ID";
+
+    private static final String ENROLLMENT_ID = "ENROLLMENT_ID";
+
+    private static final String ANOTHER_ENROLLMENT_ID = "ANOTHER_ENROLLMENT_ID";
+
     private PreCheckDataRelationsValidationHook validatorToTest;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Mock
-    private ProgramInstanceService programInstanceService;
 
     @Mock
     private CategoryService categoryService;
@@ -79,8 +106,10 @@ public class PreCheckDataRelationsValidationHookTest
     @Mock
     private TrackerImportValidationContext ctx;
 
-    @Mock
     private TrackerBundle bundle;
+
+    @Mock
+    private TrackerPreheat preheat;
 
     private ValidationErrorReporter reporter;
 
@@ -88,9 +117,270 @@ public class PreCheckDataRelationsValidationHookTest
     public void setUp()
     {
         validatorToTest = new PreCheckDataRelationsValidationHook( categoryService );
+        bundle = TrackerBundle.builder().preheat( preheat ).build();
 
         when( ctx.getBundle() ).thenReturn( bundle );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
+
+        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        organisationUnit.setUid( ORG_UNIT_ID );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+
+        OrganisationUnit anotherOrganisationUnit = createOrganisationUnit( 'B' );
+        anotherOrganisationUnit.setUid( ANOTHER_ORG_UNIT_ID );
+        when( ctx.getOrganisationUnit( ANOTHER_ORG_UNIT_ID ) ).thenReturn( anotherOrganisationUnit );
+
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityType.setUid( TEI_TYPE_ID );
+        when( ctx.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
+
+        TrackedEntityType anotherTrackedEntityType = createTrackedEntityType( 'B' );
+        anotherTrackedEntityType.setUid( ANOTHER_TEI_TYPE_ID );
+        when( ctx.getTrackedEntityType( ANOTHER_TEI_TYPE_ID ) ).thenReturn( anotherTrackedEntityType );
+
+        Program programWithoutRegistration = createProgram( 'A' );
+        programWithoutRegistration.setUid( PROGRAM_WITHOUT_REGISTRATION_ID );
+        programWithoutRegistration.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        programWithoutRegistration.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        programWithoutRegistration.setTrackedEntityType( trackedEntityType );
+        when( ctx.getProgram( PROGRAM_WITHOUT_REGISTRATION_ID ) ).thenReturn( programWithoutRegistration );
+
+        Program programWithRegistration = createProgram( 'B' );
+        programWithRegistration.setUid( PROGRAM_WITH_REGISTRATION_ID );
+        programWithRegistration.setProgramType( ProgramType.WITH_REGISTRATION );
+        programWithRegistration.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        programWithRegistration.setTrackedEntityType( trackedEntityType );
+        when( ctx.getProgram( PROGRAM_WITH_REGISTRATION_ID ) ).thenReturn( programWithRegistration );
+
+        TrackedEntityInstance trackedEntity = createTrackedEntityInstance( organisationUnit );
+        trackedEntity.setUid( TEI_ID );
+        trackedEntity.setTrackedEntityType( trackedEntityType );
+
+        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( trackedEntity );
+
+        TrackedEntityInstance anotherTrackedEntity = createTrackedEntityInstance( organisationUnit );
+        anotherTrackedEntity.setUid( ANOTHER_TEI_ID );
+        anotherTrackedEntity.setTrackedEntityType( anotherTrackedEntityType );
+
+        when( ctx.getTrackedEntityInstance( ANOTHER_TEI_ID ) ).thenReturn( anotherTrackedEntity );
+
+        Map<String, List<String>> programWithOrgUnits = Maps.newHashMap();
+        programWithOrgUnits.put( PROGRAM_WITH_REGISTRATION_ID, Lists.newArrayList( ORG_UNIT_ID ) );
+
+        when( ctx.getProgramWithOrgUnitsMap() ).thenReturn( programWithOrgUnits );
+
+        ProgramStage programStage = createProgramStage( 'A', programWithRegistration );
+        programStage.setUid( PROGRAM_STAGE_ID );
+        when( ctx.getProgramStage( PROGRAM_STAGE_ID ) ).thenReturn( programStage );
+
+        ProgramInstance programInstance = new ProgramInstance();
+        programInstance.setUid( ENROLLMENT_ID );
+        programInstance.setProgram( programWithRegistration );
+        when( ctx.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( programInstance );
+
+        ProgramInstance anotherProgramInstance = new ProgramInstance();
+        anotherProgramInstance.setUid( ANOTHER_ENROLLMENT_ID );
+        anotherProgramInstance.setProgram( programWithoutRegistration );
+        when( ctx.getProgramInstance( ANOTHER_ENROLLMENT_ID ) ).thenReturn( anotherProgramInstance );
+
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( createCategoryOptionCombo( 'A' ) );
+    }
+
+    @Test
+    public void verifyValidationSuccessForEnrollment()
+    {
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntity( TEI_ID )
+            .build();
+
+        reporter = new ValidationErrorReporter( ctx, enrollment );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        assertFalse( reporter.hasErrors() );
+    }
+
+    @Test
+    public void verifyValidationFailsWhenEnrollmentIsNotARegistration()
+    {
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .trackedEntity( TEI_ID )
+            .program( PROGRAM_WITHOUT_REGISTRATION_ID )
+            .orgUnit( ORG_UNIT_ID )
+            .build();
+
+        reporter = new ValidationErrorReporter( ctx, enrollment );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        assertTrue( reporter.hasErrors() );
+        assertEquals( TrackerErrorCode.E1014, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
+    {
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .trackedEntity( TEI_ID )
+            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .orgUnit( ANOTHER_ORG_UNIT_ID )
+            .build();
+
+        reporter = new ValidationErrorReporter( ctx, enrollment );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        assertTrue( reporter.hasErrors() );
+        assertEquals( TrackerErrorCode.E1041, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
+    {
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntity( ANOTHER_TEI_ID )
+            .build();
+
+        reporter = new ValidationErrorReporter( ctx, enrollment );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        assertTrue( reporter.hasErrors() );
+        assertEquals( TrackerErrorCode.E1022, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
+    {
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntity( ANOTHER_TEI_ID )
+            .build();
+
+        reporter = new ValidationErrorReporter( ctx, enrollment );
+
+        when( ctx.getTrackedEntityInstance( ANOTHER_TEI_ID ) ).thenReturn( null );
+
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntity( ANOTHER_TEI_ID )
+            .trackedEntityType( ANOTHER_TEI_TYPE_ID )
+            .build();
+
+        bundle.setTrackedEntities( Lists.newArrayList( trackedEntity ) );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        assertTrue( reporter.hasErrors() );
+        assertEquals( TrackerErrorCode.E1022, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void verifyValidationSuccessForEvent()
+    {
+        Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
+            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .programStage( PROGRAM_STAGE_ID )
+            .orgUnit( ORG_UNIT_ID )
+            .enrollment( ENROLLMENT_ID )
+            .build();
+
+        reporter = new ValidationErrorReporter( ctx, event );
+
+        validatorToTest.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+    }
+
+    @Test
+    public void verifyValidationFailsWhenEventAndProgramStageProgramDontMatch()
+    {
+        Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
+            .program( PROGRAM_WITHOUT_REGISTRATION_ID )
+            .programStage( PROGRAM_STAGE_ID )
+            .orgUnit( ANOTHER_ORG_UNIT_ID )
+            .build();
+
+        reporter = new ValidationErrorReporter( ctx, event );
+
+        validatorToTest.validateEvent( reporter, event );
+
+        assertTrue( reporter.hasErrors() );
+        assertThat(
+            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            hasItem( TrackerErrorCode.E1089 ) );
+    }
+
+    @Test
+    public void verifyValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing()
+    {
+        Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
+            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .programStage( PROGRAM_STAGE_ID )
+            .orgUnit( ORG_UNIT_ID )
+            .build();
+
+        reporter = new ValidationErrorReporter( ctx, event );
+
+        validatorToTest.validateEvent( reporter, event );
+
+        assertTrue( reporter.hasErrors() );
+        assertThat(
+            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            hasItem( TrackerErrorCode.E1033 ) );
+    }
+
+    @Test
+    public void verifyValidationFailsWhenEventAndEnrollmentProgramDontMatch()
+    {
+        Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
+            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .programStage( PROGRAM_STAGE_ID )
+            .orgUnit( ORG_UNIT_ID )
+            .enrollment( ANOTHER_ENROLLMENT_ID )
+            .build();
+
+        reporter = new ValidationErrorReporter( ctx, event );
+
+        validatorToTest.validateEvent( reporter, event );
+
+        assertTrue( reporter.hasErrors() );
+        assertThat(
+            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            hasItem( TrackerErrorCode.E1079 ) );
+    }
+
+    @Test
+    public void verifyValidationFailsWhenEventAndProgramOrganisationUnitDontMatch()
+    {
+        Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
+            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .programStage( PROGRAM_STAGE_ID )
+            .orgUnit( ANOTHER_ORG_UNIT_ID )
+            .enrollment( ENROLLMENT_ID )
+            .build();
+
+        reporter = new ValidationErrorReporter( ctx, event );
+
+        validatorToTest.validateEvent( reporter, event );
+
+        assertTrue( reporter.hasErrors() );
+        assertThat(
+            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            hasItem( TrackerErrorCode.E1029 ) );
     }
 
     @Test
