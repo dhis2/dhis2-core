@@ -211,6 +211,15 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    public void testGistPropertyList_PagerWithTotal_CountQueryNonExistingPage()
+    {
+        JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users&total=true&page=6",
+            getSuperuserUid() ).content();
+
+        assertHasPager( gist, 6, 50, 1 );
+    }
+
+    @Test
     public void testGistPropertyList_PagerWithTotal_CountQuery()
     {
         // create some members we can count a total for
@@ -632,6 +641,15 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     {
         assertEquals( "Property `userGroup` cannot be used as order property.",
             GET( "/users/gist?order=userGroups" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Field_NoAccess()
+    {
+        switchToNewUser( "guest-with-no-rights" );
+        assertEquals(
+            "Property `lastUpdatedBy` is not readable as user is not allowed to view objects of type class org.hisp.dhis.user.User",
+            GET( "/organisationUnits/gist?fields=lastUpdatedBy" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
     private void createDataSetsForOrganisationUnit( int count, String organisationUnitId, String namePrefix )
