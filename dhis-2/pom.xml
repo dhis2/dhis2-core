@@ -35,7 +35,6 @@
     <module>dhis-support</module>
     <module>dhis-web-api</module>
     <module>dhis-web-embedded-jetty</module>
-    <module>dhis-support/dhis-support-test-json</module>
   </modules>
 
   <properties>
