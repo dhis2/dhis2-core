@@ -184,8 +184,15 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void createTable( AnalyticsTable table )
     {
-        createTempTable( table );
-        createTempTablePartitions( table );
+        if ( getPartitionColumn() != null )
+        {
+            createPartitionTableWithPartitions( table );
+        }
+        else
+        {
+            createNonPartitionedAnalyticsTable( table );
+        }
+
     }
 
     @Override
@@ -226,19 +233,25 @@ public abstract class AbstractJdbcTableManager
 
         log.info( String.format( "Swapping table, master table exists: %b, skip master table: %b", tableExists,
             skipMasterTable ) );
-
-        table.getTablePartitions().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
-
-        if ( !skipMasterTable )
+        if ( getPartitionColumn() != null )
         {
-            swapTable( table.getTempTableName(), table.getTableName() );
+            table.getTablePartitions().forEach( p -> swapTable( table, p ) );
         }
         else
         {
-            table.getTablePartitions().stream()
-                .forEach( p -> swapInheritance( p.getTableName(), table.getTempTableName(), table.getTableName() ) );
-            dropTempTable( table );
+            swapTable( table );
         }
+        // if ( !skipMasterTable )
+        // {
+        // swapTable( null, table.getTempTableName(), table.getTableName() );
+        // }
+        // else
+        // {
+        // table.getTablePartitions().stream()
+        // .forEach( p -> swapInheritance( p.getTableName(),
+        // table.getTempTableName(), table.getTableName() ) );
+        // dropTempTable( table );
+        // }
     }
 
     @Override
@@ -310,6 +323,13 @@ public abstract class AbstractJdbcTableManager
     protected abstract List<String> getPartitionChecks( AnalyticsTablePartition partition );
 
     /**
+     * Returns a list of table checks (constraints) for the given analytics
+     * table partition.
+     *
+     */
+    protected abstract String getPartitionColumn();
+
+    /**
      * Populates the given analytics table.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
@@ -372,7 +392,7 @@ public abstract class AbstractJdbcTableManager
         }
         catch ( BadSqlGrammarException ex )
         {
-            log.debug( ex.getMessage() );
+            log.info( ex.getMessage() );
         }
     }
 
@@ -381,28 +401,45 @@ public abstract class AbstractJdbcTableManager
      *
      * @param table the {@link AnalyticsTable}.
      */
-    protected void createTempTable( AnalyticsTable table )
+    private void createPartitionTableWithPartitions( AnalyticsTable table )
     {
-        validateDimensionColumns( table.getDimensionColumns() );
+        createAnalyticsTable( table );
+        table.getTablePartitions().forEach( p -> createAnalyticsTable( table, p ) );
+    }
 
-        final String tableName = table.getTempTableName();
+    private void createNonPartitionedAnalyticsTable( AnalyticsTable table )
+    {
+        String tableName = table.getTableName();
+        String tempTableName = table.getTempTableName();
 
         String sqlCreate = "create table " + tableName + " (";
+        String sqlCreateTemp = "create table " + tempTableName + " (";
 
-        for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
-        {
-            String notNull = col.getNotNull().isNotNull() ? " not null" : "";
+        String columns = ListUtils.union( table.getDimensionColumns(), table.getValueColumns() )
+            .stream()
+            .map( col -> {
+                String notNull = col.getNotNull().isNotNull() ? " not null" : "";
+                return col.getName() + " " + col.getDataType().getValue() + notNull;
+            } )
+            .collect( Collectors.joining( "," ) ) + ")";
+        // for ( AnalyticsTableColumn col : ListUtils.union(
+        // table.getDimensionColumns(), table.getValueColumns() ) )
+        // {
+        // String notNull = col.getNotNull().isNotNull() ? " not null" : "";
+        // columns = columns + col.getName() + " " +
+        // col.getDataType().getValue() + notNull + ",";
+        // }
+        sqlCreate = sqlCreate + columns;
+        sqlCreateTemp = sqlCreateTemp + columns;
 
-            sqlCreate += col.getName() + " " + col.getDataType().getValue() + notNull + ",";
-        }
+        log.info( String.format( "Creating non partitioned analytic table: %s", tableName ) );
 
-        sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ") " + getTableOptions();
-
-        log.info( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );
-
-        log.info( "Createdddddd SQL: " + sqlCreate );
-
+        log.info( "Create SQL: " + sqlCreate );
         jdbcTemplate.execute( sqlCreate );
+
+        log.info( "CreateTemp SQL: " + sqlCreateTemp );
+        jdbcTemplate.execute( sqlCreateTemp );
+
     }
 
     /**
@@ -637,13 +674,38 @@ public abstract class AbstractJdbcTableManager
      * Swaps a database table, meaning drops the real table and renames the
      * temporary table to become the real table.
      *
-     * @param tempTableName the temporary table name.
-     * @param realTableName the real table name.
+     * @param mainTable the partition table.
+     * @param tablePartition the partition.
      */
-    private void swapTable( String tempTableName, String realTableName )
+    private void swapTable( AnalyticsTable mainTable, AnalyticsTablePartition tablePartition )
     {
-        final String sql = "drop table if exists " + realTableName + " cascade; " +
-            "alter table " + tempTableName + " rename to " + realTableName + ";";
+        String mainTableName = mainTable.getTableName();
+        String realTableName = tablePartition.getTableName();
+        String tempTableName = tablePartition.getTempTableName();
+
+        final String sql = "alter table " + mainTableName + " detach partition " + realTableName + "; " +
+            " drop table " + realTableName + " cascade; alter table " + tempTableName + " rename to " + realTableName
+            + "; " +
+            "alter table " + mainTableName + " attach partition " + realTableName + " for values in ("
+            + tablePartition.getYear() + ");";
+        log.info( sql );
+        executeSilently( sql );
+
+        // alter table analytics_db detach partition analytics_db_2020;
+        // drop table if exists analytics_db_2020 cascade; alter table
+        // analytics_db_2020_temp rename to analytics_db_2020;
+        // alter table analytics_db attach partition analytics_db_2020 for
+        // values in (2020);
+
+    }
+
+    private void swapTable( AnalyticsTable mainTable )
+    {
+        String mainTableName = mainTable.getTableName();
+        String tempTableName = mainTable.getTempTableName();
+
+        final String sql = "drop table if exists " + mainTableName + " cascade; alter table " + tempTableName
+            + " rename to " + mainTableName;
         log.info( sql );
         executeSilently( sql );
     }
@@ -662,5 +724,52 @@ public abstract class AbstractJdbcTableManager
             "alter table " + partitionTableName + " no inherit " + tempMasterTableName + ";";
         log.info( sql );
         executeSilently( sql );
+    }
+
+    private void createAnalyticsTable( AnalyticsTable table )
+    {
+        createAnalyticsTable( table, null );
+    }
+
+    private void createAnalyticsTable( AnalyticsTable table, AnalyticsTablePartition partition )
+    {
+        if ( partition != null )
+        {
+            String partitionColumn = getPartitionColumn();
+
+            String attachPartitionSql = "create table " + partition.getTableName() + " partition of " +
+                table.getTableName() + " for values in " + "(" + partition.getYear() + ")";
+
+            log.info( String.format( "Creating table: %s, columns: %d", partition.getTableName(),
+                table.getDimensionColumns().size() ) );
+
+            log.info( "*******************Attach Partition SQL: " + attachPartitionSql );
+
+            jdbcTemplate.execute( attachPartitionSql );
+        }
+
+        String tableName = partition == null ? table.getTableName() : partition.getTempTableName();
+        String sqlCreate = "create table " + tableName + " (";
+        for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
+        {
+            String notNull = col.getNotNull().isNotNull() ? " not null" : "";
+
+            sqlCreate += col.getName() + " " + col.getDataType().getValue() + notNull + ",";
+        }
+
+        sqlCreate = TextUtils.removeLastComma( sqlCreate ) + ")";
+
+        if ( partition == null && getPartitionColumn() != null )
+        {
+            String partitionColumn = getPartitionColumn();
+            sqlCreate += " partition by list(\"" + partitionColumn + "\")";
+        }
+
+        log.info( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );
+
+        log.info( "*******************Created SQL: " + sqlCreate );
+
+        jdbcTemplate.execute( sqlCreate );
+
     }
 }
