@@ -39,8 +39,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
@@ -65,7 +63,7 @@ import org.springframework.scheduling.annotation.Async;
 /**
  * @author Markus Bekken
  */
-@Slf4j
+
 public abstract class AbstractEventJdbcTableManager
     extends AbstractJdbcTableManager
 {
@@ -210,7 +208,6 @@ public abstract class AbstractEventJdbcTableManager
 
         sql += fromClause;
 
-        log.info( sql );
         invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 
