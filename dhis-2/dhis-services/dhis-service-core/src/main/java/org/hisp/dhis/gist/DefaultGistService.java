@@ -127,8 +127,10 @@ public class DefaultGistService implements GistService
         Integer total = null;
         if ( query.isTotal() )
         {
-            if ( rows.size() < query.getPageSize() )
+            if ( rows.size() < query.getPageSize() && !rows.isEmpty() )
             {
+                // NB. only do this when rows are returned as otherwise the page
+                // simply might not exist which leads to zero rows
                 total = query.getPageOffset() + rows.size();
             }
             else

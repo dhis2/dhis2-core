@@ -47,9 +47,13 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.Property;
@@ -63,6 +67,7 @@ import org.hisp.dhis.schema.annotation.Gist.Transform;
  *
  * @author Jan Bernitt
  */
+@Slf4j
 @AllArgsConstructor
 class GistPlanner
 {
@@ -300,7 +305,7 @@ class GistPlanner
         {
             return p -> p.isPersisted() && p.isOwner();
         }
-        throw new UnsupportedOperationException();
+        throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2038, path ) );
     }
 
     private Predicate<Property> getPresetFilter( Class<?> api )

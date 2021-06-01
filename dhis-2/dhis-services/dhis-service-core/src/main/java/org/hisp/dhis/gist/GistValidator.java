@@ -229,7 +229,7 @@ final class GistValidator
 
     private ReadAccessDeniedException createNoReadAccess( Property field )
     {
-        if ( field.isReadable() )
+        if ( !field.isReadable() )
         {
             return new ReadAccessDeniedException( String.format( "Property `%s` is not readable.", field.getName() ) );
         }
