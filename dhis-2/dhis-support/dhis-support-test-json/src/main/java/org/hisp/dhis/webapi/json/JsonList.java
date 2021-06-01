@@ -36,10 +36,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import javax.annotation.Nonnull;
-
-import com.google.common.collect.Iterators;
-
 /**
  * A {@link JsonList} is nothing else then a {@link JsonArray} with "typed"
  * uniform elements.
@@ -61,7 +57,6 @@ public interface JsonList<E extends JsonValue> extends JsonCollection, Iterable<
     E get( int index );
 
     @Override
-    @Nonnull
     default Iterator<E> iterator()
     {
         int size = size();
@@ -90,7 +85,7 @@ public interface JsonList<E extends JsonValue> extends JsonCollection, Iterable<
 
     default Iterable<E> filtered( Predicate<? super E> filter )
     {
-        return () -> Iterators.filter( iterator(), filter::test );
+        return stream().filter( filter ).collect( Collectors.toList() );
     }
 
     /**
