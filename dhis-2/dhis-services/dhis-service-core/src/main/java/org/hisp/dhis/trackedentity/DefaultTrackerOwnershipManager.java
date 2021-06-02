@@ -62,8 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service( "org.hisp.dhis.trackedentity.TrackerOwnershipManager" )
-public class DefaultTrackerOwnershipManager
-    implements TrackerOwnershipManager
+public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 {
     private static final int TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS = 3;
 
@@ -330,6 +329,7 @@ public class DefaultTrackerOwnershipManager
         }
     }
 
+    @Override
     public boolean canSkipOwnershipCheck( User user, Program program )
     {
         return user == null || user.isSuper() || program == null || program.isWithoutRegistration();
