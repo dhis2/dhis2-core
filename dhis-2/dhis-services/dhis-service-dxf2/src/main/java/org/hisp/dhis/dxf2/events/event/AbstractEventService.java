@@ -313,9 +313,12 @@ public abstract class AbstractEventService implements EventService
 
         for ( Event event : eventList )
         {
-            if ( trackerOwnershipAccessManager.hasAccess( user,
-                entityInstanceService.getTrackedEntityInstance( event.getTrackedEntityInstance() ),
-                programService.getProgram( event.getProgram() ) ) )
+            Program program = programService.getProgram( event.getProgram() );
+            boolean canSkipCheckForProgram = trackerOwnershipAccessManager.canSkipOwnershipCheck( user, program );
+
+            if ( canSkipCheckForProgram ||
+                trackerOwnershipAccessManager.hasAccess( user,
+                    entityInstanceService.getTrackedEntityInstance( event.getTrackedEntityInstance() ), program ) )
             {
                 events.getEvents().add( event );
             }
