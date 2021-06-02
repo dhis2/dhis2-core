@@ -117,7 +117,7 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
 
         return ProgramRuleActionValidationResult.builder().valid( false )
             .errorReport(
-                new ErrorReport( ProgramRuleAction.class, ErrorCode.E4052, ruleAction.getProgramRuleActionType().name(),
+                new ErrorReport( ProgramRuleAction.class, ErrorCode.E4033, ruleAction.getProgramRuleActionType().name(),
                     validationContext.getProgramRule().getName() ) )
             .build();
     }
