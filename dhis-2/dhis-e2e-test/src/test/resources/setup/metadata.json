@@ -3483,6 +3483,31 @@
       "translations": []
     }
   ],
+  "categoryOptions": [
+    {
+      "created": "2021-06-02T15:43:13.212",
+      "lastUpdated": "2021-06-02T15:43:13.212",
+      "name": "category option A",
+      "id": "fjvZIRlTBrp",
+      "sharing": {
+        "owner": "GOLswS44mh8",
+        "external": false,
+        "users": {},
+        "userGroups": {},
+        "public": "rw------"
+      },
+      "attributeValues": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "g8upMTyEZGZ"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ]
+    }
+  ],
   "categoryCombos": [
     {
       "code": "default",
