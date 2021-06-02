@@ -224,8 +224,10 @@ public interface CategoryService
 
     /**
      * returns associations between categoryOptions and orgUnits
+     *
      * @param categoryOptionsUids a list of categoryOption uids
-     * @return an IdentifiableObjectAssociations representing associations betweeb each categoryOption in input and orgUnits
+     * @return an IdentifiableObjectAssociations representing associations
+     *         between each categoryOption in input and orgUnits
      */
     IdentifiableObjectAssociations getCategoryOptionOrganisationUnitsAssociations( Set<String> categoryOptionsUids );
 
