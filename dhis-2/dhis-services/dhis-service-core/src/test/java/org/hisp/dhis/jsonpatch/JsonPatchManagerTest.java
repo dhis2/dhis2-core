@@ -82,11 +82,10 @@ public class JsonPatchManagerTest
     }
 
     @Test
-    public void testSimpleAddPatchAddPersist()
+    public void testSimpleAddPatch()
         throws Exception
     {
         Constant constant = createConstant( 'A', 1.0d );
-        manager.save( constant );
 
         assertEquals( "ConstantA", constant.getName() );
         assertEquals( 1.0d, constant.getValue(), 0 );
@@ -100,7 +99,6 @@ public class JsonPatchManagerTest
 
         Constant patchedConstant = jsonPatchManager.apply( patch, constant );
         patchedConstant.setUid( CodeGenerator.generateUid() );
-        manager.save( patchedConstant );
 
         assertEquals( "ConstantA", constant.getName() );
         assertEquals( 1.0d, constant.getValue(), 0 );
