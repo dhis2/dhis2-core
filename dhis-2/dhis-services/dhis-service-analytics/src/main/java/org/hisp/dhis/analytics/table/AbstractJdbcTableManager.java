@@ -398,9 +398,9 @@ public abstract class AbstractJdbcTableManager
     {
         String tableName = table.getTableName();
         String tempTableName = table.getTempTableName();
-
-        String sqlCreate = "create table if not exists " + tableName + " (";
-        String sqlCreateTemp = "create table if not exists " + tempTableName + " (";
+        final String CREATE_TABLE = "create table if not exists ";
+        String sqlCreate = CREATE_TABLE + tableName + " (";
+        String sqlCreateTemp = CREATE_TABLE + tempTableName + " (";
 
         String columns = ListUtils.union( table.getDimensionColumns(), table.getValueColumns() )
             .stream()
@@ -409,6 +409,7 @@ public abstract class AbstractJdbcTableManager
                 return col.getName() + " " + col.getDataType().getValue() + notNull;
             } )
             .collect( Collectors.joining( "," ) ) + ")";
+
         sqlCreate = sqlCreate + columns;
         sqlCreateTemp = sqlCreateTemp + columns;
 
@@ -419,7 +420,6 @@ public abstract class AbstractJdbcTableManager
 
         log.debug( "CreateTemp SQL: " + sqlCreateTemp );
         jdbcTemplate.execute( sqlCreateTemp );
-
     }
 
     /**
@@ -624,12 +624,14 @@ public abstract class AbstractJdbcTableManager
         String realTableName = tablePartition.getTableName();
         String tempTableName = tablePartition.getTempTableName();
 
-        final String sql = "alter table " + mainTableName + " detach partition " + realTableName + "; " +
-            " drop table " + realTableName + " cascade; alter table " + tempTableName + " rename to " + realTableName
-            + "; " +
-            "alter table " + mainTableName + " attach partition " + realTableName + " for values in ("
-            + tablePartition.getYear() + ");";
-
+        final String[] sqlSteps = {
+            " alter table " + mainTableName + " detach partition " + realTableName,
+            " drop table " + realTableName + " cascade",
+            " alter table " + tempTableName + " rename to " + realTableName,
+            " alter table " + mainTableName + " attach partition " + realTableName
+                + " for values in (" + tablePartition.getYear() + ")"
+        };
+        final String sql = String.join( ";", sqlSteps ) + ";";
         log.debug( sql );
         executeSilently( sql );
     }
@@ -639,8 +641,11 @@ public abstract class AbstractJdbcTableManager
         String mainTableName = mainTable.getTableName();
         String tempTableName = mainTable.getTempTableName();
 
-        final String sql = "drop table if exists " + mainTableName + " cascade; alter table " + tempTableName
-            + " rename to " + mainTableName;
+        final String[] sqlSteps = {
+            " drop table if exists " + mainTableName + " cascade",
+            " alter table " + tempTableName + " rename to " + mainTableName
+        };
+        final String sql = String.join( ";", sqlSteps ) + ";";
         log.debug( sql );
         executeSilently( sql );
     }
@@ -660,7 +665,7 @@ public abstract class AbstractJdbcTableManager
             log.debug( String.format( "Creating table: %s, columns: %d", partition.getTableName(),
                 table.getDimensionColumns().size() ) );
 
-            log.debug( "*******************Attach Partition SQL: " + attachPartitionSql );
+            log.debug( "Attach Partition SQL: " + attachPartitionSql );
 
             jdbcTemplate.execute( attachPartitionSql );
         }
@@ -684,7 +689,7 @@ public abstract class AbstractJdbcTableManager
 
         log.debug( String.format( "Creating table: %s, columns: %d", tableName, table.getDimensionColumns().size() ) );
 
-        log.debug( "*******************Created SQL: " + sqlCreate );
+        log.debug( "Created SQL: " + sqlCreate );
 
         jdbcTemplate.execute( sqlCreate );
 
