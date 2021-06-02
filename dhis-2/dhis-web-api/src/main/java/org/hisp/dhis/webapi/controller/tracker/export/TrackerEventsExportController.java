@@ -30,22 +30,14 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
@@ -54,8 +46,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.domain.mapper.EventMapper;
 import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
@@ -73,7 +63,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + TrackerEventsExportController.EVENTS )
@@ -95,14 +84,6 @@ public class TrackerEventsExportController
     private final SchemaService schemaService;
 
     private final ProgramStageInstanceService programStageInstanceService;
-
-    private Schema schema;
-
-    @PostConstruct
-    void setupSchema()
-    {
-        schema = schemaService.getDynamicSchema( Event.class );
-    }
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public PagingWrapper<org.hisp.dhis.tracker.domain.Event> getEvents(
@@ -162,67 +143,6 @@ public class TrackerEventsExportController
         }
 
         return false;
-    }
-
-    private List<Order> getOrderParams( String order )
-    {
-        if ( order != null && !StringUtils.isEmpty( order ) )
-        {
-            OrderParams op = new OrderParams( Sets.newLinkedHashSet( Arrays.asList( order.split( "," ) ) ) );
-            return op.getOrders( schema );
-        }
-
-        return null;
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private Map<String, String> getDataElementsFromOrder( String allOrders )
-    {
-        Map<String, String> dataElements = new HashMap<>();
-
-        if ( allOrders != null )
-        {
-            for ( String order : TextUtils.splitToArray( allOrders, TextUtils.SEMICOLON ) )
-            {
-                String[] orderParts = order.split( ":" );
-                DataElement de = dataElementService.getDataElement( orderParts[0] );
-                if ( de != null )
-                {
-                    String direction = "asc";
-                    if ( orderParts.length == 2 && orderParts[1].equalsIgnoreCase( "desc" ) )
-                    {
-                        direction = "desc";
-                    }
-                    dataElements.put( de.getUid(), direction );
-                }
-            }
-        }
-        return dataElements;
-    }
-
-    private List<String> getGridOrderParams( String order, Map<String, String> dataElementOrders )
-    {
-        List<String> dataElementOrderList = new ArrayList<>();
-
-        if ( !StringUtils.isEmpty( order ) && dataElementOrders != null && dataElementOrders.size() > 0 )
-        {
-            String[] orders = order.split( ";" );
-
-            for ( String orderItem : orders )
-            {
-                String dataElementCandidate = orderItem.split( ":" )[0];
-                if ( dataElementOrders.containsKey( dataElementCandidate ) )
-                {
-                    dataElementOrderList
-                        .add( dataElementCandidate + ":" + dataElementOrders.get( dataElementCandidate ) );
-                }
-            }
-        }
-
-        return dataElementOrderList;
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
