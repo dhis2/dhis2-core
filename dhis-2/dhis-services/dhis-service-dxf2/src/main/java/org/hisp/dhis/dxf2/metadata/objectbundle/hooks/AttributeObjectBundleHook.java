@@ -50,7 +50,7 @@ public class AttributeObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
     {
-        if ( !Attribute.class.isInstance( persistedObject ) )
+        if ( !(persistedObject instanceof Attribute) )
         {
             return;
         }

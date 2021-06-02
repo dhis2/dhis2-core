@@ -33,8 +33,6 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
@@ -51,7 +49,6 @@ import com.google.common.base.MoreObjects;
  */
 
 @Component
-@Slf4j
 public class DhisOidcProviderRepository
     implements ClientRegistrationRepository
 {

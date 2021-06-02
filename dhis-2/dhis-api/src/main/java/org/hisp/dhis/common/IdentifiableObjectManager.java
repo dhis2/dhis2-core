@@ -109,6 +109,9 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
 
+    <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> classes,
+        Collection<String> uids );
+
     <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids );
 
     <T extends IdentifiableObject> List<T> getOrdered( Class<T> clazz, IdScheme idScheme, Collection<String> values );
@@ -179,13 +182,16 @@ public interface IdentifiableObjectManager
 
     void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations );
 
-    <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
-
     <T extends IdentifiableObject> List<T> getNoAcl( Class<T> clazz, Collection<String> uids );
 
     boolean isDefault( IdentifiableObject object );
 
     List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> klass, Date date );
+
+    /**
+     * Remove given UserGroup UID from all sharing records in database
+     */
+    void removeUserGroupFromSharing( String userGroupUid );
 
     // -------------------------------------------------------------------------
     // NO ACL

@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -43,10 +42,9 @@ public class DataElementObjectBundleHook
     extends AbstractObjectBundleHook
 {
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errors = new ArrayList<>();
-
         if ( object != null && object.getClass().isInstance( DataElement.class ) )
         {
             DataElement dataElement = (DataElement) object;
@@ -59,13 +57,11 @@ public class DataElementObjectBundleHook
                 }
                 catch ( TextPatternParser.TextPatternParsingException ex )
                 {
-                    errors.add( new ErrorReport( DataElement.class, ErrorCode.E4019, dataElement.getFieldMask(),
+                    addReports.accept( new ErrorReport( DataElement.class, ErrorCode.E4019, dataElement.getFieldMask(),
                         "Not a valid TextPattern 'TEXT' segment" ) );
                 }
             }
 
         }
-
-        return errors;
     }
 }

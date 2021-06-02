@@ -144,7 +144,7 @@ public class AssignValueImplementerTest
         when( preheat.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( preheat.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
 
-        bundle = new TrackerBundle();
+        bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
 
         when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )

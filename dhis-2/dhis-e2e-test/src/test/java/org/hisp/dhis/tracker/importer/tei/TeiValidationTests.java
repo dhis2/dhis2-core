@@ -54,8 +54,6 @@ public class TeiValidationTests
 
     private String program;
 
-    private String programStageId;
-
     private String mandatoryTetAttribute;
 
     private String mandatoryProgramAttribute;
@@ -284,7 +282,6 @@ public class TeiValidationTests
         program = programActions.createTrackerProgram( Constants.ORG_UNIT_IDS ).extractUid();
         ApiResponse programResponse = programActions.get( program );
 
-        programStageId = programResponse.extractString( "programStages.id[0]" );
         JsonObject programPayload = programResponse.getBody();
 
         new JsonObjectBuilder( programPayload )
