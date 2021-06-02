@@ -96,7 +96,7 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setCronExpression( CRON_HOURLY );
         jobConfiguration.setEnabled( false );
 
-        List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
+        List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
         Assert.assertEquals( 1, errorReports.size() );
         Assert.assertEquals( ErrorCode.E7003, errorReports.get( 0 ).getErrorCode() );
     }
@@ -115,7 +115,7 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setCronExpression( CRON_HOURLY );
         jobConfiguration.setEnabled( true );
 
-        List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
+        List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
         Assert.assertEquals( 0, errorReports.size() );
     }
 
@@ -134,7 +134,7 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setCronExpression( CRON_HOURLY );
         jobConfiguration.setEnabled( true );
 
-        List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
+        List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
         Assert.assertEquals( 1, errorReports.size() );
         Assert.assertEquals( ErrorCode.E7000, errorReports.get( 0 ).getErrorCode() );
     }
@@ -159,7 +159,7 @@ public class JobConfigurationObjectBundleHookTest
         jobParameters.setPageSize( 200 );
         jobConfiguration.setJobParameters( jobParameters );
 
-        List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
+        List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
         Assert.assertEquals( 1, errorReports.size() );
         Assert.assertEquals( ErrorCode.E7010, errorReports.get( 0 ).getErrorCode() );
     }
@@ -180,7 +180,7 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setCronExpression( CRON_HOURLY );
         jobConfiguration.setEnabled( true );
 
-        List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
+        List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
         Assert.assertEquals( 1, errorReports.size() );
         Assert.assertEquals( ErrorCode.E7010, errorReports.get( 0 ).getErrorCode() );
     }
@@ -200,7 +200,7 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setCronExpression( CRON_HOURLY );
         jobConfiguration.setEnabled( true );
 
-        List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
+        List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
         Assert.assertEquals( 0, errorReports.size() );
     }
 
@@ -218,7 +218,7 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setJobType( JobType.ANALYTICSTABLE_UPDATE );
         jobConfiguration.setEnabled( true );
 
-        List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
+        List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
         Assert.assertEquals( 1, errorReports.size() );
         Assert.assertEquals( ErrorCode.E7004, errorReports.get( 0 ).getErrorCode() );
     }
@@ -241,7 +241,7 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setJobType( JobType.CONTINUOUS_ANALYTICS_TABLE );
         jobConfiguration.setJobParameters( new ContinuousAnalyticsJobParameters( 1, null, null ) );
 
-        List<ErrorReport> errorReports = hook.validateInternal( jobConfiguration );
+        List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
         Assert.assertEquals( 1, errorReports.size() );
         Assert.assertEquals( ErrorCode.E7007, errorReports.get( 0 ).getErrorCode() );
     }

@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
+import static java.util.Collections.emptyList;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -44,10 +48,41 @@ public interface ObjectBundleHook
      *
      * @param object Object to validate
      * @param bundle Current validation phase bundle
+     * @param addReports a consumer for all errors identified during the
+     *        validation
+     */
+    <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle, Consumer<ErrorReport> addReports );
+
+    /**
+     * Hook to run custom validation code. Run before any other validation.
+     *
+     * Should only be used in tests as a convenient way to run
+     * {@link #validate(IdentifiableObject, ObjectBundle, Consumer)}. Otherwise
+     * prefer {@link #validate(IdentifiableObject, ObjectBundle, Consumer)} to
+     * avoid intermediate collections.
+     *
+     * @see #validate(IdentifiableObject, ObjectBundle, Consumer)
+     * @param object Object to validate
+     * @param bundle Current validation phase bundle
      * @return Empty list if not errors, if errors then populated with one or
      *         more ErrorReports
      */
-    <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle );
+    default <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    {
+        @SuppressWarnings( "unchecked" )
+        List<ErrorReport>[] box = new List[1];
+        validate( object, bundle, error -> {
+            List<ErrorReport> list = box[0];
+            if ( list == null )
+            {
+                list = new ArrayList<>();
+                box[0] = list;
+            }
+            list.add( error );
+        } );
+        List<ErrorReport> errors = box[0];
+        return errors == null ? emptyList() : errors;
+    }
 
     /**
      * Run before commit phase has started.

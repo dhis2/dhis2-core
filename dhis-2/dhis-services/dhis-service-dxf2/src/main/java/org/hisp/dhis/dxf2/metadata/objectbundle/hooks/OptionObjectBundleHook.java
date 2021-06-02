@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -46,13 +45,15 @@ import org.springframework.stereotype.Component;
 public class OptionObjectBundleHook
     extends AbstractObjectBundleHook
 {
-    @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
-    {
-        List<ErrorReport> errors = new ArrayList<>();
 
+    @Override
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
+    {
         if ( !(object instanceof Option) )
-            return new ArrayList<>();
+        {
+            return;
+        }
 
         final Option option = (Option) object;
 
@@ -61,10 +62,8 @@ public class OptionObjectBundleHook
             OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class,
                 option.getOptionSet() );
 
-            errors.addAll( checkDuplicateOption( optionSet, option ) );
+            checkDuplicateOption( optionSet, option, addReports );
         }
-
-        return errors;
     }
 
     @Override
@@ -95,39 +94,28 @@ public class OptionObjectBundleHook
 
     /**
      * Check for duplication of Option's name OR code within given OptionSet
-     *
-     * @param listOptions
-     * @param checkOption
-     * @return
      */
-    private List<ErrorReport> checkDuplicateOption( OptionSet optionSet, Option checkOption )
+    private void checkDuplicateOption( OptionSet optionSet, Option checkOption, Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errors = new ArrayList<>();
-
         if ( optionSet == null || optionSet.getOptions().isEmpty() || checkOption == null )
         {
-            return errors;
+            return;
         }
 
         for ( Option option : optionSet.getOptions() )
         {
-            if ( option == null || option.getName() == null || option.getCode() == null )
-            {
-                continue;
-            }
-
-            if ( ObjectUtils.allNotNull( option.getUid(), checkOption.getUid() )
-                && option.getUid().equals( checkOption.getUid() ) )
+            if ( option == null || option.getName() == null || option.getCode() == null
+                || ObjectUtils.allNotNull( option.getUid(), checkOption.getUid() )
+                    && option.getUid().equals( checkOption.getUid() ) )
             {
                 continue;
             }
 
             if ( option.getName().equals( checkOption.getName() ) || option.getCode().equals( checkOption.getCode() ) )
             {
-                errors.add( new ErrorReport( OptionSet.class, ErrorCode.E4028, optionSet.getUid(), option.getUid() ) );
+                addReports
+                    .accept( new ErrorReport( OptionSet.class, ErrorCode.E4028, optionSet.getUid(), option.getUid() ) );
             }
         }
-
-        return errors;
     }
 }

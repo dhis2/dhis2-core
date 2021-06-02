@@ -1413,7 +1413,7 @@ public class JdbcEventStore implements EventStore
     {
         StringBuilder sqlBuilder = new StringBuilder().append( " " );
 
-        if ( params.isPaging() )
+        if ( !params.isSkipPaging() )
         {
             sqlBuilder.append( "limit " ).append( params.getPageSizeWithDefault() ).append( " offset " )
                 .append( params.getOffset() ).append( " " );
