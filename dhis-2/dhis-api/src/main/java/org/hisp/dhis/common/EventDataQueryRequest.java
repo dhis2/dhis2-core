@@ -239,6 +239,7 @@ public class EventDataQueryRequest
                 .programStatus( criteria.getProgramStatus() )
                 .page( criteria.getPage() )
                 .pageSize( criteria.getPageSize() )
+                .paging( criteria.isPaging() )
                 .displayProperty( criteria.getDisplayProperty() )
                 .relativePeriodDate( criteria.getRelativePeriodDate() )
                 .userOrgUnit( criteria.getUserOrgUnit() )

@@ -251,7 +251,6 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-
         GridUtils.toCsv( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_CSV,
             "events.csv", response ), response.getWriter() );
     }
