@@ -553,7 +553,7 @@ public abstract class AbstractJdbcTableManager
 
         jdbcTemplate.execute( sql );
 
-        log.debug( String.format( "%s in: %s", logMessage, timer.stop().toString() ) );
+        log.info( String.format( "%s in: %s", logMessage, timer.stop().toString() ) );
     }
 
     /**
