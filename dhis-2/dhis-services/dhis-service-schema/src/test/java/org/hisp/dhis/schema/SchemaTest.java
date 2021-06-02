@@ -88,7 +88,7 @@ public class SchemaTest
     public void testAuthorityByType()
     {
         final Schema schema = new Schema( SecondaryMetadata.class, "singular", "plural" );
-        schema.setAuthorities( authorities );
+        authorities.forEach( schema::add );
 
         List<String> list1 = schema.getAuthorityByType( AuthorityType.CREATE );
         assertThat( list1, contains( "x1", "x2", "y1", "y2" ) );
@@ -102,7 +102,7 @@ public class SchemaTest
     public void testAuthorityByTypeDifferent()
     {
         final Schema schema = new Schema( SecondaryMetadata.class, "singular", "plural" );
-        schema.setAuthorities( authorities );
+        authorities.forEach( schema::add );
 
         List<String> list1 = schema.getAuthorityByType( AuthorityType.CREATE );
         assertThat( list1, contains( "x1", "x2", "y1", "y2" ) );
@@ -119,7 +119,7 @@ public class SchemaTest
     public void testAuthorityByTypeNotFound()
     {
         final Schema schema = new Schema( SecondaryMetadata.class, "singular", "plural" );
-        schema.setAuthorities( authorities );
+        authorities.forEach( schema::add );
 
         List<String> list1 = schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE );
         assertTrue( list1.isEmpty() );
@@ -133,13 +133,12 @@ public class SchemaTest
     public void testAuthorityByTypeReset()
     {
         final Schema schema = new Schema( SecondaryMetadata.class, "singular", "plural" );
-        schema.setAuthorities( authorities );
+        authorities.forEach( schema::add );
 
         List<String> list1 = schema.getAuthorityByType( AuthorityType.CREATE );
         assertThat( list1, contains( "x1", "x2", "y1", "y2" ) );
 
-        authorities.add( new Authority( AuthorityType.CREATE, Arrays.asList( "a1", "a2" ) ) );
-        schema.setAuthorities( authorities );
+        schema.add( new Authority( AuthorityType.CREATE, Arrays.asList( "a1", "a2" ) ) );
 
         List<String> list2 = schema.getAuthorityByType( AuthorityType.CREATE );
         assertThat( list2, contains( "x1", "x2", "y1", "y2", "a1", "a2" ) );

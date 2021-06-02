@@ -528,13 +528,12 @@ public class Schema implements Ordered, Klass
     @JacksonXmlProperty( localName = "authority", namespace = DxfNamespaces.DXF_2_0 )
     public List<Authority> getAuthorities()
     {
-        return authorities;
+        return unmodifiableList( authorities );
     }
 
-    public synchronized void setAuthorities( List<Authority> authorities )
+    public void add( Authority authority )
     {
-        this.authorities = authorities;
-        this.cachedAuthoritiesByType = null;
+        this.authorities.add( authority );
     }
 
     @JsonProperty

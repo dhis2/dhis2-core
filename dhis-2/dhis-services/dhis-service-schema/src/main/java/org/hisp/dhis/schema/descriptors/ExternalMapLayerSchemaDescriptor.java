@@ -54,12 +54,11 @@ public class ExternalMapLayerSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 2000 );
 
-        schema.getAuthorities().add(
+        schema.add(
             new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_EXTERNAL_MAP_LAYER_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add(
+        schema.add(
             new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_EXTERNAL_MAP_LAYER_PRIVATE_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_EXTERNAL_MAP_LAYER_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_EXTERNAL_MAP_LAYER_DELETE" ) ) );
 
         return schema;
     }

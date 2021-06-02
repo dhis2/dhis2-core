@@ -53,12 +53,11 @@ public class CategoryOptionGroupSetSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1160 );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC,
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
             Lists.newArrayList( "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE,
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
             Lists.newArrayList( "F_CATEGORY_OPTION_GROUP_SET_PRIVATE_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_CATEGORY_OPTION_GROUP_SET_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_CATEGORY_OPTION_GROUP_SET_DELETE" ) ) );
 
         return schema;
     }
