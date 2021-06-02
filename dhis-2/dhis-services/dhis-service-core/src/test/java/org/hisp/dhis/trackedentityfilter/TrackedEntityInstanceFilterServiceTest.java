@@ -181,9 +181,9 @@ public class TrackedEntityInstanceFilterServiceTest
 
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
 
-        trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
+        long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
 
-        assertNotNull( trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA ) );
+        assertNotNull( trackedEntityInstanceFilterService.get( idA ) );
     }
 
     @Test
