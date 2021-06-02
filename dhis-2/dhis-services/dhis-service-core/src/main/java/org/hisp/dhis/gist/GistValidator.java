@@ -31,10 +31,7 @@ import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -42,52 +39,45 @@ import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.schema.Schema;
+
+import lombok.AllArgsConstructor;
 
 /**
- * Validates a {@link GistQuery} for consistency and owner and type level
- * access.
+ * Validates a {@link GistQuery} for consistency and access restrictions.
  *
  * @author Jan Bernitt
  */
-@Component
 @AllArgsConstructor
 final class GistValidator
 {
-    private final CurrentUserService currentUserService;
+    private final GistQuery query;
 
-    private final AclService aclService;
+    private final RelativePropertyContext context;
 
-    private final UserService userService;
+    private final GistAccessControl access;
 
-    private final IdentifiableObjectManager objectManager;
-
-    public void validateQuery( GistQuery query, RelativePropertyContext context )
+    public void validateQuery()
     {
         Owner owner = query.getOwner();
         if ( owner != null )
         {
-            validateAccess( owner );
+            validateAccess( owner, access );
             validateCollection(
                 context.switchedTo( owner.getType() ).resolveMandatory( owner.getCollectionProperty() ) );
         }
-        query.getFilters().forEach( filter -> validateFilter( filter, context ) );
+        query.getFilters().forEach( filter -> validateFilter( filter, context, access ) );
         query.getOrders().forEach( order -> validateOrder( context.resolveMandatory( order.getPropertyPath() ) ) );
-        query.getFields().forEach( field -> validateField( field, context ) );
+        query.getFields().forEach( field -> validateField( field, context, access ) );
     }
 
-    private void validateAccess( Owner owner )
+    private void validateAccess( Owner owner, GistAccessControl access )
     {
-        User currentUser = currentUserService.getCurrentUser();
-        if ( !aclService.canRead( currentUser, owner.getType() ) )
+        if ( !access.canRead( owner.getType() ) )
         {
             throw createNoReadAccess( owner );
         }
-        if ( !aclService.canRead( currentUser, objectManager.get( owner.getType(), owner.getId() ) ) )
+        if ( !access.canRead( owner.getType(), owner.getId() ) )
         {
             throw createNoReadAccess( owner );
         }
@@ -102,7 +92,7 @@ final class GistValidator
     }
 
     @SuppressWarnings( "unchecked" )
-    private void validateField( Field f, RelativePropertyContext context )
+    private void validateField( Field f, RelativePropertyContext context, GistAccessControl access )
     {
         String path = f.getPropertyPath();
         if ( Field.REFS_PATH.equals( path ) )
@@ -114,9 +104,16 @@ final class GistValidator
         {
             throw createNoReadAccess( field );
         }
+        // TODO below is only correct if the field does not transform
+        Schema fieldSchema = context.switchedTo( path ).getHome();
+        if ( fieldSchema.isIdentifiableObject()
+            && !access.canRead( (Class<? extends IdentifiableObject>) fieldSchema.getKlass(), field ) )
+        {
+            throw createNoReadAccess( field );
+        }
         Class<?> itemType = GistLogic.getBaseType( field );
-        if ( IdentifiableObject.class.isAssignableFrom( itemType ) && !aclService
-            .canRead( currentUserService.getCurrentUser(), (Class<? extends IdentifiableObject>) itemType ) )
+        if ( IdentifiableObject.class.isAssignableFrom( itemType )
+            && !access.canRead( (Class<? extends IdentifiableObject>) itemType ) )
         {
             throw createNoReadAccess( field );
         }
@@ -132,7 +129,7 @@ final class GistValidator
         }
     }
 
-    private void validateFilter( Filter f, RelativePropertyContext context )
+    private void validateFilter( Filter f, RelativePropertyContext context, GistAccessControl access )
     {
         Property filter = context.resolveMandatory( f.getPropertyPath() );
         if ( !filter.isPersisted() )
@@ -141,10 +138,10 @@ final class GistValidator
         }
 
         validateFilterArgument( f );
-        validateFilterAccess( f );
+        validateFilterAccess( f, access );
     }
 
-    private void validateFilterAccess( Filter f )
+    private void validateFilterAccess( Filter f, GistAccessControl access )
     {
         Comparison operator = f.getOperator();
         if ( operator.isAccessCompare() )
@@ -170,13 +167,7 @@ final class GistValidator
                         "Filter `%s` pattern argument must be 2 to 8 letters allowing letters 'r', 'w', '_' and '%%'." );
                 }
             }
-            User user = userService.getUser( ids[0] );
-            if ( user == null )
-            {
-                throw createIllegalFilter( f, "User for filter `%s` does not exist." );
-            }
-            User currentUser = currentUserService.getCurrentUser();
-            if ( currentUser.canManage( user ) || currentUser.getUid().equals( user.getCreatedBy().getUid() ) )
+            if ( !access.canFilterByAccessOfUser( ids[0] ) )
             {
                 throw createIllegalFilter( f,
                     "Filtering by user access in filter `%s` requires permissions to manage the user filtered by." );

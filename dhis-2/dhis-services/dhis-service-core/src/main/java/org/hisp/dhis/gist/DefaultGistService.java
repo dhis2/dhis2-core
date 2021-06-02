@@ -40,6 +40,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -78,9 +79,9 @@ public class DefaultGistService implements GistService
 
     private final AclService aclService;
 
-    private final ObjectMapper jsonMapper;
+    private final IdentifiableObjectManager objectManager;
 
-    private final GistValidator validator;
+    private final ObjectMapper jsonMapper;
 
     private Session getSession()
     {
@@ -98,7 +99,7 @@ public class DefaultGistService implements GistService
     {
         GistAccessControl access = createGistAccessControl();
         RelativePropertyContext context = createPropertyContext( query );
-        validator.validateQuery( query, context );
+        new GistValidator( query, context, access ).validateQuery();
         GistBuilder queryBuilder = createFetchBuilder( query, context, access,
             this::getUserGroupIdsByUserId );
         List<Object[]> rows = fetchWithParameters( query, queryBuilder,
@@ -151,7 +152,8 @@ public class DefaultGistService implements GistService
 
     private GistAccessControl createGistAccessControl()
     {
-        return new DefaultGistAccessControl( currentUserService.getCurrentUser(), aclService );
+        return new DefaultGistAccessControl( currentUserService.getCurrentUser(), aclService, userService,
+            objectManager );
     }
 
     private RelativePropertyContext createPropertyContext( GistQuery query )

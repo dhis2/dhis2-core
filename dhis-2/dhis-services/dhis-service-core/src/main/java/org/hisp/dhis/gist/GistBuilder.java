@@ -66,10 +66,8 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -101,12 +99,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 final class GistBuilder
 {
-    interface AccessFromSharing
-    {
-
-        Access getAccess( Sharing sharing, User user, Class<? extends IdentifiableObject> type );
-    }
-
     private static final String GIST_PATH = "/gist";
 
     /**
@@ -310,14 +302,13 @@ final class GistBuilder
         {
             return "1=1";
         }
-        return JpaQueryUtils.generateHqlQueryForSharingCheck( tableName, access.getCurrentUser(),
-            AclService.LIKE_READ_METADATA );
+        return access.createAccessFilterHQL( tableName );
     }
 
     private boolean isFilterBySharing( RelativePropertyContext context )
     {
         Property sharing = context.resolve( SHARING_PROPERTY );
-        return sharing != null && sharing.isPersisted() && access.isSuperuser();
+        return sharing != null && sharing.isPersisted() && !access.isSuperuser();
     }
 
     private String createFieldsHQL()
@@ -361,7 +352,7 @@ final class GistBuilder
             Class<? extends IdentifiableObject> objType = isNonNestedPath( path )
                 ? query.getElementType()
                 : (Class<? extends IdentifiableObject>) property.getKlass();
-            addTransformer( row -> row[index] = access.canAccess( objType, (Sharing) row[sharingFieldIndex] ) );
+            addTransformer( row -> row[index] = access.asAccess( objType, (Sharing) row[sharingFieldIndex] ) );
             return HQL_NULL;
         }
         if ( isPersistentReferenceField( property ) )
