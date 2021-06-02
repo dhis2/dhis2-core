@@ -42,8 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import javax.annotation.Nonnull;
-
 /**
  * {@link JsonDocument} is a JSON parser specifically designed as a verifying
  * tool for JSON trees which skips though JSON trees to extract only a specific
@@ -290,7 +288,6 @@ public final class JsonDocument implements Serializable
 
         @SuppressWarnings( "unchecked" )
         @Override
-        @Nonnull
         public Map<String, JsonNode> members()
         {
             return (Map<String, JsonNode>) requireNonNull( value() );
@@ -358,7 +355,6 @@ public final class JsonDocument implements Serializable
 
         @SuppressWarnings( "unchecked" )
         @Override
-        @Nonnull
         public List<JsonNode> elements()
         {
             return (List<JsonNode>) requireNonNull( value() );
