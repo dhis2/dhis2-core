@@ -72,7 +72,6 @@ public class JsonPatchManager
         Schema schema = schemaService.getSchema( object.getClass() );
 
         JsonNode node = jsonMapper.valueToTree( object );
-        node = patch.apply( node );
 
         for ( Property property : schema.getProperties() )
         {
@@ -82,6 +81,8 @@ public class JsonPatchManager
                 ((ObjectNode) node).set( property.getCollectionName(), jsonMapper.valueToTree( data ) );
             }
         }
+
+        node = patch.apply( node );
 
         try
         {
