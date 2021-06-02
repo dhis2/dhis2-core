@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -36,7 +35,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
-import org.hisp.dhis.render.RenderDevice;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -46,59 +44,47 @@ import org.springframework.stereotype.Component;
 public class ProgramTrackedEntityAttributeObjectBundleHook
     extends AbstractObjectBundleHook
 {
-
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
         /*
          * Validate that the RenderType (if any) conforms to the constraints of
          * ValueType or OptionSet.
          */
         if ( object != null && object.getClass().isAssignableFrom( ProgramTrackedEntityAttribute.class ) )
         {
-            ProgramTrackedEntityAttribute ptea = (ProgramTrackedEntityAttribute) object;
-
-            errorReports.addAll( renderTypeConformsToConstrains( ptea ) );
-
+            renderTypeConformsToConstrains( (ProgramTrackedEntityAttribute) object, addReports );
         }
-
-        return errorReports;
     }
 
-    private List<ErrorReport> renderTypeConformsToConstrains( ProgramTrackedEntityAttribute ptea )
+    private void renderTypeConformsToConstrains( ProgramTrackedEntityAttribute ptea, Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
         DeviceRenderTypeMap<ValueTypeRenderingObject> map = ptea.getRenderType();
 
         TrackedEntityAttribute attr = ptea.getAttribute();
 
         if ( map == null )
         {
-            return errorReports;
+            return;
         }
 
-        for ( RenderDevice device : map.keySet() )
+        for ( ValueTypeRenderingObject renderingObject : map.values() )
         {
-            if ( map.get( device ).getType() == null )
+            if ( renderingObject.getType() == null )
             {
-                errorReports
-                    .add( new ErrorReport( ProgramTrackedEntityAttribute.class, ErrorCode.E4011, "renderType.type" ) );
+                addReports
+                    .accept(
+                        new ErrorReport( ProgramTrackedEntityAttribute.class, ErrorCode.E4011, "renderType.type" ) );
             }
 
             if ( !ValidationUtils
                 .validateRenderingType( ProgramTrackedEntityAttribute.class, attr.getValueType(), attr.hasOptionSet(),
-                    map.get( device ).getType() ) )
+                    renderingObject.getType() ) )
             {
-                errorReports.add( new ErrorReport( ProgramTrackedEntityAttribute.class, ErrorCode.E4020,
-                    map.get( device ).getType(), attr.getValueType() ) );
+                addReports.accept( new ErrorReport( ProgramTrackedEntityAttribute.class, ErrorCode.E4020,
+                    renderingObject.getType(), attr.getValueType() ) );
             }
-
         }
-
-        return errorReports;
     }
-
 }
