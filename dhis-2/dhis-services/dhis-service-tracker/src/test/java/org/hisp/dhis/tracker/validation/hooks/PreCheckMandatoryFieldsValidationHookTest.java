@@ -188,6 +188,37 @@ public class PreCheckMandatoryFieldsValidationHookTest
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( CodeGenerator.generateUid() )
+            .program( CodeGenerator.generateUid() )
+            .build();
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        validationHook.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+    }
+
+    @Test
+    public void verifyEventValidationSuccessWhenProgramIsMissing()
+    {
+        Event event = Event.builder()
+            .orgUnit( CodeGenerator.generateUid() )
+            .programStage( CodeGenerator.generateUid() )
+            .program( null )
+            .build();
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        validationHook.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+    }
+
+    @Test
+    public void verifyEventValidationSuccessWhenProgramStageIsMissing()
+    {
+        Event event = Event.builder()
+            .orgUnit( CodeGenerator.generateUid() )
+            .programStage( null )
+            .program( CodeGenerator.generateUid() )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
@@ -211,17 +242,20 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsOnMissingProgramStage()
+    public void verifyEventValidationFailsOnMissingProgramAndProgramStage()
     {
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( null )
+            .program( null )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
         validationHook.validateEvent( reporter, event );
 
-        assertMissingPropertyForEvent( reporter, "programStage" );
+        assertTrue( reporter.hasErrors() );
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1129 ) );
     }
 
     @Test
