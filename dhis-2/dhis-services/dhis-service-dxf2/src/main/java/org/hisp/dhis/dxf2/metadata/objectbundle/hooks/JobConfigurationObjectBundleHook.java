@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -74,20 +75,31 @@ public class JobConfigurationObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
-        if ( !JobConfiguration.class.isInstance( object ) )
+        if ( !(object instanceof JobConfiguration) )
         {
-            return new ArrayList<>();
+            return;
         }
 
         JobConfiguration jobConfiguration = (JobConfiguration) object;
-        List<ErrorReport> errorReports = new ArrayList<>( validateInternal( jobConfiguration ) );
 
-        if ( errorReports.isEmpty() )
+        @SuppressWarnings( "unchecked" )
+        List<ErrorReport>[] box = new List[1];
+        validateNoErrors( jobConfiguration, error -> {
+            List<ErrorReport> list = box[0];
+            if ( list == null )
+            {
+                list = new ArrayList<>();
+                box[0] = list;
+            }
+            addReports.accept( error );
+        } );
+        List<ErrorReport> errorReports = box[0];
+        if ( errorReports == null || errorReports.isEmpty() )
         {
             jobConfiguration.setNextExecutionTime( null );
-
             log.info( "Validation succeeded for job configuration: '{}'", jobConfiguration.getName() );
         }
         else
@@ -95,8 +107,6 @@ public class JobConfigurationObjectBundleHook
             log.info( "Validation failed for job configuration: '{}'", jobConfiguration.getName() );
             log.info( errorReports.toString() );
         }
-
-        return errorReports;
     }
 
     @Override
@@ -115,7 +125,7 @@ public class JobConfigurationObjectBundleHook
     @Override
     public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
-        if ( !JobConfiguration.class.isInstance( object ) )
+        if ( !(object instanceof JobConfiguration) )
         {
             return;
         }
@@ -135,7 +145,7 @@ public class JobConfigurationObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preDelete( T persistedObject, ObjectBundle bundle )
     {
-        if ( !JobConfiguration.class.isInstance( persistedObject ) )
+        if ( !(persistedObject instanceof JobConfiguration) )
         {
             return;
         }
@@ -147,7 +157,7 @@ public class JobConfigurationObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
     {
-        if ( !JobConfiguration.class.isInstance( persistedObject ) )
+        if ( !(persistedObject instanceof JobConfiguration) )
         {
             return;
         }
@@ -163,7 +173,7 @@ public class JobConfigurationObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
     {
-        if ( !JobConfiguration.class.isInstance( persistedObject ) )
+        if ( !(persistedObject instanceof JobConfiguration) )
         {
             return;
         }
@@ -184,7 +194,7 @@ public class JobConfigurationObjectBundleHook
      * Validates that there are no other jobs of the same job type which are
      * scheduled with the same cron expression.
      */
-    private void validateCronExpressionWithinJobType( List<ErrorReport> errorReports,
+    private void validateCronExpressionWithinJobType( Consumer<ErrorReport> addReports,
         JobConfiguration jobConfiguration )
     {
         Set<JobConfiguration> jobConfigs = jobConfigurationService.getAllJobConfigurations().stream()
@@ -197,33 +207,32 @@ public class JobConfigurationObjectBundleHook
             if ( jobConfig.hasCronExpression()
                 && jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
             {
-                errorReports
-                    .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000, jobConfig.getCronExpression() ) );
+                addReports.accept(
+                    new ErrorReport( JobConfiguration.class, ErrorCode.E7000, jobConfig.getCronExpression() ) );
             }
         }
     }
 
-    List<ErrorReport> validateInternal( final JobConfiguration jobConfiguration )
+    private void validateNoErrors( final JobConfiguration jobConfiguration,
+        Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
         // Check whether jobConfiguration already exists
 
         JobConfiguration persistedJobConfiguration = jobConfigurationService
             .getJobConfigurationByUid( jobConfiguration.getUid() );
 
-        final JobConfiguration tempJobConfiguration = validatePersistedAndPrepareTempJobConfiguration( errorReports,
+        final JobConfiguration tempJobConfiguration = validatePersistedAndPrepareTempJobConfiguration( addReports,
             jobConfiguration, persistedJobConfiguration );
 
         setDefaultJobParameters( tempJobConfiguration );
-        validateJobConfigurationCronOrFixedDelay( errorReports, tempJobConfiguration );
-        validateCronExpressionWithinJobType( errorReports, tempJobConfiguration );
+        validateJobConfigurationCronOrFixedDelay( addReports, tempJobConfiguration );
+        validateCronExpressionWithinJobType( addReports, tempJobConfiguration );
 
         // Validate parameters
 
         if ( tempJobConfiguration.getJobParameters() != null )
         {
-            tempJobConfiguration.getJobParameters().validate().ifPresent( errorReports::add );
+            tempJobConfiguration.getJobParameters().validate().ifPresent( addReports );
         }
         else
         {
@@ -232,25 +241,23 @@ public class JobConfigurationObjectBundleHook
 
             if ( tempJobConfiguration.getJobType().hasJobParameters() )
             {
-                errorReports
-                    .add( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType() ) );
+                addReports
+                    .accept( new ErrorReport( this.getClass(), ErrorCode.E4029, tempJobConfiguration.getJobType() ) );
             }
         }
 
-        validateJob( errorReports, tempJobConfiguration, persistedJobConfiguration );
-
-        return errorReports;
+        validateJob( addReports, tempJobConfiguration, persistedJobConfiguration );
     }
 
-    private JobConfiguration validatePersistedAndPrepareTempJobConfiguration( List<ErrorReport> errorReports,
+    private JobConfiguration validatePersistedAndPrepareTempJobConfiguration( Consumer<ErrorReport> addReports,
         JobConfiguration jobConfiguration, JobConfiguration persistedJobConfiguration )
     {
         if ( persistedJobConfiguration != null && !persistedJobConfiguration.isConfigurable() )
         {
             if ( persistedJobConfiguration.hasNonConfigurableJobChanges( jobConfiguration ) )
             {
-                errorReports
-                    .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
+                addReports.accept(
+                    new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
             }
             else
             {
@@ -262,29 +269,29 @@ public class JobConfigurationObjectBundleHook
         return jobConfiguration;
     }
 
-    private void validateJobConfigurationCronOrFixedDelay( List<ErrorReport> errorReports,
+    private void validateJobConfigurationCronOrFixedDelay( Consumer<ErrorReport> addReports,
         JobConfiguration jobConfiguration )
     {
         if ( jobConfiguration.getJobType().isCronSchedulingType() )
         {
             if ( jobConfiguration.getCronExpression() == null )
             {
-                errorReports
-                    .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004, jobConfiguration.getUid() ) );
+                addReports
+                    .accept( new ErrorReport( JobConfiguration.class, ErrorCode.E7004, jobConfiguration.getUid() ) );
             }
             else if ( !CronSequenceGenerator.isValidExpression( jobConfiguration.getCronExpression() ) )
             {
-                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7005 ) );
+                addReports.accept( new ErrorReport( JobConfiguration.class, ErrorCode.E7005 ) );
             }
         }
 
         if ( jobConfiguration.getJobType().isFixedDelaySchedulingType() && jobConfiguration.getDelay() == null )
         {
-            errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7007, jobConfiguration.getUid() ) );
+            addReports.accept( new ErrorReport( JobConfiguration.class, ErrorCode.E7007, jobConfiguration.getUid() ) );
         }
     }
 
-    private void validateJob( List<ErrorReport> errorReports, JobConfiguration jobConfiguration,
+    private void validateJob( Consumer<ErrorReport> addReports, JobConfiguration jobConfiguration,
         JobConfiguration persistedJobConfiguration )
     {
         Job job = schedulingManager.getJob( jobConfiguration.getJobType() );
@@ -298,7 +305,7 @@ public class JobConfigurationObjectBundleHook
             // then the error can be ignored as the job has the issue with and
             // without updating it.
 
-            errorReports.add( jobValidation );
+            addReports.accept( jobValidation );
         }
     }
 

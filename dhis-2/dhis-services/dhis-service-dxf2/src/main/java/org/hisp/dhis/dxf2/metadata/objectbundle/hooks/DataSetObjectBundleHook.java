@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.hibernate.Session;
@@ -50,14 +50,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataSetObjectBundleHook extends AbstractObjectBundleHook
 {
-    @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
-    {
-        List<ErrorReport> errors = new ArrayList<>();
 
+    @Override
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
+    {
         if ( object == null || !object.getClass().isAssignableFrom( DataSet.class ) )
         {
-            return errors;
+            return;
         }
 
         DataSet dataSet = (DataSet) object;
@@ -71,12 +71,11 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
                 if ( ObjectUtils.allNonNull( period.getOpeningDate(), period.getClosingDate() )
                     && period.getOpeningDate().after( period.getClosingDate() ) )
                 {
-                    errors.add( new ErrorReport( DataSet.class, ErrorCode.E4013, period.getClosingDate(),
+                    addReports.accept( new ErrorReport( DataSet.class, ErrorCode.E4013, period.getClosingDate(),
                         period.getOpeningDate() ) );
                 }
             }
         }
-        return errors;
     }
 
     @Override
