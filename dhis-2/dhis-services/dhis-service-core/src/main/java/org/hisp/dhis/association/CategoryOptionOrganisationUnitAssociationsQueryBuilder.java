@@ -25,46 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.category;
+package org.hisp.dhis.association;
 
-import java.util.Objects;
-import java.util.Set;
+import lombok.AccessLevel;
+import lombok.Getter;
 
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.stereotype.Service;
 
-import org.hisp.dhis.association.IdentifiableObjectAssociations;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Controller
-@RequestMapping( value = CategoryOptionSchemaDescriptor.API_ENDPOINT )
-@RequiredArgsConstructor
-public class CategoryOptionController extends AbstractCrudController<CategoryOption>
+@Service
+public class CategoryOptionOrganisationUnitAssociationsQueryBuilder
+    extends AbstractOrganisationUnitAssociationsQueryBuilder
 {
-    private final CategoryService categoryService;
+    @Getter( AccessLevel.PROTECTED )
+    private final String relationshipTableName = "categoryoption_organisationunits";
 
-    @ResponseBody
-    @RequestMapping( value = "orgUnits" )
-    IdentifiableObjectAssociations getProgramOrgUnitsAssociations(
-        @RequestParam( value = "categoryOptions" ) Set<String> categoryOptionsUids )
+    @Getter( AccessLevel.PROTECTED )
+    private final String joinColumnName = "categoryoptionid";
+
+    @Getter( AccessLevel.PROTECTED )
+    private final String baseTableName = "dataelementcategoryoption";
+
+    public CategoryOptionOrganisationUnitAssociationsQueryBuilder( CurrentUserService currentUserService )
     {
-
-        if ( Objects.isNull( categoryOptionsUids ) || categoryOptionsUids.size() == 0 )
-        {
-            throw new IllegalArgumentException( "At least one program uid must be specified" );
-        }
-
-        return categoryService.getCategoryOptionOrganisationUnitsAssociations( categoryOptionsUids );
-
+        super( currentUserService );
     }
-
 }

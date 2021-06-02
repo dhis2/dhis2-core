@@ -25,46 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.category;
+package org.hisp.dhis.program.jdbc;
 
-import java.util.Objects;
-import java.util.Set;
+import org.hisp.dhis.association.CategoryOptionOrganisationUnitAssociationsQueryBuilder;
+import org.hisp.dhis.association.ProgramOrganisationUnitAssociationsQueryBuilder;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.association.IdentifiableObjectAssociations;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Controller
-@RequestMapping( value = CategoryOptionSchemaDescriptor.API_ENDPOINT )
-@RequiredArgsConstructor
-public class CategoryOptionController extends AbstractCrudController<CategoryOption>
+@Configuration
+class JdbcOrgUnitAssiciationStoreConfiguration
 {
-    private final CategoryService categoryService;
 
-    @ResponseBody
-    @RequestMapping( value = "orgUnits" )
-    IdentifiableObjectAssociations getProgramOrgUnitsAssociations(
-        @RequestParam( value = "categoryOptions" ) Set<String> categoryOptionsUids )
+    @Bean( "jdbcProgramOrgUnitAssociationsStore" )
+    JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationStore( CurrentUserService currentUserService,
+        JdbcTemplate jdbcTemplate )
     {
+        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
+            new ProgramOrganisationUnitAssociationsQueryBuilder( currentUserService ) );
+    }
 
-        if ( Objects.isNull( categoryOptionsUids ) || categoryOptionsUids.size() == 0 )
-        {
-            throw new IllegalArgumentException( "At least one program uid must be specified" );
-        }
-
-        return categoryService.getCategoryOptionOrganisationUnitsAssociations( categoryOptionsUids );
-
+    @Bean( "jdbcCategoryOptionOrgUnitAssociationsStore" )
+    JdbcOrgUnitAssociationsStore jdbcCategoryOptionOrgUnitAssociationStore( CurrentUserService currentUserService,
+        JdbcTemplate jdbcTemplate )
+    {
+        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
+            new CategoryOptionOrganisationUnitAssociationsQueryBuilder( currentUserService ) );
     }
 
 }
