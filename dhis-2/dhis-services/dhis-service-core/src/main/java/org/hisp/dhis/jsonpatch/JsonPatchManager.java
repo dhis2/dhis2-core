@@ -29,12 +29,17 @@ package org.hisp.dhis.jsonpatch;
 
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen
@@ -44,9 +49,14 @@ public class JsonPatchManager
 {
     private final ObjectMapper jsonMapper;
 
-    public JsonPatchManager( ObjectMapper jsonMapper )
+    private final SchemaService schemaService;
+
+    public JsonPatchManager(
+        ObjectMapper jsonMapper,
+        SchemaService schemaService )
     {
         this.jsonMapper = jsonMapper;
+        this.schemaService = schemaService;
     }
 
     @Transactional
@@ -59,8 +69,19 @@ public class JsonPatchManager
             return null;
         }
 
+        Schema schema = schemaService.getSchema( object.getClass() );
+
         JsonNode node = jsonMapper.valueToTree( object );
         node = patch.apply( node );
+
+        for ( Property property : schema.getProperties() )
+        {
+            if ( property.isCollection() )
+            {
+                Object data = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+                ((ObjectNode) node).set( property.getCollectionName(), jsonMapper.valueToTree( data ) );
+            }
+        }
 
         try
         {
