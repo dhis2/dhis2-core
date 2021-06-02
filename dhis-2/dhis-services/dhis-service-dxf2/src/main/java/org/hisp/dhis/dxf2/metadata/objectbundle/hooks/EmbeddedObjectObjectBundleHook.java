@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.function.Consumer;
 
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseAnalyticalObject;
@@ -62,10 +61,9 @@ public class EmbeddedObjectObjectBundleHook
     private SchemaValidator schemaValidator;
 
     @Override
-    public List<ErrorReport> validate( IdentifiableObject object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errors = new ArrayList<>();
-
         Class<? extends IdentifiableObject> klass = object.getClass();
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -77,33 +75,27 @@ public class EmbeddedObjectObjectBundleHook
 
                 if ( property.getPropertyType().equals( PropertyType.COMPLEX ) )
                 {
-                    List<ErrorReport> unformattedErrors = schemaValidator
-                        .validateEmbeddedObject( propertyObject, klass );
-                    errors.addAll( formatEmbeddedErrorReport( unformattedErrors, propertyName ) );
+                    schemaValidator.validateEmbeddedObject( propertyObject, klass )
+                        .forEach( unformattedError -> addReports
+                            .accept( formatEmbeddedErrorReport( unformattedError, propertyName ) ) );
                 }
                 else if ( property.getPropertyType().equals( PropertyType.COLLECTION ) )
                 {
                     Collection<?> collection = (Collection<?>) propertyObject;
                     for ( Object item : collection )
                     {
-                        List<ErrorReport> unformattedErrors = schemaValidator
-                            .validateEmbeddedObject( property.getItemKlass().cast( item ), klass );
-                        errors.addAll( formatEmbeddedErrorReport( unformattedErrors, propertyName ) );
+                        schemaValidator.validateEmbeddedObject( property.getItemKlass().cast( item ), klass )
+                            .forEach( unformattedError -> addReports
+                                .accept( formatEmbeddedErrorReport( unformattedError, propertyName ) ) );
                     }
                 }
             } );
-
-        return errors;
     }
 
-    private List<ErrorReport> formatEmbeddedErrorReport( List<ErrorReport> errors, String embeddedPropertyName )
+    private ErrorReport formatEmbeddedErrorReport( ErrorReport errorReport, String embeddedPropertyName )
     {
-        for ( ErrorReport errorReport : errors )
-        {
-            errorReport.setErrorProperty( embeddedPropertyName + "." + errorReport.getErrorProperty() );
-        }
-
-        return errors;
+        errorReport.setErrorProperty( embeddedPropertyName + "." + errorReport.getErrorProperty() );
+        return errorReport;
     }
 
     @Override
