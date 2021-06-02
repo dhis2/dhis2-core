@@ -65,7 +65,6 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <cglib.version>3.2.4</cglib.version>
 
     <!-- Spring-->
     <spring.version>5.3.2</spring.version>
@@ -81,8 +80,6 @@
     <!--DBMS -->
     <flyway-core.version>7.0.4</flyway-core.version>
     <hibernate.version>5.4.28.Final</hibernate.version>
-    <!-- Keep in sync with Hibernate! -->
-    <byte-buddy.version>1.10.18</byte-buddy.version>
     <!-- Keep in sync with Hibernate! -->
     <javassist.version>3.27.0-GA</javassist.version>
     <!-- Data sources,db pools and db drivers-->
@@ -1429,11 +1426,6 @@
         <groupId>org.javassist</groupId>
         <artifactId>javassist</artifactId>
         <version>${javassist.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>net.bytebuddy</groupId>
-        <artifactId>byte-buddy</artifactId>
-        <version>${byte-buddy.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
