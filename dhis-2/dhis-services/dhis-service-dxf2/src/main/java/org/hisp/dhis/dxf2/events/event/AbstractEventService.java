@@ -314,7 +314,8 @@ public abstract class AbstractEventService implements EventService
         for ( Event event : eventList )
         {
             Program program = programService.getProgram( event.getProgram() );
-            boolean canSkipCheck = trackerOwnershipAccessManager.canSkipOwnershipCheck( user, program );
+            boolean canSkipCheck = event.getTrackedEntityInstance() == null ||
+                trackerOwnershipAccessManager.canSkipOwnershipCheck( user, program );
 
             if ( canSkipCheck || trackerOwnershipAccessManager.hasAccess( user,
                 entityInstanceService.getTrackedEntityInstance( event.getTrackedEntityInstance() ), program ) )
@@ -404,15 +405,18 @@ public abstract class AbstractEventService implements EventService
         {
             grid.addRow();
 
-            if ( params.getProgramStage().getProgram().isRegistration() && user != null || !user.isSuper() )
+            Program program = params.getProgramStage().getProgram();
+            boolean canSkipCheck = trackerOwnershipAccessManager.canSkipOwnershipCheck( user, program );
+
+            if ( !canSkipCheck )
             {
                 ProgramInstance enrollment = programInstanceService
                     .getProgramInstance( event.get( EVENT_ENROLLMENT_ID ) );
 
                 if ( enrollment != null && enrollment.getEntityInstance() != null )
                 {
-                    if ( !trackerOwnershipAccessManager.hasAccess( user, enrollment.getEntityInstance(),
-                        params.getProgramStage().getProgram() ) )
+                    if ( !trackerOwnershipAccessManager.hasAccess(
+                        user, enrollment.getEntityInstance(), program ) )
                     {
                         continue;
                     }
