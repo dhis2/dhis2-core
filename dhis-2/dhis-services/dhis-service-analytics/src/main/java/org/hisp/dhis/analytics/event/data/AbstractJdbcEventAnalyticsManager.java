@@ -571,7 +571,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
         if ( ValueType.ORGANISATION_UNIT == item.getValueType() )
         {
             stCentroidFunction = "ST_Centroid";
-
         }
 
         return "'[' || round(ST_X(" + stCentroidFunction + "(" + colName + "))::numeric, 6) || ',' || round(ST_Y("
