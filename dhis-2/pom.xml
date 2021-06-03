@@ -266,7 +266,7 @@
     <repository>
       <id>geotoolkit</id>
       <name>Geotoolkit</name>
-      <url>https://repository.mygrid.org.uk/artifactory/mygrid-all/</url>
+      <url>http://logicaldoc.sourceforge.net/maven/</url>
       <snapshots>
         <enabled>false</enabled>
         <updatePolicy>daily</updatePolicy>
