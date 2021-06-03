@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonObject;

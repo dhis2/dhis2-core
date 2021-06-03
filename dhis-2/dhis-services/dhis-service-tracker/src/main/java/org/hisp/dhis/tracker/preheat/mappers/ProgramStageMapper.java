@@ -77,5 +77,10 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
     @Mapping( target = "name" )
     @Mapping( target = "trackedEntityType" )
     @Mapping( target = "programType" )
+    @Mapping( target = "categoryCombo" )
+    @Mapping( target = "publicAccess" )
+    @Mapping( target = "externalAccess" )
+    @Mapping( target = "userGroupAccesses" )
+    @Mapping( target = "userAccesses" )
     Program mapProgram( Program p );
 }
