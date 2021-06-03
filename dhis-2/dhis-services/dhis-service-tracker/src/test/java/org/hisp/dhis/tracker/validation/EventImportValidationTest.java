@@ -223,22 +223,6 @@ public class EventImportValidationTest
     }
 
     @Test
-    public void testProgramStageProgramDifferentPrograms()
-        throws IOException
-    {
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events_error-pstage-program-different.json" );
-        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1089 ) ) ) );
-    }
-
-    @Test
     public void testNoWriteAccessToOrg()
         throws IOException
     {
@@ -386,6 +370,22 @@ public class EventImportValidationTest
 
         assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1033 ) ) ) );
+    }
+
+    @Test
+    public void testEventProgramStageAndEnrollmentWithDifferentProgram()
+        throws IOException
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-different-program-program-stage-enrollment.json" );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
+
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1079 ) ) ) );
     }
 
     @Test
