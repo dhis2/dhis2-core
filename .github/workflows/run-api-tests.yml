@@ -23,7 +23,8 @@ jobs:
           java-version: 11
       - name: Run API
         run: |
-          bash ./dhis-2/run-api.sh
+          cd dhis-2
+          bash ./run-api.sh
 
       - name: Run tests
         run: |
