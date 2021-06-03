@@ -66,7 +66,11 @@ public class EventValidationTests
 
     private static String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
+    private static String anotherTrackerProgramId = Constants.ANOTHER_TRACKER_PROGRAM_ID;
+
     private static String trackerProgramStageId;
+
+    private static String anotherTrackerProgramStageId;
 
     private static String ouIdWithoutAccess;
 
@@ -84,8 +88,7 @@ public class EventValidationTests
                 "E1123" ),
             Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId,
                 "E1029" ),
-            Arguments.arguments( OU_ID, trackerProgramId, null, "E1123" ),
-            Arguments.arguments( OU_ID, trackerProgramId, eventProgramStageId, "E1089" ) );
+            Arguments.arguments( OU_ID, trackerProgramId, null, "E1123" ) );
     }
 
     @BeforeAll
@@ -159,6 +162,18 @@ public class EventValidationTests
             .body( "errorCode", hasItem( equalTo( errorCode ) ) );
     }
 
+    @Test
+    public void eventImportShouldValidateProgramFromProgramStage()
+    {
+        JsonObject jsonObject = trackerActions.buildEvent( OU_ID, trackerProgramId, anotherTrackerProgramStageId );
+        jsonObject.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "enrollment", enrollment );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
+
+        response.validateErrorReport()
+                .body( "errorCode", hasItem( equalTo( "E1079" ) ) );
+    }
+
     private void setupData()
     {
         eventProgramStageId = programActions.programStageActions.get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
@@ -171,6 +186,11 @@ public class EventValidationTests
             .get( "", new QueryParamsBuilder().addAll( "filter=program.id:eq:" +
                 trackerProgramId, "filter=repeatable:eq:true" ) )
             .extractString( "programStages.id[0]" );
+
+        anotherTrackerProgramStageId = programActions.programStageActions
+                .get( "", new QueryParamsBuilder().addAll( "filter=program.id:eq:" +
+                        anotherTrackerProgramId, "filter=repeatable:eq:true" ) )
+                .extractString( "programStages.id[0]" );
 
         ouIdWithoutAccess = new OrgUnitActions().createOrgUnit();
         new UserActions().grantCurrentUserAccessToOrgUnit( ouIdWithoutAccess );
