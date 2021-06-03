@@ -90,7 +90,7 @@
 
     <dependency>
       <groupId>javax.media</groupId>
-      <artifactId>jai_imageio</artifactId>
+      <artifactId>jai-imageio</artifactId>
     </dependency>
 
     <!-- Test -->
