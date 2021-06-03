@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration
-class JdbcOrgUnitAssiciationStoreConfiguration
+public class JdbcOrgUnitAssociationStoreConfiguration
 {
 
     @Bean( "jdbcProgramOrgUnitAssociationsStore" )
