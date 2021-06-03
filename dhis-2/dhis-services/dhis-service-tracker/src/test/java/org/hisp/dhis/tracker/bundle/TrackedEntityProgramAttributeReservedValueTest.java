@@ -133,7 +133,7 @@ public class TrackedEntityProgramAttributeReservedValueTest
         reservedValueService.reserve( attribute.getTextPattern(), 200, new HashMap<>(),
             Date.from( localDate.atStartOfDay().atZone( ZoneId.systemDefault() ).toInstant() ) );
 
-        assertTrue( reservedValueService.isReserved( attribute.getTextPattern(), "A100" ) );
+        assertFalse( reservedValueService.isReserved( attribute.getTextPattern(), "A100" ) );
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/te_program_with_tea_reserved_value_data.json" ).getInputStream(),
