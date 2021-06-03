@@ -36,7 +36,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: dhis2.war
-          path: /dhis-2/dhis-web/dhis-web-portal/target/dhis.war
+          path: ./dhis-2/dhis-web/dhis-web-portal/target/dhis.war
 
   integration-test:
     runs-on: ubuntu-latest
