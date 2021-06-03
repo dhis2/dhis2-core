@@ -314,6 +314,48 @@
       "attributeValues": [],
       "userAccesses": [],
       "programStageSections": []
+    },
+    {
+      "id": "PaOOjwLVW2X",
+      "name": "Program Stage - Another Program",
+      "code": "TA_ANOTHER_TRACKER_PROGRAM_STAGE",
+      "allowGenerateNextVisit": false,
+      "publicAccess": "rwrw----",
+      "formType": "DEFAULT",
+      "generatedByEnrollmentDate": false,
+      "displayFormName": "Program Stage - Another Program",
+      "sortOrder": 2,
+      "hideDueDate": false,
+      "enableUserAssignment": false,
+      "minDaysFromStart": 3,
+      "favorite": false,
+      "preGenerateUID": false,
+      "displayName": "Program Stage - Another Program",
+      "externalAccess": false,
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": false,
+      "blockEntryForm": false,
+      "program": {
+        "id": "f1AyMswryyX",
+        "code": "TA TRACKER_PROGRAM"
+      },
+      "programStageDataElements": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "displayName": "TA user group",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": []
     }
   ],
   "programs": [
@@ -528,6 +570,74 @@
         {
           "id": "PaOOjwLVW23",
           "code": "TA_TRACKER_PROGRAM_SECOND_STAGE"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "lastUpdated": "2019-02-28T12:42:58.283",
+      "id": "f1AyMswryyX",
+      "created": "2019-02-05T13:46:19.312",
+      "name": "TA Tracker_another_program",
+      "code": "TA TRACKER_ANOTHER_PROGRAM",
+      "shortName": "TA Tracker_another_program",
+      "publicAccess": "rwrw----",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITH_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 5,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf",
+        "code": "default"
+      },
+      "trackedEntityType": {
+        "id": "Q9GufDoplCL",
+        "code": "TA_PERSON_TET"
+      },
+      "organisationUnits": [
+        {
+          "id": "g8upMTyEZGZ",
+          "code": "OU_167609"
+        },
+        {
+          "id": "O6uvpzGd5pu",
+          "code": "OU_264"
+        },
+        {
+          "id": "DiszpKrYNg8",
+          "code": "OU_559"
+        },
+        {
+          "id": "YuQRtpLP10I",
+          "code": "OU_539"
+        }
+      ],
+      "notificationTemplates": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [
+        {
+          "id": "PaOOjwLVW2X",
+          "code": "TA_ANOTHER_TRACKER_PROGRAM_STAGE"
         }
       ],
       "userAccesses": []

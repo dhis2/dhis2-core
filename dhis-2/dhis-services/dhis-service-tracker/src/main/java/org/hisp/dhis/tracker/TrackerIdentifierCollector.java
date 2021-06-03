@@ -98,10 +98,10 @@ public class TrackerIdentifierCollector
     private void collectProgramRulesFields( Map<Class<?>, Set<String>> map,
         TrackerIdentifierParams params )
     {
-        Set<String> programs = map.get( Program.class );
-        if ( programs != null )
+        Set<String> programStages = map.get( ProgramStage.class );
+        if ( programStages != null )
         {
-            List<ProgramRule> programRules = programRuleService.getProgramRuleByProgram( programs );
+            List<ProgramRule> programRules = programRuleService.getProgramRuleByProgramStage( programStages );
             Set<String> dataElements = programRules.stream()
                 .flatMap( pr -> pr.getProgramRuleActions().stream() )
                 .filter( a -> Objects.nonNull( a.getDataElement() ) )
@@ -181,7 +181,6 @@ public class TrackerIdentifierCollector
         events.forEach( event -> {
             addIdentifier( map, Enrollment.class, TrackerIdScheme.UID, event.getEnrollment() );
             addIdentifier( map, Event.class, TrackerIdScheme.UID, event.getEvent() );
-            addIdentifier( map, Program.class, params.getProgramIdScheme().getIdScheme(), event.getProgram() );
             addIdentifier( map, ProgramStage.class, params.getProgramStageIdScheme().getIdScheme(),
                 event.getProgramStage() );
             addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(), event.getOrgUnit() );
