@@ -36,7 +36,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
+import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.UserService;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,6 +55,15 @@ public class DataApprovalWorkflowServiceTest
 
     @Autowired
     private DataApprovalLevelService dataApprovalLevelService;
+
+    @Autowired
+    private UserService _userService;
+
+    @Before
+    public void init()
+    {
+        userService = _userService;
+    }
 
     // -------------------------------------------------------------------------
     // Supporting data
@@ -206,5 +219,38 @@ public class DataApprovalWorkflowServiceTest
         assertTrue( workflows.contains( workflowA ) );
         assertTrue( workflows.contains( workflowB ) );
         assertTrue( workflows.contains( workflowC ) );
+    }
+
+    @Test
+    public void testSaveWorkFlowWithAuthority()
+    {
+        createUserAndInjectSecurityContext( false, "F_DATA_APPROVAL_WORKFLOW" );
+        long idA = dataApprovalService
+            .addWorkflow( new DataApprovalWorkflow( "H", periodType, newHashSet( level1, level2 ) ) );
+
+        assertEquals( "H", dataApprovalService.getWorkflow( idA ).getName() );
+    }
+
+    @Test( expected = CreateAccessDeniedException.class )
+    public void testSaveWorkFlowWithoutAuthority()
+    {
+        createUserAndInjectSecurityContext( false, null );
+        dataApprovalService.addWorkflow( new DataApprovalWorkflow( "F", periodType, newHashSet( level1, level2 ) ) );
+    }
+
+    @Test
+    public void testSaveLevelWithAuthority()
+    {
+        createUserAndInjectSecurityContext( false, "F_DATA_APPROVAL_LEVEL" );
+        long idA = dataApprovalLevelService.addDataApprovalLevel( new DataApprovalLevel( "4", 1, null ) );
+
+        assertEquals( "4", dataApprovalLevelService.getDataApprovalLevel( idA ).getName() );
+    }
+
+    @Test( expected = UpdateAccessDeniedException.class )
+    public void testSaveLevelWithoutAuthority()
+    {
+        createUserAndInjectSecurityContext( false, null );
+        dataApprovalLevelService.addDataApprovalLevel( new DataApprovalLevel( "7", 1, null ) );
     }
 }

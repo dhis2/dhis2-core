@@ -90,7 +90,7 @@ public class RepeatedEventsValidationHookTest
     {
         validatorToTest = new RepeatedEventsValidationHook();
 
-        bundle = new TrackerBundle();
+        bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
         ctx = new TrackerImportValidationContext( bundle );
 

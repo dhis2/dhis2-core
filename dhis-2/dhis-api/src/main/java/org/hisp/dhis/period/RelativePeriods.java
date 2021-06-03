@@ -31,7 +31,6 @@ import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_Y
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -158,6 +157,12 @@ public class RelativePeriods
         streamToStringArray( IntStream.rangeClosed( 1, 4 ).map( i -> 4 - i + 1 ).boxed(), "financial_year_minus_", "" ),
         Collections.singletonList( "financial_year_this" ).toArray() );
 
+    // Generates an array containing "financial_year_minus_9" ->
+    // "financial_year_minus_1" + "financial_year_this"
+    public static final String[] LAST_10_FINANCIAL_YEARS = (String[]) ArrayUtils.addAll(
+        streamToStringArray( IntStream.rangeClosed( 1, 9 ).map( i -> 9 - i + 1 ).boxed(), "financial_year_minus_", "" ),
+        Collections.singletonList( "financial_year_this" ).toArray() );
+
     // Generates and array containing "biweek1" -> "biweek26"
     public static final String[] BIWEEKS_LAST_26 = streamToStringArray( IntStream.rangeClosed( 1, 26 ).boxed(),
         "biweek", "" );
@@ -245,6 +250,8 @@ public class RelativePeriods
 
     private boolean last5FinancialYears = false;
 
+    private boolean last10FinancialYears = false;
+
     private boolean thisWeek = false;
 
     private boolean lastWeek = false;
@@ -324,7 +331,7 @@ public class RelativePeriods
             return PeriodType.getPeriodTypeByName( SixMonthlyPeriodType.NAME );
         }
 
-        if ( isThisFinancialYear() || isLastFinancialYear() || isLast5FinancialYears() )
+        if ( isThisFinancialYear() || isLastFinancialYear() || isLast5FinancialYears() || isLast10FinancialYears() )
         {
             return PeriodType.getPeriodTypeByName( FinancialOctoberPeriodType.NAME );
         }
@@ -712,6 +719,15 @@ public class RelativePeriods
                 dynamicNames, format ) );
         }
 
+        if ( isLast10FinancialYears() )
+        {
+            periods.addAll( getRollingRelativePeriodList( financialPeriodType, LAST_10_FINANCIAL_YEARS,
+                Iso8601Calendar.getInstance().minusYears( DateTimeUnit.fromJdkDate( date ), 5 ).toJdkDate(),
+                dynamicNames, format ) );
+            periods.addAll( getRollingRelativePeriodList( financialPeriodType, LAST_10_FINANCIAL_YEARS, date,
+                dynamicNames, format ) );
+        }
+
         return periods;
     }
 
@@ -811,14 +827,31 @@ public class RelativePeriods
     }
 
     /**
-     * Returns a RelativePeriods instance based on the given list of
+     * Returns a RelativePeriods instance based on the given
      * RelativePeriodsEnum.
      *
      * @param relativePeriod a list of RelativePeriodsEnum.
-     * @param financialYearStart the start of a financial year. Configurable
-     *        through system settings and should be one of the values in the
-     *        enum {@link AnalyticsFinancialYearStartKey}
-     * @return a RelativePeriods instance.
+     * @param date the relative date to use for generating the relative periods.
+     * @return a list of {@link Period}.
+     */
+    public static List<Period> getRelativePeriodsFromEnum( RelativePeriodEnum relativePeriod, Date date )
+    {
+        return getRelativePeriodsFromEnum( relativePeriod, date, null, false,
+            AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER );
+    }
+
+    /**
+     * Returns a RelativePeriods instance based on the given
+     * RelativePeriodsEnum.
+     *
+     * @param relativePeriod a list of RelativePeriodsEnum.
+     * @param date the relative date to use for generating the relative periods.
+     * @param I18nFormat format the {@link I18nFormat}, can be null.
+     * @param boolean dynamicNames indicates whether to set dynamic names on the
+     *        periods.
+     * @param financialYearStart the start of a financial year per
+     *        {@link AnalyticsFinancialYearStartKey}.
+     * @return a list of {@link Period}.
      */
     public static List<Period> getRelativePeriodsFromEnum( RelativePeriodEnum relativePeriod, Date date,
         I18nFormat format, boolean dynamicNames, AnalyticsFinancialYearStartKey financialYearStart )
@@ -861,6 +894,7 @@ public class RelativePeriods
         map.put( RelativePeriodEnum.THIS_FINANCIAL_YEAR, new RelativePeriods().setThisFinancialYear( true ) );
         map.put( RelativePeriodEnum.LAST_FINANCIAL_YEAR, new RelativePeriods().setLastFinancialYear( true ) );
         map.put( RelativePeriodEnum.LAST_5_FINANCIAL_YEARS, new RelativePeriods().setLast5FinancialYears( true ) );
+        map.put( RelativePeriodEnum.LAST_10_FINANCIAL_YEARS, new RelativePeriods().setLast10FinancialYears( true ) );
         map.put( RelativePeriodEnum.THIS_WEEK, new RelativePeriods().setThisWeek( true ) );
         map.put( RelativePeriodEnum.LAST_WEEK, new RelativePeriods().setLastWeek( true ) );
         map.put( RelativePeriodEnum.THIS_BIWEEK, new RelativePeriods().setThisBiWeek( true ) );
@@ -922,6 +956,7 @@ public class RelativePeriods
         add( list, RelativePeriodEnum.THIS_FINANCIAL_YEAR, thisFinancialYear );
         add( list, RelativePeriodEnum.LAST_FINANCIAL_YEAR, lastFinancialYear );
         add( list, RelativePeriodEnum.LAST_5_FINANCIAL_YEARS, last5FinancialYears );
+        add( list, RelativePeriodEnum.LAST_10_FINANCIAL_YEARS, last10FinancialYears );
         add( list, RelativePeriodEnum.THIS_WEEK, thisWeek );
         add( list, RelativePeriodEnum.LAST_WEEK, lastWeek );
         add( list, RelativePeriodEnum.THIS_BIWEEK, thisBiWeek );
@@ -974,6 +1009,7 @@ public class RelativePeriods
             thisFinancialYear = relativePeriods.contains( RelativePeriodEnum.THIS_FINANCIAL_YEAR );
             lastFinancialYear = relativePeriods.contains( RelativePeriodEnum.LAST_FINANCIAL_YEAR );
             last5FinancialYears = relativePeriods.contains( RelativePeriodEnum.LAST_5_FINANCIAL_YEARS );
+            last10FinancialYears = relativePeriods.contains( RelativePeriodEnum.LAST_10_FINANCIAL_YEARS );
             thisWeek = relativePeriods.contains( RelativePeriodEnum.THIS_WEEK );
             lastWeek = relativePeriods.contains( RelativePeriodEnum.LAST_WEEK );
             thisBiWeek = relativePeriods.contains( RelativePeriodEnum.THIS_BIWEEK );
@@ -1471,6 +1507,19 @@ public class RelativePeriods
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isLast10FinancialYears()
+    {
+        return last10FinancialYears;
+    }
+
+    public RelativePeriods setLast10FinancialYears( boolean last10FinancialYears )
+    {
+        this.last10FinancialYears = last10FinancialYears;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isThisWeek()
     {
         return thisWeek;
@@ -1575,7 +1624,7 @@ public class RelativePeriods
 
     public boolean isThisFinancialPeriod()
     {
-        return isThisFinancialYear() || isLastFinancialYear() || isLast5FinancialYears();
+        return isThisFinancialYear() || isLastFinancialYear() || isLast5FinancialYears() || isLast10FinancialYears();
     }
 
     // -------------------------------------------------------------------------
@@ -1611,6 +1660,7 @@ public class RelativePeriods
         result = prime * result + (quartersLastYear ? 1 : 0);
         result = prime * result + (lastYear ? 1 : 0);
         result = prime * result + (last5Years ? 1 : 0);
+        result = prime * result + (last10Years ? 1 : 0);
         result = prime * result + (last12Months ? 1 : 0);
         result = prime * result + (last6Months ? 1 : 0);
         result = prime * result + (last3Months ? 1 : 0);
@@ -1620,6 +1670,7 @@ public class RelativePeriods
         result = prime * result + (thisFinancialYear ? 1 : 0);
         result = prime * result + (lastFinancialYear ? 1 : 0);
         result = prime * result + (last5FinancialYears ? 1 : 0);
+        result = prime * result + (last10FinancialYears ? 1 : 0);
         result = prime * result + (last4Weeks ? 1 : 0);
         result = prime * result + (last4BiWeeks ? 1 : 0);
         result = prime * result + (last12Weeks ? 1 : 0);
@@ -1758,6 +1809,11 @@ public class RelativePeriods
             return false;
         }
 
+        if ( !last10Years == other.last10Years )
+        {
+            return false;
+        }
+
         if ( !last12Months == other.last12Months )
         {
             return false;
@@ -1799,6 +1855,11 @@ public class RelativePeriods
         }
 
         if ( !last5FinancialYears == other.last5FinancialYears )
+        {
+            return false;
+        }
+
+        if ( !last10FinancialYears == other.last10FinancialYears )
         {
             return false;
         }
@@ -1850,9 +1911,6 @@ public class RelativePeriods
 
     private static <T> String[] streamToStringArray( Stream<T> stream, String prefix, String suffix )
     {
-        return stream
-            .map( o -> prefix + o.toString() + suffix )
-            .collect( Collectors.toList() )
-            .toArray( new String[0] );
+        return stream.map( o -> prefix + o.toString() + suffix ).toArray( String[]::new );
     }
 }

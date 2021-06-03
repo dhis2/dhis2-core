@@ -93,21 +93,33 @@ class GistPlanner
 
     private List<Filter> planFilters()
     {
-        List<Filter> filters = new ArrayList<>();
-        for ( Filter f : query.getFilters() )
+        List<Filter> filters = query.getFilters();
+        filters = withIdentifiableCollectionAutoIdFilters( filters ); // 1:1
+        return filters;
+    }
+
+    /**
+     * Understands {@code collection} property as synonym for
+     * {@code collection.id}
+     */
+    private List<Filter> withIdentifiableCollectionAutoIdFilters( List<Filter> filters )
+    {
+        List<Filter> mapped = new ArrayList<>();
+        for ( Filter f : filters )
         {
             Property p = context.resolveMandatory( f.getPropertyPath() );
-            if ( p.isCollection() && !isCollectionSizeFilter( f, p )
+            if ( !f.getOperator().isAccessCompare()
+                && p.isCollection() && !isCollectionSizeFilter( f, p )
                 && IdentifiableObject.class.isAssignableFrom( p.getItemKlass() ) )
             {
-                filters.add( f.withPropertyPath( f.getPropertyPath() + ".id" ) );
+                mapped.add( f.withPropertyPath( f.getPropertyPath() + ".id" ) );
             }
             else
             {
-                filters.add( f );
+                mapped.add( f );
             }
         }
-        return filters;
+        return mapped;
     }
 
     private static int propertyTypeOrder( Property a, Property b )
@@ -199,6 +211,9 @@ class GistPlanner
         return mapped;
     }
 
+    /**
+     * Transforms {@code field[a,b]} syntax to {@code field.a,field.b}
+     */
     private List<Field> withInnerAsSeparateFields( List<Field> fields )
     {
         List<Field> expanded = new ArrayList<>();

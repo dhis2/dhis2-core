@@ -27,11 +27,21 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
+import static java.util.stream.Collectors.partitioningBy;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * simplest implementation of PagingCriteria and SortingCriteria
@@ -39,6 +49,7 @@ import lombok.NoArgsConstructor;
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 @Data
+@Slf4j
 @NoArgsConstructor( access = AccessLevel.PROTECTED )
 public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria, SortingCriteria
 {
@@ -51,7 +62,7 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
     /**
      * Page size.
      */
-    private Integer pageSize;
+    private Integer pageSize = DEFAULT_PAGE_SIZE;
 
     /**
      * Indicates whether to include the total number of pages in the paging
@@ -65,21 +76,71 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
     private Boolean skipPaging;
 
     /**
-     * Indicated whether paging is enabled
-     */
-    private Boolean paging;
-
-    /**
      * order params
      */
     private List<OrderCriteria> order;
 
+    /**
+     * TODO: legacy flag can be removed when new tracker will have it's own
+     * services. All new tracker export Criteria class extending this, will
+     * override isLegacy returning false, so that it's true only for older ones.
+     */
+    private boolean isLegacy = true;
+
+    private final Function<List<OrderCriteria>, List<OrderCriteria>> dtoNameToDatabaseNameTranslator = orderCriteria -> CollectionUtils
+        .emptyIfNull( orderCriteria )
+        .stream()
+        .map( oc -> OrderCriteria.of( translateField( oc.getField(), isLegacy() ), oc.getDirection() ) )
+        .collect( Collectors.toList() );
+
     public boolean isPagingRequest()
     {
-        return paging != null && paging ||
-            pageSize != null ||
-            page != null ||
-            totalPages;
+        return !isSkipPaging();
+    }
+
+    public boolean isSkipPaging()
+    {
+        return Optional.ofNullable( skipPaging )
+            .orElse( false );
+    }
+
+    @Override
+    public List<OrderCriteria> getOrder()
+    {
+        if ( getAllowedOrderingFields().isEmpty() )
+        {
+            return dtoNameToDatabaseNameTranslator.apply( order );
+        }
+
+        Map<Boolean, List<OrderCriteria>> orderCriteriaPartitionedByAllowance = CollectionUtils.emptyIfNull( order )
+            .stream()
+            .collect(
+                partitioningBy( this::isAllowed ) );
+
+        CollectionUtils.emptyIfNull( orderCriteriaPartitionedByAllowance.get( false ) )
+            .forEach( disallowedOrderFieldConsumer() );
+
+        return dtoNameToDatabaseNameTranslator.apply( orderCriteriaPartitionedByAllowance.get( true ) );
+    }
+
+    private boolean isAllowed( OrderCriteria orderCriteria )
+    {
+        return getAllowedOrderingFields().contains( orderCriteria.getField() );
+    }
+
+    protected Consumer<OrderCriteria> disallowedOrderFieldConsumer()
+    {
+        return orderCriteria -> log.warn( "Ordering by " + orderCriteria.getField() + " is not supported" );
+    }
+
+    public boolean isSortingRequest()
+    {
+        return !CollectionUtils.emptyIfNull( getOrder() ).isEmpty();
+    }
+
+    public interface EntityNameSupplier
+    {
+        String getEntityName();
     }
 
 }

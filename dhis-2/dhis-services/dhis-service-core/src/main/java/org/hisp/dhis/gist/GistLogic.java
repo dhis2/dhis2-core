@@ -32,6 +32,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
+import org.hisp.dhis.security.acl.Access;
 
 /**
  * Contains the "business logic" aspects of building and running a
@@ -98,6 +99,11 @@ final class GistLogic
     static boolean isHrefProperty( Property p )
     {
         return "href".equals( p.key() ) && p.getKlass() == String.class;
+    }
+
+    static boolean isAccessProperty( Property p )
+    {
+        return "access".equals( p.key() ) && p.getKlass() == Access.class;
     }
 
     static boolean isCollectionSizeFilter( Filter filter, Property property )

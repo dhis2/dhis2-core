@@ -39,6 +39,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import java.io.File;
 import java.time.Instant;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import static org.hamcrest.Matchers.notNullValue;
@@ -188,8 +189,15 @@ public class TrackerActions
 
     public JsonObject buildTeiAndEnrollment( String ouId, String programId )
     {
+        JsonObject jsonObject = buildTeiAndEnrollment("Q9GufDoplCL", ouId, programId  );
+
+        return jsonObject;
+    }
+
+    public JsonObject buildTeiAndEnrollment( String teiType, String ouId, String programId )
+    {
         JsonObject jsonObject = new JsonObjectBuilder()
-            .addProperty( "trackedEntityType", "Q9GufDoplCL" )
+            .addProperty( "trackedEntityType", teiType )
             .addProperty( "orgUnit", ouId )
             .addArray( "enrollments", new JsonObjectBuilder()
                 .addProperty( "program", programId )
@@ -240,10 +248,16 @@ public class TrackerActions
     }
 
     public JsonObject buildTrackedEntityAndRelationships(String trackedEntity_1, String trackedEntity_2, BiFunction<String, String, JsonObject> relationshipArray) {
+        Function<String, JsonObject> tei = ( id ) -> new JsonObjectBuilder()
+            .addProperty( "trackedEntity", id )
+            .addProperty( "trackedEntityType", "Q9GufDoplCL" )
+            .addProperty( "orgUnit", "g8upMTyEZGZ" )
+            .build();
+
         return new JsonObjectBuilder()
                 .addArray("trackedEntities",
-                        buildTrackedEntity(trackedEntity_1),
-                        buildTrackedEntity(trackedEntity_2))
+                        tei.apply(trackedEntity_1),
+                        tei.apply( trackedEntity_2 ))
                 .addArray("relationships",
                         relationshipArray.apply(trackedEntity_1, trackedEntity_2))
                 .build();
@@ -270,12 +284,11 @@ public class TrackerActions
                 .build();
     }
 
-    public JsonObject buildTrackedEntity( String trackedEntity )
+    public JsonObject buildTei( String trackedEntityType, String ou )
     {
         return new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity )
-                .addProperty( "trackedEntityType", "Q9GufDoplCL" )
-                .addProperty( "orgUnit", "g8upMTyEZGZ" )
-                .build();
+            .addProperty( "trackedEntityType", trackedEntityType )
+            .addProperty( "orgUnit", ou )
+            .wrapIntoArray( "trackedEntities" );
     }
 }
