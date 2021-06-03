@@ -592,13 +592,14 @@ public class JdbcEventAnalyticsManager
 
     /**
      * Creates a SQL statement of descendants org units. When there are multiple
-     * levels the "or" operator will be used as junction.
+     * levels the "or" operator will be used as junction. The final result will
+     * be a query in the format: "where/and (ax."uidlevel0" in ('orgUid-1',
+     * 'orgUid-2', 'orgUid-2') )"
      *
      * @param orgUnitAlias
      * @param dimensionalItems
      * @param helper
-     * @return a SQL statement in the format "where/and (ax."uidlevel0" in
-     *         ('orgUid-1', 'orgUid-2', 'orgUid-2') )"
+     * @return the SQL statement
      */
     private String descendantsOrgUnitStatement( final String orgUnitAlias,
         final List<DimensionalItemObject> dimensionalItems, final SqlHelper helper )
@@ -619,8 +620,6 @@ public class JdbcEventAnalyticsManager
             orgUnitColsAndUnitUids.put( orgUnitCol, orgUnitValue );
         }
 
-        // Generates a code like: ax."uidlevel0" in ('orgUid-1', 'orgUid-2',
-        // 'orgUid-2') or ax."uidlevel0" in ('orgUid-1') or ...
         statement.append( orgUnitColsAndUnitUids.entrySet().stream()
             .map( entry -> (entry.getKey()).concat( OPEN_IN ).concat( entry.getValue() ).concat( ")" ) )
             .collect( Collectors.joining( " or " ) ) ).toString();
