@@ -86,11 +86,9 @@ public class PreCheckUpdatableFieldsValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
-        Program program = programStageInstance.getProgramInstance().getProgram();
         ProgramStage programStage = programStageInstance.getProgramStage();
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
 
-        addErrorIf( () -> !event.getProgram().equals( program.getUid() ), reporter, E1128, "program" );
         addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ), reporter, E1128,
             "programStage" );
         addErrorIf( () -> !event.getEnrollment().equals( programInstance.getUid() ), reporter, E1128,
