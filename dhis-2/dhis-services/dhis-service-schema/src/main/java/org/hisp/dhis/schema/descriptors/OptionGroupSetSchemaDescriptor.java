@@ -54,12 +54,10 @@ public class OptionGroupSetSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1051 );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_OPTIONGROUPSET_PUBLIC_ADD" ) ) );
-        schema.getAuthorities()
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_OPTIONGROUPSET_PUBLIC_ADD" ) ) );
+        schema
             .add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_OPTIONGROUPSET_PRIVATE_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_OPTIONGROUPSET_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_OPTIONGROUPSET_DELETE" ) ) );
 
         return schema;
     }
