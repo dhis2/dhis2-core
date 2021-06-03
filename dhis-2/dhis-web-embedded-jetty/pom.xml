@@ -219,16 +219,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.jai-imageio</groupId>
-            <artifactId>jai-imageio-core</artifactId>
-        </dependency>
-
-        <!--
-        <dependency>
             <groupId>javax.media</groupId>
             <artifactId>jai_imageio</artifactId>
         </dependency>
-        -->
 
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
