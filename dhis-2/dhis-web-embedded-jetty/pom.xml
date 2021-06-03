@@ -218,10 +218,12 @@
             <artifactId>jetty-server</artifactId>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>javax.media</groupId>
             <artifactId>jai_imageio</artifactId>
         </dependency>
+        -->
 
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
