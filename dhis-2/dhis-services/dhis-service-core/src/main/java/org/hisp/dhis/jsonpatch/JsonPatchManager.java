@@ -70,17 +70,9 @@ public class JsonPatchManager
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
-
         JsonNode node = jsonMapper.valueToTree( object );
 
-        for ( Property property : schema.getProperties() )
-        {
-            if ( property.isCollection() )
-            {
-                Object data = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-                ((ObjectNode) node).set( property.getCollectionName(), jsonMapper.valueToTree( data ) );
-            }
-        }
+        handleCollectionUpdates( object, schema, (ObjectNode) node );
 
         node = patch.apply( node );
 
@@ -91,6 +83,18 @@ public class JsonPatchManager
         catch ( JsonProcessingException e )
         {
             throw new JsonPatchException( e.getMessage() );
+        }
+    }
+
+    private <T> void handleCollectionUpdates( T object, Schema schema, ObjectNode node )
+    {
+        for ( Property property : schema.getProperties() )
+        {
+            if ( property.isCollection() )
+            {
+                Object data = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+                node.set( property.getCollectionName(), jsonMapper.valueToTree( data ) );
+            }
         }
     }
 }

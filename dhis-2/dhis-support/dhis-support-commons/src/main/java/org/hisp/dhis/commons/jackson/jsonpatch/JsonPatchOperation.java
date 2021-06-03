@@ -58,7 +58,7 @@ public abstract class JsonPatchOperation
     @JsonProperty
     protected final JsonPointer path;
 
-    public JsonPatchOperation( final String op, final JsonPointer path )
+    protected JsonPatchOperation( final String op, final JsonPointer path )
     {
         this.op = op;
         this.path = path;

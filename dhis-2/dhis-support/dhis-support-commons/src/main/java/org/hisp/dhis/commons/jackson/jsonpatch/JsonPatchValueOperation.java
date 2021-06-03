@@ -44,7 +44,7 @@ public abstract class JsonPatchValueOperation extends JsonPatchOperation
     protected final JsonNode value;
 
     @JsonCreator
-    public JsonPatchValueOperation( String op, JsonPointer path, JsonNode value )
+    protected JsonPatchValueOperation( String op, JsonPointer path, JsonNode value )
     {
         super( op, path );
         this.value = value.deepCopy();
