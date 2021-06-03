@@ -228,7 +228,7 @@
     <jrebel-x-maven-plugin.version>1.1.6</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.15</dhis-antlr-expression-parser.version>
     <ow2.asm.version>9.0</ow2.asm.version>
-    <!-- <jai-imageio.version>1.1.1</jai-imageio.version> -->
+    <jai-imageio.version>1.1.1</jai-imageio.version>
   </properties>
 
   <distributionManagement>
@@ -1211,13 +1211,11 @@
         <version>${imgscalr-lib.version}</version>
       </dependency>
 
-      <!--
       <dependency>
         <groupId>javax.media</groupId>
         <artifactId>jai_imageio</artifactId>
         <version>${jai-imageio.version}</version>
       </dependency>
-      -->
 
       <!-- Hisp Quick-->
       <dependency>
