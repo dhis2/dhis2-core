@@ -266,7 +266,7 @@
     <repository>
       <id>geotoolkit</id>
       <name>Geotoolkit</name>
-      <url>http://logicaldoc.sourceforge.net/maven/</url>
+      <url>http://dev.efarmer.mobi:8889/repository/internal/</url>
       <snapshots>
         <enabled>false</enabled>
         <updatePolicy>daily</updatePolicy>
@@ -1213,7 +1213,7 @@
 
       <dependency>
         <groupId>javax.media</groupId>
-        <artifactId>jai-imageio</artifactId>
+        <artifactId>jai_imageio</artifactId>
         <version>${jai-imageio.version}</version>
       </dependency>
 

@@ -220,7 +220,7 @@
 
         <dependency>
             <groupId>javax.media</groupId>
-            <artifactId>jai-imageio</artifactId>
+            <artifactId>jai_imageio</artifactId>
         </dependency>
 
         <dependency>
