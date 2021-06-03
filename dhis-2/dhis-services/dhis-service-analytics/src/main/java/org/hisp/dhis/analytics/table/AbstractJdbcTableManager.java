@@ -657,18 +657,7 @@ public abstract class AbstractJdbcTableManager
 
     private void createAnalyticsTable( AnalyticsTable table, AnalyticsTablePartition partition )
     {
-        if ( partition != null )
-        {
-            String attachPartitionSql = "create table if not exists " + partition.getTableName() + " partition of " +
-                table.getTableName() + " for values in " + "(" + partition.getYear() + ")";
-
-            log.debug( String.format( "Creating table: %s, columns: %d", partition.getTableName(),
-                table.getDimensionColumns().size() ) );
-
-            log.debug( "Attach Partition SQL: " + attachPartitionSql );
-
-            jdbcTemplate.execute( attachPartitionSql );
-        }
+        tryCreateTableAsPartitionOf( table, partition );
 
         String tableName = partition == null ? table.getTableName() : partition.getTempTableName();
         String sqlCreate = "create table if not exists " + tableName + " (";
@@ -692,6 +681,20 @@ public abstract class AbstractJdbcTableManager
         log.debug( "Created SQL: " + sqlCreate );
 
         jdbcTemplate.execute( sqlCreate );
+    }
 
+    private void tryCreateTableAsPartitionOf( AnalyticsTable table, AnalyticsTablePartition partition )
+    {
+        if ( partition != null )
+        {
+            String createTableAsPartitionOfSql = "create table if not exists " + partition.getTableName()
+                + " partition of " +
+                table.getTableName() + " for values in " + "(" + partition.getYear() + ")";
+
+            log.debug( String.format( "Creating table: %s, columns: %d", partition.getTableName(),
+                table.getDimensionColumns().size() ) );
+            log.debug( "Create table as partition of: " + createTableAsPartitionOfSql );
+            jdbcTemplate.execute( createTableAsPartitionOfSql );
+        }
     }
 }
