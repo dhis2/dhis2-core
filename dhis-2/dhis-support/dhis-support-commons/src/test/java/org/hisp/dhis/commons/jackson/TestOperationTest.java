@@ -46,7 +46,7 @@ public class TestOperationTest
 {
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @Ignore("test op is not yet supported")
+    @Ignore( "test op is not yet supported" )
     @Test( expected = JsonPatchException.class )
     public void testTestIfPathExists()
         throws JsonProcessingException,
