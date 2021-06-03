@@ -362,13 +362,8 @@ public class JdbcEnrollmentAnalyticsManager
      * The given QueryItem must be of type COORDINATE.
      *
      * @param item the {@link QueryItem}
-     * @return the column selector or EMPTY if the item valueType is not
-     *         COORDINATE. ie.: ( select '[' ||
-     *         round(ST_X("GyJHQUWZ9Rl")::numeric, 6) || ',' ||
-     *         round(ST_Y("GyJHQUWZ9Rl")::numeric, 6) || ']' as "GyJHQUWZ9Rl"
-     *         from analytics_event_qDkgAbB5Jlk where
-     *         analytics_event_qDkgAbB5Jlk.pi = ax.pi and "SzVk2KvkSSd" is not
-     *         null and ps = 'hYyB7FUS5eR' order by executiondate desc limit 1 )
+     * @return the column selector (SQL query) or EMPTY if the item valueType is
+     *         not COORDINATE.
      *
      * @throws NullPointerException if item is null
      */
@@ -384,12 +379,8 @@ public class JdbcEnrollmentAnalyticsManager
      *
      * @param suffix is currently ignored. Not currently used for enrollments
      * @param item the {@link QueryItem}
-     * @return the column selector or EMPTY if the item valueType is not
-     *         COORDINATE. ie.: ( select '[' || round(ST_X("colName")::numeric,
-     *         6) || ',' || round(ST_Y("colName")::numeric, 6) || ']' as
-     *         "colName" from analytics_event_qDkgAbB5Jlk where
-     *         analytics_event_qDkgAbB5Jlk.pi = ax.pi and "colName" is not null
-     *         and ps = 'hYyB7FUS5eR' order by executiondate desc limit 1 )
+     * @return the column selector (SQL query) or EMPTY if the item valueType is
+     *         not COORDINATE.
      *
      * @throws NullPointerException if item is null
      */
@@ -418,10 +409,11 @@ public class JdbcEnrollmentAnalyticsManager
 
             }
 
-            return "(select " +
-                "'[' || round(ST_X(" + stCentroidFunction + "(" + colName + "))::numeric, 6) || ',' || round(ST_Y("
-                + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName + " from "
-                + eventTableName + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+            return "(select '[' || round(ST_X(" + stCentroidFunction + "(" + colName
+                + "))::numeric, 6) || ',' || round(ST_Y("
+                + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName
+                + " from " + eventTableName
+                + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
         }
 
@@ -435,15 +427,9 @@ public class JdbcEnrollmentAnalyticsManager
      *
      * @param item the {@link QueryItem}
      * @param suffix is currently ignored. Not currently used for enrollments
-     * @return 1) when there is a program stage: returns the column select
-     *         statement for the given item and suffix. ie.: ( select
-     *         "GyJHQUWZ9Rl_name" from analytics_event_qDkgAbB5Jlk where
-     *         analytics_event_qDkgAbB5Jlk.pi = ax.pi and "GyJHQUWZ9Rl_name" is
-     *         not null and ps = 'hYyB7FUS5eR' order by executiondate desc limit
-     *         1
-     *
-     *         2) when there is no program stage associated: returns the item
-     *         name quoted and prefixed with the table prefix. ie.:
+     * @return when there is a program stage: returns the column select
+     *         statement for the given item and suffix, otherwise returns the
+     *         item name quoted and prefixed with the table prefix. ie.:
      *         ax."enrollmentdate"
      */
     @Override
@@ -459,8 +445,9 @@ public class JdbcEnrollmentAnalyticsManager
 
             final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
 
-            return "(select " + colName + " from " + eventTableName +
-                " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+            return "(select " + colName
+                + " from " + eventTableName
+                + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
                 ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
         }
@@ -489,8 +476,9 @@ public class JdbcEnrollmentAnalyticsManager
 
             String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
 
-            return "(select " + colName + " from " + eventTableName +
-                " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+            return "(select " + colName
+                + " from " + eventTableName
+                + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
                 ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
         }
