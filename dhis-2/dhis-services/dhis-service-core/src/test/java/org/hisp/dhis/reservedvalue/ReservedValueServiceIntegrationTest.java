@@ -30,21 +30,17 @@ package org.hisp.dhis.reservedvalue;
 import static java.util.Calendar.DATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.BeforeClass;
@@ -52,10 +48,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Commit;
 
-import com.google.common.collect.Lists;
-
 @Commit
-public class DefaultReservedValueServiceTest extends TransactionalIntegrationTest
+public class ReservedValueServiceIntegrationTest extends TransactionalIntegrationTest
 {
     @Autowired
     private ReservedValueService reservedValueService;
@@ -74,8 +68,6 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
 
     private static TextPattern simpleStringPattern;
 
-    private static ReservedValue simpleReservedValue;
-
     @BeforeClass
     public static void setUpClass()
     {
@@ -92,9 +84,6 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
         simpleSequentialTextPattern = createTextPattern( tea, "\"TEST-\"+SEQUENTIAL(##)" );
         simpleRandomTextPattern = createTextPattern( tea, "\"TEST-\"+RANDOM(XXX)" );
         simpleStringPattern = createTextPattern( tea, "\"TEST-\"+ORG_UNIT_CODE(..)" );
-
-        // Set up reserved values
-        simpleReservedValue = createReservedValue( tea, "FOOBAR" );
     }
 
     @Test
@@ -109,41 +98,23 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
 
     @Test
     public void testReserveReserveASingleSimpleValueWhenUsed()
+        throws TextPatternGenerationException,
+        ReserveValueException
     {
-        reservedValueStore.reserveValues( simpleReservedValue, Lists.newArrayList( "FOOBAR" ) );
+        reservedValueService.reserve( simpleTextPattern, 1, new HashMap<>(), future );
 
-        List<ReservedValue> res = null;
+        assertThrows( ReserveValueException.class,
+            () -> reservedValueService.reserve( simpleTextPattern, 1, new HashMap<>(), future ) );
 
-        try
-        {
-            res = reservedValueService.reserve( simpleTextPattern, 1, new HashMap<>(), future );
-        }
-        catch ( Exception e )
-        {
-            assertTrue( e instanceof ReserveValueException );
-            assertEquals( "Could not reserve value: Not enough values left to reserve 1 values.", e.getMessage() );
-        }
-
-        assertNull( res );
         assertEquals( 1, reservedValueStore.getCount() );
     }
 
     @Test
     public void testReserveReserveATwoSimpleValuesShouldFail()
     {
-        List<ReservedValue> res = null;
+        assertThrows( ReserveValueException.class,
+            () -> reservedValueService.reserve( simpleTextPattern, 2, new HashMap<>(), future ) );
 
-        try
-        {
-            res = reservedValueService.reserve( simpleTextPattern, 2, new HashMap<>(), future );
-        }
-        catch ( Exception e )
-        {
-            assertTrue( e instanceof ReserveValueException );
-            assertEquals( "Could not reserve value: Not enough values left to reserve 2 values.", e.getMessage() );
-        }
-
-        assertNull( res );
         assertEquals( 0, reservedValueStore.getCount() );
     }
 
@@ -169,8 +140,7 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
 
         assertEquals( 1, res.stream()
             .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
-        assertEquals( 1, reservedValueStore.getCount() );
-
+        assertEquals( 0, reservedValueStore.getCount() );
     }
 
     @Test
@@ -182,7 +152,7 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
 
         assertEquals( 50, res.stream()
             .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
-        assertEquals( 50, reservedValueStore.getCount() );
+        assertEquals( 0, reservedValueStore.getCount() );
 
     }
 
@@ -193,11 +163,10 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
         List<ReservedValue> reserved = reservedValueService
             .reserve( simpleSequentialTextPattern, 50, new HashMap<>(), future );
 
-        // Make sure they where added successfully
         assertEquals( 50,
             reserved.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 )
                 .count() );
-        assertEquals( 50, reservedValueStore.getCount() );
+        assertEquals( 0, reservedValueStore.getCount() );
 
         List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 25, new HashMap<>(),
             future );
@@ -205,7 +174,7 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
         assertTrue( ListUtils.intersection( reserved, res ).isEmpty() );
         assertEquals( 25, res.stream()
             .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
-        assertEquals( 75, reservedValueStore.getCount() );
+        assertEquals( 0, reservedValueStore.getCount() );
 
     }
 
@@ -244,21 +213,21 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
 
     @Test
     public void testUseReservationWhenReserved()
+        throws TextPatternGenerationException,
+        ReserveValueException
     {
-        reservedValueStore.reserveValues( simpleReservedValue, Lists.newArrayList( "FOOBAR" ) );
+        reservedValueService.reserve( simpleTextPattern, 1, new HashMap<>(), future );
 
-        boolean res = reservedValueService.useReservedValue( simpleTextPattern, "FOOBAR" );
+        assertTrue( reservedValueService.useReservedValue( simpleTextPattern, "FOOBAR" ) );
 
-        assertTrue( res );
         assertEquals( 0, reservedValueStore.getCount() );
     }
 
     @Test
     public void testUseReservationWhenNotReserved()
     {
-        boolean res = reservedValueService.useReservedValue( simpleTextPattern, "FOOBAR" );
+        assertFalse( reservedValueService.useReservedValue( simpleTextPattern, "FOOBAR" ) );
 
-        assertFalse( res );
         assertEquals( 0, reservedValueStore.getCount() );
     }
 
@@ -280,19 +249,5 @@ public class DefaultReservedValueServiceTest extends TransactionalIntegrationTes
         }
 
         return null;
-    }
-
-    private static ReservedValue createReservedValue( IdentifiableObject owner, String key )
-    {
-        try
-        {
-            return new ReservedValue( Objects.fromClass( owner.getClass() ).name(), owner.getUid(), key, "",
-                new Date() );
-        }
-        catch ( IllegalAccessException e )
-        {
-            e.printStackTrace();
-            return null;
-        }
     }
 }
