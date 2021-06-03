@@ -267,7 +267,7 @@
     <repository>
       <id>geotoolkit</id>
       <name>Geotoolkit</name>
-      <url>https://maven.geotoolkit.org</url>
+      <url>https://nexus.geomatys.com/repository/geotoolkit</url>
       <snapshots>
         <enabled>false</enabled>
         <updatePolicy>daily</updatePolicy>
@@ -1212,6 +1212,13 @@
         <version>${imgscalr-lib.version}</version>
       </dependency>
 
+<!--      <dependency>-->
+<!--        <groupId>javax.media</groupId>-->
+<!--        <artifactId>jai_imageio</artifactId>-->
+<!--        <version>${jai-imageio.version}</version>-->
+<!--      </dependency>-->
+
+      <!-- https://mvnrepository.com/artifact/com.sun.media/jai_imageio -->
       <dependency>
         <groupId>javax.media</groupId>
         <artifactId>jai_imageio</artifactId>
