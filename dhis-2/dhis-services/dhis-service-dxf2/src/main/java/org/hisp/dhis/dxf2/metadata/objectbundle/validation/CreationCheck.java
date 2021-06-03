@@ -27,32 +27,31 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
+
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
  * @author Luciano Fiandesio
  */
-public class CreationCheck
-    implements
-    ValidationCheck
+public class CreationCheck implements ObjectValidationCheck
 {
     @Override
-    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx )
+        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
     {
-        TypeReport typeReport = new TypeReport( klass );
-
         if ( persistedObjects == null || persistedObjects.isEmpty() )
         {
-            return typeReport;
+            return;
         }
 
         for ( IdentifiableObject identifiableObject : persistedObjects )
@@ -65,12 +64,10 @@ public class CreationCheck
                     bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) )
                         .setMainId( identifiableObject.getUid() );
 
-                ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
+                addReports.accept( createObjectReport( errorReport, object, bundle ) );
 
                 ctx.markForRemoval( object );
             }
         }
-
-        return typeReport;
     }
 }

@@ -34,8 +34,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.SchemasActions;
 import org.hisp.dhis.actions.SystemActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -306,7 +304,7 @@ public class MetadataImportTest
         ApiResponse response = metadataActions.post( metadata, new QueryParamsBuilder().add( "skipSharing=true" ) );
 
         response.validate().statusCode( 200 )
-            .body( "status", isOneOf( "SUCCESS", "OK" ) )
+            .body( "status", is( oneOf( "SUCCESS", "OK" ) ) )
             .body( "stats.created", equalTo( 1 ) );
 
     }

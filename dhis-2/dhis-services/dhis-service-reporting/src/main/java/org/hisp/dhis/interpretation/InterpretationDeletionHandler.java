@@ -33,7 +33,6 @@ import java.util.List;
 
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Component;
@@ -45,8 +44,6 @@ import org.springframework.stereotype.Component;
 public class InterpretationDeletionHandler
     extends DeletionHandler
 {
-    private static final DeletionVeto VETO = new DeletionVeto( Interpretation.class );
-
     private final InterpretationService interpretationService;
 
     public InterpretationDeletionHandler( InterpretationService interpretationService )

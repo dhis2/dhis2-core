@@ -36,10 +36,7 @@ import lombok.Data;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
@@ -104,6 +101,13 @@ public class ValidationErrorReporter
         this.warningsReportList = new ArrayList<>();
         this.isFailFast = validationContext.getBundle().getValidationMode() == ValidationMode.FAIL_FAST;
         this.invalidDTOs = new HashMap<>();
+    }
+
+    public ValidationErrorReporter( TrackerImportValidationContext context, TrackerDto dto, TrackerType trackerType )
+    {
+        this( context );
+        this.dtoType = trackerType;
+        this.mainId = dto.getUid();
     }
 
     public ValidationErrorReporter( TrackerImportValidationContext context, TrackedEntity trackedEntity )
@@ -201,6 +205,11 @@ public class ValidationErrorReporter
     public boolean isInvalid( TrackerType trackerType, String uid )
     {
         return this.invalidDTOs.getOrDefault( trackerType, new ArrayList<>() ).contains( uid );
+    }
+
+    public boolean isInvalid( TrackerDto dto )
+    {
+        return this.isInvalid( dto.getTrackerType(), dto.getUid() );
     }
 
     public TrackerPreheat getPreheat()

@@ -102,6 +102,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EventSyncService;
@@ -312,9 +313,12 @@ public abstract class AbstractEventService implements EventService
 
         for ( Event event : eventList )
         {
-            if ( trackerOwnershipAccessManager.hasAccess( user,
-                entityInstanceService.getTrackedEntityInstance( event.getTrackedEntityInstance() ),
-                programService.getProgram( event.getProgram() ) ) )
+            Program program = programService.getProgram( event.getProgram() );
+            boolean canSkipCheck = event.getTrackedEntityInstance() == null ||
+                trackerOwnershipAccessManager.canSkipOwnershipCheck( user, program );
+
+            if ( canSkipCheck || trackerOwnershipAccessManager.hasAccess( user,
+                entityInstanceService.getTrackedEntityInstance( event.getTrackedEntityInstance() ), program ) )
             {
                 events.getEvents().add( event );
             }
@@ -920,12 +924,15 @@ public abstract class AbstractEventService implements EventService
     private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
     {
         return organisationUnitCache.get( id,
-            () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
+            () -> HibernateProxyUtils
+                .unproxy( manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) ) );
     }
 
     private DataElement getDataElement( IdScheme idScheme, String id )
     {
-        return dataElementCache.get( id, s -> manager.getObject( DataElement.class, idScheme, id ) ).orElse( null );
+        return dataElementCache
+            .get( id, s -> HibernateProxyUtils.unproxy( manager.getObject( DataElement.class, idScheme, id ) ) )
+            .orElse( null );
     }
 
     @Override
