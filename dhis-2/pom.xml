@@ -264,19 +264,30 @@
         <updatePolicy>never</updatePolicy>
       </releases>
     </repository>
+
     <repository>
-      <id>geotoolkit</id>
-      <name>Geotoolkit</name>
-      <url>https://nexus.geomatys.com/repository/geotoolkit</url>
+      <id>DHIS2_REPO_MIRROR</id>
+      <url>https://raw.githubusercontent.com/dhis2/maven-repo-mirror/master/</url>
       <snapshots>
-        <enabled>false</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-      <releases>
         <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-      </releases>
+        <updatePolicy>always</updatePolicy>
+      </snapshots>
     </repository>
+
+<!--    <repository>-->
+<!--      <id>geotoolkit</id>-->
+<!--      <name>Geotoolkit</name>-->
+<!--      <url>https://nexus.geomatys.com/repository/geotoolkit</url>-->
+<!--      <snapshots>-->
+<!--        <enabled>false</enabled>-->
+<!--        <updatePolicy>daily</updatePolicy>-->
+<!--      </snapshots>-->
+<!--      <releases>-->
+<!--        <enabled>true</enabled>-->
+<!--        <updatePolicy>never</updatePolicy>-->
+<!--      </releases>-->
+<!--    </repository>-->
+
     <repository>
       <id>ossrh</id>
       <name>Sonatype OSS</name>
