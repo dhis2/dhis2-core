@@ -28,7 +28,6 @@ package org.hisp.dhis.metadata.metadata_import;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
@@ -39,6 +38,7 @@ import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.dto.TypeReport;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
@@ -80,7 +80,7 @@ public class MetadataImportTest
     public void shouldUpdateExistingMetadata( String importStrategy, String expected )
     {
         // arrange
-        JsonObject exported = metadataActions.get().getBody();
+        JsonObject exported = metadataActions.get( "?dataElements=true&programs=true" ).getBody();
 
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( "async=false", "importReportMode=FULL", "importStrategy=" + importStrategy );
@@ -312,24 +312,10 @@ public class MetadataImportTest
     private JsonObject generateMetadataObjectWithInvalidSharing()
     {
         JsonObject dataElementGroup = DataGenerator.generateObjectForEndpoint( "/dataElementGroup" );
-        dataElementGroup.addProperty( "publicAccess", "rw------" );
-
-        JsonArray userGroupAccesses = new JsonArray();
-        JsonObject userGroupAccess = new JsonObject();
-        userGroupAccess.addProperty( "access", "rwrw----" );
-        userGroupAccess.addProperty( "userGroupUid", "non-existing-id" );
-        userGroupAccess.addProperty( "id", "non-existing-id" );
-
-        userGroupAccesses.add( userGroupAccess );
-
-        dataElementGroup.add( "userGroupAccesses", userGroupAccesses );
-
-        JsonArray array = new JsonArray();
-
-        array.add( dataElementGroup );
-
-        JsonObject metadata = new JsonObject();
-        metadata.add( "dataElementGroups", array );
+        JsonObject metadata = JsonObjectBuilder.jsonObject( dataElementGroup )
+            .addProperty( "publicAccess", "rw------" )
+            .addUserGroupAccess( "non-existing-id" )
+            .wrapIntoArray( "dataElementGroups" );
 
         return metadata;
     }

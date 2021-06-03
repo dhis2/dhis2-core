@@ -40,6 +40,8 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -99,6 +101,7 @@ public class EventValidationTests
     }
 
     @Test
+    @ResourceLock( value = "global", mode = ResourceAccessMode.READ_WRITE )
     public void shouldNotImportDeletedEvents()
         throws Exception
     {

@@ -120,9 +120,7 @@ public class TeiImportTests
         throws Exception
     {
         // the file contains 2 teis with 1 enrollment and 1 event each
-        JsonObject teiPayload = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) );
-
+        JsonObject teiPayload = buildTeiWithEnrollmentAndEvent();
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiPayload );
 

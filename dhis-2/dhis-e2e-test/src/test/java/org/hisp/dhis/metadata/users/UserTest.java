@@ -41,9 +41,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-
 import java.util.stream.Stream;
+
+import static org.hamcrest.CoreMatchers.equalTo;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -63,7 +63,7 @@ public class UserTest extends ApiTest
         loginActions = new LoginActions();
         meActions = new RestApiActions( "/me" );
 
-        username = "user-tests-" + DataGenerator.randomString();
+        username = "user-tests-" + DataGenerator.randomString( 8 );
         loginActions.loginAsSuperUser();
         userActions.addUser( username, password );
         loginActions.loginAsUser( username, password );

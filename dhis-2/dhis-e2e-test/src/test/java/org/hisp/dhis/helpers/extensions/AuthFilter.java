@@ -28,58 +28,125 @@ package org.hisp.dhis.helpers.extensions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import io.restassured.authentication.NoAuthScheme;
+import io.restassured.authentication.BasicAuthScheme;
 import io.restassured.authentication.PreemptiveBasicAuthScheme;
+import io.restassured.filter.Filter;
 import io.restassured.filter.FilterContext;
 import io.restassured.response.Response;
 import io.restassured.specification.FilterableRequestSpecification;
 import io.restassured.specification.FilterableResponseSpecification;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class AuthFilter
-    implements io.restassured.spi.AuthFilter
+    implements Filter
 {
-    private String lastLoggedInUser = "";
-
-    private String lastLoggedInUserPsw = "";
+    HashMap<String, Cookie> auth = new HashMap<>();
 
     @Override
     public Response filter( FilterableRequestSpecification requestSpec, FilterableResponseSpecification responseSpec,
         FilterContext ctx )
     {
-        if ( requestSpec.getAuthenticationScheme() instanceof NoAuthScheme )
+        String username = "";
+        String password = "";
+        requestSpec.removeCookies();
+
+        if ( requestSpec.getAuthenticationScheme() instanceof BasicAuthScheme ||
+            requestSpec.getAuthenticationScheme() instanceof PreemptiveBasicAuthScheme )
         {
-            if ( hasSessionCookie( requestSpec ) )
+            if ( requestSpec.getAuthenticationScheme() instanceof BasicAuthScheme )
             {
-                requestSpec.removeCookies();
+                username = ((BasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName();
+                password = ((BasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword();
+            }
+            else
+            {
+                username = ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName();
+                password = ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword();
             }
 
-            lastLoggedInUser = "";
-            lastLoggedInUserPsw = "";
-        }
-
-        if ( requestSpec.getAuthenticationScheme() instanceof PreemptiveBasicAuthScheme && (
-            ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName() != lastLoggedInUser ||
-                ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword() != lastLoggedInUserPsw) )
-        {
-            if ( hasSessionCookie( requestSpec ) )
+            if ( getMap( username ) != null )
             {
-                requestSpec.removeCookies();
+                String finalUsername = username;
+
+                Cookie cookie = auth.entrySet().stream().filter( p -> p.getKey().equalsIgnoreCase( finalUsername ) )
+                    .findFirst().orElse( null ).getValue();
+
+                requestSpec.cookie( cookie.getType(), cookie.getValue() );
+
             }
 
-            lastLoggedInUser = ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName();
-            lastLoggedInUserPsw = ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword();
+            else
+            {
+                requestSpec.auth().preemptive().basic( username, password );
+            }
         }
 
         final Response response = ctx.next( requestSpec, responseSpec );
+
+        if ( getMap( username ) == null && getSessionCookie( response ) != null )
+        {
+            auth.put( username,
+                getSessionCookie( response ) );
+        }
         return response;
     }
 
-    private boolean hasSessionCookie( FilterableRequestSpecification requestSpec )
+    private Cookie getSessionCookie( Response response )
     {
-        return requestSpec.getCookies().hasCookieWithName( "JSESSIONID" ) ||
-            requestSpec.getCookies().hasCookieWithName( "SESSION" );
+        if ( response.getCookie( "JSESSIONID" ) != null )
+        {
+            return new Cookie( "JSESSIONID", response.getCookie( "JSESSIONID" ) );
+        }
+        else if ( response.getCookie( "SESSION" ) != null )
+        {
+            return new Cookie( "SESSION", response.getCookie( "SESSION" ) );
+        }
+
+        return null;
+    }
+
+    private Map.Entry<String, Cookie> getMap( String username )
+    {
+        return auth.entrySet().stream().filter( p -> p.getKey().equalsIgnoreCase( username ) ).findFirst().orElse(
+            null
+        );
+    }
+
+    public class Cookie
+    {
+        private String type;
+
+        private String value;
+
+        public Cookie( String type, String value )
+        {
+            this.type = type;
+            this.value = value;
+        }
+
+        public String getType()
+        {
+            return type;
+        }
+
+        public void setType( String type )
+        {
+            this.type = type;
+        }
+
+        public String getValue()
+        {
+            return value;
+        }
+
+        public void setValue( String value )
+        {
+            this.value = value;
+        }
     }
 }

@@ -34,7 +34,9 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -48,6 +50,7 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Execution( ExecutionMode.CONCURRENT )
 public class UserLookupTests
     extends ApiTest
 {
@@ -55,7 +58,7 @@ public class UserLookupTests
 
     private UserActions userActions;
 
-    @BeforeAll
+    @BeforeEach
     public void beforeAll()
     {
         lookupActions = new RestApiActions( "/userLookup" );

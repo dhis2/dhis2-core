@@ -183,12 +183,19 @@ public class JsonObjectBuilder
 
     public JsonObjectBuilder addUserGroupAccess()
     {
+        addUserGroupAccess( Constants.USER_GROUP_ID );
+
+        return this;
+    }
+
+    public JsonObjectBuilder addUserGroupAccess( String userGroupId )
+    {
         JsonArray userGroupAccesses = new JsonArray();
 
         JsonObject userGroupAccess = JsonObjectBuilder.jsonObject()
             .addProperty( "access", "rwrw----" )
-            .addProperty( "userGroupId", Constants.USER_GROUP_ID )
-            .addProperty( "id", Constants.USER_GROUP_ID )
+            .addProperty( "userGroupId", userGroupId )
+            .addProperty( "id", userGroupId )
             .build();
 
         userGroupAccesses.add( userGroupAccess );

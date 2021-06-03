@@ -33,6 +33,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.hisp.dhis.actions.IdGenerator;
+import org.hisp.dhis.helpers.JsonParserUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,6 +63,25 @@ public class JsonFileReader
         throws IOException
     {
         return new JsonFileReader( file );
+    }
+
+    public JsonFileReader replaceStrings( String strToReplace, String value )
+    {
+        obj = JsonParserUtils.toJsonObject( obj.toString().replaceAll( strToReplace, value ) );
+
+        return this;
+    }
+
+    public JsonFileReader replaceStringsWithIds(String... strToReplace) {
+        String replacedJson = obj.toString();
+        for ( String s : strToReplace )
+        {
+            replacedJson =  s.replaceAll( s, new IdGenerator().generateUniqueId() );
+        }
+
+        obj = JsonParserUtils.toJsonObject( replacedJson );
+
+        return this;
     }
 
     @Override

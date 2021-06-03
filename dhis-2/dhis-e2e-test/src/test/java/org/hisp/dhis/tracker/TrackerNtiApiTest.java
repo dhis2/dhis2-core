@@ -29,23 +29,28 @@
 package org.hisp.dhis.tracker;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Execution( ExecutionMode.SAME_THREAD )
 public class TrackerNtiApiTest
-    extends ApiTest
+    extends TrackerApiTest
 {
     protected TrackerActions trackerActions;
 
@@ -109,12 +114,22 @@ public class TrackerNtiApiTest
         return response;
     }
 
+    protected JsonObject buildTeiWithEnrollmentAndEvent()
+        throws IOException
+    {
+        JsonObject object = new JsonFileReader(
+            new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) )
+            .replaceStringsWithIds( "Kj6vYde4LHh", "Nav6inZRw1u", "MNWZ6hnuhSw", "ZwwuwNp6gVd", "PuBvJxDB73z", "olfXZzSGacW" )
+
+            .get();
+
+        return object;
+    }
+
     protected TrackerApiResponse importTeiWithEnrollmentAndEvent()
         throws Exception
     {
-        JsonObject object = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) )
-            .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
+        JsonObject object = buildTeiWithEnrollmentAndEvent();
 
         return trackerActions.postAndGetJobReport( object )
             .validateSuccessfulImport();

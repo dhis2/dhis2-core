@@ -30,12 +30,10 @@ package org.hisp.dhis.metadata;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.OptionActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -50,24 +48,15 @@ public class OptionSetTests
 {
     private OptionActions optionActions;
 
-    private LoginActions loginActions;
-
     private String createdOptionSet;
 
-    @BeforeAll
+    @BeforeEach
     public void beforeAll()
     {
-
         optionActions = new OptionActions();
 
-        loginActions = new LoginActions();
-
         loginActions.loginAsSuperUser();
-    }
 
-    @BeforeEach
-    public void beforeEach()
-    {
         createdOptionSet = createOptionSet();
     }
 

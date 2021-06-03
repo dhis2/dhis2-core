@@ -29,7 +29,7 @@
 package org.hisp.dhis.tracker.events;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.ConcurrentApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
@@ -37,6 +37,7 @@ import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -51,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventImportValidationTests
-    extends ApiTest
+    extends ConcurrentApiTest
 {
     private static String ouId = Constants.ORG_UNIT_IDS[0];
 
@@ -84,9 +85,13 @@ public class EventImportValidationTests
         eventActions = new EventActions();
         programActions = new ProgramActions();
 
-        new LoginActions().loginAsAdmin();
-
         setupData();
+    }
+
+    @BeforeEach
+    public void beforeEach()
+    {
+        new LoginActions().loginAsAdmin();
     }
 
     @ParameterizedTest

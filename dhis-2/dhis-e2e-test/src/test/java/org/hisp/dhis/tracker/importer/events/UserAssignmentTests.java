@@ -29,7 +29,6 @@
 package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -61,16 +60,12 @@ public class UserAssignmentTests
 
     private ProgramActions programActions;
 
-    private MetadataActions metadataActions;
-
     @BeforeAll
     public void beforeAll()
     {
         programActions = new ProgramActions();
-        metadataActions = new MetadataActions();
 
         loginActions.loginAsSuperUser();
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
     }
 
     @ParameterizedTest

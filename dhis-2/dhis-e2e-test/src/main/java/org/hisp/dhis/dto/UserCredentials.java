@@ -1,5 +1,3 @@
-package org.hisp.dhis;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -28,37 +26,34 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
-import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
+package org.hisp.dhis.dto;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
-@ExtendWith( ConfigurationExtension.class )
-@ExtendWith( MetadataSetupExtension.class )
-public abstract class ApiTest
+public class UserCredentials
 {
-    protected LoginActions loginActions;
+    private String username;
 
-    @BeforeAll
-    public void beforeApiTest()
+    private String password;
+
+    public String getUsername()
     {
-        loginActions = new LoginActions();
+        return username;
     }
 
-    @AfterAll
-    public void afterAllApiTests()
+    public void setUsername( String username )
     {
-        loginActions.loginAsDefaultUser();
-
-        new TestCleanUp().deleteCreatedEntities();
+        this.username = username;
     }
 
+    public String getPassword()
+    {
+        return password;
+    }
+
+    public void setPassword( String password )
+    {
+        this.password = password;
+    }
 }

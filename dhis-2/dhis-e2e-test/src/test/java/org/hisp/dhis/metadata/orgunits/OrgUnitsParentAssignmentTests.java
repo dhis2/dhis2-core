@@ -29,7 +29,7 @@ package org.hisp.dhis.metadata.orgunits;
  */
 
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.ConcurrentApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class OrgUnitsParentAssignmentTests
-    extends ApiTest
+    extends ConcurrentApiTest
 {
     private LoginActions loginActions;
 

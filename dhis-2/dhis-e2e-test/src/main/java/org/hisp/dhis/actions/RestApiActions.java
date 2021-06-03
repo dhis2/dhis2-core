@@ -28,12 +28,13 @@ package org.hisp.dhis.actions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.oneOf;
-
-import java.io.File;
-import java.util.List;
-
+import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.ObjectMapperConfig;
+import io.restassured.http.ContentType;
+import io.restassured.mapper.ObjectMapperType;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
@@ -41,12 +42,11 @@ import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
-import io.restassured.RestAssured;
-import io.restassured.config.ObjectMapperConfig;
-import io.restassured.http.ContentType;
-import io.restassured.mapper.ObjectMapperType;
-import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
+import java.io.File;
+import java.util.List;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -72,7 +72,10 @@ public class RestApiActions
 
     protected RequestSpecification given()
     {
-        return RestAssured.given()
+        RequestSpecification requestSpecification = new RequestSpecBuilder().
+            setAuth( TestRunStorage.getAuthenticationScheme() ).build();
+
+        return RestAssured.given( requestSpecification )
             .baseUri( this.baseUri )
             .basePath( endpoint )
             .config( RestAssured.config()
@@ -169,7 +172,8 @@ public class RestApiActions
     {
         String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
-        Response response = this.given().contentType( ContentType.TEXT ).when().get( resourceId + path );
+        Response response = this.given()
+            .contentType( ContentType.TEXT ).when().get( resourceId + path );
 
         return new ApiResponse( response );
     }

@@ -4,6 +4,7 @@ services:
     image: redis:5.0.5-alpine
     volumes:
     - ./config/redis/redis.conf:/usr/local/etc/redis.conf
+    mem_limit: 50m
     ports:
        - "6379"
 
@@ -17,13 +18,17 @@ services:
       POSTGRES_PASSOWRD: dhis
 
   web:
-    image: "${IMAGE_NAME}"
+    image: "dhis2/core-dev:master"
     volumes:
-    - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
+      - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
     environment:
       - WAIT_FOR_DB_CONTAINER=db:5432 -t 0
+    deploy:
+      resources:
+        limits:
+          memory: 3g
     depends_on:
-    - db
-    - redis
+      - db
+      - redis
     ports:
-    - "8080"
+      - "8080:8080"

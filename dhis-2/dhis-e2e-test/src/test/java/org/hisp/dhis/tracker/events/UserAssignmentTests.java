@@ -31,15 +31,17 @@ package org.hisp.dhis.tracker.events;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -52,10 +54,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class UserAssignmentTests
-    extends ApiTest
+    extends TrackerApiTest
 {
-    private MetadataActions metadataActions;
-
     private LoginActions loginActions;
 
     private ProgramActions programActions;
@@ -67,13 +67,11 @@ public class UserAssignmentTests
     @BeforeAll
     public void beforeAll()
     {
-        metadataActions = new MetadataActions();
         programActions = new ProgramActions();
         eventActions = new EventActions();
         loginActions = new LoginActions();
 
         loginActions.loginAsSuperUser();
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
     }
 
     @ParameterizedTest

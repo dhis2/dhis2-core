@@ -29,6 +29,86 @@
   ],
   "programStages": [
     {
+      "lastUpdated": "2019-04-09T13:29:20.325",
+      "id": "l8oDIfJJhtg",
+      "created": "2019-04-09T13:29:20.285",
+      "code": "TA_EVENT_PROGRAM_WITH_USER_ASSIGNMENT_STAGE",
+      "name": "TA Program with user assignment",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rw------",
+      "openAfterEnrollment": false,
+      "repeatable": false,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": true,
+      "minDaysFromStart": 0,
+      "program": {
+        "id": "BJ42SUrAvHo",
+        "code": "TA_EVENT_PROGRAM_WITH_USER_ASSIGNMENT"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements": [
+        {
+          "id": "ASc37t1TzTj",
+          "dataElement": {
+            "id": "BuZ5LGNfGEU",
+            "code": "TA_AGE_IN_YEARS_DE"
+          }
+        },
+        {
+          "id": "B6AIyOWCnxW",
+          "dataElement": {
+            "id": "ZrqtjjveTFc",
+            "code": "TA_GENDER_DE"
+          }
+        },
+        {
+          "id": "CMP1n58QvwT",
+          "dataElement": {
+            "id": "mB2QHw1tU96",
+            "code": "TA_PLACE_OF_BIRTH_DE"
+          }
+        },
+        {
+          "id": "DSc37t1TzTj",
+          "dataElement": {
+            "id": "ILRgzHhzFkg",
+            "code": "TA_DIABETES_DE"
+          }
+        },
+        {
+          "id": "E6AIyOWCnxW",
+          "dataElement": {
+            "id": "z3Z4TD3oBCP",
+            "code": "TA_PREGNANT_DE"
+          }
+        },
+        {
+          "id": "FMP1n58QvwT",
+          "dataElement": {
+            "id": "inc5BJvr4W5",
+            "code": "TA_COMMENT_DE"
+          }
+        }
+      ],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": []
+    },
+    {
       "lastUpdated": "2019-02-28T11:39:49.125",
       "id": "nlXNK4b7LVr",
       "created": "2019-02-28T10:48:46.722",
@@ -317,6 +397,70 @@
     }
   ],
   "programs": [
+    {
+      "lastUpdated": "2019-04-09T13:29:20.328",
+      "id": "BJ42SUrAvHo",
+      "created": "2019-04-09T13:29:20.304",
+      "name": "TA event program with user assignment",
+      "code": "TA_EVENT_PROGRAM_WITH_USER_ASSIGNMENT",
+      "shortName": "TA User assignment program",
+      "publicAccess": "rw------",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITHOUT_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 0,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf",
+        "code": "default"
+      },
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "g8upMTyEZGZ",
+          "code": "OU_167609"
+        },
+        {
+          "id": "O6uvpzGd5pu",
+          "code": "OU_264"
+        },
+        {
+          "id": "DiszpKrYNg8",
+          "code": "OU_559"
+        },
+        {
+          "id": "YuQRtpLP10I",
+          "code": "OU_539"
+        }
+      ],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [
+        {
+          "id": "l8oDIfJJhtg",
+          "code": "TA_EVENT_PROGRAM_WITH_USER_ASSIGNMENT_STAGE"
+        }
+      ],
+      "userAccesses": []
+    },
     {
       "lastUpdated": "2019-02-28T12:42:58.281",
       "id": "Zd2rkv8FsWq",

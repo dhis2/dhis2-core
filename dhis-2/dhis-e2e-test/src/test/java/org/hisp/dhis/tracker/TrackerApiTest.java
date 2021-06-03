@@ -1,5 +1,3 @@
-package org.hisp.dhis;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -28,37 +26,48 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.tracker;
+
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
-import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
-import org.junit.jupiter.api.AfterAll;
+import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.actions.metadata.SharingActions;
+import org.hisp.dhis.actions.tracker.importer.TrackerActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
-@ExtendWith( ConfigurationExtension.class )
-@ExtendWith( MetadataSetupExtension.class )
-public abstract class ApiTest
+@Execution( ExecutionMode.SAME_THREAD )
+public class TrackerApiTest extends ApiTest
 {
+    protected ProgramActions programActions;
+
     protected LoginActions loginActions;
 
     @BeforeAll
-    public void beforeApiTest()
+    public void beforeTracker()
     {
+        programActions = new ProgramActions();
         loginActions = new LoginActions();
     }
 
-    @AfterAll
-    public void afterAllApiTests()
-    {
-        loginActions.loginAsDefaultUser();
+    public String createEventProgram(  ) {
+        ApiResponse response = programActions.createEventProgram( Constants.ORG_UNIT_IDS );
+        response.validate().statusCode( 201 );
 
-        new TestCleanUp().deleteCreatedEntities();
+        String programId = response.extractUid();
+        assertNotNull( programId, "Failed to create a program: " + response.getAsString() );
+
+        new SharingActions().setupSharingForConfiguredUserGroup( "program", programId );
+
+        return programId;
     }
-
 }

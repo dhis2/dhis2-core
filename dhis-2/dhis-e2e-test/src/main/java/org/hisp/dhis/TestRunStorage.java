@@ -28,11 +28,15 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import io.restassured.authentication.AuthenticationScheme;
+import org.hisp.dhis.helpers.config.TestConfiguration;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.restassured.RestAssured.preemptive;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -40,31 +44,57 @@ import static java.util.stream.Collectors.toList;
  */
 public class TestRunStorage
 {
-    private static LinkedHashMap<String, String> createdEntities;
+    private static ThreadLocal<LinkedHashMap<String, String>> createdEntities = new ThreadLocal<LinkedHashMap<String, String>>()
+    {
+        @Override
+        protected LinkedHashMap<String, String> initialValue()
+        {
+            return new LinkedHashMap<>();
+        }
+    };
+
+    private static ThreadLocal<AuthenticationScheme> authenticationScheme = new ThreadLocal<AuthenticationScheme>()
+    {
+        @Override
+        protected AuthenticationScheme initialValue()
+        {
+            return preemptive().basic( TestConfiguration.get().superUserUsername(), TestConfiguration.get().superUserPassword() );
+        }
+    };
+
+    public static AuthenticationScheme getAuthenticationScheme()
+    {
+        return authenticationScheme.get();
+    }
+
+    public static void setAuthenticationScheme( AuthenticationScheme scheme )
+    {
+        authenticationScheme.set( scheme );
+    }
 
     public static void addCreatedEntity( final String resource, final String id )
     {
         if ( createdEntities == null )
         {
-            createdEntities = new LinkedHashMap<>();
+            createdEntities.set( new LinkedHashMap<>() );
         }
 
-        createdEntities.put( id, resource );
+        createdEntities.get().put( id, resource );
     }
 
     public static Map<String, String> getCreatedEntities()
     {
-        if ( createdEntities == null )
+        if ( createdEntities.get() == null )
         {
             return new LinkedHashMap<>();
         }
 
-        return new LinkedHashMap<>( createdEntities );
+        return new LinkedHashMap<>( createdEntities.get() );
     }
 
     public static List<String> getCreatedEntities( String resource )
     {
-        if ( createdEntities == null )
+        if ( createdEntities.get() == null )
         {
             return new ArrayList<>();
         }
@@ -78,21 +108,21 @@ public class TestRunStorage
 
     public static void removeEntity( final String resource, final String id )
     {
-        if ( createdEntities == null )
+        if ( createdEntities.get() == null )
         {
             return;
         }
 
-        createdEntities.remove( id, resource );
+        createdEntities.get().remove( id, resource );
     }
 
     public static void removeAllEntities()
     {
-        if ( createdEntities == null )
+        if ( createdEntities.get() == null )
         {
             return;
         }
 
-        createdEntities.clear();
+        createdEntities.get().clear();
     }
 }

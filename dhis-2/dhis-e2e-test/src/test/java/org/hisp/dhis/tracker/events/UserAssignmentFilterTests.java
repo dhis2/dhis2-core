@@ -28,18 +28,7 @@
 
 package org.hisp.dhis.tracker.events;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.emptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.core.Every.everyItem;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import java.io.File;
-
+import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
@@ -49,24 +38,30 @@ import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
-import com.google.gson.JsonObject;
+import java.io.File;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.emptyOrNullString;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.core.Every.everyItem;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class UserAssignmentFilterTests
-    extends ApiTest
+    extends TrackerApiTest
 {
-    private LoginActions loginActions;
-
     private EventActions eventActions;
-
-    private MetadataActions metadataActions;
 
     private UserActions userActions;
 
@@ -88,13 +83,11 @@ public class UserAssignmentFilterTests
     {
         eventActions = new EventActions();
         loginActions = new LoginActions();
-        metadataActions = new MetadataActions();
         userActions = new UserActions();
 
         userUsername = "EventFiltersUser" + DataGenerator.randomString();
 
         loginActions.loginAsSuperUser();
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
 
         userId = userActions.addUser( userUsername, userPassword );
         userActions.grantUserAccessToOrgUnit( userId, orgUnit );
@@ -108,12 +101,13 @@ public class UserAssignmentFilterTests
     public void beforeEach()
         throws Exception
     {
+        loginActions.loginAsSuperUser();
+
         createEvents( eventsBody );
     }
 
     @Test
     public void eventsShouldBeFilteredByAssignedUser()
-        throws Exception
     {
         loginActions.loginAsSuperUser();
         ApiResponse response = eventActions.get( "?program=" + programId + "&assignedUser=" + userId );
@@ -195,7 +189,6 @@ public class UserAssignmentFilterTests
     }
 
     private ApiResponse createEvents( Object body )
-        throws Exception
     {
         ApiResponse eventResponse = eventActions.post( body, new QueryParamsBuilder().add(  "skipCache=true" ) );
 

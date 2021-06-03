@@ -34,8 +34,10 @@ import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataPaginationActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.utils.DataGenerator;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,6 +48,7 @@ import static org.hisp.dhis.actions.metadata.MetadataPaginationActions.DEFAULT_M
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Execution( ExecutionMode.CONCURRENT )
 public class UserPaginationTest
     extends ApiTest
 {
@@ -59,7 +62,7 @@ public class UserPaginationTest
 
     private int total = 50;
 
-    @BeforeEach
+    @BeforeAll
     public void setUp()
     {
         LoginActions loginActions = new LoginActions();

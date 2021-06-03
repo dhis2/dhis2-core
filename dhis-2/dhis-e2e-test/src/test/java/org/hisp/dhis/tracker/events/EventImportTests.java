@@ -28,9 +28,10 @@ package org.hisp.dhis.tracker.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.gson.JsonObject;
 import io.restassured.http.ContentType;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.ConcurrentApiTest;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.SystemActions;
@@ -62,7 +63,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventImportTests
-    extends ApiTest
+    extends ConcurrentApiTest
 {
     List<String> createdEvents = new ArrayList<>();
 
@@ -123,8 +124,13 @@ public class EventImportTests
 
     @Test
     public void eventsImportDeletedEventShouldFail()
+        throws Exception
     {
-        ApiResponse response = post( "events.json", false );
+        JsonObject obj = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
+            .replacePropertyValuesWithIds( "event" )
+            .get(JsonObject.class);
+
+        ApiResponse response = post( obj, false );
 
         response.validate().statusCode( 200 );
 
@@ -138,7 +144,7 @@ public class EventImportTests
         assertThat( "Expected 4 events created", createdEvents, hasSize( 4 ) );
         eventActions.softDelete( createdEvents );
 
-        response = post( "events.json", true );
+        response = post( obj, true );
 
         String taskId = response.extractString( "response.id" );
         assertNotNull( taskId, "Task id was not returned" );
@@ -152,14 +158,13 @@ public class EventImportTests
             everyItem( hasProperty( "description", Matchers.containsString( "This event can not be modified." ) ) ) );
     }
 
-    private ApiResponse post( String fileName, boolean async )
+    private ApiResponse post( JsonObject object, boolean async )
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder
             .addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID", "async=" + String.valueOf( async ) );
 
-        ApiResponse response = eventActions
-            .postFile( new File( "src/test/resources/tracker/events/" + fileName ), queryParamsBuilder );
+        ApiResponse response = eventActions.post( object , queryParamsBuilder );
         return response;
     }
 

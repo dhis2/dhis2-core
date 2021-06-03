@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.events;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.ConcurrentApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
@@ -58,7 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventImportIdSchemeTests
-    extends ApiTest
+    extends ConcurrentApiTest
 {
     private static String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
 

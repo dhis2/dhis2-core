@@ -30,7 +30,7 @@ package org.hisp.dhis.metadata.programs;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.ConcurrentApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
@@ -45,7 +45,7 @@ import static org.hamcrest.Matchers.*;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class ProgramStagesTest
-    extends ApiTest
+    extends ConcurrentApiTest
 {
     private LoginActions loginActions;
 

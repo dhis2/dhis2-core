@@ -34,8 +34,6 @@ import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -43,11 +41,14 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.*;
@@ -56,14 +57,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Execution( ExecutionMode.SAME_THREAD )
 public class EventsDataValueValidationTests
     extends TrackerNtiApiTest
 {
     private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
-
-    private ProgramActions programActions;
-
-    private SharingActions sharingActions;
 
     private RestApiActions dataElementActions;
 
@@ -78,8 +76,6 @@ public class EventsDataValueValidationTests
     @BeforeAll
     public void beforeAll()
     {
-        programActions = new ProgramActions();
-        sharingActions = new SharingActions();
         dataElementActions = new RestApiActions( "/dataElements" );
 
         loginActions.loginAsSuperUser();
@@ -233,12 +229,7 @@ public class EventsDataValueValidationTests
 
     private void setupData()
     {
-        ApiResponse response = programActions.createEventProgram( OU_ID );
-        programId = response.extractUid();
-        assertNotNull( programId, "Failed to create a program" );
-
-        sharingActions.setupSharingForConfiguredUserGroup( "program", programId );
-
+        programId = createEventProgram();
         programStageId = programActions.get( programId, new QueryParamsBuilder().add( "fields=*" ) )
             .extractString( "programStages.id[0]" );
 

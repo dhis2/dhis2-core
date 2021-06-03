@@ -27,18 +27,7 @@
  */
 package org.hisp.dhis.dataitems;
 
-import static java.lang.String.format;
-import static org.hamcrest.CoreMatchers.anyOf;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.everyItem;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.isA;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-
-import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.ConcurrentApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.dataitem.DataItemActions;
@@ -46,17 +35,23 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import static java.lang.String.format;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
+
 /**
  * Test cases related to GET "dataItems" endpoint. The tests and assertions are
  * based on the file "setup/metadata.json" => "programIndicators",
  * "dataElements".
- *
+ * <p>
  * The test cases using default pagination will imply "paging=true", which is
  * the default when "paging" is omitted.
  *
  * @author maikel arabori
  */
-public class DataItemQueryTests extends ApiTest
+public class DataItemQueryTests
+    extends ConcurrentApiTest
 {
     private static final int OK = 200;
 

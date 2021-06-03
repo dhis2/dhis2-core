@@ -28,7 +28,7 @@
 
 package org.hisp.dhis.metadata.metadata_export;
 
-import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.ConcurrentApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
@@ -45,7 +45,7 @@ import static org.hamcrest.Matchers.not;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class MetadataExportTests
-    extends ApiTest
+    extends ConcurrentApiTest
 {
     private String userWithoutAccessUsername = "MetadataExportTestsUser" + DataGenerator.randomString();
 

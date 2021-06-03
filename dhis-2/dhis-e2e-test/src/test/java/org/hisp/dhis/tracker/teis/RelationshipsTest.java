@@ -40,6 +40,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -62,7 +63,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class RelationshipsTest
-    extends ApiTest
+    extends TrackerApiTest
 {
     private static List<String> teis;
 
@@ -97,7 +98,7 @@ public class RelationshipsTest
         metadataActions = new MetadataActions();
         eventActions = new EventActions();
 
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
 
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/relationshipTypes.json" ) );
 
