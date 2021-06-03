@@ -62,24 +62,25 @@ final class GistValidator
         Owner owner = query.getOwner();
         if ( owner != null )
         {
-            validateAccess( owner, access );
+            validateOwnerObjectAccess( owner );
             validateCollection(
                 context.switchedTo( owner.getType() ).resolveMandatory( owner.getCollectionProperty() ) );
         }
-        query.getFilters().forEach( filter -> validateFilter( filter, context, access ) );
+        validateListItemTypeAccess();
+        query.getFilters().forEach( filter -> validateFilter( filter, context ) );
         query.getOrders().forEach( order -> validateOrder( context.resolveMandatory( order.getPropertyPath() ) ) );
-        query.getFields().forEach( field -> validateField( field, context, access ) );
+        query.getFields().forEach( field -> validateField( field, context ) );
     }
 
-    private void validateAccess( Owner owner, GistAccessControl access )
+    /**
+     * Can the current user view the owner object of the collection listed?
+     */
+    private void validateOwnerObjectAccess( Owner owner )
     {
-        if ( !access.canRead( owner.getType() ) )
-        {
-            throw createNoReadAccess( owner );
-        }
         if ( !access.canRead( owner.getType(), owner.getId() ) )
         {
-            throw createNoReadAccess( owner );
+            throw new ReadAccessDeniedException(
+                String.format( "User not allowed to view %s %s", owner.getType().getSimpleName(), owner.getId() ) );
         }
     }
 
@@ -91,8 +92,20 @@ final class GistValidator
         }
     }
 
-    @SuppressWarnings( "unchecked" )
-    private void validateField( Field f, RelativePropertyContext context, GistAccessControl access )
+    /**
+     * Can the current user generally view objects of the listed object type?
+     */
+    private void validateListItemTypeAccess()
+    {
+        if ( !access.canRead( query.getElementType() ) )
+        {
+            throw new ReadAccessDeniedException(
+                String.format( "User not allowed to view elements of type %s",
+                    query.getElementType().getSimpleName() ) );
+        }
+    }
+
+    private void validateField( Field f, RelativePropertyContext context )
     {
         String path = f.getPropertyPath();
         if ( Field.REFS_PATH.equals( path ) )
@@ -100,23 +113,6 @@ final class GistValidator
             return;
         }
         Property field = context.resolveMandatory( path );
-        if ( !field.isReadable() )
-        {
-            throw createNoReadAccess( field );
-        }
-        // TODO below is only correct if the field does not transform
-        Schema fieldSchema = context.switchedTo( path ).getHome();
-        if ( fieldSchema.isIdentifiableObject()
-            && !access.canRead( (Class<? extends IdentifiableObject>) fieldSchema.getKlass(), field ) )
-        {
-            throw createNoReadAccess( field );
-        }
-        Class<?> itemType = GistLogic.getBaseType( field );
-        if ( IdentifiableObject.class.isAssignableFrom( itemType )
-            && !access.canRead( (Class<? extends IdentifiableObject>) itemType ) )
-        {
-            throw createNoReadAccess( field );
-        }
         if ( !isNonNestedPath( path ) )
         {
             List<Property> pathElements = context.resolvePath( path );
@@ -127,9 +123,37 @@ final class GistValidator
                     "Property `%s` computes to many values and therefore cannot be used as a field." );
             }
         }
+        if ( !field.isReadable() )
+        {
+            throw createNoReadAccess( field, null );
+        }
+        validateFieldAccess( f, context );
     }
 
-    private void validateFilter( Filter f, RelativePropertyContext context, GistAccessControl access )
+    /**
+     * Can the current user view the field? Usually this asks if the user can
+     * view the owning object type but there are fields that are generally
+     * visible.
+     */
+    private void validateFieldAccess( Field f, RelativePropertyContext context )
+    {
+        String path = f.getPropertyPath();
+        if ( isNonNestedPath( path ) )
+        {
+            return; // access to the listed element type has been checked
+        }
+        Schema fieldOwner = context.switchedTo( path ).getHome();
+        Property field = context.resolveMandatory( path );
+        @SuppressWarnings( "unchecked" )
+        Class<? extends IdentifiableObject> ownerType = (Class<? extends IdentifiableObject>) fieldOwner.getKlass();
+        if ( fieldOwner.isIdentifiableObject()
+            && !access.canRead( ownerType, field ) )
+        {
+            throw createNoReadAccess( field, ownerType );
+        }
+    }
+
+    private void validateFilter( Filter f, RelativePropertyContext context )
     {
         Property filter = context.resolveMandatory( f.getPropertyPath() );
         if ( !filter.isPersisted() )
@@ -138,10 +162,10 @@ final class GistValidator
         }
 
         validateFilterArgument( f );
-        validateFilterAccess( f, access );
+        validateFilterAccess( f );
     }
 
-    private void validateFilterAccess( Filter f, GistAccessControl access )
+    private void validateFilterAccess( Filter f )
     {
         Comparison operator = f.getOperator();
         if ( operator.isAccessCompare() )
@@ -212,13 +236,8 @@ final class GistValidator
         return new IllegalArgumentException( String.format( message, filter.toString() ) );
     }
 
-    private ReadAccessDeniedException createNoReadAccess( Owner owner )
-    {
-        return new ReadAccessDeniedException(
-            String.format( "User not allowed to view %s %s", owner.getType().getSimpleName(), owner.getId() ) );
-    }
-
-    private ReadAccessDeniedException createNoReadAccess( Property field )
+    private ReadAccessDeniedException createNoReadAccess( Property field,
+        Class<? extends IdentifiableObject> ownerType )
     {
         if ( !field.isReadable() )
         {
@@ -226,6 +245,6 @@ final class GistValidator
         }
         return new ReadAccessDeniedException(
             String.format( "Property `%s` is not readable as user is not allowed to view objects of type %s",
-                field.getName(), GistLogic.getBaseType( field ) ) );
+                field.getName(), ownerType ) );
     }
 }

@@ -91,7 +91,7 @@ public class DefaultGistService implements GistService
     @Override
     public GistQuery plan( GistQuery query )
     {
-        return new GistPlanner( query, createPropertyContext( query ) ).plan();
+        return new GistPlanner( query, createPropertyContext( query ), createGistAccessControl() ).plan();
     }
 
     @Override

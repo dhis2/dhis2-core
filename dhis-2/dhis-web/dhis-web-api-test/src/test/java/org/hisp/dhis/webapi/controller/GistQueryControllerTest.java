@@ -613,10 +613,22 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGistObjectList_Filter_UserDoesNotExist()
+    public void testGistObjectList_Filter_CanRead_UserDoesNotExist()
     {
-        assertEquals( "User for filter `surname:canread:[not-a-UID]` does not exist.",
+        assertEquals(
+            "Filtering by user access in filter `surname:canread:[not-a-UID]` requires permissions to manage the user filtered by.",
             GET( "/users/gist?filter=surname:canRead:not-a-UID" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    public void testGistObjectList_Filter_CanRead_NotAuthorized()
+    {
+        String uid = getSuperuserUid();
+        switchToGuestUser();
+        assertEquals(
+            "Filtering by user access in filter `surname:canread:[" + uid
+                + "]` requires permissions to manage the user filtered by.",
+            GET( "/users/gist?filter=surname:canRead:{id}", uid ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
     @Test
@@ -641,15 +653,6 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     {
         assertEquals( "Property `userGroup` cannot be used as order property.",
             GET( "/users/gist?order=userGroups" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
-    }
-
-    @Test
-    public void testGistObjectList_Field_NoAccess()
-    {
-        switchToNewUser( "guest-with-no-rights" );
-        assertEquals(
-            "Property `lastUpdatedBy` is not readable as user is not allowed to view objects of type class org.hisp.dhis.user.User",
-            GET( "/organisationUnits/gist?fields=lastUpdatedBy" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
     @Test
@@ -684,5 +687,16 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
             assertEquals( total.intValue(), pager.getNumber( "total" ).intValue() );
             assertEquals( (int) Math.ceil( total / (double) pageSize ), pager.getNumber( "pageCount" ).intValue() );
         }
+    }
+
+    /**
+     * The guest user will get the {@code Test_skipSharingCheck} authority so we
+     * do not get errors from the H2 database complaining that it does not
+     * support JSONB functions. Obviously this has an impact on the results
+     * which are not longer filter, the {@code sharing} is ignored.
+     */
+    private void switchToGuestUser()
+    {
+        switchToNewUser( "guest", "Test_skipSharingCheck" );
     }
 }

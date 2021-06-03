@@ -37,6 +37,9 @@ public class DefaultGistAccessControl implements GistAccessControl
 
     private static final Set<String> PUBLIC_USER_CREDENTIALS_PROPERTY_NAMES = singleton( "username" );
 
+    private static final Set<String> PUBLIC_PROPERTY_NAMES = unmodifiableSet(
+        new HashSet<>( asList( "sharing", "access", "translations" ) ) );
+
     private final User currentUser;
 
     private final AclService aclService;
@@ -61,6 +64,7 @@ public class DefaultGistAccessControl implements GistAccessControl
     public boolean canRead( Class<? extends IdentifiableObject> type, String uid )
     {
         // TODO this could also just load the Sharing of the object and use that
+        // use GistService to fetch sharing?
         return aclService.canRead( currentUser, objectManager.get( type, uid ) );
     }
 
@@ -69,10 +73,6 @@ public class DefaultGistAccessControl implements GistAccessControl
     {
         boolean isUserField = type == User.class;
         boolean isUserCredentialsField = type == UserCredentials.class;
-        if ( !isUserField && !isUserCredentialsField )
-        {
-            return true;
-        }
         String name = field.getName();
         if ( isUserField && PUBLIC_USER_PROPERTY_NAMES.contains( name ) )
         {
@@ -82,8 +82,7 @@ public class DefaultGistAccessControl implements GistAccessControl
         {
             return true;
         }
-        // TODO check auth
-        return false;
+        return aclService.canRead( currentUser, type );
     }
 
     @Override
