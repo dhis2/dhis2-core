@@ -58,11 +58,13 @@ public class HibernateReservedValueStoreTest
 {
     private static int counter = 1;
 
-    private final ReservedValue reservedValueA = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE.name(), "A",
-        "00X", "001", null );
+    private final ReservedValue reservedValueA = ReservedValue.builder()
+        .ownerObject( Objects.TRACKEDENTITYATTRIBUTE.name() ).created( new Date() ).ownerUid( "A" ).key( "00X" )
+        .value( "001" ).build();
 
-    private final ReservedValue usedValueA = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE.name(), "A",
-        "00X", "002", null );
+    private final ReservedValue usedValueA = ReservedValue.builder()
+        .ownerObject( Objects.TRACKEDENTITYATTRIBUTE.name() ).created( new Date() ).ownerUid( "A" ).key( "00X" )
+        .value( "002" ).build();
 
     private Date futureDate;
 
@@ -227,11 +229,8 @@ public class HibernateReservedValueStoreTest
 
     private ReservedValue getFreeReservedValue()
     {
-        return new ReservedValue(
-            Objects.TRACKEDENTITYATTRIBUTE.name(),
-            "FREE",
-            "00X",
-            String.format( "%03d", counter++ ),
-            futureDate );
+        return ReservedValue.builder().ownerObject( Objects.TRACKEDENTITYATTRIBUTE.name() ).created( new Date() )
+            .ownerUid( "FREE" )
+            .key( "00X" ).value( String.format( "%03d", counter++ ) ).expiryDate( futureDate ).build();
     }
 }
