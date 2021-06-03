@@ -88,6 +88,11 @@
       <artifactId>gt-referencing</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.github.jai-imageio</groupId>
+      <artifactId>jai-imageio-core</artifactId>
+    </dependency>
+
     <!--
     <dependency>
       <groupId>javax.media</groupId>
