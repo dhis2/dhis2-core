@@ -335,6 +335,18 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         }
     }
 
+    /**
+     * Ownership check can be skipped if the user is super user or if the
+     * program is without registration.
+     *
+     * @return true if ownership check can be skipped
+     */
+    @Override
+    public boolean canSkipOwnershipCheck( User user, Program program )
+    {
+        return user == null || user.isSuper() || program == null || program.isWithoutRegistration();
+    }
+
     // -------------------------------------------------------------------------
     // Private Helper Methods
     // -------------------------------------------------------------------------
@@ -440,17 +452,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         return temporaryTrackerOwnershipCache
             .get( tempAccessKey( trackedEntityOuInfo.getTrackedEntityUid(), program.getUid(), user.getUsername() ) )
             .orElse( false );
-    }
-
-    /**
-     * Ownership check can be skipped if the user is super user or if the
-     * program is without registration.
-     *
-     * @return true if ownership check can be skipped
-     */
-    private boolean canSkipOwnershipCheck( User user, Program program )
-    {
-        return user == null || user.isSuper() || program == null || program.isWithoutRegistration();
     }
 
     /**
