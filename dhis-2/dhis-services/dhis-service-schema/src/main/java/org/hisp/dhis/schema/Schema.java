@@ -250,7 +250,7 @@ public class Schema implements Ordered, Klass
      * Map containing cached authorities by their type.
      */
     @JsonIgnore
-    private ConcurrentMap<AuthorityType, List<String>> cachedAuthoritiesByType;
+    private final ConcurrentMap<AuthorityType, List<String>> cachedAuthoritiesByType = new ConcurrentHashMap<>();
 
     /**
      * Used for sorting of schema list when doing metadata import/export.
@@ -528,13 +528,13 @@ public class Schema implements Ordered, Klass
     @JacksonXmlProperty( localName = "authority", namespace = DxfNamespaces.DXF_2_0 )
     public List<Authority> getAuthorities()
     {
-        return authorities;
+        return unmodifiableList( authorities );
     }
 
-    public synchronized void setAuthorities( List<Authority> authorities )
+    public void add( Authority authority )
     {
-        this.authorities = authorities;
-        this.cachedAuthoritiesByType = null;
+        cachedAuthoritiesByType.remove( authority.getType() );
+        this.authorities.add( authority );
     }
 
     @JsonProperty
@@ -707,16 +707,7 @@ public class Schema implements Ordered, Klass
 
     public List<String> getAuthorityByType( AuthorityType type )
     {
-        if ( cachedAuthoritiesByType == null )
-        {
-            cachedAuthoritiesByType = initAuthoritiesByTypeMap();
-        }
         return cachedAuthoritiesByType.computeIfAbsent( type, this::computeAuthoritiesForType );
-    }
-
-    private synchronized ConcurrentMap<AuthorityType, List<String>> initAuthoritiesByTypeMap()
-    {
-        return cachedAuthoritiesByType != null ? cachedAuthoritiesByType : new ConcurrentHashMap<>();
     }
 
     private List<String> computeAuthoritiesForType( AuthorityType type )
