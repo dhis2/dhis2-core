@@ -55,8 +55,8 @@ public class VisualizationSchemaDescriptor
         schema.setOrder( 2000 );
         schema.setShareable( true );
 
-        schema.getAuthorities().add( new Authority( CREATE_PUBLIC, newArrayList( "F_VISUALIZATION_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( EXTERNALIZE, newArrayList( "F_VISUALIZATION_EXTERNAL" ) ) );
+        schema.add( new Authority( CREATE_PUBLIC, newArrayList( "F_VISUALIZATION_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( EXTERNALIZE, newArrayList( "F_VISUALIZATION_EXTERNAL" ) ) );
 
         return schema;
     }

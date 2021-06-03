@@ -55,10 +55,8 @@ public class ProgramStageInstanceFilterSchemaDescriptor implements SchemaDescrip
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setDefaultPrivate( true );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
 
         return schema;
     }
