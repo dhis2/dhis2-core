@@ -53,9 +53,9 @@ public class ProgramTrackedEntityAttributeGroupSchemaDescriptor implements Schem
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1500 );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE,
+        schema.add( new Authority( AuthorityType.CREATE,
             Lists.newArrayList( "F_PROGRAM_TRACKED_ENTITY_ATTRIBUTE_GROUP_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE,
+        schema.add( new Authority( AuthorityType.DELETE,
             Lists.newArrayList( "F_PROGRAM_TRACKED_ENTITY_ATTRIBUTE_GROUP_DELETE" ) ) );
 
         return schema;
