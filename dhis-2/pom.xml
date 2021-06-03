@@ -266,7 +266,7 @@
     <repository>
       <id>geotoolkit</id>
       <name>Geotoolkit</name>
-      <url>https://maven.geotoolkit.org</url>
+      <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/</url>
       <snapshots>
         <enabled>false</enabled>
         <updatePolicy>daily</updatePolicy>
