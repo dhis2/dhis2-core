@@ -33,6 +33,11 @@ jobs:
       - name: Test dhis-web
         run: mvn clean install -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml
 
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dhis2.war
+          path: /dhis-2/dhis-web/dhis-web-portal/target/dhis.war
+
   integration-test:
     runs-on: ubuntu-latest
     steps:
