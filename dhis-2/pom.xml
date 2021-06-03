@@ -266,7 +266,7 @@
     <repository>
       <id>geomatys</id>
       <name>Geomatys</name>
-      <url>https://nexus.geomatys.com/</url>
+      <url>https://nexus.geomatys.com/repository/geotoolkit/</url>
       <snapshots>
         <enabled>false</enabled>
         <updatePolicy>daily</updatePolicy>
