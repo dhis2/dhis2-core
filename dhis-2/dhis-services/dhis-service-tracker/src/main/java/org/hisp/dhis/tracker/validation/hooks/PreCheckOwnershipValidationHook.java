@@ -208,8 +208,8 @@ public class PreCheckOwnershipValidationHook
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
-        Program program = context.getProgram( event.getProgram() );
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+        Program program = programStage.getProgram();
         ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
 
         String teiUid = null;
