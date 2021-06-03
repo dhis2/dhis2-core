@@ -25,54 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preprocess;
+package org.hisp.dhis.webapi.controller;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
-import java.util.Collections;
-
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonObject;
 import org.junit.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockMultipartFile;
 
-/**
- * @author Enrico Colasante
- */
-public class EventProgramPreProcessorTest
+public class FileResourceControllerTest extends DhisControllerConvenienceTest
 {
-    private EventProgramPreProcessor preProcessorToTest = new EventProgramPreProcessor();
-
     @Test
-    public void testEnrollmentIsAddedIntoEventWhenItBelongsToProgramWithoutRegistration()
+    public void testSaveOrgUnitImage()
     {
-        // Given
-        Event event = new Event();
-        event.setProgram( null );
-        event.setProgramStage( "programStageUid" );
+        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
+            "<<png data>>".getBytes() );
 
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
-
-        Program program = new Program();
-        program.setUid( "programUid" );
-
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( "programStageUid" );
-        programStage.setProgram( program );
-
-        TrackerPreheat preheat = new TrackerPreheat();
-        preheat.put( TrackerIdentifier.UID, programStage );
-        bundle.setPreheat( preheat );
-
-        // When
-        preProcessorToTest.process( bundle );
-
-        // Then
-        assertEquals( "programUid", bundle.getEvents().get( 0 ).getProgram() );
-        assertNotNull( bundle.getPreheat().get( Program.class, "programUid" ) );
+        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
+        JsonObject savedObject = response.content( HttpStatus.OK ).getObject( "response" ).getObject( "fileResource" );
+        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
     }
 }
