@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -117,7 +118,7 @@ public class ProgramController
     }
 
     @ResponseBody
-    @RequestMapping( value = "orgUnits" )
+    @GetMapping( value = "orgUnits" )
     IdentifiableObjectAssociations getProgramOrgUnitsAssociations(
         @RequestParam( value = "programs" ) Set<String> programUids )
     {

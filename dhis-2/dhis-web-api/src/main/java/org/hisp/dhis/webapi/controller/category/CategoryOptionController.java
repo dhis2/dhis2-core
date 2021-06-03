@@ -38,6 +38,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -53,7 +54,7 @@ public class CategoryOptionController extends AbstractCrudController<CategoryOpt
     private final CategoryService categoryService;
 
     @ResponseBody
-    @RequestMapping( value = "orgUnits" )
+    @GetMapping( value = "orgUnits" )
     IdentifiableObjectAssociations getProgramOrgUnitsAssociations(
         @RequestParam( value = "categoryOptions" ) Set<String> categoryOptionsUids )
     {
