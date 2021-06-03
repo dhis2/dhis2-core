@@ -30,9 +30,9 @@ package org.hisp.dhis.reservedvalue.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
@@ -73,67 +73,37 @@ public class HibernateReservedValueStore
         List<String> values )
     {
         List<String> availableValues = getIfAvailable( reservedValue, values );
-        List<ReservedValue> toAdd = getGeneratedValues( reservedValue, availableValues );
+
+        List<ReservedValue> toAdd = availableValues.stream()
+            .map( value -> reservedValue.toBuilder().value( value ).build() ).collect( Collectors.toList() );
 
         BatchHandler<ReservedValue> batchHandler = batchHandlerFactory
             .createBatchHandler( ReservedValueBatchHandler.class ).init();
 
-        toAdd.forEach( rv -> batchHandler.addObject( rv ) );
+        toAdd.forEach( batchHandler::addObject );
         batchHandler.flush();
 
         return toAdd;
     }
 
     @Override
-    public List<ReservedValue> reserveValues( ReservedValue reservedValue,
-        List<String> values )
+    public void reserveValues( List<ReservedValue> reservedValues )
     {
-        List<ReservedValue> toAdd = getGeneratedValues( reservedValue, values );
-
         BatchHandler<ReservedValue> batchHandler = batchHandlerFactory
             .createBatchHandler( ReservedValueBatchHandler.class ).init();
 
-        toAdd.forEach( rv -> batchHandler.addObject( rv ) );
+        reservedValues.forEach( batchHandler::addObject );
         batchHandler.flush();
-
-        return toAdd;
     }
 
     @Override
     public List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values )
     {
-        List<ReservedValue> toAdd = getGeneratedValues( reservedValue, values );
-        toAdd.forEach( rv -> save( rv ) );
+        List<ReservedValue> toAdd = values.stream()
+            .map( value -> reservedValue.toBuilder().value( value ).build() ).collect( Collectors.toList() );
+
+        toAdd.forEach( this::save );
         return toAdd;
-    }
-
-    /**
-     * Generates a list of reserved values based on the given input.
-     *
-     * @param reservedValue the reserved value.
-     * @param values the values to reserve.
-     * @return a list of {@link ReservedValue}.
-     */
-    private List<ReservedValue> getGeneratedValues( ReservedValue reservedValue, List<String> values )
-    {
-
-        List<ReservedValue> generatedValues = new ArrayList<>();
-
-        values.forEach( ( value ) -> {
-
-            ReservedValue rv = new ReservedValue(
-                reservedValue.getOwnerObject(),
-                reservedValue.getOwnerUid(),
-                reservedValue.getKey(),
-                value,
-                reservedValue.getExpiryDate() );
-
-            rv.setCreated( reservedValue.getCreated() );
-
-            generatedValues.add( rv );
-        } );
-
-        return generatedValues;
     }
 
     @Override
@@ -229,22 +199,15 @@ public class HibernateReservedValueStore
 
         values.removeAll( reservedValues );
 
-        // All values supplied is unavailable
-        if ( values.isEmpty() )
-        {
-            return values;
-        }
-
-        if ( Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
-        {
-            values.removeAll( getUntypedSqlQuery(
-                "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = ?1) AND value IN ?2" )
-                    .setParameter( 1, reservedValue.getOwnerUid() )
-                    .setParameter( 2, values )
-                    .list() );
-        }
+        Optional.of( values ).filter(
+            v -> !v.isEmpty() && Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
+            .ifPresent(
+                v -> values.removeAll( getUntypedSqlQuery(
+                    "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = :uid) AND value IN :values" )
+                        .setParameter( "uid", reservedValue.getOwnerUid() )
+                        .setParameter( "values", v )
+                        .list() ) );
 
         return values;
-
     }
 }
