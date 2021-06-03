@@ -24,7 +24,7 @@ jobs:
       - name: Set up environment
         run: |
           cd dhis-2
-          docker-compose -f ./dhis-e2e-test/docker-compose.yml run --publish 5432:5432 db
+          docker-compose -f ./dhis-e2e-test/docker-compose.yml run --publish 5432:5432 -d db
           export DHIS2_HOME=./dhis-e2e-test/config/dhis2_home/local-db/
           bash ./run-api.sh
 
