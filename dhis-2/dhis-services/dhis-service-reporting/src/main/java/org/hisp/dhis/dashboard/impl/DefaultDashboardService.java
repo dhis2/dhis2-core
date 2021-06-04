@@ -39,7 +39,6 @@ import java.util.Set;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppType;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -54,7 +53,6 @@ import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
@@ -320,11 +318,6 @@ public class DefaultDashboardService
             item.setVisualization( objectManager.get( Visualization.class, item.getVisualization().getUid() ) );
         }
 
-        if ( item.getChart() != null )
-        {
-            item.setVisualization( objectManager.get( Visualization.class, item.getChart().getUid() ) );
-        }
-
         if ( item.getEventChart() != null )
         {
             item.setEventChart( objectManager.get( EventChart.class, item.getEventChart().getUid() ) );
@@ -333,11 +326,6 @@ public class DefaultDashboardService
         if ( item.getMap() != null )
         {
             item.setMap( objectManager.get( Map.class, item.getMap().getUid() ) );
-        }
-
-        if ( item.getReportTable() != null )
-        {
-            item.setVisualization( objectManager.get( Visualization.class, item.getReportTable().getUid() ) );
         }
 
         if ( item.getEventReport() != null )
@@ -439,20 +427,6 @@ public class DefaultDashboardService
     public List<DashboardItem> getVisualizationDashboardItems( Visualization visualization )
     {
         return dashboardItemStore.getVisualizationDashboardItems( visualization );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DashboardItem> getReportTableDashboardItems( ReportTable reportTable )
-    {
-        return dashboardItemStore.getReportTableDashboardItems( reportTable );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DashboardItem> getChartDashboardItems( Chart chart )
-    {
-        return dashboardItemStore.getChartDashboardItems( chart );
     }
 
     @Override

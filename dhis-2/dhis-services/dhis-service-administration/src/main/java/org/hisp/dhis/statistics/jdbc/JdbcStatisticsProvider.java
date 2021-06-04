@@ -84,9 +84,7 @@ public class JdbcStatisticsProvider
         map.put( Objects.PERIOD, query( "select count(*) from period;" ) );
         map.put( Objects.USER, query( "select count(*) from users;" ) );
         map.put( Objects.USERGROUP, query( "select count(*) from usergroup;" ) );
-        map.put( Objects.REPORTTABLE, query( "select count(*) from visualization where type = 'PIVOT_TABLE';" ) );
         map.put( Objects.VISUALIZATION, query( "select count(*) from visualization;" ) );
-        map.put( Objects.CHART, query( "select count(*) from visualization where type <> 'PIVOT_TABLE';" ) );
         map.put( Objects.MAP, query( "select count(*) from map;" ) );
         map.put( Objects.DASHBOARD, query( "select count(*) from dashboard;" ) );
 

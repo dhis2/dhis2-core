@@ -29,7 +29,6 @@ package org.hisp.dhis.schema.descriptors;
 
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
@@ -38,7 +37,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ChartSchemaDescriptor implements SchemaDescriptor
+public class ChartSchemaDescriptor
 {
     public static final String SINGULAR = "chart";
 
@@ -50,7 +49,6 @@ public class ChartSchemaDescriptor implements SchemaDescriptor
 
     public static final String F_CHART_EXTERNAL = "F_CHART_EXTERNAL";
 
-    @Override
     public Schema getSchema()
     {
         Schema schema = new Schema( Chart.class, SINGULAR, PLURAL );

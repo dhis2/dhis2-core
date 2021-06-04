@@ -366,14 +366,6 @@ public class DefaultInterpretationService
                 + "/interpretation/"
                 + interpretation.getUid();
             break;
-        case REPORT_TABLE:
-            path = "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid() + "&interpretationid="
-                + interpretation.getUid();
-            break;
-        case CHART:
-            path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getChart().getUid() + "/interpretation/"
-                + interpretation.getUid();
-            break;
         case EVENT_REPORT:
             path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid()
                 + "&interpretationid=" + interpretation.getUid();

@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.interpretation;
 
-import static org.hisp.dhis.analytics.AnalyticsFavoriteType.*;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.DATASET_REPORT;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.EVENT_CHART;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.EVENT_REPORT;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.MAP;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.VISUALIZATION;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import java.util.ArrayList;
@@ -36,7 +40,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsFavoriteType;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.DataSet;
@@ -46,7 +49,6 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
@@ -68,10 +70,6 @@ public class Interpretation
     extends BaseIdentifiableObject
 {
     private Visualization visualization;
-
-    private ReportTable reportTable;
-
-    private Chart chart;
 
     private Map map;
 
@@ -121,27 +119,10 @@ public class Interpretation
         this.text = text;
     }
 
-    public Interpretation( Chart chart, OrganisationUnit organisationUnit, String text )
-    {
-        this.chart = chart;
-        chart.getInterpretations().add( this );
-        this.organisationUnit = organisationUnit;
-        this.text = text;
-    }
-
     public Interpretation( Map map, String text )
     {
         this.map = map;
         map.getInterpretations().add( this );
-        this.text = text;
-    }
-
-    public Interpretation( ReportTable reportTable, Period period, OrganisationUnit organisationUnit, String text )
-    {
-        this.reportTable = reportTable;
-        reportTable.getInterpretations().add( this );
-        this.period = period;
-        this.organisationUnit = organisationUnit;
         this.text = text;
     }
 
@@ -177,15 +158,7 @@ public class Interpretation
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public AnalyticsFavoriteType getType()
     {
-        if ( reportTable != null )
-        {
-            return REPORT_TABLE;
-        }
-        else if ( chart != null )
-        {
-            return CHART;
-        }
-        else if ( visualization != null )
+        if ( visualization != null )
         {
             return VISUALIZATION;
         }
@@ -211,15 +184,7 @@ public class Interpretation
 
     public IdentifiableObject getObject()
     {
-        if ( reportTable != null )
-        {
-            return reportTable;
-        }
-        else if ( chart != null )
-        {
-            return chart;
-        }
-        else if ( visualization != null )
+        if ( visualization != null )
         {
             return visualization;
         }
@@ -251,21 +216,6 @@ public class Interpretation
     public boolean isVisualizationInterpretation()
     {
         return visualization != null;
-    }
-
-    public boolean isChartInterpretation()
-    {
-        return chart != null;
-    }
-
-    public boolean isMapInterpretation()
-    {
-        return map != null;
-    }
-
-    public boolean isReportTableInterpretation()
-    {
-        return reportTable != null;
     }
 
     public boolean isEventReportInterpretation()
@@ -349,32 +299,6 @@ public class Interpretation
     public void setVisualization( Visualization visualization )
     {
         this.visualization = visualization;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public ReportTable getReportTable()
-    {
-        return reportTable;
-    }
-
-    public void setReportTable( ReportTable reportTable )
-    {
-        this.reportTable = reportTable;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Chart getChart()
-    {
-        return chart;
-    }
-
-    public void setChart( Chart chart )
-    {
-        this.chart = chart;
     }
 
     @JsonProperty

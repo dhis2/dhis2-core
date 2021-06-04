@@ -29,7 +29,6 @@ package org.hisp.dhis.schema.descriptors;
 
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
@@ -38,7 +37,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ReportTableSchemaDescriptor implements SchemaDescriptor
+public class ReportTableSchemaDescriptor
 {
     public static final String SINGULAR = "reportTable";
 
@@ -50,7 +49,6 @@ public class ReportTableSchemaDescriptor implements SchemaDescriptor
 
     public static final String F_REPORTTABLE_EXTERNAL = "F_REPORTTABLE_EXTERNAL";
 
-    @Override
     public Schema getSchema()
     {
         Schema schema = new Schema( ReportTable.class, SINGULAR, PLURAL );

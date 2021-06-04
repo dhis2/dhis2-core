@@ -47,7 +47,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.Ignore;
@@ -173,41 +172,6 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
-    @Ignore
-    public void testCreateMetadataWithChartsWithPeriods1()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_with_chart_periods1.json" ).getInputStream(),
-            RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setObjects( metadata );
-
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
-        objectBundleService.commit( bundle );
-
-        List<DataSet> dataSets = manager.getAll( DataSet.class );
-        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
-        List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<Chart> charts = manager.getAll( Chart.class );
-
-        assertEquals( 1, dataSets.size() );
-        assertEquals( 1, organisationUnits.size() );
-        assertEquals( 4, dataElements.size() );
-        assertEquals( 4, charts.size() );
-
-        Chart chart = manager.get( Chart.class, "ziCoxdcXRQz" );
-
-        assertNotNull( chart );
-        assertEquals( 5, chart.getPeriods().size() );
-    }
-
-    @Test
     public void testCreateMetadataWithVisualizationsWithPeriods()
         throws IOException
     {
@@ -239,35 +203,6 @@ public class ObjectBundleServiceFavoritesTest
 
         assertNotNull( visualization );
         assertEquals( 5, visualization.getPeriods().size() );
-    }
-
-    @Test
-    @Ignore
-    public void testCreateMetadataWithReportTables1()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_with_rt1.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setObjects( metadata );
-
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
-        objectBundleService.commit( bundle );
-
-        List<DataSet> dataSets = manager.getAll( DataSet.class );
-        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
-        List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<ReportTable> reportTables = manager.getAll( ReportTable.class );
-
-        assertEquals( 1, dataSets.size() );
-        assertEquals( 1, organisationUnits.size() );
-        assertEquals( 4, dataElements.size() );
-        assertEquals( 3, reportTables.size() );
     }
 
     @Test

@@ -40,7 +40,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
@@ -200,22 +199,6 @@ public class DefaultChartService
 
     @Override
     @Transactional( readOnly = true )
-    public JFreeChart getJFreeChart( long id, I18nFormat format )
-    {
-        Chart chart = getChart( id );
-
-        return chart != null ? getJFreeChart( chart, format ) : null;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public JFreeChart getJFreeChart( BaseChart chart, I18nFormat format )
-    {
-        return getJFreeChart( chart, null, null, format );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public JFreeChart getJFreeChart( BaseChart chart, Date date, OrganisationUnit organisationUnit, I18nFormat format )
     {
         return getJFreeChart( chart, date, organisationUnit, format, currentUserService.getCurrentUser() );
@@ -315,26 +298,6 @@ public class DefaultChartService
         chart.setFormat( format );
 
         return getJFreeChart( chart );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public JFreeChart getJFreeChart( String name, PlotOrientation orientation, CategoryLabelPositions labelPositions,
-        Map<String, Double> categoryValues )
-    {
-        DefaultCategoryDataset dataSet = new DefaultCategoryDataset();
-
-        for ( Entry<String, Double> entry : categoryValues.entrySet() )
-        {
-            dataSet.addValue( entry.getValue(), name, entry.getKey() );
-        }
-
-        CategoryPlot plot = getCategoryPlot( dataSet, getBarRenderer(), orientation, labelPositions );
-
-        JFreeChart jFreeChart = getBasicJFreeChart( plot );
-        jFreeChart.setTitle( name );
-
-        return jFreeChart;
     }
 
     @Override
@@ -929,46 +892,5 @@ public class DefaultChartService
         Collections.sort( list );
 
         return NumericSortWrapper.getObjectList( list );
-    }
-
-    // -------------------------------------------------------------------------
-    // CRUD operations
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional
-    public long addChart( Chart chart )
-    {
-        chartStore.save( chart );
-
-        return chart.getId();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Chart getChart( long id )
-    {
-        return chartStore.get( id );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Chart getChart( String uid )
-    {
-        return chartStore.getByUid( uid );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Chart getChartNoAcl( String uid )
-    {
-        return chartStore.getByUidNoAcl( uid );
-    }
-
-    @Override
-    @Transactional
-    public void deleteChart( Chart chart )
-    {
-        chartStore.delete( chart );
     }
 }

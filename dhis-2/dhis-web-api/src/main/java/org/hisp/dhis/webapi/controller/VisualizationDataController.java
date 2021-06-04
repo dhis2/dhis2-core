@@ -28,18 +28,18 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.springframework.beans.BeanUtils.copyProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -47,13 +47,12 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.chart.Series;
-import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
@@ -61,84 +60,176 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor;
+import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Axis;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-/**
- * This controller is being deprecated. Please use the Visualization controller
- * instead. Only compatibility changes should be done at this stage.
- * <p>
- * TODO when this class gets removed, also update
- * {@link org.hisp.dhis.security.vote.ExternalAccessVoter}
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Deprecated
-@Controller
-@RequestMapping( value = ChartSchemaDescriptor.API_ENDPOINT )
-public class ChartController
-    extends ChartFacadeController
+@AllArgsConstructor
+public class VisualizationDataController
 {
-    @Autowired
-    private VisualizationService visualizationService;
-
-    @Autowired
-    private ChartService chartService;
-
-    @Autowired
-    private DataElementService dataElementService;
-
-    @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
-    private IndicatorService indicatorService;
-
-    @Autowired
+    @NonNull
     private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private DimensionService dimensionService;
-
-    @Autowired
-    private I18nManager i18nManager;
-
-    @Autowired
+    @NonNull
     private ContextUtils contextUtils;
 
+    @NonNull
+    private VisualizationService visualizationService;
+
+    @NonNull
+    private ChartService chartService;
+
+    @NonNull
+    private DataElementService dataElementService;
+
+    @NonNull
+    private CategoryService categoryService;
+
+    @NonNull
+    private IndicatorService indicatorService;
+
+    @NonNull
+    private I18nManager i18nManager;
+
     // --------------------------------------------------------------------------
-    // CRUD
+    // GET - ReportTable data
     // --------------------------------------------------------------------------
 
-    @Override
-    protected Chart deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+    @RequestMapping( value = "/reportTables/{uid}/data", method = RequestMethod.GET )
+    public @ResponseBody Grid getReportTableData( @PathVariable( "uid" ) String uid, Model model,
+        @RequestParam( value = "ou", required = false ) String organisationUnitUid,
+        @RequestParam( value = "date", required = false ) Date date )
     {
-        Chart chart = super.deserializeJsonEntity( request, response );
-        mergeChart( chart );
+        return getReportTableGrid( uid, organisationUnitUid, date );
+    }
 
-        return chart;
+    @RequestMapping( value = "/reportTables/{uid}/data.html", method = RequestMethod.GET )
+    public void getReportTableHtml( @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String organisationUnitUid,
+        @RequestParam( value = "date", required = false ) Date date,
+        HttpServletResponse response )
+        throws Exception
+    {
+        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+
+        String filename = filenameEncode( grid.getTitle() ) + ".html";
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            filename, false );
+
+        GridUtils.toHtml( grid, response.getWriter() );
+    }
+
+    @RequestMapping( value = "/reportTables/{uid}/data.html+css", method = RequestMethod.GET )
+    public void getReportTableHtmlCss( @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String organisationUnitUid,
+        @RequestParam( value = "date", required = false ) Date date,
+        HttpServletResponse response )
+        throws Exception
+    {
+        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+
+        String filename = filenameEncode( grid.getTitle() ) + ".html";
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            filename, false );
+
+        GridUtils.toHtmlCss( grid, response.getWriter() );
+    }
+
+    @RequestMapping( value = "/reportTables/{uid}/data.xml", method = RequestMethod.GET )
+    public void getReportTableXml( @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String organisationUnitUid,
+        @RequestParam( value = "date", required = false ) Date date,
+        HttpServletResponse response )
+        throws Exception
+    {
+        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+
+        String filename = filenameEncode( grid.getTitle() ) + ".xml";
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            filename, false );
+
+        GridUtils.toXml( grid, response.getOutputStream() );
+    }
+
+    @RequestMapping( value = "/reportTables/{uid}/data.pdf", method = RequestMethod.GET )
+    public void getReportTablePdf( @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String organisationUnitUid,
+        @RequestParam( value = "date", required = false ) Date date,
+        HttpServletResponse response )
+        throws Exception
+    {
+        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+
+        String filename = filenameEncode( grid.getTitle() ) + ".pdf";
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            filename, false );
+
+        GridUtils.toPdf( grid, response.getOutputStream() );
+    }
+
+    @RequestMapping( value = "/reportTables/{uid}/data.xls", method = RequestMethod.GET )
+    public void getReportTableXls( @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String organisationUnitUid,
+        @RequestParam( value = "date", required = false ) Date date,
+        HttpServletResponse response )
+        throws Exception
+    {
+        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+
+        String filename = filenameEncode( grid.getTitle() ) + ".xls";
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            filename, true );
+
+        GridUtils.toXls( grid, response.getOutputStream() );
+    }
+
+    @RequestMapping( value = "/reportTables/{uid}/data.csv", method = RequestMethod.GET )
+    public void getReportTableCsv( @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String organisationUnitUid,
+        @RequestParam( value = "date", required = false ) Date date,
+        HttpServletResponse response )
+        throws Exception
+    {
+        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
+
+        String filename = filenameEncode( grid.getTitle() ) + ".csv";
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            filename, true );
+
+        GridUtils.toCsv( grid, response.getWriter() );
+    }
+
+    private Grid getReportTableGrid( String uid, String organisationUnitUid, Date date )
+    {
+        Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
+
+        if ( organisationUnitUid == null && visualization.hasReportingParams()
+            && visualization.getReportingParams().isOrganisationUnitSet() )
+        {
+            organisationUnitUid = organisationUnitService.getRootOrganisationUnits().iterator().next().getUid();
+        }
+
+        date = date != null ? date : new Date();
+
+        return visualizationService.getVisualizationGrid( uid, date, organisationUnitUid );
     }
 
     // --------------------------------------------------------------------------
-    // Get data
+    // GET Chart data
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = { "/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
+    @RequestMapping( value = { "/charts/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
     public void getChart(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -170,7 +261,7 @@ public class ChartController
         ChartUtils.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
     }
 
-    @RequestMapping( value = { "/data", "/data.png" }, method = RequestMethod.GET )
+    @RequestMapping( value = { "/charts/data", "/data.png" }, method = RequestMethod.GET )
     public void getChart(
         @RequestParam( value = "in" ) String indicatorUid,
         @RequestParam( value = "ou" ) String organisationUnitUid,
@@ -203,7 +294,7 @@ public class ChartController
         ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
 
-    @RequestMapping( value = { "/history/data", "/history/data.png" }, method = RequestMethod.GET )
+    @RequestMapping( value = { "/charts/history/data", "/history/data.png" }, method = RequestMethod.GET )
     public void getHistoryChart(
         @RequestParam String de,
         @RequestParam String co,
@@ -258,83 +349,6 @@ public class ChartController
             period, organisationUnit, 13, i18nManager.getI18nFormat() );
 
         ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
-    }
-
-    // --------------------------------------------------------------------------
-    // Hooks
-    // --------------------------------------------------------------------------
-
-    @Override
-    public void postProcessResponseEntity( Chart chart, WebOptions options, Map<String, String> parameters )
-        throws Exception
-    {
-        postProcess( chart );
-    }
-
-    @Override
-    public void postProcessResponseEntities( final List<Chart> charts, final WebOptions options,
-        final Map<String, String> parameters )
-    {
-        if ( isNotEmpty( charts ) )
-        {
-            for ( final Chart chart : charts )
-            {
-                postProcess( chart );
-            }
-        }
-    }
-
-    // --------------------------------------------------------------------------
-    // Supportive methods
-    // --------------------------------------------------------------------------
-
-    private void postProcess( final Chart chart )
-    {
-        if ( chart != null )
-        {
-            chart.populateAnalyticalProperties();
-
-            User currentUser = currentUserService.getCurrentUser();
-
-            if ( currentUser != null )
-            {
-                Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
-
-                for ( OrganisationUnit organisationUnit : chart.getOrganisationUnits() )
-                {
-                    chart.getParentGraphMap().put( organisationUnit.getUid(),
-                        organisationUnit.getParentGraph( roots ) );
-                }
-            }
-
-            if ( chart.getPeriods() != null && !chart.getPeriods().isEmpty() )
-            {
-                I18nFormat format = i18nManager.getI18nFormat();
-
-                for ( Period period : chart.getPeriods() )
-                {
-                    period.setName( format.formatPeriod( period ) );
-                }
-            }
-        }
-    }
-
-    private void mergeChart( Chart chart )
-    {
-        dimensionService.mergeAnalyticalObject( chart );
-
-        chart.getFilterDimensions().clear();
-        chart.getFilterDimensions().addAll( getDimensions( chart.getFilters() ) );
-
-        if ( chart.getColumns() != null && !chart.getColumns().isEmpty() )
-        {
-            chart.setSeries( chart.getColumns().get( 0 ).getDimension() );
-        }
-
-        if ( chart.getRows() != null && !chart.getRows().isEmpty() )
-        {
-            chart.setCategory( chart.getRows().get( 0 ).getDimension() );
-        }
     }
 
     /**

@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -37,7 +35,6 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
@@ -59,12 +56,10 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.Restrictions;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationType;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -538,83 +533,5 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             disjunctions.add( disjunction );
         }
         return disjunctions;
-    }
-
-    /**
-     * Logic required to keep the backward compatibility with Chart and
-     * ReporTable. Otherwise it would always return VISUALIZATION type for any
-     * Chart or ReportTable.
-     *
-     * Only needed during the transition from Chart/ReportTable APIs to
-     * Visualization API. Once the Visualization API is fully enabled this logic
-     * should be removed.
-     *
-     * @param interpretations
-     * @param options
-     * @param parameters
-     */
-    @Override
-    @Deprecated
-    protected void postProcessResponseEntities( final List<Interpretation> interpretations, final WebOptions options,
-        final java.util.Map<String, String> parameters )
-    {
-        if ( isNotEmpty( interpretations ) )
-        {
-            for ( final Interpretation interpretation : interpretations )
-            {
-                postProcessResponseEntity( interpretation, options, parameters );
-            }
-        }
-    }
-
-    /**
-     * Logic required to keep the backward compatibility with Chart and
-     * ReporTable. Otherwise it would always return VISUALIZATION type for any
-     * Chart or ReportTable.
-     *
-     * Only needed during the transition from Chart/ReportTable APIs to
-     * Visualization API. Once the Visualization API is fully enabled this logic
-     * should be removed.
-     *
-     * @param interpretation
-     * @param options
-     * @param parameters
-     */
-    @Override
-    @Deprecated
-    protected void postProcessResponseEntity( final Interpretation interpretation, final WebOptions options,
-        final java.util.Map<String, String> parameters )
-    {
-        if ( interpretation != null && interpretation.getVisualization() != null )
-        {
-            final VisualizationType type = interpretation.getVisualization().getType();
-
-            switch ( type )
-            {
-            case PIVOT_TABLE:
-                final ReportTable reportTable = new ReportTable();
-                reportTable.setUid( interpretation.getVisualization().getUid() );
-                interpretation.setReportTable( reportTable );
-                break;
-            case AREA:
-            case BAR:
-            case COLUMN:
-            case GAUGE:
-            case LINE:
-            case PIE:
-            case RADAR:
-            case SINGLE_VALUE:
-            case STACKED_BAR:
-            case STACKED_COLUMN:
-            case YEAR_OVER_YEAR_COLUMN:
-            case YEAR_OVER_YEAR_LINE:
-            case SCATTER:
-            case BUBBLE:
-                final Chart chart = new Chart();
-                chart.setUid( interpretation.getVisualization().getUid() );
-                interpretation.setChart( chart );
-                break;
-            }
-        }
     }
 }

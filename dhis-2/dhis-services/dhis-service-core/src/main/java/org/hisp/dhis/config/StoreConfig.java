@@ -28,7 +28,6 @@
 package org.hisp.dhis.config;
 
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.constant.Constant;
@@ -48,7 +47,6 @@ import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -178,20 +176,6 @@ public class StoreConfig
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory,
             jdbcTemplate, publisher, Report.class, currentUserService, aclService, true );
-    }
-
-    @Bean( "org.hisp.dhis.chart.ChartStore" )
-    public HibernateAnalyticalObjectStore<Chart> chartStore()
-    {
-        return new HibernateAnalyticalObjectStore<>( sessionFactory,
-            jdbcTemplate, publisher, Chart.class, currentUserService, aclService, true );
-    }
-
-    @Bean( "org.hisp.dhis.reporttable.ReportTableStore" )
-    public HibernateAnalyticalObjectStore<ReportTable> reportTableStore()
-    {
-        return new HibernateAnalyticalObjectStore<>( sessionFactory,
-            jdbcTemplate, publisher, ReportTable.class, currentUserService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.visualization.generic.VisualizationStore" )

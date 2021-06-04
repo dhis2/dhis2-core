@@ -28,7 +28,6 @@
 package org.hisp.dhis.chart;
 
 import java.util.Date;
-import java.util.Map;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AnalyticalObjectService;
@@ -39,8 +38,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.User;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.CategoryLabelPositions;
-import org.jfree.chart.plot.PlotOrientation;
 
 /**
  * @author Lars Helge Overland
@@ -49,14 +46,6 @@ public interface ChartService
     extends AnalyticalObjectService<Chart>
 {
     String ID = ChartService.class.getName();
-
-    // -------------------------------------------------------------------------
-    // JFreeChart
-    // -------------------------------------------------------------------------
-
-    JFreeChart getJFreeChart( long id, I18nFormat format );
-
-    JFreeChart getJFreeChart( BaseChart chart, I18nFormat format );
 
     /**
      * Generates a JFreeChart.
@@ -79,24 +68,7 @@ public interface ChartService
     JFreeChart getJFreeOrganisationUnitChart( Indicator indicator, OrganisationUnit parent, boolean title,
         I18nFormat format );
 
-    JFreeChart getJFreeChart( String name, PlotOrientation orientation, CategoryLabelPositions labelPositions,
-        Map<String, Double> categoryValues );
-
     JFreeChart getJFreeChartHistory( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
         CategoryOptionCombo attributeOptionCombo, Period lastPeriod, OrganisationUnit organisationUnit,
         int historyLength, I18nFormat format );
-
-    // -------------------------------------------------------------------------
-    // Chart CRUD
-    // -------------------------------------------------------------------------
-
-    long addChart( Chart chart );
-
-    Chart getChart( long id );
-
-    Chart getChart( String uid );
-
-    Chart getChartNoAcl( String uid );
-
-    void deleteChart( Chart chart );
 }

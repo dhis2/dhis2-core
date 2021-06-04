@@ -33,7 +33,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -43,7 +42,6 @@ import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -81,24 +79,6 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "visualization" ), visualization ) ) );
-    }
-
-    @Override
-    public List<DashboardItem> getReportTableDashboardItems( ReportTable reportTable )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "reportTable" ), reportTable ) ) );
-    }
-
-    @Override
-    public List<DashboardItem> getChartDashboardItems( Chart chart )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "chart" ), chart ) ) );
     }
 
     @Override

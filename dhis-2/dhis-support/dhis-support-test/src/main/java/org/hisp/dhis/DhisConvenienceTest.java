@@ -73,7 +73,6 @@ import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -1311,20 +1310,6 @@ public abstract class DhisConvenienceTest
         chart.setName( "Chart" + uniqueCharacter );
         chart.setDescription( "Description" + uniqueCharacter );
         chart.setType( ChartType.COLUMN );
-
-        return chart;
-    }
-
-    public static Chart createChart( char uniqueCharacter, List<Indicator> indicators, List<Period> periods,
-        List<OrganisationUnit> units )
-    {
-        Chart chart = createChart( uniqueCharacter );
-
-        chart.addAllDataDimensionItems( indicators );
-        chart.setPeriods( periods );
-        chart.setOrganisationUnits( units );
-        chart.setDimensions( DimensionalObject.DATA_X_DIM_ID, DimensionalObject.PERIOD_DIM_ID,
-            DimensionalObject.ORGUNIT_DIM_ID );
 
         return chart;
     }
