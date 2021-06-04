@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  web:
+    image: dhis2/core-dev:local
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
+    depends_on:
+      - db
+
+  db:
+    image: postgis/postgis:10-2.5-alpine
+    environment:
+      POSTGRES_USER: dhis
+      POSTGRES_DB: dhis2
+      POSTGRES_PASSWORD: dhis

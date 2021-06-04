@@ -153,7 +153,11 @@
           appBase="webapps"
           unpackWARs="false"
           autoDeploy="false"
+          deployOnStartup="false"
       >
+
+        <!-- ROOT of /usr/local/tomcat/webapps/ROOT-->
+        <Context path="${context.path}" docBase="ROOT/" />
 
         <!-- SingleSignOn valve, share authentication between web applications
              Documentation at: /docs/config/valve.html -->
