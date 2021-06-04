@@ -716,7 +716,7 @@ public class BaseIdentifiableObject
 
         if ( created == null )
         {
-            created = date;
+            setCreated( date );
         }
 
         setLastUpdated( date );
