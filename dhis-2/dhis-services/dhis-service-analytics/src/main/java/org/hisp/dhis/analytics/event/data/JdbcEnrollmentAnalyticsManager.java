@@ -88,7 +88,7 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 = "order by executiondate desc limit 1";
 
-    private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
+    private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "executiondate", "enrollmentdate", "incidentdate",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
@@ -214,6 +214,8 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 sql += hlp.whereAnd() + " enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
                 sql += "and enrollmentdate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+                sql += hlp.whereAnd() + " executiondate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+                sql += "and executiondate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
             }
             else // Periods
             {

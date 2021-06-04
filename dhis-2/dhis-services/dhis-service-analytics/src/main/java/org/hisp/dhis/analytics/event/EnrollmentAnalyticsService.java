@@ -43,6 +43,8 @@ public interface EnrollmentAnalyticsService
 
     String ITEM_ENROLLMENT_DATE = "enrollmentdate";
 
+    String ITEM_EVENT_DATE = "eventdate";
+
     String ITEM_INCIDENT_DATE = "incidentdate";
 
     String ITEM_GEOMETRY = "geometry";

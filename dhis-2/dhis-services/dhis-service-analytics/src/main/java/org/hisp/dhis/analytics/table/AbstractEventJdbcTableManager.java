@@ -196,7 +196,7 @@ public abstract class AbstractEventJdbcTableManager
             sql += col.getName() + ",";
         }
 
-        sql = TextUtils.removeLastComma( sql ) + ") select ";
+        sql = TextUtils.removeLastComma( sql ) + ") select distinct ";
 
         for ( AnalyticsTableColumn col : columns )
         {

@@ -62,6 +62,8 @@ public class DefaultEnrollmentAnalyticsService
 
     private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
 
+    private static final String NAME_EVENT_DATE = "Event date";
+
     private static final String NAME_INCIDENT_DATE = "Incident date";
 
     private static final String NAME_LONGITUDE = "Longitude";
@@ -106,6 +108,8 @@ public class DefaultEnrollmentAnalyticsService
                 ITEM_PI, NAME_PI, TEXT, false, true ) )
             .addHeader( new GridHeader(
                 ITEM_TEI, NAME_TEI, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_EVENT_DATE, NAME_EVENT_DATE, DATE, false, true ) )
             .addHeader( new GridHeader(
                 ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, DATE, false, true ) )
             .addHeader( new GridHeader(

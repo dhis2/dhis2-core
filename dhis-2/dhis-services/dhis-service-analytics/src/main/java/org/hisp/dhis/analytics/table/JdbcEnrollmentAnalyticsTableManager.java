@@ -87,6 +87,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
+        new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
         new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
         new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP,
             "case pi.status when 'COMPLETED' then pi.enddate end" ),
@@ -149,6 +150,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         final Program program = partition.getMasterTable().getProgram();
 
         String fromClause = "from programinstance pi " +
+            "inner join programstageinstance psi on psi.programinstanceid=pi.programinstanceid " +
             "inner join program pr on pi.programid=pr.programid " +
             "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
             "and tei.deleted is false " +
