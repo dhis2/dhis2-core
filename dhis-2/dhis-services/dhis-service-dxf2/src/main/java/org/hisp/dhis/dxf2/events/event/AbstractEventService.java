@@ -215,8 +215,11 @@ public abstract class AbstractEventService
     private final Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
 
     private static final Cache<DataElement> DATA_ELEM_CACHE = new SimpleCacheBuilder<DataElement>()
-        .forRegion( "dataElementCache" ).expireAfterAccess( 60, TimeUnit.MINUTES ).withInitialCapacity( 1000 )
+        .forRegion( "dataElementCache" )
+        .expireAfterAccess( 60, TimeUnit.MINUTES )
+        .withInitialCapacity( 1000 )
         .withMaximumSize( 50000 ).build();
+
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -516,9 +519,17 @@ public abstract class AbstractEventService
         return getEvent( programStageInstance, false, false );
     }
 
+    @Override
+    @Transactional( readOnly = true )
+    public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
+        boolean skipOwnershipCheck )
+    {
+        return getEvent( currentUserService.getCurrentUser(), programStageInstance, isSynchronizationQuery, skipOwnershipCheck );
+    }
+
     @Transactional( readOnly = true )
     @Override
-    public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
+    public Event getEvent( User user, ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
         boolean skipOwnershipCheck )
     {
         if ( programStageInstance == null )
@@ -566,7 +577,6 @@ public abstract class AbstractEventService
             event.setAssignedUserDisplayName( programStageInstance.getAssignedUser().getName() );
         }
 
-        User user = currentUserService.getCurrentUser();
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
 
         List<String> errors = trackerAccessManager.canRead( user, programStageInstance, skipOwnershipCheck );
@@ -613,8 +623,7 @@ public abstract class AbstractEventService
 
         for ( EventDataValue dataValue : dataValues )
         {
-
-            DataElement dataElement = getDataElement( IdScheme.UID, dataValue.getDataElement() );
+            DataElement dataElement = getDataElementWithSharingCache( IdScheme.UID, dataValue.getDataElement() );
 
             if ( dataElement != null )
             {
@@ -931,10 +940,15 @@ public abstract class AbstractEventService
                 .initializeProxy( manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) ) );
     }
 
-    private DataElement getDataElement( IdScheme idScheme, String id )
+    private DataElement getDataElementWithSharingCache( IdScheme idScheme, String id )
     {
         return DATA_ELEM_CACHE
-            .get( id, s -> HibernateUtils.initializeProxy( manager.getObject( DataElement.class, idScheme, id ) ) )
+            .get( id, s -> {
+                DataElement dataElement = HibernateUtils.initializeProxy( manager.getObject( DataElement.class, idScheme, id ) );
+                dataElement.getUserGroupAccesses();
+                dataElement.getUserAccesses();
+                return dataElement;
+            } )
             .orElse( null );
     }
 

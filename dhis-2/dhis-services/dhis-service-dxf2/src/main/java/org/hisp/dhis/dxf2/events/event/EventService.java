@@ -41,6 +41,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -61,6 +62,10 @@ public interface EventService
 
     Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
         boolean skipOwnershipCheck );
+
+    Event getEvent( User user, ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
+        boolean skipOwnershipCheck );
+
 
     // TODO remove these 2 methods and move the logic to the front-end
     List<Event> getEventsXml( InputStream inputStream )
