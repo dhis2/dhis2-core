@@ -28,9 +28,10 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -119,17 +120,13 @@ public class ProgramController
 
     @ResponseBody
     @GetMapping( value = "orgUnits" )
-    IdentifiableObjectAssociations getProgramOrgUnitsAssociations(
+    public IdentifiableObjectAssociations getOrgUnitsAssociations(
         @RequestParam( value = "programs" ) Set<String> programUids )
     {
-
-        if ( Objects.isNull( programUids ) || programUids.size() == 0 )
-        {
-            throw new IllegalArgumentException( "At least one program uid must be specified" );
-        }
-
-        return programService.getProgramOrganisationUnitsAssociations( programUids );
-
+        return Optional.ofNullable( programUids )
+            .filter( CollectionUtils::isNotEmpty )
+            .map( programService::getProgramOrganisationUnitsAssociations )
+            .orElseThrow( () -> new IllegalArgumentException( "At least one program uid must be specified" ) );
     }
 
 }

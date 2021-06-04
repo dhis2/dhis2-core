@@ -60,27 +60,24 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder
 
     private static final String SHARING_OUTER_QUERY_END = ") as inner_query_alias";
 
-    private static final String RELATIONSHIP_TABLE_ALIAS = "relationship_table_alias";
+    private static final String REL_TABLE_ALIAS = "relationship_table_alias";
 
-    private static final String BASE_TABLE_ALIAS = "base_table_alias";
+    private static final String T_ALIAS = "base_table_alias";
 
-    private static final String INNER_QUERY_GROUPING_BY = "group by " + BASE_TABLE_ALIAS + ".uid, " + BASE_TABLE_ALIAS
+    private static final String INNER_QUERY_GROUPING_BY = "group by " + T_ALIAS + ".uid, " + T_ALIAS
         + ".sharing";
 
     private String getInnerQuerySql()
     {
         return "select " +
-            "    " + BASE_TABLE_ALIAS + ".uid, " +
-            "    " + BASE_TABLE_ALIAS + ".sharing, " +
-            "    array_agg(ou.uid) agg_ou_uid " +
-            "from " + getBaseTableName() + " " + BASE_TABLE_ALIAS +
-            "    left join " +
-            getRelationshipTableName() + " " + RELATIONSHIP_TABLE_ALIAS +
-            " on " + BASE_TABLE_ALIAS + "." + getJoinColumnName() +
-            " = " + RELATIONSHIP_TABLE_ALIAS + "." + getJoinColumnName() +
-            "    left join " +
-            " organisationunit ou " +
-            " on " + RELATIONSHIP_TABLE_ALIAS + ".organisationunitid = ou.organisationunitid " +
+            T_ALIAS + ".uid, " +
+            T_ALIAS + ".sharing, " +
+            "array_agg(ou.uid) agg_ou_uid " +
+            "from " + getBaseTableName() + " " + T_ALIAS +
+            " left join " + getRelationshipTableName() + " " + REL_TABLE_ALIAS +
+            " on " + T_ALIAS + "." + getJoinColumnName() + " = " + REL_TABLE_ALIAS + "." + getJoinColumnName() +
+            " left join organisationunit ou " +
+            " on " + REL_TABLE_ALIAS + ".organisationunitid = ou.organisationunitid " +
             "where";
     }
 
@@ -192,7 +189,7 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder
 
     private String getUidsFilter( Set<String> uids )
     {
-        return BASE_TABLE_ALIAS + ".uid in (" +
+        return T_ALIAS + ".uid in (" +
             uids.stream()
                 .map( this::withQuotes )
                 .collect( joining( "," ) )

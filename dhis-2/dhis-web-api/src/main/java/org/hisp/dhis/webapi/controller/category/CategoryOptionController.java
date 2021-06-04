@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.category;
 
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
@@ -55,17 +56,13 @@ public class CategoryOptionController extends AbstractCrudController<CategoryOpt
 
     @ResponseBody
     @GetMapping( value = "orgUnits" )
-    IdentifiableObjectAssociations getProgramOrgUnitsAssociations(
+    public IdentifiableObjectAssociations getOrgUnitsAssociations(
         @RequestParam( value = "categoryOptions" ) Set<String> categoryOptionsUids )
     {
-
-        if ( Objects.isNull( categoryOptionsUids ) || categoryOptionsUids.size() == 0 )
-        {
-            throw new IllegalArgumentException( "At least one program uid must be specified" );
-        }
-
-        return categoryService.getCategoryOptionOrganisationUnitsAssociations( categoryOptionsUids );
-
+        return Optional.ofNullable( categoryOptionsUids )
+            .filter( CollectionUtils::isNotEmpty )
+            .map( categoryService::getCategoryOptionOrganisationUnitsAssociations )
+            .orElseThrow( () -> new IllegalArgumentException( "At least one categoryOption uid must be specified" ) );
     }
 
 }
