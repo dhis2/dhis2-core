@@ -73,7 +73,7 @@ public class DefaultHibernateConfigurationProvider
 {
     private Configuration configuration = null;
 
-    private static final String DEFAULT_HIBERNATE_PROPERTIES_FILE = "hibernate-default.properties";
+    private static final String DEFAULT_HIBERNATE_PROPERTIES_FILE = "hibernate.properties";
 
     private static final String MAPPING_RESOURCES_ROOT = "org/hisp/dhis/";
 

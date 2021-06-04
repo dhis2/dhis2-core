@@ -16,6 +16,7 @@
         </Console>
     </Appenders>
     <Loggers>
+        <Logger name="org.hibernate" level="info" additivity="true"/>
         <Logger name="org.hisp.dhis" level="info" additivity="true"/>
         <Logger name="org.hisp.dhis.webapi.mvc" level="warn" additivity="false"/>
         <Logger name="org.hisp.dhis.programrule.engine" level="warn" additivity="false"/>
