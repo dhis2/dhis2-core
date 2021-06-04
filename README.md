@@ -1,4 +1,3 @@
-
 # DHIS 2
 
 [![Tests](https://github.com/dhis2/dhis2-core/actions/workflows/run-tests.yml/badge.svg)](https://github.com/dhis2/dhis2-core/actions/workflows/run-tests.yml)
@@ -33,3 +32,17 @@ This repository contains the source code for the server-side component of DHIS 2
 To build it you must first install the root `POM` file, navigate to the `dhis-web` directory and then build the web `POM` file.
 
 See the [contributing](https://github.com/dhis2/dhis2-core/blob/master/CONTRIBUTING.md) page to learn how to run locally.
+
+### Docker image
+
+DHIS2 Docker image is built using
+[Jib](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin). To build it run
+
+```sh
+mvn clean install -DskipTests -Dmaven.test.skip=true -f dhis-2/pom-full.xml
+mvn -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild
+#mvn -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild -Djib.to-image-tag=custom-tag
+docker compose up dhis2-core db
+curl --include --user admin:district http://localhost:8080/api/me
+```
+

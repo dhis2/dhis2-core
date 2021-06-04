@@ -1,0 +1,30 @@
+version: "3.6"
+
+services:
+  dhis2-core:
+    image: dhis2/core-dev:jib-2.39-SNAPSHOT
+    ports:
+      - "8080:8080"
+    environment:
+      JAVA_TOOL_OPTIONS: "-Dcontext.path=''"
+    volumes:
+      - ./config/server.xml:/usr/local/tomcat/conf/server.xml:ro
+      - ./dhis2_home:/opt/dhis2:rw
+
+  db:
+    image: postgis/postgis:10-2.5-alpine
+    environment:
+      POSTGRES_USER: dhis
+      POSTGRES_DB: dhis2
+      POSTGRES_PASSWORD: dhis
+
+  builder:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.builder
+    command: /bin/sh -c "cd dhis-2 && mvn clean install -DskipTests -Dmaven.test.skip=true -f ./pom-full.xml && mvn -DskipTests -Dmaven.test.skip=true -f dhis-web/dhis-web-portal/pom.xml jib:dockerBuild"
+    working_dir: /src
+    volumes:
+      - .:/src
+      - "${HOME}/.m2:/root/.m2"
+      - /var/run/docker.sock:/var/run/docker.sock

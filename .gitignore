@@ -36,3 +36,5 @@ node_modules
 
 # ignore generated artifact directory
 docker/artifacts
+dhis2_home/logs
+dhis2_home/files
