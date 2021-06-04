@@ -27,28 +27,23 @@
  */
 package org.hisp.dhis.metadata.programs;
 
-import com.google.gson.JsonElement;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.CategoryOptionActions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasKey;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 public class CategoryOptionsTest
-    extends ApiTest
+    extends AbstractOrgUnitAssociationTestSupport
 {
+    private static final String CATEGORY_OPTION_UID = "fjvZIRlTBrp";
+
     private LoginActions loginActions;
 
     private CategoryOptionActions categoryOptionActions;
@@ -69,30 +64,7 @@ public class CategoryOptionsTest
     @Test
     public void testCategoryOptionOrgUnitsConnections()
     {
-        loginActions.loginAsSuperUser();
-
-        Set<String> associatedOrgUnitsAsSuperUser = extractAssociatedOrgUnits( "fjvZIRlTBrp" );
-
-        loginActions.loginAsDefaultUser();
-
-        Set<String> associatedOrgUnitsAsTracker = extractAssociatedOrgUnits( "fjvZIRlTBrp" );
-
-        assertTrue( associatedOrgUnitsAsSuperUser.containsAll( associatedOrgUnitsAsTracker ) );
-        assertTrue( associatedOrgUnitsAsSuperUser.size() >= associatedOrgUnitsAsTracker.size() );
-
+        super.testOrgUnitsConnections( categoryOptionActions::getOrgUnitsAssociations, CATEGORY_OPTION_UID );
     }
 
-    private Set<String> extractAssociatedOrgUnits( String categoryOptionUids )
-    {
-        return StreamSupport.stream(
-            Spliterators.spliteratorUnknownSize(
-                categoryOptionActions.getOrgUnitsAssociations( categoryOptionUids )
-                    .getBody()
-                    .getAsJsonArray( categoryOptionUids )
-                    .iterator(),
-                Spliterator.ORDERED ),
-            false )
-            .map( JsonElement::getAsString )
-            .collect( Collectors.toSet() );
-    }
 }
