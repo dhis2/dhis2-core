@@ -212,9 +212,10 @@ public class JdbcEnrollmentAnalyticsManager
         {
             if ( params.hasStartEndDate() )
             {
-                sql += hlp.whereAnd() + " enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+                sql += hlp.whereAnd();
+                sql += " enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
                 sql += "and enrollmentdate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
-                sql += hlp.whereAnd() + " executiondate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+                sql += "and executiondate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
                 sql += "and executiondate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
             }
             else // Periods
