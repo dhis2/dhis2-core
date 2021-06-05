@@ -614,7 +614,7 @@ public abstract class AbstractEventService
         for ( EventDataValue dataValue : dataValues )
         {
 
-            DataElement dataElement = getDataElement( IdScheme.UID, dataValue.getDataElement() );
+            DataElement dataElement = getDataElementWithSharingCache( IdScheme.UID, dataValue.getDataElement() );
 
             if ( dataElement != null )
             {
@@ -931,10 +931,15 @@ public abstract class AbstractEventService
                 .initializeProxy( manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) ) );
     }
 
-    private DataElement getDataElement( IdScheme idScheme, String id )
+    private DataElement getDataElementWithSharingCache( IdScheme idScheme, String id )
     {
         return DATA_ELEM_CACHE
-            .get( id, s -> HibernateUtils.initializeProxy( manager.getObject( DataElement.class, idScheme, id ) ) )
+            .get( id, s -> {
+                DataElement dataElement = HibernateUtils.initializeProxy( manager.getObject( DataElement.class, idScheme, id ) );
+                dataElement.getUserGroupAccesses();
+                dataElement.getUserAccesses();
+                return dataElement;
+            } )
             .orElse( null );
     }
 
