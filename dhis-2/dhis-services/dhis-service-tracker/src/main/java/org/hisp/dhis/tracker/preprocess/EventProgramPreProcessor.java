@@ -60,11 +60,11 @@ public class EventProgramPreProcessor
 
         for ( Event event : eventsToPreprocess )
         {
-            // If it is a tracker event, extract program from program stage
+            // Extract program from program stage
             if ( Strings.isNotEmpty( event.getProgramStage() ) )
             {
                 ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
-                if ( Objects.nonNull( programStage ) && programStage.getProgram().isRegistration() )
+                if ( Objects.nonNull( programStage ) )
                 {
                     event.setProgram( programStage.getProgram().getUid() );
                     bundle.getPreheat().put( TrackerIdentifier.UID, programStage.getProgram() );
