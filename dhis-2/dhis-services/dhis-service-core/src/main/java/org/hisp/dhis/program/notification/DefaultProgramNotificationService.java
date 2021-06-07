@@ -452,7 +452,7 @@ public class DefaultProgramNotificationService
         if ( recipientType == ProgramNotificationRecipient.USER_GROUP )
         {
             recipients = Optional.ofNullable( template.getRecipientUserGroup().getMembers() ).orElse( recipients );
-            
+
             final boolean limitToHierarchy = BooleanUtils.toBoolean( template.getNotifyUsersInHierarchyOnly() );
 
             final boolean parentOrgUnitOnly = BooleanUtils.toBoolean( template.getNotifyParentOrganisationUnitOnly() );
