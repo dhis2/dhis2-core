@@ -573,6 +573,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
     }
 
+    // --------------------------------------------------------------------------
+    // PATCH
+    // --------------------------------------------------------------------------
+
+    /**
+     * Adds support for HTTP Patch using JSON Patch (RFC 6902), updated object
+     * is run through normal metadata importer and internally looks like a
+     * normal PUT (after the JSON Patch has been applied).
+     */
     @ResponseBody
     @PatchMapping( path = "/{uid}", consumes = { MediaType.APPLICATION_JSON_VALUE, "application/json-patch+json" } )
     public void partialUpdateObject(

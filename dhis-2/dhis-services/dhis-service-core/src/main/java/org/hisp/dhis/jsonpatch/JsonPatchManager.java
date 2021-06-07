@@ -42,6 +42,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
+ * Small manager class to handle the JSON patch processing, handles converting
+ * from/to JSON nodes, and then applying the JSON patch.
+ *
  * @author Morten Olav Hansen
  */
 @Service
@@ -59,6 +62,16 @@ public class JsonPatchManager
         this.schemaService = schemaService;
     }
 
+    /**
+     * Applies a JSON patch to any valid jackson java object. It uses
+     * valueToTree to convert from the object into a tree like node structure,
+     * and this is where the patch will be applied. This means that any property
+     * renaming etc will be followed.
+     *
+     * @param patch JsonPatch object with the operations it should apply.
+     * @param object Jackson Object to apply the patch to.
+     * @return New instance of the object with the patch applied.
+     */
     @Transactional
     @SuppressWarnings( "unchecked" )
     public <T> T apply( JsonPatch patch, T object )
@@ -72,6 +85,9 @@ public class JsonPatchManager
         Schema schema = schemaService.getSchema( object.getClass() );
         JsonNode node = jsonMapper.valueToTree( object );
 
+        // since valueToTree does not properly handle our deeply nested classes,
+        // we need to make another trip to make sure all collections are
+        // correctly made into json nodes.
         handleCollectionUpdates( object, schema, (ObjectNode) node );
 
         node = patch.apply( node );
