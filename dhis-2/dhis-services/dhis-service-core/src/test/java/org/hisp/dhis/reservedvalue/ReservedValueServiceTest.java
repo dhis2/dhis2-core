@@ -159,6 +159,14 @@ public class ReservedValueServiceTest
         verify( reservedValueStore, times( 1 ) ).reserveValuesAndCheckUniqueness( any(), any() );
     }
 
+    @Test
+    public void shouldDeleteUsedOrExpiredReservedValues()
+    {
+        reservedValueService.removeUsedOrExpiredReservations();
+
+        verify( reservedValueStore, times( 1 ) ).removeUsedOrExpiredReservations();
+    }
+
     private static TextPattern createTextPattern( Objects objects, String uid, String pattern )
         throws TextPatternParser.TextPatternParsingException
     {
