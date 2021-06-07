@@ -60,6 +60,7 @@ import org.hisp.dhis.common.NamedParams;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -90,6 +91,7 @@ import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -98,9 +100,6 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.patch.Patch;
-import org.hisp.dhis.patch.PatchParams;
-import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -137,6 +136,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -224,7 +224,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected MergeService mergeService;
 
     @Autowired
-    protected PatchService patchService;
+    protected JsonPatchManager jsonPatchManager;
 
     @Autowired
     protected AttributeService attributeService;
@@ -275,22 +275,26 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         throws Exception
     {
         Property objProperty = getSchema().getProperty( property );
+
         if ( objProperty == null )
         {
             throw new BadRequestException( "No such property: " + property );
         }
+
         if ( !objProperty.isCollection() )
         {
             return gistToJsonObjectResponse( uid, createGistQuery( request, getEntityClass(), GistAutoType.L )
                 .withFilter( new Filter( "id", Comparison.EQ, uid ) )
                 .withField( property ) );
         }
+
         GistQuery query = createGistQuery( request, (Class<IdentifiableObject>) objProperty.getItemKlass(),
             GistAutoType.M )
                 .withOwner( Owner.builder()
                     .id( uid )
                     .type( getEntityClass() )
                     .collectionProperty( property ).build() );
+
         return gistToJsonArrayResponse( request, query,
             schemaService.getDynamicSchema( objProperty.getItemKlass() ) );
     }
@@ -569,11 +573,22 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    // --------------------------------------------------------------------------
+    // PATCH
+    // --------------------------------------------------------------------------
+
+    /**
+     * Adds support for HTTP Patch using JSON Patch (RFC 6902), updated object
+     * is run through normal metadata importer and internally looks like a
+     * normal PUT (after the JSON Patch has been applied).
+     */
+    @ResponseBody
+    @PatchMapping( path = "/{uid}", consumes = { MediaType.APPLICATION_JSON_VALUE, "application/json-patch+json" } )
     public void partialUpdateObject(
-        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request )
+        @PathVariable( "uid" ) String pvUid,
+        @RequestParam Map<String, String> rpParameters,
+        HttpServletRequest request,
+        HttpServletResponse response )
         throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
@@ -584,7 +599,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        T persistedObject = entities.get( 0 );
+        final T persistedObject = entities.get( 0 );
 
         User user = currentUserService.getCurrentUser();
 
@@ -593,76 +608,34 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        Patch patch = diff( request );
-
         prePatchEntity( persistedObject );
-        patchService.apply( patch, persistedObject );
-        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
-        manager.update( persistedObject );
-        postPatchEntity( persistedObject );
-    }
 
-    private Patch diff( HttpServletRequest request )
-        throws IOException,
-        WebMessageException
-    {
-        ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
-        if ( mapper == null )
+        final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
+        final T patchedObject = (T) jsonPatchManager.apply( patch, persistedObject );
+
+        // we don't allow changing UIDs
+        ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
+
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( patchedObject );
+
+        ImportReport importReport = importService.importMetadata( params );
+        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
+
+        if ( importReport.getStatus() == Status.OK )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
+            T entity = manager.get( getEntityClass(), pvUid );
+            postPatchEntity( entity );
         }
-        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
-    }
-
-    @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PATCH } )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void updateObjectProperty(
-        @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
-        @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request )
-        throws Exception
-    {
-        WebOptions options = new WebOptions( rpParameters );
-
-        List<T> entities = getEntity( pvUid, options );
-
-        if ( entities.isEmpty() )
+        else
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            webMessage.setStatus( Status.ERROR );
         }
 
-        if ( !getSchema().haveProperty( pvProperty ) )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
-        }
-
-        Property property = getSchema().getProperty( pvProperty );
-        T persistedObject = entities.get( 0 );
-
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), persistedObject ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
-
-        if ( !property.isWritable() )
-        {
-            throw new UpdateAccessDeniedException( "This property is read-only." );
-        }
-
-        T object = deserialize( request );
-
-        if ( object == null )
-        {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
-        }
-
-        prePatchEntity( persistedObject );
-        Object value = property.getGetterMethod().invoke( object );
-        property.getSetterMethod().invoke( persistedObject, value );
-        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
-        manager.update( persistedObject );
-        postPatchEntity( persistedObject );
+        webMessageService.send( webMessage, response, request );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -1691,5 +1664,4 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
             + options.getRootJunction().name();
     }
-
 }
