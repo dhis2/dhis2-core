@@ -61,8 +61,9 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
         userGroupId = assertStatus( HttpStatus.CREATED,
             POST( "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
 
-        assertStatus( HttpStatus.NO_CONTENT,
-            PATCH( "/users/{id}/birthday", getSuperuserUid(), Body( "{'birthday': '1980-12-12'}" ) ) );
+        assertStatus( HttpStatus.OK,
+            PATCH( "/users/{id}", getSuperuserUid(),
+                Body( "[{'op': 'add', 'path': '/birthday', 'value': '1980-12-12'}]" ) ) );
 
         orgUnitId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'unitA', 'shortName':'unitA', 'openingDate':'2021-01-01'}" ) );
