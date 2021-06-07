@@ -61,7 +61,6 @@ public class JsonPatchTest
         JsonPatch patch = jsonMapper.readValue( "[" +
             "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": \"bbb\"}," +
             "{\"op\": \"replace\", \"path\": \"/aaa\", \"value\": \"bbb\"}," +
-            // "{\"op\": \"test\", \"path\": \"/aaa\", \"value\": \"ccc\"}," +
             "{\"op\": \"remove\", \"path\": \"/aaa\"}" +
             "]", JsonPatch.class );
 
