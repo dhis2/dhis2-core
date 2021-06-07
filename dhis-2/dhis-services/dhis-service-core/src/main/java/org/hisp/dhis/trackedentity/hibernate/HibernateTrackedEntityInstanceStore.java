@@ -181,7 +181,7 @@ public class HibernateTrackedEntityInstanceStore
 
         Query query = getQuery( hql );
 
-        if ( params.isPaging() )
+        if ( !params.isSkipPaging() )
         {
             query.setFirstResult( params.getOffset() );
             query.setMaxResults( params.getPageSizeWithDefault() );
@@ -1179,7 +1179,6 @@ public class HibernateTrackedEntityInstanceStore
         {
             String start = getMediumDateString( params.getEventStartDate() );
             String end = getMediumDateString( params.getEventEndDate() );
-            events.append( whereHlp.whereAnd() );
 
             if ( params.isEventStatus( EventStatus.COMPLETED ) )
             {

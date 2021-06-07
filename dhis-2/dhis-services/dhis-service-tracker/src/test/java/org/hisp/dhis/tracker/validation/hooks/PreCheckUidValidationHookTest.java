@@ -58,7 +58,7 @@ public class PreCheckUidValidationHookTest
     public void setUp()
     {
         validationHook = new PreCheckUidValidationHook();
-        ctx = new TrackerImportValidationContext( new TrackerBundle() );
+        ctx = new TrackerImportValidationContext( TrackerBundle.builder().build() );
     }
 
     @Test

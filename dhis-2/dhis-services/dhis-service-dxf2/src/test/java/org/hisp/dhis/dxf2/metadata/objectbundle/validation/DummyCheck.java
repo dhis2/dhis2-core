@@ -27,45 +27,40 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
+
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
  * @author Luciano Fiandesio
  */
-public class DummyCheck
-    implements
-    ValidationCheck
+public class DummyCheck implements ObjectValidationCheck
 {
 
     @Override
-    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context )
+        ImportStrategy importStrategy, ValidationContext context, Consumer<ObjectReport> addReports )
     {
-
-        TypeReport typeReport = new TypeReport( klass );
-
         for ( IdentifiableObject nonPersistedObject : nonPersistedObjects )
         {
             if ( nonPersistedObject.getUid().startsWith( "u" ) )
             {
-
                 ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E5000, bundle.getPreheatIdentifier(),
                     bundle.getPreheatIdentifier().getIdentifiersWithName( nonPersistedObject ) )
                         .setMainId( nonPersistedObject.getUid() );
-                ValidationUtils.addObjectReport( errorReport, typeReport, nonPersistedObject, bundle );
+                addReports.accept( createObjectReport( errorReport, nonPersistedObject, bundle ) );
 
                 context.markForRemoval( nonPersistedObject );
             }
         }
-
-        return typeReport;
     }
 }

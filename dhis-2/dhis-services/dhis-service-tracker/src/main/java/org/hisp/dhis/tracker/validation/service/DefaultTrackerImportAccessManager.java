@@ -72,25 +72,6 @@ public class DefaultTrackerImportAccessManager
     @NonNull
     private final OrganisationUnitService organisationUnitService;
 
-    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit )
-    {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
-        User user = bundle.getUser();
-
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
-
-        if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
-        {
-            // TODO: This state I can't reach, can't enroll in programs without
-            // registration...
-            // maybe remove in the new importer?
-            reporter.addError( newReport( TrackerErrorCode.E1093 )
-                .addArg( user )
-                .addArg( orgUnit ) );
-        }
-    }
-
     public void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
@@ -120,31 +101,6 @@ public class DefaultTrackerImportAccessManager
             reporter.addError( newReport( TrackerErrorCode.E1001 )
                 .addArg( user )
                 .addArg( trackedEntityType ) );
-        }
-    }
-
-    @Override
-    public void checkReadEnrollmentAccess( ValidationErrorReporter reporter, Program program,
-        OrganisationUnit organisationUnit, String trackedEntity )
-    {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
-        User user = bundle.getUser();
-
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( program, PROGRAM_CANT_BE_NULL );
-
-        checkProgramReadAccess( reporter, user, program );
-
-        if ( program.isRegistration() )
-        {
-            checkTeiTypeAndTeiProgramAccess( reporter, user, trackedEntity, organisationUnit, program );
-        }
-        else
-        {
-            // TODO: This state I can't reach, can't enroll in programs without
-            // registration...
-            // maybe remove in the new importer?
-            checkOrgUnitInSearchScope( reporter, organisationUnit );
         }
     }
 
@@ -224,13 +180,7 @@ public class DefaultTrackerImportAccessManager
         else
         {
             checkProgramStageWriteAccess( reporter, user, programStage );
-            // at this point the link between program and program stage should
-            // be validated
-            // so it is safe to fetch the Program from the program stage
-            final String programUid = programStage.getProgram().getUid();
-            final Program program = reporter.getPreheat().getAll( Program.class )
-                .stream().filter( p -> p.getUid().equals( programUid ) ).findAny()
-                .orElseThrow( () -> new NullPointerException( PROGRAM_CANT_BE_NULL ) );
+            final Program program = programStage.getProgram();
 
             checkProgramReadAccess( reporter, user, program );
 

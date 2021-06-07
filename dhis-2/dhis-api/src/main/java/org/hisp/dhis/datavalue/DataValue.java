@@ -31,6 +31,8 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.regex.Pattern;
 
+import lombok.Builder;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
@@ -197,6 +199,7 @@ public class DataValue
      * @param followup whether followup is set.
      * @param deleted whether the value is deleted.
      */
+    @Builder( toBuilder = true )
     public DataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo,
         String value, String storedBy, Date lastUpdated, String comment,

@@ -28,8 +28,12 @@
 
 package org.hisp.dhis.tracker.events;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.File;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
@@ -38,7 +42,6 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -47,11 +50,8 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -67,8 +67,6 @@ public class EventImportDataValueValidationTests
 
     private RestApiActions dataElementActions;
 
-    private SharingActions sharingActions;
-
     private String programId;
 
     private String programStageId;
@@ -82,7 +80,6 @@ public class EventImportDataValueValidationTests
         programActions = new ProgramActions();
         eventActions = new EventActions();
         dataElementActions = new RestApiActions( "/dataElements" );
-        sharingActions = new SharingActions();
 
         new LoginActions().loginAsAdmin();
 
@@ -92,7 +89,7 @@ public class EventImportDataValueValidationTests
     @Test
     public void shouldNotValidateDataValuesOnUpdateWithOnCompleteStrategy()
     {
-        setValidationStrategy( programStageId, "ON_COMPLETE" );
+        programActions.programStageActions.setValidationStrategy( programStageId, "ON_COMPLETE" );
 
         JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
 
@@ -107,7 +104,7 @@ public class EventImportDataValueValidationTests
     @Test
     public void shouldValidateDataValuesOnCompleteWhenEventIsCompleted()
     {
-        setValidationStrategy( programStageId, "ON_COMPLETE" );
+        programActions.programStageActions.setValidationStrategy( programStageId, "ON_COMPLETE" );
 
         JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
         event.addProperty( "status", "COMPLETED" );
@@ -125,7 +122,7 @@ public class EventImportDataValueValidationTests
     @Test
     public void shouldValidateCompletedOnInsert()
     {
-        setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
+        programActions.programStageActions.setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
 
         JsonObject event = eventActions.createEventBody( OU_ID, programId, programStageId );
         event.addProperty( "status", "COMPLETED" );
@@ -143,7 +140,7 @@ public class EventImportDataValueValidationTests
     @Test
     public void shouldValidateDataValuesOnUpdate()
     {
-        setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
+        programActions.programStageActions.setValidationStrategy( programStageId, "ON_UPDATE_AND_INSERT" );
 
         JsonObject events = eventActions.createEventBody( OU_ID, programId, programStageId );
 
@@ -186,13 +183,14 @@ public class EventImportDataValueValidationTests
         programStageId = new IdGenerator().generateUniqueId();
 
         JsonObject jsonObject = new JsonObjectBuilder(
-            new FileReaderUtils().readJsonAndGenerateData( new File( "src/test/resources/tracker/eventProgram.json" ) ) )
-            .addPropertyByJsonPath( "programStages[0].program.id", programId )
-            .addPropertyByJsonPath( "programs[0].id", programId )
-            .addPropertyByJsonPath( "programs[0].programStages[0].id", programStageId )
-            .addPropertyByJsonPath( "programStages[0].id", programStageId )
-            .addPropertyByJsonPath( "programStages[0].programStageDataElements", null )
-            .build();
+            new FileReaderUtils()
+                .readJsonAndGenerateData( new File( "src/test/resources/tracker/eventProgram.json" ) ) )
+                    .addPropertyByJsonPath( "programStages[0].program.id", programId )
+                    .addPropertyByJsonPath( "programs[0].id", programId )
+                    .addPropertyByJsonPath( "programs[0].programStages[0].id", programStageId )
+                    .addPropertyByJsonPath( "programStages[0].id", programStageId )
+                    .addPropertyByJsonPath( "programStages[0].programStageDataElements", null )
+                    .build();
 
         new MetadataActions().importAndValidateMetadata( jsonObject );
 
@@ -218,19 +216,4 @@ public class EventImportDataValueValidationTests
         dataValues.add( dataValue );
         body.add( "dataValues", dataValues );
     }
-
-    private void setValidationStrategy( String programStageId, String strategy )
-    {
-        JsonObject body = JsonObjectBuilder.jsonObject()
-            .addProperty( "validationStrategy", strategy )
-            .build();
-
-        programActions.programStageActions.patch( programStageId, body )
-            .validate().statusCode( 204 );
-
-        programActions.programStageActions.get( programStageId )
-            .validate().body( "validationStrategy", equalTo( strategy ) );
-
-    }
-
 }

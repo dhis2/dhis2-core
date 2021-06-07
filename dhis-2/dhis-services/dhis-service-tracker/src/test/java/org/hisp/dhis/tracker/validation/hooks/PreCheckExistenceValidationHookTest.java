@@ -33,7 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.program.ProgramInstance;
@@ -98,7 +98,9 @@ public class PreCheckExistenceValidationHookTest
         validationHook = new PreCheckExistenceValidationHook();
 
         when( ctx.getBundle() ).thenReturn( bundle );
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( ctx.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( ctx.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( ctx.getStrategy( any( TrackedEntity.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         when( ctx.getTrackedEntityInstance( SOFT_DELETED_TEI_UID ) ).thenReturn( getSoftDeletedTei() );
         when( ctx.getTrackedEntityInstance( TEI_UID ) ).thenReturn( getTei() );
         when( ctx.getProgramInstance( SOFT_DELETED_ENROLLMENT_UID ) ).thenReturn( getSoftDeletedEnrollment() );
@@ -117,14 +119,13 @@ public class PreCheckExistenceValidationHookTest
             .build();
 
         // when
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE );
+        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, trackedEntity );
         validationHook.validateTrackedEntity( reporter, trackedEntity );
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
     }
 
     @Test
@@ -141,7 +142,6 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
     }
 
     @Test
@@ -158,7 +158,6 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
     }
 
     @Test
@@ -187,7 +186,7 @@ public class PreCheckExistenceValidationHookTest
             .build();
 
         // when
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE );
+        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, trackedEntity );
         validationHook.validateTrackedEntity( reporter, trackedEntity );
@@ -206,7 +205,7 @@ public class PreCheckExistenceValidationHookTest
             .build();
 
         // when
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, trackedEntity );
         validationHook.validateTrackedEntity( reporter, trackedEntity );
@@ -225,14 +224,13 @@ public class PreCheckExistenceValidationHookTest
             .build();
 
         // when
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE );
+        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
         validationHook.validateEnrollment( reporter, enrollment );
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( enrollment, TrackerImportStrategy.CREATE );
     }
 
     @Test
@@ -249,7 +247,6 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( enrollment, TrackerImportStrategy.CREATE );
     }
 
     @Test
@@ -266,7 +263,6 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( enrollment, TrackerImportStrategy.UPDATE );
     }
 
     @Test
@@ -295,7 +291,7 @@ public class PreCheckExistenceValidationHookTest
             .build();
 
         // when
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE );
+        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
         validationHook.validateEnrollment( reporter, enrollment );
@@ -314,7 +310,7 @@ public class PreCheckExistenceValidationHookTest
             .build();
 
         // when
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
         validationHook.validateEnrollment( reporter, enrollment );
@@ -333,14 +329,13 @@ public class PreCheckExistenceValidationHookTest
             .build();
 
         // when
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE );
+        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
         validationHook.validateEvent( reporter, event );
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( event, TrackerImportStrategy.CREATE );
     }
 
     @Test
@@ -357,7 +352,6 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( event, TrackerImportStrategy.CREATE );
     }
 
     @Test
@@ -374,7 +368,6 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        verify( ctx ).setStrategy( event, TrackerImportStrategy.UPDATE );
     }
 
     @Test
@@ -403,7 +396,7 @@ public class PreCheckExistenceValidationHookTest
             .build();
 
         // when
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE );
+        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
         validationHook.validateEvent( reporter, event );
@@ -422,7 +415,7 @@ public class PreCheckExistenceValidationHookTest
             .build();
 
         // when
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
         validationHook.validateEvent( reporter, event );

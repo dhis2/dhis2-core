@@ -61,9 +61,13 @@ import com.google.common.collect.Lists;
 public class RepeatedEventsValidationHookTest
     extends DhisConvenienceTest
 {
-    private final static String NOT_REPEATABLE_PROGRAM_STAGE = "NOT_REPEATABLE_PROGRAM_STAGE";
+    private final static String NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION = "NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION";
 
-    private final static String REPEATABLE_PROGRAM_STAGE = "REPEATABLE_PROGRAM_STAGE";
+    private final static String REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION = "REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION";
+
+    private final static String NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION = "NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION";
+
+    private final static String REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION = "REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION";
 
     private final static String PROGRAM_WITH_REGISTRATION = "PROGRAM_WITH_REGISTRATION";
 
@@ -90,18 +94,18 @@ public class RepeatedEventsValidationHookTest
     {
         validatorToTest = new RepeatedEventsValidationHook();
 
-        bundle = new TrackerBundle();
+        bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
         ctx = new TrackerImportValidationContext( bundle );
 
-        when( preheat.get( ProgramStage.class, NOT_REPEATABLE_PROGRAM_STAGE ) )
-            .thenReturn( notRepeatebleProgramStage() );
-        when( preheat.get( ProgramStage.class, REPEATABLE_PROGRAM_STAGE ) )
-            .thenReturn( repeatebleProgramStage() );
-        when( preheat.get( Program.class, PROGRAM_WITH_REGISTRATION ) )
-            .thenReturn( programWithRegistration() );
-        when( preheat.get( Program.class, PROGRAM_WITHOUT_REGISTRATION ) )
-            .thenReturn( programWithoutRegistration() );
+        when( preheat.get( ProgramStage.class, NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+            .thenReturn( notRepeatebleProgramStageWithRegistration() );
+        when( preheat.get( ProgramStage.class, REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+            .thenReturn( repeatebleProgramStageWithRegistration() );
+        when( preheat.get( ProgramStage.class, NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION ) )
+            .thenReturn( notRepeatebleProgramStageWithoutRegistration() );
+        when( preheat.get( ProgramStage.class, REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION ) )
+            .thenReturn( repeatebleProgramStageWithoutRegistration() );
     }
 
     @Test
@@ -126,11 +130,11 @@ public class RepeatedEventsValidationHookTest
         assertEquals( 2, errorReporter.getReportList().size() );
         assertThat( errorReporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
         assertThat( errorReporter.getReportList().get( 0 ).getErrorMessage(),
-            is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE +
+            is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
         assertThat( errorReporter.getReportList().get( 1 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
         assertThat( errorReporter.getReportList().get( 1 ).getErrorMessage(),
-            is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE +
+            is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
     }
 
@@ -185,17 +189,35 @@ public class RepeatedEventsValidationHookTest
         assertTrue( errorReporter.getReportList().isEmpty() );
     }
 
-    private ProgramStage notRepeatebleProgramStage()
+    private ProgramStage notRepeatebleProgramStageWithRegistration()
     {
         ProgramStage programStage = createProgramStage( 'A', 1, false );
-        programStage.setUid( NOT_REPEATABLE_PROGRAM_STAGE );
+        programStage.setUid( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION );
+        programStage.setProgram( programWithRegistration() );
         return programStage;
     }
 
-    private ProgramStage repeatebleProgramStage()
+    private ProgramStage repeatebleProgramStageWithRegistration()
     {
         ProgramStage programStage = createProgramStage( 'A', 1, true );
-        programStage.setUid( REPEATABLE_PROGRAM_STAGE );
+        programStage.setUid( REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION );
+        programStage.setProgram( programWithRegistration() );
+        return programStage;
+    }
+
+    private ProgramStage notRepeatebleProgramStageWithoutRegistration()
+    {
+        ProgramStage programStage = createProgramStage( 'A', 1, false );
+        programStage.setUid( NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION );
+        programStage.setProgram( programWithoutRegistration() );
+        return programStage;
+    }
+
+    private ProgramStage repeatebleProgramStageWithoutRegistration()
+    {
+        ProgramStage programStage = createProgramStage( 'A', 1, true );
+        programStage.setUid( REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION );
+        programStage.setProgram( programWithoutRegistration() );
         return programStage;
     }
 
@@ -217,8 +239,7 @@ public class RepeatedEventsValidationHookTest
     {
         Event event = new Event();
         event.setEvent( uid );
-        event.setProgram( PROGRAM_WITHOUT_REGISTRATION );
-        event.setProgramStage( NOT_REPEATABLE_PROGRAM_STAGE );
+        event.setProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION );
         return event;
     }
 
@@ -226,9 +247,8 @@ public class RepeatedEventsValidationHookTest
     {
         Event event = new Event();
         event.setEvent( uid );
-        event.setProgram( PROGRAM_WITH_REGISTRATION );
         event.setEnrollment( ENROLLMENT_A );
-        event.setProgramStage( NOT_REPEATABLE_PROGRAM_STAGE );
+        event.setProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION );
         return event;
     }
 
@@ -236,9 +256,8 @@ public class RepeatedEventsValidationHookTest
     {
         Event event = new Event();
         event.setEvent( uid );
-        event.setProgram( PROGRAM_WITH_REGISTRATION );
         event.setEnrollment( ENROLLMENT_A );
-        event.setProgramStage( REPEATABLE_PROGRAM_STAGE );
+        event.setProgramStage( REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION );
         return event;
     }
 }

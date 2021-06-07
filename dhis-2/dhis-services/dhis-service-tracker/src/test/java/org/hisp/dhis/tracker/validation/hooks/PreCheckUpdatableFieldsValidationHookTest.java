@@ -118,22 +118,6 @@ public class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccessWhenStrategyIsCreate()
-    {
-        // given
-        TrackedEntity trackedEntity = validTei();
-
-        // when
-        when( ctx.getTrackedEntityInstance( TRACKED_ENTITY_ID ) ).thenReturn( null );
-        when( ctx.getStrategy( validTei() ) ).thenReturn( TrackerImportStrategy.CREATE );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, trackedEntity );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
     public void verifyTrackedEntityValidationFailsWhenUpdateTrackedEntityType()
     {
         // given
@@ -156,22 +140,6 @@ public class PreCheckUpdatableFieldsValidationHookTest
         Enrollment enrollment = validEnrollment();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
-        validationHook.validateEnrollment( reporter, enrollment );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    public void verifyEnrollmentValidationSuccessWhenStrategyIsCreate()
-    {
-        // given
-        Enrollment enrollment = validEnrollment();
-
-        // when
-        when( ctx.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( null );
-        when( ctx.getStrategy( validEnrollment() ) ).thenReturn( TrackerImportStrategy.CREATE );
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
         validationHook.validateEnrollment( reporter, enrollment );
 
@@ -228,22 +196,6 @@ public class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccessWhenStrategyIsCreate()
-    {
-        // given
-        Event event = validEvent();
-
-        // when
-        when( ctx.getProgramInstance( EVENT_ID ) ).thenReturn( null );
-        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
-        validationHook.validateEvent( reporter, event );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
     public void verifyEventValidationFailsWhenUpdateProgramStage()
     {
         // given
@@ -277,23 +229,6 @@ public class PreCheckUpdatableFieldsValidationHookTest
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "enrollment" ) );
     }
 
-    @Test
-    public void verifyEventValidationFailsWhenUpdateProgram()
-    {
-        // given
-        Event event = validEvent();
-        event.setProgram( "NewProgramId" );
-
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
-        validationHook.validateEvent( reporter, event );
-
-        // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1128 ) );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "program" ) );
-    }
-
     private TrackedEntity validTei()
     {
         return TrackedEntity.builder()
@@ -316,7 +251,6 @@ public class PreCheckUpdatableFieldsValidationHookTest
         return Event.builder()
             .event( EVENT_ID )
             .programStage( PROGRAM_STAGE_ID )
-            .program( PROGRAM_ID )
             .enrollment( ENROLLMENT_ID )
             .build();
     }

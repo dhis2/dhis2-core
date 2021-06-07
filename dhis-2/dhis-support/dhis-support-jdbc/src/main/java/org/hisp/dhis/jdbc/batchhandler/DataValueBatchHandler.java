@@ -162,6 +162,7 @@ public class DataValueBatchHandler
 
         dv.setValue( resultSet.getString( "value" ) );
         dv.setStoredBy( resultSet.getString( "storedBy" ) );
+        dv.setCreated( resultSet.getTimestamp( "created" ) );
         dv.setComment( resultSet.getString( "comment" ) );
         dv.setFollowup( resultSet.getBoolean( "followup" ) );
         dv.setDeleted( resultSet.getBoolean( "deleted" ) );

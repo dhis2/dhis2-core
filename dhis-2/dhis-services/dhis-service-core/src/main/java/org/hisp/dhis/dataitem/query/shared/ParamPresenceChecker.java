@@ -116,6 +116,7 @@ public class ParamPresenceChecker
      * @param valueType
      * @return true if valueType is present in paramsMap, false otherwise
      */
+    @SuppressWarnings( "unchecked" )
     public static boolean hasValueTypePresence( final MapSqlParameterSource paramsMap, final ValueType valueType )
     {
         if ( hasSetPresence( paramsMap, VALUE_TYPES ) )

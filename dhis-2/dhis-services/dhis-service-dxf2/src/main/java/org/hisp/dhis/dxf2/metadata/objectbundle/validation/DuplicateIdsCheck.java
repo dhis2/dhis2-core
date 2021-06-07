@@ -27,59 +27,52 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
+
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
  * @author Luciano Fiandesio
  */
-public class DuplicateIdsCheck
-    implements
-    ValidationCheck
+public class DuplicateIdsCheck implements ObjectValidationCheck
 {
 
     @Override
-    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
         List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx )
+        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
     {
-        TypeReport typeReport = new TypeReport( klass );
-
         if ( persistedObjects.isEmpty() && nonPersistedObjects.isEmpty() )
         {
-            return typeReport;
+            return;
         }
 
         Map<Class<?>, String> idMap = new HashMap<>();
-
-        typeReport.merge( run( typeReport, bundle, persistedObjects.iterator(), idMap, ctx ) );
-        typeReport.merge( run( typeReport, bundle, nonPersistedObjects.iterator(), idMap, ctx ) );
-
-        return typeReport;
+        run( bundle, persistedObjects, idMap, ctx, addReports );
+        run( bundle, nonPersistedObjects, idMap, ctx, addReports );
     }
 
-    private TypeReport run( TypeReport typeReport, ObjectBundle bundle, Iterator<IdentifiableObject> iterator,
-        Map<Class<?>, String> idMap, ValidationContext context )
+    private void run( ObjectBundle bundle, Iterable<? extends IdentifiableObject> list,
+        Map<Class<?>, String> idMap, ValidationContext context, Consumer<ObjectReport> addReports )
     {
-        while ( iterator.hasNext() )
+        for ( IdentifiableObject object : list )
         {
-            IdentifiableObject object = iterator.next();
-
             if ( idMap.containsKey( object.getClass() ) && idMap.get( object.getClass() ).equals( object.getUid() ) )
             {
                 ErrorReport errorReport = new ErrorReport( object.getClass(), ErrorCode.E5004, object.getUid(),
                     object.getClass() ).setMainId( object.getUid() ).setErrorProperty( "id" );
 
-                ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
+                addReports.accept( createObjectReport( errorReport, object, bundle ) );
                 context.markForRemoval( object );
             }
             else
@@ -87,7 +80,5 @@ public class DuplicateIdsCheck
                 idMap.put( object.getClass(), object.getUid() );
             }
         }
-
-        return typeReport;
     }
 }

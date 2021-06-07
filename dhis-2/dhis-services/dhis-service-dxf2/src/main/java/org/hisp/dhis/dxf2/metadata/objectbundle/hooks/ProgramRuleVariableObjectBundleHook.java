@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.List;
+import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS;
+
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -41,7 +43,6 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -59,55 +60,77 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, this::processTEA )
         .build();
 
-    /**
-     * Check if a Program Rule Variable to be added or update has a unique name
-     * in the system
-     *
-     * @param object
-     * @param bundle
-     * @param <T>
-     * @return
-     */
-    @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    private static final String FROM_PROGRAM_RULE_VARIABLE = " from ProgramRuleVariable prv where prv.name = :name and prv.program.uid = :programUid";
+
+    private final String PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REGEX;
+
+    ProgramRuleVariableObjectBundleHook()
     {
-        if ( !(object instanceof ProgramRuleVariable) )
+        PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REGEX = "("
+            + String.join( "|", PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS ) + ")";
+    }
+
+    @Override
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
+    {
+        if ( object instanceof ProgramRuleVariable )
         {
-            return super.validate( object, bundle );
+            ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) object;
+
+            validateUniqueProgramRuleName( bundle, programRuleVariable, addReports );
+            validateProgramRuleNameKeyWords( programRuleVariable, addReports );
         }
-        Session session = sessionFactory.getCurrentSession();
-        ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) object;
+    }
 
-        Query<ProgramRuleVariable> query = session.createQuery(
-            " from ProgramRuleVariable prv where prv.name = :name and prv.program.uid = :programUid",
-            ProgramRuleVariable.class );
-
-        query.setParameter( "name", programRuleVariable.getName() );
-        query.setParameter( "programUid", programRuleVariable.getProgram().getUid() );
+    private void validateUniqueProgramRuleName( ObjectBundle bundle,
+        ProgramRuleVariable programRuleVariable, Consumer<ErrorReport> addReports )
+    {
+        Query<ProgramRuleVariable> query = getProgramRuleVariableQuery( programRuleVariable );
 
         int allowedCount = bundle.getImportMode() == ImportStrategy.UPDATE ? 1 : 0;
 
         if ( query.getResultList().size() > allowedCount )
         {
-            return ImmutableList.of(
-                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4032, programRuleVariable.getName(),
+            addReports.accept(
+                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4051, programRuleVariable.getName(),
                     programRuleVariable.getProgram().getUid() ) );
         }
+    }
 
-        return super.validate( object, bundle );
+    private Query<ProgramRuleVariable> getProgramRuleVariableQuery( ProgramRuleVariable programRuleVariable )
+    {
+        Session session = sessionFactory.getCurrentSession();
+        Query<ProgramRuleVariable> query = session.createQuery( FROM_PROGRAM_RULE_VARIABLE, ProgramRuleVariable.class );
 
+        query.setParameter( "name", programRuleVariable.getName() );
+        query.setParameter( "programUid", programRuleVariable.getProgram().getUid() );
+        return query;
+    }
+
+    private void validateProgramRuleNameKeyWords( ProgramRuleVariable programRuleVariable,
+        Consumer<ErrorReport> addReports )
+    {
+        String[] split = programRuleVariable.getName().split( "\\s" );
+
+        if ( IntStream.range( 0, split.length )
+            .anyMatch( i -> split[i].matches( PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REGEX ) ) )
+        {
+            addReports.accept(
+                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4052, programRuleVariable.getName() ) );
+        }
     }
 
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        if ( !ProgramRuleVariable.class.isInstance( object ) )
-            return;
+        if ( object instanceof ProgramRuleVariable )
+        {
+            ProgramRuleVariable variable = (ProgramRuleVariable) object;
 
-        ProgramRuleVariable variable = (ProgramRuleVariable) object;
-
-        SOURCE_TYPE_RESOLVER.getOrDefault( variable.getSourceType(), v -> {
-        } ).accept( variable );
+            SOURCE_TYPE_RESOLVER.getOrDefault( variable.getSourceType(), v -> {
+            } ).accept( variable );
+        }
     }
 
     private void processCalculatedValue( ProgramRuleVariable variable )

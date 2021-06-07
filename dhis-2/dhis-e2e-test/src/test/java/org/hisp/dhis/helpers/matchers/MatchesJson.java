@@ -86,7 +86,7 @@ public class MatchesJson
             JSONCompareResult result = JSONCompare.compareJSON( expectedJSON, actualJSON, jsonCompareMode );
             if ( result.failed() )
             {
-                mismatchDescription.appendText( "\n Actual: " + actualJSON );
+                mismatchDescription.appendText( "\n Actual: " + actualJSON + "\n" );
                 mismatchDescription.appendText( result.getMessage() );
             }
 

@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.mock.MockI18nFormat;
 import org.junit.Test;
@@ -542,6 +543,25 @@ public class RelativePeriodTest
     }
 
     @Test
+    public void testGetLast10FinancialYears()
+    {
+        List<Period> relatives = new RelativePeriods().setLast10FinancialYears( true ).getRelativePeriods(
+            getDate( 2001, 1, 1 ),
+            I18N_FORMAT, false,
+            FINANCIAL_YEAR_OCTOBER );
+
+        int year = Iso8601Calendar.getInstance().today().getYear()
+            - (Iso8601Calendar.getInstance().today().getMonth() > 10 ? 10 : 11);
+        assertEquals( 10, relatives.size() );
+        for ( int i = 0; i < 10; i++ )
+        {
+            assertEquals(
+                new Period( new FinancialOctoberPeriodType(), getDate( year, 10, 1 ), getDate( ++year, 9, 30 ) ),
+                relatives.get( i ) );
+        }
+    }
+
+    @Test
     public void testGetMonthsThisYear()
     {
         List<Period> relatives = new RelativePeriods().setMonthsThisYear( true ).getRelativePeriods(
@@ -689,6 +709,28 @@ public class RelativePeriodTest
         relatives = new RelativePeriods().setLast4Quarters( true ).getRelativePeriods( I18N_FORMAT, true );
 
         assertEquals( 4, relatives.size() );
+    }
+
+    @Test
+    public void testGetRelativePeriodsFromEnumA()
+    {
+        List<Period> periods = RelativePeriods.getRelativePeriodsFromEnum( RelativePeriodEnum.THIS_YEAR,
+            getDate( 2020, 10, 15 ) );
+
+        assertEquals( 1, periods.size() );
+        assertEquals( new YearlyPeriodType(), periods.get( 0 ).getPeriodType() );
+        assertEquals( getDate( 2020, 1, 1 ), periods.get( 0 ).getStartDate() );
+    }
+
+    @Test
+    public void testGetRelativePeriodsFromEnumB()
+    {
+        List<Period> periods = RelativePeriods.getRelativePeriodsFromEnum( RelativePeriodEnum.THIS_QUARTER,
+            getDate( 2020, 1, 15 ) );
+
+        assertEquals( 1, periods.size() );
+        assertEquals( new QuarterlyPeriodType(), periods.get( 0 ).getPeriodType() );
+        assertEquals( getDate( 2020, 1, 1 ), periods.get( 0 ).getStartDate() );
     }
 
     @Test
