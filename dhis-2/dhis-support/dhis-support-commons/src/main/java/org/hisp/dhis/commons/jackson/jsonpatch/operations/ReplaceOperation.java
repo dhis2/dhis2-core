@@ -25,28 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config.jackson;
+package org.hisp.dhis.commons.jackson.jsonpatch.operations;
 
-import java.io.IOException;
-import java.time.Instant;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchValueOperation;
 
-import org.hisp.dhis.util.DateUtils;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.databind.JsonNode;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-
-public class WriteInstantStdSerializer extends StdSerializer<Instant>
+/**
+ * Just a combination of the two other operators, first it removes the old value
+ * then sets a new one.
+ *
+ * @author Morten Olav Hansen
+ */
+public class ReplaceOperation extends JsonPatchValueOperation
 {
-    public WriteInstantStdSerializer()
+    @JsonCreator
+    public ReplaceOperation( @JsonProperty( "path" ) JsonPointer path, @JsonProperty( "value" ) JsonNode value )
     {
-        super( Instant.class );
+        super( "replace", path, value );
     }
 
     @Override
-    public void serialize( Instant value, JsonGenerator gen, SerializerProvider provider )
-        throws IOException
+    public JsonNode apply( JsonNode node )
+        throws JsonPatchException
     {
-        gen.writeString( DateUtils.getIso8601NoTz( DateUtils.fromInstant( value ) ) );
+        // TODO replace with custom impl? so we don't need to create new objects
+        final RemoveOperation removeOperation = new RemoveOperation( path );
+        final AddOperation addOperation = new AddOperation( path, value );
+
+        node = removeOperation.apply( node );
+        node = addOperation.apply( node );
+
+        return node;
     }
 }

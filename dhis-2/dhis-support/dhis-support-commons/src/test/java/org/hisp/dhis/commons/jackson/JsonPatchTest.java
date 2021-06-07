@@ -25,37 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.commons.jackson;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen
  */
-public class JacksonCsvUtils
+public class JsonPatchTest
 {
-    /**
-     * Writes the given response to the given output stream as CSV using
-     * {@link CsvMapper}. The schema is inferred from the given type using
-     * {@CsvSchema}. A header line is included.
-     *
-     * @param value the value to write.
-     * @param out the {@link OutputStream} to write to.
-     * @throws IOException if the write operation fails.
-     */
-    public static void toCsv( Object value, Class<?> type, OutputStream out )
-        throws IOException
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+
+    @Test
+    public void testJsonPatchDeserializeEmpty()
+        throws JsonProcessingException
     {
-        CsvMapper csvMapper = JacksonObjectMapperConfig.csvMapper;
-        CsvSchema schema = csvMapper.schemaFor( type ).withHeader();
-        ObjectWriter writer = csvMapper.writer( schema );
-        writer.writeValue( out, value );
+        JsonPatch patch = jsonMapper.readValue( "[]", JsonPatch.class );
+        assertNotNull( patch );
+        assertTrue( patch.getOperations().isEmpty() );
+    }
+
+    @Test
+    public void testJsonPatchDeserializeWithOps()
+        throws JsonProcessingException
+    {
+        JsonPatch patch = jsonMapper.readValue( "[" +
+            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": \"bbb\"}," +
+            "{\"op\": \"replace\", \"path\": \"/aaa\", \"value\": \"bbb\"}," +
+            "{\"op\": \"remove\", \"path\": \"/aaa\"}" +
+            "]", JsonPatch.class );
+
+        assertNotNull( patch );
+        assertEquals( 3, patch.getOperations().size() );
     }
 }

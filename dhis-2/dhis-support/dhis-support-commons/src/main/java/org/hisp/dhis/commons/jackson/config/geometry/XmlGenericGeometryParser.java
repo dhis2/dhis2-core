@@ -25,37 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.commons.jackson.config.geometry;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
+import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * @author Lars Helge Overland
+ * @author Enrico Colasante
  */
-public class JacksonCsvUtils
+@Slf4j
+public class XmlGenericGeometryParser
+    extends BaseParser
+    implements GeometryParser<Geometry>
 {
-    /**
-     * Writes the given response to the given output stream as CSV using
-     * {@link CsvMapper}. The schema is inferred from the given type using
-     * {@CsvSchema}. A header line is included.
-     *
-     * @param value the value to write.
-     * @param out the {@link OutputStream} to write to.
-     * @throws IOException if the write operation fails.
-     */
-    public static void toCsv( Object value, Class<?> type, OutputStream out )
-        throws IOException
+    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
     {
-        CsvMapper csvMapper = JacksonObjectMapperConfig.csvMapper;
-        CsvSchema schema = csvMapper.schemaFor( type ).withHeader();
-        ObjectWriter writer = csvMapper.writer( schema );
-        writer.writeValue( out, value );
+        super( geometryFactory );
+    }
+
+    public Geometry geometryFromJson( JsonNode node )
+    {
+        WKTReader wktR = new WKTReader();
+        try
+        {
+            return wktR.read( node.asText() );
+        }
+        catch ( ParseException e )
+        {
+            log.error( "Error reading WKT of geometry", e );
+            return null;
+        }
     }
 }

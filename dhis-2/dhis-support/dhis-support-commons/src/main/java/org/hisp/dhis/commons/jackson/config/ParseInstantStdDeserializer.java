@@ -25,37 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.commons.jackson.config;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.time.Instant;
 
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.util.DateUtils;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
-/**
- * @author Lars Helge Overland
- */
-public class JacksonCsvUtils
+public class ParseInstantStdDeserializer extends StdDeserializer<Instant>
 {
-    /**
-     * Writes the given response to the given output stream as CSV using
-     * {@link CsvMapper}. The schema is inferred from the given type using
-     * {@CsvSchema}. A header line is included.
-     *
-     * @param value the value to write.
-     * @param out the {@link OutputStream} to write to.
-     * @throws IOException if the write operation fails.
-     */
-    public static void toCsv( Object value, Class<?> type, OutputStream out )
+    public ParseInstantStdDeserializer()
+    {
+        super( Instant.class );
+    }
+
+    @Override
+    public Instant deserialize( JsonParser parser, DeserializationContext context )
         throws IOException
     {
-        CsvMapper csvMapper = JacksonObjectMapperConfig.csvMapper;
-        CsvSchema schema = csvMapper.schemaFor( type ).withHeader();
-        ObjectWriter writer = csvMapper.writer( schema );
-        writer.writeValue( out, value );
+        String valueAsString = parser.getText();
+
+        if ( StringUtils.isNotBlank( valueAsString ) )
+        {
+            try
+            {
+                return DateUtils.instantFromDateAsString( valueAsString );
+            }
+            catch ( Exception e )
+            {
+                if ( StringUtils.isNumeric( valueAsString ) )
+                {
+                    return DateUtils.instantFromEpoch( Long.valueOf( valueAsString ) );
+                }
+                throw new JsonParseException( parser,
+                    String.format(
+                        "Invalid date format '%s', only '" + DateUtils.ISO8601_NO_TZ_PATTERN
+                            + "' format end epoch milliseconds are supported.",
+                        valueAsString ) );
+            }
+        }
+        return null;
     }
+
 }
