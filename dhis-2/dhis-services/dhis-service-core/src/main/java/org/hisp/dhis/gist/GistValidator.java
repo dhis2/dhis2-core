@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.gist;
 
+import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
 
 import java.util.List;
@@ -42,6 +43,7 @@ import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
  * Validates a {@link GistQuery} for consistency and access restrictions.
@@ -113,6 +115,17 @@ final class GistValidator
             {
                 throw createIllegalProperty( field,
                     "Property `%s` computes to many values and therefore cannot be used as a field." );
+            }
+        }
+        if ( f.getTransformation() == Transform.PLUCK )
+        {
+            String pluckedField = f.getTransformationArgument();
+            Property plucked = context.switchedTo( getBaseType( field ) )
+                .resolveMandatory( pluckedField );
+            if ( !plucked.isPersisted() )
+            {
+                throw createIllegalProperty( plucked,
+                    "Property `%s` cannot be plucked as it is not a persistent field." );
             }
         }
         if ( !field.isReadable() )
