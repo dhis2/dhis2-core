@@ -1,0 +1,169 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.webapi.controller;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.webapi.json.JsonArray;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.JsonString;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
+
+/**
+ * Tests the {@link org.hisp.dhis.gist.GistQuery.Field} related features of the
+ * Gist API.
+ *
+ * @author Jan Bernitt
+ */
+public class GistFieldsControllerTest extends AbstractGistControllerTest
+{
+
+    @Test
+    public void testField_Sharing_EmbedsObject()
+    {
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=id,sharing,users&headless=true",
+            getSuperuserUid() ).content().getObject( 0 );
+
+        assertTrue( groups.has( "id", "sharing" ) );
+        assertTrue( groups.getObject( "sharing" ).has( "owner", "external", "users", "userGroups", "public" ) );
+    }
+
+    @Test
+    public void testField_Single_List()
+    {
+        assertEquals( singletonList( "groupX" ),
+            GET( "/users/{uid}/userGroups/gist?fields=name&headless=true", getSuperuserUid() )
+                .content().stringValues() );
+    }
+
+    @Test
+    public void testField_Single_OwnerObject()
+    {
+        assertEquals( "admin", GET( "/users/{uid}/surname/gist", getSuperuserUid() ).content().string() );
+    }
+
+    @Test
+    public void testField_Remove_BangSyntax()
+    {
+        JsonObject user = GET( "/users/{uid}/gist?fields=*,!surname", getSuperuserUid() ).content();
+
+        assertFalse( user.has( "surname" ) );
+    }
+
+    @Test
+    public void testField_Remove_MinusSyntax()
+    {
+        JsonObject user = GET( "/users/{uid}/gist?fields=*,-surname", getSuperuserUid() ).content();
+
+        assertFalse( user.has( "surname" ) );
+    }
+
+    @Test
+    public void testField_Complex_SquareBracketsSyntax()
+    {
+        JsonObject user = GET( "/users/{uid}/gist?fields=id,userCredentials[id,username]",
+            getSuperuserUid() ).content();
+
+        assertEquals( 2, user.size() );
+        assertEquals( asList( "id", "username" ), user.getObject( "userCredentials" ).names() );
+    }
+
+    /*
+     * Synthetic Fields
+     */
+
+    @Test
+    public void testField_Href()
+    {
+        // TODO
+    }
+
+    @Test
+    public void testField_ApiEndpoints_AbsoluteURLs()
+    {
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&absoluteUrls=true",
+            getSuperuserUid() ).content();
+
+        assertTrue( groups.getArray( "userGroups" ).getObject( 0 ).getObject( "apiEndpoints" ).getString( "users" )
+            .string().startsWith( "http://" ) );
+    }
+
+    @Test
+    public void testField_DisplayName()
+    {
+        JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=displayName,id", getSuperuserUid() ).content();
+
+        JsonArray groups = gist.getArray( "userGroups" );
+        assertEquals( 1, groups.size() );
+        JsonObject group = groups.getObject( 0 );
+        assertEquals( asList( "displayName", "id" ), group.names() );
+        assertEquals( "groupX", group.getString( "displayName" ).string() );
+    }
+
+    @Test
+    public void testField_DisplayName_WithLocale()
+    {
+        assertStatus( HttpStatus.NO_CONTENT, PUT( "/organisationUnits/" + orgUnitId + "/translations",
+            "{'translations': [" +
+                "{'locale':'sv', 'property':'name', 'value':'enhet A'}, " +
+                "{'locale':'de', 'property':'name', 'value':'Einheit A'}]}" ) );
+
+        JsonString displayName = GET( "/organisationUnits/{id}/gist?fields=displayName&locale=de&headless=true",
+            orgUnitId ).content();
+        assertEquals( "Einheit A", displayName.string() );
+
+        displayName = GET( "/organisationUnits/{id}/gist?fields=displayName&locale=sv&headless=true",
+            orgUnitId ).content();
+        assertEquals( "enhet A", displayName.string() );
+    }
+
+    @Test
+    public void testField_Access()
+    {
+        JsonArray groups = GET( "/users/{uid}/userGroups/gist?fields=id,access&headless=true",
+            getSuperuserUid() ).content();
+
+        assertEquals( 1, groups.size() );
+        JsonObject group = groups.getObject( 0 );
+        JsonObject access = group.getObject( "access" );
+        assertTrue( access.has( "manage", "externalize", "write", "read", "update", "delete" ) );
+        assertTrue( access.getBoolean( "manage" ).booleanValue() );
+        assertTrue( access.getBoolean( "externalize" ).booleanValue() );
+        assertTrue( access.getBoolean( "write" ).booleanValue() );
+        assertTrue( access.getBoolean( "read" ).booleanValue() );
+        assertTrue( access.getBoolean( "update" ).booleanValue() );
+        assertTrue( access.getBoolean( "delete" ).booleanValue() );
+    }
+
+}

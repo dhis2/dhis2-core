@@ -36,11 +36,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -52,8 +53,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.AllArgsConstructor;
 
 /**
  * @author Jan Bernitt
@@ -78,8 +77,6 @@ public class DefaultGistService implements GistService
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
-
-    private final IdentifiableObjectManager objectManager;
 
     private final ObjectMapper jsonMapper;
 
@@ -152,8 +149,7 @@ public class DefaultGistService implements GistService
 
     private GistAccessControl createGistAccessControl()
     {
-        return new DefaultGistAccessControl( currentUserService.getCurrentUser(), aclService, userService,
-            objectManager );
+        return new DefaultGistAccessControl( currentUserService.getCurrentUser(), aclService, userService, this );
     }
 
     private RelativePropertyContext createPropertyContext( GistQuery query )
@@ -164,7 +160,7 @@ public class DefaultGistService implements GistService
     private <T> List<T> fetchWithParameters( GistQuery gistQuery, GistBuilder builder, Query<T> query )
     {
         builder.addFetchParameters( query::setParameter, this::parseFilterArgument );
-        query.setMaxResults( gistQuery.getPageSize() );
+        query.setMaxResults( Math.max( 1, gistQuery.getPageSize() ) );
         query.setFirstResult( gistQuery.getPageOffset() );
         query.setCacheable( false );
         return query.list();

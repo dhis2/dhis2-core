@@ -104,6 +104,8 @@ public interface AclService
      */
     boolean canRead( User user, IdentifiableObject object );
 
+    <T extends IdentifiableObject> boolean canRead( User user, T object, Class<? extends T> objType );
+
     /**
      * Can user read data this object.
      *
