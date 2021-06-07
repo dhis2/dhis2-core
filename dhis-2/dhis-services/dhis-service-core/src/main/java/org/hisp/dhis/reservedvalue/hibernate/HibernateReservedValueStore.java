@@ -149,14 +149,6 @@ public class HibernateReservedValueStore
     }
 
     @Override
-    public void removeExpiredReservations()
-    {
-        getQuery( "DELETE FROM ReservedValue WHERE expiryDate < :now" )
-            .setParameter( "now", new Date() )
-            .executeUpdate();
-    }
-
-    @Override
     public boolean useReservedValue( String ownerUID, String value )
     {
         return getQuery( "DELETE FROM ReservedValue WHERE owneruid = :uid AND value = :value" )
@@ -185,6 +177,19 @@ public class HibernateReservedValueStore
             .setParameter( "value", value )
             .getResultList()
             .isEmpty();
+    }
+
+    @Override
+    public void removeUsedOrExpiredReservations()
+    {
+        String deleteQuery = "DELETE FROM ReservedValue r WHERE r.expiryDate < :now OR r.value in (" +
+            "SELECT teav.plainValue from TrackedEntityAttributeValue teav JOIN teav.attribute tea " +
+            "WHERE r.ownerUid = tea.uid and r.value = teav.plainValue" +
+            ")";
+
+        getQuery( deleteQuery )
+            .setParameter( "now", new Date() )
+            .executeUpdate();
     }
 
     // -------------------------------------------------------------------------
