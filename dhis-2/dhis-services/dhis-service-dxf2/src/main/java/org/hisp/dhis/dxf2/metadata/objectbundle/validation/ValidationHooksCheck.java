@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.joinObjects;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -61,12 +60,22 @@ public class ValidationHooksCheck implements ObjectValidationCheck
 
         for ( IdentifiableObject object : objects )
         {
-            List<ErrorReport> errorReports = emptyList();
+            @SuppressWarnings( "unchecked" )
+            List<ErrorReport>[] box = new List[1];
             for ( ObjectBundleHook hook : ctx.getObjectBundleHooks() )
             {
-                errorReports = joinObjects( errorReports, hook.validate( object, bundle ) );
+                hook.validate( object, bundle, error -> {
+                    List<ErrorReport> list = box[0];
+                    if ( list == null )
+                    {
+                        list = new ArrayList<>();
+                        box[0] = list;
+                    }
+                    list.add( error );
+                } );
             }
-            if ( !errorReports.isEmpty() )
+            List<ErrorReport> errorReports = box[0];
+            if ( errorReports != null && !errorReports.isEmpty() )
             {
                 addReports.accept( createObjectReport( errorReports, object, bundle ) );
                 ctx.markForRemoval( object );

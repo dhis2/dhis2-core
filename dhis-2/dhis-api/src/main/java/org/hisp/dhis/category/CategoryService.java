@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -220,6 +221,15 @@ public interface CategoryService
      * @return Set of CategoryOptions if constrained, else null.
      */
     Set<CategoryOption> getCoDimensionConstraints( UserCredentials userCredentials );
+
+    /**
+     * returns associations between categoryOptions and orgUnits
+     *
+     * @param categoryOptionsUids a list of categoryOption uids
+     * @return an IdentifiableObjectAssociations representing associations
+     *         between each categoryOption in input and orgUnits
+     */
+    IdentifiableObjectAssociations getCategoryOptionOrganisationUnitsAssociations( Set<String> categoryOptionsUids );
 
     // -------------------------------------------------------------------------
     // CategoryCombo

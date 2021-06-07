@@ -27,14 +27,23 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -92,25 +101,21 @@ public class ProgramObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errors = new ArrayList<>();
-
         if ( !isProgram( object ) )
         {
-            return errors;
+            return;
         }
 
         Program program = (Program) object;
 
         if ( program.getId() != 0 && getProgramInstancesCount( program ) > 1 )
         {
-            errors.add( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
+            addReports.accept( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
         }
-
-        errors.addAll( validateAttributeSecurity( program, bundle ) );
-
-        return errors;
+        validateAttributeSecurity( program, bundle, addReports );
     }
 
     private void syncSharingForEventProgram( Program program )
@@ -172,13 +177,12 @@ public class ProgramObjectBundleHook
         return object instanceof Program;
     }
 
-    private List<ErrorReport> validateAttributeSecurity( Program program, ObjectBundle bundle )
+    private void validateAttributeSecurity( Program program, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
         if ( program.getProgramAttributes().isEmpty() )
         {
-            return errorReports;
+            return;
         }
 
         PreheatIdentifier identifier = bundle.getPreheatIdentifier();
@@ -188,12 +192,10 @@ public class ProgramObjectBundleHook
 
             if ( attribute == null || !aclService.canRead( bundle.getUser(), attribute ) )
             {
-                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E3012,
+                addReports.accept( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E3012,
                     identifier.getIdentifiersWithName( bundle.getUser() ),
                     identifier.getIdentifiersWithName( programAttr.getAttribute() ) ) );
             }
         } );
-
-        return errorReports;
     }
 }

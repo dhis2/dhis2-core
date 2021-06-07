@@ -264,25 +264,6 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenProgramIsNotPresentInDb()
-    {
-        // given
-        Event event = validEvent();
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
-
-        // when
-        when( ctx.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
-        when( ctx.getProgramStage( PROGRAM_STAGE_UID ) ).thenReturn( new ProgramStage() );
-
-        validatorToTest.validateEvent( reporter, event );
-
-        // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1010 ) );
-    }
-
-    @Test
     public void verifyEventValidationFailsWhenProgramStageIsNotPresentInDb()
     {
         // given
@@ -378,7 +359,6 @@ public class PreCheckMetaValidationHookTest
             .event( CodeGenerator.generateUid() )
             .programStage( PROGRAM_STAGE_UID )
             .orgUnit( ORG_UNIT_UID )
-            .program( PROGRAM_UID )
             .build();
     }
 

@@ -40,7 +40,8 @@ public enum FileResourceDomain
     PUSH_ANALYSIS( "pushAnalysis" ),
     DOCUMENT( "document" ),
     MESSAGE_ATTACHMENT( "messageAttachment" ),
-    USER_AVATAR( "userAvatar" );
+    USER_AVATAR( "userAvatar" ),
+    ORG_UNIT( "organisationUnit" );
 
     /**
      * Container name to use when storing blobs of this FileResourceDomain
@@ -48,7 +49,7 @@ public enum FileResourceDomain
     private String containerName;
 
     private static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES = new ImmutableSet.Builder<FileResourceDomain>()
-        .add( DATA_VALUE, USER_AVATAR ).build();
+        .add( DATA_VALUE, USER_AVATAR, ORG_UNIT ).build();
 
     FileResourceDomain( String containerName )
     {
