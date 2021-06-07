@@ -39,7 +39,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.text.StrSubstitutor;
-import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -56,6 +55,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author Luciano Fiandesio
@@ -315,7 +315,7 @@ public class AttributeOptionComboLoader
         categoryOptionCombo.setName( rs.getString( "name" ) );
 
         String cat_ids = rs.getString( "cat_ids" );
-        if ( Strings.isNotEmpty( cat_ids ) )
+        if ( !ObjectUtils.isEmpty( cat_ids ) )
         {
             categoryOptionCombo.setCategoryOptions( Arrays.stream( cat_ids.split( "," ) )
                 .map( coid -> getCategoryOption( IdScheme.ID, coid ) ).collect( Collectors.toSet() )

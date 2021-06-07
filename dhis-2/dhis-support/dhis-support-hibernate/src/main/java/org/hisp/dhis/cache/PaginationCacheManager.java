@@ -49,8 +49,12 @@ public class PaginationCacheManager
 
     public void evictCache( String key )
     {
-        Cache<String, Long> paginationCacheStrict = getPaginationCacheStrict( key );
-        paginationCacheStrict.clear();
+        Cache<String, Long> cache = getPaginationCacheStrict( key );
+
+        if ( cache != null )
+        {
+            cache.clear();
+        }
     }
 
     private <T extends IdentifiableObject> Cache<String, Long> getPaginationCacheStrict( String key )

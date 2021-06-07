@@ -29,12 +29,12 @@ package org.hisp.dhis.tracker.preprocess;
 
 import java.util.Objects;
 
-import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 /**
  * This preprocessor is responsible for setting the Program UID on an Event from
@@ -51,7 +51,7 @@ public class EventProgramPreProcessor
     {
         for ( Event event : bundle.getEvents() )
         {
-            if ( Strings.isEmpty( event.getProgram() ) && Strings.isNotEmpty( event.getProgramStage() ) )
+            if ( ObjectUtils.isEmpty( event.getProgram() ) && !ObjectUtils.isEmpty( event.getProgramStage() ) )
             {
                 ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
                 if ( Objects.nonNull( programStage ) )

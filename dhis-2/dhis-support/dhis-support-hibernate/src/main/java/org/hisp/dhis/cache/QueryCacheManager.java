@@ -27,19 +27,18 @@
  */
 package org.hisp.dhis.cache;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hibernate.Cache;
-import org.springframework.stereotype.Service;
-
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Cache;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -65,7 +64,7 @@ public class QueryCacheManager
 
     public void evictQueryCache( Cache cache, Class<?> klass )
     {
-        Set<String> hashes = regionNameMap.get( klass.getName() );
+        Set<String> hashes = regionNameMap.getOrDefault( klass.getName(), Collections.emptySet() );
 
         for ( String regionNameHash : hashes )
         {

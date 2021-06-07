@@ -18,7 +18,7 @@
     <module>dhis-web-dataentry</module>
     <module>dhis-web-approval</module>
     <module>dhis-web-portal</module>
-    <module>dhis-web-apps</module>
+<!--    <module>dhis-web-apps</module>-->
   </modules>
 
   <profiles>
@@ -87,10 +87,10 @@
                   <name>org.eclipse.jetty.util.log.IGNORED</name>
                   <value>true</value>
                 </property>
-                <property>
-                  <name>log4j.configurationFile</name>
-                  <value>${project.baseUri}/../dhis-web-commons/src/main/resources/log4j2-jetty.xml</value>
-                </property>
+<!--                <property>-->
+<!--                  <name>log4j.configurationFile</name>-->
+<!--                  <value>${project.baseUri}/../dhis-web-commons/src/main/resources/log4j2-jetty.xml</value>-->
+<!--                </property>-->
               </properties>
             </configuration>
           </execution>
