@@ -36,6 +36,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
+ * Container class for patch operations, allows to deserialize patches in the
+ * format '[{...}, {...}]' and follows RFC 6902.
+ *
+ * @see JsonPatchOperation
+ *
  * @author Morten Olav Hansen
  */
 @Getter

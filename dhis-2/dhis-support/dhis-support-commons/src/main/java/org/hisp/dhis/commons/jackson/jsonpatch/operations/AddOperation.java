@@ -38,6 +38,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
+ * Sets a new value, no existing value is required (think of it as a set
+ * operation).
+ *
  * @author Morten Olav Hansen
  */
 public class AddOperation extends JsonPatchValueOperation

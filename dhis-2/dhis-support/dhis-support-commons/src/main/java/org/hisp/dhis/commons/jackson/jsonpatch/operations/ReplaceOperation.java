@@ -36,6 +36,9 @@ import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
+ * Just a combination of the two other operators, first it removes the old value
+ * then sets a new one.
+ *
  * @author Morten Olav Hansen
  */
 public class ReplaceOperation extends JsonPatchValueOperation

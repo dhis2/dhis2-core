@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.commons.jackson.jsonpatch;
 
+import lombok.Getter;
+
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.RemoveOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.ReplaceOperation;
@@ -36,9 +38,16 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonPointer;
 
-import lombok.Getter;
-
 /**
+ * Encapsulates a JSON Patch Operation, 2 types of sub-classes exists, one which
+ * support an additional 'value' field, and one that does not.
+ *
+ * Follows RFC 6902, and we currently support 3 operators (add, remove, replace)
+ *
+ * @see AddOperation
+ * @see RemoveOperation
+ * @see ReplaceOperation
+ *
  * @author Morten Olav Hansen
  */
 @Getter

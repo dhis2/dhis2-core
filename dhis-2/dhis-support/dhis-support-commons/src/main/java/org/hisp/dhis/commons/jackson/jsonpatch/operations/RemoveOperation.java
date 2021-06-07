@@ -39,6 +39,8 @@ import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
+ * Removes a value (can be a item in a list, or just a plain property).
+ *
  * @author Morten Olav Hansen
  */
 public class RemoveOperation extends JsonPatchOperation
