@@ -47,6 +47,7 @@ import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.program.jdbc.JdbcOrgUnitAssociationStoreConfiguration;
 import org.hisp.dhis.scheduling.DefaultJobInstance;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
@@ -110,6 +111,7 @@ import com.google.common.collect.ImmutableMap;
     org.hisp.dhis.reporting.config.StoreConfig.class,
     org.hisp.dhis.analytics.config.ServiceConfig.class,
     JacksonObjectMapperConfig.class,
+    JdbcOrgUnitAssociationStoreConfiguration.class,
     StartupConfig.class
 } )
 @Transactional

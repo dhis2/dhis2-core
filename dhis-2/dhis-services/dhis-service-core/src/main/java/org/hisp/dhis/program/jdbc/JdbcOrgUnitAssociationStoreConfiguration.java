@@ -25,28 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.association;
+package org.hisp.dhis.program.jdbc;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-
+import org.hisp.dhis.association.CategoryOptionOrganisationUnitAssociationsQueryBuilder;
+import org.hisp.dhis.association.ProgramOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-@Service
-public class ProgramOrganisationUnitAssociationsQueryBuilder extends AbstractOrganisationUnitAssociationsQueryBuilder
+@Configuration
+public class JdbcOrgUnitAssociationStoreConfiguration
 {
-    @Getter( AccessLevel.PROTECTED )
-    private final String relationshipTableName = "program_organisationunits";
 
-    @Getter( AccessLevel.PROTECTED )
-    private final String joinColumnName = "programid";
-
-    @Getter( AccessLevel.PROTECTED )
-    private final String baseTableName = "program";
-
-    public ProgramOrganisationUnitAssociationsQueryBuilder( CurrentUserService currentUserService )
+    @Bean( "jdbcProgramOrgUnitAssociationsStore" )
+    JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationStore( CurrentUserService currentUserService,
+        JdbcTemplate jdbcTemplate )
     {
-        super( currentUserService );
+        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
+            new ProgramOrganisationUnitAssociationsQueryBuilder( currentUserService ) );
     }
+
+    @Bean( "jdbcCategoryOptionOrgUnitAssociationsStore" )
+    JdbcOrgUnitAssociationsStore jdbcCategoryOptionOrgUnitAssociationStore( CurrentUserService currentUserService,
+        JdbcTemplate jdbcTemplate )
+    {
+        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
+            new CategoryOptionOrganisationUnitAssociationsQueryBuilder( currentUserService ) );
+    }
+
 }

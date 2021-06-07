@@ -1,5 +1,3 @@
-package org.hisp.dhis.metadata.programs;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,58 +25,55 @@ package org.hisp.dhis.metadata.programs;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.metadata.programs;
 
-import com.google.gson.JsonObject;
+import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.ResponseValidationHelper;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.List;
+import java.util.function.Function;
+
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasKey;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class ProgramsTest
-    extends AbstractOrgUnitAssociationTestSupport
+class AbstractOrgUnitAssociationTestSupport extends ApiTest
 {
-    public static final String PROGRAM_UID = "Zd2rkv8FsWq";
 
-    private LoginActions loginActions;
+    private final LoginActions loginActions = new LoginActions();
 
-    private ProgramActions programActions;
-
-    @BeforeAll
-    public void beforeAll()
+    protected AbstractOrgUnitAssociationTestSupport()
     {
-        loginActions = new LoginActions();
-        programActions = new ProgramActions();
+    };
+
+    private ApiResponse validateResponseHasKey( Function<String, ApiResponse> apiResponseProvider, String key )
+    {
+        ApiResponse apiResponse = apiResponseProvider.apply( key );
+        apiResponse.validate()
+            .body( "$", hasKey( key ) );
+        return apiResponse;
     }
 
-    @BeforeEach
-    public void before()
+    public void testOrgUnitsConnections( Function<String, ApiResponse> apiResponseProvider, String uid )
     {
         loginActions.loginAsSuperUser();
+
+        ApiResponse associatedOrgUnitsAsSuperUserApiResponse = validateResponseHasKey( apiResponseProvider, uid );
+
+        loginActions.loginAsDefaultUser();
+
+        List<String> associatedOrgUnitsAsTrackerUids = validateResponseHasKey( apiResponseProvider, uid )
+            .extractList( uid );
+
+        associatedOrgUnitsAsSuperUserApiResponse.validate()
+            .assertThat()
+            .body( uid, hasItems( associatedOrgUnitsAsTrackerUids.toArray() ) )
+            .and()
+            .body( uid + ".size()", greaterThanOrEqualTo( associatedOrgUnitsAsTrackerUids.size() ) );
     }
 
-    @ParameterizedTest( name = "withType[{0}]" )
-    @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
-    public void shouldCreateProgram( String programType )
-    {
-        JsonObject object = programActions.getDummy();
-        object.addProperty( "programType", programType );
-
-        ApiResponse response = programActions.post( object );
-
-        ResponseValidationHelper.validateObjectCreation( response );
-    }
-
-    @Test
-    public void testProgramOrgUnitsConnections()
-    {
-        super.testOrgUnitsConnections( programActions::getOrgUnitsAssociations, PROGRAM_UID );
-    }
 }
