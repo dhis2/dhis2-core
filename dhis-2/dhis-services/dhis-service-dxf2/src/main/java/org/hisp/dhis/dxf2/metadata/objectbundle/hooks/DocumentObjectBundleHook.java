@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -60,14 +59,13 @@ public class DocumentObjectBundleHook extends AbstractObjectBundleHook
     private IdentifiableObjectManager idObjectManager;
 
     @Override
-    public List<ErrorReport> validate( IdentifiableObject object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
-        if ( !Document.class.isInstance( object ) )
+        if ( !(object instanceof Document) )
         {
-            return new ArrayList<>();
+            return;
         }
-
-        List<ErrorReport> errors = new ArrayList<>();
 
         Document document = (Document) object;
 
@@ -75,22 +73,20 @@ public class DocumentObjectBundleHook extends AbstractObjectBundleHook
 
         if ( document.getUrl() == null )
         {
-            errors.add( new ErrorReport( Document.class, ErrorCode.E4000, "url" ) );
+            addReports.accept( new ErrorReport( Document.class, ErrorCode.E4000, "url" ) );
         }
         else if ( document.isExternal() && !URL_PATTERN.matcher( document.getUrl() ).matches() )
         {
-            errors.add( new ErrorReport( Document.class, ErrorCode.E4004, "url", document.getUrl() ) );
+            addReports.accept( new ErrorReport( Document.class, ErrorCode.E4004, "url", document.getUrl() ) );
         }
         else if ( !document.isExternal() && fileResource == null )
         {
-            errors.add( new ErrorReport( Document.class, ErrorCode.E4015, "url", document.getUrl() ) );
+            addReports.accept( new ErrorReport( Document.class, ErrorCode.E4015, "url", document.getUrl() ) );
         }
         else if ( !document.isExternal() && fileResource.isAssigned() )
         {
-            errors.add( new ErrorReport( Document.class, ErrorCode.E4016, "url", document.getUrl() ) );
+            addReports.accept( new ErrorReport( Document.class, ErrorCode.E4016, "url", document.getUrl() ) );
         }
-
-        return errors;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2021 University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preprocess;
+package org.hisp.dhis.actions.metadata;
 
-import java.util.Objects;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
-import org.apache.logging.log4j.util.Strings;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
-import org.springframework.stereotype.Component;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
- * This preprocessor is responsible for setting the Program UID on an Event from
- * the ProgramStage if the Program is not present in the payload
- *
- * @author Enrico Colasante
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-@Component
-public class EventProgramPreProcessor
-    implements BundlePreProcessor
+public class CategoryOptionActions
+    extends RestApiActions
 {
-    @Override
-    public void process( TrackerBundle bundle )
+    public CategoryOptionActions()
     {
-        for ( Event event : bundle.getEvents() )
-        {
-            if ( Strings.isEmpty( event.getProgram() ) && Strings.isNotEmpty( event.getProgramStage() ) )
-            {
-                ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
-                if ( Objects.nonNull( programStage ) )
-                {
-                    event.setProgram( programStage.getProgram().getUid() );
-                    bundle.getPreheat().put( TrackerIdentifier.UID, programStage.getProgram() );
-                }
-            }
-        }
+        super( "/categoryOptions" );
     }
+
+    public ApiResponse getOrgUnitsAssociations( String... categoryOptionUids )
+    {
+        return get( "/orgUnits", new QueryParamsBuilder().add(
+            Arrays.stream( categoryOptionUids )
+                .collect( Collectors.joining( ",", "categoryOptions=", "" ) ) ) );
+    }
+
 }

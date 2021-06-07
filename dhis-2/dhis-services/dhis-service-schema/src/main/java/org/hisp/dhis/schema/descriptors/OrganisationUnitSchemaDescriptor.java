@@ -53,10 +53,8 @@ public class OrganisationUnitSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1100 );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_ORGANISATIONUNIT_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ORGANISATIONUNIT_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_ORGANISATIONUNIT_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ORGANISATIONUNIT_DELETE" ) ) );
 
         return schema;
     }

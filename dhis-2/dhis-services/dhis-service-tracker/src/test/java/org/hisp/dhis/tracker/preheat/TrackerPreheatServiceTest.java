@@ -40,7 +40,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -97,7 +96,6 @@ public class TrackerPreheatServiceTest
         Map<Class<?>, Set<String>> collectedMap = identifierCollector.collect( params, Maps.newHashMap() );
 
         assertTrue( collectedMap.containsKey( DataElement.class ) );
-        assertTrue( collectedMap.containsKey( Program.class ) );
         assertTrue( collectedMap.containsKey( ProgramStage.class ) );
         assertTrue( collectedMap.containsKey( OrganisationUnit.class ) );
         assertTrue( collectedMap.containsKey( CategoryOptionCombo.class ) );
@@ -194,7 +192,6 @@ public class TrackerPreheatServiceTest
         assertNotNull( preheat.getMap() );
         assertNotNull( preheat.getMap().get( DataElement.class ) );
         assertNotNull( preheat.getMap().get( OrganisationUnit.class ) );
-        assertNotNull( preheat.getMap().get( Program.class ) );
         assertNotNull( preheat.getMap().get( ProgramStage.class ) );
         assertNotNull( preheat.getMap().get( CategoryOptionCombo.class ) );
 
