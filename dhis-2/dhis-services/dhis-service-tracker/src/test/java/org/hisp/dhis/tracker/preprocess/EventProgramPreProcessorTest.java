@@ -30,8 +30,7 @@ package org.hisp.dhis.tracker.preprocess;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 
@@ -99,7 +98,7 @@ public class EventProgramPreProcessorTest
     }
 
     @Test
-    public void testTrackerEventWithWrongProgramIsEnhancedWithCorrectProgram()
+    public void testTrackerEventWithProgramAndProgramStageIsNotProcessed()
     {
         // Given
         Event event = trackerEventWithProgram();
@@ -112,8 +111,10 @@ public class EventProgramPreProcessorTest
         preProcessorToTest.process( bundle );
 
         // Then
-        verify( preheat ).put( TrackerIdentifier.UID, programWithRegistration() );
+        verify( preheat, never() ).get( Program.class, PROGRAM_WITH_REGISTRATION );
+        verify( preheat, never() ).get( ProgramStage.class, PROGRAM_STAGE_WITH_REGISTRATION );
         assertEquals( PROGRAM_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
+        assertEquals( PROGRAM_STAGE_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgramStage() );
     }
 
     @Test
@@ -135,7 +136,7 @@ public class EventProgramPreProcessorTest
     }
 
     @Test
-    public void testProgramEventWithWrongProgramStageIsEnhancedWithCorrectProgramStage()
+    public void testProgramEventWithProgramAndProgramStageIsNotProcessed()
     {
         // Given
         Event event = programEventWithProgramStage();
@@ -148,7 +149,10 @@ public class EventProgramPreProcessorTest
         preProcessorToTest.process( bundle );
 
         // Then
-        verify( preheat ).put( TrackerIdentifier.UID, programStageWithoutRegistration() );
+        // Then
+        verify( preheat, never() ).get( Program.class, PROGRAM_WITHOUT_REGISTRATION );
+        verify( preheat, never() ).get( ProgramStage.class, PROGRAM_STAGE_WITHOUT_REGISTRATION );
+        assertEquals( PROGRAM_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
         assertEquals( PROGRAM_STAGE_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgramStage() );
     }
 
@@ -212,7 +216,7 @@ public class EventProgramPreProcessorTest
     private Event programEventWithProgramStage()
     {
         Event event = new Event();
-        event.setProgramStage( "wrongProgramStage" );
+        event.setProgramStage( PROGRAM_STAGE_WITHOUT_REGISTRATION );
         event.setProgram( PROGRAM_WITHOUT_REGISTRATION );
         return event;
     }
@@ -228,7 +232,7 @@ public class EventProgramPreProcessorTest
     {
         Event event = new Event();
         event.setProgramStage( PROGRAM_STAGE_WITH_REGISTRATION );
-        event.setProgram( "wrongProgram" );
+        event.setProgram( PROGRAM_WITH_REGISTRATION );
         return event;
     }
 }

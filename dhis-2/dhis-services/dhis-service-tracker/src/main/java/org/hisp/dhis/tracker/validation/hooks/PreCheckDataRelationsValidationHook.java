@@ -109,6 +109,11 @@ public class PreCheckDataRelationsValidationHook
         Program program = programStage.getProgram();
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
 
+        if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
+        {
+            addError( reporter, E1089, event, programStage, program );
+        }
+
         if ( program.isRegistration() )
         {
             if ( StringUtils.isEmpty( event.getEnrollment() ) )

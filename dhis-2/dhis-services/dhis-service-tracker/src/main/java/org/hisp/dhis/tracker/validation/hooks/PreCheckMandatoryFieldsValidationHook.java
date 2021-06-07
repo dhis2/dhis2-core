@@ -66,8 +66,8 @@ public class PreCheckMandatoryFieldsValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         addErrorIf( () -> StringUtils.isEmpty( event.getOrgUnit() ), reporter, E1123, ORG_UNIT );
-        addErrorIf( () -> StringUtils.isEmpty( event.getProgram() ) && StringUtils.isEmpty( event.getProgramStage() ),
-            reporter, E1129 );
+        addErrorIf( () -> StringUtils.isEmpty( event.getProgramStage() ), reporter, E1123, "programStage" );
+        addErrorIf( () -> StringUtils.isEmpty( event.getProgram() ), reporter, E1123, "program" );
     }
 
     @Override

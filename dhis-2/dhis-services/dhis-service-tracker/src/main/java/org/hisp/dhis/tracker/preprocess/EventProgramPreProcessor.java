@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.preprocess;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.program.Program;
@@ -51,10 +53,14 @@ public class EventProgramPreProcessor
     @Override
     public void process( TrackerBundle bundle )
     {
-        for ( Event event : bundle.getEvents() )
+        List<Event> eventsToPreprocess = bundle.getEvents()
+            .stream()
+            .filter( e -> Strings.isEmpty( e.getProgram() ) || Strings.isEmpty( e.getProgramStage() ) )
+            .collect( Collectors.toList() );
+
+        for ( Event event : eventsToPreprocess )
         {
-            // If it is a tracker event, ignore program and extract it from
-            // program stage
+            // If it is a tracker event, extract program from program stage
             if ( Strings.isNotEmpty( event.getProgramStage() ) )
             {
                 ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
@@ -64,9 +70,8 @@ public class EventProgramPreProcessor
                     bundle.getPreheat().put( TrackerIdentifier.UID, programStage.getProgram() );
                 }
             }
-            // If it is a program event, ignore program stage and extract it
-            // from program
-            if ( Strings.isNotEmpty( event.getProgram() ) )
+            // If it is a program event, extract program stage from program
+            else if ( Strings.isNotEmpty( event.getProgram() ) )
             {
                 Program program = bundle.getPreheat().get( Program.class, event.getProgram() );
                 if ( Objects.nonNull( program ) && program.isWithoutRegistration() )

@@ -198,7 +198,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccessWhenProgramIsMissing()
+    public void verifyEventValidationFailsOnMissingProgram()
     {
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -209,11 +209,11 @@ public class PreCheckMandatoryFieldsValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
         validationHook.validateEvent( reporter, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertMissingPropertyForEvent( reporter, "program" );
     }
 
     @Test
-    public void verifyEventValidationSuccessWhenProgramStageIsMissing()
+    public void verifyEventValidationFailsOnMissingProgramStage()
     {
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -224,7 +224,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
         validationHook.validateEvent( reporter, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertMissingPropertyForEvent( reporter, "programStage" );
     }
 
     @Test
@@ -233,29 +233,13 @@ public class PreCheckMandatoryFieldsValidationHookTest
         Event event = Event.builder()
             .orgUnit( null )
             .programStage( CodeGenerator.generateUid() )
+            .program( CodeGenerator.generateUid() )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
         validationHook.validateEvent( reporter, event );
 
         assertMissingPropertyForEvent( reporter, "orgUnit" );
-    }
-
-    @Test
-    public void verifyEventValidationFailsOnMissingProgramAndProgramStage()
-    {
-        Event event = Event.builder()
-            .orgUnit( CodeGenerator.generateUid() )
-            .programStage( null )
-            .program( null )
-            .build();
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
-        validationHook.validateEvent( reporter, event );
-
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1129 ) );
     }
 
     @Test
