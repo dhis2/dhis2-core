@@ -107,14 +107,13 @@ public class PreCheckDataRelationsValidationHook
 
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
+        Program program = context.getProgram( event.getProgram() );
 
-        if ( !event.getProgram().equals( programStage.getProgram().getUid() ) )
+        if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
         {
 
-            addError( reporter, E1089, event, programStage, event.getProgram() );
+            addError( reporter, E1089, event, programStage, program );
         }
-
-        Program program = programStage.getProgram();
 
         if ( program.isRegistration() )
         {
