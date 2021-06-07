@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -48,7 +49,6 @@ import org.springframework.http.HttpStatus;
  */
 public class GistFieldsControllerTest extends AbstractGistControllerTest
 {
-
     @Test
     public void testField_Sharing_EmbedsObject()
     {
@@ -97,6 +97,20 @@ public class GistFieldsControllerTest extends AbstractGistControllerTest
 
         assertEquals( 2, user.size() );
         assertEquals( asList( "id", "username" ), user.getObject( "userCredentials" ).names() );
+    }
+
+    @Test
+    public void testField_PresetExpandsToReadableFields()
+    {
+        switchToGuestUser();
+        JsonArray users = GET( "/users/gist?headless=true" ).content();
+        JsonObject user0 = users.getObject( 0 );
+        assertContainsOnly( user0.node().members().keySet(), "id", "code", "surname", "firstName" );
+
+        switchToSuperuser();
+        users = GET( "/users/gist?headless=true" ).content();
+        user0 = users.getObject( 0 );
+        assertTrue( user0.node().members().keySet().size() > 4 );
     }
 
     /*
