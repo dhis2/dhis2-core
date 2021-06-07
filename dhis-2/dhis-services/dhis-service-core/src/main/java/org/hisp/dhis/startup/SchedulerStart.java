@@ -219,12 +219,13 @@ public class SchedulerStart extends AbstractStartupRoutine
             addAndScheduleJob( dataSetNotification );
         }
 
-        if ( verifyNoJobExist(DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES, jobConfigurations ) )
+        if ( verifyNoJobExist( DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES, jobConfigurations ) )
         {
-            JobConfiguration removeExpiredReservedValues = new JobConfiguration(DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES,
+            JobConfiguration removeExpiredReservedValues = new JobConfiguration(
+                DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES,
                 REMOVE_USED_OR_EXPIRED_RESERVED_VALUES, CRON_DAILY_2AM, null );
             removeExpiredReservedValues.setLeaderOnlyJob( true );
-            removeExpiredReservedValues.setUid(DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES_UID);
+            removeExpiredReservedValues.setUid( DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES_UID );
             addAndScheduleJob( removeExpiredReservedValues );
         }
 
