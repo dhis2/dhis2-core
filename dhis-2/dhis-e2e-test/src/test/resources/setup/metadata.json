@@ -314,48 +314,6 @@
       "attributeValues": [],
       "userAccesses": [],
       "programStageSections": []
-    },
-    {
-      "id": "PaOOjwLVW2X",
-      "name": "Program Stage - Another Program",
-      "code": "TA_ANOTHER_TRACKER_PROGRAM_STAGE",
-      "allowGenerateNextVisit": false,
-      "publicAccess": "rwrw----",
-      "formType": "DEFAULT",
-      "generatedByEnrollmentDate": false,
-      "displayFormName": "Program Stage - Another Program",
-      "sortOrder": 2,
-      "hideDueDate": false,
-      "enableUserAssignment": false,
-      "minDaysFromStart": 3,
-      "favorite": false,
-      "preGenerateUID": false,
-      "displayName": "Program Stage - Another Program",
-      "externalAccess": false,
-      "openAfterEnrollment": false,
-      "repeatable": true,
-      "remindCompleted": false,
-      "displayGenerateEventBox": true,
-      "validationStrategy": "ON_COMPLETE",
-      "autoGenerateEvent": false,
-      "blockEntryForm": false,
-      "program": {
-        "id": "f1AyMswryyX",
-        "code": "TA TRACKER_PROGRAM"
-      },
-      "programStageDataElements": [],
-      "translations": [],
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "displayName": "TA user group",
-          "id": "OPVIvvXzNTw"
-        }
-      ],
-      "attributeValues": [],
-      "userAccesses": [],
-      "programStageSections": []
     }
   ],
   "programs": [

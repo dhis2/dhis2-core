@@ -111,7 +111,6 @@ public class PreCheckDataRelationsValidationHook
 
         if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
         {
-
             addError( reporter, E1089, event, programStage, program );
         }
 
