@@ -86,7 +86,8 @@ public class EventValidationTests
             Arguments.of( OU_ID, trackerProgramId, trackerProgramStageId, "E1033" ),
             Arguments.arguments( null, eventProgramId, eventProgramStageId, "E1123" ),
             Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId, "E1029" ),
-            Arguments.arguments( OU_ID, trackerProgramId, null, "E1123" ) );
+            Arguments.arguments( OU_ID, trackerProgramId, null, "E1123" ),
+            Arguments.arguments( OU_ID, trackerProgramId, eventProgramStageId, "E1089" ) );
     }
 
     @BeforeAll
