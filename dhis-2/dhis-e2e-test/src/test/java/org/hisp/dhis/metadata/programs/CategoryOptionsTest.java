@@ -1,5 +1,3 @@
-package org.hisp.dhis.metadata.programs;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,35 +25,34 @@ package org.hisp.dhis.metadata.programs;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.metadata.programs;
 
-import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.hisp.dhis.actions.metadata.CategoryOptionActions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasKey;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class ProgramsTest
+public class CategoryOptionsTest
     extends AbstractOrgUnitAssociationTestSupport
 {
-    public static final String PROGRAM_UID = "Zd2rkv8FsWq";
+    private static final String CATEGORY_OPTION_UID = "fjvZIRlTBrp";
 
     private LoginActions loginActions;
 
-    private ProgramActions programActions;
+    private CategoryOptionActions categoryOptionActions;
 
     @BeforeAll
     public void beforeAll()
     {
         loginActions = new LoginActions();
-        programActions = new ProgramActions();
+        categoryOptionActions = new CategoryOptionActions();
     }
 
     @BeforeEach
@@ -64,21 +61,10 @@ public class ProgramsTest
         loginActions.loginAsSuperUser();
     }
 
-    @ParameterizedTest( name = "withType[{0}]" )
-    @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
-    public void shouldCreateProgram( String programType )
-    {
-        JsonObject object = programActions.getDummy();
-        object.addProperty( "programType", programType );
-
-        ApiResponse response = programActions.post( object );
-
-        ResponseValidationHelper.validateObjectCreation( response );
-    }
-
     @Test
-    public void testProgramOrgUnitsConnections()
+    public void testCategoryOptionOrgUnitsConnections()
     {
-        super.testOrgUnitsConnections( programActions::getOrgUnitsAssociations, PROGRAM_UID );
+        super.testOrgUnitsConnections( categoryOptionActions::getOrgUnitsAssociations, CATEGORY_OPTION_UID );
     }
+
 }

@@ -33,31 +33,29 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.association.AbstractOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.association.IdentifiableObjectAssociations;
-import org.hisp.dhis.association.ProgramOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
 
-@Service
 @RequiredArgsConstructor
-public class JdbcProgramOrgUnitAssociationsStore
+public class JdbcOrgUnitAssociationsStore
 {
 
     private final CurrentUserService currentUserService;
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final ProgramOrganisationUnitAssociationsQueryBuilder queryBuilder;
+    private final AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
 
-    public IdentifiableObjectAssociations getProgramOrganisationUnitsAssociations( Set<String> programUids )
+    public IdentifiableObjectAssociations getOrganisationUnitsAssociations( Set<String> uids )
     {
 
         Set<String> userOrgUnitPaths = getUserOrgUnitPaths();
 
         return jdbcTemplate.query(
-            queryBuilder.buildSqlQuery( programUids, userOrgUnitPaths, currentUserService.getCurrentUser() ),
+            queryBuilder.buildSqlQuery( uids, userOrgUnitPaths, currentUserService.getCurrentUser() ),
             resultSet -> {
                 IdentifiableObjectAssociations identifiableObjectAssociations = new IdentifiableObjectAssociations();
                 while ( resultSet.next() )

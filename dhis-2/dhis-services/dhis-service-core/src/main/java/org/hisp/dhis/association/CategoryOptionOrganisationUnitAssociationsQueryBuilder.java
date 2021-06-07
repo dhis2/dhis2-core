@@ -34,18 +34,19 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProgramOrganisationUnitAssociationsQueryBuilder extends AbstractOrganisationUnitAssociationsQueryBuilder
+public class CategoryOptionOrganisationUnitAssociationsQueryBuilder
+    extends AbstractOrganisationUnitAssociationsQueryBuilder
 {
     @Getter( AccessLevel.PROTECTED )
-    private final String relationshipTableName = "program_organisationunits";
+    private final String relationshipTableName = "categoryoption_organisationunits";
 
     @Getter( AccessLevel.PROTECTED )
-    private final String joinColumnName = "programid";
+    private final String joinColumnName = "categoryoptionid";
 
     @Getter( AccessLevel.PROTECTED )
-    private final String baseTableName = "program";
+    private final String baseTableName = "dataelementcategoryoption";
 
-    public ProgramOrganisationUnitAssociationsQueryBuilder( CurrentUserService currentUserService )
+    public CategoryOptionOrganisationUnitAssociationsQueryBuilder( CurrentUserService currentUserService )
     {
         super( currentUserService );
     }
