@@ -106,7 +106,10 @@ public class GistFieldsControllerTest extends AbstractGistControllerTest
     @Test
     public void testField_Href()
     {
-        // TODO
+        JsonArray users = GET( "/users/gist?fields=id,href&headless=true", getSuperuserUid() ).content();
+        JsonObject user0 = users.getObject( 0 );
+        assertTrue( user0.has( "id", "href" ) );
+        assertEquals( "/users/" + user0.getString( "id" ).string() + "/gist", user0.getString( "href" ).string() );
     }
 
     @Test
@@ -117,6 +120,25 @@ public class GistFieldsControllerTest extends AbstractGistControllerTest
 
         assertTrue( groups.getArray( "userGroups" ).getObject( 0 ).getObject( "apiEndpoints" ).getString( "users" )
             .string().startsWith( "http://" ) );
+    }
+
+    @Test
+    public void testField_ApiEndpoints_ContainsOnlyNonEmpty()
+    {
+        String noUsersGroupId = assertStatus( HttpStatus.CREATED,
+            POST( "/userGroups/", "{'name':'groupX', 'users':[]}" ) );
+
+        JsonObject group = GET( "/userGroups/{uid}/gist?fields=name,users", noUsersGroupId ).content();
+        assertFalse( group.getObject( "apiEndpoints" ).getString( "users" ).exists() );
+
+        group = GET( "/userGroups/{uid}/gist?fields=name,users::size", noUsersGroupId ).content();
+        assertFalse( group.getObject( "apiEndpoints" ).getString( "users" ).exists() );
+
+        group = GET( "/userGroups/{uid}/gist?fields=name,users", userGroupId ).content();
+        assertTrue( group.getObject( "apiEndpoints" ).getString( "users" ).exists() );
+
+        group = GET( "/userGroups/{uid}/gist?fields=name,users::size", userGroupId ).content();
+        assertTrue( group.getObject( "apiEndpoints" ).getString( "users" ).exists() );
     }
 
     @Test

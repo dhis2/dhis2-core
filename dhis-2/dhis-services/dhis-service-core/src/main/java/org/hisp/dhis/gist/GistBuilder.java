@@ -397,7 +397,9 @@ final class GistBuilder
             {
                 int refIndex = fieldIndexByPath.get( Field.REFS_PATH );
                 addTransformer(
-                    row -> addEndpointURL( row, refIndex, field, toEndpointURL( endpointRoot, row[index] ) ) );
+                    row -> addEndpointURL( row, refIndex, field, isNullOrEmpty( row[index] )
+                        ? null
+                        : toEndpointURL( endpointRoot, row[index] ) ) );
             }
         }
 
@@ -422,8 +424,9 @@ final class GistBuilder
         {
             int idFieldIndex = getSameParentFieldIndex( path, ID_PROPERTY );
             int refIndex = fieldIndexByPath.get( Field.REFS_PATH );
-            addTransformer( row -> addEndpointURL( row, refIndex, field,
-                toEndpointURL( endpointRoot, row[idFieldIndex], property ) ) );
+            addTransformer( row -> addEndpointURL( row, refIndex, field, isNullOrEmpty( row[index] )
+                ? null
+                : toEndpointURL( endpointRoot, row[idFieldIndex], property ) ) );
         }
 
         Transform transform = field.getTransformation();
@@ -583,9 +586,16 @@ final class GistBuilder
 
     private static Object[] toIdObjects( Object ids )
     {
-        return ids == null || ((Object[]) ids).length == 0
+        return isNullOrEmpty( ids )
             ? null
             : Arrays.stream( ((String[]) ids) ).map( IdObject::new ).toArray();
+    }
+
+    private static boolean isNullOrEmpty( Object obj )
+    {
+        return obj == null
+            || obj instanceof Object[] && ((Object[]) obj).length == 0
+            || obj instanceof Number && ((Number) obj).intValue() == 0;
     }
 
     private Integer getSameParentFieldIndex( String path, String translations )
@@ -703,9 +713,8 @@ final class GistBuilder
 
     private String createAccessFilterHQL( Filter filter, String tableName )
     {
-        String access = getAccessPattern( filter );
         String userId = filter.getValue()[0];
-        return JpaQueryUtils.generateHqlQueryForSharingCheck( tableName, access, userId,
+        return JpaQueryUtils.generateHqlQueryForSharingCheck( tableName, getAccessPattern( filter ), userId,
             userGroupsByUserId.apply( userId ) );
     }
 
