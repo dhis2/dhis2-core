@@ -25,52 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config.jackson;
+package org.hisp.dhis.commons.jackson.config.geometry;
 
-import java.io.IOException;
-import java.time.Instant;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.util.DateUtils;
+import com.bedatadriven.jackson.datatype.jts.serialization.GeometryDeserializer;
+import com.bedatadriven.jackson.datatype.jts.serialization.GeometrySerializer;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-
-public class ParseInstantStdDeserializer extends StdDeserializer<Instant>
+/**
+ * @author Enrico Colasante
+ */
+public class JtsXmlModule
+    extends SimpleModule
 {
-    public ParseInstantStdDeserializer()
+    public JtsXmlModule()
     {
-        super( Instant.class );
+        this( new GeometryFactory() );
+    }
+
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    public JtsXmlModule( GeometryFactory geometryFactory )
+    {
+        super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
+        this.addSerializer( Geometry.class, new GeometrySerializer() );
+        XmlGenericGeometryParser genericGeometryParser = new XmlGenericGeometryParser( geometryFactory );
+        this.addDeserializer( Geometry.class, new GeometryDeserializer( genericGeometryParser ) );
     }
 
     @Override
-    public Instant deserialize( JsonParser parser, DeserializationContext context )
-        throws IOException
+    public void setupModule( SetupContext context )
     {
-        String valueAsString = parser.getText();
-
-        if ( StringUtils.isNotBlank( valueAsString ) )
-        {
-            try
-            {
-                return DateUtils.instantFromDateAsString( valueAsString );
-            }
-            catch ( Exception e )
-            {
-                if ( StringUtils.isNumeric( valueAsString ) )
-                {
-                    return DateUtils.instantFromEpoch( Long.valueOf( valueAsString ) );
-                }
-                throw new JsonParseException( parser,
-                    String.format(
-                        "Invalid date format '%s', only '" + DateUtils.ISO8601_NO_TZ_PATTERN
-                            + "' format end epoch milliseconds are supported.",
-                        valueAsString ) );
-            }
-        }
-        return null;
+        super.setupModule( context );
     }
-
 }

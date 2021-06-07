@@ -298,6 +298,28 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
+    public void testValidProgramRuleAction()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_program_and_program_rules_with_valid_ruleActions.json" )
+                .getInputStream(),
+            RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+
+        validate.getErrorReports().forEach( System.out::println );
+
+        assertTrue( validate.getErrorReports().isEmpty() );
+    }
+
+    @Test
     public void testCreateSimpleProgramRegNextScheduleDate()
         throws IOException
     {
