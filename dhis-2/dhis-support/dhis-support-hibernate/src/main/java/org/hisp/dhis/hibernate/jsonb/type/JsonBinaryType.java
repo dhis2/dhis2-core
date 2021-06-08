@@ -42,9 +42,9 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import org.hisp.dhis.commons.jackson.config.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.commons.jackson.config.ParseDateStdDeserializer;
+import org.hisp.dhis.commons.jackson.config.WriteDateStdSerializer;
 import org.postgresql.util.PGobject;
 
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
