@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -59,6 +60,8 @@ public class Event
     private EventStatus status = EventStatus.ACTIVE;
 
     private String program;
+
+    private ProgramType programType;
 
     private String programStage;
 
@@ -187,6 +190,18 @@ public class Event
     public void setProgram( String program )
     {
         this.program = program;
+    }
+
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( isAttribute = true )
+    public ProgramType getProgramType()
+    {
+        return programType;
+    }
+
+    public void setProgramType( ProgramType programType )
+    {
+        this.programType = programType;
     }
 
     @JsonProperty( required = true )
