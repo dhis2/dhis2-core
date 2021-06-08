@@ -94,7 +94,7 @@ public interface TrackerOwnershipManager
      * @param user the {@User}.
      * @param program the {@link Program}.
      *
-     * @return true if ownership check can be skipped
+     * @return true if ownership check can be skipped.
      */
     boolean canSkipOwnershipCheck( User user, Program program );
 
@@ -105,7 +105,7 @@ public interface TrackerOwnershipManager
      * @param user the {@User}.
      * @param programType the {@link ProgramType}.
      *
-     * @return true if ownership check can be skipped
+     * @return true if ownership check can be skipped.
      */
     boolean canSkipOwnershipCheck( User user, ProgramType programType );
 }
