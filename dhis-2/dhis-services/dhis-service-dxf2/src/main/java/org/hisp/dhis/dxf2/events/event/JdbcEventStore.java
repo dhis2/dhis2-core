@@ -608,12 +608,11 @@ public class JdbcEventStore implements EventStore
                 eventRow.setTrackedEntityInstanceInactive( rowSet.getBoolean( "tei_inactive" ) );
                 eventRow.setDeleted( rowSet.getBoolean( "psi_deleted" ) );
 
-                ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
-
                 eventRow.setProgram( rowSet.getString( "p_identifier" ) );
-                eventRow.setProgramType( programType );
                 eventRow.setProgramStage( rowSet.getString( "ps_identifier" ) );
                 eventRow.setOrgUnit( rowSet.getString( "ou_identifier" ) );
+
+                ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
 
                 if ( programType == ProgramType.WITHOUT_REGISTRATION )
                 {
