@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Sorting parameters
@@ -55,10 +56,12 @@ public interface SortingCriteria
 
     /**
      * By default it does not translate any field
+     *
+     * @return
      */
-    default String translateField( String dtoFieldName, boolean isLegacy )
+    default Optional<String> translateField( String dtoFieldName, boolean isLegacy )
     {
-        return dtoFieldName;
+        return Optional.ofNullable( dtoFieldName );
     }
 
 }
