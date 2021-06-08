@@ -345,7 +345,11 @@ public class MaintenanceServiceTest
 
         assertNull( programStageInstanceService.getProgramStageInstance( idA ) );
 
-        assertNull( relationshipService.getRelationship( r.getId() ) );
+        Relationship relationship = relationshipService.getRelationship( r.getId() );
+
+        assertNotNull( relationship );
+        assertNull( relationship.getFrom() );
+        assertNull( relationship.getTo() );
 
         assertTrue(
             programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstanceA.getUid() ) );
@@ -390,7 +394,11 @@ public class MaintenanceServiceTest
 
         assertNull( programInstanceService.getProgramInstance( programInstance.getId() ) );
 
-        assertNull( relationshipService.getRelationship( r.getId() ) );
+        Relationship relationship = relationshipService.getRelationship( r.getId() );
+
+        assertNotNull( relationship );
+        assertNull( relationship.getFrom() );
+        assertNull( relationship.getTo() );
 
         assertTrue( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
 
