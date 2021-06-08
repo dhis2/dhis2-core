@@ -29,17 +29,15 @@
 package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -58,7 +56,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventValidationTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
     private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
 
@@ -68,13 +66,15 @@ public class EventValidationTests
 
     private static String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
+    private static String anotherTrackerProgramId = Constants.ANOTHER_TRACKER_PROGRAM_ID;
+
     private static String trackerProgramStageId;
+
+    private static String anotherTrackerProgramStageId;
 
     private static String ouIdWithoutAccess;
 
     private ProgramActions programActions;
-
-    private TrackerActions trackerActions;
 
     private EventActions eventActions;
 
@@ -88,18 +88,16 @@ public class EventValidationTests
                 "E1123" ),
             Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId,
                 "E1029" ),
-            Arguments.arguments( OU_ID, trackerProgramId, null, "E1123" ),
-            Arguments.arguments( OU_ID, trackerProgramId, eventProgramStageId, "E1089" ) );
+            Arguments.arguments( OU_ID, trackerProgramId, null, "E1123" ) );
     }
 
     @BeforeAll
     public void beforeAll()
     {
         programActions = new ProgramActions();
-        trackerActions = new TrackerActions();
         eventActions = new EventActions();
 
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
         setupData();
     }
 
@@ -164,6 +162,18 @@ public class EventValidationTests
             .body( "errorCode", hasItem( equalTo( errorCode ) ) );
     }
 
+    @Test
+    public void eventImportShouldValidateProgramFromProgramStage()
+    {
+        JsonObject jsonObject = trackerActions.buildEvent( OU_ID, trackerProgramId, anotherTrackerProgramStageId );
+        jsonObject.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "enrollment", enrollment );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
+
+        response.validateErrorReport()
+                .body( "errorCode", hasItem( equalTo( "E1079" ) ) );
+    }
+
     private void setupData()
     {
         eventProgramStageId = programActions.programStageActions.get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
@@ -177,11 +187,15 @@ public class EventValidationTests
                 trackerProgramId, "filter=repeatable:eq:true" ) )
             .extractString( "programStages.id[0]" );
 
+        anotherTrackerProgramStageId = programActions.programStageActions
+                .get( "", new QueryParamsBuilder().addAll( "filter=program.id:eq:" +
+                        anotherTrackerProgramId, "filter=repeatable:eq:true" ) )
+                .extractString( "programStages.id[0]" );
+
         ouIdWithoutAccess = new OrgUnitActions().createOrgUnit();
         new UserActions().grantCurrentUserAccessToOrgUnit( ouIdWithoutAccess );
 
         enrollment = trackerActions.postAndGetJobReport( trackerActions.buildTeiAndEnrollment( OU_ID, trackerProgramId ) )
             .validateSuccessfulImport().extractImportedEnrollments().get( 0 );
-
     }
 }

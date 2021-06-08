@@ -331,6 +331,23 @@ public class EventQueryValidatorTest
     }
 
     @Test
+    public void validateErrorFallbackCoordinateField()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withCoordinateOuFallback( true )
+            .withFallbackCoordinateField( "ougeometryx" )
+            .build();
+
+        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+
+        assertEquals( ErrorCode.E7228, error.getErrorCode() );
+    }
+
+    @Test
     public void validateErrorClusterSize()
     {
         EventQueryParams params = new EventQueryParams.Builder()

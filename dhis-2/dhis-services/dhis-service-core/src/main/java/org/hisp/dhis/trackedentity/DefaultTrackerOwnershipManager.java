@@ -329,37 +329,15 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         }
     }
 
+    @Override
+    public boolean canSkipOwnershipCheck( User user, Program program )
+    {
+        return user == null || user.isSuper() || program == null || program.isWithoutRegistration();
+    }
+
     // -------------------------------------------------------------------------
     // Private Helper Methods
     // -------------------------------------------------------------------------
-
-    /**
-     * Get the current owner of this tei-program combination. Fallbacks to the
-     * registered OU if no owner explicitly exists for the program
-     *
-     * @param entityInstance The tei
-     * @param program The program
-     * @return The owning Organisation unit.
-     */
-    private OrganisationUnit getOwner( TrackedEntityInstance entityInstance, Program program )
-    {
-        return ownerCache.get( getOwnershipCacheKey( entityInstance::getId, program ), s -> {
-            OrganisationUnit ou;
-            TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService
-                .getTrackedEntityProgramOwner(
-                    entityInstance.getId(), program.getId() );
-
-            if ( trackedEntityProgramOwner == null )
-            {
-                ou = entityInstance.getOrganisationUnit();
-            }
-            else
-            {
-                ou = trackedEntityProgramOwner.getOrganisationUnit();
-            }
-            return ou;
-        } ).get();
-    }
 
     private OrganisationUnit getOwnerExpanded( String entityInstance, OrganisationUnit organisationUnit,
         Program program )
@@ -467,17 +445,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             .get(
                 getTempOwnershipCacheKey( trackedEntityOuInfo.getTrackedEntityUid(), program.getUid(), user.getUid() ) )
             .orElse( false );
-    }
-
-    /**
-     * Ownership check can be skipped if the user is super user or if the
-     * program is without registration.
-     *
-     * @return true if ownership check can be skipped
-     */
-    private boolean canSkipOwnershipCheck( User user, Program program )
-    {
-        return user == null || user.isSuper() || program == null || program.isWithoutRegistration();
     }
 
     /**

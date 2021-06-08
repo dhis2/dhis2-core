@@ -163,6 +163,16 @@ public class Schema implements Ordered, Klass
     private boolean dataShareable;
 
     /**
+     * Is data write sharing support for instances of this class.
+     */
+    private Boolean dataWriteShareable;
+
+    /**
+     * Is data read sharing support for instances of this class.
+     */
+    private Boolean dataReadShareable;
+
+    /**
      * Points to relative Web-API endpoint (if exposed).
      */
     private String relativeApiEndpoint;
@@ -195,6 +205,11 @@ public class Schema implements Ordered, Klass
      * instances of this type.
      */
     private boolean implicitPrivateAuthority;
+
+    /**
+     * Database table name of this class
+     */
+    private String tableName;
 
     /**
      * List of authorities required for doing operations on this class.
@@ -245,7 +260,7 @@ public class Schema implements Ordered, Klass
      * Map containing cached authorities by their type.
      */
     @JsonIgnore
-    private ConcurrentMap<AuthorityType, List<String>> cachedAuthoritiesByType;
+    private final ConcurrentMap<AuthorityType, List<String>> cachedAuthoritiesByType = new ConcurrentHashMap<>();
 
     /**
      * Used for sorting of schema list when doing metadata import/export.
@@ -411,6 +426,30 @@ public class Schema implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDataWriteShareable()
+    {
+        return dataWriteShareable != null ? dataWriteShareable : isDataShareable();
+    }
+
+    public void setDataWriteShareable( boolean dataWriteShareable )
+    {
+        this.dataWriteShareable = dataWriteShareable;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDataReadShareable()
+    {
+        return dataReadShareable != null ? dataReadShareable : isDataShareable();
+    }
+
+    public void setDataReadShareable( boolean dataReadShareable )
+    {
+        this.dataReadShareable = dataReadShareable;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getRelativeApiEndpoint()
     {
         return relativeApiEndpoint;
@@ -507,18 +546,29 @@ public class Schema implements Ordered, Klass
         this.implicitPrivateAuthority = implicitPrivateAuthority;
     }
 
+    @JsonIgnore
+    public String getTableName()
+    {
+        return tableName;
+    }
+
+    public void setTableName( String tableName )
+    {
+        this.tableName = tableName;
+    }
+
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "authorities", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "authority", namespace = DxfNamespaces.DXF_2_0 )
     public List<Authority> getAuthorities()
     {
-        return authorities;
+        return unmodifiableList( authorities );
     }
 
-    public synchronized void setAuthorities( List<Authority> authorities )
+    public void add( Authority authority )
     {
-        this.authorities = authorities;
-        this.cachedAuthoritiesByType = null;
+        cachedAuthoritiesByType.remove( authority.getType() );
+        this.authorities.add( authority );
     }
 
     @JsonProperty
@@ -691,16 +741,7 @@ public class Schema implements Ordered, Klass
 
     public List<String> getAuthorityByType( AuthorityType type )
     {
-        if ( cachedAuthoritiesByType == null )
-        {
-            cachedAuthoritiesByType = initAuthoritiesByTypeMap();
-        }
         return cachedAuthoritiesByType.computeIfAbsent( type, this::computeAuthoritiesForType );
-    }
-
-    private synchronized ConcurrentMap<AuthorityType, List<String>> initAuthoritiesByTypeMap()
-    {
-        return cachedAuthoritiesByType != null ? cachedAuthoritiesByType : new ConcurrentHashMap<>();
     }
 
     private List<String> computeAuthoritiesForType( AuthorityType type )

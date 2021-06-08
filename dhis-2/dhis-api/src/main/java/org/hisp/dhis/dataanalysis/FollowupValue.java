@@ -32,6 +32,8 @@ import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import org.hisp.dhis.period.PeriodType;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -55,7 +57,7 @@ public final class FollowupValue
     private String deName;
 
     @JsonProperty
-    private String pe;
+    private String peType;
 
     @JsonProperty
     private Date peStartDate;
@@ -105,4 +107,11 @@ public final class FollowupValue
     @JsonProperty
     private Integer max;
 
+    @JsonProperty
+    public String getPe()
+    {
+        return peType == null
+            ? null
+            : PeriodType.getIsoPeriod( PeriodType.getCalendar(), peType, peStartDate );
+    }
 }

@@ -2680,6 +2680,7 @@ public class DataQueryParams
             this.params = query.instance();
         }
 
+        @Override
         public Builder addDimension( DimensionalObject dimension )
         {
             this.params.addDimension( dimension );
@@ -2896,10 +2897,22 @@ public class DataQueryParams
             return this;
         }
 
+        public Builder withFilterPeriod( DimensionalItemObject period )
+        {
+            this.withFilterPeriods( getList( period ) );
+            return this;
+        }
+
         public Builder withFilterOrganisationUnits( List<? extends DimensionalItemObject> organisationUnits )
         {
             this.params.setFilterOptions( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, null,
                 asList( organisationUnits ) );
+            return this;
+        }
+
+        public Builder withFilterOrganisationUnit( DimensionalItemObject organisationUnit )
+        {
+            this.withFilterOrganisationUnits( getList( organisationUnit ) );
             return this;
         }
 

@@ -31,17 +31,15 @@ package org.hisp.dhis.tracker.importer.events;
 import com.google.gson.JsonObject;
 import io.restassured.http.ContentType;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -63,10 +61,8 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventsTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
-    private TrackerActions trackerActions;
-
     private static Stream<Arguments> provideEventFilesTestArguments()
     {
         return Stream.of(
@@ -76,9 +72,7 @@ public class EventsTests
     @BeforeAll
     public void beforeAll()
     {
-        trackerActions = new TrackerActions();
-
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
     }
 
     @Test
@@ -202,21 +196,6 @@ public class EventsTests
             .get( "/events/" + eventId + "?fields=*" )
             .validate().statusCode( 200 )
             .body( "enrollment", equalTo( enrollmentId ) );
-    }
-
-    private TrackerApiResponse importTeiWithEnrollment( String programId, String programStageId )
-        throws Exception
-    {
-        JsonObject teiWithEnrollment = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollments.json" ) )
-            .replacePropertyValuesWith( "program", programId )
-            .replacePropertyValuesWith( "programStage", programStageId )
-            .get( JsonObject.class );
-
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( teiWithEnrollment );
-
-        response.validateSuccessfulImport();
-        return response;
     }
 
     @AfterEach

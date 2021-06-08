@@ -65,6 +65,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -85,7 +86,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.GeoUtils;
-import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
@@ -470,8 +470,157 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     // -------------------------------------------------------------------------
-    // CREATE
+    // CREATE, UPDATE or DELETE
     // -------------------------------------------------------------------------
+
+    @Override
+    @Transactional
+    public ImportSummaries mergeOrDeleteTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
+        ImportOptions importOptions, JobConfiguration jobId )
+    {
+        notifier.clear( jobId ).notify( jobId, "Importing tracked entities" );
+
+        try
+        {
+            ImportSummaries importSummaries = new ImportSummaries();
+            importOptions = updateImportOptions( importOptions );
+
+            List<TrackedEntityInstance> create = new ArrayList<>();
+            List<TrackedEntityInstance> update = new ArrayList<>();
+            List<TrackedEntityInstance> delete = new ArrayList<>();
+
+            // TODO: Check whether relationships are modified during
+            // create/update/delete TEI logic. Decide whether logic below can be
+            // removed
+            List<Relationship> relationships = getRelationships( trackedEntityInstances );
+
+            setTrackedEntityListByStrategy( trackedEntityInstances, importOptions, create, update, delete );
+
+            importSummaries.addImportSummaries( addTrackedEntityInstances( create, importOptions ) );
+            importSummaries.addImportSummaries( updateTrackedEntityInstances( update, importOptions ) );
+            importSummaries.addImportSummaries( deleteTrackedEntityInstances( delete, importOptions ) );
+
+            // TODO: Created importSummaries don't contain correct href (TEI
+            // endpoint instead of relationships is used)
+            importSummaries
+                .addImportSummaries( relationshipService.processRelationshipList( relationships, importOptions ) );
+
+            if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
+            {
+                importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
+            }
+
+            notifier.notify( jobId, NotificationLevel.INFO, "Import done", true ).addJobSummary( jobId,
+                importSummaries, ImportSummaries.class );
+
+            return importSummaries;
+        }
+        catch ( RuntimeException ex )
+        {
+            log.error( DebugUtils.getStackTrace( ex ) );
+            notifier.notify( jobId, ERROR, "Process failed: " + ex.getMessage(), true );
+            return new ImportSummaries().addImportSummary(
+                new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() ) );
+        }
+    }
+
+    private List<Relationship> getRelationships( List<TrackedEntityInstance> trackedEntityInstances )
+    {
+        List<Relationship> relationships = new ArrayList<>();
+        trackedEntityInstances.stream()
+            .filter( tei -> !tei.getRelationships().isEmpty() )
+            .forEach( tei -> {
+                org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem item = new org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem();
+                item.setTrackedEntityInstance( tei );
+
+                tei.getRelationships().forEach( rel -> {
+                    // Update from if it is empty. Current tei is then "from"
+                    if ( rel.getFrom() == null )
+                    {
+                        rel.setFrom( item );
+                    }
+                    relationships.add( rel );
+                } );
+            } );
+        return relationships;
+    }
+
+    private void setTrackedEntityListByStrategy( List<TrackedEntityInstance> trackedEntityInstances,
+        ImportOptions importOptions, List<TrackedEntityInstance> create, List<TrackedEntityInstance> update,
+        List<TrackedEntityInstance> delete )
+    {
+        if ( importOptions.getImportStrategy().isCreate() )
+        {
+            create.addAll( trackedEntityInstances );
+        }
+        else if ( importOptions.getImportStrategy().isCreateAndUpdate() )
+        {
+            sortCreatesAndUpdates( trackedEntityInstances, create, update );
+        }
+        else if ( importOptions.getImportStrategy().isUpdate() )
+        {
+            update.addAll( trackedEntityInstances );
+        }
+        else if ( importOptions.getImportStrategy().isDelete() )
+        {
+            delete.addAll( trackedEntityInstances );
+        }
+        else if ( importOptions.getImportStrategy().isSync() )
+        {
+            for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
+            {
+                if ( trackedEntityInstance.isDeleted() )
+                {
+                    delete.add( trackedEntityInstance );
+                }
+                else
+                {
+                    sortCreatesAndUpdates( trackedEntityInstance, create, update );
+                }
+            }
+        }
+    }
+
+    private void sortCreatesAndUpdates( List<TrackedEntityInstance> trackedEntityInstances,
+        List<TrackedEntityInstance> create, List<TrackedEntityInstance> update )
+    {
+        List<String> ids = trackedEntityInstances.stream().map( TrackedEntityInstance::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+        List<String> existingUids = teiService.getTrackedEntityInstancesUidsIncludingDeleted( ids );
+
+        for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
+        {
+            if ( StringUtils.isEmpty( trackedEntityInstance.getTrackedEntityInstance() )
+                || !existingUids.contains( trackedEntityInstance.getTrackedEntityInstance() ) )
+            {
+                create.add( trackedEntityInstance );
+            }
+            else
+            {
+                update.add( trackedEntityInstance );
+            }
+        }
+    }
+
+    private void sortCreatesAndUpdates( TrackedEntityInstance trackedEntityInstance, List<TrackedEntityInstance> create,
+        List<TrackedEntityInstance> update )
+    {
+        if ( StringUtils.isEmpty( trackedEntityInstance.getTrackedEntityInstance() ) )
+        {
+            create.add( trackedEntityInstance );
+        }
+        else
+        {
+            if ( !teiService.trackedEntityInstanceExists( trackedEntityInstance.getTrackedEntityInstance() ) )
+            {
+                create.add( trackedEntityInstance );
+            }
+            else
+            {
+                update.add( trackedEntityInstance );
+            }
+        }
+    }
 
     @Override
     @Transactional
@@ -548,35 +697,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
 
         return foundTeis;
-    }
-
-    @Override
-    @Transactional
-    public ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions, JobConfiguration jobId )
-    {
-        notifier.clear( jobId ).notify( jobId, "Importing tracked entities" );
-        importOptions = updateImportOptions( importOptions );
-
-        try
-        {
-            ImportSummaries importSummaries = addTrackedEntityInstances( trackedEntityInstances, importOptions );
-
-            if ( jobId != null )
-            {
-                notifier.notify( jobId, NotificationLevel.INFO, "Import done", true ).addJobSummary( jobId,
-                    importSummaries, ImportSummaries.class );
-            }
-
-            return importSummaries;
-        }
-        catch ( RuntimeException ex )
-        {
-            log.error( DebugUtils.getStackTrace( ex ) );
-            notifier.notify( jobId, ERROR, "Process failed: " + ex.getMessage(), true );
-            return new ImportSummaries().addImportSummary(
-                new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() ) );
-        }
     }
 
     @Override
@@ -662,9 +782,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     // UPDATE
     // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
+    private ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
         ImportOptions importOptions )
     {
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
@@ -1304,18 +1422,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
     }
 
-    private void validateTextPatternValue( TrackedEntityAttribute attribute, String value, String oldValue,
-        Set<ImportConflict> importConflicts )
-    {
-        if ( !TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
-            && !reservedValueService.isReserved( attribute.getTextPattern(), value )
-            && !Objects.equals( value, oldValue ) )
-        {
-            importConflicts
-                .add( new ImportConflict( "Attribute.value", "Value does not match the attribute pattern" ) );
-        }
-    }
-
     private void checkAttributeUniquenessWithinScope( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
         TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit,
         Set<ImportConflict> importConflicts )
@@ -1355,9 +1461,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 .forEach( attrVal -> fileValues.add( attrVal.getValue() ) );
         }
 
-        Map<String, TrackedEntityAttributeValue> teiAttributeValueMap = getTeiAttributeValueMap(
-            trackedEntityAttributeValueService.getTrackedEntityAttributeValues( daoEntityInstance ) );
-
         for ( Attribute attribute : dtoEntityInstance.getAttributes() )
         {
             if ( StringUtils.isNotEmpty( attribute.getValue() ) )
@@ -1381,18 +1484,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                     importConflicts.add( new ImportConflict( "Attribute.value",
                         String.format( "Value exceeds the character limit of %s characters: '%s...'",
                             TEA_VALUE_MAX_LENGTH, attribute.getValue().substring( 0, 25 ) ) ) );
-                }
-
-                TrackedEntityAttributeValue trackedEntityAttributeValue = teiAttributeValueMap
-                    .get( daoEntityAttribute.getUid() );
-
-                if ( daoEntityAttribute.isGenerated() && daoEntityAttribute.getTextPattern() != null
-                    && !importOptions.isSkipPatternValidation() )
-                {
-
-                    validateTextPatternValue( daoEntityAttribute, attribute.getValue(),
-                        trackedEntityAttributeValue != null ? trackedEntityAttributeValue.getValue() : null,
-                        importConflicts );
                 }
 
                 if ( daoEntityAttribute.isUnique() )

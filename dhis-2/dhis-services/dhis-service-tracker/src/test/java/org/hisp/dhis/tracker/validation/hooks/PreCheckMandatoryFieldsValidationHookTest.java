@@ -188,7 +188,6 @@ public class PreCheckMandatoryFieldsValidationHookTest
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( CodeGenerator.generateUid() )
-            .program( CodeGenerator.generateUid() )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
@@ -203,7 +202,6 @@ public class PreCheckMandatoryFieldsValidationHookTest
         Event event = Event.builder()
             .orgUnit( null )
             .programStage( CodeGenerator.generateUid() )
-            .program( CodeGenerator.generateUid() )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
@@ -218,28 +216,12 @@ public class PreCheckMandatoryFieldsValidationHookTest
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( null )
-            .program( CodeGenerator.generateUid() )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
         validationHook.validateEvent( reporter, event );
 
         assertMissingPropertyForEvent( reporter, "programStage" );
-    }
-
-    @Test
-    public void verifyEventValidationFailsOnMissingProgram()
-    {
-        Event event = Event.builder()
-            .orgUnit( CodeGenerator.generateUid() )
-            .programStage( CodeGenerator.generateUid() )
-            .program( null )
-            .build();
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
-        validationHook.validateEvent( reporter, event );
-
-        assertMissingPropertyForEvent( reporter, "program" );
     }
 
     @Test

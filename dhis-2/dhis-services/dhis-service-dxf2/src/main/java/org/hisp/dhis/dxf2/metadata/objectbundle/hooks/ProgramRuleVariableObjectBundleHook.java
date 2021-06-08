@@ -29,12 +29,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -47,7 +43,6 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -76,30 +71,20 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
     }
 
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
         if ( object instanceof ProgramRuleVariable )
         {
             ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) object;
 
-            List<ErrorReport> uniqueProgramRuleNameErrorReport = validateUniqueProgramRuleName( bundle,
-                programRuleVariable );
-            List<ErrorReport> programRuleNameKeyWordsErrorReport = validateProgramRuleNameKeyWords(
-                programRuleVariable );
-
-            List<ErrorReport> errorReports = Stream
-                .concat( uniqueProgramRuleNameErrorReport.stream(), programRuleNameKeyWordsErrorReport.stream() )
-                .collect( Collectors.toList() );
-
-            if ( !errorReports.isEmpty() )
-                return errorReports;
+            validateUniqueProgramRuleName( bundle, programRuleVariable, addReports );
+            validateProgramRuleNameKeyWords( programRuleVariable, addReports );
         }
-
-        return super.validate( object, bundle );
     }
 
-    private List<ErrorReport> validateUniqueProgramRuleName( ObjectBundle bundle,
-        ProgramRuleVariable programRuleVariable )
+    private void validateUniqueProgramRuleName( ObjectBundle bundle,
+        ProgramRuleVariable programRuleVariable, Consumer<ErrorReport> addReports )
     {
         Query<ProgramRuleVariable> query = getProgramRuleVariableQuery( programRuleVariable );
 
@@ -107,12 +92,10 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
 
         if ( query.getResultList().size() > allowedCount )
         {
-            return ImmutableList.of(
-                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4032, programRuleVariable.getName(),
+            addReports.accept(
+                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4051, programRuleVariable.getName(),
                     programRuleVariable.getProgram().getUid() ) );
         }
-
-        return new ArrayList<>();
     }
 
     private Query<ProgramRuleVariable> getProgramRuleVariableQuery( ProgramRuleVariable programRuleVariable )
@@ -125,19 +108,17 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         return query;
     }
 
-    private List<ErrorReport> validateProgramRuleNameKeyWords( ProgramRuleVariable programRuleVariable )
+    private void validateProgramRuleNameKeyWords( ProgramRuleVariable programRuleVariable,
+        Consumer<ErrorReport> addReports )
     {
         String[] split = programRuleVariable.getName().split( "\\s" );
 
         if ( IntStream.range( 0, split.length )
             .anyMatch( i -> split[i].matches( PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REGEX ) ) )
         {
-
-            return ImmutableList.of(
-                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4033, programRuleVariable.getName() ) );
+            addReports.accept(
+                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4052, programRuleVariable.getName() ) );
         }
-
-        return new ArrayList<>();
     }
 
     @Override
