@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2021 University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config.jackson.geometry;
+package org.hisp.dhis.actions.metadata;
 
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
-import com.bedatadriven.jackson.datatype.jts.serialization.GeometryDeserializer;
-import com.bedatadriven.jackson.datatype.jts.serialization.GeometrySerializer;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
- * @author Enrico Colasante
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class JtsXmlModule
-    extends SimpleModule
+public class CategoryOptionActions
+    extends RestApiActions
 {
-    public JtsXmlModule()
+    public CategoryOptionActions()
     {
-        this( new GeometryFactory() );
+        super( "/categoryOptions" );
     }
 
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public JtsXmlModule( GeometryFactory geometryFactory )
+    public ApiResponse getOrgUnitsAssociations( String... categoryOptionUids )
     {
-        super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
-        this.addSerializer( Geometry.class, new GeometrySerializer() );
-        XmlGenericGeometryParser genericGeometryParser = new XmlGenericGeometryParser( geometryFactory );
-        this.addDeserializer( Geometry.class, new GeometryDeserializer( genericGeometryParser ) );
+        return get( "/orgUnits", new QueryParamsBuilder().add(
+            Arrays.stream( categoryOptionUids )
+                .collect( Collectors.joining( ",", "categoryOptions=", "" ) ) ) );
     }
 
-    @Override
-    public void setupModule( SetupContext context )
-    {
-        super.setupModule( context );
-    }
 }

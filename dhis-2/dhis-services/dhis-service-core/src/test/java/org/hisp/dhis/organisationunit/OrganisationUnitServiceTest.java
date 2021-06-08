@@ -45,12 +45,16 @@ import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.MimeTypeUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -73,6 +77,9 @@ public class OrganisationUnitServiceTest
 
     @Autowired
     private DataSetService dataSetService;
+
+    @Autowired
+    private FileResourceService fileResourceService;
 
     @Autowired
     private OrganisationUnitGroupService organisationUnitGroupService;
@@ -1113,5 +1120,27 @@ public class OrganisationUnitServiceTest
         expected = ouB.getUid() + "/" + ouC.getUid();
 
         assertEquals( expected, ouD.getParentGraph( Sets.newHashSet( ouB ) ) );
+    }
+
+    @Test
+    public void testSaveImage()
+    {
+        byte[] content = "<<png data>>".getBytes();
+        FileResource fileResource = new FileResource( "testOrgUnitImage.png", MimeTypeUtils.IMAGE_PNG.getType(),
+            content.length,
+            "md5", FileResourceDomain.ORG_UNIT );
+        fileResource.setAssigned( false );
+        fileResource.setCreated( new Date() );
+        fileResource.setAutoFields();
+        fileResourceService.saveFileResource( fileResource, content );
+
+        OrganisationUnit orgUnit = createOrganisationUnit( 'A' );
+        orgUnit.setImage( fileResource );
+        organisationUnitService.addOrganisationUnit( orgUnit );
+
+        OrganisationUnit savedOU = organisationUnitService.getOrganisationUnit( orgUnit.getUid() );
+
+        assertEquals( fileResource.getUid(), savedOU.getImage().getUid() );
+
     }
 }
