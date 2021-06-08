@@ -54,10 +54,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
@@ -75,6 +71,10 @@ import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Purpose of this helper is to avoid passing around same state while building
@@ -267,13 +267,18 @@ final class GistBuilder
             return String.format( "select %s from %s e where (%s) and (%s) order by %s",
                 fields, elementTable, userFilters, accessFilters, orders );
         }
-        String op = query.isInverse() ? "not in" : "in";
         String ownerTable = owner.getType().getSimpleName();
         String collectionName = context.switchedTo( owner.getType() )
             .resolveMandatory( owner.getCollectionProperty() ).getFieldName();
+        if ( !query.isInverse() )
+        {
+            return String.format(
+                "select %s from %s o left join o.%s as e where o.uid = :OwnerId and (%s) and (%s) order by %s",
+                fields, ownerTable, collectionName, userFilters, accessFilters, orders );
+        }
         return String.format(
-            "select %s from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and (%s) and (%s) order by %s",
-            fields, ownerTable, elementTable, op, collectionName, userFilters, accessFilters, orders );
+            "select %s from %s o, %s e where o.uid = :OwnerId and e not in elements(o.%s) and (%s) and (%s) order by %s",
+            fields, ownerTable, elementTable, collectionName, userFilters, accessFilters, orders );
     }
 
     public String buildCountHQL()
@@ -287,13 +292,18 @@ final class GistBuilder
             return String.format( "select count(*) from %s e where (%s) and (%s)", elementTable, userFilters,
                 accessFilters );
         }
-        String op = query.isInverse() ? "not in" : "in";
         String ownerTable = owner.getType().getSimpleName();
         String collectionName = context.switchedTo( owner.getType() )
             .resolveMandatory( owner.getCollectionProperty() ).getFieldName();
+        if ( !query.isInverse() )
+        {
+            return String.format(
+                "select count(*) from %s o left join o.%s as e where o.uid = :OwnerId and (%s) and (%s)",
+                ownerTable, collectionName, userFilters, accessFilters );
+        }
         return String.format(
-            "select count(*) from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and (%s) and (%s)",
-            ownerTable, elementTable, op, collectionName, userFilters, accessFilters );
+            "select count(*) from %s o, %s e where o.uid = :OwnerId and e not in elements(o.%s) and (%s) and (%s)",
+            ownerTable, elementTable, collectionName, userFilters, accessFilters );
     }
 
     private String createAccessFilterHQL( RelativePropertyContext context, String tableName )
