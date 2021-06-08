@@ -61,15 +61,14 @@ public class EventUpdateTests
 
         object = JsonObjectBuilder.jsonObject( object )
             .addProperty( "programStage", Constants.EVENT_PROGRAM_STAGE_ID )
-            .addProperty( "program", Constants.EVENT_PROGRAM_ID )
             .addProperty( "enrollment", enrollmentId )
             .wrapIntoArray( "events" );
 
         trackerActions.postAndGetJobReport( object )
             .validateErrorReport()
-            .body( "", hasSize( Matchers.greaterThanOrEqualTo( 3 ) ) )
-            .body( "errorCode", hasItems( "E1128", "E1128", "E1128" ) )
+            .body( "", hasSize( Matchers.greaterThanOrEqualTo( 2 ) ) )
+            .body( "errorCode", hasItems( "E1128", "E1128" ) )
             .body( "message", allOf( Matchers.hasItem( Matchers.containsString( "programStage" ) ),
-                hasItem( Matchers.containsString( "program" ) ), hasItem( Matchers.containsString( "enrollment" ) ) ) );
+                hasItem( Matchers.containsString( "enrollment" ) ) ) );
     }
 }

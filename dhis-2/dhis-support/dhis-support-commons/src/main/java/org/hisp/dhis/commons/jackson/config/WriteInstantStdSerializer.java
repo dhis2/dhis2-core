@@ -25,32 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config.jackson;
+package org.hisp.dhis.commons.jackson.config;
 
 import java.io.IOException;
+import java.time.Instant;
 
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.util.DateUtils;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class EmptyStringToNullStdDeserializer extends JsonDeserializer<String>
+public class WriteInstantStdSerializer extends StdSerializer<Instant>
 {
+    public WriteInstantStdSerializer()
+    {
+        super( Instant.class );
+    }
+
     @Override
-    public String deserialize( JsonParser parser, DeserializationContext context )
+    public void serialize( Instant value, JsonGenerator gen, SerializerProvider provider )
         throws IOException
     {
-        String result = parser.getValueAsString();
-
-        if ( StringUtils.isEmpty( result ) )
-        {
-            return null;
-        }
-
-        return result;
+        gen.writeString( DateUtils.getIso8601NoTz( DateUtils.fromInstant( value ) ) );
     }
 }

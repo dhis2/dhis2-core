@@ -25,52 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config.jackson;
+package org.hisp.dhis.metadata.programs;
 
-import java.io.IOException;
-import java.time.Instant;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.metadata.CategoryOptionActions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.util.DateUtils;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasKey;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-
-public class ParseInstantStdDeserializer extends StdDeserializer<Instant>
+/**
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ */
+public class CategoryOptionsTest
+    extends AbstractOrgUnitAssociationTestSupport
 {
-    public ParseInstantStdDeserializer()
+    private static final String CATEGORY_OPTION_UID = "fjvZIRlTBrp";
+
+    private LoginActions loginActions;
+
+    private CategoryOptionActions categoryOptionActions;
+
+    @BeforeAll
+    public void beforeAll()
     {
-        super( Instant.class );
+        loginActions = new LoginActions();
+        categoryOptionActions = new CategoryOptionActions();
     }
 
-    @Override
-    public Instant deserialize( JsonParser parser, DeserializationContext context )
-        throws IOException
+    @BeforeEach
+    public void before()
     {
-        String valueAsString = parser.getText();
+        loginActions.loginAsSuperUser();
+    }
 
-        if ( StringUtils.isNotBlank( valueAsString ) )
-        {
-            try
-            {
-                return DateUtils.instantFromDateAsString( valueAsString );
-            }
-            catch ( Exception e )
-            {
-                if ( StringUtils.isNumeric( valueAsString ) )
-                {
-                    return DateUtils.instantFromEpoch( Long.valueOf( valueAsString ) );
-                }
-                throw new JsonParseException( parser,
-                    String.format(
-                        "Invalid date format '%s', only '" + DateUtils.ISO8601_NO_TZ_PATTERN
-                            + "' format end epoch milliseconds are supported.",
-                        valueAsString ) );
-            }
-        }
-        return null;
+    @Test
+    public void testCategoryOptionOrgUnitsConnections()
+    {
+        super.testOrgUnitsConnections( categoryOptionActions::getOrgUnitsAssociations, CATEGORY_OPTION_UID );
     }
 
 }

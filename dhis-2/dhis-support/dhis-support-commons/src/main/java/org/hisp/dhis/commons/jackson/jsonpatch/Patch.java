@@ -25,41 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preprocess;
+package org.hisp.dhis.commons.jackson.jsonpatch;
 
-import java.util.Objects;
-
-import org.apache.logging.log4j.util.Strings;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * This preprocessor is responsible for setting the Program UID on an Event from
- * the ProgramStage if the Program is not present in the payload
- *
- * @author Enrico Colasante
+ * @author Morten Olav Hansen
  */
-@Component
-public class EventProgramPreProcessor
-    implements BundlePreProcessor
+@FunctionalInterface
+public interface Patch
 {
-    @Override
-    public void process( TrackerBundle bundle )
-    {
-        for ( Event event : bundle.getEvents() )
-        {
-            if ( Strings.isEmpty( event.getProgram() ) && Strings.isNotEmpty( event.getProgramStage() ) )
-            {
-                ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
-                if ( Objects.nonNull( programStage ) )
-                {
-                    event.setProgram( programStage.getProgram().getUid() );
-                    bundle.getPreheat().put( TrackerIdentifier.UID, programStage.getProgram() );
-                }
-            }
-        }
-    }
+    JsonNode apply( JsonNode node )
+        throws JsonPatchException;
 }

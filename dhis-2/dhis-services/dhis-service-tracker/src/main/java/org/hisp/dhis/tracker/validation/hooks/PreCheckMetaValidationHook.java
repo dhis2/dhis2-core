@@ -93,9 +93,6 @@ public class PreCheckMetaValidationHook
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         addErrorIfNull( organisationUnit, reporter, E1011, event.getOrgUnit() );
 
-        Program program = context.getProgram( event.getProgram() );
-        addErrorIfNull( program, reporter, E1010, event.getProgram() );
-
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         addErrorIfNull( programStage, reporter, E1013, event.getProgramStage() );
     }
