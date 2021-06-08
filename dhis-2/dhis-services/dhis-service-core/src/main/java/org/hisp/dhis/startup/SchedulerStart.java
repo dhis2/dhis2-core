@@ -57,8 +57,6 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 @Slf4j
 public class SchedulerStart extends AbstractStartupRoutine
 {
-    private final String CRON_HOURLY = "0 0 * ? * *";
-
     private final String CRON_DAILY_2AM = "0 0 2 ? * *";
 
     private final String CRON_DAILY_7AM = "0 0 7 ? * *";
