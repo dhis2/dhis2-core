@@ -166,7 +166,7 @@ public class MaintenanceController
     }
 
     @RequestMapping( value = "/invalidRelationshipsRemoval", method = { RequestMethod.PUT,
-            RequestMethod.POST } )
+        RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteInvalidRelationships()
