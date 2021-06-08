@@ -52,6 +52,7 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
@@ -264,7 +265,7 @@ public class CrudControllerAdvice
         throw ex;
     }
 
-    @ExceptionHandler( { BadRequestException.class, IllegalArgumentException.class } )
+    @ExceptionHandler( { BadRequestException.class, IllegalArgumentException.class, SchemaPathException.class } )
     public void handleBadRequest( Exception exception, HttpServletResponse response,
         HttpServletRequest request )
     {

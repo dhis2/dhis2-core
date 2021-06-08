@@ -33,7 +33,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.sqlview.SqlView;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -69,5 +71,23 @@ public class SchemaServiceTest
         assertNotNull( groups );
         assertFalse( groups.isSimple() );
         assertTrue( groups.isCollection() );
+    }
+
+    @Test
+    public void testSqlViewSchema()
+    {
+        Schema schema = schemaService.getSchema( SqlView.class );
+        assertNotNull( schema );
+        assertFalse( schema.isDataWriteShareable() );
+    }
+
+    @Test
+    public void testProgramSchema()
+    {
+        Schema schema = schemaService.getSchema( Program.class );
+        assertNotNull( schema );
+        assertTrue( schema.isDataShareable() );
+        assertTrue( schema.isDataWriteShareable() );
+        assertTrue( schema.isDataReadShareable() );
     }
 }

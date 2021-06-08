@@ -424,13 +424,9 @@ public class UserController
                 "You must have permissions manage at least one user group for the user." );
         }
 
-        RestoreOptions restoreOptions = securityService.isInviteUsername( user.getUsername() )
-            ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
-            : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
-
         securityService.prepareUserForInvite( user );
         securityService.sendRestoreOrInviteMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ),
-            restoreOptions );
+            RestoreOptions.RECOVER_PASSWORD_OPTION );
     }
 
     @SuppressWarnings( "unchecked" )

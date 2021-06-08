@@ -54,6 +54,7 @@ import org.hisp.dhis.common.coordinate.CoordinateObject;
 import org.hisp.dhis.common.coordinate.CoordinateUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitDisplayNameComparator;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitDisplayShortNameComparator;
 import org.hisp.dhis.program.Program;
@@ -128,6 +129,11 @@ public class OrganisationUnit
     private Set<CategoryOption> categoryOptions = new HashSet<>();
 
     private Geometry geometry;
+
+    /**
+     * A reference to the Image file associated with this OrganisationUnit.
+     */
+    private FileResource image;
 
     // -------------------------------------------------------------------------
     // Transient fields
@@ -1097,6 +1103,18 @@ public class OrganisationUnit
     public boolean hasCoordinates()
     {
         return this.geometry != null;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FileResource getImage()
+    {
+        return image;
+    }
+
+    public void setImage( FileResource image )
+    {
+        this.image = image;
     }
 
     // -------------------------------------------------------------------------
