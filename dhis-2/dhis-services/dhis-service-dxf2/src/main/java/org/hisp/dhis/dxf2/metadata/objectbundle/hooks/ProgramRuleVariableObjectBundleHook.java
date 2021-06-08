@@ -62,7 +62,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, this::processTEA )
         .build();
 
-    private final static ImmutableCollection<ImportStrategy> UPDATE_STRATEGIES = ImmutableList.of(
+    private static final ImmutableCollection<ImportStrategy> UPDATE_STRATEGIES = ImmutableList.of(
         ImportStrategy.UPDATE,
         ImportStrategy.CREATE_AND_UPDATE,
         ImportStrategy.NEW_AND_UPDATES,
