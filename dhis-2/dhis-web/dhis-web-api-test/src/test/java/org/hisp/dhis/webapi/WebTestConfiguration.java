@@ -200,4 +200,5 @@ public class WebTestConfiguration
         } ).when( manager ).getJob( any() );
         return manager;
     }
+
 }
