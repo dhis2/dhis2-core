@@ -395,7 +395,7 @@ public class JpaQueryUtils
 
     public static String generateHqlQueryForSharingCheck( String tableName, User user, String access )
     {
-        if ( user.isSuper() )
+        if ( user.isSuper() || user.isAuthorized( "Test_skipSharingCheck" ) )
         {
             return "1=1";
         }
