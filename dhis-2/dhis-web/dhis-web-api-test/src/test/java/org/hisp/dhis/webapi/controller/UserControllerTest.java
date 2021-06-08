@@ -56,7 +56,6 @@ import org.springframework.http.HttpStatus;
  */
 public class UserControllerTest extends DhisControllerConvenienceTest
 {
-
     @Autowired
     private MessageSender messageSender;
 
@@ -70,8 +69,9 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     {
         peter = switchToNewUser( "Peter" );
         switchToSuperuser();
-        assertStatus( HttpStatus.NO_CONTENT,
-            PATCH( "/users/{id}/email", peter.getUid(), Body( "{'email':'peter@pan.net'}" ) ) );
+        assertStatus( HttpStatus.OK,
+            PATCH( "/users/{id}", peter.getUid(),
+                Body( "[{'op': 'replace', 'path': '/email', 'value': 'peter@pan.net'}]" ) ) );
     }
 
     @Test
@@ -86,8 +86,9 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testResetToInvite_NoEmail()
     {
-        assertStatus( HttpStatus.NO_CONTENT,
-            PATCH( "/users/{id}/email", peter.getUid(), Body( "{'email':null}" ) ) );
+        assertStatus( HttpStatus.OK,
+            PATCH( "/users/{id}", peter.getUid(),
+                Body( "[{'op': 'replace', 'path': '/email', 'value': null}]" ) ) );
 
         assertEquals( "user_does_not_have_valid_email",
             POST( "/users/" + peter.getUid() + "/reset" ).error( HttpStatus.CONFLICT ).getMessage() );
