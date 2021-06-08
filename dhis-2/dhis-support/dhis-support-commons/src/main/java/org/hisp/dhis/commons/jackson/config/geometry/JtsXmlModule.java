@@ -25,54 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preprocess;
+package org.hisp.dhis.commons.jackson.config.geometry;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 
-import java.util.Collections;
-
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.junit.Test;
+import com.bedatadriven.jackson.datatype.jts.serialization.GeometryDeserializer;
+import com.bedatadriven.jackson.datatype.jts.serialization.GeometrySerializer;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
  * @author Enrico Colasante
  */
-public class EventProgramPreProcessorTest
+public class JtsXmlModule
+    extends SimpleModule
 {
-    private EventProgramPreProcessor preProcessorToTest = new EventProgramPreProcessor();
-
-    @Test
-    public void testEnrollmentIsAddedIntoEventWhenItBelongsToProgramWithoutRegistration()
+    public JtsXmlModule()
     {
-        // Given
-        Event event = new Event();
-        event.setProgram( null );
-        event.setProgramStage( "programStageUid" );
+        this( new GeometryFactory() );
+    }
 
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    public JtsXmlModule( GeometryFactory geometryFactory )
+    {
+        super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
+        this.addSerializer( Geometry.class, new GeometrySerializer() );
+        XmlGenericGeometryParser genericGeometryParser = new XmlGenericGeometryParser( geometryFactory );
+        this.addDeserializer( Geometry.class, new GeometryDeserializer( genericGeometryParser ) );
+    }
 
-        Program program = new Program();
-        program.setUid( "programUid" );
-
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( "programStageUid" );
-        programStage.setProgram( program );
-
-        TrackerPreheat preheat = new TrackerPreheat();
-        preheat.put( TrackerIdentifier.UID, programStage );
-        bundle.setPreheat( preheat );
-
-        // When
-        preProcessorToTest.process( bundle );
-
-        // Then
-        assertEquals( "programUid", bundle.getEvents().get( 0 ).getProgram() );
-        assertNotNull( bundle.getPreheat().get( Program.class, "programUid" ) );
+    @Override
+    public void setupModule( SetupContext context )
+    {
+        super.setupModule( context );
     }
 }

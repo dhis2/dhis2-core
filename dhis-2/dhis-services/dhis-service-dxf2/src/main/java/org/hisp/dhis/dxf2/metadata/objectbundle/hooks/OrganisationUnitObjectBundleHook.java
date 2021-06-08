@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -109,26 +109,23 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
         if ( object == null || !object.getClass().isAssignableFrom( OrganisationUnit.class ) )
         {
-            return new ArrayList<>();
+            return;
         }
 
         OrganisationUnit organisationUnit = (OrganisationUnit) object;
 
-        List<ErrorReport> errors = new ArrayList<>();
-
         if ( organisationUnit.getClosedDate() != null
             && organisationUnit.getClosedDate().before( organisationUnit.getOpeningDate() ) )
         {
-            errors.add( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013, organisationUnit.getClosedDate(),
-                organisationUnit
-                    .getOpeningDate() ) );
+            addReports
+                .accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013, organisationUnit.getClosedDate(),
+                    organisationUnit.getOpeningDate() ) );
         }
-
-        return errors;
     }
 
     private void setSRID( IdentifiableObject object )

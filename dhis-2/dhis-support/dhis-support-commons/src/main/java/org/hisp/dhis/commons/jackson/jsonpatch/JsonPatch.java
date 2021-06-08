@@ -25,43 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config.jackson.geometry;
+package org.hisp.dhis.commons.jackson.jsonpatch;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
+import lombok.Getter;
 
-import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
-import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * @author Enrico Colasante
+ * Container class for patch operations, allows to deserialize patches in the
+ * format '[{...}, {...}]' and follows RFC 6902.
+ *
+ * @see JsonPatchOperation
+ *
+ * @author Morten Olav Hansen
  */
-@Slf4j
-public class XmlGenericGeometryParser
-    extends BaseParser
-    implements GeometryParser<Geometry>
+@Getter
+public class JsonPatch
+    implements Patch
 {
-    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
+    @JsonProperty
+    private final List<JsonPatchOperation> operations;
+
+    @JsonCreator
+    public JsonPatch( List<JsonPatchOperation> operations )
     {
-        super( geometryFactory );
+        this.operations = operations;
     }
 
-    public Geometry geometryFromJson( JsonNode node )
+    @Override
+    public JsonNode apply( JsonNode node )
+        throws JsonPatchException
     {
-        WKTReader wktR = new WKTReader();
-        try
+        JsonNode patched = node;
+
+        for ( JsonPatchOperation op : operations )
         {
-            return wktR.read( node.asText() );
+            patched = op.apply( patched );
         }
-        catch ( ParseException e )
-        {
-            log.error( "Error reading WKT of geometry", e );
-            return null;
-        }
+
+        return patched;
     }
 }

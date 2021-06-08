@@ -25,19 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config;
+package org.hisp.dhis.commons.jackson.config;
 
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseInstantStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
-import org.hisp.dhis.commons.config.jackson.WriteInstantStdSerializer;
-import org.hisp.dhis.commons.config.jackson.geometry.JtsXmlModule;
+import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
 import org.hisp.dhis.commons.jsonfiltering.JsonFiltering;
 import org.hisp.dhis.commons.jsonfiltering.web.FieldFilterCustomizer;
 import org.hisp.dhis.commons.jsonfiltering.web.RequestJsonFilteringContextProvider;
@@ -49,6 +44,7 @@ import org.springframework.context.annotation.Primary;
 
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -176,7 +172,9 @@ public class JacksonObjectMapperConfig
         SimpleModule module = new SimpleModule();
         module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
+        module.addDeserializer( JsonPointer.class, new JsonPointerStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
+        module.addSerializer( JsonPointer.class, new JsonPointerStdSerializer() );
 
         // Registering a custom Instant serializer/deserializer for DTOs using
         // Instant
@@ -198,10 +196,12 @@ public class JacksonObjectMapperConfig
 
         objectMapper.disable( MapperFeature.AUTO_DETECT_FIELDS );
         objectMapper.disable( MapperFeature.AUTO_DETECT_CREATORS );
+
         if ( !autoDetectGetters )
         {
             objectMapper.disable( MapperFeature.AUTO_DETECT_GETTERS );
         }
+
         objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
         objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 
