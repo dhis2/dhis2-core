@@ -165,6 +165,15 @@ public class MaintenanceController
         maintenanceService.deleteSoftDeletedDataValues();
     }
 
+    @RequestMapping( value = "/invalidRelationshipsRemoval", method = { RequestMethod.PUT,
+            RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void deleteInvalidRelationships()
+    {
+        maintenanceService.deleteInvalidRelationships();
+    }
+
     @RequestMapping( value = "/softDeletedProgramStageInstanceRemoval", method = { RequestMethod.PUT,
         RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )

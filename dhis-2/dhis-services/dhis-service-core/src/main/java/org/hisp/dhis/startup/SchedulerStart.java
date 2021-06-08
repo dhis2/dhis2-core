@@ -89,6 +89,10 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
 
+    private final String DEFAULT_REMOVE_INVALID_RELEATIONSHIPS_UID = "uwWCT2BMffc";
+
+    private final String DEFAULT_REMOVE_INVALID_RELEATIONSHIPS = "Remove invalid relationships";
+
     private final String DEFAULT_LEADER_ELECTION_UID = "MoUd5BTQ3lY";
 
     private final String DEFAULT_LEADER_ELECTION = "Leader election in cluster";
@@ -226,6 +230,15 @@ public class SchedulerStart extends AbstractStartupRoutine
             removeExpiredReservedValues.setLeaderOnlyJob( true );
             removeExpiredReservedValues.setUid( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID );
             addAndScheduleJob( removeExpiredReservedValues );
+        }
+
+        if ( verifyNoJobExist( DEFAULT_REMOVE_INVALID_RELEATIONSHIPS, jobConfigurations ) )
+        {
+            JobConfiguration removeInvalidRelationships = new JobConfiguration( DEFAULT_REMOVE_INVALID_RELEATIONSHIPS,
+                REMOVE_INVALID_RELATIONSHIPS, CRON_HOURLY, null );
+            removeInvalidRelationships.setLeaderOnlyJob( true );
+            removeInvalidRelationships.setUid( DEFAULT_REMOVE_INVALID_RELEATIONSHIPS_UID );
+            addAndScheduleJob( removeInvalidRelationships );
         }
 
         if ( verifyNoJobExist( DEFAULT_LEADER_ELECTION, jobConfigurations ) && "true".equalsIgnoreCase( redisEnabled ) )

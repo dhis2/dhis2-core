@@ -55,6 +55,14 @@ public interface MaintenanceService
     int deleteSoftDeletedDataValues();
 
     /**
+     * Permanently deletes relationships which have been invalidated, i.e.
+     * relationships where the from or to are null.
+     *
+     * @return the number of deleted relationships
+     */
+    int deleteInvalidRelationships();
+
+    /**
      * Permanently deletes program stage instances which have been soft deleted,
      * i.e. program stage instances where the deleted property is true.
      *
