@@ -25,44 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.config;
+package org.hisp.dhis.trackedentity;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-import org.hisp.dhis.tracker.preheat.supplier.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import com.google.common.collect.ImmutableList;
-
-@Configuration
-public class TrackerPreheatConfig
+public class TrackedEntityProgramOwnerOrgUnit
 {
-    private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
-        ClassBasedSupplier.class,
-        TrackedEntityProgramInstanceSupplier.class,
-        ProgramInstanceSupplier.class,
-        ProgramInstancesWithAtLeastOneEventSupplier.class,
-        ProgramStageInstanceProgramStageMapSupplier.class,
-        ProgramOrgUnitsSupplier.class,
-        ProgramOwnerSupplier.class,
-        PeriodTypeSupplier.class,
-        UniqueAttributesSupplier.class,
-        UserSupplier.class,
-        FileResourceSupplier.class );
+    private final String trackedEntityInstanceId;
 
-    @Bean( "preheatOrder" )
-    public List<String> getPreheatOrder()
+    private final String programId;
+
+    private final OrganisationUnit organisationUnit;
+
+    public TrackedEntityProgramOwnerOrgUnit( String trackedEntityInstanceId, String programId,
+        OrganisationUnit organisationUnit )
     {
-        return preheatOrder.stream().map( Class::getSimpleName )
-            .collect( Collectors.toList() );
+        this.trackedEntityInstanceId = trackedEntityInstanceId;
+        this.programId = programId;
+        this.organisationUnit = organisationUnit;
     }
 
-    @Bean( "preheatStrategies" )
-    public Map<String, String> getPreheatStrategies()
+    public String getTrackedEntityInstanceId()
     {
-        return new PreheatStrategyScanner().scanSupplierStrategies();
+        return trackedEntityInstanceId;
+    }
+
+    public String getProgramId()
+    {
+        return programId;
+    }
+
+    public OrganisationUnit getOrganisationUnit()
+    {
+        return organisationUnit;
     }
 }

@@ -162,6 +162,11 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
     }
 
+    public OrganisationUnit getOwnerOrganisationUnit( String teiUid, String programUid )
+    {
+        return bundle.getPreheat().getProgramOwner().get( teiUid ).get( programUid ).getOrganisationUnit();
+    }
+
     public boolean programInstanceHasEvents( String programInstanceUid )
     {
         return bundle.getPreheat().getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );

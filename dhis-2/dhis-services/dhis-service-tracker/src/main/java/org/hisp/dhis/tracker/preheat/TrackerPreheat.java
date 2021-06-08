@@ -58,6 +58,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -173,6 +174,14 @@ public class TrackerPreheat
      * Internal map of all preheated notes (events and enrollments)
      */
     private Map<TrackerIdScheme, Map<String, TrackedEntityComment>> notes = new EnumMap<>( TrackerIdScheme.class );
+
+    /**
+     * Internal map of all existing TrackedEntityProgramOwner. Used for
+     * ownership validations and updating.
+     */
+    @Getter
+    @Setter
+    private Map<String, Map<String, TrackedEntityProgramOwnerOrgUnit>> programOwner = new HashMap<>();
 
     /**
      * A Map of trackedEntity uid connected to Program Instances
@@ -582,5 +591,22 @@ public class TrackerPreheat
         return new StringJoiner( ", ", TrackerPreheat.class.getSimpleName() + "[", "]" )
             .add( "map=" + map )
             .toString();
+    }
+
+    public void addProgramOwners( List<TrackedEntityProgramOwnerOrgUnit> tepos )
+    {
+        tepos.forEach( tepo -> addProgramOwner( tepo.getTrackedEntityInstanceId(), tepo.getProgramId(), tepo ) );
+
+    }
+
+    private void addProgramOwner( String teiUid, String programUid,
+        TrackedEntityProgramOwnerOrgUnit tepo )
+    {
+        if ( !programOwner.containsKey( teiUid ) )
+        {
+            programOwner.put( teiUid, new HashMap<>() );
+        }
+
+        programOwner.get( teiUid ).put( programUid, tepo );
     }
 }

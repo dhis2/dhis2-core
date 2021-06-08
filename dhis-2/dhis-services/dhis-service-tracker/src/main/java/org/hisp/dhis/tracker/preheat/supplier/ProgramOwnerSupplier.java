@@ -25,44 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.config;
+package org.hisp.dhis.tracker.preheat.supplier;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.tracker.preheat.supplier.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-import com.google.common.collect.ImmutableList;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.springframework.stereotype.Component;
 
-@Configuration
-public class TrackerPreheatConfig
+/**
+ * @author Ameen Mohamed
+ */
+@RequiredArgsConstructor
+@Component
+@SupplierDependsOn( ClassBasedSupplier.class )
+public class ProgramOwnerSupplier extends AbstractPreheatSupplier
 {
-    private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
-        ClassBasedSupplier.class,
-        TrackedEntityProgramInstanceSupplier.class,
-        ProgramInstanceSupplier.class,
-        ProgramInstancesWithAtLeastOneEventSupplier.class,
-        ProgramStageInstanceProgramStageMapSupplier.class,
-        ProgramOrgUnitsSupplier.class,
-        ProgramOwnerSupplier.class,
-        PeriodTypeSupplier.class,
-        UniqueAttributesSupplier.class,
-        UserSupplier.class,
-        FileResourceSupplier.class );
+    @NonNull
+    private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
 
-    @Bean( "preheatOrder" )
-    public List<String> getPreheatOrder()
+    @Override
+    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        return preheatOrder.stream().map( Class::getSimpleName )
+        final Map<String, ProgramInstance> enrollments = preheat.getEnrollments().getOrDefault( TrackerIdScheme.UID,
+            new HashMap<>() );
+        List<Long> teiIds = enrollments.values().stream().map( e -> e.getEntityInstance().getId() )
             .collect( Collectors.toList() );
-    }
 
-    @Bean( "preheatStrategies" )
-    public Map<String, String> getPreheatStrategies()
-    {
-        return new PreheatStrategyScanner().scanSupplierStrategies();
+        List<TrackedEntityProgramOwnerOrgUnit> tepos = trackedEntityProgramOwnerStore
+            .getTrackedEntityProgramOwnerOrgUnits( teiIds );
+
+        preheat.addProgramOwners( tepos );
     }
 }

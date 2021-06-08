@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.service;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.OWNER_ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
@@ -107,6 +108,7 @@ public class DefaultTrackerImportAccessManager
     protected void checkTeiTypeAndTeiProgramAccess( ValidationErrorReporter reporter, User user,
         String trackedEntityInstance,
         OrganisationUnit organisationUnit,
+        OrganisationUnit ownerOrganisationUnit,
         Program program )
     {
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -122,7 +124,7 @@ public class DefaultTrackerImportAccessManager
                 .addArg( program.getTrackedEntityType() ) );
         }
 
-        if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, organisationUnit,
+        if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, ownerOrganisationUnit,
             program ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1102 )
@@ -134,7 +136,7 @@ public class DefaultTrackerImportAccessManager
 
     @Override
     public void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
-        String trackedEntity, OrganisationUnit organisationUnit )
+        String trackedEntity, OrganisationUnit enrollmentOrgUnit, OrganisationUnit ownerOrgUnit )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
@@ -147,13 +149,13 @@ public class DefaultTrackerImportAccessManager
         if ( program.isRegistration() )
         {
             checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
-            checkTeiTypeAndTeiProgramAccess( reporter, user, trackedEntity, organisationUnit, program );
+            checkTeiTypeAndTeiProgramAccess( reporter, user, trackedEntity, enrollmentOrgUnit, ownerOrgUnit, program );
         }
     }
 
     @Override
     public void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStage programStage,
-        OrganisationUnit orgUnit,
+        OrganisationUnit eventOrgUnit, OrganisationUnit ownerOrgUnit,
         CategoryOptionCombo categoryOptionCombo,
         String trackedEntity, boolean isCreatableInSearchScope )
     {
@@ -163,14 +165,15 @@ public class DefaultTrackerImportAccessManager
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
         checkNotNull( programStage.getProgram(), PROGRAM_CANT_BE_NULL );
-        checkNotNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( eventOrgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( ownerOrgUnit, OWNER_ORGANISATION_UNIT_CANT_BE_NULL );
 
-        if ( isCreatableInSearchScope ? !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit )
-            : !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
+        if ( isCreatableInSearchScope ? !organisationUnitService.isInUserSearchHierarchyCached( user, eventOrgUnit )
+            : !organisationUnitService.isInUserHierarchyCached( user, eventOrgUnit ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1000 )
                 .addArg( user )
-                .addArg( orgUnit ) );
+                .addArg( eventOrgUnit ) );
         }
 
         if ( programStage.getProgram().isWithoutRegistration() )
@@ -186,7 +189,8 @@ public class DefaultTrackerImportAccessManager
 
             checkTeiTypeAndTeiProgramAccess( reporter, user,
                 trackedEntity,
-                orgUnit,
+                eventOrgUnit,
+                ownerOrgUnit,
                 programStage.getProgram() );
         }
 

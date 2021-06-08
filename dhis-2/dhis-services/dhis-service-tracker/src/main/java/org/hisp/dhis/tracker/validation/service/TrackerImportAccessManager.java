@@ -75,7 +75,7 @@ public interface TrackerImportAccessManager
      * @param organisationUnit organisationUnit to check user has write access
      */
     void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
-        String trackedEntity, OrganisationUnit organisationUnit );
+        String trackedEntity, OrganisationUnit enrollmentOrganisationUnit, OrganisationUnit ownerOrganisationUnit );
 
     /**
      * Check importing user has write access to event.
@@ -102,7 +102,7 @@ public interface TrackerImportAccessManager
      *        capture scope
      */
     void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStage programStage,
-        OrganisationUnit orgUnit,
+        OrganisationUnit eventOrgUnit, OrganisationUnit ownerOrgUnit,
         CategoryOptionCombo categoryOptionCombo,
         String trackedEntity, boolean isCreatableInSearchScope );
 

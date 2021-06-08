@@ -67,4 +67,8 @@ public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEnti
 
     List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUids( List<Long> teiIds, long programId );
 
+    List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUids( List<Long> teiIds );
+
+    List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits( List<Long> teiIds );
+
 }
