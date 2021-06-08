@@ -426,7 +426,7 @@ public class JdbcEnrollmentAnalyticsManager
      * events analytics tables.
      *
      * @param item the {@link QueryItem}
-     * @param suffix is currently ignored. Not currently used for enrollments
+     * @param suffix to be appended to the item name (column)
      * @return when there is a program stage: returns the column select
      *         statement for the given item and suffix, otherwise returns the
      *         item name quoted and prefixed with the table prefix. ie.:
@@ -441,7 +441,7 @@ public class JdbcEnrollmentAnalyticsManager
         {
             assertProgram( item );
 
-            colName = quote( colName );
+            colName = quote( colName + suffix );
 
             final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
 
