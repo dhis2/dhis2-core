@@ -30,7 +30,6 @@ package org.hisp.dhis.reservedvalue.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -182,13 +181,12 @@ public class HibernateReservedValueStore
     @Override
     public void removeUsedOrExpiredReservations()
     {
-        String deleteQuery = "DELETE FROM ReservedValue r WHERE r.expiryDate < :now OR r.value in (" +
+        String deleteQuery = "DELETE FROM ReservedValue r WHERE r.expiryDate < CURRENT_TIMESTAMP OR r.value in (" +
             "SELECT teav.plainValue from TrackedEntityAttributeValue teav JOIN teav.attribute tea " +
             "WHERE r.ownerUid = tea.uid and r.value = teav.plainValue" +
             ")";
 
         getQuery( deleteQuery )
-            .setParameter( "now", new Date() )
             .executeUpdate();
     }
 
