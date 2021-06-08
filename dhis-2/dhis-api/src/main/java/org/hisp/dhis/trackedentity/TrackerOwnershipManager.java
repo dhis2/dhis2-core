@@ -89,7 +89,7 @@ public interface TrackerOwnershipManager
 
     /**
      * Ownership check can be skipped if the user is super user or if the
-     * program is without registration.
+     * program type is without registration.
      *
      * @param user the {@User}.
      * @param program the {@link Program}.
