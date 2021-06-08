@@ -80,7 +80,8 @@ public class UserControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.NO_CONTENT,
             POST( "/users/" + peter.getUid() + "/reset" ) );
 
-        assertValidToken( extractTokenFromEmailText( assertMessageSendTo( "peter@pan.net" ).getText() ) );
+        OutboundMessage email = assertMessageSendTo( "peter@pan.net" );
+        assertValidToken( extractTokenFromEmailText( email.getText() ) );
     }
 
     @Test
@@ -129,7 +130,8 @@ public class UserControllerTest extends DhisControllerConvenienceTest
         UserCredentials userCredentials = userService.getUserCredentialsByIdToken( idToken );
         assertNotNull( userCredentials );
 
-        String errorMessage = securityService.verifyRestoreToken( userCredentials, restoreToken, RestoreType.INVITE );
+        String errorMessage = securityService.verifyRestoreToken( userCredentials, restoreToken,
+            RestoreType.RECOVER_PASSWORD );
         assertNull( errorMessage );
     }
 
