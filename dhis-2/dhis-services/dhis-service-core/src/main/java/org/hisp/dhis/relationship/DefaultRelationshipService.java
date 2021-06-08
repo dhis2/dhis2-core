@@ -70,6 +70,15 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional
+    public void invalidateRelationship( Relationship relationship )
+    {
+        relationship.setFrom( null );
+        relationship.setTo( null );
+        relationshipStore.update( relationship );
+    }
+
+    @Override
     @Transactional( readOnly = true )
     public Relationship getRelationship( long id )
     {

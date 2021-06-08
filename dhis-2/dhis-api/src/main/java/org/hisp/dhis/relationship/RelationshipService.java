@@ -52,11 +52,18 @@ public interface RelationshipService
     long addRelationship( Relationship relationship );
 
     /**
-     * Returns a {@link Relationship}.
+     * Delete the {@link Relationship}.
      *
      * @param relationship the relationship.
      */
     void deleteRelationship( Relationship relationship );
+
+    /**
+     * Invalidate a {@link Relationship}.
+     *
+     * @param relationship the relationship.
+     */
+    void invalidateRelationship( Relationship relationship );
 
     /**
      * Updates a {@link Relationship}.

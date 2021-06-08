@@ -73,7 +73,7 @@ public class RelationshipDeletionHandler
         {
             for ( Relationship relationship : relationships )
             {
-                relationshipService.deleteRelationship( relationship );
+                relationshipService.invalidateRelationship( relationship );
             }
         }
     }
@@ -88,7 +88,7 @@ public class RelationshipDeletionHandler
         {
             for ( Relationship relationship : relationships )
             {
-                relationshipService.deleteRelationship( relationship );
+                relationshipService.invalidateRelationship( relationship );
             }
         }
     }
@@ -103,7 +103,7 @@ public class RelationshipDeletionHandler
         {
             for ( Relationship relationship : relationships )
             {
-                relationshipService.deleteRelationship( relationship );
+                relationshipService.invalidateRelationship( relationship );
             }
         }
     }
