@@ -25,37 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.association;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import lombok.AccessLevel;
+import lombok.Getter;
 
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-
-/**
- * @author Lars Helge Overland
- */
-public class JacksonCsvUtils
+@Service
+public class CategoryOptionOrganisationUnitAssociationsQueryBuilder
+    extends AbstractOrganisationUnitAssociationsQueryBuilder
 {
-    /**
-     * Writes the given response to the given output stream as CSV using
-     * {@link CsvMapper}. The schema is inferred from the given type using
-     * {@CsvSchema}. A header line is included.
-     *
-     * @param value the value to write.
-     * @param out the {@link OutputStream} to write to.
-     * @throws IOException if the write operation fails.
-     */
-    public static void toCsv( Object value, Class<?> type, OutputStream out )
-        throws IOException
+    @Getter( AccessLevel.PROTECTED )
+    private final String relationshipTableName = "categoryoption_organisationunits";
+
+    @Getter( AccessLevel.PROTECTED )
+    private final String joinColumnName = "categoryoptionid";
+
+    @Getter( AccessLevel.PROTECTED )
+    private final String baseTableName = "dataelementcategoryoption";
+
+    public CategoryOptionOrganisationUnitAssociationsQueryBuilder( CurrentUserService currentUserService )
     {
-        CsvMapper csvMapper = JacksonObjectMapperConfig.csvMapper;
-        CsvSchema schema = csvMapper.schemaFor( type ).withHeader();
-        ObjectWriter writer = csvMapper.writer( schema );
-        writer.writeValue( out, value );
+        super( currentUserService );
     }
 }

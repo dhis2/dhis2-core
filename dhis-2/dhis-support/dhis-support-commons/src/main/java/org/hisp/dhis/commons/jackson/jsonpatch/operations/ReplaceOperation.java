@@ -1,5 +1,3 @@
-package org.hisp.dhis.metadata.programs;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,58 +25,41 @@ package org.hisp.dhis.metadata.programs;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.jackson.jsonpatch.operations;
 
-import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.ResponseValidationHelper;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchValueOperation;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * Just a combination of the two other operators, first it removes the old value
+ * then sets a new one.
+ *
+ * @author Morten Olav Hansen
  */
-public class ProgramsTest
-    extends AbstractOrgUnitAssociationTestSupport
+public class ReplaceOperation extends JsonPatchValueOperation
 {
-    public static final String PROGRAM_UID = "Zd2rkv8FsWq";
-
-    private LoginActions loginActions;
-
-    private ProgramActions programActions;
-
-    @BeforeAll
-    public void beforeAll()
+    @JsonCreator
+    public ReplaceOperation( @JsonProperty( "path" ) JsonPointer path, @JsonProperty( "value" ) JsonNode value )
     {
-        loginActions = new LoginActions();
-        programActions = new ProgramActions();
+        super( "replace", path, value );
     }
 
-    @BeforeEach
-    public void before()
+    @Override
+    public JsonNode apply( JsonNode node )
+        throws JsonPatchException
     {
-        loginActions.loginAsSuperUser();
-    }
+        // TODO replace with custom impl? so we don't need to create new objects
+        final RemoveOperation removeOperation = new RemoveOperation( path );
+        final AddOperation addOperation = new AddOperation( path, value );
 
-    @ParameterizedTest( name = "withType[{0}]" )
-    @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
-    public void shouldCreateProgram( String programType )
-    {
-        JsonObject object = programActions.getDummy();
-        object.addProperty( "programType", programType );
+        node = removeOperation.apply( node );
+        node = addOperation.apply( node );
 
-        ApiResponse response = programActions.post( object );
-
-        ResponseValidationHelper.validateObjectCreation( response );
-    }
-
-    @Test
-    public void testProgramOrgUnitsConnections()
-    {
-        super.testOrgUnitsConnections( programActions::getOrgUnitsAssociations, PROGRAM_UID );
+        return node;
     }
 }

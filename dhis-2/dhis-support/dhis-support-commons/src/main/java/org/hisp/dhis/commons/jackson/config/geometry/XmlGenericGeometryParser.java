@@ -1,5 +1,3 @@
-package org.hisp.dhis.metadata.programs;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,58 +25,43 @@ package org.hisp.dhis.metadata.programs;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.jackson.config.geometry;
 
-import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.ResponseValidationHelper;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import lombok.extern.slf4j.Slf4j;
+
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
+
+import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
+import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Enrico Colasante
  */
-public class ProgramsTest
-    extends AbstractOrgUnitAssociationTestSupport
+@Slf4j
+public class XmlGenericGeometryParser
+    extends BaseParser
+    implements GeometryParser<Geometry>
 {
-    public static final String PROGRAM_UID = "Zd2rkv8FsWq";
-
-    private LoginActions loginActions;
-
-    private ProgramActions programActions;
-
-    @BeforeAll
-    public void beforeAll()
+    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
     {
-        loginActions = new LoginActions();
-        programActions = new ProgramActions();
+        super( geometryFactory );
     }
 
-    @BeforeEach
-    public void before()
+    public Geometry geometryFromJson( JsonNode node )
     {
-        loginActions.loginAsSuperUser();
-    }
-
-    @ParameterizedTest( name = "withType[{0}]" )
-    @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
-    public void shouldCreateProgram( String programType )
-    {
-        JsonObject object = programActions.getDummy();
-        object.addProperty( "programType", programType );
-
-        ApiResponse response = programActions.post( object );
-
-        ResponseValidationHelper.validateObjectCreation( response );
-    }
-
-    @Test
-    public void testProgramOrgUnitsConnections()
-    {
-        super.testOrgUnitsConnections( programActions::getOrgUnitsAssociations, PROGRAM_UID );
+        WKTReader wktR = new WKTReader();
+        try
+        {
+            return wktR.read( node.asText() );
+        }
+        catch ( ParseException e )
+        {
+            log.error( "Error reading WKT of geometry", e );
+            return null;
+        }
     }
 }

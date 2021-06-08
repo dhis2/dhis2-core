@@ -1,5 +1,3 @@
-package org.hisp.dhis.metadata.programs;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,58 +25,46 @@ package org.hisp.dhis.metadata.programs;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.jackson;
 
-import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.ResponseValidationHelper;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.junit.Test;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Morten Olav Hansen
  */
-public class ProgramsTest
-    extends AbstractOrgUnitAssociationTestSupport
+public class JsonPatchTest
 {
-    public static final String PROGRAM_UID = "Zd2rkv8FsWq";
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    private LoginActions loginActions;
-
-    private ProgramActions programActions;
-
-    @BeforeAll
-    public void beforeAll()
+    @Test
+    public void testJsonPatchDeserializeEmpty()
+        throws JsonProcessingException
     {
-        loginActions = new LoginActions();
-        programActions = new ProgramActions();
-    }
-
-    @BeforeEach
-    public void before()
-    {
-        loginActions.loginAsSuperUser();
-    }
-
-    @ParameterizedTest( name = "withType[{0}]" )
-    @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
-    public void shouldCreateProgram( String programType )
-    {
-        JsonObject object = programActions.getDummy();
-        object.addProperty( "programType", programType );
-
-        ApiResponse response = programActions.post( object );
-
-        ResponseValidationHelper.validateObjectCreation( response );
+        JsonPatch patch = jsonMapper.readValue( "[]", JsonPatch.class );
+        assertNotNull( patch );
+        assertTrue( patch.getOperations().isEmpty() );
     }
 
     @Test
-    public void testProgramOrgUnitsConnections()
+    public void testJsonPatchDeserializeWithOps()
+        throws JsonProcessingException
     {
-        super.testOrgUnitsConnections( programActions::getOrgUnitsAssociations, PROGRAM_UID );
+        JsonPatch patch = jsonMapper.readValue( "[" +
+            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": \"bbb\"}," +
+            "{\"op\": \"replace\", \"path\": \"/aaa\", \"value\": \"bbb\"}," +
+            "{\"op\": \"remove\", \"path\": \"/aaa\"}" +
+            "]", JsonPatch.class );
+
+        assertNotNull( patch );
+        assertEquals( 3, patch.getOperations().size() );
     }
 }

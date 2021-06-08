@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config.jackson;
+package org.hisp.dhis.commons.jackson.config;
 
 import java.io.IOException;
 import java.util.Date;
@@ -41,8 +41,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class ParseDateStdDeserializer
-    extends
-    JsonDeserializer<Date>
+    extends JsonDeserializer<Date>
 {
     @Override
     public Date deserialize( JsonParser parser, DeserializationContext context )

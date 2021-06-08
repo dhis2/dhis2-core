@@ -25,44 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.category;
+package org.hisp.dhis.commons.jackson.config;
 
-import java.util.Optional;
-import java.util.Set;
+import java.io.IOException;
+import java.util.Date;
 
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.util.DateUtils;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.association.IdentifiableObjectAssociations;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( value = CategoryOptionSchemaDescriptor.API_ENDPOINT )
-@RequiredArgsConstructor
-public class CategoryOptionController extends AbstractCrudController<CategoryOption>
+public class WriteDateStdSerializer extends JsonSerializer<Date>
 {
-    private final CategoryService categoryService;
-
-    @ResponseBody
-    @GetMapping( value = "orgUnits" )
-    public IdentifiableObjectAssociations getOrgUnitsAssociations(
-        @RequestParam( value = "categoryOptions" ) Set<String> categoryOptionsUids )
+    @Override
+    public void serialize( Date date, JsonGenerator generator, SerializerProvider provider )
+        throws IOException
     {
-        return Optional.ofNullable( categoryOptionsUids )
-            .filter( CollectionUtils::isNotEmpty )
-            .map( categoryService::getCategoryOptionOrganisationUnitsAssociations )
-            .orElseThrow( () -> new IllegalArgumentException( "At least one categoryOption uid must be specified" ) );
+        generator.writeString( DateUtils.getIso8601NoTz( date ) );
     }
-
 }
