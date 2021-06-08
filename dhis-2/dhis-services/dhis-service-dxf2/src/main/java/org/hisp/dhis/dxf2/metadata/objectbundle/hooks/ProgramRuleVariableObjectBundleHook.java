@@ -43,6 +43,8 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -59,6 +61,12 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, this::processDataElementWithStage )
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, this::processTEA )
         .build();
+
+    private final static ImmutableCollection<ImportStrategy> UPDATE_STRATEGIES = ImmutableList.of(
+        ImportStrategy.UPDATE,
+        ImportStrategy.CREATE_AND_UPDATE,
+        ImportStrategy.NEW_AND_UPDATES,
+        ImportStrategy.UPDATES );
 
     private static final String FROM_PROGRAM_RULE_VARIABLE = " from ProgramRuleVariable prv where prv.name = :name and prv.program.uid = :programUid";
 
@@ -88,7 +96,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
     {
         Query<ProgramRuleVariable> query = getProgramRuleVariableQuery( programRuleVariable );
 
-        int allowedCount = bundle.getImportMode() == ImportStrategy.UPDATE ? 1 : 0;
+        int allowedCount = UPDATE_STRATEGIES.contains( bundle.getImportMode() ) ? 1 : 0;
 
         if ( query.getResultList().size() > allowedCount )
         {
