@@ -50,6 +50,7 @@ import org.hisp.dhis.program.ProgramTempOwner;
 import org.hisp.dhis.program.ProgramTempOwnerService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.core.env.Environment;
@@ -332,7 +333,13 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     @Override
     public boolean canSkipOwnershipCheck( User user, Program program )
     {
-        return user == null || user.isSuper() || program == null || program.isWithoutRegistration();
+        return program == null || canSkipOwnershipCheck( user, program.getProgramType() );
+    }
+
+    @Override
+    public boolean canSkipOwnershipCheck( User user, ProgramType programType )
+    {
+        return user == null || user.isSuper() || ProgramType.WITHOUT_REGISTRATION == programType;
     }
 
     // -------------------------------------------------------------------------
