@@ -154,9 +154,7 @@ import org.hisp.dhis.schema.descriptors.TrackedEntityProgramIndicatorDimensionSc
 import org.hisp.dhis.schema.descriptors.TrackedEntityTypeAttributeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityTypeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.UserAccessSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.UserCredentialsSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.UserGroupAccessSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.UserGroupSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.UserRoleSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ValidationNotificationTemplateSchemaDescriptor;
@@ -240,7 +238,6 @@ public class DefaultSchemaService
         .add( new TrackedEntityTypeSchemaDescriptor() ).add( new TrackedEntityTypeAttributeSchemaDescriptor() )
         .add( new TrackedEntityDataElementDimensionSchemaDescriptor() )
         .add( new TrackedEntityProgramIndicatorDimensionSchemaDescriptor() )
-        .add( new UserCredentialsSchemaDescriptor() ).add( new UserGroupSchemaDescriptor() )
         .add( new UserRoleSchemaDescriptor() ).add( new UserSchemaDescriptor() )
         .add( new ValidationRuleGroupSchemaDescriptor() ).add( new ValidationRuleSchemaDescriptor() )
         .add( new ValidationNotificationTemplateSchemaDescriptor() ).add( new PushAnalysisSchemaDescriptor() )
