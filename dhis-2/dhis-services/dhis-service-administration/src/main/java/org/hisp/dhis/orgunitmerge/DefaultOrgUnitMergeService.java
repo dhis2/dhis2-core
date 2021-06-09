@@ -30,33 +30,43 @@ package org.hisp.dhis.orgunitmerge;
 import java.util.Collection;
 import java.util.Set;
 
+import javax.transaction.Transactional;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.stereotype.Service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
+@Service
 public class DefaultOrgUnitMergeService
     implements OrgUnitMergeService
 {
     private final IdentifiableObjectManager idObjectManager;
 
-    private final ImmutableList<OrgUnitMergeHandler> mergeHandlers;
+    private final AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler;
 
-    public DefaultOrgUnitMergeService( IdentifiableObjectManager idObjectManager )
+    private final ImmutableList<OrgUnitMergeHandler> handlers;
+
+    public DefaultOrgUnitMergeService( IdentifiableObjectManager idObjectManager,
+        AnalyticalObjectOrgUnitMergeHandler analyticalObjectMergeHandler )
     {
+        Preconditions.checkNotNull( analyticalObjectMergeHandler );
         Preconditions.checkNotNull( idObjectManager );
 
+        this.analyticalObjectHandler = analyticalObjectMergeHandler;
         this.idObjectManager = idObjectManager;
-        this.mergeHandlers = getMergeHandlers();
+        this.handlers = getMergeHandlers();
     }
 
     @Override
+    @Transactional
     public void merge( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
-        mergeHandlers.forEach( merge -> merge.apply( sources, target ) );
+        handlers.forEach( merge -> merge.apply( sources, target ) );
 
-        // Persistence inspection will update associated objects
+        // Persistence framework inspection will update associated objects
 
         idObjectManager.update( target );
     }
@@ -73,6 +83,10 @@ public class DefaultOrgUnitMergeService
             .add( ( s, t ) -> mergeOrgUnitGroups( s, t ) )
             .add( ( s, t ) -> mergeCategoryOptions( s, t ) )
             .add( ( s, t ) -> mergeUsers( s, t ) )
+            .add( ( s, t ) -> analyticalObjectHandler.mergeVisualizations( s, t ) )
+            .add( ( s, t ) -> analyticalObjectHandler.mergeEventReports( s, t ) )
+            .add( ( s, t ) -> analyticalObjectHandler.mergeEventCharts( s, t ) )
+            .add( ( s, t ) -> analyticalObjectHandler.mergeMaps( s, t ) )
             .build();
     }
 
