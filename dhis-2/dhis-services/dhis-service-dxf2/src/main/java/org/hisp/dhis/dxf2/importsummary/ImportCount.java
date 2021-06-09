@@ -87,11 +87,6 @@ public class ImportCount
         return ignored;
     }
 
-    public void setIgnored( int ignored )
-    {
-        this.ignored = ignored;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public int getDeleted()

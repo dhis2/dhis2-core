@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -51,7 +50,6 @@ import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18n;
@@ -201,14 +199,12 @@ public final class ImportContext
 
     public void addConflict( String object, String value )
     {
-        summary.getConflicts().add( new ImportConflict( object, value ) );
+        summary.addConflict( object, value );
     }
 
     public void addConflicts( String object, List<String> values )
     {
-        summary.getConflicts().addAll( values.stream()
-            .map( value -> new ImportConflict( object, value ) )
-            .collect( Collectors.toList() ) );
+        values.forEach( value -> addConflict( object, value ) );
     }
 
     public String getStoredBy( DataValue dataValue )

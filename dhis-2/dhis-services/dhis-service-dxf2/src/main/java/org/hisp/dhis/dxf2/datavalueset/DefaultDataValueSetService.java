@@ -73,7 +73,7 @@ import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataSetContext;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -610,7 +610,7 @@ public class DefaultDataValueSetService
 
     @Override
     @Transactional
-    public ImportSummary saveDataValueSetJson( InputStream in )
+    public ImportConflicts saveDataValueSetJson( InputStream in )
     {
         return saveDataValueSetJson( in, ImportOptions.getDefaultImportOptions(), null );
     }
@@ -871,12 +871,9 @@ public class DefaultDataValueSetService
             context.getAuditBatchHandler().flush();
         }
 
-        importCount
-            .setIgnored( totalCount - importCount.getImported() - importCount.getUpdated() - importCount.getDeleted() );
-
         context.getSummary()
             .setImportCount( importCount )
-            .setStatus( context.getSummary().getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.WARNING )
+            .setStatus( !context.getSummary().hasConflicts() ? ImportStatus.SUCCESS : ImportStatus.WARNING )
             .setDescription( "Import process completed successfully" );
 
         clock.logTime(
@@ -1249,15 +1246,13 @@ public class DefaultDataValueSetService
     {
         if ( orgUnit == null )
         {
-            summary.getConflicts()
-                .add( new ImportConflict( OrganisationUnit.class.getSimpleName(), ERROR_OBJECT_NEEDED_TO_COMPLETE ) );
+            summary.addConflict( OrganisationUnit.class.getSimpleName(), ERROR_OBJECT_NEEDED_TO_COMPLETE );
             return;
         }
 
         if ( period == null )
         {
-            summary.getConflicts()
-                .add( new ImportConflict( Period.class.getSimpleName(), ERROR_OBJECT_NEEDED_TO_COMPLETE ) );
+            summary.addConflict( Period.class.getSimpleName(), ERROR_OBJECT_NEEDED_TO_COMPLETE );
             return;
         }
 

@@ -25,42 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.validation;
+package org.hisp.dhis.dxf2.importsummary;
 
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
-
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
+import java.util.function.Predicate;
 
 /**
- * @author maikel arabori
+ * A "append only" set of {@link ImportConflict}s.
  */
-public class ProgramStageInstanceBasicCheck implements Checker
+public interface ImportConflicts
 {
-    @Override
-    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
+
+    void addConflict( String object, String message );
+
+    /**
+     * @return A textual description of all {@link ImportConflict}s in this set
+     */
+    String getConflictsDescription();
+
+    /**
+     * @return Number of unique conflicts in the set. This can be less than the
+     *         number of conflicts added using
+     *         {@link #addConflict(String, String)} since duplicates are
+     *         eliminated
+     */
+    int getConflictCount();
+
+    /**
+     * Tests if a {@link ImportConflict} with certain qualities exists in this
+     * set.
+     *
+     * @param test
+     * @return true if it exist, otherwise false
+     */
+    boolean hasConflict( Predicate<ImportConflict> test );
+
+    default boolean hasConflicts()
     {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
-
-        if ( programStageInstance == null )
-        {
-            final ImportSummary error = error( "Event ID " + event.getEvent() + " doesn't point to valid event",
-                event.getEvent() );
-            error.addConflict( "Invalid Event ID", event.getEvent() );
-
-            return error;
-        }
-        else if ( programStageInstance.isDeleted() || ctx.getImportOptions().getImportStrategy().isCreate() )
-        {
-            return error(
-                "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
-                    .setReference( event.getEvent() );
-        }
-
-        return success();
+        return getConflictCount() > 0;
     }
 }
