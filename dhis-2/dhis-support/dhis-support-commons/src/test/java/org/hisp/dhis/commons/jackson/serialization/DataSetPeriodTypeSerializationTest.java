@@ -25,43 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.commons.jackson.serialization;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashSet;
+
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.period.PeriodType;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Sorting parameters
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * @author Morten Olav Hansen
  */
-public interface SortingCriteria
+public class DataSetPeriodTypeSerializationTest
 {
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    /**
-     * order params
-     */
-    List<OrderCriteria> getOrder();
-
-    /**
-     * Implementors should return a list of fields on which it is allowed to
-     * perform ordering Defaults to empty list which means all fields are
-     * allowed for ordering
-     */
-    default List<String> getAllowedOrderingFields()
+    @Test
+    public void testPeriodTypeAsString()
     {
-        return Collections.emptyList();
-    }
+        DataSet dataSet = new DataSet( "DataSetUnderTest", PeriodType.getPeriodTypeByName( "Daily" ) );
+        dataSet.setDataSetElements( new HashSet<>() );
 
-    /**
-     * By default it does not translate any field
-     *
-     * @return
-     */
-    default Optional<String> translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return Optional.ofNullable( dtoFieldName );
-    }
+        JsonNode dataSetNodes = jsonMapper.valueToTree( dataSet );
 
+        assertTrue( dataSetNodes.has( "periodType" ) );
+        assertTrue( dataSetNodes.get( "periodType" ).isTextual() );
+        assertEquals( "PeriodType serialization does not match expectation", "Daily",
+            dataSetNodes.get( "periodType" ).asText() );
+    }
 }

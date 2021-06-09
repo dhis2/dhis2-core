@@ -25,43 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.event.EventStatus;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
- * Sorting parameters
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-public interface SortingCriteria
+public class EventStatusPreProcessorTest
 {
+    private EventStatusPreProcessor preProcessor;
 
-    /**
-     * order params
-     */
-    List<OrderCriteria> getOrder();
-
-    /**
-     * Implementors should return a list of fields on which it is allowed to
-     * perform ordering Defaults to empty list which means all fields are
-     * allowed for ordering
-     */
-    default List<String> getAllowedOrderingFields()
+    @Before
+    public void setUp()
     {
-        return Collections.emptyList();
+        preProcessor = new EventStatusPreProcessor();
     }
 
-    /**
-     * By default it does not translate any field
-     *
-     * @return
-     */
-    default Optional<String> translateField( String dtoFieldName, boolean isLegacy )
+    @Test
+    public void testVisitedStatusIsConvertedToActive()
     {
-        return Optional.ofNullable( dtoFieldName );
-    }
+        WorkContext ctx = WorkContext.builder()
+            .importOptions( ImportOptions.getDefaultImportOptions() )
+            .build();
+        Event event = new Event();
+        event.setStatus( EventStatus.VISITED );
+        event.setDataValues( Sets.newHashSet( new DataValue( "aaa", "one" ), new DataValue( "bbb", "two" ) ) );
+        preProcessor.process( event, ctx );
 
+        assertThat( event.getStatus(), is( EventStatus.ACTIVE ) );
+    }
 }
