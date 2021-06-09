@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -44,6 +45,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.util.InputUtils;
@@ -279,8 +281,12 @@ public class GetDataValuesForDataSetAction
 
         if ( !multiOrganisationUnit )
         {
-            dataValues.addAll( dataValueService.getDataValues( organisationUnit, period, dataSet.getDataElements(),
-                attributeOptionCombo ) );
+            dataValues.addAll( dataValueService.getDataValues( new DataExportParams()
+                .setDataElements( dataSet.getDataElements() )
+                .setPeriods( Sets.newHashSet( period ) )
+                .setOrganisationUnits( Sets.newHashSet( organisationUnit ) )
+                .setAttributeOptionCombos( Sets.newHashSet( attributeOptionCombo ) ) ) );
+
         }
         else
         {
@@ -288,8 +294,12 @@ public class GetDataValuesForDataSetAction
             {
                 if ( ou.getDataSets().contains( dataSet ) )
                 {
-                    dataValues.addAll(
-                        dataValueService.getDataValues( ou, period, dataSet.getDataElements(), attributeOptionCombo ) );
+                    dataValues.addAll( dataValueService.getDataValues( new DataExportParams()
+                        .setDataElements( dataSet.getDataElements() )
+                        .setPeriods( Sets.newHashSet( period ) )
+                        .setOrganisationUnits( Sets.newHashSet( ou ) )
+                        .setAttributeOptionCombos( Sets.newHashSet( attributeOptionCombo ) ) ) );
+
                     minMaxDataElements.addAll( minMaxDataElementService.getMinMaxDataElements( ou, dataSet
                         .getDataElements() ) );
                 }

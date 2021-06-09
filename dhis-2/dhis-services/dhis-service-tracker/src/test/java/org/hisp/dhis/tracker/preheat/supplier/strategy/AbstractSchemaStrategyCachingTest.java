@@ -55,8 +55,6 @@ import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.preheat.mappers.ProgramMapper;
 import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
-import org.hisp.dhis.tracker.preheat.supplier.strategy.ProgramStrategy;
-import org.hisp.dhis.tracker.preheat.supplier.strategy.RelationshipTypeStrategy;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
