@@ -63,6 +63,8 @@ public class DefaultOrgUnitMergeService
     {
         mergeHandlers.forEach( merge -> merge.apply( sources, target ) );
 
+        // Persistence inspection will update associated objects as well
+
         idObjectManager.update( target );
     }
 
