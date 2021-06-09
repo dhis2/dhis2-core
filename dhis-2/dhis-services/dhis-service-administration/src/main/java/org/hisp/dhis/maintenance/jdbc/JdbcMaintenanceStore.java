@@ -88,10 +88,6 @@ public class JdbcMaintenanceStore
         String relationshipsSelect = "(select relationshipid from relationship where from_relationshipitemid is NULL " +
             "OR to_relationshipitemid is NULL)";
 
-        /*
-         * Delete relationship items and relationships
-         *
-         */
         String[] sqlStmts = new String[] {
             "delete from relationshipitem where relationshipid in " + relationshipsSelect,
             "delete from relationship where relationshipid in " + relationshipsSelect };
