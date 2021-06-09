@@ -49,7 +49,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
@@ -181,6 +185,30 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
             .collect( Collectors.toSet() );
         assertTrue( teis.contains( teiUid[0] ) );
         assertTrue( teis.contains( teiUid[1] ) );
+    }
+
+    @Test
+    public void testFetchTrackedEntityInstancesWithSingleQuoteInAttributeSearchInput()
+    {
+        doInTransaction( () -> {
+            this.persistTrackedEntityInstance();
+            this.persistTrackedEntityInstance();
+            this.persistTrackedEntityInstance();
+            this.persistTrackedEntityInstance();
+        } );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
+        queryParams.addFilter( new QueryItem( createTrackedEntityAttribute( 'A' ), QueryOperator.EQ, "M'M",
+            ValueType.TEXT, AggregationType.NONE, null ) );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+
+        assertThat( trackedEntityInstances, hasSize( 0 ) );
     }
 
     @Test
