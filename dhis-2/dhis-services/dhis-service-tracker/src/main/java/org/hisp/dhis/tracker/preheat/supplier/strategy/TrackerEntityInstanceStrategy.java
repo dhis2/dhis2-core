@@ -25,68 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.relationship.RelationshipStore;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.DetachUtils;
-import org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.mappers.RelationshipMapper;
-import org.hisp.dhis.tracker.util.Constant;
+import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityInstanceMapper;
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = Relationship.class, mapper = RelationshipMapper.class )
-public class RelationshipStrategy implements ClassBasedSupplierStrategy
+@StrategyFor( value = TrackedEntity.class, mapper = TrackedEntityInstanceMapper.class )
+public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
 {
     @NonNull
-    private final RelationshipStore relationshipStore;
+    private TrackedEntityInstanceStore trackedEntityInstanceStore;
 
     @Override
     public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
-        List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationships( splitList );
+        for ( List<String> ids : splitList )
+        {
+            // Fetch all Tracked Entity Instance present in the payload
+            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getIncludingDeleted( ids );
 
-        preheat.putRelationships( TrackerIdScheme.UID,
-            DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationships ) );
-    }
+            // Get the uids of all the TEIs which are root (a TEI is not root
+            // when is a
+            // property of another object, e.g. enrollment)
+            final List<String> rootEntities = params.getTrackedEntities().stream()
+                .map( TrackedEntity::getTrackedEntity )
+                .collect( Collectors.toList() );
 
-    private List<org.hisp.dhis.relationship.Relationship> retrieveRelationships( List<List<String>> splitList )
-    {
-        return splitList.stream()
-            .flatMap( Collection::stream )
-            .collect( Collectors.partitioningBy( RelationshipPreheatKeySupport::isRelationshipPreheatKey ) )
-            .entrySet().stream()
-            .flatMap( this::getRelationships )
-            .filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private Stream<org.hisp.dhis.relationship.Relationship> getRelationships( Map.Entry<Boolean, List<String>> entry )
-    {
-        return entry.getKey() ? entry.getValue().stream()
-            .map( relationshipStore::getByRelationshipKey )
-            : Lists.partition( entry.getValue(), Constant.SPLIT_LIST_PARTITION_SIZE ).stream()
-                .map( relationshipStore::getByUid )
-                .flatMap( Collection::stream );
+            // Add to preheat
+            preheat.putTrackedEntities( TrackerIdScheme.UID,
+                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
+                    trackedEntityInstances ),
+                RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ) );
+        }
     }
 }

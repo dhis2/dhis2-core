@@ -203,15 +203,15 @@ public class DefaultReservedValueService
 
     @Override
     @Transactional
-    public void removeExpiredReservations()
+    public void deleteReservedValueByUid( String uid )
     {
-        reservedValueStore.removeExpiredReservations();
+        reservedValueStore.deleteReservedValueByUid( uid );
     }
 
     @Override
     @Transactional
-    public void deleteReservedValueByUid( String uid )
+    public void removeUsedOrExpiredReservations()
     {
-        reservedValueStore.deleteReservedValueByUid( uid );
+        reservedValueStore.removeUsedOrExpiredReservations();
     }
 }

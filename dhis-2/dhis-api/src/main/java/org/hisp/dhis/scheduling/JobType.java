@@ -85,7 +85,7 @@ public enum JobType
     PREDICTOR( "predictorJob", true, SchedulingType.CRON, PredictorJobParameters.class, ImmutableMap.of(
         "predictors", "/api/predictors", "predictorGroups", "/api/predictorGroups" ) ),
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false ),
-    REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false ),
+    REMOVE_USED_OR_EXPIRED_RESERVED_VALUES( "removeUsedOrExpiredReservedValuesJob", false ),
     TRACKER_IMPORT_JOB( "trackerImportJob", false ),
     TRACKER_IMPORT_NOTIFICATION_JOB( "trackerImportNotificationJob", false ),
     TRACKER_IMPORT_RULE_ENGINE_JOB( "trackerImportRuleEngineJob", false ),

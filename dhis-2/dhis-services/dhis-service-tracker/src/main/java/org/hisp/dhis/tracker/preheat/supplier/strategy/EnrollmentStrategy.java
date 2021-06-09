@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,14 +33,14 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityInstanceMapper;
+import org.hisp.dhis.tracker.preheat.mappers.ProgramInstanceMapper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,32 +48,28 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = TrackedEntity.class, mapper = TrackedEntityInstanceMapper.class )
-public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
+@StrategyFor( value = Enrollment.class, mapper = ProgramInstanceMapper.class )
+public class EnrollmentStrategy implements ClassBasedSupplierStrategy
 {
     @NonNull
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private final ProgramInstanceStore programInstanceStore;
 
     @Override
     public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
         for ( List<String> ids : splitList )
         {
-            // Fetch all Tracked Entity Instance present in the payload
-            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getIncludingDeleted( ids );
+            List<ProgramInstance> programInstances = programInstanceStore.getIncludingDeleted( ids );
 
-            // Get the uids of all the TEIs which are root (a TEI is not root
-            // when is a
-            // property of another object, e.g. enrollment)
-            final List<String> rootEntities = params.getTrackedEntities().stream()
-                .map( TrackedEntity::getTrackedEntity )
+            final List<String> rootEntities = params.getEnrollments().stream().map( Enrollment::getEnrollment )
                 .collect( Collectors.toList() );
 
-            // Add to preheat
-            preheat.putTrackedEntities( TrackerIdScheme.UID,
-                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
-                    trackedEntityInstances ),
-                RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ) );
+            preheat.putEnrollments( TrackerIdScheme.UID,
+                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), programInstances ),
+                params.getEnrollments().stream().filter(
+                    e -> RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ).contains( e.getEnrollment() ) )
+                    .collect( Collectors.toList() ) );
+
         }
     }
 }

@@ -25,37 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
-import org.springframework.stereotype.Component;
 
 /**
+ *
  * @author Luciano Fiandesio
  */
-@Component
-@StrategyFor( value = GenericStrategy.class, mapper = CopyMapper.class )
-public class GenericStrategy extends AbstractSchemaStrategy
+public interface ClassBasedSupplierStrategy
 {
-    public GenericStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
-    {
-        super( schemaService, queryService, manager, cacheService );
-    }
-
-    public void add( Class<?> klazz, List<List<String>> splitList, TrackerPreheat preheat )
-    {
-        Schema schema = schemaService.getDynamicSchema( klazz );
-        queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID, splitList,
-            getClass().getAnnotation( StrategyFor.class ).mapper() );
-    }
+    void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat );
 }
