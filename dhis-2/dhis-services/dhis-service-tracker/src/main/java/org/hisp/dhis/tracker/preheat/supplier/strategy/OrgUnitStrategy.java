@@ -25,25 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityTypeMapper;
+import org.hisp.dhis.tracker.preheat.mappers.OrganisationUnitMapper;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = TrackedEntityType.class, mapper = TrackedEntityTypeMapper.class, cache = true, ttl = 10, capacity = 5 )
-public class TrackedEntityTypeStrategy extends AbstractSchemaStrategy
+@StrategyFor( value = OrganisationUnit.class, mapper = OrganisationUnitMapper.class, cache = true, ttl = 30, capacity = 100 )
+public class OrgUnitStrategy extends AbstractSchemaStrategy
 {
-    public TrackedEntityTypeStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
+    public OrgUnitStrategy( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager,
+        PreheatCacheService cacheService )
     {
         super( schemaService, queryService, manager, cacheService );
     }

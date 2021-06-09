@@ -25,24 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.TrackedEntityAttributeMapper;
+import org.hisp.dhis.tracker.preheat.mappers.DataElementMapper;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = TrackedEntityAttribute.class, mapper = TrackedEntityAttributeMapper.class )
-public class TrackedEntityAttributeStrategy extends AbstractSchemaStrategy
+@StrategyFor( value = DataElement.class, mapper = DataElementMapper.class )
+public class DataElementStrategy extends AbstractSchemaStrategy
 {
-    public TrackedEntityAttributeStrategy( SchemaService schemaService, QueryService queryService,
+    public DataElementStrategy( SchemaService schemaService, QueryService queryService,
         IdentifiableObjectManager manager, PreheatCacheService cacheService )
     {
         super( schemaService, queryService, manager, cacheService );
