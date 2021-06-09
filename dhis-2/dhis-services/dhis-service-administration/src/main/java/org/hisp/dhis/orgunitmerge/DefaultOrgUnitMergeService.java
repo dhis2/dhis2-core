@@ -48,14 +48,7 @@ public class DefaultOrgUnitMergeService
         Preconditions.checkNotNull( idObjectManager );
 
         this.idObjectManager = idObjectManager;
-
-        this.mergeHandlers = ImmutableList.<OrgUnitMergeHandler> builder()
-            .add( ( s, t ) -> mergeDataSets( s, t ) )
-            .add( ( s, t ) -> mergePrograms( s, t ) )
-            .add( ( s, t ) -> mergeOrgUnitGroups( s, t ) )
-            .add( ( s, t ) -> mergeCategoryOptions( s, t ) )
-            .add( ( s, t ) -> mergeUsers( s, t ) )
-            .build();
+        this.mergeHandlers = getMergeHandlers();
     }
 
     @Override
@@ -71,6 +64,17 @@ public class DefaultOrgUnitMergeService
     // -------------------------------------------------------------------------
     // Private methods
     // -------------------------------------------------------------------------
+
+    private ImmutableList<OrgUnitMergeHandler> getMergeHandlers()
+    {
+        return ImmutableList.<OrgUnitMergeHandler> builder()
+            .add( ( s, t ) -> mergeDataSets( s, t ) )
+            .add( ( s, t ) -> mergePrograms( s, t ) )
+            .add( ( s, t ) -> mergeOrgUnitGroups( s, t ) )
+            .add( ( s, t ) -> mergeCategoryOptions( s, t ) )
+            .add( ( s, t ) -> mergeUsers( s, t ) )
+            .build();
+    }
 
     private void mergeDataSets( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
