@@ -102,7 +102,6 @@ public enum JobType
     TEI_IMPORT( null, false ),
     DISABLE_INACTIVE_USERS( "disableInactiveUsersJob", true, SchedulingType.CRON,
         DisableInactiveUsersJobParameters.class, null ),
-    REMOVE_INVALID_RELATIONSHIPS( "removeInvalidRelationships", false ),
 
     // Testing purposes
     MOCK( "mockJob", false, SchedulingType.CRON, MockJobParameters.class, null ),
