@@ -25,43 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.tracker.preprocess;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.springframework.stereotype.Component;
 
 /**
- * Sorting parameters
+ * This PreProcessor converts event's VISITED status to ACTIVE
  *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-public interface SortingCriteria
+@Component
+public class EventStatusPreProcessor
+    implements BundlePreProcessor
 {
-
-    /**
-     * order params
-     */
-    List<OrderCriteria> getOrder();
-
-    /**
-     * Implementors should return a list of fields on which it is allowed to
-     * perform ordering Defaults to empty list which means all fields are
-     * allowed for ordering
-     */
-    default List<String> getAllowedOrderingFields()
+    @Override
+    public void process( TrackerBundle bundle )
     {
-        return Collections.emptyList();
+        for ( Event event : bundle.getEvents() )
+        {
+            if ( event.getStatus().equals( EventStatus.VISITED ) )
+            {
+                event.setStatus( EventStatus.ACTIVE );
+            }
+        }
     }
-
-    /**
-     * By default it does not translate any field
-     *
-     * @return
-     */
-    default Optional<String> translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return Optional.ofNullable( dtoFieldName );
-    }
-
 }

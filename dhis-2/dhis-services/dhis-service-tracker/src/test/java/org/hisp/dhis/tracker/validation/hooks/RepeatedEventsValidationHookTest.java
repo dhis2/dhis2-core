@@ -69,10 +69,6 @@ public class RepeatedEventsValidationHookTest
 
     private final static String REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION = "REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION";
 
-    private final static String PROGRAM_WITH_REGISTRATION = "PROGRAM_WITH_REGISTRATION";
-
-    private final static String PROGRAM_WITHOUT_REGISTRATION = "PROGRAM_WITHOUT_REGISTRATION";
-
     private final static String ENROLLMENT_A = "ENROLLMENT_A";
 
     private final static String ENROLLMENT_B = "ENROLLMENT_B";

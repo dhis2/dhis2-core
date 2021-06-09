@@ -106,8 +106,13 @@ public class PreCheckDataRelationsValidationHook
         TrackerImportStrategy strategy = context.getStrategy( event );
 
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        Program program = programStage.getProgram();
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
+        Program program = context.getProgram( event.getProgram() );
+
+        if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
+        {
+            addError( reporter, E1089, event, programStage, program );
+        }
 
         if ( program.isRegistration() )
         {
