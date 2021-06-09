@@ -68,8 +68,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -1301,17 +1299,6 @@ public abstract class DhisConvenienceTest
         visualization.setType( PIVOT_TABLE );
 
         return visualization;
-    }
-
-    public static Chart createChart( char uniqueCharacter )
-    {
-        Chart chart = new Chart();
-        chart.setAutoFields();
-        chart.setName( "Chart" + uniqueCharacter );
-        chart.setDescription( "Description" + uniqueCharacter );
-        chart.setType( ChartType.COLUMN );
-
-        return chart;
     }
 
     public static User createUser( char uniqueCharacter )

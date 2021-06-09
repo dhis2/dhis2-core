@@ -47,10 +47,6 @@ public class AggregatedStatistics
 
     private Integer mapViews;
 
-    private Integer chartViews;
-
-    private Integer pivotTableViews;
-
     private Integer eventReportViews;
 
     private Integer eventChartViews;
@@ -80,10 +76,6 @@ public class AggregatedStatistics
     private Integer averagePassiveDashboardViews;
 
     private Integer savedMaps;
-
-    private Integer savedCharts;
-
-    private Integer savedPivotTables;
 
     private Integer savedEventReports;
 
@@ -167,28 +159,6 @@ public class AggregatedStatistics
     public void setMapViews( Integer mapViews )
     {
         this.mapViews = mapViews;
-    }
-
-    @JsonProperty
-    public Integer getChartViews()
-    {
-        return chartViews;
-    }
-
-    public void setChartViews( Integer chartViews )
-    {
-        this.chartViews = chartViews;
-    }
-
-    @JsonProperty
-    public Integer getPivotTableViews()
-    {
-        return pivotTableViews;
-    }
-
-    public void setPivotTableViews( Integer pivotTableViews )
-    {
-        this.pivotTableViews = pivotTableViews;
     }
 
     @JsonProperty
@@ -357,28 +327,6 @@ public class AggregatedStatistics
     }
 
     @JsonProperty
-    public Integer getSavedCharts()
-    {
-        return savedCharts;
-    }
-
-    public void setSavedCharts( Integer savedCharts )
-    {
-        this.savedCharts = savedCharts;
-    }
-
-    @JsonProperty
-    public Integer getSavedPivotTables()
-    {
-        return savedPivotTables;
-    }
-
-    public void setSavedPivotTables( Integer savedPivotTables )
-    {
-        this.savedPivotTables = savedPivotTables;
-    }
-
-    @JsonProperty
     public Integer getSavedEventReports()
     {
         return savedEventReports;
@@ -453,8 +401,6 @@ public class AggregatedStatistics
             ", week=" + week +
             ", day=" + day +
             ", mapViews=" + mapViews +
-            ", chartViews=" + chartViews +
-            ", pivotTableViews=" + pivotTableViews +
             ", eventReportViews=" + eventReportViews +
             ", eventChartViews=" + eventChartViews +
             ", dashboardViews=" + dashboardViews +
@@ -470,8 +416,6 @@ public class AggregatedStatistics
             ", averageDashboardViews=" + averageDashboardViews +
             ", averagePassiveDashboardViews=" + averagePassiveDashboardViews +
             ", savedMaps=" + savedMaps +
-            ", savedCharts=" + savedCharts +
-            ", savedPivotTables=" + savedPivotTables +
             ", savedEventReports=" + savedEventReports +
             ", savedEventCharts=" + savedEventCharts +
             ", savedDashboards=" + savedDashboards +

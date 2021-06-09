@@ -27,14 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
-import static org.springframework.beans.BeanUtils.copyProperties;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -43,10 +39,6 @@ import lombok.NonNull;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.chart.ChartService;
-import org.hisp.dhis.chart.ChartType;
-import org.hisp.dhis.chart.Series;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataelement.DataElement;
@@ -62,7 +54,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.visualization.Axis;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.visualization.ChartService;
+import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -82,25 +76,28 @@ public class VisualizationDataController
     private OrganisationUnitService organisationUnitService;
 
     @NonNull
-    private ContextUtils contextUtils;
+    private final ContextUtils contextUtils;
 
     @NonNull
-    private VisualizationService visualizationService;
+    private final VisualizationService visualizationService;
 
     @NonNull
-    private ChartService chartService;
+    private final ChartService chartService;
 
     @NonNull
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
 
     @NonNull
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
     @NonNull
-    private IndicatorService indicatorService;
+    private final IndicatorService indicatorService;
 
     @NonNull
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
+
+    @NonNull
+    private final CurrentUserService currentUserService;
 
     // --------------------------------------------------------------------------
     // GET - ReportTable data
@@ -242,18 +239,18 @@ public class VisualizationDataController
         WebMessageException
     {
         final Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
-        final Chart chart = convertToChart( visualization );
 
-        if ( chart == null )
+        if ( visualization == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Chart does not exist: " + uid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "Visualization does not exist: " + uid ) );
         }
 
         OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
 
-        JFreeChart jFreeChart = chartService.getJFreeChart( chart, date, unit, i18nManager.getI18nFormat() );
+        JFreeChart jFreeChart = chartService.getJFreeChart( new PlotData( visualization ), date, unit,
+            i18nManager.getI18nFormat(), currentUserService.getCurrentUser() );
 
-        String filename = CodecUtils.filenameEncode( chart.getName() ) + ".png";
+        String filename = CodecUtils.filenameEncode( visualization.getName() ) + ".png";
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING,
             filename, attachment );
@@ -349,64 +346,5 @@ public class VisualizationDataController
             period, organisationUnit, 13, i18nManager.getI18nFormat() );
 
         ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
-    }
-
-    /**
-     * This method converts a Visualization into a Chart. It's required only
-     * during the merging process of Visualization. Even though this method
-     * could be broken down into smaller ones is preferable to leave it
-     * self-contained as this is just a temporary mapping.
-     *
-     * @param visualization
-     * @return a Chart object from the given Visualization
-     */
-    @Deprecated
-    private Chart convertToChart( final Visualization visualization )
-    {
-        final Chart chart = new Chart();
-
-        if ( visualization != null )
-        {
-            copyProperties( visualization, chart, "type" );
-
-            // Set the correct type
-            if ( visualization.getType() != null && !"PIVOT_TABLE".equalsIgnoreCase( visualization.getType().name() ) )
-            {
-                chart.setType( ChartType.valueOf( visualization.getType().name() ) );
-            }
-
-            // Copy seriesItems
-            if ( isNotEmpty( visualization.getOptionalAxes() ) )
-            {
-                final List<Series> seriesItems = new ArrayList<>();
-                final List<Axis> axes = visualization.getOptionalAxes();
-
-                for ( final Axis axis : axes )
-                {
-                    final Series series = new Series();
-                    series.setSeries( axis.getDimensionalItem() );
-                    series.setAxis( axis.getAxis() );
-                    series.setId( axis.getId() );
-
-                    seriesItems.add( series );
-                }
-                chart.setSeriesItems( seriesItems );
-            }
-
-            // Copy column into series
-            if ( isNotEmpty( visualization.getColumnDimensions() ) )
-            {
-                final List<String> columns = visualization.getColumnDimensions();
-                chart.setSeries( columns.get( 0 ) );
-            }
-
-            // Copy rows into category
-            if ( isNotEmpty( visualization.getRowDimensions() ) )
-            {
-                final List<String> rows = visualization.getRowDimensions();
-                chart.setCategory( rows.get( 0 ) );
-            }
-        }
-        return chart;
     }
 }

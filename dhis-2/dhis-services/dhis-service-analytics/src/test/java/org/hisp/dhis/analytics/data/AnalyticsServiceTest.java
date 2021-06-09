@@ -79,12 +79,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -473,9 +473,7 @@ public class AnalyticsServiceTest
             .withAggregationType( AnalyticsAggregationType.SUM )
             .withPeriod( y2017_mar ).withOutputFormat( OutputFormat.ANALYTICS ).build();
 
-        AnalyticalObject deC_ouB_2017_03_analytical = new ReportTable( "deC_ouB_2017_03", dataElements1,
-            param_indicators, param_reportingRates, Lists.newArrayList( y2017_mar ), Lists.newArrayList( ouB ), false,
-            true, true, null, null, null );
+        AnalyticalObject deC_ouB_2017_03_analytical = new Visualization( "deC_ouB_2017_03" );
 
         // org unit A - data element A - Q1 2017
         List<DataElement> dataElements2 = new ArrayList<>();
@@ -488,9 +486,7 @@ public class AnalyticsServiceTest
             .withPeriod( quarter )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
-        AnalyticalObject deA_ouA_2017_Q01_analytical = new ReportTable( "deA_ouA_2017_Q01", dataElements2,
-            param_indicators, param_reportingRates, Lists.newArrayList( quarter ), Lists.newArrayList( ouA ), false,
-            true, true, null, null, null );
+        AnalyticalObject deA_ouA_2017_Q01_analytical = new Visualization( "deA_ouA_2017_Q01" );
 
         // indicator A - 2017
         DataQueryParams inA_2017_params = DataQueryParams.newBuilder()
@@ -514,9 +510,7 @@ public class AnalyticsServiceTest
             .withPeriod( quarter )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
-        AnalyticalObject inC_deB_deC_2017_Q01_analytical = new ReportTable( "deA_ouA_2017_Q01", Lists.newArrayList(),
-            param_indicators3, param_reportingRates, Lists.newArrayList( quarter ), Lists.newArrayList( ouA ), true,
-            true, true, null, null, null );
+        AnalyticalObject inC_deB_deC_2017_Q01_analytical = new Visualization( "deA_ouA_2017_Q01" );
 
         // indicator D (deA * deC)/deB - 2017 Q1
         DataQueryParams inD_deA_deB_deC_2017_Q01_params = DataQueryParams.newBuilder()

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.chart;
+package org.hisp.dhis.eventchart;
 
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
@@ -54,6 +54,7 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.VisualizationType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -73,7 +74,7 @@ public abstract class BaseChart
 
     protected String rangeAxisLabel;
 
-    protected ChartType type;
+    protected VisualizationType type;
 
     protected boolean hideLegend;
 
@@ -149,7 +150,7 @@ public abstract class BaseChart
     // Logic
     // -------------------------------------------------------------------------
 
-    public boolean isType( ChartType type )
+    public boolean isType( VisualizationType type )
     {
         return this.type != null && this.type.equals( type );
     }
@@ -304,12 +305,12 @@ public abstract class BaseChart
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( value = PropertyType.CONSTANT, required = TRUE )
     @PropertyRange( min = 1, max = 40 )
-    public ChartType getType()
+    public VisualizationType getType()
     {
         return type;
     }
 
-    public void setType( ChartType type )
+    public void setType( VisualizationType type )
     {
         this.type = type;
     }

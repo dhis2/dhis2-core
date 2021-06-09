@@ -41,7 +41,6 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.SimpleVisualizationView;
-import org.hisp.dhis.visualization.Visualization;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -54,15 +53,11 @@ public class DashboardSearchResult
 {
     private List<User> users = new ArrayList<>();
 
-    private List<Visualization> charts = new ArrayList<>();
-
     private List<SimpleVisualizationView> visualizations = new ArrayList<>();
 
     private List<EventChart> eventCharts = new ArrayList<>();
 
     private List<Map> maps = new ArrayList<>();
-
-    private List<Visualization> reportTables = new ArrayList<>();
 
     private List<EventReport> eventReports = new ArrayList<>();
 
@@ -89,11 +84,9 @@ public class DashboardSearchResult
     {
         int results = 0;
         results += users.size();
-        results += charts.size();
         results += visualizations.size();
         results += eventCharts.size();
         results += maps.size();
-        results += reportTables.size();
         results += eventReports.size();
         results += reports.size();
         results += resources.size();
@@ -106,13 +99,6 @@ public class DashboardSearchResult
     public int getUserCount()
     {
         return users.size();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public int getChartCount()
-    {
-        return charts.size();
     }
 
     @JsonProperty
@@ -134,13 +120,6 @@ public class DashboardSearchResult
     public int getMapCount()
     {
         return maps.size();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public int getReportTableCount()
-    {
-        return reportTables.size();
     }
 
     @JsonProperty
@@ -201,34 +180,6 @@ public class DashboardSearchResult
     public void setVisualizations( final List<SimpleVisualizationView> visualizations )
     {
         this.visualizations = visualizations;
-    }
-
-    @JsonProperty( value = "charts" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "charts", namespace = DXF_2_0 )
-    @JacksonXmlProperty( localName = "chart", namespace = DXF_2_0 )
-    public List<Visualization> getCharts()
-    {
-        return charts;
-    }
-
-    public void setCharts( List<Visualization> charts )
-    {
-        this.charts = charts;
-    }
-
-    @JsonProperty( value = "reportTables" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "reportTables", namespace = DXF_2_0 )
-    @JacksonXmlProperty( localName = "reportTable", namespace = DXF_2_0 )
-    public List<Visualization> getReportTables()
-    {
-        return reportTables;
-    }
-
-    public void setReportTables( List<Visualization> reportTables )
-    {
-        this.reportTables = reportTables;
     }
 
     @JsonProperty( value = "eventCharts" )

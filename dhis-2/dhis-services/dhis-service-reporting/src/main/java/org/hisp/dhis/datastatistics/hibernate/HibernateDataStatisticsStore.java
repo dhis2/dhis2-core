@@ -94,8 +94,6 @@ public class HibernateDataStatisticsStore
             }
 
             ads.setMapViews( resultSet.getInt( "mapViews" ) );
-            ads.setChartViews( resultSet.getInt( "chartViews" ) );
-            ads.setPivotTableViews( resultSet.getInt( "reportTableViews" ) );
             ads.setEventReportViews( resultSet.getInt( "eventReportViews" ) );
             ads.setEventChartViews( resultSet.getInt( "eventChartViews" ) );
             ads.setDashboardViews( resultSet.getInt( "dashboardViews" ) );
@@ -104,15 +102,11 @@ public class HibernateDataStatisticsStore
             ads.setTotalViews( resultSet.getInt( "totalViews" ) );
             ads.setAverageViews( resultSet.getInt( "averageViews" ) );
             ads.setAverageMapViews( resultSet.getInt( "averageMapViews" ) );
-            ads.setAverageChartViews( resultSet.getInt( "averageChartViews" ) );
-            ads.setAveragePivotTableViews( resultSet.getInt( "averageReportTableViews" ) );
             ads.setAverageEventReportViews( resultSet.getInt( "averageEventReportViews" ) );
             ads.setAverageEventChartViews( resultSet.getInt( "averageEventChartViews" ) );
             ads.setAverageDashboardViews( resultSet.getInt( "averageDashboardViews" ) );
             ads.setAveragePassiveDashboardViews( resultSet.getInt( "averagePassiveDashboardViews" ) );
             ads.setSavedMaps( resultSet.getInt( "savedMaps" ) );
-            ads.setSavedCharts( resultSet.getInt( "savedCharts" ) );
-            ads.setSavedPivotTables( resultSet.getInt( "savedReportTables" ) );
             ads.setSavedEventReports( resultSet.getInt( "savedEventReports" ) );
             ads.setSavedEventCharts( resultSet.getInt( "savedEventCharts" ) );
             ads.setSavedDashboards( resultSet.getInt( "savedDashboards" ) );
@@ -226,8 +220,6 @@ public class HibernateDataStatisticsStore
     private String getCommonSql( Date start, Date end )
     {
         return "cast(round(cast(sum(mapviews) as numeric),0) as int) as mapViews," +
-            "cast(round(cast(sum(chartviews) as numeric),0) as int) as chartViews," +
-            "cast(round(cast(sum(reporttableviews) as numeric),0) as int) as reportTableViews, " +
             "cast(round(cast(sum(eventreportviews) as numeric),0) as int) as eventReportViews, " +
             "cast(round(cast(sum(eventchartviews) as numeric),0) as int) as eventChartViews," +
             "cast(round(cast(sum(dashboardviews) as numeric),0) as int) as dashboardViews, " +
@@ -236,16 +228,12 @@ public class HibernateDataStatisticsStore
             "max(active_users) as activeUsers," +
             "coalesce(sum(totalviews)/nullif(max(active_users), 0), 0) as averageViews," +
             "coalesce(sum(mapviews)/nullif(max(active_users), 0), 0) as averageMapViews, " +
-            "coalesce(sum(chartviews)/nullif(max(active_users), 0), 0) as averageChartViews, " +
-            "coalesce(sum(reporttableviews)/nullif(max(active_users), 0), 0) as averageReportTableViews, " +
             "coalesce(sum(eventreportviews)/nullif(max(active_users), 0), 0) as averageEventReportViews, " +
             "coalesce(sum(eventchartviews)/nullif(max(active_users), 0), 0) as averageEventChartViews, " +
             "coalesce(sum(dashboardviews)/nullif(max(active_users), 0), 0) as averageDashboardViews, " +
             "coalesce(sum(passivedashboardviews)/nullif(max(active_users), 0), 0) as averagePassiveDashboardViews, " +
             "cast(round(cast(sum(totalviews) as numeric),0) as int) as totalViews," +
             "cast(round(cast(sum(maps) as numeric),0) as int) as savedMaps," +
-            "cast(round(cast(sum(charts) as numeric),0) as int) as savedCharts," +
-            "cast(round(cast(sum(reporttables) as numeric),0) as int) as savedReportTables," +
             "cast(round(cast(sum(eventreports) as numeric),0) as int) as savedEventReports," +
             "cast(round(cast(sum(eventcharts) as numeric),0) as int) as savedEventCharts," +
             "cast(round(cast(sum(dashboards) as numeric),0) as int) as savedDashboards, " +

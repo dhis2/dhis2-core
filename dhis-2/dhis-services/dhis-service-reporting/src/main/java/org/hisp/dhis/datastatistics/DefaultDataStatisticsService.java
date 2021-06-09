@@ -113,8 +113,6 @@ public class DefaultDataStatisticsService
         long diff = now.getTime() - startDate.getTime();
         int days = (int) TimeUnit.DAYS.convert( diff, TimeUnit.MILLISECONDS );
 
-        double savedCharts = visualizationStore.countChartsCreated( startDate );
-        double savedReportTables = visualizationStore.countPivotTablesCreated( startDate );
         double savedMaps = idObjectManager.getCountByCreated( org.hisp.dhis.mapping.Map.class, startDate );
         double savedVisualizations = idObjectManager.getCountByCreated( Visualization.class, startDate );
         double savedEventReports = idObjectManager.getCountByCreated( EventReport.class, startDate );
@@ -130,8 +128,6 @@ public class DefaultDataStatisticsService
 
         DataStatistics dataStatistics = new DataStatistics(
             eventCountMap.get( DataStatisticsEventType.MAP_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.CHART_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.REPORT_TABLE_VIEW ),
             eventCountMap.get( DataStatisticsEventType.VISUALIZATION_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_CHART_VIEW ),
@@ -139,7 +135,7 @@ public class DefaultDataStatisticsService
             eventCountMap.get( DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW ),
             eventCountMap.get( DataStatisticsEventType.DATA_SET_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.TOTAL_VIEW ),
-            savedMaps, savedCharts, savedReportTables, savedVisualizations, savedEventReports,
+            savedMaps, savedVisualizations, savedEventReports,
             savedEventCharts, savedDashboards, savedIndicators, savedDataValues, activeUsers, users );
 
         return dataStatistics;

@@ -152,7 +152,7 @@
 
     <property name="type" length="40" not-null="true">
       <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.chart.ChartType</param>
+        <param name="enumClass">org.hisp.dhis.visualization.VisualizationType</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>

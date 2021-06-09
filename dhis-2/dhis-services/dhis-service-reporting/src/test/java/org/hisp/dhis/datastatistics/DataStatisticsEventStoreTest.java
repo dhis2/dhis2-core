@@ -63,8 +63,6 @@ public class DataStatisticsEventStoreTest
 
     private DataStatisticsEvent dse2;
 
-    private DataStatisticsEvent dse3;
-
     private DataStatisticsEvent dse4;
 
     private DataStatisticsEvent dse5;
@@ -89,9 +87,8 @@ public class DataStatisticsEventStoreTest
         Date endDate = getDate( 2016, 3, 20 );
         Date testDate = getDate( 2016, 3, 16 );
 
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.REPORT_TABLE_VIEW, endDate, "Testuser" );
+        dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, endDate, "Testuser" );
         dse2 = new DataStatisticsEvent( DataStatisticsEventType.EVENT_CHART_VIEW, endDate, "TestUser" );
-        dse3 = new DataStatisticsEvent( DataStatisticsEventType.CHART_VIEW, testDate, "Testuser" );
         dse4 = new DataStatisticsEvent( DataStatisticsEventType.DASHBOARD_VIEW, endDate, "TestUser", DASHBOARD_UID );
         dse5 = new DataStatisticsEvent( DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW, endDate, "TestUser",
             DASHBOARD_UID );
@@ -134,7 +131,7 @@ public class DataStatisticsEventStoreTest
         Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
             end );
         double expected = 1.0;
-        double firstActual = dsList.get( DataStatisticsEventType.REPORT_TABLE_VIEW );
+        double firstActual = dsList.get( DataStatisticsEventType.VISUALIZATION_VIEW );
         double secondActual = dsList.get( DataStatisticsEventType.DASHBOARD_VIEW );
 
         assertEquals( expected, firstActual, 0.0 );
@@ -159,7 +156,6 @@ public class DataStatisticsEventStoreTest
     {
         dataStatisticsEventStore.save( dse1 );
         dataStatisticsEventStore.save( dse4 );
-        dataStatisticsEventStore.save( dse3 );
 
         Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
             end );

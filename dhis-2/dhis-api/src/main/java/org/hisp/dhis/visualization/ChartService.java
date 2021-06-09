@@ -25,12 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.chart;
+package org.hisp.dhis.visualization;
 
 import java.util.Date;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
@@ -43,23 +42,23 @@ import org.jfree.chart.JFreeChart;
  * @author Lars Helge Overland
  */
 public interface ChartService
-    extends AnalyticalObjectService<Chart>
 {
     String ID = ChartService.class.getName();
 
     /**
      * Generates a JFreeChart.
      *
-     * @param chart the chart to use as basis for the JFreeChart generation.
+     * @param plotData the plot data to use as basis for the JFreeChart
+     *        generation.
      * @param date the date to use as basis for relative periods, can be null.
      * @param organisationUnit the org unit to use as basis for relative units,
      *        will override the current user org unit if set, can be null.
      * @param format the i18n format.
      * @return a JFreeChart object.
      */
-    JFreeChart getJFreeChart( BaseChart chart, Date date, OrganisationUnit organisationUnit, I18nFormat format );
+    JFreeChart getJFreeChart( PlotData plotData, Date date, OrganisationUnit organisationUnit, I18nFormat format );
 
-    JFreeChart getJFreeChart( BaseChart chart, Date date, OrganisationUnit organisationUnit, I18nFormat format,
+    JFreeChart getJFreeChart( PlotData plotData, Date date, OrganisationUnit organisationUnit, I18nFormat format,
         User currentUser );
 
     JFreeChart getJFreePeriodChart( Indicator indicator, OrganisationUnit organisationUnit, boolean title,

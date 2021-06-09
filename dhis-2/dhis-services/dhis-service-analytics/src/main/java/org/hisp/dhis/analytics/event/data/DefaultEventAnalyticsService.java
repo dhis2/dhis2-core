@@ -43,16 +43,14 @@ import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.reporttable.ReportTable.COLUMN_NAMES;
-import static org.hisp.dhis.reporttable.ReportTable.DASH_PRETTY_SEPARATOR;
-import static org.hisp.dhis.reporttable.ReportTable.SPACE;
-import static org.hisp.dhis.reporttable.ReportTable.TOTAL_COLUMN_PRETTY_NAME;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,6 +75,7 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -106,6 +105,18 @@ public class DefaultEventAnalyticsService
     extends AbstractAnalyticsService
     implements EventAnalyticsService
 {
+    private static final String DASH_PRETTY_SEPARATOR = " - ";
+
+    private static final String SPACE = " ";
+
+    private static final String TOTAL_COLUMN_PRETTY_NAME = "Total";
+
+    private static final Map<String, String> COLUMN_NAMES = DimensionalObjectUtils.asMap(
+        DATA_X_DIM_ID, "data",
+        CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo",
+        PERIOD_DIM_ID, "period",
+        ORGUNIT_DIM_ID, "organisationunit" );
+
     private static final String NAME_EVENT = "Event";
 
     private static final String NAME_TRACKED_ENTITY_INSTANCE = "Tracked entity instance";

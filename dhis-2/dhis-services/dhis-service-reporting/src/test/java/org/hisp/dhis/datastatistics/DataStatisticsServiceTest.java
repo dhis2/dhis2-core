@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.datastatistics;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -70,9 +71,9 @@ public class DataStatisticsServiceTest
         Date now = formatdate.toDate();
 
         dse1 = new DataStatisticsEvent();
-        dse2 = new DataStatisticsEvent( DataStatisticsEventType.EVENT_CHART_VIEW, now, "TestUser" );
-        DataStatistics ds = new DataStatistics( 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 11.0, 10.0, 12.0, 11.0,
-            13.0, 14.0, 15.0, 16.0, 17.0, 11.0, 10, 18 );
+        dse2 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, now, "TestUser" );
+        DataStatistics ds = new DataStatistics( 1.0, 1.5, 4.0, 5.0, 6.0, 7.0, 8.0, 11.0, 10.0, 12.0, 11.0,
+            13.0, 14.0, 17.0, 11.0, 10, 18 );
 
         hibernateDataStatisticsStore.save( ds );
         snapId1 = ds.getId();
@@ -105,7 +106,7 @@ public class DataStatisticsServiceTest
         formatdate = fmt.parseDateTime( "2016-03-21" );
         Date startDate = formatdate.toDate();
 
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.EVENT_CHART_VIEW, startDate, "TestUser" );
+        dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, startDate, "TestUser" );
         dataStatisticsService.addEvent( dse1 );
         dataStatisticsService.addEvent( dse2 );
         long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot();

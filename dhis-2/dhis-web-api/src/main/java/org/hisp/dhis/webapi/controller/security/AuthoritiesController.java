@@ -27,12 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
-import static org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor.F_CHART_EXTERNAL;
-import static org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor.F_CHART_PUBLIC_ADD;
-import static org.hisp.dhis.schema.descriptors.ReportTableSchemaDescriptor.F_REPORTTABLE_EXTERNAL;
-import static org.hisp.dhis.schema.descriptors.ReportTableSchemaDescriptor.F_REPORTTABLE_PUBLIC_ADD;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,12 +58,6 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AuthoritiesController
 {
-    private static final List<String> DEPRECATED_SCHEMAS = asList(
-        F_REPORTTABLE_EXTERNAL,
-        F_REPORTTABLE_PUBLIC_ADD,
-        F_CHART_EXTERNAL,
-        F_CHART_PUBLIC_ADD );
-
     @Autowired
     private I18nManager i18nManager;
 
@@ -86,13 +75,10 @@ public class AuthoritiesController
         {
             String name = getAuthName( auth, i18n );
 
-            if ( isNotDeprecated( auth ) )
-            {
-                Map<String, String> authority = new LinkedHashMap<>();
-                authority.put( "id", auth );
-                authority.put( "name", name );
-                entries.add( authority );
-            }
+            Map<String, String> authority = new LinkedHashMap<>();
+            authority.put( "id", auth );
+            authority.put( "name", name );
+            entries.add( authority );
         }
         return singletonMap( "systemAuthorities", entries );
     }
@@ -108,18 +94,5 @@ public class AuthoritiesController
         }
 
         return auth;
-    }
-
-    /**
-     * This checking is required in order to "temporally" remove the deprecated
-     * schemas. Created and used during the transition from Chart/ReportTable to
-     * Visualization.
-     *
-     * @param authId to be filtered out if the same is deprecated.
-     * @return true if the authId is NOT deprecated, false otherwise.
-     */
-    private static boolean isNotDeprecated( final String authId )
-    {
-        return !DEPRECATED_SCHEMAS.contains( authId );
     }
 }
