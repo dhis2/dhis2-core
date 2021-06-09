@@ -85,7 +85,7 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     private final String DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES_UID = "uwWCT2BMmlq";
 
-    private final String DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES = "Remove expired reserved values";
+    private final String DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES = "Remove expired or used reserved values";
 
     private final String DEFAULT_LEADER_ELECTION_UID = "MoUd5BTQ3lY";
 
