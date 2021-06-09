@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.orgunitmerge;
 
-import java.util.Collection;
 import java.util.Set;
 
 import javax.transaction.Transactional;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.orgunitmerge.handler.AnalyticalObjectOrgUnitMergeHandler;
+import org.hisp.dhis.orgunitmerge.handler.MetadataOrgUnitMergeHandler;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 @Service
@@ -45,16 +45,17 @@ public class DefaultOrgUnitMergeService
 {
     private final IdentifiableObjectManager idObjectManager;
 
+    private final MetadataOrgUnitMergeHandler metadataHandler;
+
     private final AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler;
 
     private final ImmutableList<OrgUnitMergeHandler> handlers;
 
     public DefaultOrgUnitMergeService( IdentifiableObjectManager idObjectManager,
+        MetadataOrgUnitMergeHandler metadataHandler,
         AnalyticalObjectOrgUnitMergeHandler analyticalObjectMergeHandler )
     {
-        Preconditions.checkNotNull( analyticalObjectMergeHandler );
-        Preconditions.checkNotNull( idObjectManager );
-
+        this.metadataHandler = metadataHandler;
         this.analyticalObjectHandler = analyticalObjectMergeHandler;
         this.idObjectManager = idObjectManager;
         this.handlers = getMergeHandlers();
@@ -78,72 +79,15 @@ public class DefaultOrgUnitMergeService
     private ImmutableList<OrgUnitMergeHandler> getMergeHandlers()
     {
         return ImmutableList.<OrgUnitMergeHandler> builder()
-            .add( ( s, t ) -> mergeDataSets( s, t ) )
-            .add( ( s, t ) -> mergePrograms( s, t ) )
-            .add( ( s, t ) -> mergeOrgUnitGroups( s, t ) )
-            .add( ( s, t ) -> mergeCategoryOptions( s, t ) )
-            .add( ( s, t ) -> mergeUsers( s, t ) )
+            .add( ( s, t ) -> metadataHandler.mergeDataSets( s, t ) )
+            .add( ( s, t ) -> metadataHandler.mergePrograms( s, t ) )
+            .add( ( s, t ) -> metadataHandler.mergeOrgUnitGroups( s, t ) )
+            .add( ( s, t ) -> metadataHandler.mergeCategoryOptions( s, t ) )
+            .add( ( s, t ) -> metadataHandler.mergeUsers( s, t ) )
             .add( ( s, t ) -> analyticalObjectHandler.mergeVisualizations( s, t ) )
             .add( ( s, t ) -> analyticalObjectHandler.mergeEventReports( s, t ) )
             .add( ( s, t ) -> analyticalObjectHandler.mergeEventCharts( s, t ) )
             .add( ( s, t ) -> analyticalObjectHandler.mergeMaps( s, t ) )
             .build();
-    }
-
-    private void mergeDataSets( Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        sources.stream()
-            .map( OrganisationUnit::getDataSets )
-            .flatMap( Collection::stream )
-            .forEach( o -> {
-                o.addOrganisationUnit( target );
-                o.removeOrganisationUnits( sources );
-            } );
-    }
-
-    private void mergePrograms( Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        sources.stream()
-            .map( OrganisationUnit::getPrograms )
-            .flatMap( Collection::stream )
-            .forEach( o -> {
-                o.addOrganisationUnit( target );
-                o.removeOrganisationUnits( sources );
-            } );
-    }
-
-    private void mergeOrgUnitGroups( Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        sources.stream()
-            .map( OrganisationUnit::getGroups )
-            .flatMap( Collection::stream )
-            .forEach( o -> {
-                o.addOrganisationUnit( target );
-                o.removeOrganisationUnits( sources );
-            } );
-    }
-
-    private void mergeCategoryOptions( Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        sources.stream()
-            .map( OrganisationUnit::getCategoryOptions )
-            .flatMap( Collection::stream )
-            .forEach( o -> {
-                o.addOrganisationUnit( target );
-                o.removeOrganisationUnits( sources );
-            } );
-    }
-
-    private void mergeUsers( Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        sources.stream()
-            .map( OrganisationUnit::getUsers )
-            .flatMap( Collection::stream )
-            .forEach( o -> {
-                o.addOrganisationUnit( target );
-                o.removeOrganisationUnits( sources );
-            } );
-
-        // TODO Data view, TEI search
     }
 }
