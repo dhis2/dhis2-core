@@ -47,14 +47,19 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
@@ -63,12 +68,15 @@ import org.hisp.dhis.schema.annotation.Gist.Transform;
  *
  * @author Jan Bernitt
  */
+@Slf4j
 @AllArgsConstructor
 class GistPlanner
 {
     private final GistQuery query;
 
     private final RelativePropertyContext context;
+
+    private final GistAccessControl access;
 
     public GistQuery plan()
     {
@@ -164,8 +172,10 @@ class GistPlanner
             String path = f.getPropertyPath();
             if ( isPresetField( path ) )
             {
-                context.getHome().getProperties().stream()
+                Schema schema = context.getHome();
+                schema.getProperties().stream()
                     .filter( getPresetFilter( path ) )
+                    .filter( getAccessFilter( schema ) )
                     .sorted( GistPlanner::propertyTypeOrder )
                     .forEach( p -> {
                         if ( !explicit.contains( p.key() ) && !explicit.contains( "-" + p.key() )
@@ -185,6 +195,14 @@ class GistPlanner
             }
         }
         return expanded;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private Predicate<Property> getAccessFilter( Schema schema )
+    {
+        return !schema.isIdentifiableObject()
+            ? p -> true
+            : p -> access.canRead( (Class<? extends IdentifiableObject>) schema.getKlass(), p.getName() );
     }
 
     private List<Field> withDisplayAsTranslatedFields( List<Field> fields )
@@ -300,7 +318,7 @@ class GistPlanner
         {
             return p -> p.isPersisted() && p.isOwner();
         }
-        throw new UnsupportedOperationException();
+        throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2038, path ) );
     }
 
     private Predicate<Property> getPresetFilter( Class<?> api )
