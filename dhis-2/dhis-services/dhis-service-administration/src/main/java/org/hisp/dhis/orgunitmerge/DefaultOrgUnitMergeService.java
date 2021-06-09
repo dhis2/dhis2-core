@@ -75,7 +75,10 @@ public class DefaultOrgUnitMergeService
         sources.stream()
             .map( OrganisationUnit::getDataSets )
             .flatMap( Collection::stream )
-            .forEach( o -> o.addOrganisationUnit( target ) );
+            .forEach( o -> {
+                o.addOrganisationUnit( target );
+                o.removeOrganisationUnits( sources );
+            } );
     }
 
     private void mergePrograms( Set<OrganisationUnit> sources, OrganisationUnit target )
@@ -83,7 +86,10 @@ public class DefaultOrgUnitMergeService
         sources.stream()
             .map( OrganisationUnit::getPrograms )
             .flatMap( Collection::stream )
-            .forEach( o -> o.addOrganisationUnit( target ) );
+            .forEach( o -> {
+                o.addOrganisationUnit( target );
+                o.removeOrganisationUnits( sources );
+            } );
     }
 
     private void mergeOrgUnitGroups( Set<OrganisationUnit> sources, OrganisationUnit target )
@@ -91,7 +97,10 @@ public class DefaultOrgUnitMergeService
         sources.stream()
             .map( OrganisationUnit::getGroups )
             .flatMap( Collection::stream )
-            .forEach( o -> o.addOrganisationUnit( target ) );
+            .forEach( o -> {
+                o.addOrganisationUnit( target );
+                o.removeOrganisationUnits( sources );
+            } );
     }
 
     private void mergeCategoryOptions( Set<OrganisationUnit> sources, OrganisationUnit target )
@@ -99,7 +108,10 @@ public class DefaultOrgUnitMergeService
         sources.stream()
             .map( OrganisationUnit::getCategoryOptions )
             .flatMap( Collection::stream )
-            .forEach( o -> o.addOrganisationUnit( target ) );
+            .forEach( o -> {
+                o.addOrganisationUnit( target );
+                o.removeOrganisationUnits( sources );
+            } );
     }
 
     private void mergeUsers( Set<OrganisationUnit> sources, OrganisationUnit target )
@@ -107,7 +119,10 @@ public class DefaultOrgUnitMergeService
         sources.stream()
             .map( OrganisationUnit::getUsers )
             .flatMap( Collection::stream )
-            .forEach( o -> o.addOrganisationUnit( target ) );
+            .forEach( o -> {
+                o.addOrganisationUnit( target );
+                o.removeOrganisationUnits( sources );
+            } );
 
         // TODO Data view, TEI search
     }
