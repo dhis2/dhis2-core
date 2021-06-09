@@ -339,12 +339,13 @@ public class JdbcEventStore implements EventStore
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
                 event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
 
+                ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
+
                 event.setProgram( rowSet.getString( "p_identifier" ) );
+                event.setProgramType( programType );
                 event.setProgramStage( rowSet.getString( "ps_identifier" ) );
                 event.setOrgUnit( rowSet.getString( "ou_identifier" ) );
                 event.setDeleted( rowSet.getBoolean( "psi_deleted" ) );
-
-                ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
 
                 if ( programType != ProgramType.WITHOUT_REGISTRATION )
                 {
@@ -1413,7 +1414,7 @@ public class JdbcEventStore implements EventStore
     {
         StringBuilder sqlBuilder = new StringBuilder().append( " " );
 
-        if ( params.isPaging() )
+        if ( !params.isSkipPaging() )
         {
             sqlBuilder.append( "limit " ).append( params.getPageSizeWithDefault() ).append( " offset " )
                 .append( params.getOffset() ).append( " " );

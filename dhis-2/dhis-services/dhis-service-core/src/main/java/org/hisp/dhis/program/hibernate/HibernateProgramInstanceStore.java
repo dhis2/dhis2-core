@@ -37,15 +37,21 @@ import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import lombok.Builder;
+import lombok.Getter;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
@@ -108,18 +114,18 @@ public class HibernateProgramInstanceStore
 
     private String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
     {
-        return buildProgramInstanceHql( params ).replaceFirst( "from ProgramInstance pi",
+        return buildProgramInstanceHql( params ).getQuery().replaceFirst( "from ProgramInstance pi",
             "select count(distinct uid) from ProgramInstance pi" );
     }
 
     @Override
     public List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params )
     {
-        String hql = buildProgramInstanceHql( params );
+        String hql = buildProgramInstanceHql( params ).getFullQuery();
 
         Query<ProgramInstance> query = getQuery( hql );
 
-        if ( params.isPaging() )
+        if ( !params.isSkipPaging() )
         {
             query.setFirstResult( params.getOffset() );
             query.setMaxResults( params.getPageSizeWithDefault() );
@@ -128,7 +134,7 @@ public class HibernateProgramInstanceStore
         return query.list();
     }
 
-    private String buildProgramInstanceHql( ProgramInstanceQueryParams params )
+    private QueryWithOrderBy buildProgramInstanceHql( ProgramInstanceQueryParams params )
     {
         String hql = "from ProgramInstance pi";
         SqlHelper hlp = new SqlHelper( true );
@@ -208,15 +214,39 @@ public class HibernateProgramInstanceStore
             hql += hlp.whereAnd() + " pi.deleted is false ";
         }
 
+        QueryWithOrderBy query = QueryWithOrderBy.builder()
+            .query( hql )
+            .build();
+
         if ( params.isSorting() )
         {
-            hql += " order by " + params.getOrder().stream()
-                .map( orderParam -> orderParam.getField() + " "
-                    + (orderParam.getDirection().isAscending() ? "asc" : "desc") )
-                .collect( Collectors.joining( ", " ) );
+            query = query.toBuilder()
+                .orderBy(
+                    " order by " + params.getOrder().stream()
+                        .map( orderParam -> orderParam.getField() + " "
+                            + (orderParam.getDirection().isAscending() ? "asc" : "desc") )
+                        .collect( Collectors.joining( ", " ) ) )
+                .build();
         }
 
-        return hql;
+        return query;
+    }
+
+    @Getter
+    @Builder( toBuilder = true )
+    static class QueryWithOrderBy
+    {
+        private final String query;
+
+        private final String orderBy;
+
+        String getFullQuery()
+        {
+            return Stream.of( query, orderBy )
+                .map( StringUtils::trimToEmpty )
+                .filter( Objects::nonNull )
+                .collect( Collectors.joining( " " ) );
+        }
     }
 
     @Override

@@ -37,7 +37,8 @@ import org.hisp.dhis.common.GenericStore;
 public interface ReservedValueStore
     extends GenericStore<ReservedValue>
 {
-    List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
+
+    void reserveValues( List<ReservedValue> toAdd );
 
     List<ReservedValue> reserveValuesAndCheckUniqueness( ReservedValue reservedValue, List<String> values );
 

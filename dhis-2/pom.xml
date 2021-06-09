@@ -264,17 +264,12 @@
       </releases>
     </repository>
     <repository>
-      <id>geotoolkit</id>
-      <name>Geotoolkit</name>
-      <url>https://maven.geotoolkit.org</url>
+      <id>DHIS2_MAVEN_REPO_MIRROR</id>
+      <url>https://raw.githubusercontent.com/dhis2/maven-repo-mirror/master/</url>
       <snapshots>
-        <enabled>false</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-      <releases>
         <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-      </releases>
+        <updatePolicy>always</updatePolicy>
+      </snapshots>
     </repository>
     <repository>
       <id>ossrh</id>
@@ -593,9 +588,10 @@
           </dependencies>
           <configuration>
             <xmlOutput>true</xmlOutput>
-            <excludeFilterFile>${rootDir}findbugs-exclude.xml</excludeFilterFile>
+            <excludeFilterFile>${rootDir}findbugs-exclude.xml
+            </excludeFilterFile>
           </configuration>
-        </plugin>        
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
@@ -834,6 +830,11 @@
         <artifactId>dhis-support-test</artifactId>
         <version>${project.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-support-test-json</artifactId>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
@@ -1116,7 +1117,7 @@
         <groupId>javax.servlet</groupId>
         <artifactId>javax.servlet-api</artifactId>
         <version>${javax.servlet-api.version}</version>
-<!--        <scope>provided</scope>-->
+        <!--        <scope>provided</scope>-->
       </dependency>
 
       <!-- Struts -->
