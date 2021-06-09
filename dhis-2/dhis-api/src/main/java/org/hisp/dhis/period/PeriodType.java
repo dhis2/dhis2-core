@@ -50,7 +50,6 @@ import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
