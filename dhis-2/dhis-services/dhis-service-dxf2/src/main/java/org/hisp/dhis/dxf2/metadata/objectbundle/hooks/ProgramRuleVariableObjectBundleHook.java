@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS;
 
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
@@ -43,9 +44,8 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Zubair Asghar.
@@ -62,7 +62,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, this::processTEA )
         .build();
 
-    private static final ImmutableCollection<ImportStrategy> UPDATE_STRATEGIES = ImmutableList.of(
+    private static final Set<ImportStrategy> UPDATE_STRATEGIES = ImmutableSet.of(
         ImportStrategy.UPDATE,
         ImportStrategy.CREATE_AND_UPDATE,
         ImportStrategy.NEW_AND_UPDATES,
