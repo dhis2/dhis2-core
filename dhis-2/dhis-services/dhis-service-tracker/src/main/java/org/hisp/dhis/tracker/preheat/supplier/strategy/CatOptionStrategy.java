@@ -25,18 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
-import java.util.List;
-
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
+import org.hisp.dhis.tracker.preheat.mappers.CategoryOptionMapper;
+import org.springframework.stereotype.Component;
 
 /**
- *
  * @author Luciano Fiandesio
  */
-public interface ClassBasedSupplierStrategy
+@Component
+@StrategyFor( value = CategoryOption.class, mapper = CategoryOptionMapper.class, cache = true, ttl = 30, capacity = 5 )
+public class CatOptionStrategy extends AbstractSchemaStrategy
 {
-    void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat );
+    public CatOptionStrategy( SchemaService schemaService, QueryService queryService,
+        IdentifiableObjectManager manager, PreheatCacheService cacheService )
+    {
+        super( schemaService, queryService, manager, cacheService );
+    }
 }

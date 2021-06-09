@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -55,6 +55,8 @@ import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.preheat.mappers.ProgramMapper;
 import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
+import org.hisp.dhis.tracker.preheat.supplier.strategy.ProgramStrategy;
+import org.hisp.dhis.tracker.preheat.supplier.strategy.RelationshipTypeStrategy;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
