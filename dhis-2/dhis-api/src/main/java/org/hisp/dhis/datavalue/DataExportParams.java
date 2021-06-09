@@ -77,6 +77,10 @@ public class DataExportParams
 
     private boolean returnParentOrgUnit;
 
+    private boolean orderByOrgUnitPath;
+
+    private boolean orderByPeriod;
+
     private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
 
     private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
@@ -250,13 +254,23 @@ public class DataExportParams
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper( this ).add( "data elements", dataElements )
-            .add( "data element operands", dataElementOperands ).add( "data sets", dataSets )
-            .add( "data element groups", dataElementGroups ).add( "periods", periods )
-            .add( "period types", periodTypes ).add( "start date", startDate ).add( "end date", endDate )
-            .add( "included date", includedDate ).add( "org units", organisationUnits )
-            .add( "children", includeChildren ).add( "return parent org unit", returnParentOrgUnit )
-            .add( "org unit groups", organisationUnitGroups ).add( "attribute option combos", attributeOptionCombos )
+        return MoreObjects.toStringHelper( this )
+            .add( "data elements", dataElements )
+            .add( "data element operands", dataElementOperands )
+            .add( "data sets", dataSets )
+            .add( "data element groups", dataElementGroups )
+            .add( "periods", periods )
+            .add( "period types", periodTypes )
+            .add( "start date", startDate )
+            .add( "end date", endDate )
+            .add( "included date", includedDate )
+            .add( "org units", organisationUnits )
+            .add( "children", includeChildren )
+            .add( "order by org unit path", orderByOrgUnitPath )
+            .add( "order by period", orderByPeriod )
+            .add( "return parent org unit", returnParentOrgUnit )
+            .add( "org unit groups", organisationUnitGroups )
+            .add( "attribute option combos", attributeOptionCombos )
             .add( "category option dimension constraints", coDimensionConstraints )
             .add( "category option group dimension constraints", cogDimensionConstraints )
             .add( "deleted", includeDeleted ).add( "last updated", lastUpdated )
@@ -397,6 +411,28 @@ public class DataExportParams
     public DataExportParams setReturnParentOrgUnit( boolean returnParentOrgUnit )
     {
         this.returnParentOrgUnit = returnParentOrgUnit;
+        return this;
+    }
+
+    public boolean isOrderByOrgUnitPath()
+    {
+        return orderByOrgUnitPath;
+    }
+
+    public DataExportParams setOrderByOrgUnitPath( boolean orderByOrgUnitPath )
+    {
+        this.orderByOrgUnitPath = orderByOrgUnitPath;
+        return this;
+    }
+
+    public boolean isOrderByPeriod()
+    {
+        return orderByPeriod;
+    }
+
+    public DataExportParams setOrderByPeriod( boolean orderByPeriod )
+    {
+        this.orderByPeriod = orderByPeriod;
         return this;
     }
 

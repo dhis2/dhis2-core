@@ -1,0 +1,23 @@
+<adx xmlns="urn:ihe:qrph:adx:2015">
+    <group dataSet="Malaria DS" period="2020-01-01/P1M" orgUnit="P1233333333">
+        <dataValue dataElement="MalNummmmmm" sex="F" age="under5" value="1"/>
+        <dataValue dataElement="MalNummmmmm" sex="M" age="under5" value="2"/>
+        <dataValue dataElement="MalNummmmmm" categoryOptionCombo="Female Over 5" value="3"/>
+        <dataValue dataElement="MalNummmmmm" categoryOptionCombo="Male Over 5" value="4"/>
+        <dataValue dataElement="MalTexttttt" value="0">
+            <annotation>Text data value</annotation>
+        </dataValue>
+    </group>
+    <group dataSet="Malaria DS" period="2020-02-01/P1M" orgUnit="D4566666666">
+        <dataValue dataElement="MalNummmmmm" sex="F" age="under5" value="6"/>
+    </group>
+    <group dataSet="Malaria Mechanism DS" mechanism="PEPFAR" period="2021-01-01/P3M" orgUnit="D4566666666">
+        <dataValue dataElement="MalNummmmmm" sex="F" age="under5" value="10"/>
+    </group>
+    <group dataSet="Malaria Mechanism DS" mechanism="McDonalds" period="2021-01-01/P3M" orgUnit="D4566666666">
+        <dataValue dataElement="MalNummmmmm" sex="F" age="over5" value="20"/>
+    </group>
+    <group dataSet="Malaria Mechanism DS" attributeOptionCombo="McDonalds CategoryOptionCombo" period="2021-01-01/P3M" orgUnit="D4566666666">
+        <dataValue dataElement="MalNummmmmm" sex="M" age="under5" value="30"/>
+    </group>
+</adx>
