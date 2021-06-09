@@ -147,6 +147,16 @@ public class DefaultMaintenanceService
     }
 
     @Override
+    public int deleteInvalidRelationships()
+    {
+        int result = maintenanceStore.deleteInvalidRelationships();
+
+        log.info( "Permanently deleted invalid relationships: " + result );
+
+        return result;
+    }
+
+    @Override
     public int deleteSoftDeletedProgramInstances()
     {
         int result = maintenanceStore.deleteSoftDeletedProgramInstances();

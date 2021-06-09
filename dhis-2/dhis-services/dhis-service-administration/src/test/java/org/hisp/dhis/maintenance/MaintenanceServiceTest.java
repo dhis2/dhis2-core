@@ -406,4 +406,52 @@ public class MaintenanceServiceTest
 
         assertFalse( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
     }
+
+    @Test
+    public void testDeleteInvalidRelationships()
+    {
+
+        Relationship relationship = createRelationship();
+
+        assertTrue( relationshipService.relationshipExists( relationship.getUid() ) );
+
+        maintenanceService.deleteInvalidRelationships();
+
+        assertTrue( relationshipService.relationshipExists( relationship.getUid() ) );
+
+        relationshipService.invalidateRelationship( relationship );
+
+        assertTrue( relationshipService.relationshipExists( relationship.getUid() ) );
+
+        maintenanceService.deleteInvalidRelationships();
+
+        assertFalse( relationshipService.relationshipExists( relationship.getUid() ) );
+    }
+
+    private Relationship createRelationship()
+    {
+        RelationshipType rType = createRelationshipType( 'A' );
+        rType.getFromConstraint().setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
+        rType.getFromConstraint().setProgram( program );
+
+        rType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        rType.getFromConstraint().setTrackedEntityType( entityInstance.getTrackedEntityType() );
+
+        relationshipTypeService.addRelationshipType( rType );
+
+        Relationship r = new Relationship();
+        RelationshipItem rItem1 = new RelationshipItem();
+        rItem1.setProgramInstance( programInstance );
+
+        RelationshipItem rItem2 = new RelationshipItem();
+        rItem2.setTrackedEntityInstance( entityInstance );
+
+        r.setFrom( rItem1 );
+        r.setTo( rItem2 );
+        r.setRelationshipType( rType );
+
+        relationshipService.addRelationship( r );
+
+        return r;
+    }
 }

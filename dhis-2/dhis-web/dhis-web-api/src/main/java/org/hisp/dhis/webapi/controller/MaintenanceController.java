@@ -165,6 +165,15 @@ public class MaintenanceController
         maintenanceService.deleteSoftDeletedDataValues();
     }
 
+    @RequestMapping( value = "/invalidRelationshipsRemoval", method = { RequestMethod.PUT,
+        RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void deleteInvalidRelationships()
+    {
+        maintenanceService.deleteInvalidRelationships();
+    }
+
     @RequestMapping( value = "/softDeletedProgramStageInstanceRemoval", method = { RequestMethod.PUT,
         RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
@@ -312,6 +321,8 @@ public class MaintenanceController
         @RequestParam( required = false ) boolean softDeletedEventRemoval,
         @RequestParam( required = false ) boolean softDeletedEnrollmentRemoval,
         @RequestParam( required = false ) boolean softDeletedTrackedEntityInstanceRemoval,
+        // TODO: Remove default value when frontend is ready
+        @RequestParam( required = false, defaultValue = "true" ) boolean invalidRelationshipsRemoval,
         @RequestParam( required = false ) boolean sqlViewsDrop,
         @RequestParam( required = false ) boolean sqlViewsCreate,
         @RequestParam( required = false ) boolean categoryOptionComboUpdate,
@@ -367,6 +378,11 @@ public class MaintenanceController
         if ( softDeletedTrackedEntityInstanceRemoval )
         {
             deleteSoftDeletedTrackedEntityInstances();
+        }
+
+        if ( invalidRelationshipsRemoval )
+        {
+            deleteInvalidRelationships();
         }
 
         if ( sqlViewsDrop )

@@ -83,6 +83,19 @@ public class JdbcMaintenanceStore
     }
 
     @Override
+    public int deleteInvalidRelationships()
+    {
+        String relationshipsSelect = "(select relationshipid from relationship where from_relationshipitemid is NULL " +
+            "OR to_relationshipitemid is NULL)";
+
+        String[] sqlStmts = new String[] {
+            "delete from relationshipitem where relationshipid in " + relationshipsSelect,
+            "delete from relationship where relationshipid in " + relationshipsSelect };
+
+        return jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
+    }
+
+    @Override
     public int deleteSoftDeletedDataValues()
     {
         String sql = "delete from datavalue dv " + "where dv.deleted is true;";
