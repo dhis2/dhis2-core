@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.datavalue;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -168,21 +167,6 @@ public interface DataValueService
      * @return a collection of all DataValues.
      */
     List<DataValue> getAllDataValues();
-
-    /**
-     * Returns all DataValues for a given Source, Period, collection of
-     * DataElements and CategoryOptionCombo.
-     *
-     * @param source the Source of the DataValues.
-     * @param period the Period of the DataValues.
-     * @param dataElements the DataElements of the DataValues.
-     * @param attributeOptionCombo the CategoryCombo.
-     * @return a collection of all DataValues which match the given Source,
-     *         Period, and any of the DataElements, or an empty collection if no
-     *         values match.
-     */
-    List<DataValue> getDataValues( OrganisationUnit source, Period period,
-        Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo );
 
     /**
      * Returns deflated data values for the given data export parameters.
