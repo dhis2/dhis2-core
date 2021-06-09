@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.Objects;
@@ -51,6 +53,7 @@ import org.springframework.stereotype.Repository;
  * @author Stian Sandvold
  */
 @Repository( "org.hisp.dhis.reservedvalue.ReservedValueStore" )
+@Slf4j
 public class HibernateReservedValueStore
     extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore
@@ -181,13 +184,17 @@ public class HibernateReservedValueStore
     @Override
     public void removeUsedOrExpiredReservations()
     {
-        String deleteQuery = "DELETE FROM ReservedValue r WHERE r.expiryDate < CURRENT_TIMESTAMP OR r.value in (" +
-            "SELECT teav.plainValue from TrackedEntityAttributeValue teav JOIN teav.attribute tea " +
-            "WHERE r.ownerUid = tea.uid and r.value = teav.plainValue" +
+        String deleteQuery = "DELETE FROM ReservedValue r WHERE r.expiryDate < CURRENT_TIMESTAMP OR r.value IN (" +
+            "SELECT teav.plainValue FROM TrackedEntityAttributeValue teav JOIN teav.attribute tea " +
+            "WHERE r.ownerUid = tea.uid AND r.value = teav.plainValue" +
             ")";
+
+        log.info( "Starting deleting expired or used reserved values ...." );
 
         getQuery( deleteQuery )
             .executeUpdate();
+
+        log.info( "... Completed deleting expired or used reserved values" );
     }
 
     // -------------------------------------------------------------------------
