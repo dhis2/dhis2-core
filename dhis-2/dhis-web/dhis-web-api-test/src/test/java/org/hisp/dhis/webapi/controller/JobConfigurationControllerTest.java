@@ -52,6 +52,10 @@ import org.springframework.http.HttpStatus;
  */
 public class JobConfigurationControllerTest extends DhisControllerConvenienceTest
 {
+    private static final String UID1 = "asdflksadfjlkj";
+
+    private static final String UID2 = "kajshdfkjahsdkfhj";
+
     @Test
     public void testCONTINUOUS_ANALYTICS_TABLE()
     {
@@ -104,13 +108,19 @@ public class JobConfigurationControllerTest extends DhisControllerConvenienceTes
     {
         String jobId = assertStatus( HttpStatus.CREATED, POST( "/jobConfigurations",
             "{'name':'test','jobType':'ANALYTICS_TABLE','cronExpression':'0 0 3 ? * *'," +
-                "'jobParameters':{'lastYears':'1','skipTableTypes':['DATA_VALUE','COMPLETENESS','ENROLLMENT'],'skipResourceTables':true}}" ) );
+                "'jobParameters':{'lastYears':'1'," +
+                "'skipTableTypes':['DATA_VALUE','COMPLETENESS','ENROLLMENT']," +
+                "'skipPrograms':['" + UID1 + "','" + UID2 + "']," +
+                "'skipResourceTables':true}}" ) );
 
         JsonObject parameters = assertJobConfigurationExists( jobId, "ANALYTICS_TABLE" );
         assertEquals( 1, parameters.getNumber( "lastYears" ).intValue() );
         assertTrue( parameters.getBoolean( "skipResourceTables" ).booleanValue() );
         assertContainsOnly( parameters.getArray( "skipTableTypes" ).stringValues(),
             "DATA_VALUE", "COMPLETENESS", "ENROLLMENT" );
+        assertContainsOnly( parameters.getArray( "skipPrograms" ).stringValues(),
+            UID1, UID2 );
+
     }
 
     @Test

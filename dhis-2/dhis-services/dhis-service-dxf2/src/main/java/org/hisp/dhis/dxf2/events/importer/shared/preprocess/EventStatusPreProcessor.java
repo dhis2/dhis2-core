@@ -25,43 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.event.EventStatus;
 
 /**
- * Sorting parameters
+ * This PreProcessor converts event's VISITED status to ACTIVE
  *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-public interface SortingCriteria
+public class EventStatusPreProcessor implements Processor
 {
-
-    /**
-     * order params
-     */
-    List<OrderCriteria> getOrder();
-
-    /**
-     * Implementors should return a list of fields on which it is allowed to
-     * perform ordering Defaults to empty list which means all fields are
-     * allowed for ordering
-     */
-    default List<String> getAllowedOrderingFields()
+    @Override
+    public void process( Event event, WorkContext ctx )
     {
-        return Collections.emptyList();
+        if ( event.getStatus().equals( EventStatus.VISITED ) )
+        {
+            event.setStatus( EventStatus.ACTIVE );
+        }
     }
-
-    /**
-     * By default it does not translate any field
-     *
-     * @return
-     */
-    default Optional<String> translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return Optional.ofNullable( dtoFieldName );
-    }
-
 }

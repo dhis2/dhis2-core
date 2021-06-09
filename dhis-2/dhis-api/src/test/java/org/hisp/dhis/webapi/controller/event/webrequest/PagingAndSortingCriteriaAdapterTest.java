@@ -36,6 +36,7 @@ import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lombok.SneakyThrows;
@@ -99,9 +100,9 @@ public class PagingAndSortingCriteriaAdapterTest
             }
 
             @Override
-            public String translateField( String dtoFieldName, boolean isLegacy )
+            public Optional<String> translateField( String dtoFieldName, boolean isLegacy )
             {
-                return dtoFieldName.equals( "field1" ) ? "translatedField1" : dtoFieldName;
+                return Optional.of( dtoFieldName.equals( "field1" ) ? "translatedField1" : dtoFieldName );
             }
         };
 
