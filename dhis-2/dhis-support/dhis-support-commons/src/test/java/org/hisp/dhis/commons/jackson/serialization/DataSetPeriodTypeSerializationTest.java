@@ -25,26 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.commons.jackson.serialization;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.ProgramMapper;
-import org.springframework.stereotype.Component;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashSet;
+
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.period.PeriodType;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * @author Luciano Fiandesio
+ * @author Morten Olav Hansen
  */
-@Component
-@StrategyFor( value = Program.class, mapper = ProgramMapper.class, cache = true, ttl = 20, capacity = 10 )
-public class ProgramStrategy extends AbstractSchemaStrategy
+public class DataSetPeriodTypeSerializationTest
 {
-    public ProgramStrategy( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager,
-        PreheatCacheService cacheService )
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+
+    @Test
+    public void testPeriodTypeAsString()
     {
-        super( schemaService, queryService, manager, cacheService );
+        DataSet dataSet = new DataSet( "DataSetUnderTest", PeriodType.getPeriodTypeByName( "Daily" ) );
+        dataSet.setDataSetElements( new HashSet<>() );
+
+        JsonNode dataSetNodes = jsonMapper.valueToTree( dataSet );
+
+        assertTrue( dataSetNodes.has( "periodType" ) );
+        assertTrue( dataSetNodes.get( "periodType" ).isTextual() );
+        assertEquals( "PeriodType serialization does not match expectation", "Daily",
+            dataSetNodes.get( "periodType" ).asText() );
     }
 }

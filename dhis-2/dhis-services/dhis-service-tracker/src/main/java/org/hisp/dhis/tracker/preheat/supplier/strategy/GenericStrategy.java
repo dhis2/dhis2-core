@@ -25,40 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.List;
 
-import org.hisp.dhis.scheduling.AbstractJob;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
+import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Henning Håkonsen
+ * @author Luciano Fiandesio
  */
-@Component( "removeExpiredReservedValuesJob" )
-public class RemoveExpiredReservedValuesJob
-    extends AbstractJob
+@Component
+@StrategyFor( value = GenericStrategy.class, mapper = CopyMapper.class )
+public class GenericStrategy extends AbstractSchemaStrategy
 {
-    private final ReservedValueService reservedValueService;
-
-    public RemoveExpiredReservedValuesJob( ReservedValueService reservedValueService )
+    public GenericStrategy( SchemaService schemaService, QueryService queryService,
+        IdentifiableObjectManager manager, PreheatCacheService cacheService )
     {
-        checkNotNull( reservedValueService );
-
-        this.reservedValueService = reservedValueService;
+        super( schemaService, queryService, manager, cacheService );
     }
 
-    @Override
-    public JobType getJobType()
+    public void add( Class<?> klazz, List<List<String>> splitList, TrackerPreheat preheat )
     {
-        return JobType.REMOVE_EXPIRED_RESERVED_VALUES;
-    }
-
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
-    {
-        reservedValueService.removeExpiredReservations();
+        Schema schema = schemaService.getDynamicSchema( klazz );
+        queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID, splitList,
+            getClass().getAnnotation( StrategyFor.class ).mapper() );
     }
 }

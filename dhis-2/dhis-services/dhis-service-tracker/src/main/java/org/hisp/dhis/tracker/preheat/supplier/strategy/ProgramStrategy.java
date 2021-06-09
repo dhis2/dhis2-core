@@ -25,24 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.OrganisationUnitMapper;
+import org.hisp.dhis.tracker.preheat.mappers.ProgramMapper;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = OrganisationUnit.class, mapper = OrganisationUnitMapper.class, cache = true, ttl = 30, capacity = 100 )
-public class OrgUnitStrategy extends AbstractSchemaStrategy
+@StrategyFor( value = Program.class, mapper = ProgramMapper.class, cache = true, ttl = 20, capacity = 10 )
+public class ProgramStrategy extends AbstractSchemaStrategy
 {
-    public OrgUnitStrategy( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager,
+    public ProgramStrategy( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager,
         PreheatCacheService cacheService )
     {
         super( schemaService, queryService, manager, cacheService );

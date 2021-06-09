@@ -25,26 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.reservedvalue;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.DataElementMapper;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Luciano Fiandesio
+ * @author Henning Håkonsen
  */
-@Component
-@StrategyFor( value = DataElement.class, mapper = DataElementMapper.class )
-public class DataElementStrategy extends AbstractSchemaStrategy
+@Component( "removeUsedOrExpiredReservedValuesJob" )
+@RequiredArgsConstructor
+public class RemoveUsedOrExpiredReservedValuesJob
+    extends AbstractJob
 {
-    public DataElementStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
+    private final ReservedValueService reservedValueService;
+
+    @Override
+    public JobType getJobType()
     {
-        super( schemaService, queryService, manager, cacheService );
+        return JobType.REMOVE_USED_OR_EXPIRED_RESERVED_VALUES;
+    }
+
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
+    {
+        reservedValueService.removeUsedOrExpiredReservations();
     }
 }

@@ -692,7 +692,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      */
     @ResponseBody
     @PatchMapping( path = "/{uid}", consumes = { MediaType.APPLICATION_JSON_VALUE, "application/json-patch+json" } )
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V34,
+        DhisApiVersion.V35, DhisApiVersion.V36 } )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,

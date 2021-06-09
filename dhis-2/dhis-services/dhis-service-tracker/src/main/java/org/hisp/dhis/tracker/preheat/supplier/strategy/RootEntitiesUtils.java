@@ -25,26 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
-import org.springframework.stereotype.Component;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import lombok.experimental.UtilityClass;
 
 /**
  * @author Luciano Fiandesio
  */
-@Component
-@StrategyFor( value = RelationshipType.class, mapper = RelationshipTypeMapper.class, cache = true, ttl = 10, capacity = 10 )
-public class RelationshipTypeStrategy extends AbstractSchemaStrategy
+@UtilityClass
+public class RootEntitiesUtils
 {
-    public RelationshipTypeStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
+    public List<String> filterOutNonRootEntities( List<String> ids, List<String> rootEntities )
     {
-        super( schemaService, queryService, manager, cacheService );
+        return ids.stream().filter( rootEntities::contains ).collect( Collectors.toList() );
     }
 }
