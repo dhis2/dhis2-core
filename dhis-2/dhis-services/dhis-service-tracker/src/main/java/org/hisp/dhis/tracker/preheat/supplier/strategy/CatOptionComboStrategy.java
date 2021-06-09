@@ -25,47 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.hisp.dhis.tracker.preheat.mappers.PreheatMapper;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
+import org.hisp.dhis.tracker.preheat.mappers.CategoryOptionComboMapper;
+import org.springframework.stereotype.Component;
 
 /**
- * Annotation for {@link ClassBasedSupplierStrategy} classes that specifies the
- * Tracker domain object the annotated strategy has to process
- *
  * @author Luciano Fiandesio
  */
-@Retention( RUNTIME )
-@Target( ElementType.TYPE )
-public @interface StrategyFor
+@Component
+@StrategyFor( value = CategoryOptionCombo.class, mapper = CategoryOptionComboMapper.class, cache = true, ttl = 5 )
+public class CatOptionComboStrategy extends AbstractSchemaStrategy
 {
-    Class<?> value();
-
-    Class<? extends PreheatMapper> mapper();
-
-    /**
-     * Whether the object used in this Strategy can be cached
-     */
-    boolean cache() default false;
-
-    /**
-     * The time-to-live for the type of object being cached The value is in
-     * **minutes**. Defaults to 5 minutes
-     */
-    int ttl() default 5;
-
-    /**
-     * The maximum number of entries hold by the cache. Defaults to 5. The
-     * reason for the low default, is that certain objects can contain a lot of
-     * references and quickly consume memory. For most metadata, a capacity of 5
-     * is not necessarily small either. We should always specify capacity for
-     * each strategy, on not rely on the default.
-     */
-    long capacity() default 5;
+    public CatOptionComboStrategy( SchemaService schemaService, QueryService queryService,
+        IdentifiableObjectManager manager, PreheatCacheService cacheService )
+    {
+        super( schemaService, queryService, manager, cacheService );
+    }
 }
