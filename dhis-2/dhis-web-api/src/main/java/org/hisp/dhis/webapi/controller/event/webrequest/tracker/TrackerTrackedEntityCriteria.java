@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 
 import lombok.Data;
@@ -192,12 +193,11 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
     }
 
     @Override
-    public String translateField( String dtoFieldName, boolean isLegacy )
+    public Optional<String> translateField( String dtoFieldName, boolean isLegacy )
     {
-        return (isLegacy
+        return isLegacy
             ? translate( dtoFieldName, TrackerTrackedEntityCriteria.LegacyDtoToEntityFieldTranslator.values() )
-            : translate( dtoFieldName, TrackerTrackedEntityCriteria.DtoToEntityFieldTranslator.values() ))
-                .orElse( dtoFieldName );
+            : translate( dtoFieldName, TrackerTrackedEntityCriteria.DtoToEntityFieldTranslator.values() );
     }
 
     /**

@@ -25,123 +25,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
+package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
 import java.util.Date;
 import java.util.Optional;
-import java.util.Set;
 
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
- * Class to hold EventController request parameters into a handy place
+ * Class to hold EnrollmentController request parameters into a handy place
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 @Data
 @NoArgsConstructor
-public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
+public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
 {
-    private String program;
+    private String ou;
 
-    private String programStage;
+    private OrganisationUnitSelectionMode ouMode;
+
+    private String program;
 
     private ProgramStatus programStatus;
 
     private Boolean followUp;
 
-    private String trackedEntity;
+    private Date lastUpdated;
 
-    private String orgUnit;
+    private String lastUpdatedDuration;
 
-    private OrganisationUnitSelectionMode ouMode;
+    private Date programStartDate;
 
-    private AssignedUserSelectionMode assignedUserMode;
+    private Date programEndDate;
 
-    private String assignedUser;
+    private String trackedEntityType;
 
-    private Date occurredAfter;
+    private String trackedEntityInstance;
 
-    private Date occurredBefore;
-
-    private Date scheduledAfter;
-
-    private Date scheduledBefore;
-
-    private Date updatedAfter;
-
-    private Date updatedBefore;
-
-    private String updatedWithin;
-
-    private EventStatus status;
-
-    private String attributeCc;
-
-    private String attributeCos;
-
-    private boolean skipMeta;
-
-    private String attachment;
+    private String enrollment;
 
     private boolean includeDeleted;
 
-    private String event;
-
-    private Boolean skipEventId;
-
-    private Set<String> filter;
-
-    private IdSchemes idSchemes = new IdSchemes();
-
-    @Override
-    public boolean isLegacy()
-    {
-        return false;
-    }
+    private Boolean paging;
 
     @Override
     public Optional<String> translateField( String dtoFieldName, boolean isLegacy )
     {
-        return isLegacy ? translate( dtoFieldName, TrackerEventCriteria.LegacyDtoToEntityFieldTranslator.values() )
-            : translate( dtoFieldName, TrackerEventCriteria.DtoToEntityFieldTranslator.values() );
-    }
-
-    /**
-     * Dto to database field translator for new tracker Enrollment export
-     * controller
-     */
-    @RequiredArgsConstructor
-    private enum DtoToEntityFieldTranslator implements EntityNameSupplier
-    {
-        /**
-         * this enum names must be the same as
-         * org.hisp.dhis.tracker.domain.Event fields, just with different case
-         *
-         * example: org.hisp.dhis.tracker.domain.Event.updatedAtClient -->
-         * UPDATED_AT_CLIENT
-         */
-        OCCURRED_AT( "eventDate" ),
-        SCHEDULED_AT( "dueDate" ),
-        CREATED_AT( "created" ),
-        UPDATED_AT( "lastUpdated" ),
-        COMPLETED_AT( "completedDate" );
-
-        @Getter
-        private final String entityName;
-
+        return translate( dtoFieldName, LegacyDtoToEntityFieldTranslator.values() );
     }
 
     /**
@@ -152,15 +91,20 @@ public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
     private enum LegacyDtoToEntityFieldTranslator implements EntityNameSupplier
     {
         /**
-         * this enum names must be the same as org.hisp.dhis.dxf2.events.Event
-         * fields, just with different case
+         * this enum names must be the same as
+         * org.hisp.dhis.dxf2.events.enrollment.Enrollment fields, just with
+         * different case
          *
-         * example: org.hisp.dhis.dxf2.events.Event.lastUpdated --> LAST_UPDATED
+         * example: org.hisp.dhis.dxf2.events.enrollment.Enrollment.lastUpdated
+         * --> LAST_UPDATED
          */
-        EVENT( "uid" );
+        ENROLLMENT( "uid" ),
+        TRACKED_ENTITY( "pi.entityInstance.uid" ),
+        TRACKED_ENTITY_INSTANCE( "pi.entityInstance.uid" );
 
         @Getter
         private final String entityName;
 
     }
+
 }
