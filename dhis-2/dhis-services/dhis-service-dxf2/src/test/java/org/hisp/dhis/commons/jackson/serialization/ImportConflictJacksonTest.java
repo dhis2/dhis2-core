@@ -25,52 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.importsummary;
+package org.hisp.dhis.commons.jackson.serialization;
 
-import java.util.function.Predicate;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * A "append only" set of {@link ImportConflict}s.
- *
  * @author Jan Bernitt
  */
-public interface ImportConflicts
+public class ImportConflictJacksonTest
 {
-    /**
-     * Adds a new conflict to this set of conflicts
-     *
-     * @param object reference or ID of the object causing the conflict
-     * @param message a description of the conflict
-     */
-    void addConflict( String object, String message );
 
-    /**
-     * @return A textual description of all {@link ImportConflict}s in this set
-     */
-    String getConflictsDescription();
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    /**
-     * @return Number of unique conflicts in the set. This can be less than the
-     *         number of conflicts added using
-     *         {@link #addConflict(String, String)} since duplicates are
-     *         eliminated
-     */
-    int getConflictCount();
-
-    /**
-     * Tests if a {@link ImportConflict} with certain qualities exists in this
-     * set.
-     *
-     * @param test the test to perform
-     * @return true if it exist, otherwise false
-     */
-    boolean hasConflict( Predicate<ImportConflict> test );
-
-    /**
-     * @return true, if there are any conflicts in this set, else false
-     */
-    default boolean hasConflicts()
+    @Test
+    public void testIterableSerialisedAsJsonArray()
     {
-        return getConflictCount() > 0;
+        ImportSummary summary = new ImportSummary();
+        summary.addConflict( "foo", "bar" );
+        summary.addConflict( "x", "y" );
+
+        JsonNode summaryNodes = jsonMapper.valueToTree( summary );
+
+        assertTrue( summaryNodes.has( "conflicts" ) );
+        JsonNode conflicts = summaryNodes.get( "conflicts" );
+        assertTrue( conflicts.isArray() );
+        assertEquals( 2, conflicts.size() );
+        assertEquals( "[{\"object\":\"x\",\"value\":\"y\"},{\"object\":\"foo\",\"value\":\"bar\"}]",
+            conflicts.toString() );
     }
 }

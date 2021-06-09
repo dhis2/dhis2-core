@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.importsummary;
 
+import static java.util.Collections.unmodifiableSet;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 
 import java.util.HashSet;
@@ -189,7 +190,7 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
     @JacksonXmlProperty( localName = "conflict", namespace = DxfNamespaces.DXF_2_0 )
     public Iterable<ImportConflict> getConflicts()
     {
-        return conflicts;
+        return unmodifiableSet( conflicts );
     }
 
     @JsonProperty

@@ -144,4 +144,9 @@ public class ImportCount
     {
         deleted += n;
     }
+
+    public int getTotalCount()
+    {
+        return imported + updated + imported + deleted;
+    }
 }

@@ -38,7 +38,6 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.Period;
@@ -111,7 +110,7 @@ public interface DataValueSetService
 
     ImportSummary saveDataValueSet( InputStream in );
 
-    ImportConflicts saveDataValueSetJson( InputStream in );
+    ImportSummary saveDataValueSetJson( InputStream in );
 
     ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions );
 

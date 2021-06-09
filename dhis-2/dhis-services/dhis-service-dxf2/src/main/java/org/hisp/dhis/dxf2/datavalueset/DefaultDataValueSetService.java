@@ -73,7 +73,6 @@ import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataSetContext;
-import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -610,7 +609,7 @@ public class DefaultDataValueSetService
 
     @Override
     @Transactional
-    public ImportConflicts saveDataValueSetJson( InputStream in )
+    public ImportSummary saveDataValueSetJson( InputStream in )
     {
         return saveDataValueSetJson( in, ImportOptions.getDefaultImportOptions(), null );
     }
@@ -786,7 +785,6 @@ public class DefaultDataValueSetService
             context.getSummary().setDataSetComplete( Boolean.FALSE.toString() );
         }
 
-        int totalCount = 0;
         final ImportCount importCount = new ImportCount();
 
         // ---------------------------------------------------------------------
@@ -800,7 +798,6 @@ public class DefaultDataValueSetService
 
         while ( dataValueSet.hasNextDataValue() )
         {
-            totalCount++;
             org.hisp.dhis.dxf2.datavalue.DataValue dataValue = dataValueSet.getNextDataValue();
 
             ImportContext.DataValueContext valueContext = createDataValueContext(
@@ -817,6 +814,7 @@ public class DefaultDataValueSetService
             // -----------------------------------------------------------------
             if ( importValidator.skipDataValue( dataValue, context, dataSetContext, valueContext ) )
             {
+                importCount.incrementIgnored();
                 continue;
             }
 
@@ -854,12 +852,20 @@ public class DefaultDataValueSetService
                 {
                     saveDataValueDelete( context, importCount, dataValue, valueContext, internalValue, existingValue );
                 }
+                else
+                {
+                    importCount.incrementIgnored();
+                }
             }
             else
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isCreate() )
                 {
                     saveDataValueCreate( context, importCount, valueContext, internalValue, existingValue );
+                }
+                else
+                {
+                    importCount.incrementIgnored();
                 }
             }
         }
@@ -877,7 +883,8 @@ public class DefaultDataValueSetService
             .setDescription( "Import process completed successfully" );
 
         clock.logTime(
-            "Data value import done, total: " + totalCount + ", import: " + importCount.getImported() + ", update: "
+            "Data value import done, total: " + importCount.getTotalCount() + ", import: " + importCount.getImported()
+                + ", update: "
                 + importCount.getUpdated() + ", delete: " + importCount.getDeleted() );
         notifier.notify( id, notificationLevel, "Import done", true )
             .addJobSummary( id, notificationLevel, context.getSummary(), ImportSummary.class );
@@ -892,6 +899,7 @@ public class DefaultDataValueSetService
     {
         if ( internalValue.isNullValue() )
         {
+            importCount.incrementIgnored();
             return; // Ignore null values
         }
         if ( existingValue != null && existingValue.isDeleted() )
