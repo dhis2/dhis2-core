@@ -29,10 +29,8 @@ package org.hisp.dhis.orgunitmerge;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import com.google.common.base.Preconditions;
@@ -68,14 +66,16 @@ public class DefaultOrgUnitMergeService
         idObjectManager.update( target );
     }
 
+    // -------------------------------------------------------------------------
+    // Private methods
+    // -------------------------------------------------------------------------
+
     private void mergeDataSets( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
-        Set<DataSet> objects = sources.stream()
+        sources.stream()
             .map( OrganisationUnit::getDataSets )
             .flatMap( Collection::stream )
-            .collect( Collectors.toSet() );
-
-        objects.forEach( o -> o.addOrganisationUnit( target ) );
+            .forEach( o -> o.addOrganisationUnit( target ) );
     }
 
     private void mergePrograms( Set<OrganisationUnit> sources, OrganisationUnit target )
