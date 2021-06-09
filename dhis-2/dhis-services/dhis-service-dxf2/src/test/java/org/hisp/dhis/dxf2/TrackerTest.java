@@ -73,6 +73,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -134,6 +135,8 @@ public abstract class TrackerTest extends IntegrationTestBase
 
     protected RelationshipType relationshipType;
 
+    protected TrackedEntityAttribute atA;
+
     /**
      * Default COC created in DefaultCategoryService
      */
@@ -159,6 +162,9 @@ public abstract class TrackerTest extends IntegrationTestBase
         categoryComboA = manager.getByName( CategoryCombo.class, "default" );
         categoryComboA.setUid( CodeGenerator.generateUid() );
         manager.update( categoryComboA );
+
+        atA = createTrackedEntityAttribute( 'A' );
+        manager.save( atA );
 
         ProgramStage programStageA2;
 
