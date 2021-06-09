@@ -387,4 +387,32 @@ public class TrackedEntityInstanceStoreTest
         assertThat( grid, hasSize( 0 ) );
 
     }
+
+    @Test
+    public void testGridQueryWithSingleQuoteInAttributeSearchInput()
+    {
+        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+        teiA.setTrackedEntityType( trackedEntityTypeA );
+        teiStore.save( teiA );
+        attributeValueService
+            .addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atC, teiA, ouC.getUid() ) );
+        programInstanceService.enrollTrackedEntityInstance( teiA, prA, new Date(), new Date(), ouA );
+
+        dbmsManager.flushSession();
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+        params.setProgram( prA );
+        params.addFilter( new QueryItem( atC, QueryOperator.EQ, "M'M",
+            ValueType.TEXT, AggregationType.NONE, null ) );
+
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
+
+        List<Map<String, String>> grid = teiStore.getTrackedEntityInstancesGrid( params );
+
+        assertThat( grid, hasSize( 0 ) );
+
+    }
 }
