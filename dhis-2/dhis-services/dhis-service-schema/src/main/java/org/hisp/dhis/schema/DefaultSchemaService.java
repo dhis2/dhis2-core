@@ -169,6 +169,7 @@ public class DefaultSchemaService
         .add( new TrackedEntityTypeAttributeSchemaDescriptor() )
         .add( new TrackedEntityDataElementDimensionSchemaDescriptor() )
         .add( new TrackedEntityProgramIndicatorDimensionSchemaDescriptor() )
+        .add( new UserCredentialsSchemaDescriptor() )
         .add( new UserGroupSchemaDescriptor() )
         .add( new UserRoleSchemaDescriptor() )
         .add( new UserSchemaDescriptor() )

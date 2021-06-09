@@ -54,6 +54,7 @@ import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStatusPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
@@ -264,6 +265,7 @@ public class ServiceConfig
         return ImmutableMap.of( CREATE, newArrayList(
             ImportOptionsPreProcessor.class,
             EventStoredByPreProcessor.class,
+            EventStatusPreProcessor.class,
             ProgramInstancePreProcessor.class,
             ProgramStagePreProcessor.class,
             EventGeometryPreProcessor.class,
@@ -287,6 +289,7 @@ public class ServiceConfig
         return ImmutableMap.of( UPDATE, newArrayList(
             ImportOptionsPreProcessor.class,
             EventStoredByPreProcessor.class,
+            EventStatusPreProcessor.class,
             ProgramStageInstanceUpdatePreProcessor.class,
             ProgramInstanceGeometryPreProcessor.class,
             UserInfoUpdatePreProcessor.class ) );

@@ -60,7 +60,7 @@ public enum JobType
     DATA_INTEGRITY( "dataIntegrityJob", true ),
     RESOURCE_TABLE( "resourceTableJob", true ),
     ANALYTICS_TABLE( "analyticsTableJob", true, SchedulingType.CRON, AnalyticsJobParameters.class, ImmutableMap.of(
-        "skipTableTypes", "/api/analytics/tableTypes" ) ),
+        "skipTableTypes", "/api/analytics/tableTypes", "skipPrograms", "/api/programs" ) ),
     CONTINUOUS_ANALYTICS_TABLE( "continuousAnalyticsTableJob", true, SchedulingType.FIXED_DELAY,
         ContinuousAnalyticsJobParameters.class, ImmutableMap.of(
             "skipTableTypes", "/api/analytics/tableTypes" ) ),
