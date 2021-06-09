@@ -287,7 +287,6 @@ public abstract class PeriodType
      *
      * @return a unique name for the PeriodType. E.g. "Monthly".
      */
-    @JsonProperty
     public abstract String getName();
 
     /**
