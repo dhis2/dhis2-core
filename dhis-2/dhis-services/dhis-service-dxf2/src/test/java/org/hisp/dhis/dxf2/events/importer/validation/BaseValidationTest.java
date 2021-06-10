@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.dxf2.events.importer.EventTestUtils.createBaseEvent;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
@@ -47,6 +48,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -119,18 +121,20 @@ public abstract class BaseValidationTest
         assertThat( summary.getDescription(), is( description ) );
     }
 
-    protected void assertHasConflict( ImportSummary summary, Event event, String conflict )
+    protected static void assertHasConflict( ImportSummary summary, String expectedValue, String expectedObject )
     {
+        assertEquals( 1, summary.getConflictCount() );
+        ImportConflict conflict = summary.getConflicts().iterator().next();
+        assertEquals( expectedValue, conflict.getValue() );
+        assertEquals( expectedObject, conflict.getObject() );
+    }
 
-        final Set<ImportConflict> conflicts = summary.getConflicts();
-        for ( ImportConflict importConflict : conflicts )
+    protected static void assertHasConflict( ImportConflicts summary, Event event, String conflict )
+    {
+        if ( !summary.hasConflict( c -> c.getValue().equals( conflict ) ) )
         {
-            if ( importConflict.getValue().equals( conflict ) )
-            {
-                return;
-            }
+            fail( "Conflict string [" + conflict + "] not found" );
         }
-        fail( "Conflict string [" + conflict + "] not found" );
     }
 
     protected DataElement addToDataElementMap( DataElement de )

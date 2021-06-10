@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -583,7 +582,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             }
             catch ( ImportConflictException ic )
             {
-                summary.getConflicts().add( ic.getImportConflict() );
+                summary.addConflict( ic.getImportConflict().getObject(), ic.getImportConflict().getValue() );
                 continue;
             }
 
@@ -599,8 +598,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             {
                 for ( DataElementOperand dataElementOperand : missingDataElementOperands )
                 {
-                    summary.getConflicts().add( new ImportConflict( "dataElementOperand",
-                        dataElementOperand.getDisplayName() + " needs to be filled. It is compulsory." ) );
+                    summary.addConflict( "dataElementOperand",
+                        dataElementOperand.getDisplayName() + " needs to be filled. It is compulsory." );
                 }
 
                 if ( mdProps.dataSet.isCompulsoryFieldsCompleteOnly() )
@@ -616,8 +615,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             List<String> errors = validateDataAccess( currentUser, mdProps );
             if ( !errors.isEmpty() )
             {
-                summary.getConflicts().addAll(
-                    errors.stream().map( s -> new ImportConflict( "dataSet", s ) ).collect( Collectors.toList() ) );
+                errors.forEach( error -> summary.addConflict( "dataSet", error ) );
                 continue;
             }
 
