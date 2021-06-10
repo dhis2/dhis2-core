@@ -36,8 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -51,6 +49,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
+
+import lombok.AllArgsConstructor;
 
 /**
  * Encapsulates all access control related logic of gist API request processing.
@@ -132,7 +132,7 @@ public class DefaultGistAccessControl implements GistAccessControl
     public boolean canFilterByAccessOfUser( String userUid )
     {
         User user = userService.getUser( userUid );
-        return user != null && currentUser.canManage( user );
+        return user != null && aclService.canRead( currentUser, user );
     }
 
     @Override
