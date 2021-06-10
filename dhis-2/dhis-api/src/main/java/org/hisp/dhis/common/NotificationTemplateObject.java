@@ -25,54 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.translation;
+package org.hisp.dhis.common;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum TranslationProperty
+import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.translation.TranslationProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
+public abstract class NotificationTemplateObject
+    extends BaseIdentifiableObject
+    implements NotificationTemplate
 {
-    NAME( "name" ),
-    SHORT_NAME( "shortName" ),
-    DESCRIPTION( "description" ),
-    FORM_NAME( "formName" ),
-    NUMERATOR_DESCRIPTION( "numeratorDescription" ),
-    DENOMINATOR_DESCRIPTION( "denominatorDescription" ),
-    RELATIONSHIP_FROM_TO_NAME( "fromToName" ),
-    RELATIONSHIP_TO_FROM_NAME( "toFromName" ),
-    INSTRUCTION( "instruction" ),
-    CONTENT( "content" ),
-    domainAxisLabel( "domainAxisLabel" ),
-    rangeAxisLabel( "rangeAxisLabel" ),
-    targetLineLabel( "targetLineLabel" ),
-    baseLineLabel( "baseLineLabel" ),
-    title( "title" ),
-    subtitle( "subtitle" ),
-    SUBJECT_TEMPLATE( "notificationSubjectTemplate" ),
-    MESSAGE_TEMPLATE( "notificationMessageTemplate" );
-
-    private String name;
-
-    TranslationProperty( String name )
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplaySubjectTemplate()
     {
-        this.name = name;
+        return getTranslation( TranslationProperty.SUBJECT_TEMPLATE, getSubjectTemplate() );
     }
 
-    public static TranslationProperty fromValue( String value )
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayMessageTemplate()
     {
-        for ( TranslationProperty type : TranslationProperty.values() )
-        {
-            if ( type.getName().equalsIgnoreCase( value ) )
-            {
-                return type;
-            }
-        }
-
-        return null;
-    }
-
-    public String getName()
-    {
-        return name;
+        return getTranslation( TranslationProperty.MESSAGE_TEMPLATE, getMessageTemplate() );
     }
 }
