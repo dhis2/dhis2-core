@@ -27,21 +27,40 @@
  */
 package org.hisp.dhis.dxf2.adx;
 
+import static java.util.Calendar.APRIL;
+import static java.util.Calendar.JANUARY;
+import static java.util.Calendar.JULY;
+import static java.util.Calendar.MAY;
+import static java.util.Calendar.MONDAY;
+import static java.util.Calendar.NOVEMBER;
+import static java.util.Calendar.OCTOBER;
+import static java.util.Calendar.SATURDAY;
+import static java.util.Calendar.SUNDAY;
+import static java.util.Calendar.THURSDAY;
+import static java.util.Calendar.WEDNESDAY;
+
 import java.util.Calendar;
 import java.util.Date;
 
 import org.hisp.dhis.period.BiMonthlyPeriodType;
+import org.hisp.dhis.period.BiWeeklyPeriodType;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
 import org.hisp.dhis.period.FinancialJulyPeriodType;
+import org.hisp.dhis.period.FinancialNovemberPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.SixMonthlyAprilPeriodType;
+import org.hisp.dhis.period.SixMonthlyNovemberPeriodType;
 import org.hisp.dhis.period.SixMonthlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
+import org.hisp.dhis.period.WeeklySaturdayPeriodType;
+import org.hisp.dhis.period.WeeklySundayPeriodType;
+import org.hisp.dhis.period.WeeklyThursdayPeriodType;
+import org.hisp.dhis.period.WeeklyWednesdayPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.util.DateUtils;
 
@@ -58,6 +77,7 @@ public class AdxPeriod
     {
         P1D, // daily
         P7D, // weekly
+        P14D, // bi-weekly
         P1M, // monthly
         P2M, // bi-monthly
         P3M, // quarterly
@@ -90,7 +110,29 @@ public class AdxPeriod
                 periodType = new DailyPeriodType();
                 break;
             case P7D:
-                periodType = new WeeklyPeriodType();
+                switch ( cal.get( Calendar.DAY_OF_WEEK ) )
+                {
+                case MONDAY:
+                    periodType = new WeeklyPeriodType();
+                    break;
+                case WEDNESDAY:
+                    periodType = new WeeklyWednesdayPeriodType();
+                    break;
+                case THURSDAY:
+                    periodType = new WeeklyThursdayPeriodType();
+                    break;
+                case SATURDAY:
+                    periodType = new WeeklySaturdayPeriodType();
+                    break;
+                case SUNDAY:
+                    periodType = new WeeklySundayPeriodType();
+                    break;
+                default:
+                    throw new AdxException( periodString + " is invalid weekly type" );
+                }
+                break;
+            case P14D:
+                periodType = new BiWeeklyPeriodType();
                 break;
             case P1M:
                 periodType = new MonthlyPeriodType();
@@ -104,33 +146,44 @@ public class AdxPeriod
             case P6M:
                 switch ( cal.get( Calendar.MONTH ) )
                 {
-                case 0:
+                case JANUARY:
+                case JULY:
                     periodType = new SixMonthlyPeriodType();
                     break;
-                case 6:
+                case APRIL:
+                case OCTOBER:
                     periodType = new SixMonthlyAprilPeriodType();
                     break;
+                case NOVEMBER:
+                case MAY:
+                    periodType = new SixMonthlyNovemberPeriodType();
+                    break;
                 default:
-                    throw new AdxException( periodString + "is invalid sixmonthly type" );
+                    throw new AdxException( periodString + " is invalid sixmonthly type" );
                 }
+                break;
             case P1Y:
                 switch ( cal.get( Calendar.MONTH ) )
                 {
-                case 0:
+                case JANUARY:
                     periodType = new YearlyPeriodType();
                     break;
-                case 3:
+                case APRIL:
                     periodType = new FinancialAprilPeriodType();
                     break;
-                case 6:
+                case JULY:
                     periodType = new FinancialJulyPeriodType();
                     break;
-                case 9:
+                case OCTOBER:
                     periodType = new FinancialOctoberPeriodType();
                     break;
+                case NOVEMBER:
+                    periodType = new FinancialNovemberPeriodType();
+                    break;
                 default:
-                    throw new AdxException( periodString + "is invalid yearly type" );
+                    throw new AdxException( periodString + " is invalid yearly type" );
                 }
+                break;
             }
 
             if ( periodType != null )

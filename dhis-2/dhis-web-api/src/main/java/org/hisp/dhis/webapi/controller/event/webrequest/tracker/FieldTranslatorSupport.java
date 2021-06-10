@@ -34,10 +34,10 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 
 import com.google.common.base.CaseFormat;
 
-class FieldTranslatorSupport
+public class FieldTranslatorSupport
 {
 
-    static Optional<String> translate( String dtoFieldName,
+    public static Optional<String> translate( String dtoFieldName,
         Enum<? extends PagingAndSortingCriteriaAdapter.EntityNameSupplier>[] translator )
     {
         String upperSnakeCase = CaseFormat.LOWER_CAMEL.to( CaseFormat.UPPER_UNDERSCORE, dtoFieldName );
