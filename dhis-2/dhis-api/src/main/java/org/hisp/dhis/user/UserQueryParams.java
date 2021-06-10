@@ -194,7 +194,7 @@ public class UserQueryParams
     }
 
     // -------------------------------------------------------------------------
-    // Getters and setters
+    // Set methods
     // -------------------------------------------------------------------------
 
     public UserQueryParams setQuery( String query )

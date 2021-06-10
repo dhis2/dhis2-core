@@ -125,7 +125,8 @@ public class UserServiceTest
 
     private UserQueryParams getDefaultParams()
     {
-        return new UserQueryParams().setCanSeeOwnUserAuthorityGroups( true );
+        return new UserQueryParams()
+            .setCanSeeOwnUserAuthorityGroups( true );
     }
 
     @Test
