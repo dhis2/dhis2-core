@@ -196,25 +196,6 @@ public class EventChartController
         chart.getFilterDimensions().addAll( getDimensions( chart.getFilters() ) );
     }
 
-    // private CategoryDataset[] getCategoryDataSet( EventChart eventChart )
-    // {
-    // Map<String, Object> valueMap;
-    //
-    // List<NameableObject> series = new ArrayList<>( eventChart.series() );
-    // List<NameableObject> categories = new ArrayList<>( eventChart.category()
-    // );
-    //
-    // Grid grid = eventAnalyticsService.getAggregatedEventData( eventChart );
-    // eventChart.setDataItemGrid( grid );
-    //
-    // valueMap = GridUtils.getMetaValueMapping( grid, (grid.getWidth() - 1) );
-    //
-    // return ChartHelper.getCategoryDataSet( valueMap, series, categories,
-    // eventChart.hasSortOrder(),
-    // eventChart.getSortOrder(), eventChart.isRegression(), AnalyticsType.EVENT
-    // );
-    // }
-
     public static void main( String[] args )
     {
         List<String> l = new ArrayList<>( null );
