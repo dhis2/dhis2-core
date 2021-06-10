@@ -923,7 +923,7 @@ public class HibernateTrackedEntityInstanceStore
 
             for ( QueryFilter filter : queryItem.getFilters() )
             {
-                String encodedFilter = statementBuilder.encode( statementBuilder.encode( filter.getFilter(), false ) );
+                String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
                 attributes
                     .append( "AND " )
                     .append( teav )
