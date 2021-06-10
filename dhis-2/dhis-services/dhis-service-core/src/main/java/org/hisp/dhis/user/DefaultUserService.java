@@ -317,7 +317,7 @@ public class DefaultUserService
 
         if ( params.isUserOrgUnits() && params.hasUser() )
         {
-            params.setOrganisationUnits( Lists.newArrayList( params.getUser().getOrganisationUnits() ) );
+            params.setOrganisationUnits( params.getUser().getOrganisationUnits() );
         }
     }
 
