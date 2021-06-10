@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import lombok.Getter;
@@ -77,11 +75,11 @@ public class UserQueryParams
 
     private UserInvitationStatus invitationStatus;
 
-    private List<OrganisationUnit> organisationUnits = new ArrayList<>();
+    private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-    private List<OrganisationUnit> dataViewOrganisationUnits = new ArrayList<>();
+    private Set<OrganisationUnit> dataViewOrganisationUnits = new HashSet<>();
 
-    private List<OrganisationUnit> teiSearchOrganisationUnits = new ArrayList<>();
+    private Set<OrganisationUnit> teiSearchOrganisationUnits = new HashSet<>();
 
     private Set<UserGroup> userGroups = new HashSet<>();
 
@@ -269,19 +267,19 @@ public class UserQueryParams
         return this;
     }
 
-    public UserQueryParams setOrganisationUnits( List<OrganisationUnit> organisationUnits )
+    public UserQueryParams setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
         return this;
     }
 
-    public UserQueryParams setDataViewOrganisationUnits( List<OrganisationUnit> dataViewOrganisationUnits )
+    public UserQueryParams setDataViewOrganisationUnits( Set<OrganisationUnit> dataViewOrganisationUnits )
     {
         this.dataViewOrganisationUnits = dataViewOrganisationUnits;
         return this;
     }
 
-    public UserQueryParams setTeiSearchOrganisationUnits( List<OrganisationUnit> teiSearchOrganisationUnits )
+    public UserQueryParams setTeiSearchOrganisationUnits( Set<OrganisationUnit> teiSearchOrganisationUnits )
     {
         this.teiSearchOrganisationUnits = teiSearchOrganisationUnits;
         return this;
