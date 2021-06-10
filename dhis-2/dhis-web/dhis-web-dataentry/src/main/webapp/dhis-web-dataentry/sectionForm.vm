@@ -208,30 +208,29 @@
                         </>
                     #end
                 </tbody>
-            </table>
-            #if( $indicators.size() > 0 )
-                #set( $mark = 0 )
-                <div class="indicatorArea">
-                    <table>
-                        #foreach( $indicator in $indicators )
-                            #if( $mark == 1 )
-                                #set( $mark = 0 )
-                            #else
-                                #set( $mark = 1 )
-                            #end
-                            <tr>
-                                <td #if( $mark == 1 )class="alt"#else class="reg"#end>
-                                  <span class="indicator-label" id="indicator${indicator.id}-label" #if( $decoration && "$!indicator.description" != "" ) class="indicator-label" style="cursor: pointer" #end >${indicator.displayName}</span>
-                                  <input type="hidden" id="indicator${indicator.id}-label-description" value="$!{indicator.displayDescription}" />
-                                </td>
-                                <td><input id="indicator${indicator.id}" indicatorid="${indicator.uid}" name="indicator" type="text"></td>
-                            </tr>
-                        #end
-                    </table>
-                </div>
-            #end
+            </table>            
         #end
-
+		#if( $indicators.size() > 0 )
+            #set( $mark = 0 )
+            <div class="indicatorArea">
+                <table>
+                    #foreach( $indicator in $indicators )
+                        #if( $mark == 1 )
+                            #set( $mark = 0 )
+                        #else
+                            #set( $mark = 1 )
+                        #end
+                        <tr>
+                            <td #if( $mark == 1 )class="alt"#else class="reg"#end>
+                              <span class="indicator-label" id="indicator${indicator.id}-label" #if( $decoration && "$!indicator.description" != "" ) class="indicator-label" style="cursor: pointer" #end >${indicator.displayName}</span>
+                              <input type="hidden" id="indicator${indicator.id}-label-description" value="$!{indicator.displayDescription}" />
+                            </td>
+                            <td><input id="indicator${indicator.id}" indicatorid="${indicator.uid}" name="indicator" type="text" disabled></td>
+                        </tr>
+                    #end
+                </table>
+            </div>
+        #end
     </div>
     <div></div>
 
