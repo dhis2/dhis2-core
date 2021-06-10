@@ -30,13 +30,22 @@ package org.hisp.dhis.orgunitmerge.handler;
 import java.util.Collection;
 import java.util.Set;
 
-import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserQueryParams;
+import org.hisp.dhis.user.UserService;
+import org.springframework.stereotype.Service;
 
-@NoArgsConstructor
+import com.google.common.collect.ImmutableSet;
+
+@Service
+@AllArgsConstructor
 public class MetadataOrgUnitMergeHandler
 {
+    private UserService userService;
+
     public void mergeDataSets( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
         sources.stream()
@@ -83,14 +92,21 @@ public class MetadataOrgUnitMergeHandler
 
     public void mergeUsers( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
-        sources.stream()
-            .map( OrganisationUnit::getUsers )
-            .flatMap( Collection::stream )
-            .forEach( o -> {
-                o.addOrganisationUnit( target );
-                o.removeOrganisationUnits( sources );
-            } );
+        final ImmutableSet<User> users = ImmutableSet.<User> builder()
+            .addAll( userService.getUsers( new UserQueryParams()
+                .setCanSeeOwnUserAuthorityGroups( true )
+                .setOrganisationUnits( sources ) ) )
+            .addAll( userService.getUsers( new UserQueryParams()
+                .setCanSeeOwnUserAuthorityGroups( true )
+                .setDataViewOrganisationUnits( sources ) ) )
+            .addAll( userService.getUsers( new UserQueryParams()
+                .setCanSeeOwnUserAuthorityGroups( true )
+                .setTeiSearchOrganisationUnits( sources ) ) )
+            .build();
 
-        // TODO Data view, TEI search
+        users.forEach( o -> {
+            o.addOrganisationUnit( target );
+            o.removeOrganisationUnits( sources );
+        } );
     }
 }

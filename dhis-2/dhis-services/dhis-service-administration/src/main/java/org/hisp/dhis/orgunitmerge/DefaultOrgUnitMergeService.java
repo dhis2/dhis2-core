@@ -43,18 +43,19 @@ import com.google.common.collect.ImmutableList;
 public class DefaultOrgUnitMergeService
     implements OrgUnitMergeService
 {
-    private final IdentifiableObjectManager idObjectManager;
-
     private final MetadataOrgUnitMergeHandler metadataHandler;
 
     private final AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler;
 
+    private final IdentifiableObjectManager idObjectManager;
+
     private final ImmutableList<OrgUnitMergeHandler> handlers;
 
-    public DefaultOrgUnitMergeService( IdentifiableObjectManager idObjectManager,
-        AnalyticalObjectOrgUnitMergeHandler analyticalObjectMergeHandler )
+    public DefaultOrgUnitMergeService( MetadataOrgUnitMergeHandler metadataHandler,
+        AnalyticalObjectOrgUnitMergeHandler analyticalObjectMergeHandler,
+        IdentifiableObjectManager idObjectManager )
     {
-        this.metadataHandler = new MetadataOrgUnitMergeHandler();
+        this.metadataHandler = metadataHandler;
         this.analyticalObjectHandler = analyticalObjectMergeHandler;
         this.idObjectManager = idObjectManager;
         this.handlers = getMergeHandlers();
