@@ -209,7 +209,7 @@ public class PreCheckOwnershipValidationHook
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        Program program = programStage.getProgram();
+        Program program = context.getProgram( event.getProgram() );
         ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
 
         String teiUid = null;
