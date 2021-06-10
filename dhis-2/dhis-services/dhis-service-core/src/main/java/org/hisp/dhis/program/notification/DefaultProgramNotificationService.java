@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -63,6 +64,7 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -382,7 +384,10 @@ public class DefaultProgramNotificationService
 
         if ( recipientType == ProgramNotificationRecipient.USER_GROUP )
         {
-            recipients = template.getRecipientUserGroup().getMembers();
+            recipients = Optional.ofNullable( template )
+                .map( ProgramNotificationTemplate::getRecipientUserGroup )
+                .map( UserGroup::getMembers )
+                .orElse( recipients );
 
             final boolean limitToHierarchy = BooleanUtils.toBoolean( template.getNotifyUsersInHierarchyOnly() );
 
