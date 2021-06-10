@@ -30,11 +30,13 @@ package org.hisp.dhis.metadata;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.ConcurrentApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.hisp.dhis.helpers.matchers.MatchesMetadataResponse;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.parallel.Execution;
@@ -48,9 +50,8 @@ import java.util.stream.Stream;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Execution( ExecutionMode.CONCURRENT )
 public class DataElementsTest
-    extends ApiTest
+    extends ConcurrentApiTest
 {
     private RestApiActions dataElementActions;
 
@@ -68,7 +69,7 @@ public class DataElementsTest
     }
 
     @BeforeEach
-    public void beforeAll()
+    public void beforeEach()
     {
         dataElementActions = new RestApiActions( "/dataElements" );
         categoryComboActions = new RestApiActions( "/categoryCombos" );
@@ -101,7 +102,6 @@ public class DataElementsTest
 
         // act
         ApiResponse response = dataElementActions.post( body );
-
         // assert
         ResponseValidationHelper.validateObjectCreation( response );
     }

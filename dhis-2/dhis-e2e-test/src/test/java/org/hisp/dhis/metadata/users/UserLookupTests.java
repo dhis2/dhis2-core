@@ -30,6 +30,7 @@ package org.hisp.dhis.metadata.users;
 
 import com.google.gson.JsonArray;
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.ConcurrentApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
@@ -50,16 +51,15 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Execution( ExecutionMode.CONCURRENT )
 public class UserLookupTests
-    extends ApiTest
+    extends ConcurrentApiTest
 {
     private RestApiActions lookupActions;
 
     private UserActions userActions;
 
     @BeforeEach
-    public void beforeAll()
+    public void beforeEach()
     {
         lookupActions = new RestApiActions( "/userLookup" );
         userActions = new UserActions();

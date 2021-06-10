@@ -29,6 +29,7 @@ package org.hisp.dhis.metadata.users;
  */
 
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.ConcurrentApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataPaginationActions;
@@ -48,9 +49,8 @@ import static org.hisp.dhis.actions.metadata.MetadataPaginationActions.DEFAULT_M
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Execution( ExecutionMode.CONCURRENT )
 public class UserPaginationTest
-    extends ApiTest
+    extends ConcurrentApiTest
 {
     private MetadataPaginationActions paginationActions;
 

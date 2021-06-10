@@ -29,31 +29,29 @@
 package org.hisp.dhis.tracker.events;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.Program;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.utils.DataGenerator;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.Matchers.emptyOrNullString;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Every.everyItem;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -69,13 +67,15 @@ public class UserAssignmentFilterTests
 
     private String userUsername;
 
-    private String programId = "BJ42SUrAvHo";
+    private String programId;
 
-    private String orgUnit = "O6uvpzGd5pu";
+    private String programStageId;
+
+    private String orgUnit = Constants.ORG_UNIT_IDS[2];
 
     private String userId;
 
-    private Object eventsBody;
+    private List<String> createdEvents = new ArrayList<>();
 
     @BeforeAll
     public void beforeAll()
@@ -89,31 +89,35 @@ public class UserAssignmentFilterTests
 
         loginActions.loginAsSuperUser();
 
+        setupData();
+    }
+
+    private void setupData()
+    {
+        Program program = programActions.createEventProgram(orgUnit);
+        programId = program.getId();
+        programStageId = program.getStages().get( 0 );
+        programActions.programStageActions.enableUserAssignment( programStageId, true );
+
         userId = userActions.addUser( userUsername, userPassword );
         userActions.grantUserAccessToOrgUnit( userId, orgUnit );
         userActions.addUserToUserGroup( userId, Constants.USER_GROUP_ID );
-        userActions.addRoleToUser( userId, Constants.USER_ROLE_ID);
+        userActions.addRoleToUser( userId, Constants.USER_ROLE_ID );
 
-        eventsBody = getEventsBody( programId, "l8oDIfJJhtg", userId );
-    }
-
-    @BeforeEach
-    public void beforeEach()
-        throws Exception
-    {
-        loginActions.loginAsSuperUser();
-
-        createEvents( eventsBody );
+        IntStream.rangeClosed( 0, 4 ).forEach( p -> {
+            String id = createEvent( userId, "ACTIVE" );
+            createdEvents.add( id );
+        } );
     }
 
     @Test
     public void eventsShouldBeFilteredByAssignedUser()
     {
         loginActions.loginAsSuperUser();
+
         ApiResponse response = eventActions.get( "?program=" + programId + "&assignedUser=" + userId );
 
         response.validate().statusCode( 200 )
-            .body( "events", hasSize( 4 ) )
             .body( "events.assignedUser", everyItem( equalTo( userId ) ) );
     }
 
@@ -124,11 +128,10 @@ public class UserAssignmentFilterTests
         loginActions.loginAsUser( userUsername, userPassword );
 
         // act
-        ApiResponse response = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" );
+        ApiResponse response = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT" );
 
         // assert
         response.validate().statusCode( 200 )
-            .body( "events", hasSize( 4 ) )
             .body( "events.assignedUser", everyItem( equalTo( userId ) ) );
     }
 
@@ -136,20 +139,18 @@ public class UserAssignmentFilterTests
     public void eventsShouldBeFilteredByUnassigned()
     {
         // arrange
+
+        String eventId = createEvent( "", "ACTIVE" );
+
         loginActions.loginAsUser( userUsername, userPassword );
 
-        String eventId = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" )
-            .extractString( "events.event[0]" );
-
-        assertNotNull( eventId, "Event was not found" );
-        unassignEvent( eventId );
-
         // act
-        ApiResponse currentUserEvents = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" );
-        ApiResponse unassignedEvents = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=NONE" );
+        ApiResponse currentUserEvents = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT" );
+        ApiResponse unassignedEvents = eventActions.get( "?program=" + programId + "&assignedUserMode=NONE" );
 
         // assert
-        currentUserEvents.validate().statusCode( 200 )
+        currentUserEvents.validate()
+            .statusCode( 200 )
             .body( "events", notNullValue() )
             .body( "events.event", not( hasItem( eventId ) ) );
 
@@ -164,75 +165,43 @@ public class UserAssignmentFilterTests
     {
         // arrange
         loginActions.loginAsUser( userUsername, userPassword );
-
-        String eventId = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" )
-            .extractString( "events.event[0]" );
-        assertNotNull( eventId, "Event was not found" );
-
         String status = "SCHEDULE";
-        changeEventStatus( eventId, status );
+        String eventId = createEvent( userId, status );
 
         // act
-        ApiResponse filteredEvents = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT&status=" + status );
-        ApiResponse activeEvents = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT&status=ACTIVE" );
+        ApiResponse filteredEvents = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT&status=" + status );
+        ApiResponse activeEvents = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT&status=ACTIVE" );
 
         // assert
         filteredEvents.validate().statusCode( 200 )
-            .body( "events", hasSize( 1 ) )
             .body( "events.assignedUser", everyItem( equalTo( userId ) ) )
+            .body( "events.event", contains( eventId ) )
             .body( "events.status", everyItem( equalTo( status ) ) );
 
         activeEvents.validate().statusCode( 200 )
-            .body( "events", hasSize( 3 ) )
             .body( "events.assignedUser", everyItem( equalTo( userId ) ) )
             .body( "events.status", everyItem( equalTo( "ACTIVE" ) ) );
     }
 
-    private ApiResponse createEvents( Object body )
+    private String createEvent( String assignedUser, String status )
     {
-        ApiResponse eventResponse = eventActions.post( body, new QueryParamsBuilder().add(  "skipCache=true" ) );
+        JsonObject obj = JsonObjectBuilder.jsonObject( eventActions.createEventBody( orgUnit, programId, programStageId ) )
+            .addProperty( "assignedUser", assignedUser )
+            .addProperty( "status", status )
+            .build();
 
-        eventResponse.validate().statusCode( 200 );
-
-        return eventResponse;
-    }
-
-    private Object getEventsBody( String programId, String programStageId, String assignedUserId )
-        throws Exception
-    {
-        Object body = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
-            .replacePropertyValuesWithIds( "event" )
-            .replacePropertyValuesWith( "program", programId )
-            .replacePropertyValuesWith( "programStage", programStageId )
-            .replacePropertyValuesWith( "assignedUser", assignedUserId )
-            .get();
-
-        return body;
-    }
-
-    private ApiResponse unassignEvent( String eventId )
-    {
-        JsonObject body = eventActions.get( eventId ).getBody();
-
-        body.addProperty( "assignedUser", "" );
-
-        ApiResponse response = eventActions.update( eventId, body );
+        ApiResponse response = eventActions.post( obj, new QueryParamsBuilder().add( "skipCache=true" ) );
 
         response.validate().statusCode( 200 );
-        return response;
+        return response.extractUid();
     }
 
-    private ApiResponse changeEventStatus( String eventId, String eventStatus )
+    @AfterAll
+    public void afterAll()
     {
-        JsonObject body = eventActions.get( eventId ).getBody();
-
-        body.addProperty( "status", eventStatus );
-
-        ApiResponse response = eventActions.update( eventId, body );
-
-        response.validate().statusCode( 200 );
-
-        return response;
-
+        createdEvents.forEach( p -> {
+            eventActions.delete( p );
+        } );
     }
+
 }

@@ -80,7 +80,7 @@ public class MetadataImportTest
     public void shouldUpdateExistingMetadata( String importStrategy, String expected )
     {
         // arrange
-        JsonObject exported = metadataActions.get( "?dataElements=true&programs=true" ).getBody();
+        JsonObject exported = metadataActions.get( "?programRules=true&programs=true" ).getBody();
 
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( "async=false", "importReportMode=FULL", "importStrategy=" + importStrategy );

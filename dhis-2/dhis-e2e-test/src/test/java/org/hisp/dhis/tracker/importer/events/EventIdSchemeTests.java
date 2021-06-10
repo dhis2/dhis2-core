@@ -34,6 +34,7 @@ import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.dto.Program;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -41,6 +42,7 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -64,9 +66,9 @@ public class EventIdSchemeTests
 
     private static final String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute " + DataGenerator.randomString();
 
-    private static final String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
+    private String programId;
 
-    private static final String PROGRAM_STAGE_ID = Constants.EVENT_PROGRAM_STAGE_ID;
+    private String programStageId;
 
     private static String ATTRIBUTE_ID;
 
@@ -100,18 +102,19 @@ public class EventIdSchemeTests
         setupData();
     }
 
+    @BeforeEach
+    public void beforeEach() {
+        loginActions.loginAsSuperUser();
+    }
+
     @ParameterizedTest
     @MethodSource( "provideIdSchemeArguments" )
     public void eventsShouldBeImportedWithOrgUnitScheme( String ouScheme, String ouProperty )
-        throws Exception
     {
         String ouPropertyValue = orgUnitActions.get( orgUnitId ).extractString( ouProperty );
         assertNotNull( ouPropertyValue, String.format( "Org unit property %s was not present.", ouProperty ) );
 
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
-            .replacePropertyValuesWith( "orgUnit", ouPropertyValue )
-            .replacePropertyValuesWithIds( "event" )
-            .get( JsonObject.class );
+        JsonObject object = trackerActions.buildEvent( ouPropertyValue, programId, programStageId );
 
         TrackerApiResponse response = trackerActions
             .postAndGetJobReport( object, new QueryParamsBuilder().add( "orgUnitIdScheme=" + ouScheme ) );
@@ -130,16 +133,11 @@ public class EventIdSchemeTests
         throws Exception
     {
         // arrange
-        String programPropertyValue = programActions.get( PROGRAM_ID ).extractString( property );
+        String programPropertyValue = programActions.get( programId ).extractString( property );
 
         assertNotNull( programPropertyValue, String.format( "Program property %s was not present.", property ) );
 
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
-            .replacePropertyValuesWithIds( "event" )
-            .replacePropertyValuesWith( "orgUnit", orgUnitId )
-            .replacePropertyValuesWith( "program", programPropertyValue )
-            .replacePropertyValuesWith( "programStage", PROGRAM_STAGE_ID )
-            .get( JsonObject.class );
+        JsonObject object = trackerActions.buildEvent( orgUnitId, programPropertyValue, programStageId );
 
         // act
         TrackerApiResponse response = trackerActions
@@ -152,7 +150,7 @@ public class EventIdSchemeTests
 
         trackerActions.get( "/events/" + eventId ).validate()
             .statusCode( 200 )
-            .body( "program", equalTo( PROGRAM_ID ) );
+            .body( "program", equalTo( programId ) );
     }
 
     private void setupData()
@@ -169,14 +167,17 @@ public class EventIdSchemeTests
         orgUnitId = orgUnitActions.create( orgUnit );
         assertNotNull( orgUnitId, "Failed to setup org unit" );
 
+        Program program = programActions.createEventProgram(orgUnitId);
+        programId = program.getId();
+        programStageId = program.getStages().get( 0 );
+
         new UserActions().grantCurrentUserAccessToOrgUnit( orgUnitId );
-        programActions.addOrganisationUnits( PROGRAM_ID, orgUnitId ).validate().statusCode( 200 );
 
         orgUnitActions.update( orgUnitId, addAttributeValuePayload( orgUnitActions.get( orgUnitId ).getBody(), ATTRIBUTE_ID,
             ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
 
-        programActions.update( PROGRAM_ID, addAttributeValuePayload( programActions.get( PROGRAM_ID ).getBody(), ATTRIBUTE_ID,
+        programActions.update( programId, addAttributeValuePayload( programActions.get( programId ).getBody(), ATTRIBUTE_ID,
             ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
     }

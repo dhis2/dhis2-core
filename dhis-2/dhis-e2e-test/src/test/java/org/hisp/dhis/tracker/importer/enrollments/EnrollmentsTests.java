@@ -29,9 +29,12 @@
 package org.hisp.dhis.tracker.importer.enrollments;
 
 import com.google.gson.JsonObject;
-import org.hamcrest.Matchers;
+import com.sun.demo.jvmti.hprof.Tracker;
+import com.sun.xml.bind.v2.runtime.reflect.opt.Const;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,10 +43,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
+import java.io.IOException;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.helpers.matchers.HasPropertyEqualTo.hasPropertyEqualTo;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 /**
@@ -59,27 +63,17 @@ public class EnrollmentsTests
         loginActions.loginAsSuperUser();
     }
 
-    @ParameterizedTest
-    @ValueSource( strings = {
-        "src/test/resources/tracker/importer/teis/teiWithEnrollments.json",
-        "src/test/resources/tracker/importer/teis/teiAndEnrollment.json"
-    } )
-    public void shouldImportTeisWithEnrollments( String file )
-    {
+    @Test
+    public void shouldImportTeisWithNestedEnrollments() {
         TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( new File( file ) );
-
-        response.validateSuccessfulImport()
-            .validate()
-            .body( "status", Matchers.equalTo( "OK" ) )
-            .body( "stats.created", equalTo( 2 ) );
+            .postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollments.json" ) );
 
         response
             .validateTeis()
-            .body( "stats.created", Matchers.equalTo( 1 ) );
+            .body( "stats.created", equalTo( 1 ));
 
         response.validateEnrollments()
-            .body( "stats.created", Matchers.equalTo( 1 ) );
+            .body( "stats.created", equalTo( 1 ));
 
         // assert that the tei was imported
         String teiId = response.extractImportedTeis().get( 0 );
@@ -92,13 +86,56 @@ public class EnrollmentsTests
     }
 
     @Test
+    public void shouldImportTeisWithEnrollmentsFlatPayload()
+        throws IOException
+    {
+        JsonObject object = buildTeiAndEnrollmentFlat();
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( object );
+
+        response
+            .validateTeis()
+            .body( "stats.created", equalTo( 1 ));
+
+        response.validateEnrollments()
+            .body( "stats.created", equalTo( 1 ));
+
+        // assert that the tei was imported
+        String teiId = response.extractImportedTeis().get( 0 );
+        String enrollmentId = response.extractImportedEnrollments().get( 0 );
+
+        trackerActions.get( "/enrollments/" + enrollmentId )
+            .validate()
+            .statusCode( 200 )
+            .body( "trackedEntity", equalTo( teiId ) );
+    }
+
+    @Test
+    public void shouldCreateOwnershipRecord()
+    {
+        String ou = Constants.ORG_UNIT_IDS[0];
+        String program = Constants.TRACKER_PROGRAM_ID;
+
+        JsonObject object = trackerActions.buildTeiAndEnrollment( ou, program);
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( object );
+
+        String teiId = response.extractImportedTeis().get( 0 );
+
+        trackerActions.get("/trackedEntities/" + teiId, new QueryParamsBuilder().addAll( "fields=*" ) )
+            .validate()
+            .body( "programOwners", notNullValue())
+            .rootPath( "programOwners[0]" )
+            .body( "orgUnit", equalTo( ou ) )
+            .body( "trackedEntity", equalTo( teiId ) )
+            .body( "program", equalTo( program ) );
+    }
+
+    @Test
     public void shouldImportEnrollmentToExistingTei()
         throws Exception
     {
-        JsonObject teiPayload = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/teis/tei.json" ) )
-            .get( JsonObject.class );
-
-        String teiId = trackerActions.postAndGetJobReport( teiPayload ).validateSuccessfulImport().extractImportedTeis().get( 0 );
+        String teiId = importTei();
 
         JsonObject enrollmentPayload = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/importer/enrollments/enrollment.json" ) )

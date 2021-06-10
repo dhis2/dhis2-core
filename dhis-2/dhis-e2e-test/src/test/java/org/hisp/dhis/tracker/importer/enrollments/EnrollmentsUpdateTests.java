@@ -57,7 +57,7 @@ public class EnrollmentsUpdateTests
         throws Exception
     {
         String enrollmentId = importEnrollment();
-        String program = new ProgramActions().createProgram( "WITH_REGISTRATION" ).extractUid();
+        String program = new ProgramActions().createProgram( "WITH_REGISTRATION" ).getId();
         JsonObject body = trackerActions.get( "/enrollments/" + enrollmentId ).getBody();
 
         body = JsonObjectBuilder.jsonObject( body )

@@ -53,15 +53,12 @@ public class MetadataExportTests
 
     private MetadataActions metadataActions;
 
-    private LoginActions loginActions;
-
     private UserActions userActions;
 
     @BeforeAll
     public void beforeAll()
     {
         metadataActions = new MetadataActions();
-        loginActions = new LoginActions();
         userActions = new UserActions();
 
         userActions.addUser( userWithoutAccessUsername, userWithoutAccessPassword );
@@ -99,16 +96,5 @@ public class MetadataExportTests
             .statusCode( 200 )
             .body( "dataElements", not( emptyArray() ) )
             .body( "users", not( emptyArray() ) );
-    }
-
-    @Test
-    public void shouldExportAllMetadataAsSuperuser()
-    {
-        loginActions.loginAsSuperUser();
-
-        metadataActions.get().validate()
-            .statusCode( 200 )
-            .body( "relationshipTypes", not( emptyArray() ) )
-            .body( "userRoles", not( emptyArray() ) );
     }
 }

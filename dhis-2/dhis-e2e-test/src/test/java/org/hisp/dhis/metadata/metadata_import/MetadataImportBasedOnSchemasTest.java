@@ -76,7 +76,7 @@ public class MetadataImportBasedOnSchemasTest
     {
         RestApiActions apiActions = new RestApiActions( endpoint );
 
-        ApiResponse response = apiActions.get( "?fields=*" );
+        ApiResponse response = apiActions.get( "?fields=*&pageSize=1" );
 
         response.validate()
             .statusCode( 200 )

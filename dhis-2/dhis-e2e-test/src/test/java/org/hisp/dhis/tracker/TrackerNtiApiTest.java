@@ -66,10 +66,17 @@ public class TrackerNtiApiTest
     protected String importEnrollment()
         throws Exception
     {
-        JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teiAndEnrollment.json" ) );
+        JsonObject teiBody = buildTeiAndEnrollmentFlat();
 
         return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedEnrollments().get( 0 );
+    }
+
+    protected JsonObject buildTeiAndEnrollmentFlat()
+        throws IOException
+    {
+        return new JsonFileReader(new File( "src/test/resources/tracker/importer/teis/teiAndEnrollment.json" ))
+            .replaceStringsWithIds( "JjZ2Nwds92D", "JjZ2Nwds92E" )
+            .get();
     }
 
     protected String importTei()
@@ -82,8 +89,12 @@ public class TrackerNtiApiTest
     }
 
     protected List<String> importTeis()
+        throws Exception
     {
-        List<String> teis = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/teis.json" ) )
+        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/teis/teis.json"  ))
+            .replacePropertyValuesWithIds( "trackedEntity" ).get(JsonObject.class);
+
+        List<String> teis = trackerActions.postAndGetJobReport( object)
             .validateSuccessfulImport().extractImportedTeis();
 
         return teis;
@@ -97,21 +108,6 @@ public class TrackerNtiApiTest
 
         return trackerActions.postAndGetJobReport( object )
             .validateSuccessfulImport().extractImportedEvents();
-    }
-
-    protected TrackerApiResponse importTeiWithEnrollment( String programId, String programStageId )
-        throws Exception
-    {
-        JsonObject teiWithEnrollment = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollments.json" ) )
-            .replacePropertyValuesWith( "program", programId )
-            .replacePropertyValuesWith( "programStage", programStageId )
-            .get( JsonObject.class );
-
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( teiWithEnrollment );
-
-        response.validateSuccessfulImport();
-        return response;
     }
 
     protected JsonObject buildTeiWithEnrollmentAndEvent()
@@ -135,9 +131,11 @@ public class TrackerNtiApiTest
             .validateSuccessfulImport();
     }
 
-    @AfterEach
-    public void afterEachNTI()
+    protected JsonObject buildTeiWithRelationshipFlat()
+        throws IOException
     {
-        new MaintenanceActions().removeSoftDeletedData();
+        return new JsonFileReader( new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) )
+            .replaceStringsWithIds( "JjZ2Nwds92v", "JjZ2Nwds93v")
+            .get( JsonObject.class);
     }
 }

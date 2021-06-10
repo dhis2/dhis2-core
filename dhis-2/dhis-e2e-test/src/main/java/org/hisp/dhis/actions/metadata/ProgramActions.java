@@ -31,8 +31,10 @@ package org.hisp.dhis.actions.metadata;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.Program;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
@@ -55,60 +57,51 @@ public class ProgramActions
         this.programStageActions = new ProgramStageActions();
     }
 
-    public ApiResponse createProgram( String programType )
+    public Program createProgram( String programType )
     {
         JsonObject object = getDummy( programType );
 
         if ( programType.equalsIgnoreCase( "WITH_REGISTRATION" ) )
         {
             JsonObjectBuilder.jsonObject( object )
-                .addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", "Q9GufDoplCL" ) );
+                .addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", Constants.TRACKED_ENTITY_TYPE_ID ) );
         }
 
-        return post( object );
+        return new Program( create( object ) );
     }
 
-    public ApiResponse createTrackerProgram( String... orgUnitIds )
+    public Program createTrackerProgram( String... orgUnitIds )
     {
         return createProgram( "WITH_REGISTRATION", orgUnitIds );
     }
 
-    public ApiResponse createEventProgram( String... orgUnitsIds )
+    public Program createEventProgram( String... orgUnitsIds )
     {
         String programStageId = createProgramStage( "DEFAULT STAGE" );
 
-        JsonObject body = getDummy( "WITHOUT_REGISTRATION", orgUnitsIds );
+        JsonObject payload = JsonObjectBuilder.jsonObject( getDummy( "WITHOUT_REGISTRATION", orgUnitsIds ) )
+            .addArray( "programStages", new JsonObjectBuilder().addProperty( "id", programStageId ).build() )
+            .build();
 
-        JsonArray programStages = new JsonArray();
+        String program = create( payload );
 
-        JsonObject programStage = new JsonObject();
-        programStage.addProperty( "id", programStageId );
-
-        programStages.add( programStage );
-
-        body.add( "programStages", programStages );
-
-        return post( body );
+        return new Program( program, Arrays.asList( programStageId ) );
     }
 
-    public ApiResponse createProgram( String programType, String... orgUnitIds )
+    public Program createProgram( String programType, String... orgUnitIds )
     {
         JsonObject object = getDummy( programType, orgUnitIds );
 
-        return post( object );
+        return new Program( create( object ) );
     }
 
     public ApiResponse addProgramStage( String programId, String programStageId )
     {
         JsonObject body = get( programId ).getBody();
-        JsonArray programStages = new JsonArray();
-        JsonObject programStage = new JsonObject();
 
-        programStage.addProperty( "id", programStageId );
-
-        programStages.add( programStage );
-
-        body.add( "programStages", programStages );
+        JsonObjectBuilder.jsonObject( body )
+            .addArray( "programStages", new JsonObjectBuilder().addProperty( "id", programStageId ).build() )
+            .build();
 
         return update( programId, body );
     }
@@ -116,10 +109,10 @@ public class ProgramActions
     public String createProgramStage( String name )
     {
         JsonObject body = new JsonObject();
-
         body.addProperty( "name", name );
 
         ApiResponse response = programStageActions.post( body );
+
         response.validate().statusCode( Matchers.is( Matchers.oneOf( 201, 200 ) ) );
 
         return response.extractUid();
@@ -178,6 +171,7 @@ public class ProgramActions
         JsonObject object = JsonObjectBuilder.jsonObject()
             .addProperty( "name", "AutoTest program " + random )
             .addProperty( "shortName", "AutoTest program " + random )
+            .addProperty( "code", "TA_PROGRAM_" + random )
             .addUserGroupAccess()
             .build();
 

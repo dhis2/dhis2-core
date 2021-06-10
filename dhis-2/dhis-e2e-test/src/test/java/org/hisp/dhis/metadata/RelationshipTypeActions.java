@@ -1,5 +1,3 @@
-package org.hisp.dhis.actions.tracker;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -28,43 +26,53 @@ package org.hisp.dhis.actions.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.metadata;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.utils.DataGenerator;
+
+import java.util.Locale;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class RelationshipActions
-    extends RestApiActions
+public class RelationshipTypeActions extends RestApiActions
 {
-    public RelationshipActions()
+    public RelationshipTypeActions( )
     {
-        super( "/relationships" );
+        super( "/relationshipTypes" );
     }
 
-    public JsonObject createRelationshipBody( String relationshipTypeId, String fromEntity, String fromEntityId, String toEntity,
-        String toEntityId )
-    {
-        JsonObject relationship = new JsonObject();
-        relationship.addProperty( "relationshipType", relationshipTypeId );
+    public String create(String fromRelationshipEntity, String fromRelationshipEntityId, String toRelationshipEntity, String toRelationshipEntityId) {
+        JsonObject obj = JsonObjectBuilder.jsonObject()
+            .addProperty( "name", "TA relationship type" + DataGenerator.randomString() )
+            .addProperty( "fromToName", "TA FROM NAME" )
+            .addProperty( "toFromName", "TA TO NAME" )
+            .addObject( "fromConstraint", JsonObjectBuilder.jsonObject(getRelationshipTypeConstraint( fromRelationshipEntity, fromRelationshipEntityId ) ))
+            .addObject( "toConstraint", JsonObjectBuilder.jsonObject(getRelationshipTypeConstraint( toRelationshipEntity, toRelationshipEntityId ) ))
+            .build();
 
-        JsonObject from = new JsonObject();
-        JsonObject fromEntityObj = new JsonObject();
-        fromEntityObj.addProperty( fromEntity, fromEntityId );
-        from.add( fromEntity, fromEntityObj );
-
-        relationship.add( "from", from );
-
-        JsonObject to = new JsonObject();
-        JsonObject toEntityObj = new JsonObject();
-        toEntityObj.addProperty( toEntity, toEntityId );
-        to.add( toEntity, toEntityObj );
-
-        relationship.add( "to", to );
-
-        return relationship;
-
+        return this.create( obj );
     }
-}
+
+    private JsonObject getRelationshipTypeConstraint( String relationshipEntity, String id ) {
+        JsonObject obj = new JsonObject();
+        obj.addProperty( "relationshipEntity", relationshipEntity );
+        switch ( relationshipEntity ) {
+        case "TRACKED_ENTITY_INSTANCE":
+            return new JsonObjectBuilder( obj )
+                .addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", id ) )
+                .build();
+
+
+        case "PROGRAM_STAGE_INSTANCE": {
+            return new JsonObjectBuilder( obj )
+                .addObject( "program", new JsonObjectBuilder().addProperty( "id", id ) )
+                .build();
+        }
+    }
+
+    return new JsonObject();
+}}

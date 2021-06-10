@@ -39,6 +39,7 @@ import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -51,7 +52,7 @@ import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TEIimportTest
+public class TeiImportTest
     extends TrackerApiTest
 {
     JsonObject object;
@@ -71,8 +72,8 @@ public class TEIimportTest
         enrollmentActions = new RestApiActions( "/enrollments" );
 
         loginActions.loginAsSuperUser();
-        object = new FileReaderUtils().read( new File( "src/test/resources/tracker/teis/teisWithEventsAndEnrollments.json" ) )
-            .get( JsonObject.class );
+        object = buildTeiWitEnrollmentAndEvent();
+
         teiActions.post( object ).validate().statusCode( 200 );
     }
 

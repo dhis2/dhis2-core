@@ -144,8 +144,10 @@ public class MetadataSetupExtension
         System.out.println( "CLOSE" );
         if ( TestConfiguration.get().shouldCleanUp() )
         {
+            new LoginActions().loginAsDefaultUser();
             TestCleanUp testCleanUp = new TestCleanUp();
 
+            testCleanUp.deleteCreatedEntities();
             iterateCreatedData( id -> {
                 testCleanUp.deleteEntity( createdData.get( id ), id );
             } );

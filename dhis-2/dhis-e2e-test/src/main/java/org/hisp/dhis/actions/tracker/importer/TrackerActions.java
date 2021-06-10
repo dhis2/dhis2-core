@@ -30,6 +30,7 @@ package org.hisp.dhis.actions.tracker.importer;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -189,7 +190,7 @@ public class TrackerActions
 
     public JsonObject buildTeiAndEnrollment( String ouId, String programId )
     {
-        JsonObject jsonObject = buildTeiAndEnrollment("Q9GufDoplCL", ouId, programId  );
+        JsonObject jsonObject = buildTeiAndEnrollment( Constants.TRACKED_ENTITY_TYPE_ID, ouId, programId  );
 
         return jsonObject;
     }
@@ -250,7 +251,7 @@ public class TrackerActions
     public JsonObject buildTrackedEntityAndRelationships(String trackedEntity_1, String trackedEntity_2, BiFunction<String, String, JsonObject> relationshipArray) {
         Function<String, JsonObject> tei = ( id ) -> new JsonObjectBuilder()
             .addProperty( "trackedEntity", id )
-            .addProperty( "trackedEntityType", "Q9GufDoplCL" )
+            .addProperty( "trackedEntityType", Constants.TRACKED_ENTITY_TYPE_ID )
             .addProperty( "orgUnit", "g8upMTyEZGZ" )
             .build();
 

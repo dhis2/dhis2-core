@@ -76,7 +76,7 @@ public class JsonFileReader
         String replacedJson = obj.toString();
         for ( String s : strToReplace )
         {
-            replacedJson =  s.replaceAll( s, new IdGenerator().generateUniqueId() );
+            replacedJson =  replacedJson.replaceAll( s, new IdGenerator().generateUniqueId() );
         }
 
         obj = JsonParserUtils.toJsonObject( replacedJson );

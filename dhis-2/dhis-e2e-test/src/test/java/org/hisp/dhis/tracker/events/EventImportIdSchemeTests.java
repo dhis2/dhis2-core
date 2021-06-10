@@ -28,21 +28,21 @@
 
 package org.hisp.dhis.tracker.events;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ConcurrentApiTest;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.OrgUnit;
+import org.hisp.dhis.dto.Program;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -66,8 +66,6 @@ public class EventImportIdSchemeTests
 
     private static String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute " + DataGenerator.randomString();
 
-    private static String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
-
     private static String ATTRIBUTE_ID;
 
     private OrgUnitActions orgUnitActions;
@@ -79,6 +77,8 @@ public class EventImportIdSchemeTests
     private AttributeActions attributeActions;
 
     private String orgUnitId;
+    private String programId;
+    private String programStageId;
 
     private static Stream<Arguments> provideIdSchemeArguments()
     {
@@ -98,9 +98,14 @@ public class EventImportIdSchemeTests
         programActions = new ProgramActions();
         attributeActions = new AttributeActions();
 
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
 
         setupData();
+    }
+
+    @BeforeEach
+    public void beforeEach() {
+        loginActions.loginAsSuperUser();
     }
 
     @ParameterizedTest
@@ -112,10 +117,7 @@ public class EventImportIdSchemeTests
 
         assertNotNull( ouPropertyValue, String.format( "Org unit property %s was not present.", ouProperty ) );
 
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
-            .replacePropertyValuesWith( "orgUnit", ouPropertyValue )
-            .replacePropertyValuesWithIds( "event" )
-            .get( JsonObject.class );
+        JsonObject object = eventActions.createEventBody(ouPropertyValue, programId, programStageId);
 
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
             .add( "skipCache=true" )
@@ -127,7 +129,7 @@ public class EventImportIdSchemeTests
             .rootPath( "response" )
             .body( "status", equalTo( "SUCCESS" ) )
             .body( "ignored", equalTo( 0 ) )
-            .body( "imported", greaterThan( 1 ) )
+            .body( "imported", equalTo( 1 ) )
             .body( "importSummaries.reference", everyItem( notNullValue() ) );
 
         String eventId = response.extractString( "response.importSummaries.reference[0]" );
@@ -141,17 +143,12 @@ public class EventImportIdSchemeTests
     @ParameterizedTest
     @MethodSource( "provideIdSchemeArguments" )
     public void eventsShouldBeImportedWithProgramScheme( String scheme, String property )
-        throws Exception
     {
-        String programPropertyValue = programActions.get( PROGRAM_ID ).extractString( property );
+        String programPropertyValue = programActions.get( programId ).extractString( property );
 
         assertNotNull( programPropertyValue, String.format( "Program property %s was not present.", property ) );
 
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
-            .replacePropertyValuesWithIds( "event" )
-            .replacePropertyValuesWith( "orgUnit", orgUnitId )
-            .replacePropertyValuesWith( "program", programPropertyValue )
-            .get( JsonObject.class );
+        JsonObject object = eventActions.createEventBody( orgUnitId, programPropertyValue, programStageId );
 
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
             .add( "skipCache=true" )
@@ -170,12 +167,11 @@ public class EventImportIdSchemeTests
 
         eventActions.get( eventId ).validate()
             .statusCode( 200 )
-            .body( "program", equalTo( PROGRAM_ID ) );
+            .body( "program", equalTo( programId ) );
     }
 
     private void setupData()
     {
-
         ATTRIBUTE_ID = attributeActions.createUniqueAttribute( "TEXT", "organisationUnit", "program" );
         //programAttributeId = attributeActions.createUniqueAttribute( "program", "TEXT" );
 
@@ -188,30 +184,27 @@ public class EventImportIdSchemeTests
         orgUnitId = orgUnitActions.create( orgUnit );
         assertNotNull( orgUnitId, "Failed to setup org unit" );
 
-        programActions.addOrganisationUnits( PROGRAM_ID, orgUnitId ).validate().statusCode( 200 );
+        Program program = programActions.createEventProgram( orgUnitId );
+        programId = program.getId();
+        programStageId = program.getStages().get( 0);
 
         orgUnitActions.update( orgUnitId, addAttributeValuePayload( orgUnitActions.get( orgUnitId ).getBody(), ATTRIBUTE_ID,
             ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
 
-        programActions.update( PROGRAM_ID, addAttributeValuePayload( programActions.get( PROGRAM_ID ).getBody(), ATTRIBUTE_ID,
+        programActions.update( programId, addAttributeValuePayload( programActions.get( programId ).getBody(), ATTRIBUTE_ID,
             ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
     }
 
     public JsonObject addAttributeValuePayload( JsonObject json, String attributeId, String attributeValue )
     {
-        JsonObject attributeObj = new JsonObject();
-        attributeObj.addProperty( "id", attributeId );
-
-        JsonObject attributeValueObj = new JsonObject();
-        attributeValueObj.addProperty( "value", attributeValue );
-        attributeValueObj.add( "attribute", attributeObj );
-
-        JsonArray attributeValues = new JsonArray();
-        attributeValues.add( attributeValueObj );
-
-        json.add( "attributeValues", attributeValues );
+        json =  new JsonObjectBuilder( json)
+            .addArray( "attributeValues", new JsonObjectBuilder()
+                .addProperty( "value", attributeValue )
+                .addObject( "attribute", new JsonObjectBuilder().addProperty( "id", attributeId ))
+                .build() )
+            .build();
 
         return json;
     }

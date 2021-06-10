@@ -44,14 +44,7 @@ import static java.util.stream.Collectors.toList;
  */
 public class TestRunStorage
 {
-    private static ThreadLocal<LinkedHashMap<String, String>> createdEntities = new ThreadLocal<LinkedHashMap<String, String>>()
-    {
-        @Override
-        protected LinkedHashMap<String, String> initialValue()
-        {
-            return new LinkedHashMap<>();
-        }
-    };
+    private static LinkedHashMap<String, String> createdEntities;
 
     private static ThreadLocal<AuthenticationScheme> authenticationScheme = new ThreadLocal<AuthenticationScheme>()
     {
@@ -72,29 +65,31 @@ public class TestRunStorage
         authenticationScheme.set( scheme );
     }
 
+
+
     public static void addCreatedEntity( final String resource, final String id )
     {
         if ( createdEntities == null )
         {
-            createdEntities.set( new LinkedHashMap<>() );
+            createdEntities = new LinkedHashMap<>();
         }
 
-        createdEntities.get().put( id, resource );
+        createdEntities.put( id, resource );
     }
 
     public static Map<String, String> getCreatedEntities()
     {
-        if ( createdEntities.get() == null )
+        if ( createdEntities == null )
         {
             return new LinkedHashMap<>();
         }
 
-        return new LinkedHashMap<>( createdEntities.get() );
+        return new LinkedHashMap<>( createdEntities );
     }
 
     public static List<String> getCreatedEntities( String resource )
     {
-        if ( createdEntities.get() == null )
+        if ( createdEntities == null )
         {
             return new ArrayList<>();
         }
@@ -108,21 +103,21 @@ public class TestRunStorage
 
     public static void removeEntity( final String resource, final String id )
     {
-        if ( createdEntities.get() == null )
+        if ( createdEntities == null )
         {
             return;
         }
 
-        createdEntities.get().remove( id, resource );
+        createdEntities.remove( id, resource );
     }
 
     public static void removeAllEntities()
     {
-        if ( createdEntities.get() == null )
+        if ( createdEntities == null )
         {
             return;
         }
 
-        createdEntities.get().clear();
+        createdEntities.clear();
     }
 }

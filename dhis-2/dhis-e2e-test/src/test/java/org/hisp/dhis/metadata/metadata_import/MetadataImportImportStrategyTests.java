@@ -84,7 +84,7 @@ public class MetadataImportImportStrategyTests
     public void shouldCreateMetadataWithCodeIdentifier()
     {
         JsonObject object = JsonObjectBuilder.jsonObject( DataGenerator.generateObjectForEndpoint( "/dataElementGroup" ) )
-            .addProperty( "code", "TA_CODE_DATAELEMENT_GROUP" )
+            .addProperty( "code", "TA_CODE_DE_GROUP" + DataGenerator.randomString() )
             .addArray( "userGroupAccesses",
                 new JsonObjectBuilder().addProperty( "access", "rw------" )
                     .addProperty( "code", "TA_USER_GROUP" ).build() )

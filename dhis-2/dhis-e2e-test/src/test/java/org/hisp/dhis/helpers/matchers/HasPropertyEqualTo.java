@@ -1,5 +1,3 @@
-package org.hisp.dhis;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -28,30 +26,52 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.hisp.dhis.helpers.config.TestConfiguration;
-import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
-import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
+package org.hisp.dhis.helpers.matchers;
+
+import com.google.gson.JsonObject;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.hamcrest.TypeSafeMatcher;
+import org.hamcrest.beans.HasProperty;
+import org.hisp.dhis.helpers.JsonParserUtils;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
-@ExtendWith( ConfigurationExtension.class )
-@ExtendWith( MetadataSetupExtension.class )
-public abstract class ApiTest
+public class HasPropertyEqualTo extends TypeSafeDiagnosingMatcher<Object>
 {
-    protected LoginActions loginActions;
-
-    @BeforeAll
-    public void beforeApiTest()
-    {
-        loginActions = new LoginActions();
+    private String propertyName;
+    private String expected;
+    public HasPropertyEqualTo( String propertyName, String expected ) {
+        this.propertyName = propertyName;
+        this.expected = expected;
     }
 
+    @Override
+    public void describeTo( Description description )
+    {
+        description.appendValue( String.format( "Property `%s`to equal `%s`", propertyName, expected));
+    }
+    public static HasPropertyEqualTo hasPropertyEqualTo( String property, String expectedValue) {
+        return new HasPropertyEqualTo( property, expectedValue );
+    }
+
+    @Override
+    protected boolean matchesSafely( Object item, Description mismatchDescription )
+    {
+        JsonObject object = JsonParserUtils.toJsonObject( item );
+
+        if (!object.has( propertyName )) {
+            mismatchDescription.appendText( String.format( "Expected %s, but property wasn't found", expected) );
+            return false;
+        }
+
+        String value = object.get( propertyName ).getAsString();
+        if (!value.equals( expected )) {
+            mismatchDescription.appendText( String.format( "Expected property %s to equal to %s, but found %s", propertyName, expected, value));
+            return false;
+        }
+
+        return true;
+    }
 }

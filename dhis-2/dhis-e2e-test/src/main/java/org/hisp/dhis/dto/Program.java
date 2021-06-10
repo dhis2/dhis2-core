@@ -28,32 +28,41 @@
 
 package org.hisp.dhis.dto;
 
+import java.util.List;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class UserCredentials
+public class Program
 {
-    private String username;
+    public Program( String id ) {
+        this.id = id;
+    }
+    public Program(String id, List<String> stages) {
+        this.id = id;
+        this.stages = stages;
+    }
+    private List<String> stages;
 
-    private String password;
+    private String id;
 
-    public String getUsername()
+    public List<String> getStages()
     {
-        return username;
+        return stages;
     }
 
-    public void setUsername( String username )
+    public void setStages( List<String> stages )
     {
-        this.username = username;
+        this.stages = stages;
     }
 
-    public String getPassword()
+    public String getId()
     {
-        return password;
+        return id;
     }
 
-    public void setPassword( String password )
+    public void setId( String id )
     {
-        this.password = password;
+        this.id = id;
     }
 }

@@ -40,10 +40,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -63,20 +60,29 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 public class EventsTests
     extends TrackerNtiApiTest
 {
+    private ProgramStageActions programStageActions;
+    private String orgUnit = Constants.ORG_UNIT_IDS[0];
+    private String program = Constants.TRACKER_PROGRAM_ID;
+
     private static Stream<Arguments> provideEventFilesTestArguments()
     {
         return Stream.of(
-            Arguments.arguments( "event.json", ContentType.JSON.toString() ) );
+            Arguments.arguments( "events.json", ContentType.JSON.toString() ) );
     }
 
     @BeforeAll
-    public void beforeAll()
+    public void beforeAll( ) {
+        programStageActions = new ProgramStageActions();
+    }
+
+    @BeforeEach
+    public void beforeEach()
     {
         loginActions.loginAsSuperUser();
     }
 
     @Test
-    public void shouldImportEvents()
+    public void shouldImportEvent()
         throws Exception
     {
         JsonObject eventBody = new FileReaderUtils()
@@ -134,12 +140,13 @@ public class EventsTests
         throws Exception
     {
         //arrange
-        String program = Constants.TRACKER_PROGRAM_ID;
-        String programStage = new ProgramStageActions().get( "",
+        String programStage = programStageActions.get( "",
             new QueryParamsBuilder().addAll( "filter=program.id:eq:" + program, "filter=repeatable:eq:" + repeatableStage ) )
             .extractString( "programStages.id[0]" );
 
-        TrackerApiResponse response = importTeiWithEnrollment( program, programStage );
+        JsonObject payload = trackerActions.buildTeiAndEnrollment( orgUnit, program );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
         String teiId = response.extractImportedTeis().get( 0 );
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
@@ -149,7 +156,7 @@ public class EventsTests
         event.addProperty( "trackedEntity", teiId );
         event.addProperty( "enrollment", enrollmentId );
 
-        JsonObject payload = new JsonObjectBuilder().addArray( "events", event, event ).build();
+        payload = new JsonObjectBuilder().addArray( "events", event, event ).build();
 
         // act
         response = trackerActions.postAndGetJobReport( payload );
@@ -176,9 +183,10 @@ public class EventsTests
         String programId = Constants.TRACKER_PROGRAM_ID;
         String programStageId = "nlXNK4b7LVr";
 
-        TrackerApiResponse response = importTeiWithEnrollment( programId, programStageId );
+        JsonObject payload = trackerActions.buildTeiAndEnrollment( orgUnit, programId );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 
-        String enrollmentId = response.extractImportedEnrollments().get( 0 );
+        String enrollmentId = response.validateSuccessfulImport().extractImportedEnrollments().get( 0 );
 
         JsonObject event = new JsonObjectBuilder(
             trackerActions.buildEvent( Constants.ORG_UNIT_IDS[1], programId, programStageId ).getAsJsonArray(
@@ -196,11 +204,5 @@ public class EventsTests
             .get( "/events/" + eventId + "?fields=*" )
             .validate().statusCode( 200 )
             .body( "enrollment", equalTo( enrollmentId ) );
-    }
-
-    @AfterEach
-    public void afterEach()
-    {
-        new TestCleanUp().deleteCreatedEntities( "/events" );
     }
 }

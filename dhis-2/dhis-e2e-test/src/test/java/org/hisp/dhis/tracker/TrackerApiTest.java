@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.tracker;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
@@ -36,9 +37,13 @@ import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+
+import java.io.File;
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -59,13 +64,15 @@ public class TrackerApiTest extends ApiTest
         loginActions = new LoginActions();
     }
 
-    public String createEventProgram(  ) {
-        ApiResponse response = programActions.createEventProgram( Constants.ORG_UNIT_IDS );
-        response.validate().statusCode( 201 );
-
-        String programId = response.extractUid();
-        assertNotNull( programId, "Failed to create a program: " + response.getAsString() );
-
+    protected JsonObject buildTeiWitEnrollmentAndEvent()
+        throws IOException
+    {
+        return new JsonFileReader( new File( "src/test/resources/tracker/teis/teisWithEventsAndEnrollments.json" ) )
+            .replaceStringsWithIds( "Kj6vYde4LHh", "MNWZ6hnuhSw", "ZwwuwNp6gVd", "Nav6inZRw1u", "PuBvJxDB73z" )
+            .get( JsonObject.class );
+    }
+    protected String createEventProgram(  ) {
+        String programId = programActions.createEventProgram( Constants.ORG_UNIT_IDS ).getId();
         new SharingActions().setupSharingForConfiguredUserGroup( "program", programId );
 
         return programId;

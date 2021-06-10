@@ -64,7 +64,6 @@ public class TrackerImporterImportModeTests
             .body( "validationReport", notNullValue() )
             .body( "validationReport.errorReports", empty() )
             .body( "validationReport.warningReports", empty() );
-
     }
 
 }
