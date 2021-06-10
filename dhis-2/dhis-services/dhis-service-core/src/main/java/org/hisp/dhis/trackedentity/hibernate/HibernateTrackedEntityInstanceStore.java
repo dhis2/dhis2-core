@@ -923,6 +923,7 @@ public class HibernateTrackedEntityInstanceStore
 
             for ( QueryFilter filter : queryItem.getFilters() )
             {
+                String encodedFilter = statementBuilder.encode( statementBuilder.encode( filter.getFilter(), false ) );
                 attributes
                     .append( "AND " )
                     .append( teav )
@@ -930,7 +931,7 @@ public class HibernateTrackedEntityInstanceStore
                     .append( filter.getSqlOperator() )
                     .append( SPACE )
                     .append( StringUtils
-                        .lowerCase( filter.getSqlFilter( statementBuilder.encode( filter.getFilter(), false ) ) ) );
+                        .lowerCase( filter.getSqlFilter( encodedFilter ) ) );
             }
         }
     }
