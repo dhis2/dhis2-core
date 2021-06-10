@@ -273,7 +273,7 @@ public class UserServiceTest
         assertContainsOnly( userService.getUsers( params ), userA, userB );
 
         params = getDefaultParams()
-            .addDataViewOrganisationUnit( unitA )
+            .addTeiSearchOrganisationUnit( unitA )
             .setIncludeOrgUnitChildren( true )
             .setUser( userA );
         assertContainsOnly( userService.getUsers( params ), userA, userB, userC );
