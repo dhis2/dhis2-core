@@ -296,6 +296,11 @@ public class DataSet
         return organisationUnit.getDataSets().remove( this );
     }
 
+    public void removeOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        organisationUnits.forEach( this::removeOrganisationUnit );
+    }
+
     public void removeAllOrganisationUnits()
     {
         for ( OrganisationUnit unit : sources )

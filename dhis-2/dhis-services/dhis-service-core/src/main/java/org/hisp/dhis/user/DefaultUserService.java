@@ -292,9 +292,9 @@ public class DefaultUserService
 
     private void handleUserQueryParams( UserQueryParams params )
     {
-        boolean canGrantOwnRoles = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
-        params.setDisjointRoles( !canGrantOwnRoles );
+        boolean canSeeOwnRoles = params.isCanSeeOwnUserAuthorityGroups() ||
+            (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        params.setDisjointRoles( !canSeeOwnRoles );
 
         if ( !params.hasUser() )
         {
