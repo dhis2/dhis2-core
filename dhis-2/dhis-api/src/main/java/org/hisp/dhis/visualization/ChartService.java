@@ -43,8 +43,6 @@ import org.jfree.chart.JFreeChart;
  */
 public interface ChartService
 {
-    String ID = ChartService.class.getName();
-
     /**
      * Generates a JFreeChart.
      *

@@ -67,7 +67,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -87,9 +86,6 @@ public class EnrollmentSecurityImportValidationTest
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private TrackerBundleService trackerBundleService;
-
-    @Autowired
     private ObjectBundleService objectBundleService;
 
     @Autowired
@@ -97,9 +93,6 @@ public class EnrollmentSecurityImportValidationTest
 
     @Autowired
     private ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
-    private DefaultTrackerValidationService trackerValidationService;
 
     @Autowired
     private RenderService _renderService;

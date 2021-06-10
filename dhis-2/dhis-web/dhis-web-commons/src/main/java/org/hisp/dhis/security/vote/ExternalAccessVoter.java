@@ -65,10 +65,7 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
 
     static
     {
-        // TODO charts/reportTables APIs are deprecated and will be removed,
-        // clean this up when they are
-        externalClasses.put( "charts", Visualization.class );
-        externalClasses.put( "reportTables", Visualization.class );
+        externalClasses.put( "visualizations", Visualization.class );
         externalClasses.put( "maps", org.hisp.dhis.mapping.Map.class );
         externalClasses.put( "reports", Report.class );
         externalClasses.put( "documents", Document.class );

@@ -32,7 +32,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -439,31 +438,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( dataSet.getSharing().getUserGroups() );
 
         assertEquals( 2, dataSet.getTranslations().size() );
-    }
-
-    @Test( expected = IllegalArgumentException.class )
-    public void testImportNonExistingEntityObject()
-        throws IOException
-    {
-        User user = createUser( 'A' );
-        manager.save( user );
-
-        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user ) );
-        manager.save( userGroup );
-
-        userGroup = manager.get( UserGroup.class, "ugabcdefghA" );
-        assertNotNull( userGroup );
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_chart_with_accesses.json" ).getInputStream(),
-            RenderFormat.JSON );
-
-        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
-
-        importService.importMetadata( params );
-
-        // Should not get to this point.
-        fail( "The exception org.hibernate.MappingException was expected." );
     }
 
     @Test
