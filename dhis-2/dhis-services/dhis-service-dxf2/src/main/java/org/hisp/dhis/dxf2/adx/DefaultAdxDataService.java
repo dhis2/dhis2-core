@@ -39,6 +39,7 @@ import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -79,7 +80,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -379,10 +380,10 @@ public class DefaultAdxDataService
         {
             Future<ImportSummary> futureImportSummary = executor.submit( new AdxPipedImporter(
                 dataValueSetService, adxImportOptions, dxfJobId, pipeOut, sessionFactory ) );
-            importSummary = futureImportSummary.get( TOTAL_MINUTES_TO_WAIT, TimeUnit.MINUTES );
-
             XMLOutputFactory factory = XMLOutputFactory.newInstance();
             XMLStreamWriter dxfWriter = factory.createXMLStreamWriter( pipeOut );
+
+            List<ImportConflict> adxConflicts = new LinkedList<>();
 
             dxfWriter.writeStartDocument( "1.0" );
             dxfWriter.writeStartElement( "dataValueSet" );
@@ -395,8 +396,8 @@ public class DefaultAdxDataService
                 notifier.update( id, "Importing ADX data group: " + groupCount );
 
                 // note this returns conflicts which are detected at ADX level
-                parseAdxGroupToDxf( adxReader, dxfWriter, adxImportOptions, importSummary,
-                    dataSetMap, dataSetCallable, dataElementMap, dataElementCallable );
+                adxConflicts.addAll( parseAdxGroupToDxf( adxReader, dxfWriter, adxImportOptions,
+                    dataSetMap, dataSetCallable, dataElementMap, dataElementCallable ) );
                 groupCount++;
             }
 
@@ -404,6 +405,11 @@ public class DefaultAdxDataService
             dxfWriter.writeEndDocument();
 
             pipeOut.flush();
+
+            importSummary = futureImportSummary.get( TOTAL_MINUTES_TO_WAIT, TimeUnit.MINUTES );
+            ImportSummary summary = importSummary;
+            adxConflicts.forEach( conflict -> summary.addConflict( conflict.getObject(), conflict.getValue() ) );
+            importSummary.getImportCount().incrementIgnored( adxConflicts.size() );
         }
         catch ( AdxException ex )
         {
@@ -439,13 +445,15 @@ public class DefaultAdxDataService
     // Utility methods
     // -------------------------------------------------------------------------
 
-    private void parseAdxGroupToDxf( XMLReader adxReader, XMLStreamWriter dxfWriter,
-        ImportOptions importOptions, ImportConflicts importConflicts,
+    private List<ImportConflict> parseAdxGroupToDxf( XMLReader adxReader, XMLStreamWriter dxfWriter,
+        ImportOptions importOptions,
         CachingMap<String, DataSet> dataSetMap, IdentifiableObjectCallable<DataSet> dataSetCallable,
         CachingMap<String, DataElement> dataElementMap, IdentifiableObjectCallable<DataElement> dataElementCallable )
         throws XMLStreamException,
         AdxException
     {
+        List<ImportConflict> adxConflicts = new LinkedList<>();
+
         Map<String, String> groupAttributes = adxReader.readAttributes();
 
         if ( !groupAttributes.containsKey( AdxDataService.PERIOD ) )
@@ -495,11 +503,13 @@ public class DefaultAdxDataService
             }
             catch ( AdxException ex )
             {
-                importConflicts.addConflict( ex.getObject(), ex.getMessage() );
+                adxConflicts.add( new ImportConflict( ex.getObject(), ex.getMessage() ) );
 
                 log.info( "ADX data value conflict: {} {}", ex.getObject(), ex.getMessage() );
             }
         }
+
+        return adxConflicts;
     }
 
     private void parseAdxDataValueToDxf( XMLReader adxReader, XMLStreamWriter dxfWriter,
