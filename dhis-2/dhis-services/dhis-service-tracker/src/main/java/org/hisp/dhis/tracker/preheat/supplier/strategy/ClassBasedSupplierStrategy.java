@@ -25,40 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.List;
 
-import org.hisp.dhis.scheduling.AbstractJob;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
- * @author Henning Håkonsen
+ *
+ * @author Luciano Fiandesio
  */
-@Component( "removeExpiredReservedValuesJob" )
-public class RemoveExpiredReservedValuesJob
-    extends AbstractJob
+public interface ClassBasedSupplierStrategy
 {
-    private final ReservedValueService reservedValueService;
-
-    public RemoveExpiredReservedValuesJob( ReservedValueService reservedValueService )
-    {
-        checkNotNull( reservedValueService );
-
-        this.reservedValueService = reservedValueService;
-    }
-
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.REMOVE_EXPIRED_RESERVED_VALUES;
-    }
-
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
-    {
-        reservedValueService.removeExpiredReservations();
-    }
+    void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat );
 }

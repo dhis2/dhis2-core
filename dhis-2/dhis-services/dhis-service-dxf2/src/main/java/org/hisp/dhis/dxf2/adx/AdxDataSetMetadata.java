@@ -36,6 +36,8 @@ import org.apache.xerces.util.XMLChar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 
@@ -48,7 +50,7 @@ public class AdxDataSetMetadata
 
     private final Map<Long, Map<String, String>> categoryOptionMap;
 
-    AdxDataSetMetadata( DataSet dataSet )
+    AdxDataSetMetadata( DataSet dataSet, IdSchemes idSchemes )
         throws AdxException
     {
         categoryOptionMap = new HashMap<>();
@@ -66,37 +68,42 @@ public class AdxDataSetMetadata
         {
             for ( CategoryOptionCombo catOptCombo : categoryCombo.getOptionCombos() )
             {
-                addExplodedCategoryAttributes( catOptCombo );
+                addExplodedCategoryAttributes( catOptCombo, idSchemes );
             }
         }
     }
 
-    private void addExplodedCategoryAttributes( CategoryOptionCombo coc )
+    private void addExplodedCategoryAttributes( CategoryOptionCombo coc, IdSchemes idSchemes )
         throws AdxException
     {
         Map<String, String> categoryAttributes = new HashMap<>();
+
+        IdScheme cScheme = idSchemes.getCategoryIdScheme();
+        IdScheme coScheme = idSchemes.getCategoryOptionIdScheme();
 
         if ( !coc.isDefault() )
         {
             for ( Category category : coc.getCategoryCombo().getCategories() )
             {
-                String categoryCode = category.getCode();
+                String categoryId = category.getPropertyValue( cScheme );
 
-                if ( categoryCode == null || !XMLChar.isValidName( categoryCode ) )
+                if ( categoryId == null || !XMLChar.isValidName( categoryId ) )
                 {
                     throw new AdxException(
-                        "Category code for " + category.getName() + " is missing or invalid: " + categoryCode );
+                        "Category " + cScheme.name() + " for " + category.getName() + " is missing or invalid: "
+                            + categoryId );
                 }
 
-                String catOptCode = category.getCategoryOption( coc ).getCode();
+                String catOptId = category.getCategoryOption( coc ).getPropertyValue( coScheme );
 
-                if ( catOptCode == null || catOptCode.isEmpty() )
+                if ( catOptId == null || catOptId.isEmpty() )
                 {
                     throw new AdxException(
-                        "CategoryOption code for " + category.getCategoryOption( coc ).getName() + " is missing" );
+                        "CategoryOption " + coScheme.name() + " for " + category.getCategoryOption( coc ).getName()
+                            + " is missing" );
                 }
 
-                categoryAttributes.put( categoryCode, catOptCode );
+                categoryAttributes.put( categoryId, catOptId );
             }
         }
 

@@ -25,21 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import lombok.experimental.UtilityClass;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
+import org.hisp.dhis.tracker.preheat.mappers.OrganisationUnitMapper;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
-@UtilityClass
-public class RootEntitiesUtils
+@Component
+@StrategyFor( value = OrganisationUnit.class, mapper = OrganisationUnitMapper.class, cache = true, ttl = 30, capacity = 100 )
+public class OrgUnitStrategy extends AbstractSchemaStrategy
 {
-    public List<String> filterOutNonRootEntities( List<String> ids, List<String> rootEntities )
+    public OrgUnitStrategy( SchemaService schemaService, QueryService queryService, IdentifiableObjectManager manager,
+        PreheatCacheService cacheService )
     {
-        return ids.stream().filter( rootEntities::contains ).collect( Collectors.toList() );
+        super( schemaService, queryService, manager, cacheService );
     }
 }

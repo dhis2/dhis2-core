@@ -25,37 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.dxf2.importsummary;
 
-import java.util.List;
-
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
-import org.springframework.stereotype.Component;
+import java.util.function.Predicate;
 
 /**
- * @author Luciano Fiandesio
+ * A "append only" set of {@link ImportConflict}s.
+ *
+ * @author Jan Bernitt
  */
-@Component
-@StrategyFor( value = GenericStrategy.class, mapper = CopyMapper.class )
-public class GenericStrategy extends AbstractSchemaStrategy
+public interface ImportConflicts
 {
-    public GenericStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
-    {
-        super( schemaService, queryService, manager, cacheService );
-    }
+    /**
+     * Adds a new conflict to this set of conflicts
+     *
+     * @param object reference or ID of the object causing the conflict
+     * @param message a description of the conflict
+     */
+    void addConflict( String object, String message );
 
-    public void add( Class<?> klazz, List<List<String>> splitList, TrackerPreheat preheat )
+    /**
+     * @return A textual description of all {@link ImportConflict}s in this set
+     */
+    String getConflictsDescription();
+
+    /**
+     * @return Number of unique conflicts in the set. This can be less than the
+     *         number of conflicts added using
+     *         {@link #addConflict(String, String)} since duplicates are
+     *         eliminated
+     */
+    int getConflictCount();
+
+    /**
+     * Tests if a {@link ImportConflict} with certain qualities exists in this
+     * set.
+     *
+     * @param test the test to perform
+     * @return true if it exist, otherwise false
+     */
+    boolean hasConflict( Predicate<ImportConflict> test );
+
+    /**
+     * @return true, if there are any conflicts in this set, else false
+     */
+    default boolean hasConflicts()
     {
-        Schema schema = schemaService.getDynamicSchema( klazz );
-        queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID, splitList,
-            getClass().getAnnotation( StrategyFor.class ).mapper() );
+        return getConflictCount() > 0;
     }
 }

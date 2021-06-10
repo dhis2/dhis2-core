@@ -84,8 +84,6 @@ public class ShowErrorWarningImplementerTest
 
     private final static String PROGRAM_STAGE_ID = "ProgramStageId";
 
-    private final static String ANOTHER_PROGRAM_STAGE_ID = "AnotherProgramStageId";
-
     private final static String DATA_ELEMENT_ID = "DataElementId";
 
     private final static String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";

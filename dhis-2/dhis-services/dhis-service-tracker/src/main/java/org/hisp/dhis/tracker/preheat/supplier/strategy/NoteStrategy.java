@@ -25,38 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.user;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
-import org.hisp.dhis.schema.descriptors.UserCredentialsSchemaDescriptor;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.client.HttpServerErrorException;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.preheat.DetachUtils;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.mappers.NoteMapper;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Controller
-@RequestMapping( value = UserCredentialsSchemaDescriptor.API_ENDPOINT )
-public class UserCredentialsController
-    extends AbstractCrudController<UserCredentials>
+@RequiredArgsConstructor
+@Component
+@StrategyFor( value = TrackedEntityComment.class, mapper = NoteMapper.class )
+public class NoteStrategy implements ClassBasedSupplierStrategy
 {
-    @Override
-    public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        throw new HttpServerErrorException( HttpStatus.BAD_REQUEST );
-    }
+    @NonNull
+    private final TrackedEntityCommentStore trackedEntityCommentStore;
 
     @Override
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
-        throw new HttpServerErrorException( HttpStatus.BAD_REQUEST );
+        splitList
+            .forEach( ids -> preheat.putNotes( DetachUtils.detach(
+                this.getClass().getAnnotation( StrategyFor.class ).mapper(), trackedEntityCommentStore.getByUid( ids,
+                    preheat.getUser() ) ) ) );
     }
 }

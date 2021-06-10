@@ -25,52 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.mappers.ProgramStageInstanceMapper;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
+import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
-@RequiredArgsConstructor
 @Component
-@StrategyFor( value = Event.class, mapper = ProgramStageInstanceMapper.class )
-public class EventStrategy implements ClassBasedSupplierStrategy
+@StrategyFor( value = GenericStrategy.class, mapper = CopyMapper.class )
+public class GenericStrategy extends AbstractSchemaStrategy
 {
-    @NonNull
-    private final ProgramStageInstanceStore programStageInstanceStore;
-
-    @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    public GenericStrategy( SchemaService schemaService, QueryService queryService,
+        IdentifiableObjectManager manager, PreheatCacheService cacheService )
     {
-        for ( List<String> ids : splitList )
-        {
-            List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getIncludingDeleted( ids );
+        super( schemaService, queryService, manager, cacheService );
+    }
 
-            final List<String> rootEntities = params.getEvents().stream().map( Event::getEvent )
-                .collect( Collectors.toList() );
-
-            preheat.putEvents( TrackerIdScheme.UID,
-                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
-                    programStageInstances ),
-                params.getEvents().stream()
-                    .filter(
-                        e -> RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ).contains( e.getEvent() ) )
-                    .collect( Collectors.toList() ) );
-        }
+    public void add( Class<?> klazz, List<List<String>> splitList, TrackerPreheat preheat )
+    {
+        Schema schema = schemaService.getDynamicSchema( klazz );
+        queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID, splitList,
+            getClass().getAnnotation( StrategyFor.class ).mapper() );
     }
 }

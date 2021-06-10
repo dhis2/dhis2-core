@@ -25,26 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
+package org.hisp.dhis.commons.jackson.serialization;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.CategoryOptionComboMapper;
-import org.springframework.stereotype.Component;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * @author Luciano Fiandesio
+ * @author Jan Bernitt
  */
-@Component
-@StrategyFor( value = CategoryOptionCombo.class, mapper = CategoryOptionComboMapper.class, cache = true, ttl = 5 )
-public class CatOptionComboStrategy extends AbstractSchemaStrategy
+public class ImportConflictJacksonTest
 {
-    public CatOptionComboStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
+
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+
+    @Test
+    public void testIterableSerialisedAsJsonArray()
     {
-        super( schemaService, queryService, manager, cacheService );
+        ImportSummary summary = new ImportSummary();
+        summary.addConflict( "foo", "bar" );
+        summary.addConflict( "x", "y" );
+
+        JsonNode summaryNodes = jsonMapper.valueToTree( summary );
+
+        assertTrue( summaryNodes.has( "conflicts" ) );
+        JsonNode conflicts = summaryNodes.get( "conflicts" );
+        assertTrue( conflicts.isArray() );
+        assertEquals( 2, conflicts.size() );
+        assertEquals( "[{\"object\":\"x\",\"value\":\"y\"},{\"object\":\"foo\",\"value\":\"bar\"}]",
+            conflicts.toString() );
     }
 }
