@@ -45,10 +45,16 @@ import com.google.common.base.MoreObjects;
 @Getter
 public class UserQueryParams
 {
+    /**
+     * The user query string.
+     */
     private String query;
 
     private String phoneNumber;
 
+    /**
+     * The current user in the context of the user query.
+     */
     private User user;
 
     private boolean canManage;
@@ -73,6 +79,10 @@ public class UserQueryParams
 
     private List<OrganisationUnit> organisationUnits = new ArrayList<>();
 
+    private List<OrganisationUnit> dataViewOrganisationUnits = new ArrayList<>();
+
+    private List<OrganisationUnit> teiSearchOrganisationUnits = new ArrayList<>();
+
     private Set<UserGroup> userGroups = new HashSet<>();
 
     private Integer first;
@@ -86,6 +96,14 @@ public class UserQueryParams
     private boolean prefetchUserGroups;
 
     private Boolean disabled;
+
+    /**
+     * Indicates whether users should be able to see users which have the same
+     * user roles. This setting is for internal use only, and will override the
+     * {@link SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS} system setting.
+     * Should not be exposed in the API.
+     */
+    private boolean canSeeOwnUserAuthorityGroups = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -129,7 +147,7 @@ public class UserQueryParams
     }
 
     // -------------------------------------------------------------------------
-    // Builder
+    // Logic
     // -------------------------------------------------------------------------
 
     public UserQueryParams addOrganisationUnit( OrganisationUnit unit )
@@ -138,9 +156,31 @@ public class UserQueryParams
         return this;
     }
 
+    public UserQueryParams addDataViewOrganisationUnit( OrganisationUnit unit )
+    {
+        this.dataViewOrganisationUnits.add( unit );
+        return this;
+    }
+
+    public UserQueryParams addTeiSearchOrganisationUnit( OrganisationUnit unit )
+    {
+        this.teiSearchOrganisationUnits.add( unit );
+        return this;
+    }
+
     public boolean hasOrganisationUnits()
     {
         return !organisationUnits.isEmpty();
+    }
+
+    public boolean hasDataViewOrganisationUnits()
+    {
+        return !dataViewOrganisationUnits.isEmpty();
+    }
+
+    public boolean hasTeiSearchOrganisationUnits()
+    {
+        return !teiSearchOrganisationUnits.isEmpty();
     }
 
     public boolean hasUserGroups()
@@ -235,6 +275,18 @@ public class UserQueryParams
         return this;
     }
 
+    public UserQueryParams setDataViewOrganisationUnits( List<OrganisationUnit> dataViewOrganisationUnits )
+    {
+        this.dataViewOrganisationUnits = dataViewOrganisationUnits;
+        return this;
+    }
+
+    public UserQueryParams setTeiSearchOrganisationUnits( List<OrganisationUnit> teiSearchOrganisationUnits )
+    {
+        this.teiSearchOrganisationUnits = teiSearchOrganisationUnits;
+        return this;
+    }
+
     public UserQueryParams setUserGroups( Set<UserGroup> userGroups )
     {
         this.userGroups = userGroups;
@@ -280,6 +332,12 @@ public class UserQueryParams
     public UserQueryParams setDisabled( Boolean disabled )
     {
         this.disabled = disabled;
+        return this;
+    }
+
+    public UserQueryParams setCanSeeOwnUserAuthorityGroups( boolean canSeeOwnUserAuthorityGroups )
+    {
+        this.canSeeOwnUserAuthorityGroups = canSeeOwnUserAuthorityGroups;
         return this;
     }
 }
