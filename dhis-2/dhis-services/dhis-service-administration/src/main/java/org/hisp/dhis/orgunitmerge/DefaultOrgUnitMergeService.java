@@ -52,10 +52,9 @@ public class DefaultOrgUnitMergeService
     private final ImmutableList<OrgUnitMergeHandler> handlers;
 
     public DefaultOrgUnitMergeService( IdentifiableObjectManager idObjectManager,
-        MetadataOrgUnitMergeHandler metadataHandler,
         AnalyticalObjectOrgUnitMergeHandler analyticalObjectMergeHandler )
     {
-        this.metadataHandler = metadataHandler;
+        this.metadataHandler = new MetadataOrgUnitMergeHandler();
         this.analyticalObjectHandler = analyticalObjectMergeHandler;
         this.idObjectManager = idObjectManager;
         this.handlers = getMergeHandlers();

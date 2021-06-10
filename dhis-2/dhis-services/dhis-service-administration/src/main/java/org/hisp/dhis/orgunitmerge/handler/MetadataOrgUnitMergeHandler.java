@@ -30,10 +30,11 @@ package org.hisp.dhis.orgunitmerge.handler;
 import java.util.Collection;
 import java.util.Set;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.stereotype.Service;
+import lombok.NoArgsConstructor;
 
-@Service
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+@NoArgsConstructor
 public class MetadataOrgUnitMergeHandler
 {
     public void mergeDataSets( Set<OrganisationUnit> sources, OrganisationUnit target )
