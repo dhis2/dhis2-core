@@ -85,8 +85,8 @@ public class GistValidationControllerTest extends AbstractGistControllerTest
     public void testValidation_Filter_CanAccessMissingPattern()
     {
         assertEquals(
-            "Filter `surname:canaccess:[fake-UID]` requires a user ID and a access pattern argument.",
-            GET( "/users/gist?filter=surname:canAccess:fake-UID" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+            "Filter `surname:canaccess:[" + getSuperuserUid() + "]` requires a user ID and an access pattern argument.",
+            GET( "/users/gist?filter=surname:canAccess" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
     }
 
     @Test
