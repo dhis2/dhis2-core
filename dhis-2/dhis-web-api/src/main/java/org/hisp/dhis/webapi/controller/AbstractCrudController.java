@@ -99,6 +99,9 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.patch.Patch;
+import org.hisp.dhis.patch.PatchParams;
+import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -220,6 +223,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     protected JsonPatchManager jsonPatchManager;
+
+    @Autowired
+    protected PatchService patchService;
 
     @Autowired
     protected AttributeService attributeService;
@@ -572,6 +578,108 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     // --------------------------------------------------------------------------
+    // OLD PATCH
+    // --------------------------------------------------------------------------
+
+    @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    @ApiVersion( { DhisApiVersion.V34, DhisApiVersion.V35, DhisApiVersion.V36 } )
+    public void partialUpdateObject(
+        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
+        HttpServletRequest request )
+        throws Exception
+    {
+        WebOptions options = new WebOptions( rpParameters );
+        List<T> entities = getEntity( pvUid, options );
+
+        if ( entities.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        T persistedObject = entities.get( 0 );
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( !aclService.canUpdate( user, persistedObject ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
+        Patch patch = diff( request );
+
+        prePatchEntity( persistedObject );
+        patchService.apply( patch, persistedObject );
+        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
+        manager.update( persistedObject );
+        postPatchEntity( persistedObject );
+    }
+
+    private Patch diff( HttpServletRequest request )
+        throws IOException,
+        WebMessageException
+    {
+        ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
+        if ( mapper == null )
+        {
+            throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
+        }
+        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
+    }
+
+    @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    @ApiVersion( { DhisApiVersion.V34, DhisApiVersion.V35, DhisApiVersion.V36 } )
+    public void updateObjectProperty(
+        @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
+        @RequestParam Map<String, String> rpParameters,
+        HttpServletRequest request )
+        throws Exception
+    {
+        WebOptions options = new WebOptions( rpParameters );
+
+        List<T> entities = getEntity( pvUid, options );
+
+        if ( entities.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        if ( !getSchema().haveProperty( pvProperty ) )
+        {
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
+        }
+
+        Property property = getSchema().getProperty( pvProperty );
+        T persistedObject = entities.get( 0 );
+
+        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), persistedObject ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
+        if ( !property.isWritable() )
+        {
+            throw new UpdateAccessDeniedException( "This property is read-only." );
+        }
+
+        T object = deserialize( request );
+
+        if ( object == null )
+        {
+            throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
+        }
+
+        prePatchEntity( persistedObject );
+        Object value = property.getGetterMethod().invoke( object );
+        property.getSetterMethod().invoke( persistedObject, value );
+        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
+        manager.update( persistedObject );
+        postPatchEntity( persistedObject );
+    }
+
+    // --------------------------------------------------------------------------
     // PATCH
     // --------------------------------------------------------------------------
 
@@ -582,6 +690,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      */
     @ResponseBody
     @PatchMapping( path = "/{uid}", consumes = { MediaType.APPLICATION_JSON_VALUE, "application/json-patch+json" } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V34,
+        DhisApiVersion.V35, DhisApiVersion.V36 } )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,

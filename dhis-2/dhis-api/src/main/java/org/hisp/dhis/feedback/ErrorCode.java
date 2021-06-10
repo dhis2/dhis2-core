@@ -84,6 +84,7 @@ public enum ErrorCode
     E2035( "Operator not supported: `{0}`" ),
     E2036( "Combination not supported: `{0}`" ),
     E2037( "Order not supported: `{0}`" ),
+    E2038( "Field not supported: `{0}`" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),
