@@ -25,42 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.validation;
+package org.hisp.dhis.commons.jackson.serialization;
 
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * @author maikel arabori
+ * @author Jan Bernitt
  */
-public class ProgramStageInstanceBasicCheck implements Checker
+public class ImportConflictJacksonTest
 {
-    @Override
-    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
+
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+
+    @Test
+    public void testIterableSerialisedAsJsonArray()
     {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+        ImportSummary summary = new ImportSummary();
+        summary.addConflict( "foo", "bar" );
+        summary.addConflict( "x", "y" );
 
-        if ( programStageInstance == null )
-        {
-            final ImportSummary error = error( "Event ID " + event.getEvent() + " doesn't point to valid event",
-                event.getEvent() );
-            error.addConflict( "Invalid Event ID", event.getEvent() );
+        JsonNode summaryNodes = jsonMapper.valueToTree( summary );
 
-            return error;
-        }
-        else if ( programStageInstance.isDeleted() || ctx.getImportOptions().getImportStrategy().isCreate() )
-        {
-            return error(
-                "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
-                    .setReference( event.getEvent() );
-        }
-
-        return success();
+        assertTrue( summaryNodes.has( "conflicts" ) );
+        JsonNode conflicts = summaryNodes.get( "conflicts" );
+        assertTrue( conflicts.isArray() );
+        assertEquals( 2, conflicts.size() );
+        assertEquals( "[{\"object\":\"x\",\"value\":\"y\"},{\"object\":\"foo\",\"value\":\"bar\"}]",
+            conflicts.toString() );
     }
 }

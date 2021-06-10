@@ -36,8 +36,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedOutputStream;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -395,7 +407,8 @@ public class DefaultAdxDataService
             pipeOut.flush();
 
             importSummary = futureImportSummary.get( TOTAL_MINUTES_TO_WAIT, TimeUnit.MINUTES );
-            importSummary.getConflicts().addAll( adxConflicts );
+            ImportSummary summary = importSummary;
+            adxConflicts.forEach( conflict -> summary.addConflict( conflict.getObject(), conflict.getValue() ) );
             importSummary.getImportCount().incrementIgnored( adxConflicts.size() );
         }
         catch ( AdxException ex )
@@ -403,7 +416,7 @@ public class DefaultAdxDataService
             importSummary = new ImportSummary();
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.setDescription( "Data set import failed within group number: " + groupCount );
-            importSummary.getConflicts().add( ex.getImportConflict() );
+            importSummary.addConflict( ex.getObject(), ex.getMessage() );
             notifier.update( id, NotificationLevel.ERROR, "ADX data import done", true );
             log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
         }
@@ -490,9 +503,9 @@ public class DefaultAdxDataService
             }
             catch ( AdxException ex )
             {
-                adxConflicts.add( ex.getImportConflict() );
+                adxConflicts.add( new ImportConflict( ex.getObject(), ex.getMessage() ) );
 
-                log.info( "ADX data value conflict: " + ex.getImportConflict() );
+                log.info( "ADX data value conflict: {} {}", ex.getObject(), ex.getMessage() );
             }
         }
 

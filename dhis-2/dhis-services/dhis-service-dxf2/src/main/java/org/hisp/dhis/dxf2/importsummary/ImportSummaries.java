@@ -115,9 +115,9 @@ public class ImportSummaries extends AbstractWebMessageResponse
 
     public boolean hasConflicts()
     {
-        for ( ImportSummary importSummary : importSummaries )
+        for ( ImportConflicts importConflicts : importSummaries )
         {
-            if ( importSummary.getConflicts().size() > 0 )
+            if ( importConflicts.hasConflicts() )
             {
                 return true;
             }
