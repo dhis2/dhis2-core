@@ -257,19 +257,23 @@ public class PreCheckOwnershipValidationHook
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
-            validateUpdateAndDeleteEvent( reporter, event, context.getProgramStageInstance( event.getEvent() ),
+            ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
+            TrackedEntityInstance entityInstance = programStageInstance.getProgramInstance().getEntityInstance();
+            validateUpdateAndDeleteEvent( reporter, event, programStageInstance,
+                programStageInstance.getAttributeOptionCombo(),
+                programStageInstance.getProgramStage(),
+                entityInstance == null ? null : entityInstance.getUid(),
+                programStageInstance.getOrganisationUnit() );
+        }
+        else
+        {
+            validateCreateEvent( reporter, user,
                 categoryOptionCombo,
                 programStage,
                 teiUid,
-                organisationUnit );
+                organisationUnit,
+                program, event.isCreatableInSearchScope() );
         }
-
-        validateCreateEvent( reporter, user,
-            categoryOptionCombo,
-            programStage,
-            teiUid,
-            organisationUnit,
-            program, event.isCreatableInSearchScope() );
     }
 
     @Override
