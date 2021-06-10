@@ -217,6 +217,48 @@ public class HibernateUserStore
             }
         }
 
+        if ( params.hasDataViewOrganisationUnits() )
+        {
+            hql += "left join u.dataViewOrganisationUnits dwou ";
+
+            if ( params.isIncludeOrgUnitChildren() )
+            {
+                hql += hlp.whereAnd() + " (";
+
+                for ( int i = 0; i < params.getDataViewOrganisationUnits().size(); i++ )
+                {
+                    hql += String.format( "dwou.path like :dwOuUid%d or ", i );
+                }
+
+                hql = TextUtils.removeLastOr( hql ) + ")";
+            }
+            else
+            {
+                hql += hlp.whereAnd() + " dwou.id in (:dwOuIds) ";
+            }
+        }
+
+        if ( params.hasTeiSearchOrganisationUnits() )
+        {
+            hql += "left join u.teiSearchOrganisationUnits tsou ";
+
+            if ( params.isIncludeOrgUnitChildren() )
+            {
+                hql += hlp.whereAnd() + " (";
+
+                for ( int i = 0; i < params.getTeiSearchOrganisationUnits().size(); i++ )
+                {
+                    hql += String.format( "tsou.path like :tsOuUid%d or ", i );
+                }
+
+                hql = TextUtils.removeLastOr( hql ) + ")";
+            }
+            else
+            {
+                hql += hlp.whereAnd() + " tsou.id in (:tsOuIds) ";
+            }
+        }
+
         if ( params.hasUserGroups() )
         {
             hql += hlp.whereAnd() + " g.id in (:userGroupIds) ";
@@ -386,6 +428,44 @@ public class HibernateUserStore
                 Collection<Long> ouIds = IdentifiableObjectUtils.getIdentifiers( params.getOrganisationUnits() );
 
                 query.setParameterList( "ouIds", ouIds );
+            }
+        }
+
+        if ( params.hasDataViewOrganisationUnits() )
+        {
+            if ( params.isIncludeOrgUnitChildren() )
+            {
+                for ( int i = 0; i < params.getDataViewOrganisationUnits().size(); i++ )
+                {
+                    query.setParameter( String.format( "dwOuUid%d", i ),
+                        "%/" + params.getDataViewOrganisationUnits().get( i ).getUid() + "%" );
+                }
+            }
+            else
+            {
+                Collection<Long> ouIds = IdentifiableObjectUtils
+                    .getIdentifiers( params.getDataViewOrganisationUnits() );
+
+                query.setParameterList( "dwOuIds", ouIds );
+            }
+        }
+
+        if ( params.hasTeiSearchOrganisationUnits() )
+        {
+            if ( params.isIncludeOrgUnitChildren() )
+            {
+                for ( int i = 0; i < params.getTeiSearchOrganisationUnits().size(); i++ )
+                {
+                    query.setParameter( String.format( "tsOuUid%d", i ),
+                        "%/" + params.getTeiSearchOrganisationUnits().get( i ).getUid() + "%" );
+                }
+            }
+            else
+            {
+                Collection<Long> ouIds = IdentifiableObjectUtils
+                    .getIdentifiers( params.getTeiSearchOrganisationUnits() );
+
+                query.setParameterList( "tsOuIds", ouIds );
             }
         }
 

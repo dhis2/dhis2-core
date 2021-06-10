@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.dxf2.importsummary;
 
+import static java.util.Collections.unmodifiableSet;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -42,7 +44,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "importSummary", namespace = DxfNamespaces.DXF_2_0 )
-public class ImportSummary extends AbstractWebMessageResponse
+public class ImportSummary extends AbstractWebMessageResponse implements ImportConflicts
 {
     private ImportStatus status = ImportStatus.SUCCESS;
 
@@ -52,7 +54,14 @@ public class ImportSummary extends AbstractWebMessageResponse
 
     private ImportCount importCount = new ImportCount();
 
-    private Set<ImportConflict> conflicts = new HashSet<>();
+    /**
+     * Number of total conflicts. In contrast to the collection of
+     * {@link ImportConflict}s which deduplicate this counts each conflict added
+     * using {@link #addConflict(String, String)}
+     */
+    private int totalConflictCount = 0;
+
+    private final Set<ImportConflict> conflicts = new HashSet<>();
 
     private String dataSetComplete;
 
@@ -179,15 +188,9 @@ public class ImportSummary extends AbstractWebMessageResponse
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "conflicts", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "conflict", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ImportConflict> getConflicts()
+    public Iterable<ImportConflict> getConflicts()
     {
-        return conflicts;
-    }
-
-    public ImportSummary setConflicts( Set<ImportConflict> conflicts )
-    {
-        this.conflicts = conflicts;
-        return this;
+        return unmodifiableSet( conflicts );
     }
 
     @JsonProperty
@@ -291,6 +294,50 @@ public class ImportSummary extends AbstractWebMessageResponse
         return this;
     }
 
+    /**
+     * Called to mark a data value that should be skipped/ignored during
+     * validation.
+     */
+    public void skipValue()
+    {
+        importCount.incrementIgnored();
+    }
+
+    public int skippedValueCount()
+    {
+        return importCount.getIgnored();
+    }
+
+    @Override
+    public void addConflict( String object, String message )
+    {
+        totalConflictCount++;
+        conflicts.add( new ImportConflict( object, message ) );
+    }
+
+    public int getTotalConflictCount()
+    {
+        return totalConflictCount;
+    }
+
+    @Override
+    public int getConflictCount()
+    {
+        return conflicts.size();
+    }
+
+    @Override
+    public boolean hasConflict( Predicate<ImportConflict> test )
+    {
+        return conflicts.stream().anyMatch( test );
+    }
+
+    @Override
+    public String getConflictsDescription()
+    {
+        return conflicts.toString();
+    }
+
     @Override
     public String toString()
     {
@@ -304,4 +351,5 @@ public class ImportSummary extends AbstractWebMessageResponse
             ", href='" + href + '\'' +
             '}';
     }
+
 }

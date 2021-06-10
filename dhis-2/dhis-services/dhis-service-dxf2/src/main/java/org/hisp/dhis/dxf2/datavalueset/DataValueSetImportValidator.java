@@ -31,7 +31,6 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -53,8 +52,8 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataSetContext;
 import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataValueContext;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.security.acl.AclService;
@@ -242,29 +241,19 @@ public class DataValueSetImportValidator
     public boolean skipDataValue( DataValue dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        Set<ImportConflict> conflicts = context.getSummary().getConflicts();
-        Set<ImportConflict> validationConflicts = new HashSet<>();
-        context.getSummary().setConflicts( validationConflicts );
-        try
+        ImportSummary summary = context.getSummary();
+        int skippedBefore = summary.skippedValueCount();
+        int totalConflictsBefore = summary.getTotalConflictCount();
+        for ( DataValueValidation validation : dataValueValidations )
         {
-            for ( DataValueValidation validation : dataValueValidations )
+            validation.validate( dataValue, context, dataSetContext, valueContext );
+            if ( summary.skippedValueCount() > skippedBefore
+                || summary.getTotalConflictCount() > totalConflictsBefore )
             {
-                validation.validate( dataValue, context, dataSetContext, valueContext );
-                if ( !validationConflicts.isEmpty() )
-                {
-                    if ( !validationConflicts.contains( ImportConflict.SKIP ) )
-                    {
-                        conflicts.addAll( validationConflicts );
-                    }
-                    return true;
-                }
+                return true;
             }
-            return false;
         }
-        finally
-        {
-            context.getSummary().setConflicts( conflicts );
-        }
+        return false;
     }
 
     private static void validateDataValueDataElementExists( DataValue dataValue, ImportContext context,
@@ -533,7 +522,7 @@ public class DataValueSetImportValidator
         if ( zeroAndInsignificant )
         {
             // Ignore value
-            context.getSummary().getConflicts().add( ImportConflict.SKIP );
+            context.getSummary().skipValue();
         }
     }
 
