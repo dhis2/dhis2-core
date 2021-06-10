@@ -1,0 +1,10 @@
+<adx xmlns="urn:ihe:qrph:adx:2015">
+    <group dataSet="Malaria DS" period="2020-01-01/P1M" orgUnit="P1233333333">
+        <dataValue dataElement="MalNummmmmm" sex="F" age="under5" value="1"/>
+    </group>
+    <group dataSet="Malaria DS" period="2020-02-01/P1M" orgUnit="P1233333333">
+        <dataValue dataElement="MalTexttttt" value="0">
+            <annotation>Some text</annotation>
+        </dataValue>
+    </group>
+</adx>
