@@ -32,6 +32,8 @@ import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserQueryParams;
@@ -50,6 +52,8 @@ import com.google.common.collect.ImmutableSet;
 public class MetadataOrgUnitMergeHandler
 {
     private final UserService userService;
+
+    private final ConfigurationService configService;
 
     public void mergeDataSets( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
@@ -113,5 +117,17 @@ public class MetadataOrgUnitMergeHandler
             o.addOrganisationUnit( target );
             o.removeOrganisationUnits( sources );
         } );
+    }
+
+    public void mergeConfiguration( Set<OrganisationUnit> sources, OrganisationUnit target )
+    {
+        Configuration config = configService.getConfiguration();
+        OrganisationUnit selfRegistrationOrgUnit = config.getSelfRegistrationOrgUnit();
+
+        if ( selfRegistrationOrgUnit != null && sources.contains( selfRegistrationOrgUnit ) )
+        {
+            config.setSelfRegistrationOrgUnit( target );
+            configService.setConfiguration( config );
+        }
     }
 }
