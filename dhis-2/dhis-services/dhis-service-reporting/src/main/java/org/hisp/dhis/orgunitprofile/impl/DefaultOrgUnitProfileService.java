@@ -34,6 +34,8 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
@@ -42,10 +44,13 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -54,6 +59,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.orgunitprofile.OrgUnitInfo;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
+import org.hisp.dhis.orgunitprofile.OrgUnitProfileService;
 import org.hisp.dhis.orgunitprofile.ProfileItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -63,14 +69,21 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableList;
+import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class DefaultOrgUnitProfileService
+    implements OrgUnitProfileService
 {
     private static final List<Class<? extends IdentifiableObject>> DATA_ITEM_CLASSES = ImmutableList
         .<Class<? extends IdentifiableObject>> builder()
         .add( DataElement.class ).add( Indicator.class ).add( DataSet.class ).add( ProgramIndicator.class )
         .build();
+
+    public static final String ORG_UNIT_PROFILE_NAMESPACE = "ORG_UNIT_PROFILE";
+    public static final String ORG_UNIT_PROFILE_KEY = "ORG_UNIT_PROFILE";
+    public static final String ORG_UNIT_PROFILE_AUTHORITY = "F_ORG_UNIT_PROFILE_ADD";
 
     private KeyJsonValueService dataStore;
 
@@ -84,34 +97,51 @@ public class DefaultOrgUnitProfileService
         this.dataStore = dataStore;
         this.idObjectManager = idObjectManager;
         this.analyticsService = analyticsService;
+
+        this.dataStore.addProtection( new KeyJsonNamespaceProtection( ORG_UNIT_PROFILE_NAMESPACE, KeyJsonNamespaceProtection.ProtectionType.NONE,
+            KeyJsonNamespaceProtection.ProtectionType.RESTRICTED, false, ORG_UNIT_PROFILE_AUTHORITY ) );
+
     }
 
+    @Override
+    @Transactional
     public void saveOrgUnitProfile( OrgUnitProfile profile )
     {
-        // Define a reserved, fixed namespace and key for the org unit profile
-        // in the data store
+        KeyJsonValue keyJsonValue = new KeyJsonValue();
+        keyJsonValue.setKey( ORG_UNIT_PROFILE_KEY );
 
-        // Save org unit profile to data store
-
-        // Add a 'addOrUpdateKeyJsonValue' method to data store?
+        try
+        {
+            keyJsonValue.setValue( JacksonObjectMapperConfig.staticJsonMapper().writeValueAsString( profile ) );
+            dataStore.saveOrUpdateKeyJsonValue( keyJsonValue );
+        }
+        catch ( JsonProcessingException e )
+        {
+            log.error( DebugUtils.getStackTrace( e ) );
+            throw new IllegalArgumentException( "Can't serialize OrgUnitProfile " + profile );
+        }
     }
 
+    @Override
+    @Transactional( readOnly = true )
     public OrgUnitProfile getOrgUnitProfile()
     {
-        // Fetch org unit profile from data store
-
-        KeyJsonValue value = dataStore.getKeyJsonValue( "", "" );
-
-        // If no profile is defined, return an empty profile
+        KeyJsonValue value = dataStore.getKeyJsonValue( ORG_UNIT_PROFILE_NAMESPACE, ORG_UNIT_PROFILE_KEY );
 
         if ( value == null )
         {
             return new OrgUnitProfile();
         }
 
-        // Deserialize OrgUnitProfile with Jackson from JSON value and return it
-
-        return null;
+        try
+        {
+            return JacksonObjectMapperConfig.staticJsonMapper().readValue( value.getValue(), OrgUnitProfile.class );
+        }
+        catch ( JsonProcessingException e )
+        {
+            log.error( DebugUtils.getStackTrace( e ) );
+            throw new IllegalArgumentException( "Can't deserialize OrgUnitProfile " + value.getValue() );
+        }
     }
 
     public OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod )

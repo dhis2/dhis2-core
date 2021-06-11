@@ -157,6 +157,27 @@ public class DefaultKeyJsonValueService
 
     @Override
     @Transactional
+    public void saveOrUpdateKeyJsonValue( KeyJsonValue entry )
+    {
+        validateJsonValue( entry );
+        KeyJsonValue existing = getKeyJsonValue( entry.getNamespace(), entry.getKey() );
+        if ( existing != null )
+        {
+            existing.setValue( entry.getValue() );
+            writeProtectedIn( entry.getNamespace(),
+                () -> singletonList( existing ),
+                () -> store.update( existing ) );
+        }
+        else
+        {
+            writeProtectedIn( entry.getNamespace(),
+                () -> singletonList( entry ),
+                () -> store.save( entry ) );
+        }
+    }
+
+    @Override
+    @Transactional
     public void deleteNamespace( String namespace )
     {
         writeProtectedIn( namespace,

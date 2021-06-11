@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Sandvold
@@ -124,6 +125,9 @@ public interface KeyJsonValueService
      *         entry
      */
     void deleteKeyJsonValue( KeyJsonValue entry );
+
+    @Transactional
+    void saveOrUpdateKeyJsonValue( KeyJsonValue entry );
 
     /**
      * Deletes all entries associated with a given namespace.
