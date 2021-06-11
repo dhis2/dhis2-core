@@ -29,7 +29,7 @@ package org.hisp.dhis.interpretation;
 
 import static org.junit.Assert.assertEquals;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.visualization.Visualization;
@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.common.collect.Sets;
 
 public class InterpretationStoreTest
-    extends DhisSpringTest
+    extends DhisTest
 {
     @Autowired
     private VisualizationStore visualizationStore;
