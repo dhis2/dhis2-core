@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.reservedvalue;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -37,28 +37,22 @@ import org.springframework.stereotype.Component;
 /**
  * @author Henning Håkonsen
  */
-@Component( "removeExpiredReservedValuesJob" )
-public class RemoveExpiredReservedValuesJob
+@Component( "removeUsedOrExpiredReservedValuesJob" )
+@RequiredArgsConstructor
+public class RemoveUsedOrExpiredReservedValuesJob
     extends AbstractJob
 {
     private final ReservedValueService reservedValueService;
 
-    public RemoveExpiredReservedValuesJob( ReservedValueService reservedValueService )
-    {
-        checkNotNull( reservedValueService );
-
-        this.reservedValueService = reservedValueService;
-    }
-
     @Override
     public JobType getJobType()
     {
-        return JobType.REMOVE_EXPIRED_RESERVED_VALUES;
+        return JobType.REMOVE_USED_OR_EXPIRED_RESERVED_VALUES;
     }
 
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        reservedValueService.removeExpiredReservations();
+        reservedValueService.removeUsedOrExpiredReservations();
     }
 }
