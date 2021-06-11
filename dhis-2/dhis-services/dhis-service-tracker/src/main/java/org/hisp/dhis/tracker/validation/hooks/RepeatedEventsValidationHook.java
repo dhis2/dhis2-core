@@ -60,6 +60,7 @@ public class RepeatedEventsValidationHook
         Map<Pair<String, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle.getEvents()
             .stream()
             .filter( e -> !rootReporter.isInvalid( e ) )
+            .filter( e -> !context.getStrategy( e ).isDelete() )
             .filter( e -> {
                 ProgramStage programStage = context.getProgramStage( e.getProgramStage() );
                 return programStage.getProgram().isRegistration() && !programStage.getRepeatable();
