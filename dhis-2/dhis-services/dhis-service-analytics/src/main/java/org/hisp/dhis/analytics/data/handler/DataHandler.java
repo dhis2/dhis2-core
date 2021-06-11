@@ -1032,7 +1032,8 @@ public class DataHandler
                 else
                 {
                     result.put( join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP ),
-                        new DimensionItemObjectValue( dimensionalItems.get( 0 ), (Double) row.get( valueIndex ) ) );
+                        new DimensionItemObjectValue( dimensionalItems.get( 0 ),
+                            ((Number) row.get( valueIndex )).doubleValue() ) );
                 }
             }
         }
@@ -1111,7 +1112,7 @@ public class DataHandler
             if ( periodOffsetRow != null )
             {
                 result.put( key, new DimensionItemObjectValue( dimensionalItemObject,
-                    (Double) periodOffsetRow.get( valueIndex ) ) );
+                    ((Number) row.get( valueIndex )).doubleValue() ) );
             }
 
             clone = SerializationUtils.clone( dimensionalItemObject );
