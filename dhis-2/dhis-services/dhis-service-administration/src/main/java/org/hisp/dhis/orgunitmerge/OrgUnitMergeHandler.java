@@ -31,6 +31,9 @@ import java.util.Set;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
+/**
+ * @author Lars Helge Overland
+ */
 @FunctionalInterface
 public interface OrgUnitMergeHandler
 {

@@ -31,6 +31,9 @@ import java.util.Set;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
+/**
+ * @author Lars Helge Overland
+ */
 public interface OrgUnitMergeService
 {
     void merge( Set<OrganisationUnit> sources, OrganisationUnit target );

@@ -39,6 +39,11 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * Main class for org unit merge.
+ *
+ * @author Lars Helge Overland
+ */
 @Service
 public class DefaultOrgUnitMergeService
     implements OrgUnitMergeService

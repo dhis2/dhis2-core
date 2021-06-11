@@ -29,28 +29,39 @@ package org.hisp.dhis.orgunitmerge.handler;
 
 import java.util.Set;
 
+import javax.transaction.Transactional;
+
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.AnalyticalObjectService;
+import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.eventreport.EventReportService;
-import org.hisp.dhis.mapping.MappingService;
+import org.hisp.dhis.mapping.MapViewStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.visualization.VisualizationService;
+import org.hisp.dhis.visualization.VisualizationStore;
 import org.springframework.stereotype.Service;
 
+/**
+ * Merge handler for analytical object entities. Note that this class uses the
+ * store layer for certain entities as this project does not have access to the
+ * corresponding services.
+ *
+ * @author Lars Helge Overland
+ */
 @Service
+@Transactional
 @AllArgsConstructor
 public class AnalyticalObjectOrgUnitMergeHandler
 {
-    private final VisualizationService visualizations;
+    private final VisualizationStore visualizations;
 
     private final EventReportService eventReports;
 
     private final EventChartService eventCharts;
 
-    private final MappingService maps;
+    private final MapViewStore mapViews;
 
     public void mergeVisualizations( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
@@ -69,10 +80,20 @@ public class AnalyticalObjectOrgUnitMergeHandler
 
     public void mergeMaps( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
-        mergeAnalyticalObject( maps, sources, target );
+        mergeAnalyticalObject( mapViews, sources, target );
     }
 
     private void mergeAnalyticalObject( AnalyticalObjectService<? extends AnalyticalObject> service,
+        Set<OrganisationUnit> sources, OrganisationUnit target )
+    {
+        for ( OrganisationUnit source : sources )
+        {
+            service.getAnalyticalObjects( source )
+                .forEach( o -> o.addDataDimensionItem( target ) );
+        }
+    }
+
+    private void mergeAnalyticalObject( AnalyticalObjectStore<? extends AnalyticalObject> service,
         Set<OrganisationUnit> sources, OrganisationUnit target )
     {
         for ( OrganisationUnit source : sources )

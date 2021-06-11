@@ -31,13 +31,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.AnalyticalObjectStore;
 
 public interface VisualizationStore
-    extends
-    IdentifiableObjectStore<Visualization>
+    extends AnalyticalObjectStore<Visualization>
 {
-
     /**
      * Query the Visualization collection and retrieve only the Visualizations
      * of type Chart.

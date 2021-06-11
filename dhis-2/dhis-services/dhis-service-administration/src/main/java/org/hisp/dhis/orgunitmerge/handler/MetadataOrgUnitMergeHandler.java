@@ -40,6 +40,11 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableSet;
 
+/**
+ * Merge handler for metadata objects.
+ *
+ * @author Lars Helge Overland
+ */
 @Service
 @AllArgsConstructor
 public class MetadataOrgUnitMergeHandler
