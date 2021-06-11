@@ -25,16 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.orgunitmerge;
+package org.hisp.dhis.merge.orgunit;
 
 import java.util.Set;
 
 import javax.transaction.Transactional;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.merge.orgunit.handler.AnalyticalObjectOrgUnitMergeHandler;
+import org.hisp.dhis.merge.orgunit.handler.MetadataOrgUnitMergeHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.orgunitmerge.handler.AnalyticalObjectOrgUnitMergeHandler;
-import org.hisp.dhis.orgunitmerge.handler.MetadataOrgUnitMergeHandler;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableList;
