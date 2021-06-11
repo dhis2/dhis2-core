@@ -49,7 +49,7 @@ import com.google.common.collect.ImmutableSet;
 @AllArgsConstructor
 public class MetadataOrgUnitMergeHandler
 {
-    private UserService userService;
+    private final UserService userService;
 
     public void mergeDataSets( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
