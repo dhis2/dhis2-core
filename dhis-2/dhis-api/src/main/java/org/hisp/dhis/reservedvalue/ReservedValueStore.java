@@ -48,11 +48,11 @@ public interface ReservedValueStore
 
     int getNumberOfUsedValues( ReservedValue reservedValue );
 
-    void removeExpiredReservations();
-
     boolean useReservedValue( String ownerUID, String value );
 
     void deleteReservedValueByUid( String uid );
 
     boolean isReserved( String ownerObject, String ownerUID, String value );
+
+    void removeUsedOrExpiredReservations();
 }
