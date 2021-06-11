@@ -490,7 +490,8 @@ public class DefaultPushAnalysisService
     }
 
     /**
-     * Uploads a byte array using FileResource and ExternalFileResource
+     * Uploads a byte array using FileResource and ExternalFileResource. All
+     * files uploaded from push analysis are in in PNG format.
      *
      * @param name name of the file to be stored
      * @param bytes the byte array representing the file to be stored
@@ -501,8 +502,7 @@ public class DefaultPushAnalysisService
     {
         FileResource fileResource = new FileResource(
             name,
-            MimeTypeUtils.IMAGE_PNG.toString(), // All files uploaded from
-                                                // PushAnalysis is PNG.
+            MimeTypeUtils.IMAGE_PNG.toString(),
             bytes.length,
             ByteSource.wrap( bytes ).hash( Hashing.md5() ).toString(),
             FileResourceDomain.PUSH_ANALYSIS );
