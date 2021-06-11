@@ -46,6 +46,4 @@ public interface InterpretationStore
     List<Interpretation> getInterpretations( Visualization visualization );
 
     long countVisualizationInterpretations( Visualization visualization );
-
-    Interpretation getByVisualizationId( long id );
 }

@@ -520,10 +520,4 @@ public class DefaultInterpretationService
     {
         return interpretationStore.countVisualizationInterpretations( visualization );
     }
-
-    @Override
-    public Interpretation getInterpretationByVisualization( long id )
-    {
-        return interpretationStore.getByVisualizationId( id );
-    }
 }
