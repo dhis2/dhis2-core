@@ -100,7 +100,6 @@ public class DefaultOrgUnitProfileService
 
         this.dataStore.addProtection( new KeyJsonNamespaceProtection( ORG_UNIT_PROFILE_NAMESPACE, KeyJsonNamespaceProtection.ProtectionType.NONE,
             KeyJsonNamespaceProtection.ProtectionType.RESTRICTED, false, ORG_UNIT_PROFILE_AUTHORITY ) );
-
     }
 
     @Override
@@ -109,6 +108,7 @@ public class DefaultOrgUnitProfileService
     {
         KeyJsonValue keyJsonValue = new KeyJsonValue();
         keyJsonValue.setKey( ORG_UNIT_PROFILE_KEY );
+        keyJsonValue.setNamespace( ORG_UNIT_PROFILE_NAMESPACE );
 
         try
         {

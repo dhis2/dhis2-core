@@ -31,8 +31,10 @@
 package org.hisp.dhis.orgunitprofile;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.user.UserService;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,9 +44,19 @@ public class OrgUnitProfileServiceTest
     @Autowired
     private OrgUnitProfileService service;
 
+    @Autowired
+    private UserService _userService;
+
+    @Before
+    public void init()
+    {
+        userService = _userService;
+    }
+
     @Test
     public void testSave()
     {
+        createAndInjectAdminUser( "ALL","F_ORG_UNIT_PROFILE_ADD" );
         OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
         orgUnitProfile.getAttributes().add( "Attribute1" );
         orgUnitProfile.getAttributes().add( "Attribute2" );
@@ -55,9 +67,9 @@ public class OrgUnitProfileServiceTest
         service.saveOrgUnitProfile( orgUnitProfile );
 
         OrgUnitProfile savedProfile = service.getOrgUnitProfile();
-        assertEquals( 2, savedProfile.getAttributes() );
-        assertEquals( 2, savedProfile.getDataItems() );
-        assertEquals( 2, savedProfile.getGroupSets() );
+        assertEquals( 2, savedProfile.getAttributes().size() );
+        assertEquals( 2, savedProfile.getDataItems().size() );
+        assertEquals( 2, savedProfile.getGroupSets().size() );
         assertTrue( savedProfile.getAttributes().contains( "Attribute1" ) );
         assertTrue( savedProfile.getDataItems().contains( "DataItem2" ) );
         assertTrue( savedProfile.getGroupSets().contains( "GroupSet1" ) );
