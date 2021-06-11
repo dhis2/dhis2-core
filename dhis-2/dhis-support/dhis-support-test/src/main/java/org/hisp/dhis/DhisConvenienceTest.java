@@ -2474,13 +2474,13 @@ public abstract class DhisConvenienceTest
             credentials -> credentials.getUserAuthorityGroups().addAll( asList( roles ) ) );
     }
 
-    protected final User addUser( char uniqueCharacter, Consumer<UserCredentials> init )
+    protected final User addUser( char uniqueCharacter, Consumer<UserCredentials> consumer )
     {
         User user = createUser( uniqueCharacter );
         UserCredentials credentials = createUserCredentials( uniqueCharacter, user );
-        if ( init != null )
+        if ( consumer != null )
         {
-            init.accept( credentials );
+            consumer.accept( credentials );
         }
         userService.addUser( user );
         userService.addUserCredentials( credentials );
