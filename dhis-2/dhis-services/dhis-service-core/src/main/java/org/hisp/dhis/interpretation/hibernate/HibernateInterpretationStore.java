@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.interpretation.hibernate;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -35,6 +38,7 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -127,5 +131,18 @@ public class HibernateInterpretationStore
         String hql = "from Interpretation i where i.visualization.id = " + id;
         Query<Interpretation> query = getQuery( hql );
         return query.uniqueResult();
+    }
+
+    @Override
+    public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
+    {
+        String hql = "update Interpretation i " +
+            "set i.organisationUnit = :target " +
+            "where i.organisationUnit.id in (:sources)";
+
+        getQuery( hql )
+            .setParameter( "target", target )
+            .setParameterList( "sources", getIdentifiers( sources ) )
+            .executeUpdate();
     }
 }

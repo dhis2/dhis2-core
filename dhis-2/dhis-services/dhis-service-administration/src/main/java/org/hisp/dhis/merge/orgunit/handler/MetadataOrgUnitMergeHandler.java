@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserQueryParams;
@@ -52,6 +53,8 @@ import com.google.common.collect.ImmutableSet;
 public class MetadataOrgUnitMergeHandler
 {
     private final UserService userService;
+
+    private final InterpretationStore interpretationStore;
 
     private final ConfigurationService configService;
 
