@@ -122,6 +122,19 @@ public class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
+    public void shouldNotFailValidationInvalidCount()
+    {
+        when( programRuleVariable.getProgram() ).thenReturn( program );
+        when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
+        when( query.getResultList() ).thenReturn( Collections.singletonList( new ProgramRuleVariable() ) );
+
+        when( programRuleVariable.getName() ).thenReturn( "word" );
+        List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
+            objectBundle );
+        assertEquals( 0, errorReports.size() );
+    }
+
+    @Test
     public void shouldFailValidationInvalidCountAndInvalidName()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
