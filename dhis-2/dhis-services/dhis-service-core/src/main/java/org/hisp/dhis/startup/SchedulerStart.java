@@ -57,8 +57,6 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 @Slf4j
 public class SchedulerStart extends AbstractStartupRoutine
 {
-    private final String CRON_HOURLY = "0 0 * ? * *";
-
     private final String CRON_DAILY_2AM = "0 0 2 ? * *";
 
     private final String CRON_DAILY_7AM = "0 0 7 ? * *";
@@ -85,9 +83,9 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     private final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
 
-    private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID = "uwWCT2BMmlq";
+    private final String DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES_UID = "uwWCT2BMmlq";
 
-    private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
+    private final String DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES = "Remove expired or used reserved values";
 
     private final String DEFAULT_LEADER_ELECTION_UID = "MoUd5BTQ3lY";
 
@@ -219,12 +217,13 @@ public class SchedulerStart extends AbstractStartupRoutine
             addAndScheduleJob( dataSetNotification );
         }
 
-        if ( verifyNoJobExist( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES, jobConfigurations ) )
+        if ( verifyNoJobExist( DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES, jobConfigurations ) )
         {
-            JobConfiguration removeExpiredReservedValues = new JobConfiguration( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES,
-                REMOVE_EXPIRED_RESERVED_VALUES, CRON_HOURLY, null );
+            JobConfiguration removeExpiredReservedValues = new JobConfiguration(
+                DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES,
+                REMOVE_USED_OR_EXPIRED_RESERVED_VALUES, CRON_DAILY_2AM, null );
             removeExpiredReservedValues.setLeaderOnlyJob( true );
-            removeExpiredReservedValues.setUid( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID );
+            removeExpiredReservedValues.setUid( DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES_UID );
             addAndScheduleJob( removeExpiredReservedValues );
         }
 

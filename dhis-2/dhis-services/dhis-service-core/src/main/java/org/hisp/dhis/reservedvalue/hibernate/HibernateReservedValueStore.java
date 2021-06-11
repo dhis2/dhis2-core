@@ -30,10 +30,11 @@ package org.hisp.dhis.reservedvalue.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -52,6 +53,7 @@ import org.springframework.stereotype.Repository;
  * @author Stian Sandvold
  */
 @Repository( "org.hisp.dhis.reservedvalue.ReservedValueStore" )
+@Slf4j
 public class HibernateReservedValueStore
     extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore
@@ -149,14 +151,6 @@ public class HibernateReservedValueStore
     }
 
     @Override
-    public void removeExpiredReservations()
-    {
-        getQuery( "DELETE FROM ReservedValue WHERE expiryDate < :now" )
-            .setParameter( "now", new Date() )
-            .executeUpdate();
-    }
-
-    @Override
     public boolean useReservedValue( String ownerUID, String value )
     {
         return getQuery( "DELETE FROM ReservedValue WHERE owneruid = :uid AND value = :value" )
@@ -185,6 +179,22 @@ public class HibernateReservedValueStore
             .setParameter( "value", value )
             .getResultList()
             .isEmpty();
+    }
+
+    @Override
+    public void removeUsedOrExpiredReservations()
+    {
+        String deleteQuery = "DELETE FROM ReservedValue r WHERE r.expiryDate < CURRENT_TIMESTAMP OR r.value IN (" +
+            "SELECT teav.plainValue FROM TrackedEntityAttributeValue teav JOIN teav.attribute tea " +
+            "WHERE r.ownerUid = tea.uid AND r.value = teav.plainValue" +
+            ")";
+
+        log.info( "Starting deleting expired or used reserved values ...." );
+
+        getQuery( deleteQuery )
+            .executeUpdate();
+
+        log.info( "... Completed deleting expired or used reserved values" );
     }
 
     // -------------------------------------------------------------------------
