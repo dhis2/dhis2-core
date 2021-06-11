@@ -34,6 +34,7 @@ import javax.transaction.Transactional;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.handler.AnalyticalObjectOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.MetadataOrgUnitMergeHandler;
+import org.hisp.dhis.merge.orgunit.handler.TrackerOrgUnitMergeHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.stereotype.Service;
 
@@ -52,16 +53,20 @@ public class DefaultOrgUnitMergeService
 
     private final AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler;
 
+    private final TrackerOrgUnitMergeHandler trackerHandler;
+
     private final IdentifiableObjectManager idObjectManager;
 
     private final ImmutableList<OrgUnitMergeHandler> handlers;
 
     public DefaultOrgUnitMergeService( MetadataOrgUnitMergeHandler metadataHandler,
         AnalyticalObjectOrgUnitMergeHandler analyticalObjectMergeHandler,
+        TrackerOrgUnitMergeHandler trackerHandler,
         IdentifiableObjectManager idObjectManager )
     {
         this.metadataHandler = metadataHandler;
         this.analyticalObjectHandler = analyticalObjectMergeHandler;
+        this.trackerHandler = trackerHandler;
         this.idObjectManager = idObjectManager;
         this.handlers = getMergeHandlers();
     }
@@ -94,6 +99,7 @@ public class DefaultOrgUnitMergeService
             .add( ( s, t ) -> analyticalObjectHandler.mergeEventReports( s, t ) )
             .add( ( s, t ) -> analyticalObjectHandler.mergeEventCharts( s, t ) )
             .add( ( s, t ) -> analyticalObjectHandler.mergeMaps( s, t ) )
+            .add( ( s, t ) -> trackerHandler.mergeProgramMessages( s, t ) )
             .build();
     }
 }

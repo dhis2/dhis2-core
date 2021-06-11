@@ -102,6 +102,7 @@ public class HibernateProgramMessageStore
         return programMessage != null && programMessage.getId() > 0;
     }
 
+    @Override
     public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
         String hql = "update ProgramMessage pm " +

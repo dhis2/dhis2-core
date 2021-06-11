@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.user.User;
 
@@ -97,6 +98,8 @@ public interface ProgramMessageService
     long saveProgramMessage( ProgramMessage programMessage );
 
     void updateProgramMessage( ProgramMessage programMessage );
+
+    void migrateProgramMessages( Set<OrganisationUnit> sources, OrganisationUnit target );
 
     // -------------------------------------------------------------------------
     // Delete

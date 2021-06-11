@@ -51,21 +51,27 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Service
-@Transactional
 @AllArgsConstructor
 public class AnalyticalObjectOrgUnitMergeHandler
 {
     private final VisualizationStore visualizations;
 
+    private final MapViewStore mapViews;
+
     private final EventReportService eventReports;
 
     private final EventChartService eventCharts;
 
-    private final MapViewStore mapViews;
-
+    @Transactional
     public void mergeVisualizations( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
         mergeAnalyticalObject( visualizations, sources, target );
+    }
+
+    @Transactional
+    public void mergeMaps( Set<OrganisationUnit> sources, OrganisationUnit target )
+    {
+        mergeAnalyticalObject( mapViews, sources, target );
     }
 
     public void mergeEventReports( Set<OrganisationUnit> sources, OrganisationUnit target )
@@ -76,11 +82,6 @@ public class AnalyticalObjectOrgUnitMergeHandler
     public void mergeEventCharts( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
         mergeAnalyticalObject( eventCharts, sources, target );
-    }
-
-    public void mergeMaps( Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        mergeAnalyticalObject( mapViews, sources, target );
     }
 
     private void mergeAnalyticalObject( AnalyticalObjectService<? extends AnalyticalObject> service,

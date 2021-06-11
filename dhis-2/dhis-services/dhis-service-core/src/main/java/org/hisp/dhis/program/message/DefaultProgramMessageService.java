@@ -42,6 +42,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -226,6 +227,13 @@ public class DefaultProgramMessageService
     public void updateProgramMessage( ProgramMessage programMessage )
     {
         programMessageStore.update( programMessage );
+    }
+
+    @Override
+    @Transactional
+    public void migrateProgramMessages( Set<OrganisationUnit> sources, OrganisationUnit target )
+    {
+        programMessageStore.migrate( sources, target );
     }
 
     @Override
