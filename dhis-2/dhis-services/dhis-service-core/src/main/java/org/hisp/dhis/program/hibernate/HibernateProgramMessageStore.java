@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+
 import java.util.List;
 import java.util.Set;
 
@@ -102,6 +104,14 @@ public class HibernateProgramMessageStore
 
     public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
+        String hql = "update ProgramMessage pm " +
+            "set pm.recipients.organisationUnit = :target " +
+            "where pm.recpients.organisationUnit.id in (:sources)";
+
+        getQuery( hql )
+            .setParameter( "target", target )
+            .setParameterList( "sources", getIdentifiers( sources ) )
+            .executeUpdate();
     }
 
     // -------------------------------------------------------------------------

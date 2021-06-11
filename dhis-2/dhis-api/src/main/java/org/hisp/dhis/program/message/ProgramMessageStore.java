@@ -28,8 +28,10 @@
 package org.hisp.dhis.program.message;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -43,4 +45,6 @@ public interface ProgramMessageStore
     List<ProgramMessage> getAllOutboundMessages();
 
     boolean exists( String uid );
+
+    void migrate( Set<OrganisationUnit> sources, OrganisationUnit target );
 }
