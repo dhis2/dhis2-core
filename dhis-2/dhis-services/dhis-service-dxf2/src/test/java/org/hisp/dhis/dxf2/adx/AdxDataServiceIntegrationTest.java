@@ -55,7 +55,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -561,7 +560,7 @@ public class AdxDataServiceIntegrationTest
 
         importOptions.setIdSchemes( idSchemes );
 
-        ImportSummary summary = adxDataService.saveDataValueSet( in, importOptions, null );
+        adxDataService.saveDataValueSet( in, importOptions, null );
 
         List<DataValue> dataValues = dataValueService.getAllDataValues();
 
