@@ -260,10 +260,7 @@ public class PreCheckOwnershipValidationHook
             ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
             TrackedEntityInstance entityInstance = programStageInstance.getProgramInstance().getEntityInstance();
             validateUpdateAndDeleteEvent( reporter, event, programStageInstance,
-                programStageInstance.getAttributeOptionCombo(),
-                programStageInstance.getProgramStage(),
-                entityInstance == null ? null : entityInstance.getUid(),
-                programStageInstance.getOrganisationUnit() );
+                entityInstance == null ? null : entityInstance.getUid() );
         }
         else
         {
@@ -302,8 +299,7 @@ public class PreCheckOwnershipValidationHook
 
     protected void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, Event event,
         ProgramStageInstance programStageInstance,
-        CategoryOptionCombo categoryOptionCombo, ProgramStage programStage,
-        String teiUid, OrganisationUnit organisationUnit )
+        String teiUid )
     {
         TrackerImportStrategy strategy = reporter.getValidationContext().getStrategy( event );
         User user = reporter.getValidationContext().getBundle().getUser();
@@ -312,8 +308,9 @@ public class PreCheckOwnershipValidationHook
         checkNotNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
-        trackerImportAccessManager.checkEventWriteAccess( reporter, programStage, organisationUnit, categoryOptionCombo,
-            teiUid, programStageInstance.isCreatableInSearchScope() );
+        trackerImportAccessManager.checkEventWriteAccess( reporter, programStageInstance.getProgramStage(),
+            programStageInstance.getOrganisationUnit(), programStageInstance.getAttributeOptionCombo(), teiUid,
+            programStageInstance.isCreatableInSearchScope() );
 
         if ( strategy.isUpdate()
             && EventStatus.COMPLETED == programStageInstance.getStatus()
