@@ -171,6 +171,16 @@ public class EventValidationTests
                 .body( "errorCode", hasItem( equalTo( "E1079" ) ) );
     }
 
+    @Test
+    public void eventImportShouldPassValidationWhenOnlyEventProgramIsDefined()
+    {
+        JsonObject jsonObject = trackerActions.buildEvent( OU_ID, eventProgramId, null );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
+
+        response.validateSuccessfulImport();
+    }
+
     private void setupData()
     {
         eventProgramStageId = programActions.programStageActions.get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +

@@ -209,7 +209,7 @@ public class PreCheckOwnershipValidationHook
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        Program program = programStage.getProgram();
+        Program program = context.getProgram( event.getProgram() );
         ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
 
         String teiUid = null;
@@ -257,19 +257,20 @@ public class PreCheckOwnershipValidationHook
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
-            validateUpdateAndDeleteEvent( reporter, event, context.getProgramStageInstance( event.getEvent() ),
+            ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
+            TrackedEntityInstance entityInstance = programStageInstance.getProgramInstance().getEntityInstance();
+            validateUpdateAndDeleteEvent( reporter, event, programStageInstance,
+                entityInstance == null ? null : entityInstance.getUid() );
+        }
+        else
+        {
+            validateCreateEvent( reporter, user,
                 categoryOptionCombo,
                 programStage,
                 teiUid,
-                organisationUnit );
+                organisationUnit,
+                program, event.isCreatableInSearchScope() );
         }
-
-        validateCreateEvent( reporter, user,
-            categoryOptionCombo,
-            programStage,
-            teiUid,
-            organisationUnit,
-            program, event.isCreatableInSearchScope() );
     }
 
     @Override
@@ -298,8 +299,7 @@ public class PreCheckOwnershipValidationHook
 
     protected void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, Event event,
         ProgramStageInstance programStageInstance,
-        CategoryOptionCombo categoryOptionCombo, ProgramStage programStage,
-        String teiUid, OrganisationUnit organisationUnit )
+        String teiUid )
     {
         TrackerImportStrategy strategy = reporter.getValidationContext().getStrategy( event );
         User user = reporter.getValidationContext().getBundle().getUser();
@@ -308,8 +308,9 @@ public class PreCheckOwnershipValidationHook
         checkNotNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
-        trackerImportAccessManager.checkEventWriteAccess( reporter, programStage, organisationUnit, categoryOptionCombo,
-            teiUid, programStageInstance.isCreatableInSearchScope() );
+        trackerImportAccessManager.checkEventWriteAccess( reporter, programStageInstance.getProgramStage(),
+            programStageInstance.getOrganisationUnit(), programStageInstance.getAttributeOptionCombo(), teiUid,
+            programStageInstance.isCreatableInSearchScope() );
 
         if ( strategy.isUpdate()
             && EventStatus.COMPLETED == programStageInstance.getStatus()
