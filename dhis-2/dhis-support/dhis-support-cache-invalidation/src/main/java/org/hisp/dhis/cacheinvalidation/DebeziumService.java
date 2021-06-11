@@ -29,26 +29,27 @@ package org.hisp.dhis.cacheinvalidation;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.kafka.connect.source.SourceRecord;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
 
 import io.debezium.config.Configuration;
 import io.debezium.embedded.Connect;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.RecordChangeEvent;
 import io.debezium.engine.format.ChangeEventFormat;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.connect.source.SourceRecord;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -58,6 +59,25 @@ import io.debezium.engine.format.ChangeEventFormat;
 @Slf4j
 public class DebeziumService
 {
+    public static final String DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED = "DebeziumEngine connectorStopped() event triggered! ";
+
+    public static final String SHUTDOWN_ENABLED_MSG = "shutdownOnConnectorStop is set to FALSE, ignoring this event... NOTE: This will result in cache invalidation not working properly!";
+
+    public static final String SHUTDOWN_DISABLED_MSG = "shutdownOnConnectorStop is set to TRUE, the server will shutdown in 10 seconds...";
+
+    public static final String SEE_LOG_MSG = "Check the log for errors causing the shutdown!";
+
+    private static final Executor executor = Executors.newSingleThreadExecutor();
+
+    private static final CountDownLatch loginLatch = new CountDownLatch( 1 );
+
+    // We need to delay shutdown a little bit to be able to log the exception that caused it. The engine is running in it's own thread.
+    public static final long SHUTDOWN_DELAY_SECONDS = 2L;
+
+    public static final long STARTUP_WAIT_TIMEOUT = 5L;
+
+    private boolean shutdownOnConnectorStop = true;
+
     @Autowired
     private DbChangeEventHandler dbChangeEventHandler;
 
@@ -66,10 +86,85 @@ public class DebeziumService
 
     private DebeziumEngine<RecordChangeEvent<SourceRecord>> engine;
 
-    private final Executor executor = Executors.newSingleThreadExecutor();
+    private void shutdown( String msg )
+    {
+        shutdown( msg, null, null );
+    }
+
+    private void shutdown( String msg, Long countDown, Throwable throwable )
+    {
+        if ( countDown != null )
+        {
+            final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool( 1 );
+            scheduler.schedule( () -> shutdown( msg ), countDown, TimeUnit.SECONDS );
+            return;
+        }
+
+        log.error( "Shutting down due to a critical error. Reason: " + msg, throwable );
+        System.exit( 1 );
+    }
+
+    private final DebeziumEngine.ConnectorCallback connectorCallback = new DebeziumEngine.ConnectorCallback()
+    {
+        @Override public void connectorStarted()
+        {
+            loginLatch.countDown();
+            log.debug( "DebeziumEngine connectorStarted() event triggered! " );
+        }
+
+        @Override public void connectorStopped()
+        {
+            if ( shutdownOnConnectorStop )
+            {
+                log.error( DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED + SHUTDOWN_DISABLED_MSG );
+                shutdown( DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED + SEE_LOG_MSG, SHUTDOWN_DELAY_SECONDS,
+                    null );
+            }
+            else
+            {
+                log.warn( DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED + SHUTDOWN_ENABLED_MSG );
+            }
+        }
+
+        @Override public void taskStarted()
+        {
+            log.info( "task start" );
+        }
+
+        @Override public void taskStopped()
+        {
+            log.info( "task stop" );
+        }
+    };
+
+    private void handleCompletionCallback( boolean success, String message, Throwable error )
+    {
+        if ( success )
+        {
+            log.warn( "Success: " + message );
+        }
+        else
+        {
+            //            log.warn( "No success: " + message );
+        }
+
+        if ( error != null )
+        {
+            //            if ( error instanceof DebeziumException )
+            //            {
+            //                if ( shutdownOnConnectorStop )
+            //                {
+            //                    shutdown( "DebeziumException:" + error.getMessage() );
+            //                }
+            //            }
+
+            log.error( "A Debezium engine error has occurred! Error message: " + message, error );
+        }
+    }
 
     @PostConstruct
     protected void debeziumEngine()
+        throws InterruptedException
     {
         String username = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_CONNECTION_USERNAME );
         String password = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_CONNECTION_PASSWORD );
@@ -98,10 +193,24 @@ public class DebeziumService
         engine = DebeziumEngine
             .create( ChangeEventFormat.of( Connect.class ) )
             .using( props )
+            .using( this::handleCompletionCallback )
+            .using( connectorCallback )
             .notifying( dbChangeEventHandler::handleDbChange )
             .build();
 
         executor.execute( engine );
+
+        if ( !loginLatch.await( STARTUP_WAIT_TIMEOUT, TimeUnit.SECONDS ) )
+        {
+            if ( shutdownOnConnectorStop )
+            {
+                shutdown( "Debezium engine startup timeout exceeded! " + SEE_LOG_MSG );
+            }
+            else
+            {
+                log.warn( "Debezium engine startup timeout exceeded! " + SHUTDOWN_DISABLED_MSG );
+            }
+        }
 
         log.info( "Debezium engine started!" );
     }

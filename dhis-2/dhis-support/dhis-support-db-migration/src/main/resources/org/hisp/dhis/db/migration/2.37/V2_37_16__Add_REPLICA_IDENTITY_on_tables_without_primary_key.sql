@@ -1,0 +1,12 @@
+ALTER TABLE configuration_corswhitelist REPLICA IDENTITY FULL;
+ALTER TABLE datasetnotificationtemplate_deliverychannel REPLICA IDENTITY FULL;
+ALTER TABLE oauth_code REPLICA IDENTITY FULL;
+ALTER TABLE oauth_refresh_token REPLICA IDENTITY FULL;
+ALTER TABLE outbound_sms_recipients REPLICA IDENTITY FULL;
+ALTER TABLE program_userroles REPLICA IDENTITY FULL;
+ALTER TABLE programmessage_deliverychannels REPLICA IDENTITY FULL;
+ALTER TABLE programmessage_emailaddresses REPLICA IDENTITY FULL;
+ALTER TABLE programmessage_phonenumbers REPLICA IDENTITY FULL;
+ALTER TABLE programnotificationtemplate_deliverychannel REPLICA IDENTITY FULL;
+ALTER TABLE userroleauthorities REPLICA IDENTITY FULL;
+ALTER TABLE validationruleorganisationunitlevels REPLICA IDENTITY FULL;

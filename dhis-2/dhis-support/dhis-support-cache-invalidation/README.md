@@ -21,7 +21,7 @@ max_replication_slots = 20
 #https://debezium.io/documentation/reference/connectors/postgresql.html#setting-up-postgresql
 #https://medium.com/@lmramos.usa/debezium-cdc-postgres-c9ce4da05ce1
 
-
+# Clean/delete replication slots
 SELECT * FROM pg_replication_slots ;
 select pg_drop_replication_slot('bottledwater');
 

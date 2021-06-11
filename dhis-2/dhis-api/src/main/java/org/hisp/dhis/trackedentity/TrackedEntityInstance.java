@@ -100,6 +100,11 @@ public class TrackedEntityInstance
     {
     }
 
+    public TrackedEntityInstance( Long o2 )
+    {
+        this.id = o2;
+    }
+
     @Override
     public void setAutoFields()
     {

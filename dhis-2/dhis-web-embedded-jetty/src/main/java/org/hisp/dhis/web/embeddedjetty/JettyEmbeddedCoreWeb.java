@@ -31,15 +31,15 @@ import static org.springframework.security.web.context.AbstractSecurityWebApplic
 
 import java.security.Security;
 import java.util.EnumSet;
-
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletRegistration;
 
+import org.hisp.dhis.system.startup.StartupListener;
+
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.hisp.dhis.system.startup.StartupListener;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -49,7 +49,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
 {
-    private static final int DEFAULT_HTTP_PORT = 9080;
+    private static final int DEFAULT_HTTP_PORT = 8080;
 
     private static final String SERVER_HOSTNAME_OR_IP = "localhost";
 
@@ -70,6 +70,12 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
 
         setDefaultPropertyValue( "jetty.host", SERVER_HOSTNAME_OR_IP );
         setDefaultPropertyValue( "jetty.http.port", String.valueOf( DEFAULT_HTTP_PORT ) );
+
+        /**
+         * This property is very import, this will instruct Spring to use special
+         * Spring config classes adapted to running in embedded Jetty.
+         * @see org.hisp.dhis.web.embeddedjetty.SpringConfiguration
+         */
         setDefaultPropertyValue( "spring.profiles.active", "embeddedJetty" );
 
         JettyEmbeddedCoreWeb jettyEmbeddedCoreWeb = new JettyEmbeddedCoreWeb();
