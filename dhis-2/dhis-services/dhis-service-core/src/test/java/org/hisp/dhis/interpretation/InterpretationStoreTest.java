@@ -104,15 +104,19 @@ public class InterpretationStoreTest
         interpretationStore.save( ipB );
         interpretationStore.save( ipC );
 
-        ipA = interpretationStore.getByVisualizationId( ipA.getId() );
-        ipB = interpretationStore.getByVisualizationId( ipB.getId() );
-        ipC = interpretationStore.getByVisualizationId( ipC.getId() );
+        ipA = interpretationStore.getByUid( ipA.getUid() );
+        ipB = interpretationStore.getByUid( ipB.getUid() );
+        ipC = interpretationStore.getByUid( ipC.getUid() );
 
         assertEquals( ouA, ipA.getOrganisationUnit() );
         assertEquals( ouB, ipB.getOrganisationUnit() );
         assertEquals( ouC, ipC.getOrganisationUnit() );
 
         interpretationStore.migrate( Sets.newHashSet( ouA, ouB ), ouC );
+
+        ipA = interpretationStore.getByUid( ipA.getUid() );
+        ipB = interpretationStore.getByUid( ipB.getUid() );
+        ipC = interpretationStore.getByUid( ipC.getUid() );
 
         assertEquals( ouC, ipA.getOrganisationUnit() );
         assertEquals( ouC, ipB.getOrganisationUnit() );
