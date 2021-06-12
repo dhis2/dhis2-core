@@ -25,25 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.interpretation;
+package org.hisp.dhis.visualization;
 
-import java.util.List;
+import java.util.Date;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.user.User;
 
-/**
- * @author Lars Helge Overland
- */
-public interface InterpretationStore
-    extends IdentifiableObjectStore<Interpretation>
+public interface VisualizationGridService
 {
-    long countMapInterpretations( Map map );
+    Grid getVisualizationGrid( String uid, Date relativePeriodDate, String orgUnitUid );
 
-    List<Interpretation> getInterpretations( Map map );
-
-    List<Interpretation> getInterpretations( Visualization visualization );
-
-    long countVisualizationInterpretations( Visualization visualization );
+    Grid getVisualizationGridByUser( String uid, Date relativePeriodDate, String orgUnitUid, User user );
 }
