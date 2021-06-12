@@ -45,8 +45,8 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.visualization.DefaultVisualizationService;
 import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,7 +60,7 @@ public class DashboardItemDeletionHandlerTest
     private DashboardService dashboardService;
 
     @Autowired
-    private DefaultVisualizationService visualizationService;
+    private VisualizationService visualizationService;
 
     @Autowired
     private MappingService mappingService;
