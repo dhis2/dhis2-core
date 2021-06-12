@@ -65,8 +65,8 @@ import org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Axis;
+import org.hisp.dhis.visualization.DefaultVisualizationService;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.jfree.chart.ChartUtils;
@@ -94,7 +94,7 @@ public class ChartController
     extends ChartFacadeController
 {
     @Autowired
-    private VisualizationService visualizationService;
+    private DefaultVisualizationService visualizationService;
 
     @Autowired
     private ChartService chartService;

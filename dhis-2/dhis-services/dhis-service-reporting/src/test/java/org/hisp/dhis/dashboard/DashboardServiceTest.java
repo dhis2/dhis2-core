@@ -45,8 +45,8 @@ import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.visualization.DefaultVisualizationService;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,7 +60,7 @@ public class DashboardServiceTest
     private DashboardService dashboardService;
 
     @Autowired
-    private VisualizationService visualizationService;
+    private DefaultVisualizationService visualizationService;
 
     @Autowired
     private DocumentService documentService;

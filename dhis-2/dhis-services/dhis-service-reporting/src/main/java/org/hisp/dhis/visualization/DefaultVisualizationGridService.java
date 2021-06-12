@@ -25,9 +25,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.visualization.impl;
+package org.hisp.dhis.visualization;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
 
 import java.util.ArrayList;
@@ -36,8 +35,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.common.AnalyticalObjectStore;
-import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -46,21 +43,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service( "org.hisp.dhis.visualization.VisualizationService" )
-public class DefaultVisualizationService
-    extends
-    GenericAnalyticalObjectService<Visualization>
-    implements
-    VisualizationService
+@Service
+public class DefaultVisualizationGridService
+    implements VisualizationGridService
 {
-
-    private final AnalyticalObjectStore<Visualization> visualizationStore;
+    private final VisualizationService visualizationService;
 
     private final AnalyticsService analyticsService;
 
@@ -70,59 +60,17 @@ public class DefaultVisualizationService
 
     private final I18nManager i18nManager;
 
-    public DefaultVisualizationService( final AnalyticsService analyticsService,
-        @Qualifier( "org.hisp.dhis.visualization.generic.VisualizationStore" )
-        final AnalyticalObjectStore<Visualization> visualizationStore,
-        final OrganisationUnitService organisationUnitService, final CurrentUserService currentUserService,
-        final I18nManager i18nManager )
+    public DefaultVisualizationGridService( VisualizationService visualizationService,
+        AnalyticsService analyticsService,
+        OrganisationUnitService organisationUnitService,
+        CurrentUserService currentUserService,
+        I18nManager i18nManager )
     {
-        checkNotNull( analyticsService );
-        checkNotNull( visualizationStore );
-        checkNotNull( organisationUnitService );
-        checkNotNull( currentUserService );
-        checkNotNull( i18nManager );
-
+        this.visualizationService = visualizationService;
         this.analyticsService = analyticsService;
-        this.visualizationStore = visualizationStore;
         this.organisationUnitService = organisationUnitService;
         this.currentUserService = currentUserService;
         this.i18nManager = i18nManager;
-    }
-
-    @Override
-    protected AnalyticalObjectStore<Visualization> getAnalyticalObjectStore()
-    {
-        return visualizationStore;
-    }
-
-    @Override
-    @Transactional
-    public long save( final Visualization visualization )
-    {
-        visualizationStore.save( visualization );
-
-        return visualization.getId();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Visualization loadVisualization( final long id )
-    {
-        return visualizationStore.get( id );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Visualization loadVisualization( final String uid )
-    {
-        return visualizationStore.getByUid( uid );
-    }
-
-    @Override
-    @Transactional
-    public void delete( final Visualization visualization )
-    {
-        visualizationStore.delete( visualization );
     }
 
     @Override
@@ -139,7 +87,7 @@ public class DefaultVisualizationService
     public Grid getVisualizationGridByUser( final String uid, final Date relativePeriodDate,
         final String organisationUnitUid, final User user )
     {
-        Visualization visualization = loadVisualization( uid );
+        Visualization visualization = visualizationService.getVisualization( uid );
         final boolean hasPermission = visualization != null;
 
         if ( hasPermission )
@@ -176,12 +124,5 @@ public class DefaultVisualizationService
         {
             return new ListGrid();
         }
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Visualization getVisualizationNoAcl( final String uid )
-    {
-        return visualizationStore.getByUidNoAcl( uid );
     }
 }

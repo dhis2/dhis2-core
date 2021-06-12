@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.interpretation.impl;
+package org.hisp.dhis.interpretation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -42,12 +42,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.interpretation.Interpretation;
-import org.hisp.dhis.interpretation.InterpretationComment;
-import org.hisp.dhis.interpretation.InterpretationService;
-import org.hisp.dhis.interpretation.InterpretationStore;
-import org.hisp.dhis.interpretation.MentionUtils;
-import org.hisp.dhis.interpretation.NotificationType;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.PeriodService;
