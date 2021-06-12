@@ -44,6 +44,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -513,5 +514,11 @@ public class DefaultInterpretationService
     public long countVisualizationInterpretations( Visualization visualization )
     {
         return interpretationStore.countVisualizationInterpretations( visualization );
+    }
+
+    @Override
+    public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
+    {
+        interpretationStore.migrate( sources, target );
     }
 }

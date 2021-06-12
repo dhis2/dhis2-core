@@ -94,6 +94,7 @@ public class DefaultOrgUnitMergeService
             .add( ( s, t ) -> metadataHandler.mergeOrgUnitGroups( s, t ) )
             .add( ( s, t ) -> metadataHandler.mergeCategoryOptions( s, t ) )
             .add( ( s, t ) -> metadataHandler.mergeUsers( s, t ) )
+            .add( ( s, t ) -> metadataHandler.mergeInterpretations( s, t ) )
             .add( ( s, t ) -> metadataHandler.mergeConfiguration( s, t ) )
             .add( ( s, t ) -> analyticalObjectHandler.mergeVisualizations( s, t ) )
             .add( ( s, t ) -> analyticalObjectHandler.mergeEventReports( s, t ) )

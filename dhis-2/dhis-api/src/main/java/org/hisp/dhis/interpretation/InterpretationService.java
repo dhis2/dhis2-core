@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 
@@ -96,4 +97,6 @@ public interface InterpretationService
     long countMapInterpretations( Map map );
 
     long countVisualizationInterpretations( Visualization visualization );
+
+    void migrate( Set<OrganisationUnit> sources, OrganisationUnit target );
 }

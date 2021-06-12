@@ -35,12 +35,11 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.AnalyticalObjectService;
-import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.eventreport.EventReportService;
-import org.hisp.dhis.mapping.MapViewStore;
+import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.visualization.VisualizationStore;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -54,47 +53,37 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class AnalyticalObjectOrgUnitMergeHandler
 {
-    private final VisualizationStore visualizations;
+    private final VisualizationService visualizationService;
 
-    private final MapViewStore mapViews;
+    private final MappingService mapViewService;
 
-    private final EventReportService eventReports;
+    private final EventReportService eventReportService;
 
-    private final EventChartService eventCharts;
+    private final EventChartService eventChartService;
 
     @Transactional
     public void mergeVisualizations( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
-        mergeAnalyticalObject( visualizations, sources, target );
+        mergeAnalyticalObject( visualizationService, sources, target );
     }
 
     @Transactional
     public void mergeMaps( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
-        mergeAnalyticalObject( mapViews, sources, target );
+        mergeAnalyticalObject( mapViewService, sources, target );
     }
 
     public void mergeEventReports( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
-        mergeAnalyticalObject( eventReports, sources, target );
+        mergeAnalyticalObject( eventReportService, sources, target );
     }
 
     public void mergeEventCharts( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
-        mergeAnalyticalObject( eventCharts, sources, target );
+        mergeAnalyticalObject( eventChartService, sources, target );
     }
 
     private void mergeAnalyticalObject( AnalyticalObjectService<? extends AnalyticalObject> service,
-        Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        for ( OrganisationUnit source : sources )
-        {
-            service.getAnalyticalObjects( source )
-                .forEach( o -> o.addDataDimensionItem( target ) );
-        }
-    }
-
-    private void mergeAnalyticalObject( AnalyticalObjectStore<? extends AnalyticalObject> service,
         Set<OrganisationUnit> sources, OrganisationUnit target )
     {
         for ( OrganisationUnit source : sources )

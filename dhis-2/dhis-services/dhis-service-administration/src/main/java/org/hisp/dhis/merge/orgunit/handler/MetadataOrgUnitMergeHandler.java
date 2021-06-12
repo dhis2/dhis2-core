@@ -34,7 +34,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.interpretation.InterpretationStore;
+import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserQueryParams;
@@ -54,7 +54,7 @@ public class MetadataOrgUnitMergeHandler
 {
     private final UserService userService;
 
-    private final InterpretationStore interpretationStore;
+    private final InterpretationService interpretationService;
 
     private final ConfigurationService configService;
 
@@ -120,6 +120,11 @@ public class MetadataOrgUnitMergeHandler
             o.addOrganisationUnit( target );
             o.removeOrganisationUnits( sources );
         } );
+    }
+
+    public void mergeInterpretations( Set<OrganisationUnit> sources, OrganisationUnit target )
+    {
+        interpretationService.migrate( sources, target );
     }
 
     public void mergeConfiguration( Set<OrganisationUnit> sources, OrganisationUnit target )
