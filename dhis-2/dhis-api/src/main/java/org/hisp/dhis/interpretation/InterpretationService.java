@@ -96,6 +96,4 @@ public interface InterpretationService
     long countMapInterpretations( Map map );
 
     long countVisualizationInterpretations( Visualization visualization );
-
-    Interpretation getInterpretationByVisualization( long id );
 }

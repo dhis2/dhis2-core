@@ -37,9 +37,15 @@ import org.hisp.dhis.user.sharing.Sharing;
  * Access for the current user within the currently processed gist API request.
  *
  * This encapsulates all access related logic of gist API request processing.
+ *
+ * @author Jan Bernitt
  */
 public interface GistAccessControl
 {
+    /**
+     * @return ID of the current user
+     */
+    String getCurrentUserUid();
 
     /**
      * Whether or not the current user is a superuser.
