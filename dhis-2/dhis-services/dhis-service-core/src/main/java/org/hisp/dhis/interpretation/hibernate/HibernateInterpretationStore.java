@@ -126,14 +126,6 @@ public class HibernateInterpretationStore
     }
 
     @Override
-    public Interpretation getByVisualizationId( long id )
-    {
-        String hql = "from Interpretation i where i.visualization.id = " + id;
-        Query<Interpretation> query = getQuery( hql );
-        return query.uniqueResult();
-    }
-
-    @Override
     public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
         String hql = "update Interpretation i " +

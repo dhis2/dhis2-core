@@ -49,7 +49,5 @@ public interface InterpretationStore
 
     long countVisualizationInterpretations( Visualization visualization );
 
-    Interpretation getByVisualizationId( long id );
-
     void migrate( Set<OrganisationUnit> sources, OrganisationUnit target );
 }
