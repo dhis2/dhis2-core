@@ -40,17 +40,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
 
-public class InterpretationStoreTest
+public class InterpretationMigrateTest
     extends DhisTest
 {
     @Autowired
-    private VisualizationStore visualizationStore;
+    private VisualizationStore visualizationService;
 
     @Autowired
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private InterpretationStore interpretationStore;
+    private InterpretationService interpretationService;
 
     private OrganisationUnit ouA;
 
@@ -78,7 +78,7 @@ public class InterpretationStoreTest
         manager.save( ouC );
 
         vzA = createVisualization( 'A' );
-        visualizationStore.save( vzA );
+        visualizationService.save( vzA );
 
         ipA = new Interpretation( vzA, ouA, "Interpration of visualization A" );
         ipB = new Interpretation( vzA, ouB, "Interpration of visualization B" );
@@ -88,35 +88,35 @@ public class InterpretationStoreTest
     @Test
     public void testSaveGet()
     {
-        interpretationStore.save( ipA );
-        interpretationStore.save( ipB );
-        interpretationStore.save( ipC );
+        interpretationService.saveInterpretation( ipA );
+        interpretationService.saveInterpretation( ipB );
+        interpretationService.saveInterpretation( ipC );
 
-        assertEquals( ipA, interpretationStore.get( ipA.getId() ) );
-        assertEquals( ipB, interpretationStore.get( ipB.getId() ) );
-        assertEquals( ipC, interpretationStore.get( ipC.getId() ) );
+        assertEquals( ipA, interpretationService.getInterpretation( ipA.getId() ) );
+        assertEquals( ipB, interpretationService.getInterpretation( ipB.getId() ) );
+        assertEquals( ipC, interpretationService.getInterpretation( ipC.getId() ) );
     }
 
     @Test
-    public void testMigrateMigrations()
+    public void testMigrate()
     {
-        interpretationStore.save( ipA );
-        interpretationStore.save( ipB );
-        interpretationStore.save( ipC );
+        interpretationService.saveInterpretation( ipA );
+        interpretationService.saveInterpretation( ipB );
+        interpretationService.saveInterpretation( ipC );
 
-        ipA = interpretationStore.getByUid( ipA.getUid() );
-        ipB = interpretationStore.getByUid( ipB.getUid() );
-        ipC = interpretationStore.getByUid( ipC.getUid() );
+        ipA = interpretationService.getInterpretation( ipA.getUid() );
+        ipB = interpretationService.getInterpretation( ipB.getUid() );
+        ipC = interpretationService.getInterpretation( ipC.getUid() );
 
         assertEquals( ouA, ipA.getOrganisationUnit() );
         assertEquals( ouB, ipB.getOrganisationUnit() );
         assertEquals( ouC, ipC.getOrganisationUnit() );
 
-        interpretationStore.migrate( Sets.newHashSet( ouA, ouB ), ouC );
+        interpretationService.migrate( Sets.newHashSet( ouA, ouB ), ouC );
 
-        ipA = interpretationStore.getByUid( ipA.getUid() );
-        ipB = interpretationStore.getByUid( ipB.getUid() );
-        ipC = interpretationStore.getByUid( ipC.getUid() );
+        ipA = interpretationService.getInterpretation( ipA.getUid() );
+        ipB = interpretationService.getInterpretation( ipB.getUid() );
+        ipC = interpretationService.getInterpretation( ipC.getUid() );
 
         assertEquals( ouC, ipA.getOrganisationUnit() );
         assertEquals( ouC, ipB.getOrganisationUnit() );
