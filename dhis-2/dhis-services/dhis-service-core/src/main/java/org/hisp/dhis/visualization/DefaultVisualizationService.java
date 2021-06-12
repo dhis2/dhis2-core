@@ -82,7 +82,7 @@ public class DefaultVisualizationService
 
     @Override
     @Transactional
-    public void delete( final Visualization visualization )
+    public void delete( Visualization visualization )
     {
         visualizationStore.delete( visualization );
     }

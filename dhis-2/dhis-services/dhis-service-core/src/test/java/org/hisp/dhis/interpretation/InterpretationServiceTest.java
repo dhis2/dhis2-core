@@ -43,8 +43,8 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.hisp.dhis.visualization.DefaultVisualizationService;
 import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -66,7 +66,7 @@ public class InterpretationServiceTest
     private UserGroupService userGroupService;
 
     @Autowired
-    private DefaultVisualizationService visualizationService;
+    private VisualizationService visualizationService;
 
     @Autowired
     private InterpretationService interpretationService;
