@@ -47,9 +47,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class VisualizationDeletionHandler
     extends
-    GenericAnalyticalObjectDeletionHandler<Visualization, DefaultVisualizationService>
+    GenericAnalyticalObjectDeletionHandler<Visualization, VisualizationService>
 {
-    public VisualizationDeletionHandler( final DefaultVisualizationService visualizationService )
+    public VisualizationDeletionHandler( final VisualizationService visualizationService )
     {
         super( new DeletionVeto( Visualization.class ), visualizationService );
         checkNotNull( visualizationService );
