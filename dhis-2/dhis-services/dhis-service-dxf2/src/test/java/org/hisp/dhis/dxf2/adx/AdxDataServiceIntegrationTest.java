@@ -28,14 +28,15 @@
 package org.hisp.dhis.dxf2.adx;
 
 import static org.hisp.dhis.common.IdScheme.CODE;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -581,5 +582,16 @@ public class AdxDataServiceIntegrationTest
             new DataValue( deA, pe2021Q1, ouB, cocFUnder5, cocPepfar, "10" ),
             new DataValue( deA, pe2021Q1, ouB, cocFOver5, cocMcDonalds, "20" ),
             new DataValue( deA, pe2021Q1, ouB, cocMUnder5, cocMcDonalds, "30" ) );
+    }
+
+    @SafeVarargs
+    private static <E> void assertContainsOnly( Collection<E> actual, E... expected )
+    {
+        assertEquals( expected.length, actual.size() );
+
+        for ( E e : expected )
+        {
+            assertTrue( "Expected " + e.toString() + " in " + actual.toString(), actual.contains( e ) );
+        }
     }
 }
