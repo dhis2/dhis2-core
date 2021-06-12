@@ -81,10 +81,15 @@ public class Interpretation
 
     private DataSet dataSet;
 
-    private Period period; // Applicable to report table and data set report
+    /**
+     * Applicable to visualization and data set report.
+     */
+    private Period period;
 
-    private OrganisationUnit organisationUnit; // Applicable to chart, report
-                                               // table and data set report
+    /**
+     * Applicable to visualization and data set report.
+     */
+    private OrganisationUnit organisationUnit;
 
     private String text;
 

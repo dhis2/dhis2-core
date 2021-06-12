@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.visualization.impl;
+package org.hisp.dhis.visualization;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
@@ -53,7 +52,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.Visualization;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,10 +59,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-public class DefaultVisualizationServiceTest
+public class VisualizationGridServiceTest
 {
     @Mock
-    private AnalyticalObjectStore<Visualization> visualizationStore;
+    private VisualizationService visualizationService;
 
     @Mock
     private AnalyticsService analyticsService;
@@ -81,12 +79,12 @@ public class DefaultVisualizationServiceTest
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
-    private DefaultVisualizationService defaultVisualizationService;
+    private VisualizationGridService visualizationGridService;
 
     @Before
     public void setUp()
     {
-        defaultVisualizationService = new DefaultVisualizationService( analyticsService, visualizationStore,
+        visualizationGridService = new DefaultVisualizationGridService( visualizationService, analyticsService,
             organisationUnitService, currentUserService, i18nManager );
     }
 
@@ -108,9 +106,9 @@ public class DefaultVisualizationServiceTest
         final Visualization visualizationSpy = spy( visualizationStub );
 
         // When
-        when( visualizationStore.getByUid( anyVisualizationUid ) ).thenReturn( visualizationSpy );
+        when( visualizationService.getVisualization( anyVisualizationUid ) ).thenReturn( visualizationSpy );
         when( analyticsService.getAggregatedDataValueMapping( visualizationSpy ) ).thenReturn( valueMap );
-        final Grid expectedGrid = defaultVisualizationService.getVisualizationGridByUser( anyVisualizationUid,
+        final Grid expectedGrid = visualizationGridService.getVisualizationGridByUser( anyVisualizationUid,
             anyRelativePeriodDate, anyOrganisationUnitUid, userStub );
 
         // Then
@@ -143,9 +141,9 @@ public class DefaultVisualizationServiceTest
         final Visualization visualizationSpy = spy( visualizationStub );
 
         // When
-        when( visualizationStore.getByUid( anyVisualizationUid ) ).thenReturn( visualizationSpy );
+        when( visualizationService.getVisualization( anyVisualizationUid ) ).thenReturn( visualizationSpy );
         when( analyticsService.getAggregatedDataValueMapping( visualizationSpy ) ).thenReturn( valueMap );
-        final Grid expectedGrid = defaultVisualizationService.getVisualizationGridByUser( anyVisualizationUid,
+        final Grid expectedGrid = visualizationGridService.getVisualizationGridByUser( anyVisualizationUid,
             anyRelativePeriodDate, anyOrganisationUnitUid, userStub );
 
         // Then
