@@ -75,11 +75,11 @@ public class DefaultVisualizationGridService
 
     @Override
     @Transactional( readOnly = true )
-    public Grid getVisualizationGrid( final String uid, final Date relativePeriodDate,
-        final String organisationUnitUid )
+    public Grid getVisualizationGrid( String uid, Date relativePeriodDate, String orgUnitUid )
     {
-        return getVisualizationGridByUser( uid, relativePeriodDate, organisationUnitUid,
-            currentUserService.getCurrentUser() );
+        User user = currentUserService.getCurrentUser();
+
+        return getVisualizationGridByUser( uid, relativePeriodDate, orgUnitUid, user );
     }
 
     @Override
