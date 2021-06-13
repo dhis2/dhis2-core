@@ -502,16 +502,4 @@ public class DefaultInterpretationService
 
         return interpretation.unlike( user );
     }
-
-    @Override
-    public long countMapInterpretations( Map map )
-    {
-        return interpretationStore.countMapInterpretations( map );
-    }
-
-    @Override
-    public long countVisualizationInterpretations( Visualization visualization )
-    {
-        return interpretationStore.countVisualizationInterpretations( visualization );
-    }
 }
