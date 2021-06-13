@@ -239,6 +239,7 @@ public class HibernateDbmsManager
 
         emptyRelationships();
 
+        emptyTable( "programmessage" );
         emptyTable( "programnotificationinstance" );
         emptyTable( "trackedentitydatavalueaudit" );
         emptyTable( "trackedentityprogramowner" );
