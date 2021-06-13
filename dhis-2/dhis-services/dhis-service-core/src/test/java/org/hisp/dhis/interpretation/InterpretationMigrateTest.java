@@ -31,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
@@ -40,6 +41,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
 
+/**
+ * Test for migration of interpretations. Note that
+ * {@link DbmsManager#flushSession()} is invoked to make changes from HQL update
+ * statements become visible to the persistence layer.
+ *
+ * @author Lars Helge Overland
+ */
 public class InterpretationMigrateTest
     extends DhisTest
 {
