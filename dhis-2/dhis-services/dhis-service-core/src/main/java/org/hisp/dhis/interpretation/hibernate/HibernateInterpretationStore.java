@@ -37,7 +37,6 @@ import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -56,30 +55,6 @@ public class HibernateInterpretationStore
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, Interpretation.class, currentUserService, aclService, false );
-    }
-
-    public List<Interpretation> getInterpretations( User user )
-    {
-        String hql = "select distinct i from Interpretation i left join i.comments c " +
-            "where i.user = :user or c.user = :user order by i.lastUpdated desc";
-
-        return getQuery( hql )
-            .setParameter( "user", user )
-            .setCacheable( cacheable )
-            .list();
-    }
-
-    public List<Interpretation> getInterpretations( User user, int first, int max )
-    {
-        String hql = "select distinct i from Interpretation i left join i.comments c " +
-            "where i.user = :user or c.user = :user order by i.lastUpdated desc";
-
-        return getQuery( hql )
-            .setParameter( "user", user )
-            .setMaxResults( first )
-            .setMaxResults( max )
-            .setCacheable( cacheable )
-            .list();
     }
 
     @Override
