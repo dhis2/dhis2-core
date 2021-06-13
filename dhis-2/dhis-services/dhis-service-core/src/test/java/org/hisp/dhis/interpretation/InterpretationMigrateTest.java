@@ -115,8 +115,8 @@ public class InterpretationMigrateTest
     }
 
     /**
-     * Test migrate HQL update statement with a HQL select statement to ensure
-     * change is visible by the current transaction.
+     * Test migrate HQL update statement with an HQL select statement to ensure
+     * the updated rows are visible by the current transaction.
      *
      * @param target the {@link OrganisationUnit}
      * @return the count of interpretations.
