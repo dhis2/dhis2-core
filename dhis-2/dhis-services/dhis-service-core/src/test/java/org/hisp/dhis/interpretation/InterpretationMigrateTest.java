@@ -99,9 +99,9 @@ public class InterpretationMigrateTest
         interpretationService.saveInterpretation( ipB );
         interpretationService.saveInterpretation( ipC );
 
-        assertEquals( 1, getCount( ouA ) );
-        assertEquals( 1, getCount( ouB ) );
-        assertEquals( 1, getCount( ouC ) );
+        assertEquals( 1, getInterpretationCount( ouA ) );
+        assertEquals( 1, getInterpretationCount( ouB ) );
+        assertEquals( 1, getInterpretationCount( ouC ) );
 
         interpretationService.migrate( Sets.newHashSet( ouA, ouB ), ouC );
 
@@ -109,9 +109,9 @@ public class InterpretationMigrateTest
         ipB = interpretationService.getInterpretation( ipB.getUid() );
         ipC = interpretationService.getInterpretation( ipC.getUid() );
 
-        assertEquals( 0, getCount( ouA ) );
-        assertEquals( 0, getCount( ouB ) );
-        assertEquals( 3, getCount( ouC ) );
+        assertEquals( 0, getInterpretationCount( ouA ) );
+        assertEquals( 0, getInterpretationCount( ouB ) );
+        assertEquals( 3, getInterpretationCount( ouC ) );
     }
 
     /**
@@ -121,7 +121,7 @@ public class InterpretationMigrateTest
      * @param target the {@link OrganisationUnit}
      * @return the count of interpretations.
      */
-    private long getCount( OrganisationUnit target )
+    private long getInterpretationCount( OrganisationUnit target )
     {
         return (Long) sessionFactory.getCurrentSession()
             .createQuery( "select count(*) from Interpretation i where i.organisationUnit = :target" )
