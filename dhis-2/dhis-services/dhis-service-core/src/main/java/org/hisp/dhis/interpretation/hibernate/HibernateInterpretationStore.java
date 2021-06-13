@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.interpretation.hibernate;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-
 import java.util.List;
 import java.util.Set;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationStore;
@@ -91,7 +90,8 @@ public class HibernateInterpretationStore
     @Override
     public long countMapInterpretations( Map map )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" );
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from " + clazz.getName() + " c where c.map = :map" );
         query.setParameter( "map", map );
         return query.uniqueResult();
     }
@@ -100,7 +100,7 @@ public class HibernateInterpretationStore
     public List<Interpretation> getInterpretations( Map map )
     {
         Query<Interpretation> query = getTypedQuery(
-            "select distinct c from " + clazz.getName() + " c where c.map=:map" );
+            "select distinct c from Interpretation c where c.map = :map" );
         query.setParameter( "map", map );
         return query.list();
     }
@@ -109,7 +109,7 @@ public class HibernateInterpretationStore
     public List<Interpretation> getInterpretations( Visualization visualization )
     {
         Query<Interpretation> query = getTypedQuery(
-            "select distinct c from " + clazz.getName() + " c where c.visualization=:visualization" );
+            "select distinct c from Interpretation c where c.visualization = :visualization" );
         query.setParameter( "visualization", visualization );
         return query.list();
     }
@@ -118,7 +118,7 @@ public class HibernateInterpretationStore
     public long countVisualizationInterpretations( Visualization visualization )
     {
         Query query = getQuery(
-            "select count(distinct c) from " + clazz.getName() + " c where c.visualization=:visualization" )
+            "select count(distinct c) from Interpretation c where c.visualization = :visualization" )
                 .setParameter( "visualization", visualization )
                 .setCacheable( cacheable );
 
@@ -134,7 +134,8 @@ public class HibernateInterpretationStore
 
         getQuery( hql )
             .setParameter( "target", target )
-            .setParameterList( "sources", getIdentifiers( sources ) )
+            .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )
             .executeUpdate();
     }
+
 }

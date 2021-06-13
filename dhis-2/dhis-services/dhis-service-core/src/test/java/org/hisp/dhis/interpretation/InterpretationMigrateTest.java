@@ -29,9 +29,9 @@ package org.hisp.dhis.interpretation;
 
 import static org.junit.Assert.assertEquals;
 
-import org.hisp.dhis.DhisTest;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
@@ -42,14 +42,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.common.collect.Sets;
 
 /**
- * Test for migration of interpretations. Note that
- * {@link DbmsManager#flushSession()} is invoked to make changes from HQL update
- * statements become visible to the persistence layer.
- *
  * @author Lars Helge Overland
  */
 public class InterpretationMigrateTest
-    extends DhisTest
+    extends DhisSpringTest
 {
     @Autowired
     private VisualizationService visualizationService;
@@ -59,6 +55,9 @@ public class InterpretationMigrateTest
 
     @Autowired
     private InterpretationService interpretationService;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     private OrganisationUnit ouA;
 
@@ -94,34 +93,39 @@ public class InterpretationMigrateTest
     }
 
     @Test
-    public void testSaveGet()
-    {
-        interpretationService.saveInterpretation( ipA );
-        interpretationService.saveInterpretation( ipB );
-        interpretationService.saveInterpretation( ipC );
-
-        assertEquals( ipA, interpretationService.getInterpretation( ipA.getId() ) );
-        assertEquals( ipB, interpretationService.getInterpretation( ipB.getId() ) );
-        assertEquals( ipC, interpretationService.getInterpretation( ipC.getId() ) );
-    }
-
-    @Test
     public void testMigrate()
     {
         interpretationService.saveInterpretation( ipA );
         interpretationService.saveInterpretation( ipB );
         interpretationService.saveInterpretation( ipC );
 
-        interpretationService.migrate( Sets.newHashSet( ouA, ouB ), ouC );
+        assertEquals( 1, getCount( ouA ) );
+        assertEquals( 1, getCount( ouB ) );
+        assertEquals( 1, getCount( ouC ) );
 
-        dbmsManager.flushSession();
+        interpretationService.migrate( Sets.newHashSet( ouA, ouB ), ouC );
 
         ipA = interpretationService.getInterpretation( ipA.getUid() );
         ipB = interpretationService.getInterpretation( ipB.getUid() );
         ipC = interpretationService.getInterpretation( ipC.getUid() );
 
-        assertEquals( ouC, ipA.getOrganisationUnit() );
-        assertEquals( ouC, ipB.getOrganisationUnit() );
-        assertEquals( ouC, ipC.getOrganisationUnit() );
+        assertEquals( 0, getCount( ouA ) );
+        assertEquals( 0, getCount( ouB ) );
+        assertEquals( 3, getCount( ouC ) );
+    }
+
+    /**
+     * Test migrate HQL update statement with a HQL select statement to ensure
+     * change is visible by the current transaction.
+     *
+     * @param target the {@link OrganisationUnit}
+     * @return the count of interpretations.
+     */
+    private long getCount( OrganisationUnit target )
+    {
+        return (Long) sessionFactory.getCurrentSession()
+            .createQuery( "select count(*) from Interpretation i where i.organisationUnit = :target" )
+            .setParameter( "target", target )
+            .uniqueResult();
     }
 }
