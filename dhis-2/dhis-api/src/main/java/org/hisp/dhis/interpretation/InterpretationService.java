@@ -92,8 +92,4 @@ public interface InterpretationService
      * @return true if the current user had previously liked the interpretation.
      */
     boolean unlikeInterpretation( long id );
-
-    long countMapInterpretations( Map map );
-
-    long countVisualizationInterpretations( Visualization visualization );
 }
