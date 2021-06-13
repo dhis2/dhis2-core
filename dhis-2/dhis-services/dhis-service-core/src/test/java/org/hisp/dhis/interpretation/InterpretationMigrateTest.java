@@ -33,7 +33,7 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationStore;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,7 @@ public class InterpretationMigrateTest
     extends DhisTest
 {
     @Autowired
-    private VisualizationStore visualizationService;
+    private VisualizationService visualizationService;
 
     @Autowired
     private IdentifiableObjectManager manager;
