@@ -94,9 +94,5 @@ public interface InterpretationService
      */
     boolean unlikeInterpretation( long id );
 
-    long countMapInterpretations( Map map );
-
-    long countVisualizationInterpretations( Visualization visualization );
-
     void migrate( Set<OrganisationUnit> sources, OrganisationUnit target );
 }

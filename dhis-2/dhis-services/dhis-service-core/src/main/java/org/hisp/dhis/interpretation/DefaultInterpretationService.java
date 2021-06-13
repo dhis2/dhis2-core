@@ -505,18 +505,6 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public long countMapInterpretations( Map map )
-    {
-        return interpretationStore.countMapInterpretations( map );
-    }
-
-    @Override
-    public long countVisualizationInterpretations( Visualization visualization )
-    {
-        return interpretationStore.countVisualizationInterpretations( visualization );
-    }
-
-    @Override
     public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
         interpretationStore.migrate( sources, target );
