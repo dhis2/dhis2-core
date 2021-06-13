@@ -30,7 +30,6 @@ package org.hisp.dhis.interpretation.hibernate;
 import java.util.List;
 
 import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationStore;
@@ -58,15 +57,6 @@ public class HibernateInterpretationStore
     }
 
     @Override
-    public long countMapInterpretations( Map map )
-    {
-        Query<Long> query = getTypedQuery( "select count(distinct i) from Interpretation i where i.map = :map" );
-
-        return query.setParameter( "map", map )
-            .uniqueResult();
-    }
-
-    @Override
     public List<Interpretation> getInterpretations( Map map )
     {
         return getQuery( "select distinct i from Interpretation i where i.map = :map" )
@@ -80,16 +70,5 @@ public class HibernateInterpretationStore
         return getQuery( "select distinct i from Interpretation i where i.visualization = :visualization" )
             .setParameter( "visualization", visualization )
             .list();
-    }
-
-    @Override
-    public long countVisualizationInterpretations( Visualization visualization )
-    {
-        Query<Long> query = getTypedQuery(
-            "select count(distinct i) from Interpretation i where i.visualization = :visualization" );
-
-        return query.setParameter( "visualization", visualization )
-            .setCacheable( cacheable )
-            .uniqueResult();
     }
 }
