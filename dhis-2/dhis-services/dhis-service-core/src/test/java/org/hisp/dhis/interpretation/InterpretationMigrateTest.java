@@ -104,15 +104,9 @@ public class InterpretationMigrateTest
         interpretationService.saveInterpretation( ipB );
         interpretationService.saveInterpretation( ipC );
 
-        ipA = interpretationService.getInterpretation( ipA.getUid() );
-        ipB = interpretationService.getInterpretation( ipB.getUid() );
-        ipC = interpretationService.getInterpretation( ipC.getUid() );
-
-        assertEquals( ouA, ipA.getOrganisationUnit() );
-        assertEquals( ouB, ipB.getOrganisationUnit() );
-        assertEquals( ouC, ipC.getOrganisationUnit() );
-
         interpretationService.migrate( Sets.newHashSet( ouA, ouB ), ouC );
+
+        dbmsManager.flushSession();
 
         ipA = interpretationService.getInterpretation( ipA.getUid() );
         ipB = interpretationService.getInterpretation( ipB.getUid() );
