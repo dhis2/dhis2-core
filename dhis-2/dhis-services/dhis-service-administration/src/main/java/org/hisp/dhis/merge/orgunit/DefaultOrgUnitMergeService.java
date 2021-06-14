@@ -82,7 +82,7 @@ public class DefaultOrgUnitMergeService
     {
         validator.validate( request );
 
-        handlers.forEach( merge -> merge.apply( request ) );
+        handlers.forEach( merge -> merge.merge( request ) );
 
         // Persistence framework inspection will update associated objects
 

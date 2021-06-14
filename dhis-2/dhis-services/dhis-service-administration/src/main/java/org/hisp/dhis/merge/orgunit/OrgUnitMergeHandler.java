@@ -33,5 +33,5 @@ package org.hisp.dhis.merge.orgunit;
 @FunctionalInterface
 public interface OrgUnitMergeHandler
 {
-    void apply( OrgUnitMergeRequest request );
+    void merge( OrgUnitMergeRequest request );
 }
