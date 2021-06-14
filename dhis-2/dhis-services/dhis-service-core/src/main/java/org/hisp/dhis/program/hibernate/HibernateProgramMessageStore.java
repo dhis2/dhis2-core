@@ -107,7 +107,7 @@ public class HibernateProgramMessageStore
     {
         String hql = "update ProgramMessage pm " +
             "set pm.recipients.organisationUnit = :target " +
-            "where pm.recpients.organisationUnit.id in (:sources)";
+            "where pm.recipients.organisationUnit.id in (:sources)";
 
         getQuery( hql )
             .setParameter( "target", target )
