@@ -29,10 +29,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS;
 
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -94,16 +96,40 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
     private void validateUniqueProgramRuleName( ObjectBundle bundle,
         ProgramRuleVariable programRuleVariable, Consumer<ErrorReport> addReports )
     {
-        Query<ProgramRuleVariable> query = getProgramRuleVariableQuery( programRuleVariable );
+        List<ProgramRuleVariable> prvWithSameNameAndSameProgram = getProgramRuleVariableQuery( programRuleVariable )
+            .getResultList();
 
-        int allowedCount = UPDATE_STRATEGIES.contains( bundle.getImportMode() ) ? 1 : 0;
-
-        if ( query.getResultList().size() > allowedCount )
+        // When no PRV with same name and program, validation passes
+        if ( prvWithSameNameAndSameProgram.isEmpty() )
         {
-            addReports.accept(
-                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4051, programRuleVariable.getName(),
-                    programRuleVariable.getProgram().getUid() ) );
+            return;
         }
+
+        // since prvWithSameNameAndSameProgram is not empty, fail if it's an
+        // insert or if there is more than one prv with same name and same
+        // program.
+        if ( !UPDATE_STRATEGIES.contains( bundle.getImportMode() ) || prvWithSameNameAndSameProgram.size() > 1 )
+        {
+            failPrvWithSameNAmeAlreadyExists( programRuleVariable, addReports );
+            return;
+        }
+
+        // only 1 PRV can exists at this point and it must be an update.
+        ProgramRuleVariable existingProgramRuleVariable = prvWithSameNameAndSameProgram.get( 0 );
+
+        // existing PRV must have same UID
+        if ( !StringUtils.equals( existingProgramRuleVariable.getUid(), programRuleVariable.getUid() ) )
+        {
+            failPrvWithSameNAmeAlreadyExists( programRuleVariable, addReports );
+        }
+    }
+
+    private void failPrvWithSameNAmeAlreadyExists( ProgramRuleVariable programRuleVariable,
+        Consumer<ErrorReport> addReports )
+    {
+        addReports.accept(
+            new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4051, programRuleVariable.getName(),
+                programRuleVariable.getProgram().getUid() ) );
     }
 
     private Query<ProgramRuleVariable> getProgramRuleVariableQuery( ProgramRuleVariable programRuleVariable )
