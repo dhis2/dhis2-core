@@ -32,6 +32,7 @@ import java.util.Set;
 import javax.transaction.Transactional;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.merge.orgunit.handler.AnalyticalObjectOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.MetadataOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.TrackerOrgUnitMergeHandler;
@@ -81,6 +82,17 @@ public class DefaultOrgUnitMergeService
         // Persistence framework inspection will update associated objects
 
         idObjectManager.update( target );
+    }
+
+    public ErrorMessage validateForErrorMessage( OrgUnitMergeRequest request )
+    {
+        ErrorMessage error = null;
+
+        if ( request.getSources().isEmpty() )
+        {
+        }
+
+        return error;
     }
 
     public OrgUnitMergeRequest getFromQuery( OrgUnitMergeQuery query )
