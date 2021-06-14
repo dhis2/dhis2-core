@@ -38,6 +38,7 @@ import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.eventreport.EventReportService;
 import org.hisp.dhis.mapping.MappingService;
+import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.springframework.stereotype.Service;
@@ -62,25 +63,25 @@ public class AnalyticalObjectOrgUnitMergeHandler
     private final EventChartService eventChartService;
 
     @Transactional
-    public void mergeVisualizations( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void mergeVisualizations( OrgUnitMergeRequest request )
     {
-        mergeAnalyticalObject( visualizationService, sources, target );
+        mergeAnalyticalObject( visualizationService, request.getSources(), request.getTarget() );
     }
 
     @Transactional
-    public void mergeMaps( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void mergeMaps( OrgUnitMergeRequest request )
     {
-        mergeAnalyticalObject( mapViewService, sources, target );
+        mergeAnalyticalObject( mapViewService, request.getSources(), request.getTarget() );
     }
 
-    public void mergeEventReports( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void mergeEventReports( OrgUnitMergeRequest request )
     {
-        mergeAnalyticalObject( eventReportService, sources, target );
+        mergeAnalyticalObject( eventReportService, request.getSources(), request.getTarget() );
     }
 
-    public void mergeEventCharts( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void mergeEventCharts( OrgUnitMergeRequest request )
     {
-        mergeAnalyticalObject( eventChartService, sources, target );
+        mergeAnalyticalObject( eventChartService, request.getSources(), request.getTarget() );
     }
 
     private void mergeAnalyticalObject( AnalyticalObjectService<? extends AnalyticalObject> service,

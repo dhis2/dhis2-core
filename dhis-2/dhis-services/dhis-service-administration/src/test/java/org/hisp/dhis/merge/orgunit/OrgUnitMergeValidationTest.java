@@ -25,22 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit.handler;
+package org.hisp.dhis.merge.orgunit;
 
-import lombok.AllArgsConstructor;
-
-import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
-import org.hisp.dhis.program.message.ProgramMessageService;
-import org.springframework.stereotype.Service;
-
-@Service
-@AllArgsConstructor
-public class TrackerOrgUnitMergeHandler
+public class OrgUnitMergeValidationTest
 {
-    private final ProgramMessageService programMessageService;
 
-    public void mergeProgramMessages( OrgUnitMergeRequest request )
-    {
-        programMessageService.migrateProgramMessages( request.getSources(), request.getTarget() );
-    }
 }

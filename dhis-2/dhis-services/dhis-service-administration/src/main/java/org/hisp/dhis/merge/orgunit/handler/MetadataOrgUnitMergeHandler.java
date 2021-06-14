@@ -28,13 +28,13 @@
 package org.hisp.dhis.merge.orgunit.handler;
 
 import java.util.Collection;
-import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.interpretation.InterpretationService;
+import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserQueryParams;
@@ -58,83 +58,83 @@ public class MetadataOrgUnitMergeHandler
 
     private final ConfigurationService configService;
 
-    public void mergeDataSets( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void mergeDataSets( OrgUnitMergeRequest request )
     {
-        sources.stream()
+        request.getSources().stream()
             .map( OrganisationUnit::getDataSets )
             .flatMap( Collection::stream )
             .forEach( o -> {
-                o.addOrganisationUnit( target );
-                o.removeOrganisationUnits( sources );
+                o.addOrganisationUnit( request.getTarget() );
+                o.removeOrganisationUnits( request.getSources() );
             } );
     }
 
-    public void mergePrograms( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void mergePrograms( OrgUnitMergeRequest request )
     {
-        sources.stream()
+        request.getSources().stream()
             .map( OrganisationUnit::getPrograms )
             .flatMap( Collection::stream )
             .forEach( o -> {
-                o.addOrganisationUnit( target );
-                o.removeOrganisationUnits( sources );
+                o.addOrganisationUnit( request.getTarget() );
+                o.removeOrganisationUnits( request.getSources() );
             } );
     }
 
-    public void mergeOrgUnitGroups( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void mergeOrgUnitGroups( OrgUnitMergeRequest request )
     {
-        sources.stream()
+        request.getSources().stream()
             .map( OrganisationUnit::getGroups )
             .flatMap( Collection::stream )
             .forEach( o -> {
-                o.addOrganisationUnit( target );
-                o.removeOrganisationUnits( sources );
+                o.addOrganisationUnit( request.getTarget() );
+                o.removeOrganisationUnits( request.getSources() );
             } );
     }
 
-    public void mergeCategoryOptions( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void mergeCategoryOptions( OrgUnitMergeRequest request )
     {
-        sources.stream()
+        request.getSources().stream()
             .map( OrganisationUnit::getCategoryOptions )
             .flatMap( Collection::stream )
             .forEach( o -> {
-                o.addOrganisationUnit( target );
-                o.removeOrganisationUnits( sources );
+                o.addOrganisationUnit( request.getTarget() );
+                o.removeOrganisationUnits( request.getSources() );
             } );
     }
 
-    public void mergeUsers( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void mergeUsers( OrgUnitMergeRequest request )
     {
         final ImmutableSet<User> users = ImmutableSet.<User> builder()
             .addAll( userService.getUsers( new UserQueryParams()
                 .setCanSeeOwnUserAuthorityGroups( true )
-                .setOrganisationUnits( sources ) ) )
+                .setOrganisationUnits( request.getSources() ) ) )
             .addAll( userService.getUsers( new UserQueryParams()
                 .setCanSeeOwnUserAuthorityGroups( true )
-                .setDataViewOrganisationUnits( sources ) ) )
+                .setDataViewOrganisationUnits( request.getSources() ) ) )
             .addAll( userService.getUsers( new UserQueryParams()
                 .setCanSeeOwnUserAuthorityGroups( true )
-                .setTeiSearchOrganisationUnits( sources ) ) )
+                .setTeiSearchOrganisationUnits( request.getSources() ) ) )
             .build();
 
         users.forEach( o -> {
-            o.addOrganisationUnit( target );
-            o.removeOrganisationUnits( sources );
+            o.addOrganisationUnit( request.getTarget() );
+            o.removeOrganisationUnits( request.getSources() );
         } );
     }
 
-    public void mergeInterpretations( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void mergeInterpretations( OrgUnitMergeRequest request )
     {
-        interpretationService.migrate( sources, target );
+        interpretationService.migrate( request.getSources(), request.getTarget() );
     }
 
-    public void mergeConfiguration( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void mergeConfiguration( OrgUnitMergeRequest request )
     {
         Configuration config = configService.getConfiguration();
         OrganisationUnit selfRegistrationOrgUnit = config.getSelfRegistrationOrgUnit();
 
-        if ( selfRegistrationOrgUnit != null && sources.contains( selfRegistrationOrgUnit ) )
+        if ( selfRegistrationOrgUnit != null && request.getSources().contains( selfRegistrationOrgUnit ) )
         {
-            config.setSelfRegistrationOrgUnit( target );
+            config.setSelfRegistrationOrgUnit( request.getTarget() );
             configService.setConfiguration( config );
         }
     }

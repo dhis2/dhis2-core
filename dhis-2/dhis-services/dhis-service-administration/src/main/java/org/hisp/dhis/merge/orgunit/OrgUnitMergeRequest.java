@@ -30,16 +30,25 @@ package org.hisp.dhis.merge.orgunit;
 import java.util.HashSet;
 import java.util.Set;
 
-import lombok.Getter;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-@Getter
+import com.google.common.collect.ImmutableSet;
+
 public class OrgUnitMergeRequest
 {
     private Set<OrganisationUnit> sources = new HashSet<>();
 
     private OrganisationUnit target;
+
+    public Set<OrganisationUnit> getSources()
+    {
+        return ImmutableSet.copyOf( sources );
+    }
+
+    public OrganisationUnit getTarget()
+    {
+        return target;
+    }
 
     public static class Builder
     {

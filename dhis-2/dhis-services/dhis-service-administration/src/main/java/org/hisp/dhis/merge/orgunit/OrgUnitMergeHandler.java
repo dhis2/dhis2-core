@@ -27,15 +27,11 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
-import java.util.Set;
-
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 /**
  * @author Lars Helge Overland
  */
 @FunctionalInterface
 public interface OrgUnitMergeHandler
 {
-    void apply( Set<OrganisationUnit> sources, OrganisationUnit target );
+    void apply( OrgUnitMergeRequest request );
 }

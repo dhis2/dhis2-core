@@ -27,18 +27,17 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
-import java.util.Set;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
+ * Main interface for org unit merge.
+ *
  * @author Lars Helge Overland
  */
 public interface OrgUnitMergeService
 {
-    void merge( Set<OrganisationUnit> sources, OrganisationUnit target );
+    void merge( OrgUnitMergeRequest request );
 
     void validate( OrgUnitMergeRequest request )
         throws IllegalQueryException;

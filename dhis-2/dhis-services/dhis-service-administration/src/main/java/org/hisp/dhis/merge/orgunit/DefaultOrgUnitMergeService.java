@@ -80,13 +80,15 @@ public class DefaultOrgUnitMergeService
 
     @Override
     @Transactional
-    public void merge( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void merge( OrgUnitMergeRequest request )
     {
-        handlers.forEach( merge -> merge.apply( sources, target ) );
+        validate( request );
+
+        handlers.forEach( merge -> merge.apply( request ) );
 
         // Persistence framework inspection will update associated objects
 
-        idObjectManager.update( target );
+        idObjectManager.update( request.getTarget() );
     }
 
     @Override
@@ -98,7 +100,7 @@ public class DefaultOrgUnitMergeService
         if ( error != null )
         {
             log.warn( String.format(
-                "Outlier detection request validation failed, code: '%s', message: '%s'",
+                "Org unit merge request validation failed, code: '%s', message: '%s'",
                 error.getErrorCode(), error.getMessage() ) );
 
             throw new IllegalQueryException( error );
@@ -147,18 +149,18 @@ public class DefaultOrgUnitMergeService
     private ImmutableList<OrgUnitMergeHandler> getMergeHandlers()
     {
         return ImmutableList.<OrgUnitMergeHandler> builder()
-            .add( ( s, t ) -> metadataHandler.mergeDataSets( s, t ) )
-            .add( ( s, t ) -> metadataHandler.mergePrograms( s, t ) )
-            .add( ( s, t ) -> metadataHandler.mergeOrgUnitGroups( s, t ) )
-            .add( ( s, t ) -> metadataHandler.mergeCategoryOptions( s, t ) )
-            .add( ( s, t ) -> metadataHandler.mergeUsers( s, t ) )
-            .add( ( s, t ) -> metadataHandler.mergeInterpretations( s, t ) )
-            .add( ( s, t ) -> metadataHandler.mergeConfiguration( s, t ) )
-            .add( ( s, t ) -> analyticalObjectHandler.mergeVisualizations( s, t ) )
-            .add( ( s, t ) -> analyticalObjectHandler.mergeEventReports( s, t ) )
-            .add( ( s, t ) -> analyticalObjectHandler.mergeEventCharts( s, t ) )
-            .add( ( s, t ) -> analyticalObjectHandler.mergeMaps( s, t ) )
-            .add( ( s, t ) -> trackerHandler.mergeProgramMessages( s, t ) )
+            .add( ( r ) -> metadataHandler.mergeDataSets( r ) )
+            .add( ( r ) -> metadataHandler.mergePrograms( r ) )
+            .add( ( r ) -> metadataHandler.mergeOrgUnitGroups( r ) )
+            .add( ( r ) -> metadataHandler.mergeCategoryOptions( r ) )
+            .add( ( r ) -> metadataHandler.mergeUsers( r ) )
+            .add( ( r ) -> metadataHandler.mergeInterpretations( r ) )
+            .add( ( r ) -> metadataHandler.mergeConfiguration( r ) )
+            .add( ( r ) -> analyticalObjectHandler.mergeVisualizations( r ) )
+            .add( ( r ) -> analyticalObjectHandler.mergeEventReports( r ) )
+            .add( ( r ) -> analyticalObjectHandler.mergeEventCharts( r ) )
+            .add( ( r ) -> analyticalObjectHandler.mergeMaps( r ) )
+            .add( ( r ) -> trackerHandler.mergeProgramMessages( r ) )
             .build();
     }
 }
