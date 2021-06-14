@@ -1795,7 +1795,7 @@ public class HibernateTrackedEntityInstanceStore
             "set poh.organisationUnit = :target " +
             "where poh.organisationUnit.id in (:sources)";
 
-        String tpo = "update TrackedEntityProgramOwner tpo " +
+        String tpoHql = "update TrackedEntityProgramOwner tpo " +
             "set tpo.organisationUnit = :target " +
             "where tpo.organisationUnit.id in (:sources)";
 
@@ -1804,7 +1804,7 @@ public class HibernateTrackedEntityInstanceStore
             "where tei.organisationUnit.id in (:sources)";
 
         migrate( sources, target, pohHql );
-        migrate( sources, target, tpo );
+        migrate( sources, target, tpoHql );
         migrate( sources, target, teiHql );
     }
 
