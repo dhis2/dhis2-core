@@ -137,7 +137,7 @@ public class ProgramRuleVariableObjectBundleHookTest
         when( programRuleVariable.getUid() ).thenReturn( "uid1" );
 
         List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
-                objectBundle );
+            objectBundle );
 
         assertEquals( 0, errorReports.size() );
     }
@@ -156,13 +156,14 @@ public class ProgramRuleVariableObjectBundleHookTest
         anotherExistingProgramRuleVariable.setName( "word" );
         anotherExistingProgramRuleVariable.setUid( "uid2" );
 
-        when( query.getResultList() ).thenReturn( List.of( existingProgramRuleVariable, anotherExistingProgramRuleVariable ) );
+        when( query.getResultList() )
+            .thenReturn( List.of( existingProgramRuleVariable, anotherExistingProgramRuleVariable ) );
 
         when( programRuleVariable.getName() ).thenReturn( "word" );
         when( programRuleVariable.getUid() ).thenReturn( "uid1" );
 
         List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
-                objectBundle );
+            objectBundle );
 
         assertEquals( 0, errorReports.size() );
     }
