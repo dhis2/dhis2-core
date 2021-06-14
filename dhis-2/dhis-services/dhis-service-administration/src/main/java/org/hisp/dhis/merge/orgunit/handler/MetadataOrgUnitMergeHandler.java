@@ -28,14 +28,20 @@
 package org.hisp.dhis.merge.orgunit.handler;
 
 import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
@@ -60,59 +66,70 @@ public class MetadataOrgUnitMergeHandler
 
     public void mergeDataSets( OrgUnitMergeRequest request )
     {
-        request.getSources().stream()
+        Set<DataSet> dataSets = request.getSources().stream()
             .map( OrganisationUnit::getDataSets )
             .flatMap( Collection::stream )
-            .forEach( o -> {
-                o.addOrganisationUnit( request.getTarget() );
-                o.removeOrganisationUnits( request.getSources() );
-            } );
+            .collect( Collectors.toSet() );
+
+        dataSets.forEach( ds -> {
+            ds.addOrganisationUnit( request.getTarget() );
+            ds.removeOrganisationUnits( request.getSources() );
+        } );
     }
 
     public void mergePrograms( OrgUnitMergeRequest request )
     {
-        request.getSources().stream()
+        Set<Program> programs = request.getSources().stream()
             .map( OrganisationUnit::getPrograms )
             .flatMap( Collection::stream )
-            .forEach( o -> {
-                o.addOrganisationUnit( request.getTarget() );
-                o.removeOrganisationUnits( request.getSources() );
-            } );
+            .collect( Collectors.toSet() );
+
+        programs.forEach( p -> {
+            p.addOrganisationUnit( request.getTarget() );
+            p.removeOrganisationUnits( request.getSources() );
+        } );
     }
 
     public void mergeOrgUnitGroups( OrgUnitMergeRequest request )
     {
-        request.getSources().stream()
+        Set<OrganisationUnitGroup> groups = request.getSources().stream()
             .map( OrganisationUnit::getGroups )
             .flatMap( Collection::stream )
-            .forEach( o -> {
-                o.addOrganisationUnit( request.getTarget() );
-                o.removeOrganisationUnits( request.getSources() );
-            } );
+            .collect( Collectors.toSet() );
+
+        groups.forEach( oug -> {
+            oug.addOrganisationUnit( request.getTarget() );
+            oug.removeOrganisationUnits( request.getSources() );
+        } );
     }
 
     public void mergeCategoryOptions( OrgUnitMergeRequest request )
     {
-        request.getSources().stream()
+        Set<CategoryOption> categoryOptions = request.getSources().stream()
             .map( OrganisationUnit::getCategoryOptions )
             .flatMap( Collection::stream )
-            .forEach( o -> {
-                o.addOrganisationUnit( request.getTarget() );
-                o.removeOrganisationUnits( request.getSources() );
-            } );
+            .collect( Collectors.toSet() );
+
+        categoryOptions.forEach( co -> {
+            co.addOrganisationUnit( request.getTarget() );
+            co.removeOrganisationUnits( request.getSources() );
+        } );
     }
 
     public void mergeOrganisationUnits( OrgUnitMergeRequest request )
     {
-        request.getSources().stream()
+        Set<OrganisationUnit> children = request.getSources().stream()
             .map( OrganisationUnit::getChildren )
             .flatMap( Collection::stream )
-            .forEach( o -> o.updateParent( request.getTarget() ) );
+            .collect( Collectors.toSet() );
+
+        children.forEach(
+            c -> c.updateParent( request.getTarget() ) );
     }
 
     public void mergeUsers( OrgUnitMergeRequest request )
     {
-        final ImmutableSet<User> users = ImmutableSet.<User> builder()
+        Set<User> users = ImmutableSet.<User> builder()
             .addAll( userService.getUsers( new UserQueryParams()
                 .setCanSeeOwnUserAuthorityGroups( true )
                 .setOrganisationUnits( request.getSources() ) ) )
