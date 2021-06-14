@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -166,4 +167,11 @@ public interface EventService
     ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
 
     void validate( EventSearchParams params );
+
+    /**
+     * Event handler for {@link ApplicationCacheClearedEvent}.
+     *
+     * @param event the {@link ApplicationCacheClearedEvent}.
+     */
+    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
 }
