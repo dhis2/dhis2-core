@@ -544,6 +544,12 @@ public abstract class DhisConvenienceTest
      * @param categoryCombo the category combo.
      * @param categoryOptions the category options.
      * @return CategoryOptionCombo
+     *
+     *         Note: All the Category Options (COs) should be added to the
+     *         Category Option Combo (COC) before the COC is added to the COs.
+     *         That way the hashCode for the COC is stable when it is added to
+     *         the CO HashSets because the COC hashCode depends on its linked
+     *         COs.
      */
     public static CategoryOptionCombo createCategoryOptionCombo( CategoryCombo categoryCombo,
         CategoryOption... categoryOptions )
@@ -556,6 +562,10 @@ public abstract class DhisConvenienceTest
         for ( CategoryOption categoryOption : categoryOptions )
         {
             categoryOptionCombo.getCategoryOptions().add( categoryOption );
+        }
+
+        for ( CategoryOption categoryOption : categoryOptions )
+        {
             categoryOption.getCategoryOptionCombos().add( categoryOptionCombo );
         }
 
