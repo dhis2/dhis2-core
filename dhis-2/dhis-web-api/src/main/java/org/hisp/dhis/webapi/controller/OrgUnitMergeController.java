@@ -33,7 +33,6 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeQuery;
-import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,8 +51,6 @@ public class OrgUnitMergeController
     @PostMapping( value = "/merge/organisationUnits", produces = { APPLICATION_JSON_VALUE } )
     public void mergeOrgUnits( @RequestBody OrgUnitMergeQuery query )
     {
-        OrgUnitMergeRequest request = service.getFromQuery( query );
-
-        service.merge( request );
+        service.merge( service.getFromQuery( query ) );
     }
 }
