@@ -462,16 +462,13 @@ public class HibernateProgramInstanceStore
     @Override
     public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
-        String psiHql = "update ProgramStageInstance psi " +
+        migrate( sources, target, "update ProgramStageInstance psi " +
             "set psi.organisationUnit = :target " +
-            "where psi.organisationUnit.id in (:sources)";
+            "where psi.organisationUnit.id in (:sources)" );
 
-        String piHql = "update ProgramInstance pi " +
+        migrate( sources, target, "update ProgramInstance pi " +
             "set pi.organisationUnit = :target " +
-            "where pi.organisationUnit.id in (:sources)";
-
-        migrate( sources, target, psiHql );
-        migrate( sources, target, piHql );
+            "where pi.organisationUnit.id in (:sources)" );
     }
 
     private void migrate( Set<OrganisationUnit> sources, OrganisationUnit target, String hql )

@@ -1791,21 +1791,17 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
-        String pohHql = "update ProgramOwnershipHistory poh " +
+        migrate( sources, target, "update ProgramOwnershipHistory poh " +
             "set poh.organisationUnit = :target " +
-            "where poh.organisationUnit.id in (:sources)";
+            "where poh.organisationUnit.id in (:sources)" );
 
-        String tpoHql = "update TrackedEntityProgramOwner tpo " +
+        migrate( sources, target, "update TrackedEntityProgramOwner tpo " +
             "set tpo.organisationUnit = :target " +
-            "where tpo.organisationUnit.id in (:sources)";
+            "where tpo.organisationUnit.id in (:sources)" );
 
-        String teiHql = "update TrackedEntityInstance tei " +
+        migrate( sources, target, "update TrackedEntityInstance tei " +
             "set tei.organisationUnit = :target " +
-            "where tei.organisationUnit.id in (:sources)";
-
-        migrate( sources, target, pohHql );
-        migrate( sources, target, tpoHql );
-        migrate( sources, target, teiHql );
+            "where tei.organisationUnit.id in (:sources)" );
     }
 
     private void migrate( Set<OrganisationUnit> sources, OrganisationUnit target, String hql )
