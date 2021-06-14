@@ -40,7 +40,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.comparator.CategoryComboSizeComparator;
+import org.hisp.dhis.category.comparator.CategoryComboComparator;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataelement.DataElement;
@@ -446,7 +446,7 @@ public class LoadFormAction
 
         for ( Section section : sections )
         {
-            Set<Long> categoryCombos = new HashSet<>();
+            List<Long> categoryCombos = new ArrayList<>();
 
             for ( CategoryCombo categoryCombo : section.getCategoryCombos() )
             {
@@ -483,7 +483,7 @@ public class LoadFormAction
 
         List<CategoryCombo> listCategoryCombos = new ArrayList<>( categoryCombos );
 
-        Collections.sort( listCategoryCombos, new CategoryComboSizeComparator() );
+        Collections.sort( listCategoryCombos, new CategoryComboComparator() );
 
         return listCategoryCombos;
     }
