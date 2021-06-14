@@ -31,12 +31,7 @@ import java.util.Set;
 
 import javax.transaction.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.merge.orgunit.handler.AnalyticalObjectOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.MetadataOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.TrackerOrgUnitMergeHandler;
@@ -51,7 +46,6 @@ import com.google.common.collect.Sets;
  *
  * @author Lars Helge Overland
  */
-@Slf4j
 @Service
 public class DefaultOrgUnitMergeService
     implements OrgUnitMergeService
@@ -62,6 +56,8 @@ public class DefaultOrgUnitMergeService
 
     private final TrackerOrgUnitMergeHandler trackerHandler;
 
+    private final OrgUnitMergeValidator validator;
+
     private final IdentifiableObjectManager idObjectManager;
 
     private final ImmutableList<OrgUnitMergeHandler> handlers;
@@ -69,11 +65,13 @@ public class DefaultOrgUnitMergeService
     public DefaultOrgUnitMergeService( MetadataOrgUnitMergeHandler metadataHandler,
         AnalyticalObjectOrgUnitMergeHandler analyticalObjectMergeHandler,
         TrackerOrgUnitMergeHandler trackerHandler,
+        OrgUnitMergeValidator validator,
         IdentifiableObjectManager idObjectManager )
     {
         this.metadataHandler = metadataHandler;
         this.analyticalObjectHandler = analyticalObjectMergeHandler;
         this.trackerHandler = trackerHandler;
+        this.validator = new OrgUnitMergeValidator();
         this.idObjectManager = idObjectManager;
         this.handlers = getMergeHandlers();
     }
@@ -82,50 +80,13 @@ public class DefaultOrgUnitMergeService
     @Transactional
     public void merge( OrgUnitMergeRequest request )
     {
-        validate( request );
+        validator.validate( request );
 
         handlers.forEach( merge -> merge.apply( request ) );
 
         // Persistence framework inspection will update associated objects
 
         idObjectManager.update( request.getTarget() );
-    }
-
-    @Override
-    public void validate( OrgUnitMergeRequest request )
-        throws IllegalQueryException
-    {
-        ErrorMessage error = validateForErrorMessage( request );
-
-        if ( error != null )
-        {
-            log.warn( String.format(
-                "Org unit merge request validation failed, code: '%s', message: '%s'",
-                error.getErrorCode(), error.getMessage() ) );
-
-            throw new IllegalQueryException( error );
-        }
-    }
-
-    @Override
-    public ErrorMessage validateForErrorMessage( OrgUnitMergeRequest request )
-    {
-        ErrorMessage error = null;
-
-        if ( request.getSources().isEmpty() )
-        {
-            error = new ErrorMessage( ErrorCode.E1500 );
-        }
-        else if ( request.getTarget() == null )
-        {
-            error = new ErrorMessage( ErrorCode.E1501 );
-        }
-        else if ( request.getSources().contains( request.getTarget() ) )
-        {
-            error = new ErrorMessage( ErrorCode.E1502 );
-        }
-
-        return error;
     }
 
     @Override

@@ -47,7 +47,7 @@ public class OrgUnitMergeValidatorTest
             .withTarget( ouA )
             .build();
 
-        assertEquals( ErrorCode.E1500, validator.validateForErrorMessage( request ) );
+        assertEquals( ErrorCode.E1500, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test
@@ -59,7 +59,7 @@ public class OrgUnitMergeValidatorTest
             .addSource( ouA )
             .build();
 
-        assertEquals( ErrorCode.E1501, validator.validateForErrorMessage( request ) );
+        assertEquals( ErrorCode.E1501, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test
@@ -74,6 +74,6 @@ public class OrgUnitMergeValidatorTest
             .withTarget( ouA )
             .build();
 
-        assertEquals( ErrorCode.E1502, validator.validateForErrorMessage( request ) );
+        assertEquals( ErrorCode.E1502, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 }

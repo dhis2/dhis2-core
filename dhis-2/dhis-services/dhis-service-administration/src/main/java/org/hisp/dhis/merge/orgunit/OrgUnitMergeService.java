@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorMessage;
-
 /**
  * Main interface for org unit merge.
  *
@@ -38,11 +35,6 @@ import org.hisp.dhis.feedback.ErrorMessage;
 public interface OrgUnitMergeService
 {
     void merge( OrgUnitMergeRequest request );
-
-    void validate( OrgUnitMergeRequest request )
-        throws IllegalQueryException;
-
-    ErrorMessage validateForErrorMessage( OrgUnitMergeRequest request );
 
     OrgUnitMergeRequest getFromQuery( OrgUnitMergeQuery query );
 }

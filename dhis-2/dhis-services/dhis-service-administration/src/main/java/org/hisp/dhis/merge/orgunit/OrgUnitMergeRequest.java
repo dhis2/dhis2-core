@@ -54,6 +54,11 @@ public class OrgUnitMergeRequest
     {
         private OrgUnitMergeRequest request;
 
+        public Builder()
+        {
+            this.request = new OrgUnitMergeRequest();
+        }
+
         public Builder addSource( OrganisationUnit source )
         {
             this.request.sources.add( source );
