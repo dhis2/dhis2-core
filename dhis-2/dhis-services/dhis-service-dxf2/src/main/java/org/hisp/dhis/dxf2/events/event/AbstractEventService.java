@@ -61,25 +61,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -102,7 +104,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EventSyncService;
@@ -132,6 +133,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
@@ -213,6 +215,10 @@ public abstract class AbstractEventService implements EventService
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
     private final Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
+
+    private static final Cache<Boolean> DATA_ELEM_CACHE = new SimpleCacheBuilder<Boolean>()
+        .forRegion( "dataElementCache" ).expireAfterAccess( 60, TimeUnit.MINUTES ).withInitialCapacity( 10000 )
+        .withMaximumSize( 100000 ).build();
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -609,18 +615,8 @@ public abstract class AbstractEventService implements EventService
 
         for ( EventDataValue dataValue : dataValues )
         {
-
-            DataElement dataElement = getDataElement( IdScheme.UID, dataValue.getDataElement() );
-
-            if ( dataElement != null )
+            if ( getDataElement( user.getUid(), dataValue.getDataElement() ) )
             {
-                errors = trackerAccessManager.canRead( user, programStageInstance, dataElement, true );
-
-                if ( !errors.isEmpty() )
-                {
-                    continue;
-                }
-
                 DataValue value = new DataValue();
                 value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
                 value.setCreatedByUserInfo( dataValue.getCreatedByUserInfo() );
@@ -924,15 +920,21 @@ public abstract class AbstractEventService implements EventService
     private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
     {
         return organisationUnitCache.get( id,
-            () -> HibernateProxyUtils
-                .unproxy( manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) ) );
+            () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
     }
 
-    private DataElement getDataElement( IdScheme idScheme, String id )
+    /**
+     * Get DataElement by given uid
+     *
+     * @return FALSE if currentUser doesn't have READ access to given
+     *         DataElement OR no DataElement with given uid exist TRUE if
+     *         DataElement exist and currentUser has READ access
+     */
+    private boolean getDataElement( String userUid, String dataElementUid )
     {
-        return dataElementCache
-            .get( id, s -> HibernateProxyUtils.unproxy( manager.getObject( DataElement.class, idScheme, id ) ) )
-            .orElse( null );
+        String key = userUid + "-" + dataElementUid;
+        return DATA_ELEM_CACHE.get( key, k -> manager.get( DataElement.class, dataElementUid ) != null )
+            .orElse( false );
     }
 
     @Override
@@ -1059,5 +1061,12 @@ public abstract class AbstractEventService implements EventService
         }
 
         importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
+    }
+
+    @Override
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        DATA_ELEM_CACHE.invalidateAll();
     }
 }
