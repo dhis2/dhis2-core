@@ -124,6 +124,7 @@ public class DefaultOrgUnitMergeService
             .add( ( r ) -> analyticalObjectHandler.mergeMaps( r ) )
             .add( ( r ) -> trackerHandler.mergeProgramMessages( r ) )
             .add( ( r ) -> trackerHandler.mergeProgramInstances( r ) )
+            .add( ( r ) -> trackerHandler.mergeTrackedEntityInstances( r ) )
             .build();
     }
 }

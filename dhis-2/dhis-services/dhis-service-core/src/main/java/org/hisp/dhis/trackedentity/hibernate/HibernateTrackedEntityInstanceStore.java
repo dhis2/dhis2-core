@@ -53,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -70,6 +71,7 @@ import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -1784,6 +1786,19 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return instances;
+    }
+
+    @Override
+    public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
+    {
+        String hql = "update TrackedEntityInstance tei " +
+            "set tei.organisationUnit = :target " +
+            "where tei.organisationUnit.id in (:sources)";
+
+        getQuery( hql )
+            .setParameter( "target", target )
+            .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )
+            .executeUpdate();
     }
 
     private EventContext.TrackedEntityOuInfo toTrackedEntityOuInfo( Object[] objects )
