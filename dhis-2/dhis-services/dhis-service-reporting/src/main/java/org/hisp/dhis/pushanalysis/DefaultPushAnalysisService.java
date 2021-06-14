@@ -71,7 +71,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.visualization.ChartImageGenerator;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationService;
+import org.hisp.dhis.visualization.VisualizationGridService;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -107,7 +107,7 @@ public class DefaultPushAnalysisService
 
     private final MapGenerationService mapGenerationService;
 
-    private final VisualizationService visualizationService;
+    private final VisualizationGridService visualizationService;
 
     private final ChartImageGenerator chartImageGenerator;
 
@@ -120,7 +120,7 @@ public class DefaultPushAnalysisService
     public DefaultPushAnalysisService( Notifier notifier, SystemSettingManager systemSettingManager,
         DhisConfigurationProvider dhisConfigurationProvider, ExternalFileResourceService externalFileResourceService,
         FileResourceService fileResourceService, CurrentUserService currentUserService,
-        MapGenerationService mapGenerationService, VisualizationService visualizationService,
+        MapGenerationService mapGenerationService, VisualizationGridService visualizationService,
         ChartImageGenerator chartImageGenerator, I18nManager i18nManager,
         @Qualifier( "emailMessageSender" ) MessageSender messageSender,
         @Qualifier( "org.hisp.dhis.pushanalysis.PushAnalysisStore" ) IdentifiableObjectStore<PushAnalysis> pushAnalysisStore )

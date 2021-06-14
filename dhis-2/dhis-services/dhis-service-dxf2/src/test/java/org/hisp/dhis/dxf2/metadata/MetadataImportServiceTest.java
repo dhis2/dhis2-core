@@ -61,6 +61,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.mapping.ThematicMapType;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.Program;
@@ -1005,6 +1007,48 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
         User user = manager.get( User.class, "MwhEJUnTHkn" );
         assertNotNull( user.getUserCredentials().getCreatedBy() );
+    }
+
+    @Test
+    public void testImportMapCreateAndUpdate()
+        throws IOException
+    {
+        java.util.Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
+            .fromMetadata(
+                new ClassPathResource( "dxf2/map_new.json" ).getInputStream(), RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        List<org.hisp.dhis.mapping.Map> maps = manager.getAll( org.hisp.dhis.mapping.Map.class );
+        assertEquals( 1, maps.size() );
+        assertEquals( "test1", maps.get( 0 ).getName() );
+        assertEquals( 1, maps.get( 0 ).getMapViews().size() );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/map_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        org.hisp.dhis.mapping.Map map = manager.get( org.hisp.dhis.mapping.Map.class, "LTNgXfzTFTv" );
+        assertNotNull( map );
+        assertEquals( 1, map.getMapViews().size() );
+
+        MapView mapView = map.getMapViews().get( 0 );
+        assertNotNull( mapView );
+        assertEquals( "#ddeeff", mapView.getNoDataColor() );
+        assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,

@@ -152,6 +152,7 @@
     <json-path.version>2.4.0</json-path.version>
     <jsmpp-X.version>2.1.0-RELEASE</jsmpp-X.version>
     <jboss-logging.version>3.4.1.Final</jboss-logging.version>
+    <jsoup.version>1.11.3</jsoup.version>
 
     <!-- Div. utils -->
     <guava.version>30.1-jre</guava.version>
@@ -2062,6 +2063,11 @@
         <groupId>org.locationtech.jts.io</groupId>
         <artifactId>jts-io-common</artifactId>
         <version>${jts-io-common.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jsoup</groupId>
+        <artifactId>jsoup</artifactId>
+        <version>${jsoup.version}</version>
       </dependency>
 
       <!-- Lombok-->

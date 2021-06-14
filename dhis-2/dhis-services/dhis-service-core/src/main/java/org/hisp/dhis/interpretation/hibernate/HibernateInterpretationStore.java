@@ -102,12 +102,4 @@ public class HibernateInterpretationStore
 
         return ((Long) query.uniqueResult()).intValue();
     }
-
-    @Override
-    public Interpretation getByVisualizationId( long id )
-    {
-        String hql = "from Interpretation i where i.visualization.id = " + id;
-        Query<Interpretation> query = getQuery( hql );
-        return query.uniqueResult();
-    }
 }
