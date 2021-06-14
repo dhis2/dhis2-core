@@ -137,7 +137,32 @@ public class ProgramRuleVariableObjectBundleHookTest
         when( programRuleVariable.getUid() ).thenReturn( "uid1" );
 
         List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
-            objectBundle );
+                objectBundle );
+
+        assertEquals( 0, errorReports.size() );
+    }
+
+    @Test
+    public void shouldNotFailUpdateExistingMoreThanOneSameUid()
+    {
+        when( programRuleVariable.getProgram() ).thenReturn( program );
+        when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
+
+        ProgramRuleVariable existingProgramRuleVariable = new ProgramRuleVariable();
+        existingProgramRuleVariable.setName( "word" );
+        existingProgramRuleVariable.setUid( "uid1" );
+
+        ProgramRuleVariable anotherExistingProgramRuleVariable = new ProgramRuleVariable();
+        anotherExistingProgramRuleVariable.setName( "word" );
+        anotherExistingProgramRuleVariable.setUid( "uid2" );
+
+        when( query.getResultList() ).thenReturn( List.of( existingProgramRuleVariable, anotherExistingProgramRuleVariable ) );
+
+        when( programRuleVariable.getName() ).thenReturn( "word" );
+        when( programRuleVariable.getUid() ).thenReturn( "uid1" );
+
+        List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
+                objectBundle );
 
         assertEquals( 0, errorReports.size() );
     }
