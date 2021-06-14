@@ -931,7 +931,8 @@ public class HibernateTrackedEntityInstanceStore
                     .append( SPACE )
                     .append( filter.getSqlOperator() )
                     .append( SPACE )
-                    .append( StringUtils.lowerCase( filter.getSqlFilter( filter.getFilter() ) ) );
+                    .append( StringUtils
+                        .lowerCase( filter.getSqlFilter( statementBuilder.encode( filter.getFilter(), false ) ) ) );
             }
         }
     }
