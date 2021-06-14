@@ -84,6 +84,14 @@
       <id>jitpack.io</id>
       <url>https://jitpack.io</url>
     </repository>
+    <repository>
+      <id>DHIS2_MAVEN_REPO_MIRROR</id>
+      <url>https://raw.githubusercontent.com/dhis2/maven-repo-mirror/master/</url>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+      </snapshots>
+    </repository>
   </repositories>
 
   <pluginRepositories>
