@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 
-@Slf4j
 public class OrgUnitMergeValidator
 {
     public void validate( OrgUnitMergeRequest request )
@@ -43,10 +40,6 @@ public class OrgUnitMergeValidator
 
         if ( error != null )
         {
-            log.warn( String.format(
-                "Org unit merge request validation failed, code: '%s', message: '%s'",
-                error.getErrorCode(), error.getMessage() ) );
-
             throw new IllegalQueryException( error );
         }
     }
