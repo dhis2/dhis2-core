@@ -32,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -56,6 +57,7 @@ public class OrgUnitMergeServiceTest
         ouC = createOrganisationUnit( 'C' );
     }
 
+    @Test
     public void testGetFromQuery()
     {
         OrgUnitMergeQuery query = new OrgUnitMergeQuery();
