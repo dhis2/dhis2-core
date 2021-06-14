@@ -126,6 +126,10 @@
       <groupId>javax.interceptor</groupId>
       <artifactId>javax.interceptor-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+    </dependency>
 
     <!-- JClouds -->
 
