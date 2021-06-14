@@ -126,7 +126,6 @@ public interface KeyJsonValueService
      */
     void deleteKeyJsonValue( KeyJsonValue entry );
 
-    @Transactional
     void saveOrUpdateKeyJsonValue( KeyJsonValue entry );
 
     /**

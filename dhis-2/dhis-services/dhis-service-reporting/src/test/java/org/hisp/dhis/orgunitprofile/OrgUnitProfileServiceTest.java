@@ -66,7 +66,7 @@ public class OrgUnitProfileServiceTest
         orgUnitProfile.getGroupSets().add( "GroupSet2" );
         service.saveOrgUnitProfile( orgUnitProfile );
 
-        OrgUnitProfile savedProfile = service.getOrgUnitProfile();
+        OrgUnitProfile savedProfile = service.getStringOrgUnitProfile();
         assertEquals( 2, savedProfile.getAttributes().size() );
         assertEquals( 2, savedProfile.getDataItems().size() );
         assertEquals( 2, savedProfile.getGroupSets().size() );

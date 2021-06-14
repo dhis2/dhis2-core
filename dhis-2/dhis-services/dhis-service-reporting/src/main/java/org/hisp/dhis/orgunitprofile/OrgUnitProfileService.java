@@ -34,9 +34,15 @@ import javax.annotation.Nullable;
 
 public interface OrgUnitProfileService
 {
+    String ORG_UNIT_PROFILE_NAMESPACE = "ORG_UNIT_PROFILE";
+    String ORG_UNIT_PROFILE_KEY = "ORG_UNIT_PROFILE";
+    String ORG_UNIT_PROFILE_AUTHORITY = "F_ORG_UNIT_PROFILE_ADD";
+
     void saveOrgUnitProfile( OrgUnitProfile profile );
 
     OrgUnitProfile getOrgUnitProfile();
+
+    String getStringOrgUnitProfile();
 
     OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod );
 }

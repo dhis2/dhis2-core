@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
@@ -80,10 +81,6 @@ public class DefaultOrgUnitProfileService
         .<Class<? extends IdentifiableObject>> builder()
         .add( DataElement.class ).add( Indicator.class ).add( DataSet.class ).add( ProgramIndicator.class )
         .build();
-
-    public static final String ORG_UNIT_PROFILE_NAMESPACE = "ORG_UNIT_PROFILE";
-    public static final String ORG_UNIT_PROFILE_KEY = "ORG_UNIT_PROFILE";
-    public static final String ORG_UNIT_PROFILE_AUTHORITY = "F_ORG_UNIT_PROFILE_ADD";
 
     private KeyJsonValueService dataStore;
 
@@ -142,6 +139,20 @@ public class DefaultOrgUnitProfileService
             log.error( DebugUtils.getStackTrace( e ) );
             throw new IllegalArgumentException( "Can't deserialize OrgUnitProfile " + value.getValue() );
         }
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public String getStringOrgUnitProfile()
+    {
+        KeyJsonValue value = dataStore.getKeyJsonValue( ORG_UNIT_PROFILE_NAMESPACE, ORG_UNIT_PROFILE_KEY );
+
+        if ( value == null )
+        {
+            return StringUtils.EMPTY;
+        }
+
+        return value.getValue();
     }
 
     public OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod )
