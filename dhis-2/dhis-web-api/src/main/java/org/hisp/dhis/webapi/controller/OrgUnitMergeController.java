@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@PreAuthorize( "hasRole('ALL') or hasRole('F_ORG_UNIT_MERGE')" )
+@PreAuthorize( "hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_MERGE')" )
 public class OrgUnitMergeController
 {
     private final OrgUnitMergeService service;

@@ -70,6 +70,7 @@ public class DefaultAdminUserPopulator
         "F_PREDICTOR_RUN",
         "F_SEND_EMAIL",
         "F_ORGANISATIONUNIT_MOVE",
+        "F_ORGANISATION_UNIT_MERGE",
         "F_INSERT_CUSTOM_JS_CSS",
         "F_VIEW_UNAPPROVED_DATA",
         "F_USER_VIEW",
