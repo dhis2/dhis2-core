@@ -27,7 +27,47 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
-public class OrgUnitMergeValidationTest
-{
+import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+
+@Slf4j
+public class OrgUnitMergeValidator
+{
+    public void validate( OrgUnitMergeRequest request )
+        throws IllegalQueryException
+    {
+        ErrorMessage error = validateForErrorMessage( request );
+
+        if ( error != null )
+        {
+            log.warn( String.format(
+                "Org unit merge request validation failed, code: '%s', message: '%s'",
+                error.getErrorCode(), error.getMessage() ) );
+
+            throw new IllegalQueryException( error );
+        }
+    }
+
+    public ErrorMessage validateForErrorMessage( OrgUnitMergeRequest request )
+    {
+        ErrorMessage error = null;
+
+        if ( request.getSources().isEmpty() )
+        {
+            error = new ErrorMessage( ErrorCode.E1500 );
+        }
+        else if ( request.getTarget() == null )
+        {
+            error = new ErrorMessage( ErrorCode.E1501 );
+        }
+        else if ( request.getSources().contains( request.getTarget() ) )
+        {
+            error = new ErrorMessage( ErrorCode.E1502 );
+        }
+
+        return error;
+    }
 }
