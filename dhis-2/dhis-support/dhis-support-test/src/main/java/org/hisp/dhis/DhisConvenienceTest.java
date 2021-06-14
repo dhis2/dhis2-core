@@ -1523,7 +1523,6 @@ public abstract class DhisConvenienceTest
         programInstance.setIncidentDate( new Date() );
 
         return programInstance;
-
     }
 
     public static ProgramRule createProgramRule( char uniqueCharacter, Program parentProgram )
