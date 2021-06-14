@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -99,29 +100,34 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         List<ProgramRuleVariable> prvWithSameNameAndSameProgram = getProgramRuleVariableQuery( programRuleVariable )
             .getResultList();
 
-        // When no PRV with same name and program, validation passes
-        if ( prvWithSameNameAndSameProgram.isEmpty() )
+        // update
+        if ( UPDATE_STRATEGIES.contains( bundle.getImportMode() ) )
         {
+            if ( !isLegitUpdate( programRuleVariable, prvWithSameNameAndSameProgram ) )
+            {
+                failPrvWithSameNAmeAlreadyExists( programRuleVariable, addReports );
+            }
             return;
         }
 
-        // since prvWithSameNameAndSameProgram is not empty, fail if it's an
-        // insert or if there is more than one prv with same name and same
-        // program.
-        if ( !UPDATE_STRATEGIES.contains( bundle.getImportMode() ) || prvWithSameNameAndSameProgram.size() > 1 )
-        {
-            failPrvWithSameNAmeAlreadyExists( programRuleVariable, addReports );
-            return;
-        }
-
-        // only 1 PRV can exists at this point and it must be an update.
-        ProgramRuleVariable existingProgramRuleVariable = prvWithSameNameAndSameProgram.get( 0 );
-
-        // existing PRV must have same UID
-        if ( !StringUtils.equals( existingProgramRuleVariable.getUid(), programRuleVariable.getUid() ) )
+        // insert
+        if ( CollectionUtils.isNotEmpty( prvWithSameNameAndSameProgram ) )
         {
             failPrvWithSameNAmeAlreadyExists( programRuleVariable, addReports );
         }
+    }
+
+    private boolean isLegitUpdate( ProgramRuleVariable programRuleVariable,
+        List<ProgramRuleVariable> existingPrvs )
+    {
+        return existingPrvs.isEmpty() ||
+            existingPrvs.stream()
+                .anyMatch( existingPrv -> hasSameUid( existingPrv, programRuleVariable ) );
+    }
+
+    private boolean hasSameUid( ProgramRuleVariable existingPrv, ProgramRuleVariable programRuleVariable )
+    {
+        return StringUtils.equals( existingPrv.getUid(), programRuleVariable.getUid() );
     }
 
     private void failPrvWithSameNAmeAlreadyExists( ProgramRuleVariable programRuleVariable,
