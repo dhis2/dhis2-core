@@ -32,12 +32,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -75,6 +75,9 @@ public class ProgramInstanceServiceTest
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
 
+    @Autowired
+    private SessionFactory sessionFactory;
+
     private Date incidenDate;
 
     private Date enrollmentDate;
@@ -89,6 +92,8 @@ public class ProgramInstanceServiceTest
 
     private OrganisationUnit organisationUnitB;
 
+    private OrganisationUnit organisationUnitC;
+
     private ProgramStageInstance programStageInstanceA;
 
     private ProgramInstance programInstanceA;
@@ -101,20 +106,17 @@ public class ProgramInstanceServiceTest
 
     private TrackedEntityInstance entityInstanceA;
 
-    private Collection<Long> orgunitIds;
-
     @Override
     public void setUpTest()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
-        long idA = organisationUnitService.addOrganisationUnit( organisationUnitA );
+        organisationUnitService.addOrganisationUnit( organisationUnitA );
 
         organisationUnitB = createOrganisationUnit( 'B' );
-        long idB = organisationUnitService.addOrganisationUnit( organisationUnitB );
+        organisationUnitService.addOrganisationUnit( organisationUnitB );
 
-        orgunitIds = new HashSet<>();
-        orgunitIds.add( idA );
-        orgunitIds.add( idB );
+        organisationUnitC = createOrganisationUnit( 'C' );
+        organisationUnitService.addOrganisationUnit( organisationUnitC );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
 
@@ -383,5 +385,40 @@ public class ProgramInstanceServiceTest
 
         assertEquals( ProgramStatus.CANCELLED, programInstanceService.getProgramInstance( idA ).getStatus() );
         assertEquals( ProgramStatus.CANCELLED, programInstanceService.getProgramInstance( idD ).getStatus() );
+    }
+
+    @Test
+    public void testMigrateProgramInstances()
+    {
+        programInstanceService.addProgramInstance( programInstanceA );
+        programInstanceService.addProgramInstance( programInstanceB );
+        programInstanceService.addProgramInstance( programInstanceC );
+        programInstanceService.addProgramInstance( programInstanceD );
+
+        assertEquals( 2, getProgramInstanceCount( organisationUnitA ) );
+        assertEquals( 2, getProgramInstanceCount( organisationUnitB ) );
+        assertEquals( 0, getProgramInstanceCount( organisationUnitB ) );
+
+        programInstanceService.migrateProgramInstances(
+            Sets.newHashSet( organisationUnitA, organisationUnitB ), organisationUnitC );
+
+        assertEquals( 0, getProgramInstanceCount( organisationUnitA ) );
+        assertEquals( 0, getProgramInstanceCount( organisationUnitB ) );
+        assertEquals( 4, getProgramInstanceCount( organisationUnitC ) );
+    }
+
+    /**
+     * Test migrate HQL update statement with an HQL select statement to ensure
+     * the updated rows are visible by the current transaction.
+     *
+     * @param target the {@link OrganisationUnit}
+     * @return the count of interpretations.
+     */
+    private long getProgramInstanceCount( OrganisationUnit target )
+    {
+        return (Long) sessionFactory.getCurrentSession()
+            .createQuery( "select count(*) from ProgramInstance pi where pi.organisationUnit = :target" )
+            .setParameter( "target", target )
+            .uniqueResult();
     }
 }
