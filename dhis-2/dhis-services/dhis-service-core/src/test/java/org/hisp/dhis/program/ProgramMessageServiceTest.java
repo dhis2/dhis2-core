@@ -67,8 +67,6 @@ public class ProgramMessageServiceTest
 
     private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
-
     private ProgramInstance piA;
 
     private TrackedEntityInstance teiA;
@@ -145,11 +143,9 @@ public class ProgramMessageServiceTest
         ouA.setPhoneNumber( msisdn );
 
         ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
 
         orgUnitService.addOrganisationUnit( ouA );
         orgUnitService.addOrganisationUnit( ouB );
-        orgUnitService.addOrganisationUnit( ouC );
 
         Program program = createProgram( 'A' );
         program.setAutoFields();
@@ -189,11 +185,11 @@ public class ProgramMessageServiceTest
         recipientsB.setTrackedEntityInstance( teiA );
 
         recipientsC = new ProgramMessageRecipients();
-        recipientsC.setOrganisationUnit( ouB );
+        recipientsC.setOrganisationUnit( ouA );
         recipientsC.setTrackedEntityInstance( teiA );
 
         recipientsD = new ProgramMessageRecipients();
-        recipientsD.setOrganisationUnit( ouB );
+        recipientsD.setOrganisationUnit( ouA );
         recipientsD.setTrackedEntityInstance( null );
 
         Set<String> phoneNumberListA = new HashSet<>();
