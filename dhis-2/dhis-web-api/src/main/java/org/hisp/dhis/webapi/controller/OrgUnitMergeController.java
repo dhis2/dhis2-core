@@ -36,7 +36,7 @@ import org.hisp.dhis.merge.orgunit.OrgUnitMergeQuery;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -47,7 +47,7 @@ public class OrgUnitMergeController
 {
     private final OrgUnitMergeService service;
 
-    @GetMapping( value = "/merge/organisationUnits", produces = { APPLICATION_JSON_VALUE } )
+    @PostMapping( value = "/merge/organisationUnits", produces = { APPLICATION_JSON_VALUE } )
     public void mergeOrgUnits( OrgUnitMergeQuery query )
     {
         service.merge( service.getFromQuery( query ) );
