@@ -921,12 +921,6 @@ public class DefaultTrackedEntityInstanceService
         return trackedEntityInstanceStore.getUidsIncludingDeleted( uids );
     }
 
-    @Override
-    public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        trackedEntityInstanceStore.migrate( sources, target );
-    }
-
     private boolean isLocalSearch( TrackedEntityInstanceQueryParams params, User user )
     {
         Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();

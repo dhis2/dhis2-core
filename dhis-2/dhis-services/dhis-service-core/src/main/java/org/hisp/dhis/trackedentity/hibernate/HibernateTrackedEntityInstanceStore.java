@@ -53,7 +53,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -71,7 +70,6 @@ import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -1786,30 +1784,6 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return instances;
-    }
-
-    @Override
-    public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        migrate( sources, target, "update ProgramOwnershipHistory poh " +
-            "set poh.organisationUnit = :target " +
-            "where poh.organisationUnit.id in (:sources)" );
-
-        migrate( sources, target, "update TrackedEntityProgramOwner tpo " +
-            "set tpo.organisationUnit = :target " +
-            "where tpo.organisationUnit.id in (:sources)" );
-
-        migrate( sources, target, "update TrackedEntityInstance tei " +
-            "set tei.organisationUnit = :target " +
-            "where tei.organisationUnit.id in (:sources)" );
-    }
-
-    private void migrate( Set<OrganisationUnit> sources, OrganisationUnit target, String hql )
-    {
-        getQuery( hql )
-            .setParameter( "target", target )
-            .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )
-            .executeUpdate();
     }
 
     private EventContext.TrackedEntityOuInfo toTrackedEntityOuInfo( Object[] objects )

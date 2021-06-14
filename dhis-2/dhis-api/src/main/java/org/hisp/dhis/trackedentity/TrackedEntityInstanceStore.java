@@ -30,11 +30,9 @@ package org.hisp.dhis.trackedentity;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dxf2.events.event.EventContext;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 
 /**
@@ -103,6 +101,4 @@ public interface TrackedEntityInstanceStore
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 
     List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user );
-
-    void migrate( Set<OrganisationUnit> sources, OrganisationUnit target );
 }
