@@ -99,8 +99,7 @@ public class OrganisationUnit
     private OrganisationUnit parent;
 
     /**
-     * Child org units, inverse set managed by {@link OrganisationUnit#parent}
-     * side.
+     * Child org units, inverse set managed by {@link OrganisationUnit#parent}.
      */
     private Set<OrganisationUnit> children = new HashSet<>();
 
