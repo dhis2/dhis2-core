@@ -230,7 +230,7 @@ public class HibernateTrackedEntityInstanceStore
         {
             hql += "inner join fetch tei.programInstances as pi ";
 
-            // Joining program owners and using that as tei ou source
+            // Joining program owners and using that as TEI ou source
             hql += "inner join fetch tei.programOwners as po ";
 
             if ( params.hasFilterForEvents() )
@@ -1409,8 +1409,8 @@ public class HibernateTrackedEntityInstanceStore
                 else
                 {
                     orderFields.add( "teav2.plainValue " + orderParam.getDirection() );
-                    break; // currently we support only a single attribute
-                           // order
+                    // Currently only a single attribute is supported
+                    break;
                 }
             }
 
@@ -1749,17 +1749,17 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
-        {
-            List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
+        List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
 
-            List<TrackedEntityInstance> instances = new ArrayList<>();
-            for ( List<String> partition : uidPartitions )
-            {
-                instances.addAll( getList( getCriteriaBuilder(),
-                    newJpaParameters().addPredicate( root -> root.get( "uid" ).in( partition ) ) ) );
-            }
-            return instances;
+        List<TrackedEntityInstance> instances = new ArrayList<>();
+
+        for ( List<String> partition : uidPartitions )
+        {
+            instances.addAll( getList( getCriteriaBuilder(),
+                newJpaParameters().addPredicate( root -> root.get( "uid" ).in( partition ) ) ) );
         }
+
+        return instances;
     }
 
     @Override
