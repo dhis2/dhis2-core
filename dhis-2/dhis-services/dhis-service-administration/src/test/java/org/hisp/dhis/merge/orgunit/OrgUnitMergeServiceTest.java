@@ -31,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,9 @@ public class OrgUnitMergeServiceTest
 {
     @Autowired
     private OrgUnitMergeService service;
+
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
     private OrganisationUnit ouA;
 
@@ -55,6 +59,10 @@ public class OrgUnitMergeServiceTest
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
+
+        idObjectManager.save( ouA );
+        idObjectManager.save( ouB );
+        idObjectManager.save( ouC );
     }
 
     @Test
@@ -66,10 +74,9 @@ public class OrgUnitMergeServiceTest
 
         OrgUnitMergeRequest request = service.getFromQuery( query );
 
-        assertEquals( 2, request.getSources() );
+        assertEquals( 2, request.getSources().size() );
         assertTrue( request.getSources().contains( ouA ) );
         assertTrue( request.getSources().contains( ouB ) );
         assertEquals( ouC, request.getTarget() );
-
     }
 }
