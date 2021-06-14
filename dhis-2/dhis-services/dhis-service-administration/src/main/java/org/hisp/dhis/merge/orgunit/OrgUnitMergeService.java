@@ -29,6 +29,8 @@ package org.hisp.dhis.merge.orgunit;
 
 import java.util.Set;
 
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
@@ -37,4 +39,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 public interface OrgUnitMergeService
 {
     void merge( Set<OrganisationUnit> sources, OrganisationUnit target );
+
+    void validate( OrgUnitMergeRequest request )
+        throws IllegalQueryException;
+
+    ErrorMessage validateForErrorMessage( OrgUnitMergeRequest request );
+
+    OrgUnitMergeRequest getFromQuery( OrgUnitMergeQuery query );
 }

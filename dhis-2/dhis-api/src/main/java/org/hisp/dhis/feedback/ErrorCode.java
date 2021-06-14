@@ -45,6 +45,11 @@ public enum ErrorCode
     E1104( "Attribute option combo not found or not accessible: `{0}`" ),
     E1105( "Data set not found or not accessible: `{0}`" ),
 
+    /* Org unit merge */
+    E1500( "At least one source org unit must be specified" ),
+    E1501( "Target org unit must be specified" ),
+    E1502( "Target org unit cannot be a source org unit" ),
+
     /* Data */
     E2000( "Query parameters cannot be null" ),
     E2001( "At least one data element, data set or data element group must be specified" ),

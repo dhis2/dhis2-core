@@ -31,7 +31,11 @@ import java.util.Set;
 
 import javax.transaction.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.merge.orgunit.handler.AnalyticalObjectOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.MetadataOrgUnitMergeHandler;
@@ -47,6 +51,7 @@ import com.google.common.collect.Sets;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service
 public class DefaultOrgUnitMergeService
     implements OrgUnitMergeService
@@ -84,17 +89,44 @@ public class DefaultOrgUnitMergeService
         idObjectManager.update( target );
     }
 
+    @Override
+    public void validate( OrgUnitMergeRequest request )
+        throws IllegalQueryException
+    {
+        ErrorMessage error = validateForErrorMessage( request );
+
+        if ( error != null )
+        {
+            log.warn( String.format(
+                "Outlier detection request validation failed, code: '%s', message: '%s'",
+                error.getErrorCode(), error.getMessage() ) );
+
+            throw new IllegalQueryException( error );
+        }
+    }
+
+    @Override
     public ErrorMessage validateForErrorMessage( OrgUnitMergeRequest request )
     {
         ErrorMessage error = null;
 
         if ( request.getSources().isEmpty() )
         {
+            error = new ErrorMessage( ErrorCode.E1500 );
+        }
+        else if ( request.getTarget() == null )
+        {
+            error = new ErrorMessage( ErrorCode.E1501 );
+        }
+        else if ( request.getSources().contains( request.getTarget() ) )
+        {
+            error = new ErrorMessage( ErrorCode.E1502 );
         }
 
         return error;
     }
 
+    @Override
     public OrgUnitMergeRequest getFromQuery( OrgUnitMergeQuery query )
     {
         Set<OrganisationUnit> sources = Sets.newHashSet(
