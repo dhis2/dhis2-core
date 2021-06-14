@@ -49,6 +49,7 @@ import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.MappingException;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
@@ -77,10 +78,9 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -217,9 +217,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         Dashboard dashboard = new Dashboard();
         dashboard.setName( "DashboardA" );
 
-        Sharing sharing = new Sharing();
-        sharing.addUserAccess( new UserAccess( userA, AccessStringHelper.READ ) );
-        dashboard.setSharing( sharing );
+        UserAccess userAccess = new UserAccess( userA, AccessStringHelper.READ );
+        dashboard.getUserAccesses().add( userAccess );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
         metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
@@ -236,7 +235,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertTrue( aclService.canRead( userA, savedDashboard ) );
 
         // Update dashboard with skipSharing=true and no sharing data in payload
-        dashboard.setSharing( null );
+        clearSharing( dashboard );
+
         metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
         params = createParams( ImportStrategy.UPDATE, metadata );
         params.setSkipSharing( true );
@@ -260,10 +260,9 @@ public class MetadataImportServiceTest extends DhisSpringTest
         Dashboard dashboard = new Dashboard();
         dashboard.setName( "DashboardA" );
 
-        Sharing sharing = new Sharing();
-        sharing.setPublicAccess( AccessStringHelper.DEFAULT );
-        sharing.addUserAccess( new UserAccess( userA, AccessStringHelper.READ_WRITE ) );
-        dashboard.setSharing( sharing );
+        UserAccess userAccess = new UserAccess( userA, AccessStringHelper.READ_WRITE );
+        dashboard.getUserAccesses().add( userAccess );
+        dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
         metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
@@ -280,7 +279,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertTrue( aclService.canRead( userA, savedDashboard ) );
 
         // Update Dashboard with skipSharing=true and no sharing data in payload
-        dashboard.setSharing( null );
+        clearSharing( dashboard );
+
         metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
 
         params = createParams( ImportStrategy.UPDATE, metadata );
@@ -1021,5 +1021,13 @@ public class MetadataImportServiceTest extends DhisSpringTest
         params.setObjects( metadata );
 
         return params;
+    }
+
+    private void clearSharing( BaseIdentifiableObject object )
+    {
+        object.setPublicAccess( null );
+        object.setExternalAccess( false );
+        object.setUserAccesses( null );
+        object.setUserGroupAccesses( null );
     }
 }
