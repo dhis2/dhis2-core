@@ -32,10 +32,14 @@ import java.util.Set;
 
 import lombok.Data;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Data
 public class OrgUnitMergeQuery
 {
+    @JsonProperty
     private Set<String> sources = new HashSet<>();
 
+    @JsonProperty
     private String target;
 }
