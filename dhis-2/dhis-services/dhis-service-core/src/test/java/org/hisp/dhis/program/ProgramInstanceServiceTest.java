@@ -74,7 +74,7 @@ public class ProgramInstanceServiceTest
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
 
-    private Date incidenDate;
+    private Date incidentDate;
 
     private Date enrollmentDate;
 
@@ -87,8 +87,6 @@ public class ProgramInstanceServiceTest
     private OrganisationUnit organisationUnitA;
 
     private OrganisationUnit organisationUnitB;
-
-    private OrganisationUnit organisationUnitC;
 
     private ProgramStageInstance programStageInstanceA;
 
@@ -110,9 +108,6 @@ public class ProgramInstanceServiceTest
 
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
-
-        organisationUnitC = createOrganisationUnit( 'C' );
-        organisationUnitService.addOrganisationUnit( organisationUnitC );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
 
@@ -147,13 +142,13 @@ public class ProgramInstanceServiceTest
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
-        incidenDate = testDate1.toDate();
+        incidentDate = testDate1.toDate();
 
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         enrollmentDate = testDate2.toDate();
 
-        programInstanceA = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programA );
+        programInstanceA = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programA );
         programInstanceA.setUid( "UID-A" );
         programInstanceA.setOrganisationUnit( organisationUnitA );
 
@@ -161,17 +156,17 @@ public class ProgramInstanceServiceTest
         programStageInstanceA.setUid( "UID-PSI-A" );
         programStageInstanceA.setOrganisationUnit( organisationUnitA );
 
-        programInstanceB = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programB );
+        programInstanceB = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programB );
         programInstanceB.setUid( "UID-B" );
         programInstanceB.setStatus( ProgramStatus.CANCELLED );
         programInstanceB.setOrganisationUnit( organisationUnitB );
 
-        programInstanceC = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programC );
+        programInstanceC = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programC );
         programInstanceC.setUid( "UID-C" );
         programInstanceC.setStatus( ProgramStatus.COMPLETED );
         programInstanceC.setOrganisationUnit( organisationUnitA );
 
-        programInstanceD = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceB, programA );
+        programInstanceD = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceB, programA );
         programInstanceD.setUid( "UID-D" );
         programInstanceD.setOrganisationUnit( organisationUnitB );
     }
@@ -222,7 +217,6 @@ public class ProgramInstanceServiceTest
 
         assertNull( programInstanceService.getProgramInstance( idA ) );
         assertNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
-
     }
 
     @Test
@@ -282,13 +276,13 @@ public class ProgramInstanceServiceTest
 
         ProgramInstance programInstance1 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
             programA, enrollmentDate,
-            incidenDate, organisationUnitA );
+            incidentDate, organisationUnitA );
         programInstance1.setStatus( ProgramStatus.COMPLETED );
         programInstanceService.updateProgramInstance( programInstance1 );
 
         ProgramInstance programInstance2 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
             programA, enrollmentDate,
-            incidenDate, organisationUnitA );
+            incidentDate, organisationUnitA );
         programInstance2.setStatus( ProgramStatus.COMPLETED );
         programInstanceService.updateProgramInstance( programInstance2 );
 
@@ -316,6 +310,7 @@ public class ProgramInstanceServiceTest
                 .setProgram( programA )
                 .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) )
                 .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) );
+
         assertEquals( 1, programInstances.size() );
         assertTrue( programInstances.contains( programInstanceA ) );
     }
@@ -325,7 +320,7 @@ public class ProgramInstanceServiceTest
     {
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programB,
             enrollmentDate,
-            incidenDate, organisationUnitA );
+            incidentDate, organisationUnitA );
 
         assertNotNull( programInstanceService.getProgramInstance( programInstance.getId() ) );
     }
