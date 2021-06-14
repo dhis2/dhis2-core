@@ -43,4 +43,9 @@ public class TrackerOrgUnitMergeHandler
     {
         programMessageService.migrateProgramMessages( request.getSources(), request.getTarget() );
     }
+
+    public void mergeProgramInstances( OrgUnitMergeRequest request )
+    {
+        programMessageService.migrateProgramMessages( request.getSources(), request.getTarget() );
+    }
 }

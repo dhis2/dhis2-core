@@ -71,7 +71,7 @@ public class DefaultOrgUnitMergeService
         this.metadataHandler = metadataHandler;
         this.analyticalObjectHandler = analyticalObjectMergeHandler;
         this.trackerHandler = trackerHandler;
-        this.validator = new OrgUnitMergeValidator();
+        this.validator = validator;
         this.idObjectManager = idObjectManager;
         this.handlers = getMergeHandlers();
     }
@@ -122,6 +122,7 @@ public class DefaultOrgUnitMergeService
             .add( ( r ) -> analyticalObjectHandler.mergeEventCharts( r ) )
             .add( ( r ) -> analyticalObjectHandler.mergeMaps( r ) )
             .add( ( r ) -> trackerHandler.mergeProgramMessages( r ) )
+            .add( ( r ) -> trackerHandler.mergeProgramInstances( r ) )
             .build();
     }
 }

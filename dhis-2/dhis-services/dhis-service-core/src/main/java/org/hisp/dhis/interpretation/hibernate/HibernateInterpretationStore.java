@@ -87,5 +87,4 @@ public class HibernateInterpretationStore
             .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )
             .executeUpdate();
     }
-
 }

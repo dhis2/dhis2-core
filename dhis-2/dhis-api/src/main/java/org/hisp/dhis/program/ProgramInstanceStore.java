@@ -29,9 +29,11 @@ package org.hisp.dhis.program;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
@@ -178,4 +180,6 @@ public interface ProgramInstanceStore
      */
     List<ProgramInstance> getByProgramAndTrackedEntityInstance(
         List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus );
+
+    void migrate( Set<OrganisationUnit> sources, OrganisationUnit target );
 }

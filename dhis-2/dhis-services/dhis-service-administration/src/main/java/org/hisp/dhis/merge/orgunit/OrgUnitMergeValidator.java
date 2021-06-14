@@ -30,7 +30,9 @@ package org.hisp.dhis.merge.orgunit;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.springframework.stereotype.Service;
 
+@Service
 public class OrgUnitMergeValidator
 {
     public void validate( OrgUnitMergeRequest request )

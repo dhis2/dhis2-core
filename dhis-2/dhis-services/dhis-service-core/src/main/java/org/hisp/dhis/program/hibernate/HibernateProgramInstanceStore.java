@@ -56,6 +56,7 @@ import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
@@ -456,5 +457,27 @@ public class HibernateProgramInstanceStore
     protected ProgramInstance postProcessObject( ProgramInstance programInstance )
     {
         return (programInstance == null || programInstance.isDeleted()) ? null : programInstance;
+    }
+
+    @Override
+    public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
+    {
+        String psiHql = "update ProgramStageInstance psi " +
+            "set psi.organisationUnit = :target " +
+            "where psi.organisationUnit.id in (:sources)";
+
+        getQuery( psiHql )
+            .setParameter( "target", target )
+            .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )
+            .executeUpdate();
+
+        String piHql = "update ProgramInstance pi " +
+            "set pi.organisationUnit = :target " +
+            "where pi.organisationUnit.id in (:sources)";
+
+        getQuery( piHql )
+            .setParameter( "target", target )
+            .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )
+            .executeUpdate();
     }
 }
