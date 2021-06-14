@@ -1027,7 +1027,7 @@ public class MetadataImportServiceTest extends DhisSpringTest
     {
         object.setPublicAccess( null );
         object.setExternalAccess( false );
-        object.setUserAccesses( null );
-        object.setUserGroupAccesses( null );
+        object.getUserAccesses().clear();
+        object.getUserGroupAccesses().clear();
     }
 }
