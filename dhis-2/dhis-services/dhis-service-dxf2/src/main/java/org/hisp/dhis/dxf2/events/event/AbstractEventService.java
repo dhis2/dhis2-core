@@ -27,6 +27,30 @@
  */
 package org.hisp.dhis.dxf2.events.event;
 
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.NoteHelper;
+import org.hisp.dhis.dxf2.events.RelationshipParams;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
@@ -47,47 +71,6 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ST
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang.StringUtils;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.NoteHelper;
-import org.hisp.dhis.dxf2.events.RelationshipParams;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.importer.EventImporter;
 import org.hisp.dhis.dxf2.events.importer.EventManager;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -118,6 +101,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -131,9 +115,21 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -199,7 +195,7 @@ public abstract class AbstractEventService implements EventService
 
     protected EventSyncService eventSyncService;
 
-    protected Cache<DataElement> dataElementCache;
+    protected Cache<Boolean> dataElementCache;
 
     private static final int FLUSH_FREQUENCY = 100;
 
@@ -600,18 +596,8 @@ public abstract class AbstractEventService implements EventService
 
         for ( EventDataValue dataValue : dataValues )
         {
-
-            DataElement dataElement = getDataElement( IdScheme.UID, dataValue.getDataElement() );
-
-            if ( dataElement != null )
+            if ( getDataElement( user.getUid(), dataValue.getDataElement() ) )
             {
-                errors = trackerAccessManager.canRead( user, programStageInstance, dataElement, true );
-
-                if ( !errors.isEmpty() )
-                {
-                    continue;
-                }
-
                 DataValue value = new DataValue();
                 value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
                 value.setCreatedByUserInfo( dataValue.getCreatedByUserInfo() );
@@ -918,9 +904,18 @@ public abstract class AbstractEventService implements EventService
             () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
     }
 
-    private DataElement getDataElement( IdScheme idScheme, String id )
+    /**
+     * Get DataElement by given uid
+     *
+     * @return FALSE if currentUser doesn't have READ access to given
+     *         DataElement OR no DataElement with given uid exist TRUE if
+     *         DataElement exist and currentUser has READ access
+     */
+    private boolean getDataElement( String userUid, String dataElementUid )
     {
-        return dataElementCache.get( id, s -> manager.getObject( DataElement.class, idScheme, id ) ).orElse( null );
+        String key = userUid + "-" + dataElementUid;
+        return dataElementCache.get( key, k -> manager.get( DataElement.class, dataElementUid ) != null )
+            .orElse( false );
     }
 
     @Override
