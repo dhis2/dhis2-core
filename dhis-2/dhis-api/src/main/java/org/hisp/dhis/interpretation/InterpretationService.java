@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 
@@ -93,6 +92,4 @@ public interface InterpretationService
      * @return true if the current user had previously liked the interpretation.
      */
     boolean unlikeInterpretation( long id );
-
-    void migrateInterpretations( Set<OrganisationUnit> sources, OrganisationUnit target );
 }

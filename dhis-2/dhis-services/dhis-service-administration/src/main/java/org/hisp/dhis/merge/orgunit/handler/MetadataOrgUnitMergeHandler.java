@@ -37,7 +37,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -59,8 +58,6 @@ import com.google.common.collect.ImmutableSet;
 public class MetadataOrgUnitMergeHandler
 {
     private final UserService userService;
-
-    private final InterpretationService interpretationService;
 
     private final ConfigurationService configService;
 
@@ -145,11 +142,6 @@ public class MetadataOrgUnitMergeHandler
             o.addOrganisationUnit( request.getTarget() );
             o.removeOrganisationUnits( request.getSources() );
         } );
-    }
-
-    public void mergeInterpretations( OrgUnitMergeRequest request )
-    {
-        interpretationService.migrateInterpretations( request.getSources(), request.getTarget() );
     }
 
     public void mergeConfiguration( OrgUnitMergeRequest request )

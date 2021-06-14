@@ -27,36 +27,68 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
+import javax.transaction.Transactional;
+
 import lombok.AllArgsConstructor;
 
+import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.springframework.stereotype.Service;
 
 @Service
+@Transactional
 @AllArgsConstructor
 public class TrackerOrgUnitMergeHandler
 {
-    private final ProgramMessageService programMessageService;
-
-    private final ProgramInstanceService programInstanceService;
-
-    private final TrackedEntityInstanceService teiService;
+    private SessionFactory sessionFactory;
 
     public void mergeProgramMessages( OrgUnitMergeRequest request )
     {
-        programMessageService.migrateProgramMessages( request.getSources(), request.getTarget() );
+        migrate( "update ProgramMessage pm " +
+            "set pm.recipients.organisationUnit = :target " +
+            "where pm.recipients.organisationUnit.id in (:sources)", request );
     }
 
     public void mergeProgramInstances( OrgUnitMergeRequest request )
     {
-        programInstanceService.migrateProgramInstances( request.getSources(), request.getTarget() );
+        migrate( "update ProgramStageInstance psi " +
+            "set psi.organisationUnit = :target " +
+            "where psi.organisationUnit.id in (:sources)", request );
+
+        migrate( "update ProgramInstance pi " +
+            "set pi.organisationUnit = :target " +
+            "where pi.organisationUnit.id in (:sources)", request );
     }
 
     public void mergeTrackedEntityInstances( OrgUnitMergeRequest request )
     {
-        teiService.migrate( request.getSources(), request.getTarget() );
+        migrate( "update ProgramOwnershipHistory poh " +
+            "set poh.organisationUnit = :target " +
+            "where poh.organisationUnit.id in (:sources)", request );
+
+        migrate( "update TrackedEntityProgramOwner tpo " +
+            "set tpo.organisationUnit = :target " +
+            "where tpo.organisationUnit.id in (:sources)", request );
+
+        migrate( "update TrackedEntityInstance tei " +
+            "set tei.organisationUnit = :target " +
+            "where tei.organisationUnit.id in (:sources)", request );
+    }
+
+    private void migrate( String hql, OrgUnitMergeRequest request )
+    {
+        getQuery( hql )
+            .setParameter( "target", request.getTarget() )
+            .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( request.getSources() ) )
+            .executeUpdate();
+    }
+
+    private Query<?> getQuery( String hql )
+    {
+        return sessionFactory
+            .getCurrentSession()
+            .createQuery( hql );
     }
 }

@@ -44,7 +44,6 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -502,11 +501,5 @@ public class DefaultInterpretationService
         }
 
         return interpretation.unlike( user );
-    }
-
-    @Override
-    public void migrateInterpretations( Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        interpretationStore.migrate( sources, target );
     }
 }

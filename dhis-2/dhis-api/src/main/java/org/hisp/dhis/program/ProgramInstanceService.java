@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -271,6 +270,4 @@ public interface ProgramInstanceService
      */
     ProgramInstance prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit orgUnit, String uid );
-
-    void migrateProgramInstances( Set<OrganisationUnit> sources, OrganisationUnit target );
 }

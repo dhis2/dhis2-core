@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -37,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -136,9 +134,6 @@ public class ProgramMessageServiceTest
 
     @Autowired
     private SmsConfigurationManager smsConfigurationManager;
-
-    @Autowired
-    private SessionFactory sessionFactory;
 
     // -------------------------------------------------------------------------
     // Prerequisite
@@ -364,39 +359,5 @@ public class ProgramMessageServiceTest
 
         assertNotNull( programMessageUpdated );
         assertTrue( programMessageUpdated.getText().equals( "hello" ) );
-    }
-
-    @Test
-    public void testMigrateProgramMessages()
-    {
-        programMessageService.saveProgramMessage( pmsgA );
-        programMessageService.saveProgramMessage( pmsgB );
-        programMessageService.saveProgramMessage( pmsgC );
-        programMessageService.saveProgramMessage( pmsgD );
-
-        assertEquals( 2, getProgramMessageCount( ouA ) );
-        assertEquals( 2, getProgramMessageCount( ouB ) );
-        assertEquals( 0, getProgramMessageCount( ouC ) );
-
-        programMessageService.migrateProgramMessages( Sets.newHashSet( ouA, ouB ), ouC );
-
-        assertEquals( 0, getProgramMessageCount( ouA ) );
-        assertEquals( 0, getProgramMessageCount( ouB ) );
-        assertEquals( 4, getProgramMessageCount( ouC ) );
-    }
-
-    /**
-     * Test migrate HQL update statement with an HQL select statement to ensure
-     * the updated rows are visible by the current transaction.
-     *
-     * @param target the {@link OrganisationUnit}
-     * @return the count of interpretations.
-     */
-    private long getProgramMessageCount( OrganisationUnit target )
-    {
-        return (Long) sessionFactory.getCurrentSession()
-            .createQuery( "select count(*) from ProgramMessage pm where pm.recipients.organisationUnit = :target" )
-            .setParameter( "target", target )
-            .uniqueResult();
     }
 }

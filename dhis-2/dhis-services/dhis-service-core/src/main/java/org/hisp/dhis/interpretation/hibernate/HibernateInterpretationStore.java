@@ -28,15 +28,12 @@
 package org.hisp.dhis.interpretation.hibernate;
 
 import java.util.List;
-import java.util.Set;
 
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.visualization.Visualization;
@@ -73,18 +70,5 @@ public class HibernateInterpretationStore
         return getQuery( "select distinct i from Interpretation i where i.visualization = :visualization" )
             .setParameter( "visualization", visualization )
             .list();
-    }
-
-    @Override
-    public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        String hql = "update Interpretation i " +
-            "set i.organisationUnit = :target " +
-            "where i.organisationUnit.id in (:sources)";
-
-        getQuery( hql )
-            .setParameter( "target", target )
-            .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )
-            .executeUpdate();
     }
 }

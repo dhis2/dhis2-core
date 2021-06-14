@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -74,9 +73,6 @@ public class ProgramInstanceServiceTest
 
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
-
-    @Autowired
-    private SessionFactory sessionFactory;
 
     private Date incidenDate;
 
@@ -385,40 +381,5 @@ public class ProgramInstanceServiceTest
 
         assertEquals( ProgramStatus.CANCELLED, programInstanceService.getProgramInstance( idA ).getStatus() );
         assertEquals( ProgramStatus.CANCELLED, programInstanceService.getProgramInstance( idD ).getStatus() );
-    }
-
-    @Test
-    public void testMigrateProgramInstances()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceB );
-        programInstanceService.addProgramInstance( programInstanceC );
-        programInstanceService.addProgramInstance( programInstanceD );
-
-        assertEquals( 2, getProgramInstanceCount( organisationUnitA ) );
-        assertEquals( 2, getProgramInstanceCount( organisationUnitB ) );
-        assertEquals( 0, getProgramInstanceCount( organisationUnitB ) );
-
-        programInstanceService.migrateProgramInstances(
-            Sets.newHashSet( organisationUnitA, organisationUnitB ), organisationUnitC );
-
-        assertEquals( 0, getProgramInstanceCount( organisationUnitA ) );
-        assertEquals( 0, getProgramInstanceCount( organisationUnitB ) );
-        assertEquals( 4, getProgramInstanceCount( organisationUnitC ) );
-    }
-
-    /**
-     * Test migrate HQL update statement with an HQL select statement to ensure
-     * the updated rows are visible by the current transaction.
-     *
-     * @param target the {@link OrganisationUnit}
-     * @return the count of interpretations.
-     */
-    private long getProgramInstanceCount( OrganisationUnit target )
-    {
-        return (Long) sessionFactory.getCurrentSession()
-            .createQuery( "select count(*) from ProgramInstance pi where pi.organisationUnit = :target" )
-            .setParameter( "target", target )
-            .uniqueResult();
     }
 }

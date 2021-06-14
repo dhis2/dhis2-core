@@ -25,22 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
+package org.hisp.dhis.merge.orgunit.handler;
 
-import java.util.List;
+import javax.transaction.Transactional;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import lombok.AllArgsConstructor;
 
-/**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
+import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
+import org.springframework.stereotype.Service;
 
-public interface ProgramMessageStore
-    extends IdentifiableObjectStore<ProgramMessage>
+@Service
+@Transactional
+@AllArgsConstructor
+public class DataOrgUnitMergeHandler
 {
-    List<ProgramMessage> getProgramMessages( ProgramMessageQueryParams params );
+    private SessionFactory sessionFactory;
 
-    List<ProgramMessage> getAllOutboundMessages();
+    public void mergeInterpretations( OrgUnitMergeRequest request )
+    {
+        migrate( "update Interpretation i " +
+            "set i.organisationUnit = :target " +
+            "where i.organisationUnit.id in (:sources)", request );
+    }
 
-    boolean exists( String uid );
+    private void migrate( String hql, OrgUnitMergeRequest request )
+    {
+        getQuery( hql )
+            .setParameter( "target", request.getTarget() )
+            .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( request.getSources() ) )
+            .executeUpdate();
+    }
+
+    private Query<?> getQuery( String hql )
+    {
+        return sessionFactory
+            .getCurrentSession()
+            .createQuery( hql );
+    }
 }

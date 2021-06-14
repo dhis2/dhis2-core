@@ -28,11 +28,9 @@
 package org.hisp.dhis.interpretation;
 
 import java.util.List;
-import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.visualization.Visualization;
 
 /**
@@ -44,6 +42,4 @@ public interface InterpretationStore
     List<Interpretation> getInterpretations( Map map );
 
     List<Interpretation> getInterpretations( Visualization visualization );
-
-    void migrate( Set<OrganisationUnit> sources, OrganisationUnit target );
 }

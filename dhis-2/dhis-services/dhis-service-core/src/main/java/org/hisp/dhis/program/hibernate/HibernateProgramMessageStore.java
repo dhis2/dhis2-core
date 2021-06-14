@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-
 import java.util.List;
-import java.util.Set;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
@@ -39,7 +36,6 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageStore;
@@ -100,19 +96,6 @@ public class HibernateProgramMessageStore
         ProgramMessage programMessage = getByUid( uid );
 
         return programMessage != null && programMessage.getId() > 0;
-    }
-
-    @Override
-    public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        String hql = "update ProgramMessage pm " +
-            "set pm.recipients.organisationUnit = :target " +
-            "where pm.recipients.organisationUnit.id in (:sources)";
-
-        getQuery( hql )
-            .setParameter( "target", target )
-            .setParameterList( "sources", getIdentifiers( sources ) )
-            .executeUpdate();
     }
 
     // -------------------------------------------------------------------------

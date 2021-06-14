@@ -33,6 +33,7 @@ import javax.transaction.Transactional;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.handler.AnalyticalObjectOrgUnitMergeHandler;
+import org.hisp.dhis.merge.orgunit.handler.DataOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.MetadataOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.TrackerOrgUnitMergeHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -54,6 +55,8 @@ public class DefaultOrgUnitMergeService
 
     private final AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler;
 
+    private final DataOrgUnitMergeHandler dataHandler;
+
     private final TrackerOrgUnitMergeHandler trackerHandler;
 
     private final OrgUnitMergeValidator validator;
@@ -64,12 +67,14 @@ public class DefaultOrgUnitMergeService
 
     public DefaultOrgUnitMergeService( MetadataOrgUnitMergeHandler metadataHandler,
         AnalyticalObjectOrgUnitMergeHandler analyticalObjectMergeHandler,
+        DataOrgUnitMergeHandler dataHandler,
         TrackerOrgUnitMergeHandler trackerHandler,
         OrgUnitMergeValidator validator,
         IdentifiableObjectManager idObjectManager )
     {
         this.metadataHandler = metadataHandler;
         this.analyticalObjectHandler = analyticalObjectMergeHandler;
+        this.dataHandler = dataHandler;
         this.trackerHandler = trackerHandler;
         this.validator = validator;
         this.idObjectManager = idObjectManager;
@@ -116,8 +121,8 @@ public class DefaultOrgUnitMergeService
             .add( ( r ) -> metadataHandler.mergeCategoryOptions( r ) )
             .add( ( r ) -> metadataHandler.mergeOrganisationUnits( r ) )
             .add( ( r ) -> metadataHandler.mergeUsers( r ) )
-            .add( ( r ) -> metadataHandler.mergeInterpretations( r ) )
             .add( ( r ) -> metadataHandler.mergeConfiguration( r ) )
+            .add( ( r ) -> dataHandler.mergeInterpretations( r ) )
             .add( ( r ) -> analyticalObjectHandler.mergeVisualizations( r ) )
             .add( ( r ) -> analyticalObjectHandler.mergeEventReports( r ) )
             .add( ( r ) -> analyticalObjectHandler.mergeEventCharts( r ) )

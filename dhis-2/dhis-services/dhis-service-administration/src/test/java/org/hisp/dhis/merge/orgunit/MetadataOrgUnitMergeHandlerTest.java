@@ -35,7 +35,6 @@ import static org.mockito.Mockito.mock;
 
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.merge.orgunit.handler.MetadataOrgUnitMergeHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -62,8 +61,8 @@ public class MetadataOrgUnitMergeHandlerTest
     @Before
     public void setUp()
     {
-        handler = new MetadataOrgUnitMergeHandler( mock( UserService.class ),
-            mock( InterpretationService.class ), mock( ConfigurationService.class ) );
+        handler = new MetadataOrgUnitMergeHandler(
+            mock( UserService.class ), mock( ConfigurationService.class ) );
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );

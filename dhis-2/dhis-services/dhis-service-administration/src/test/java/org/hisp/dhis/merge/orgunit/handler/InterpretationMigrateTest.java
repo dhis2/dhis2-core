@@ -25,13 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.interpretation;
+package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.junit.Assert.assertEquals;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.interpretation.Interpretation;
+import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
