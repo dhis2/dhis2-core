@@ -339,22 +339,16 @@ public class DataSetController
 
         if ( ou != null && pe != null )
         {
-            List<DataValue> dataValues;
+            Set<CategoryOptionCombo> attrOptionCombos = options == null || options.isEmpty()
+                ? null
+                : Sets.newHashSet(
+                    inputUtils.getAttributeOptionCombo( dataSet.getCategoryCombo(), options, IdScheme.UID ) );
 
-            if ( options != null && !options.isEmpty() )
-            {
-                CategoryOptionCombo attrOptionCombo = inputUtils.getAttributeOptionCombo( dataSet.getCategoryCombo(),
-                    options, IdScheme.UID );
-                dataValues = dataValueService.getDataValues( ou, pe, dataSets.get( 0 ).getDataElements(),
-                    attrOptionCombo );
-            }
-            else
-            {
-                dataValues = dataValueService.getDataValues( new DataExportParams()
-                    .setDataElements( dataSets.get( 0 ).getDataElements() )
-                    .setPeriods( Sets.newHashSet( pe ) )
-                    .setOrganisationUnits( Sets.newHashSet( ou ) ) );
-            }
+            List<DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
+                .setDataElements( dataSets.get( 0 ).getDataElements() )
+                .setPeriods( Sets.newHashSet( pe ) )
+                .setOrganisationUnits( Sets.newHashSet( ou ) )
+                .setAttributeOptionCombos( attrOptionCombos ) );
 
             FormUtils.fillWithDataValues( form, dataValues );
         }

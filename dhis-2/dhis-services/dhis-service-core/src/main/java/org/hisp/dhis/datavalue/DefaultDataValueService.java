@@ -33,7 +33,6 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -327,14 +326,6 @@ public class DefaultDataValueService
     public List<DataValue> getAllDataValues()
     {
         return dataValueStore.getAllDataValues();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataValue> getDataValues( OrganisationUnit source, Period period,
-        Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo )
-    {
-        return dataValueStore.getDataValues( source, period, dataElements, attributeOptionCombo );
     }
 
     @Override
