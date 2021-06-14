@@ -27,11 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.user.sharing.UserAccess;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -53,8 +48,10 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.hibernate.MappingException;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
@@ -76,7 +73,10 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.render.type.SectionRenderingObject;
 import org.hisp.dhis.render.type.SectionRenderingType;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
@@ -223,9 +223,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         Dashboard dashboard = new Dashboard();
         dashboard.setName( "DashboardA" );
 
-        Sharing sharing = new Sharing();
-        sharing.addUserAccess( new UserAccess( userA, AccessStringHelper.READ ) );
-        dashboard.setSharing( sharing );
+        UserAccess userAccess = new UserAccess( userA, AccessStringHelper.READ );
+        dashboard.getUserAccesses().add( userAccess );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
         metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
@@ -242,7 +241,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertTrue( aclService.canRead( userA, savedDashboard ) );
 
         // Update dashboard with skipSharing=true and no sharing data in payload
-        dashboard.setSharing( null );
+        clearSharing( dashboard );
+
         metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
         params = createParams( ImportStrategy.UPDATE, metadata );
         params.setSkipSharing( true );
@@ -266,10 +266,9 @@ public class MetadataImportServiceTest extends DhisSpringTest
         Dashboard dashboard = new Dashboard();
         dashboard.setName( "DashboardA" );
 
-        Sharing sharing = new Sharing();
-        sharing.setPublicAccess( AccessStringHelper.DEFAULT );
-        sharing.addUserAccess( new UserAccess( userA, AccessStringHelper.READ_WRITE ) );
-        dashboard.setSharing( sharing );
+        UserAccess userAccess = new UserAccess( userA, AccessStringHelper.READ_WRITE );
+        dashboard.getUserAccesses().add( userAccess );
+        dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
         metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
@@ -286,7 +285,8 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertTrue( aclService.canRead( userA, savedDashboard ) );
 
         // Update Dashboard with skipSharing=true and no sharing data in payload
-        dashboard.setSharing( null );
+        clearSharing( dashboard );
+
         metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
 
         params = createParams( ImportStrategy.UPDATE, metadata );
@@ -767,5 +767,24 @@ public class MetadataImportServiceTest extends DhisSpringTest
 
         User user = manager.get( User.class, "MwhEJUnTHkn" );
         assertNotNull( user.getUserCredentials().getUser() );
+    }
+
+    private MetadataImportParams createParams( ImportStrategy importStrategy,
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata )
+    {
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( importStrategy );
+        params.setObjects( metadata );
+
+        return params;
+    }
+
+    private void clearSharing( BaseIdentifiableObject object )
+    {
+        object.setPublicAccess( null );
+        object.setExternalAccess( false );
+        object.getUserAccesses().clear();
+        object.getUserGroupAccesses().clear();
     }
 }
