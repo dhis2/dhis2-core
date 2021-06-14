@@ -103,7 +103,7 @@ public class InterpretationMigrateTest
         assertEquals( 1, getInterpretationCount( ouB ) );
         assertEquals( 1, getInterpretationCount( ouC ) );
 
-        interpretationService.migrate( Sets.newHashSet( ouA, ouB ), ouC );
+        interpretationService.migrateInterpretations( Sets.newHashSet( ouA, ouB ), ouC );
 
         ipA = interpretationService.getInterpretation( ipA.getUid() );
         ipB = interpretationService.getInterpretation( ipB.getUid() );
