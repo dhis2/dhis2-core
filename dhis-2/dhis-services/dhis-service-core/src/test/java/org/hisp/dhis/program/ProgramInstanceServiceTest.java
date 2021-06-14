@@ -217,7 +217,6 @@ public class ProgramInstanceServiceTest
 
         assertNull( programInstanceService.getProgramInstance( idA ) );
         assertNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
-
     }
 
     @Test
@@ -311,6 +310,7 @@ public class ProgramInstanceServiceTest
                 .setProgram( programA )
                 .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) )
                 .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) );
+
         assertEquals( 1, programInstances.size() );
         assertTrue( programInstances.contains( programInstanceA ) );
     }
