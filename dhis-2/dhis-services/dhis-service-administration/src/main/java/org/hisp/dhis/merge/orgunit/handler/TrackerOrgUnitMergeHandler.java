@@ -30,6 +30,7 @@ package org.hisp.dhis.merge.orgunit.handler;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +40,8 @@ public class TrackerOrgUnitMergeHandler
 {
     private final ProgramMessageService programMessageService;
 
+    private final ProgramInstanceService programInstanceService;
+
     public void mergeProgramMessages( OrgUnitMergeRequest request )
     {
         programMessageService.migrateProgramMessages( request.getSources(), request.getTarget() );
@@ -46,6 +49,6 @@ public class TrackerOrgUnitMergeHandler
 
     public void mergeProgramInstances( OrgUnitMergeRequest request )
     {
-        programMessageService.migrateProgramMessages( request.getSources(), request.getTarget() );
+        programInstanceService.migrateProgramInstances( request.getSources(), request.getTarget() );
     }
 }

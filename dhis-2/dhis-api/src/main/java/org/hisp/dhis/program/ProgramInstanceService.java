@@ -272,5 +272,5 @@ public interface ProgramInstanceService
     ProgramInstance prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit orgUnit, String uid );
 
-    void migrate( Set<OrganisationUnit> sources, OrganisationUnit target );
+    void migrateProgramInstances( Set<OrganisationUnit> sources, OrganisationUnit target );
 }

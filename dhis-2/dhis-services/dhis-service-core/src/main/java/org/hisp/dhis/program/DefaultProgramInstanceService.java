@@ -576,7 +576,7 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional
-    public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void migrateProgramInstances( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
         programInstanceStore.migrate( sources, target );
     }
