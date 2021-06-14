@@ -94,5 +94,5 @@ public interface InterpretationService
      */
     boolean unlikeInterpretation( long id );
 
-    void migrate( Set<OrganisationUnit> sources, OrganisationUnit target );
+    void migrateInterpretations( Set<OrganisationUnit> sources, OrganisationUnit target );
 }

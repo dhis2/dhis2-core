@@ -505,7 +505,7 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
+    public void migrateInterpretations( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
         interpretationStore.migrate( sources, target );
     }

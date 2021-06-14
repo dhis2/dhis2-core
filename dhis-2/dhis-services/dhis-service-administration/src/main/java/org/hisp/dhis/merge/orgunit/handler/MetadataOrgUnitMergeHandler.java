@@ -124,7 +124,7 @@ public class MetadataOrgUnitMergeHandler
 
     public void mergeInterpretations( OrgUnitMergeRequest request )
     {
-        interpretationService.migrate( request.getSources(), request.getTarget() );
+        interpretationService.migrateInterpretations( request.getSources(), request.getTarget() );
     }
 
     public void mergeConfiguration( OrgUnitMergeRequest request )
