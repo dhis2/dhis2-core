@@ -39,6 +39,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
 /**
  * Main class for org unit merge.
@@ -80,6 +81,19 @@ public class DefaultOrgUnitMergeService
         // Persistence framework inspection will update associated objects
 
         idObjectManager.update( target );
+    }
+
+    public OrgUnitMergeRequest getFromQuery( OrgUnitMergeQuery query )
+    {
+        Set<OrganisationUnit> sources = Sets.newHashSet(
+            idObjectManager.getByUid( OrganisationUnit.class, query.getSources() ) );
+
+        OrganisationUnit target = idObjectManager.get( OrganisationUnit.class, query.getTarget() );
+
+        return new OrgUnitMergeRequest.Builder()
+            .addSources( sources )
+            .withTarget( target )
+            .build();
     }
 
     // -------------------------------------------------------------------------
