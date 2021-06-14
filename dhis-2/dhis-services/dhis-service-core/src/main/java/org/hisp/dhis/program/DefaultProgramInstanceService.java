@@ -573,11 +573,4 @@ public class DefaultProgramInstanceService
 
         updateProgramInstance( programInstance );
     }
-
-    @Override
-    @Transactional
-    public void migrateProgramInstances( Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        programInstanceStore.migrate( sources, target );
-    }
 }
