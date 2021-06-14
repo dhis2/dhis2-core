@@ -1791,10 +1791,25 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public void migrate( Set<OrganisationUnit> sources, OrganisationUnit target )
     {
-        String hql = "update TrackedEntityInstance tei " +
+        String pohHql = "update ProgramOwnershipHistory poh " +
+            "set poh.organisationUnit = :target " +
+            "where poh.organisationUnit.id in (:sources)";
+
+        String tpo = "update TrackedEntityProgramOwner tpo " +
+            "set tpo.organisationUnit = :target " +
+            "where tpo.organisationUnit.id in (:sources)";
+
+        String teiHql = "update TrackedEntityInstance tei " +
             "set tei.organisationUnit = :target " +
             "where tei.organisationUnit.id in (:sources)";
 
+        migrate( sources, target, pohHql );
+        migrate( sources, target, tpo );
+        migrate( sources, target, teiHql );
+    }
+
+    private void migrate( Set<OrganisationUnit> sources, OrganisationUnit target, String hql )
+    {
         getQuery( hql )
             .setParameter( "target", target )
             .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )

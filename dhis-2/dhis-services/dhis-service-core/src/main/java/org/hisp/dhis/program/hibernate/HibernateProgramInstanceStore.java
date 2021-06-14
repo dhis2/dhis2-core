@@ -470,12 +470,13 @@ public class HibernateProgramInstanceStore
             "set pi.organisationUnit = :target " +
             "where pi.organisationUnit.id in (:sources)";
 
-        getQuery( psiHql )
-            .setParameter( "target", target )
-            .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )
-            .executeUpdate();
+        migrate( sources, target, psiHql );
+        migrate( sources, target, piHql );
+    }
 
-        getQuery( piHql )
+    private void migrate( Set<OrganisationUnit> sources, OrganisationUnit target, String hql )
+    {
+        getQuery( hql )
             .setParameter( "target", target )
             .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )
             .executeUpdate();
