@@ -466,14 +466,14 @@ public class HibernateProgramInstanceStore
             "set psi.organisationUnit = :target " +
             "where psi.organisationUnit.id in (:sources)";
 
+        String piHql = "update ProgramInstance pi " +
+            "set pi.organisationUnit = :target " +
+            "where pi.organisationUnit.id in (:sources)";
+
         getQuery( psiHql )
             .setParameter( "target", target )
             .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )
             .executeUpdate();
-
-        String piHql = "update ProgramInstance pi " +
-            "set pi.organisationUnit = :target " +
-            "where pi.organisationUnit.id in (:sources)";
 
         getQuery( piHql )
             .setParameter( "target", target )

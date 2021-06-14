@@ -102,6 +102,14 @@ public class MetadataOrgUnitMergeHandler
             } );
     }
 
+    public void mergeOrganisationUnits( OrgUnitMergeRequest request )
+    {
+        request.getSources().stream()
+            .map( OrganisationUnit::getChildren )
+            .flatMap( Collection::stream )
+            .forEach( o -> o.updateParent( request.getTarget() ) );
+    }
+
     public void mergeUsers( OrgUnitMergeRequest request )
     {
         final ImmutableSet<User> users = ImmutableSet.<User> builder()

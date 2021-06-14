@@ -114,6 +114,7 @@ public class DefaultOrgUnitMergeService
             .add( ( r ) -> metadataHandler.mergePrograms( r ) )
             .add( ( r ) -> metadataHandler.mergeOrgUnitGroups( r ) )
             .add( ( r ) -> metadataHandler.mergeCategoryOptions( r ) )
+            .add( ( r ) -> metadataHandler.mergeOrganisationUnits( r ) )
             .add( ( r ) -> metadataHandler.mergeUsers( r ) )
             .add( ( r ) -> metadataHandler.mergeInterpretations( r ) )
             .add( ( r ) -> metadataHandler.mergeConfiguration( r ) )
