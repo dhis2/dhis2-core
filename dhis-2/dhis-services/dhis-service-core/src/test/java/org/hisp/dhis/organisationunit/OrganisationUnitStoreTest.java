@@ -50,7 +50,6 @@ import com.google.common.collect.Sets;
  */
 public class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
 {
-
     @Autowired
     private DataSetService dataSetService;
 

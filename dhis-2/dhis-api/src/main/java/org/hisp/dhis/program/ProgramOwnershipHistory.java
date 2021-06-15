@@ -41,7 +41,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
 @JacksonXmlRootElement( localName = "programOwnershipHistory", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramOwnershipHistory implements Serializable
