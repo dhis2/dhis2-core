@@ -37,7 +37,8 @@ import org.hisp.dhis.common.GenericStore;
 public interface ReservedValueStore
     extends GenericStore<ReservedValue>
 {
-    List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
+
+    void reserveValues( List<ReservedValue> toAdd );
 
     List<ReservedValue> reserveValuesAndCheckUniqueness( ReservedValue reservedValue, List<String> values );
 
@@ -47,11 +48,11 @@ public interface ReservedValueStore
 
     int getNumberOfUsedValues( ReservedValue reservedValue );
 
-    void removeExpiredReservations();
-
     boolean useReservedValue( String ownerUID, String value );
 
     void deleteReservedValueByUid( String uid );
 
     boolean isReserved( String ownerObject, String ownerUID, String value );
+
+    void removeUsedOrExpiredReservations();
 }

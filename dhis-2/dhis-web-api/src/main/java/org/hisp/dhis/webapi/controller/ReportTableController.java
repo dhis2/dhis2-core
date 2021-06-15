@@ -52,6 +52,7 @@ import org.hisp.dhis.schema.descriptors.ReportTableSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationGridService;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -81,7 +82,10 @@ public class ReportTableController
     extends ReportTableFacadeController
 {
     @Autowired
-    public VisualizationService visualizationService;
+    private VisualizationService visualizationService;
+
+    @Autowired
+    public VisualizationGridService visualizationGridService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -235,7 +239,7 @@ public class ReportTableController
 
         date = date != null ? date : new Date();
 
-        return visualizationService.getVisualizationGrid( uid, date, organisationUnitUid );
+        return visualizationGridService.getVisualizationGrid( uid, date, organisationUnitUid );
     }
 
     // --------------------------------------------------------------------------

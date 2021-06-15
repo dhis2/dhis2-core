@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -59,9 +59,12 @@ public class RepeatedEventsValidationHook
 
         Map<Pair<String, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle.getEvents()
             .stream()
-            .filter( e -> !rootReporter.isInvalid( TrackerType.EVENT, e.getEvent() ) )
-            .filter( e -> context.getProgram( e.getProgram() ).isRegistration() )
-            .filter( e -> !context.getProgramStage( e.getProgramStage() ).getRepeatable() )
+            .filter( e -> !rootReporter.isInvalid( e ) )
+            .filter( e -> !context.getStrategy( e ).isDelete() )
+            .filter( e -> {
+                ProgramStage programStage = context.getProgramStage( e.getProgramStage() );
+                return programStage.getProgram().isRegistration() && !programStage.getRepeatable();
+            } )
             .collect( Collectors.groupingBy( e -> Pair.of( e.getProgramStage(), e.getEnrollment() ) ) );
 
         for ( Map.Entry<Pair<String, String>, List<Event>> mapEntry : eventsByEnrollmentAndNotRepeatableProgramStage

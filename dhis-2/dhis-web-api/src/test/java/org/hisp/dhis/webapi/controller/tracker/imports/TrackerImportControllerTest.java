@@ -46,7 +46,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
