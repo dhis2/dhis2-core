@@ -25,54 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.visualization;
+package org.hisp.dhis.dxf2.importsummary;
 
-import org.hisp.dhis.common.AnalyticalObjectService;
+import java.util.function.Predicate;
 
 /**
- * Interface responsible for providing CRUD and business methods related to a
- * Visualization object.
+ * A "append only" set of {@link ImportConflict}s.
+ *
+ * @author Jan Bernitt
  */
-public interface VisualizationService
-    extends
-    AnalyticalObjectService<Visualization>
+public interface ImportConflicts
 {
     /**
-     * Saves a Visualization.
+     * Adds a new conflict to this set of conflicts
      *
-     * @param visualization the Visualization to save.
-     * @return the generated identifier.
+     * @param object reference or ID of the object causing the conflict
+     * @param message a description of the conflict
      */
-    long save( Visualization visualization );
+    void addConflict( String object, String message );
 
     /**
-     * Retrieves the Visualization with the given id.
-     *
-     * @param id the id of the Visualization to retrieve.
-     * @return the Visualization.
+     * @return A textual description of all {@link ImportConflict}s in this set
      */
-    Visualization getVisualization( long id );
+    String getConflictsDescription();
 
     /**
-     * Retrieves the Visualization with the given uid.
-     *
-     * @param uid the uid of the Visualization to retrieve.
-     * @return the Visualization.
+     * @return Number of unique conflicts in the set. This can be less than the
+     *         number of conflicts added using
+     *         {@link #addConflict(String, String)} since duplicates are
+     *         eliminated
      */
-    Visualization getVisualization( String uid );
+    int getConflictCount();
 
     /**
-     * Deletes a Visualization.
+     * Tests if a {@link ImportConflict} with certain qualities exists in this
+     * set.
      *
-     * @param visualization the Visualization to delete.
+     * @param test the test to perform
+     * @return true if it exist, otherwise false
      */
-    void delete( Visualization visualization );
+    boolean hasConflict( Predicate<ImportConflict> test );
 
     /**
-     * Retrieves the Visualization with the given uid. Bypasses the ACL system.
-     *
-     * @param uid the uid of the Visualization to retrieve.
-     * @return the Visualization.
+     * @return true, if there are any conflicts in this set, else false
      */
-    Visualization getVisualizationNoAcl( String uid );
+    default boolean hasConflicts()
+    {
+        return getConflictCount() > 0;
+    }
 }

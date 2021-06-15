@@ -82,6 +82,12 @@ public class DefaultGistAccessControl implements GistAccessControl
     private final GistService gistService;
 
     @Override
+    public String getCurrentUserUid()
+    {
+        return currentUser.getUid();
+    }
+
+    @Override
     public boolean isSuperuser()
     {
         return currentUser != null && !currentUser.isSuper();
@@ -131,8 +137,8 @@ public class DefaultGistAccessControl implements GistAccessControl
     @Override
     public boolean canFilterByAccessOfUser( String userUid )
     {
-        User user = userService.getUser( userUid );
-        return user != null && currentUser.canManage( user );
+        User user = getCurrentUserUid().equals( userUid ) ? currentUser : userService.getUser( userUid );
+        return user != null && aclService.canRead( currentUser, user );
     }
 
     @Override

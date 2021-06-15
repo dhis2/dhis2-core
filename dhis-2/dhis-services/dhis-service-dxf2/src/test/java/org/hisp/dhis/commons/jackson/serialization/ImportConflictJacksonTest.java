@@ -25,54 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.visualization;
+package org.hisp.dhis.commons.jackson.serialization;
 
-import org.hisp.dhis.common.AnalyticalObjectService;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Interface responsible for providing CRUD and business methods related to a
- * Visualization object.
+ * @author Jan Bernitt
  */
-public interface VisualizationService
-    extends
-    AnalyticalObjectService<Visualization>
+public class ImportConflictJacksonTest
 {
-    /**
-     * Saves a Visualization.
-     *
-     * @param visualization the Visualization to save.
-     * @return the generated identifier.
-     */
-    long save( Visualization visualization );
 
-    /**
-     * Retrieves the Visualization with the given id.
-     *
-     * @param id the id of the Visualization to retrieve.
-     * @return the Visualization.
-     */
-    Visualization getVisualization( long id );
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    /**
-     * Retrieves the Visualization with the given uid.
-     *
-     * @param uid the uid of the Visualization to retrieve.
-     * @return the Visualization.
-     */
-    Visualization getVisualization( String uid );
+    @Test
+    public void testIterableSerialisedAsJsonArray()
+    {
+        ImportSummary summary = new ImportSummary();
+        summary.addConflict( "foo", "bar" );
+        summary.addConflict( "x", "y" );
 
-    /**
-     * Deletes a Visualization.
-     *
-     * @param visualization the Visualization to delete.
-     */
-    void delete( Visualization visualization );
+        JsonNode summaryNodes = jsonMapper.valueToTree( summary );
 
-    /**
-     * Retrieves the Visualization with the given uid. Bypasses the ACL system.
-     *
-     * @param uid the uid of the Visualization to retrieve.
-     * @return the Visualization.
-     */
-    Visualization getVisualizationNoAcl( String uid );
+        assertTrue( summaryNodes.has( "conflicts" ) );
+        JsonNode conflicts = summaryNodes.get( "conflicts" );
+        assertTrue( conflicts.isArray() );
+        assertEquals( 2, conflicts.size() );
+        assertEquals( "[{\"object\":\"x\",\"value\":\"y\"},{\"object\":\"foo\",\"value\":\"bar\"}]",
+            conflicts.toString() );
+    }
 }

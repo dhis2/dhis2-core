@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -129,7 +130,7 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public ImportSummary executeDataValuePush()
+    public ImportConflicts executeDataValuePush()
         throws WebMessageParseException
     {
         AvailabilityStatus availability = isRemoteServerAvailable();
@@ -156,7 +157,7 @@ public class DefaultSynchronizationManager
      * @param instance the remote system instance.
      * @return an ImportSummary.
      */
-    private ImportSummary executeDataValuePush( SystemInstance instance )
+    private ImportConflicts executeDataValuePush( SystemInstance instance )
         throws WebMessageParseException
     {
         // ---------------------------------------------------------------------
