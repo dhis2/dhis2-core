@@ -103,9 +103,7 @@ public class DefaultOrgUnitProfileService
     @Transactional
     public void saveOrgUnitProfile( OrgUnitProfile profile )
     {
-        KeyJsonValue keyJsonValue = new KeyJsonValue();
-        keyJsonValue.setKey( ORG_UNIT_PROFILE_KEY );
-        keyJsonValue.setNamespace( ORG_UNIT_PROFILE_NAMESPACE );
+        KeyJsonValue keyJsonValue = new KeyJsonValue( ORG_UNIT_PROFILE_KEY, ORG_UNIT_PROFILE_NAMESPACE );
 
         try
         {

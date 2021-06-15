@@ -33,14 +33,17 @@ package org.hisp.dhis.webapi.controller.organisationunit;
 import static com.google.common.base.Preconditions.checkNotNull;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
+import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
@@ -75,5 +78,12 @@ public class OrganisationUnitProfileController
     public OrgUnitProfile getProfile()
     {
         return orgUnitProfileService.getOrgUnitProfile();
+    }
+
+    @GetMapping( path="/data/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )
+    public OrgUnitProfileData getProfile( @PathVariable( value = "uid" ) String uid,
+        @RequestParam(value = "period", required = false ) String isoPperiod )
+    {
+        return orgUnitProfileService.getOrgUnitProfileData( uid, isoPperiod );
     }
 }
