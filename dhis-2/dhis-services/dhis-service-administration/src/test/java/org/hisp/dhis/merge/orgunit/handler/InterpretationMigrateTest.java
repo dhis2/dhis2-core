@@ -110,7 +110,7 @@ public class InterpretationMigrateTest
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
             .addSource( ouA )
             .addSource( ouB )
-            .withTarget( ouA )
+            .withTarget( ouC )
             .build();
 
         mergeHandler.mergeInterpretations( request );
