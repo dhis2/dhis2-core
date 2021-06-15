@@ -1,6 +1,5 @@
 /*
- *
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,9 +24,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
-
 package org.hisp.dhis.orgunitprofile;
 
 import javax.annotation.Nullable;
@@ -35,7 +32,9 @@ import javax.annotation.Nullable;
 public interface OrgUnitProfileService
 {
     String ORG_UNIT_PROFILE_NAMESPACE = "ORG_UNIT_PROFILE";
+
     String ORG_UNIT_PROFILE_KEY = "ORG_UNIT_PROFILE";
+
     String ORG_UNIT_PROFILE_AUTHORITY = "F_ORG_UNIT_PROFILE_ADD";
 
     void saveOrgUnitProfile( OrgUnitProfile profile );
