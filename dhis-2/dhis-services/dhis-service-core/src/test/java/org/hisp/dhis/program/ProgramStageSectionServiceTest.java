@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program;
 
-import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.security.acl.AclService;
@@ -39,7 +39,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProgramStageSectionServiceTest
-    extends TransactionalIntegrationTest
+    extends DhisSpringTest
 {
     @Autowired
     private IdentifiableObjectManager manager;
