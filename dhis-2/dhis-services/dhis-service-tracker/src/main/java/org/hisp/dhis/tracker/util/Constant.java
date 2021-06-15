@@ -32,7 +32,7 @@ import java.util.Set;
 
 import javax.imageio.ImageIO;
 
-import org.hisp.dhis.tracker.preheat.supplier.classStrategy.GenericStrategy;
+import org.hisp.dhis.tracker.preheat.supplier.strategy.GenericStrategy;
 
 import com.google.common.collect.ImmutableSet;
 

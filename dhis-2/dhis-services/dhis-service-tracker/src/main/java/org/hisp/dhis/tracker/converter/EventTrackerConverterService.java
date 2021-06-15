@@ -117,9 +117,6 @@ public class EventTrackerConverterService
                 event.setOrgUnitName( ou.getName() );
             }
 
-            Program program = psi.getProgramInstance().getProgram();
-
-            event.setProgram( program.getUid() );
             event.setEnrollment( psi.getProgramInstance().getUid() );
             event.setProgramStage( psi.getProgramStage().getUid() );
             event.setAttributeOptionCombo( psi.getAttributeOptionCombo().getUid() );
@@ -255,7 +252,7 @@ public class EventTrackerConverterService
             programStageInstance.setAssignedUser( assignedUser );
         }
 
-        if ( programStage.getProgram().isRegistration() && programStageInstance.getDueDate() == null &&
+        if ( program.isRegistration() && programStageInstance.getDueDate() == null &&
             programStageInstance.getExecutionDate() != null )
         {
             programStageInstance.setDueDate( programStageInstance.getExecutionDate() );

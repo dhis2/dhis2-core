@@ -40,13 +40,15 @@ import com.google.common.base.MoreObjects;
  */
 public class IdSchemes
 {
-    private IdScheme idScheme = IdScheme.UID;
+    private IdScheme idScheme;
 
     private IdScheme dataElementIdScheme;
 
     private IdScheme categoryOptionComboIdScheme;
 
     private IdScheme categoryOptionIdScheme;
+
+    private IdScheme categoryIdScheme;
 
     private IdScheme orgUnitIdScheme;
 
@@ -70,17 +72,26 @@ public class IdSchemes
 
     public IdScheme getScheme( IdScheme idScheme )
     {
-        return IdScheme.from( ObjectUtils.firstNonNull( idScheme, this.idScheme ) );
+        return IdScheme.from( ObjectUtils.firstNonNull( idScheme, getIdScheme() ) );
     }
 
     public IdScheme getIdScheme()
     {
-        return IdScheme.from( idScheme );
+        return IdScheme.from( ObjectUtils.firstNonNull( idScheme, IdScheme.UID ) );
     }
 
     public IdSchemes setIdScheme( String idScheme )
     {
         this.idScheme = IdScheme.from( idScheme );
+        return this;
+    }
+
+    public IdSchemes setDefaultIdScheme( IdScheme idScheme )
+    {
+        if ( this.idScheme == null )
+        {
+            this.idScheme = idScheme;
+        }
         return this;
     }
 
@@ -118,6 +129,17 @@ public class IdSchemes
     public IdSchemes setCategoryOptionIdScheme( String idScheme )
     {
         this.categoryOptionIdScheme = IdScheme.from( idScheme );
+        return this;
+    }
+
+    public IdScheme getCategoryIdScheme()
+    {
+        return getScheme( categoryIdScheme );
+    }
+
+    public IdSchemes setCategoryIdScheme( String idScheme )
+    {
+        this.categoryIdScheme = IdScheme.from( idScheme );
         return this;
     }
 
@@ -258,6 +280,7 @@ public class IdSchemes
             .add( "dataElementIdScheme", dataElementIdScheme )
             .add( "categoryOptionComboIdScheme", categoryOptionComboIdScheme )
             .add( "categoryOptionIdScheme", categoryOptionIdScheme )
+            .add( "categoryIdScheme", categoryIdScheme )
             .add( "orgUnitIdScheme", orgUnitIdScheme )
             .add( "programIdScheme", programIdScheme )
             .add( "programStageIdScheme", programStageIdScheme )

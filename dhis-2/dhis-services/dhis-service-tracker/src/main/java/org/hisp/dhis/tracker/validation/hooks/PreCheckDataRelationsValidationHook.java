@@ -105,9 +105,9 @@ public class PreCheckDataRelationsValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy strategy = context.getStrategy( event );
 
-        Program program = context.getProgram( event.getProgram() );
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
+        Program program = context.getProgram( event.getProgram() );
 
         if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
         {
@@ -116,14 +116,25 @@ public class PreCheckDataRelationsValidationHook
 
         if ( program.isRegistration() )
         {
+            if ( StringUtils.isEmpty( event.getEnrollment() ) )
+            {
+                addError( reporter, E1033, event.getEvent() );
+            }
+            else
+            {
+                String programUid = getEnrollmentProgramUidFromEvent( context, event );
+
+                if ( !program.getUid().equals( programUid ) )
+                {
+                    addError( reporter, E1079, event, program, event.getEnrollment() );
+                }
+            }
+
             if ( strategy.isCreate() )
             {
                 validateNotMultipleEvents( reporter, event );
             }
         }
-
-        addErrorIf( () -> program.isRegistration() && StringUtils.isEmpty( event.getEnrollment() ), reporter, E1033,
-            event.getEvent() );
 
         if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
@@ -310,6 +321,30 @@ public class PreCheckDataRelationsValidationHook
         }
 
         return attrOptCombo;
+    }
+
+    private String getEnrollmentProgramUidFromEvent( TrackerImportValidationContext context,
+        Event event )
+    {
+        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
+        if ( programInstance != null )
+        {
+            return programInstance.getProgram().getUid();
+        }
+        else
+        {
+            final Optional<ReferenceTrackerEntity> reference = context.getReference( event.getEnrollment() );
+            if ( reference.isPresent() )
+            {
+                final Optional<Enrollment> enrollment = context.getBundle()
+                    .getEnrollment( event.getEnrollment() );
+                if ( enrollment.isPresent() )
+                {
+                    return enrollment.get().getProgram();
+                }
+            }
+        }
+        return null;
     }
 
     private String getTrackedEntityTypeUidFromEnrollment( TrackerImportValidationContext context,

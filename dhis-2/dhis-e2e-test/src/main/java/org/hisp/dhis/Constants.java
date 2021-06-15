@@ -49,6 +49,8 @@ public class Constants
 
     public static String TRACKED_ENTITY_TYPE_ID = "Q9GufDoplCL";
 
+    public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
+
     public static String[] ORG_UNIT_IDS = {
         "DiszpKrYNg8",
         "g8upMTyEZGZ",

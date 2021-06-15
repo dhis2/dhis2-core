@@ -73,8 +73,6 @@ public class PreCheckUpdatableFieldsValidationHookTest
 
     private final static String EVENT_ID = "EventId";
 
-    private final static String RELATIONSHIP_ID = "RelationshipId";
-
     private PreCheckUpdatableFieldsValidationHook validationHook;
 
     @Rule
@@ -229,23 +227,6 @@ public class PreCheckUpdatableFieldsValidationHookTest
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "enrollment" ) );
     }
 
-    @Test
-    public void verifyEventValidationFailsWhenUpdateProgram()
-    {
-        // given
-        Event event = validEvent();
-        event.setProgram( "NewProgramId" );
-
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
-        validationHook.validateEvent( reporter, event );
-
-        // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1128 ) );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "program" ) );
-    }
-
     private TrackedEntity validTei()
     {
         return TrackedEntity.builder()
@@ -268,7 +249,6 @@ public class PreCheckUpdatableFieldsValidationHookTest
         return Event.builder()
             .event( EVENT_ID )
             .programStage( PROGRAM_STAGE_ID )
-            .program( PROGRAM_ID )
             .enrollment( ENROLLMENT_ID )
             .build();
     }

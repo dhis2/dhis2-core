@@ -180,13 +180,7 @@ public class DefaultTrackerImportAccessManager
         else
         {
             checkProgramStageWriteAccess( reporter, user, programStage );
-            // at this point the link between program and program stage should
-            // be validated
-            // so it is safe to fetch the Program from the program stage
-            final String programUid = programStage.getProgram().getUid();
-            final Program program = reporter.getPreheat().getAll( Program.class )
-                .stream().filter( p -> p.getUid().equals( programUid ) ).findAny()
-                .orElseThrow( () -> new NullPointerException( PROGRAM_CANT_BE_NULL ) );
+            final Program program = programStage.getProgram();
 
             checkProgramReadAccess( reporter, user, program );
 

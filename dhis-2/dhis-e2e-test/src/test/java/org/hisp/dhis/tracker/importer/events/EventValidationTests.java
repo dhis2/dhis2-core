@@ -68,6 +68,8 @@ public class EventValidationTests
 
     private static String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
+    private static String anotherTrackerProgramId = Constants.ANOTHER_TRACKER_PROGRAM_ID;
+
     private static String trackerProgramStageId;
 
     private static String ouIdWithoutAccess;
@@ -82,10 +84,8 @@ public class EventValidationTests
     {
         return Stream.of(
             Arguments.of( OU_ID, trackerProgramId, trackerProgramStageId, "E1033" ),
-            Arguments.arguments( null, eventProgramId, eventProgramStageId,
-                "E1123" ),
-            Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId,
-                "E1029" ),
+            Arguments.arguments( null, eventProgramId, eventProgramStageId, "E1123" ),
+            Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId, "E1029" ),
             Arguments.arguments( OU_ID, trackerProgramId, null, "E1123" ),
             Arguments.arguments( OU_ID, trackerProgramId, eventProgramStageId, "E1089" ) );
     }
@@ -160,6 +160,28 @@ public class EventValidationTests
 
         response.validateErrorReport()
             .body( "errorCode", hasItem( equalTo( errorCode ) ) );
+    }
+
+    @Test
+    public void eventImportShouldValidateProgramFromProgramStage()
+    {
+        JsonObject jsonObject = trackerActions.buildEvent( OU_ID, anotherTrackerProgramId, trackerProgramStageId );
+        jsonObject.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "enrollment", enrollment );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
+
+        response.validateErrorReport()
+                .body( "errorCode", hasItem( equalTo( "E1079" ) ) );
+    }
+
+    @Test
+    public void eventImportShouldPassValidationWhenOnlyEventProgramIsDefined()
+    {
+        JsonObject jsonObject = trackerActions.buildEvent( OU_ID, eventProgramId, null );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
+
+        response.validateSuccessfulImport();
     }
 
     private void setupData()

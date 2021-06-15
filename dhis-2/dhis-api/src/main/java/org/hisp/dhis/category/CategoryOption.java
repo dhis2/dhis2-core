@@ -145,6 +145,11 @@ public class CategoryOption
         organisationUnit.getCategoryOptions().remove( this );
     }
 
+    public void removeOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        organisationUnits.forEach( this::removeOrganisationUnit );
+    }
+
     public boolean includes( OrganisationUnit ou )
     {
         return organisationUnits == null || organisationUnits.isEmpty() || ou.isDescendant( organisationUnits );

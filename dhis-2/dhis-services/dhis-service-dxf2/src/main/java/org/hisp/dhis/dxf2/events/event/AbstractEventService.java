@@ -95,7 +95,7 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.report.EventRows;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -313,7 +313,10 @@ public abstract class AbstractEventService implements EventService
 
         for ( Event event : eventList )
         {
-            if ( trackerOwnershipAccessManager.hasAccess( user,
+            boolean canSkipCheck = event.getTrackedEntityInstance() == null ||
+                trackerOwnershipAccessManager.canSkipOwnershipCheck( user, event.getProgramType() );
+
+            if ( canSkipCheck || trackerOwnershipAccessManager.hasAccess( user,
                 entityInstanceService.getTrackedEntityInstance( event.getTrackedEntityInstance() ),
                 programService.getProgram( event.getProgram() ) ) )
             {
@@ -402,15 +405,17 @@ public abstract class AbstractEventService implements EventService
         {
             grid.addRow();
 
-            if ( params.getProgramStage().getProgram().isRegistration() && user != null || !user.isSuper() )
+            Program program = params.getProgramStage().getProgram();
+
+            if ( !trackerOwnershipAccessManager.canSkipOwnershipCheck( user, program ) )
             {
                 ProgramInstance enrollment = programInstanceService
                     .getProgramInstance( event.get( EVENT_ENROLLMENT_ID ) );
 
                 if ( enrollment != null && enrollment.getEntityInstance() != null )
                 {
-                    if ( !trackerOwnershipAccessManager.hasAccess( user, enrollment.getEntityInstance(),
-                        params.getProgramStage().getProgram() ) )
+                    if ( !trackerOwnershipAccessManager.hasAccess( user,
+                        enrollment.getEntityInstance(), program ) )
                     {
                         continue;
                     }
@@ -463,9 +468,8 @@ public abstract class AbstractEventService implements EventService
         Map<String, Set<String>> psdesWithSkipSyncTrue )
     {
         // A page is not specified here as it would lead to SQLGrammarException
-        // after a
-        // successful sync of few pages
-        // (total count will change and offset won't be valid)
+        // after a successful sync of few pages, as total count will change
+        // and offset won't be valid.
 
         EventSearchParams params = new EventSearchParams().setProgramType( ProgramType.WITHOUT_REGISTRATION )
             .setIncludeDeleted( true ).setSynchronizationQuery( true ).setPageSize( pageSize )
@@ -693,9 +697,7 @@ public abstract class AbstractEventService implements EventService
             localImportOptions = ImportOptions.getDefaultImportOptions();
         }
         // TODO this doesn't make a lot of sense, but I didn't want to change
-        // the
-        // EventService interface
-        // and preserve the "singleValue" flag
+        // the EventService interface and preserve the "singleValue" flag
         localImportOptions.setMergeDataValues( singleValue );
 
         return eventManager.updateEvent( event,
@@ -896,7 +898,7 @@ public abstract class AbstractEventService implements EventService
         }
     }
 
-    public static String getValidUsername( String userName, ImportSummary importSummary, String fallbackUsername )
+    public static String getValidUsername( String userName, ImportConflicts importConflicts, String fallbackUsername )
     {
         String validUsername = userName;
 
@@ -906,10 +908,10 @@ public abstract class AbstractEventService implements EventService
         }
         else if ( !ValidationUtils.usernameIsValid( userName ) )
         {
-            if ( importSummary != null )
+            if ( importConflicts != null )
             {
-                importSummary.getConflicts().add( new ImportConflict( "Username", validUsername + " is more than "
-                    + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
+                importConflicts.addConflict( "Username", validUsername + " is more than "
+                    + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" );
             }
 
             validUsername = User.getSafeUsername( fallbackUsername );

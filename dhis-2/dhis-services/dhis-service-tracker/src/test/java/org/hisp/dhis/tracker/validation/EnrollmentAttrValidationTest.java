@@ -41,7 +41,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.*;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -55,12 +54,6 @@ public class EnrollmentAttrValidationTest
 {
     @Autowired
     protected TrackedEntityInstanceService trackedEntityInstanceService;
-
-    @Autowired
-    private TrackerBundleService trackerBundleService;
-
-    @Autowired
-    private DefaultTrackerValidationService trackerValidationService;
 
     @Autowired
     private TrackerImportService trackerImportService;

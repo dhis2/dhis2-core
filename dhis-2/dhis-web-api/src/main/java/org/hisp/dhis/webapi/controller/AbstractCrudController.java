@@ -60,6 +60,7 @@ import org.hisp.dhis.common.NamedParams;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -90,6 +91,7 @@ import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
@@ -137,6 +139,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -224,6 +227,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected MergeService mergeService;
 
     @Autowired
+    protected JsonPatchManager jsonPatchManager;
+
+    @Autowired
     protected PatchService patchService;
 
     @Autowired
@@ -275,22 +281,26 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         throws Exception
     {
         Property objProperty = getSchema().getProperty( property );
+
         if ( objProperty == null )
         {
             throw new BadRequestException( "No such property: " + property );
         }
+
         if ( !objProperty.isCollection() )
         {
             return gistToJsonObjectResponse( uid, createGistQuery( request, getEntityClass(), GistAutoType.L )
                 .withFilter( new Filter( "id", Comparison.EQ, uid ) )
                 .withField( property ) );
         }
+
         GistQuery query = createGistQuery( request, (Class<IdentifiableObject>) objProperty.getItemKlass(),
             GistAutoType.M )
                 .withOwner( Owner.builder()
                     .id( uid )
                     .type( getEntityClass() )
                     .collectionProperty( property ).build() );
+
         return gistToJsonArrayResponse( request, query,
             schemaService.getDynamicSchema( objProperty.getItemKlass() ) );
     }
@@ -569,8 +579,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
     }
 
+    // --------------------------------------------------------------------------
+    // OLD PATCH
+    // --------------------------------------------------------------------------
+
     @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    @ApiVersion( { DhisApiVersion.V34, DhisApiVersion.V35, DhisApiVersion.V36 } )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request )
@@ -614,8 +629,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PATCH } )
+    @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    @ApiVersion( { DhisApiVersion.V34, DhisApiVersion.V35, DhisApiVersion.V36 } )
     public void updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
@@ -663,6 +679,73 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
+    }
+
+    // --------------------------------------------------------------------------
+    // PATCH
+    // --------------------------------------------------------------------------
+
+    /**
+     * Adds support for HTTP Patch using JSON Patch (RFC 6902), updated object
+     * is run through normal metadata importer and internally looks like a
+     * normal PUT (after the JSON Patch has been applied).
+     */
+    @ResponseBody
+    @PatchMapping( path = "/{uid}", consumes = { MediaType.APPLICATION_JSON_VALUE, "application/json-patch+json" } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V34,
+        DhisApiVersion.V35, DhisApiVersion.V36 } )
+    public void partialUpdateObject(
+        @PathVariable( "uid" ) String pvUid,
+        @RequestParam Map<String, String> rpParameters,
+        HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
+    {
+        WebOptions options = new WebOptions( rpParameters );
+        List<T> entities = getEntity( pvUid, options );
+
+        if ( entities.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        final T persistedObject = entities.get( 0 );
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( !aclService.canUpdate( user, persistedObject ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
+        prePatchEntity( persistedObject );
+
+        final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
+        final T patchedObject = (T) jsonPatchManager.apply( patch, persistedObject );
+
+        // we don't allow changing UIDs
+        ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
+
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( patchedObject );
+
+        ImportReport importReport = importService.importMetadata( params );
+        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
+
+        if ( importReport.getStatus() == Status.OK )
+        {
+            T entity = manager.get( getEntityClass(), pvUid );
+            postPatchEntity( entity );
+        }
+        else
+        {
+            webMessage.setStatus( Status.ERROR );
+        }
+
+        webMessageService.send( webMessage, response, request );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -1691,5 +1774,4 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
             + options.getRootJunction().name();
     }
-
 }

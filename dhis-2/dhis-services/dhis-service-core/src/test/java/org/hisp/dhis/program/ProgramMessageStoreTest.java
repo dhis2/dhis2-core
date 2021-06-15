@@ -101,8 +101,6 @@ public class ProgramMessageStoreTest
 
     private String notificationTemplate = CodeGenerator.generateUid();
 
-    private String subject = "subjectText";
-
     private Date incidentDate;
 
     private Date enrollmentDate;

@@ -376,7 +376,6 @@ public class LoadFormAction
             dataSetCopy.setRenderHorizontally( dataSet.isRenderHorizontally() );
             dataSetCopy.setDataElementDecoration( dataSet.isDataElementDecoration() );
             dataSetCopy.setCompulsoryDataElementOperands( dataSet.getCompulsoryDataElementOperands() );
-            dataSet = dataSetCopy;
 
             for ( int i = 0; i < orderedCategoryCombos.size(); i++ )
             {
@@ -392,8 +391,14 @@ public class LoadFormAction
                 dataSetCopy.getSections().add( section );
 
                 section.getDataElements().addAll( orderedDataElements.get( categoryCombo ) );
-                section.setIndicators( new ArrayList<>( dataSet.getIndicators() ) );
+
+                if ( i == 0 )
+                {
+                    section.setIndicators( new ArrayList<>( dataSet.getIndicators() ) );
+                }
             }
+
+            dataSet = dataSetCopy;
 
             formType = FormType.SECTION;
         }

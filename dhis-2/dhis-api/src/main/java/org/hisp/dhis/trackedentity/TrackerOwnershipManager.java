@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.User;
 
 /**
@@ -85,4 +86,26 @@ public interface TrackerOwnershipManager
      * @param reason The reason for requesting temporary ownership
      */
     void grantTemporaryOwnership( TrackedEntityInstance entityInstance, Program program, User user, String reason );
+
+    /**
+     * Ownership check can be skipped if the user is super user or if the
+     * program type is without registration.
+     *
+     * @param user the {@User}.
+     * @param program the {@link Program}.
+     *
+     * @return true if ownership check can be skipped.
+     */
+    boolean canSkipOwnershipCheck( User user, Program program );
+
+    /**
+     * Ownership check can be skipped if the user is super user or if the
+     * program type is without registration.
+     *
+     * @param user the {@User}.
+     * @param programType the {@link ProgramType}.
+     *
+     * @return true if ownership check can be skipped.
+     */
+    boolean canSkipOwnershipCheck( User user, ProgramType programType );
 }
