@@ -72,8 +72,8 @@ public class OrganisationUnitProfileController
     }
 
     @GetMapping( produces = MediaType.APPLICATION_JSON_VALUE )
-    public String getProfile()
+    public OrgUnitProfile getProfile()
     {
-        return orgUnitProfileService.getStringOrgUnitProfile();
+        return orgUnitProfileService.getOrgUnitProfile();
     }
 }

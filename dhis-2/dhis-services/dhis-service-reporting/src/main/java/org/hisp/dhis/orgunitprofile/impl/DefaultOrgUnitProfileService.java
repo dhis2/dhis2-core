@@ -141,20 +141,6 @@ public class DefaultOrgUnitProfileService
         }
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public String getStringOrgUnitProfile()
-    {
-        KeyJsonValue value = dataStore.getKeyJsonValue( ORG_UNIT_PROFILE_NAMESPACE, ORG_UNIT_PROFILE_KEY );
-
-        if ( value == null )
-        {
-            return StringUtils.EMPTY;
-        }
-
-        return value.getValue();
-    }
-
     public OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod )
     {
         // If profile is empty, only fixed info will be included

@@ -42,7 +42,5 @@ public interface OrgUnitProfileService
 
     OrgUnitProfile getOrgUnitProfile();
 
-    String getStringOrgUnitProfile();
-
     OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod );
 }
