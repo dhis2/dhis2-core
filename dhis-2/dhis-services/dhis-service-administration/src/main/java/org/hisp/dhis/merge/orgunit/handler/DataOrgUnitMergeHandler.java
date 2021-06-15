@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.validation.ValidationResultService;
@@ -47,6 +48,8 @@ public class DataOrgUnitMergeHandler
 {
     private SessionFactory sessionFactory;
 
+    private DataSetService dataSetService;
+
     private ValidationResultService validationResultService;
 
     private MinMaxDataElementService minMaxDataElementService;
@@ -56,6 +59,11 @@ public class DataOrgUnitMergeHandler
         migrate( "update Interpretation i " +
             "set i.organisationUnit = :target " +
             "where i.organisationUnit.id in (:sources)", request );
+    }
+
+    public void mergeLockExceptions( OrgUnitMergeRequest request )
+    {
+        request.getSources().forEach( ou -> dataSetService.deleteLockExceptions( ou ) );
     }
 
     public void mergeValidationResults( OrgUnitMergeRequest request )
@@ -68,7 +76,7 @@ public class DataOrgUnitMergeHandler
 
     public void mergeMinMaxDataElements( OrgUnitMergeRequest request )
     {
-        request.getSources().forEach( s -> minMaxDataElementService.removeMinMaxDataElements( s ) );
+        request.getSources().forEach( ou -> minMaxDataElementService.removeMinMaxDataElements( ou ) );
     }
 
     private void migrate( String hql, OrgUnitMergeRequest request )

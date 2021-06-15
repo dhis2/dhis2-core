@@ -235,6 +235,13 @@ public interface DataSetService extends DataSetDataIntegrityProvider
     void deleteLockExceptionCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
 
     /**
+     * Delete lock exceptions for the given organisation unit.
+     *
+     * @param organisationUnit the {@link OrganisationUnit}.
+     */
+    void deleteLockExceptions( OrganisationUnit organisationUnit );
+
+    /**
      * Checks whether the period is locked for data entry for the given input,
      * checking the dataset's expiryDays and lockExceptions.
      *

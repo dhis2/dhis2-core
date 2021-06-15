@@ -127,6 +127,7 @@ public class DefaultOrgUnitMergeService
             .add( ( r ) -> metadataHandler.mergeUsers( r ) )
             .add( ( r ) -> metadataHandler.mergeConfiguration( r ) )
             .add( ( r ) -> dataHandler.mergeInterpretations( r ) )
+            .add( ( r ) -> dataHandler.mergeLockExceptions( r ) )
             .add( ( r ) -> dataHandler.mergeValidationResults( r ) )
             .add( ( r ) -> dataHandler.mergeMinMaxDataElements( r ) )
             .add( ( r ) -> analyticalObjectHandler.mergeVisualizations( r ) )
