@@ -35,12 +35,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.comparator.CategoryComboComparator;
+import org.hisp.dhis.category.comparator.CategoryComboSizeNameComparator;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataelement.DataElement;
@@ -448,12 +449,18 @@ public class LoadFormAction
         {
             List<Long> categoryCombos = new ArrayList<>();
 
-            for ( CategoryCombo categoryCombo : section.getCategoryCombos() )
+            if ( !section.getCategoryCombos().isEmpty() )
             {
-                categoryCombos.add( categoryCombo.getId() );
+                List<CategoryCombo> sortedCategoryombos = section.getCategoryCombos().stream()
+                    .sorted( new CategoryComboSizeNameComparator() ).collect( Collectors.toList() );
 
-                sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId(),
-                    section.getDataElementsByCategoryCombo( categoryCombo ) );
+                for ( CategoryCombo categoryCombo : sortedCategoryombos )
+                {
+                    categoryCombos.add( categoryCombo.getId() );
+
+                    sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId(),
+                        section.getDataElementsByCategoryCombo( categoryCombo ) );
+                }
             }
 
             if ( !categoryCombos.isEmpty() )
@@ -481,11 +488,7 @@ public class LoadFormAction
             categoryCombos.add( dataElement.getDataElementCategoryCombo( dataSet ) );
         }
 
-        List<CategoryCombo> listCategoryCombos = new ArrayList<>( categoryCombos );
-
-        Collections.sort( listCategoryCombos, new CategoryComboComparator() );
-
-        return listCategoryCombos;
+        return categoryCombos.stream().sorted( new CategoryComboSizeNameComparator() ).collect( Collectors.toList() );
     }
 
     private void addOptionAccess( User user, Map<String, Boolean> optionAccessMap,

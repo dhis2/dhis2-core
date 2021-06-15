@@ -28,14 +28,11 @@
 package org.hisp.dhis.dataset;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.comparator.CategoryComboComparator;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -98,7 +95,7 @@ public class Section
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<CategoryCombo> getCategoryCombos()
+    public Set<CategoryCombo> getCategoryCombos()
     {
         Set<CategoryCombo> categoryCombos = new HashSet<>();
 
@@ -112,9 +109,7 @@ public class Section
             }
         }
 
-        List<CategoryCombo> sortedCategoryombos = categoryCombos.stream().sorted(new CategoryComboComparator()).collect( Collectors.toList() );
-
-        return sortedCategoryombos;
+        return categoryCombos;
     }
 
     public boolean hasDataElements()

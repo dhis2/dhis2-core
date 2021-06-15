@@ -35,7 +35,7 @@ import java.util.Comparator;
 
 import org.hisp.dhis.category.CategoryCombo;
 
-public class CategoryComboComparator
+public class CategoryComboSizeNameComparator
     implements Comparator<CategoryCombo>
 {
     @Override
