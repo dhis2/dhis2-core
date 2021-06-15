@@ -29,7 +29,6 @@
 package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
@@ -38,7 +37,6 @@ import org.hisp.dhis.dto.Program;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
@@ -47,7 +45,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -66,11 +63,11 @@ public class EventIdSchemeTests
 
     private static final String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute " + DataGenerator.randomString();
 
+    private static String ATTRIBUTE_ID;
+
     private String programId;
 
     private String programStageId;
-
-    private static String ATTRIBUTE_ID;
 
     private OrgUnitActions orgUnitActions;
 
@@ -103,7 +100,8 @@ public class EventIdSchemeTests
     }
 
     @BeforeEach
-    public void beforeEach() {
+    public void beforeEach()
+    {
         loginActions.loginAsSuperUser();
     }
 
@@ -167,7 +165,7 @@ public class EventIdSchemeTests
         orgUnitId = orgUnitActions.create( orgUnit );
         assertNotNull( orgUnitId, "Failed to setup org unit" );
 
-        Program program = programActions.createEventProgram(orgUnitId);
+        Program program = programActions.createEventProgram( orgUnitId );
         programId = program.getId();
         programStageId = program.getStages().get( 0 );
 

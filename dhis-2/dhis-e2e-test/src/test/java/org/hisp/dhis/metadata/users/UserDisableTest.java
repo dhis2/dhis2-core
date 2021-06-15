@@ -28,8 +28,6 @@ package org.hisp.dhis.metadata.users;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.CoreMatchers.is;
-
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
@@ -37,6 +35,8 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.CoreMatchers.is;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

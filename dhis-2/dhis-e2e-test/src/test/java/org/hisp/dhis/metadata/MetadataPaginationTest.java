@@ -84,7 +84,7 @@ public class MetadataPaginationTest
 
         response.validate().statusCode( 200 );
 
-        paginationActions.assertPagination( response, 100, 100 / pageSize, pageSize, startPage);
+        paginationActions.assertPagination( response, 100, 100 / pageSize, pageSize, startPage );
     }
 
     @Test
@@ -96,12 +96,12 @@ public class MetadataPaginationTest
         ApiResponse response = paginationActions.getPaginated(
             Arrays.asList( DEFAULT_METADATA_FILTER.split( "," ) ),
             Arrays.asList( DEFAULT_METADATA_FIELDS.split( "," ) ),
-            Collections.singletonList("id:ASC"),
+            Collections.singletonList( "id:ASC" ),
             startPage, pageSize );
 
         response.validate().statusCode( 200 );
 
-        paginationActions.assertPagination( response, 100, 100 / pageSize, pageSize, startPage);
+        paginationActions.assertPagination( response, 100, 100 / pageSize, pageSize, startPage );
     }
 
 }

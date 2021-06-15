@@ -112,7 +112,8 @@ public class OrgUnitsRemovalTest
         orgUnitActions.delete( parentId )
             .validate()
             .statusCode( 409 )
-            .body( "message", containsStringIgnoringCase( "Object could not be deleted because it is associated with another object: OrganisationUnit" ) )
+            .body( "message", containsStringIgnoringCase(
+                "Object could not be deleted because it is associated with another object: OrganisationUnit" ) )
             .body( "errorCode", equalTo( "E4030" ) );
 
     }

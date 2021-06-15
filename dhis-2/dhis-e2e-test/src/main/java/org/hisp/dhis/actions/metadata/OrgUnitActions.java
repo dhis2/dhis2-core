@@ -96,8 +96,9 @@ public class OrgUnitActions
         return orgUnit;
     }
 
-    public JsonObject createOrgUnitBody() {
-        return JsonParserUtils.toJsonObject(  generateDummy());
+    public JsonObject createOrgUnitBody()
+    {
+        return JsonParserUtils.toJsonObject( generateDummy() );
     }
 
     public String createOrgUnit()
@@ -131,7 +132,8 @@ public class OrgUnitActions
         return create( orgUnit );
     }
 
-    public void addAttributeValue(String orgUnit, String attributeId, String attributeValue) {
+    public void addAttributeValue( String orgUnit, String attributeId, String attributeValue )
+    {
         JsonObject orgUnitObj = this.get( orgUnit ).getBody();
 
         JsonObject attributeObj = new JsonObject();
@@ -139,7 +141,7 @@ public class OrgUnitActions
 
         JsonObject attributeValueObj = new JsonObject();
         attributeValueObj.addProperty( "value", attributeValue );
-        attributeValueObj.add("attribute", attributeObj );
+        attributeValueObj.add( "attribute", attributeObj );
 
         JsonArray attributeValues = orgUnitObj.getAsJsonArray( "attributeValues" );
         attributeValues.add( attributeValueObj );

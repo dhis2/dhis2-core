@@ -39,7 +39,6 @@ import org.hisp.dhis.dto.OrgUnit;
 import org.hisp.dhis.dto.Program;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,11 +46,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -77,7 +74,9 @@ public class EventImportIdSchemeTests
     private AttributeActions attributeActions;
 
     private String orgUnitId;
+
     private String programId;
+
     private String programStageId;
 
     private static Stream<Arguments> provideIdSchemeArguments()
@@ -104,7 +103,8 @@ public class EventImportIdSchemeTests
     }
 
     @BeforeEach
-    public void beforeEach() {
+    public void beforeEach()
+    {
         loginActions.loginAsSuperUser();
     }
 
@@ -117,7 +117,7 @@ public class EventImportIdSchemeTests
 
         assertNotNull( ouPropertyValue, String.format( "Org unit property %s was not present.", ouProperty ) );
 
-        JsonObject object = eventActions.createEventBody(ouPropertyValue, programId, programStageId);
+        JsonObject object = eventActions.createEventBody( ouPropertyValue, programId, programStageId );
 
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
             .add( "skipCache=true" )
@@ -186,7 +186,7 @@ public class EventImportIdSchemeTests
 
         Program program = programActions.createEventProgram( orgUnitId );
         programId = program.getId();
-        programStageId = program.getStages().get( 0);
+        programStageId = program.getStages().get( 0 );
 
         orgUnitActions.update( orgUnitId, addAttributeValuePayload( orgUnitActions.get( orgUnitId ).getBody(), ATTRIBUTE_ID,
             ATTRIBUTE_VALUE ) )
@@ -199,10 +199,10 @@ public class EventImportIdSchemeTests
 
     public JsonObject addAttributeValuePayload( JsonObject json, String attributeId, String attributeValue )
     {
-        json =  new JsonObjectBuilder( json)
+        json = new JsonObjectBuilder( json )
             .addArray( "attributeValues", new JsonObjectBuilder()
                 .addProperty( "value", attributeValue )
-                .addObject( "attribute", new JsonObjectBuilder().addProperty( "id", attributeId ))
+                .addObject( "attribute", new JsonObjectBuilder().addProperty( "id", attributeId ) )
                 .build() )
             .build();
 

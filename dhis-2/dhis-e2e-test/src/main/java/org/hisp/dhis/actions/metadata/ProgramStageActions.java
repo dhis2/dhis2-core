@@ -38,9 +38,10 @@ import static org.hamcrest.CoreMatchers.equalTo;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ProgramStageActions extends RestApiActions
+public class ProgramStageActions
+    extends RestApiActions
 {
-    public ProgramStageActions( )
+    public ProgramStageActions()
     {
         super( "/programStages" );
     }

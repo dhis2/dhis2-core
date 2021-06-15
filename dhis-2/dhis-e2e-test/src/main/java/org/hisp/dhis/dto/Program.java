@@ -35,16 +35,20 @@ import java.util.List;
  */
 public class Program
 {
-    public Program( String id ) {
-        this.id = id;
-    }
-    public Program(String id, List<String> stages) {
-        this.id = id;
-        this.stages = stages;
-    }
     private List<String> stages;
 
     private String id;
+
+    public Program( String id )
+    {
+        this.id = id;
+    }
+
+    public Program( String id, List<String> stages )
+    {
+        this.id = id;
+        this.stages = stages;
+    }
 
     public List<String> getStages()
     {

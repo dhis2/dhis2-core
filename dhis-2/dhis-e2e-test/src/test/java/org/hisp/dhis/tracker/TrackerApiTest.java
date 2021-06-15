@@ -34,9 +34,6 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.SharingActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.parallel.Execution;
@@ -45,13 +42,12 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import java.io.File;
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @Execution( ExecutionMode.SAME_THREAD )
-public class TrackerApiTest extends ApiTest
+public class TrackerApiTest
+    extends ApiTest
 {
     protected ProgramActions programActions;
 
@@ -71,7 +67,9 @@ public class TrackerApiTest extends ApiTest
             .replaceStringsWithIds( "Kj6vYde4LHh", "MNWZ6hnuhSw", "ZwwuwNp6gVd", "Nav6inZRw1u", "PuBvJxDB73z" )
             .get( JsonObject.class );
     }
-    protected String createEventProgram(  ) {
+
+    protected String createEventProgram()
+    {
         String programId = programActions.createEventProgram( Constants.ORG_UNIT_IDS ).getId();
         new SharingActions().setupSharingForConfiguredUserGroup( "program", programId );
 

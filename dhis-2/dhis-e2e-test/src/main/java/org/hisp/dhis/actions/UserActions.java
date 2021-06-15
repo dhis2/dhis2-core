@@ -28,15 +28,14 @@ package org.hisp.dhis.actions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.Matchers.equalTo;
-
-import java.util.List;
-
+import com.google.gson.JsonObject;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 
-import com.google.gson.JsonObject;
+import java.util.List;
+
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -56,15 +55,15 @@ public class UserActions
         String id = idGenerator.generateUniqueId();
 
         JsonObject user = new JsonObjectBuilder()
-            .addProperty( "id", id)
+            .addProperty( "id", id )
             .addProperty( "firstName", firstName )
             .addProperty( "surname", surname )
             .addObject( "userCredentials", new JsonObjectBuilder()
                 .addProperty( "username", username )
-                .addProperty( "password", password ))
-                .addObject( "userInfo", new JsonObjectBuilder().addProperty( "id", id ) )
+                .addProperty( "password", password ) )
+            .addObject( "userInfo", new JsonObjectBuilder().addProperty( "id", id ) )
             .addObject( "userInfo", new JsonObjectBuilder()
-                .addProperty( "id", id ))
+                .addProperty( "id", id ) )
             .build();
 
         ApiResponse response = this.post( user );
@@ -125,7 +124,7 @@ public class UserActions
 
         ApiResponse response = this.update( userId, object );
         response.validate().statusCode( 200 )
-            .body( "status", equalTo("OK" ));
+            .body( "status", equalTo( "OK" ) );
     }
 
     public void grantCurrentUserAccessToOrgUnit( String orgUnitId )

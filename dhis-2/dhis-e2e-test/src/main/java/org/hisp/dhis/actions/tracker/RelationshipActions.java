@@ -28,10 +28,8 @@ package org.hisp.dhis.actions.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

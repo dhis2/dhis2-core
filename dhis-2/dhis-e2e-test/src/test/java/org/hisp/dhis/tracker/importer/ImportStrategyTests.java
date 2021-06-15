@@ -65,16 +65,18 @@ public class ImportStrategyTests
     {
         return Stream.of(
             Arguments.of( "Teis with enrollments and events", buildTeiWithEnrollmentAndEvent() ),
-            Arguments.of( "Teis and enrollment", buildTeiAndEnrollmentFlat()),
+            Arguments.of( "Teis and enrollment", buildTeiAndEnrollmentFlat() ),
             Arguments.of( "Teis", new FileReaderUtils()
-                .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teis.json") )),
+                .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teis.json" ) ) ),
             Arguments.of( "Events", new FileReaderUtils()
-                .read(new File("src/test/resources/tracker/importer/events/events.json"  )).replacePropertyValuesWithIds( "event" ).get())
+                .read( new File( "src/test/resources/tracker/importer/events/events.json" ) )
+                .replacePropertyValuesWithIds( "event" ).get() )
         );
     }
-    @ParameterizedTest( name = "{0}")
+
+    @ParameterizedTest( name = "{0}" )
     @MethodSource( "providePayloads" )
-    public void shouldDeleteWithDeleteStrategy( String displayName, JsonObject object)
+    public void shouldDeleteWithDeleteStrategy( String displayName, JsonObject object )
         throws Exception
     {
         // arrange
@@ -126,7 +128,7 @@ public class ImportStrategyTests
         String program = Constants.TRACKER_PROGRAM_ID;
         String programStage = "nlXNK4b7LVr";
 
-        JsonObject body = trackerActions.buildTeiWithEnrollmentAndEvent( ou, program, programStage);
+        JsonObject body = trackerActions.buildTeiWithEnrollmentAndEvent( ou, program, programStage );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( body );
 
@@ -139,7 +141,7 @@ public class ImportStrategyTests
             .addProperty( "orgUnit", ou )
             .addProperty( "program", program )
             .addProperty( "trackedEntity", teiId )
-        .wrapIntoArray( "enrollments" );
+            .wrapIntoArray( "enrollments" );
 
         // act
         trackerActions.postAndGetJobReport( body, new QueryParamsBuilder().add( "importStrategy=DELETE" ) )

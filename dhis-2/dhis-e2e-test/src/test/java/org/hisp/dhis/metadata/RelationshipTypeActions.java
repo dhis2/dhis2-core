@@ -33,46 +33,52 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 
-import java.util.Locale;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class RelationshipTypeActions extends RestApiActions
+public class RelationshipTypeActions
+    extends RestApiActions
 {
-    public RelationshipTypeActions( )
+    public RelationshipTypeActions()
     {
         super( "/relationshipTypes" );
     }
 
-    public String create(String fromRelationshipEntity, String fromRelationshipEntityId, String toRelationshipEntity, String toRelationshipEntityId) {
+    public String create( String fromRelationshipEntity, String fromRelationshipEntityId, String toRelationshipEntity,
+        String toRelationshipEntityId )
+    {
         JsonObject obj = JsonObjectBuilder.jsonObject()
             .addProperty( "name", "TA relationship type" + DataGenerator.randomString() )
             .addProperty( "fromToName", "TA FROM NAME" )
             .addProperty( "toFromName", "TA TO NAME" )
-            .addObject( "fromConstraint", JsonObjectBuilder.jsonObject(getRelationshipTypeConstraint( fromRelationshipEntity, fromRelationshipEntityId ) ))
-            .addObject( "toConstraint", JsonObjectBuilder.jsonObject(getRelationshipTypeConstraint( toRelationshipEntity, toRelationshipEntityId ) ))
+            .addObject( "fromConstraint",
+                JsonObjectBuilder.jsonObject( getRelationshipTypeConstraint( fromRelationshipEntity, fromRelationshipEntityId ) ) )
+            .addObject( "toConstraint",
+                JsonObjectBuilder.jsonObject( getRelationshipTypeConstraint( toRelationshipEntity, toRelationshipEntityId ) ) )
             .build();
 
         return this.create( obj );
     }
 
-    private JsonObject getRelationshipTypeConstraint( String relationshipEntity, String id ) {
+    private JsonObject getRelationshipTypeConstraint( String relationshipEntity, String id )
+    {
         JsonObject obj = new JsonObject();
         obj.addProperty( "relationshipEntity", relationshipEntity );
-        switch ( relationshipEntity ) {
+        switch ( relationshipEntity )
+        {
         case "TRACKED_ENTITY_INSTANCE":
             return new JsonObjectBuilder( obj )
                 .addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", id ) )
                 .build();
 
-
-        case "PROGRAM_STAGE_INSTANCE": {
+        case "PROGRAM_STAGE_INSTANCE":
+        {
             return new JsonObjectBuilder( obj )
                 .addObject( "program", new JsonObjectBuilder().addProperty( "id", id ) )
                 .build();
         }
-    }
+        }
 
-    return new JsonObject();
-}}
+        return new JsonObject();
+    }
+}

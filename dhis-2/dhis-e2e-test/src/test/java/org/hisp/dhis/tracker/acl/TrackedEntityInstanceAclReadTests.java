@@ -6,7 +6,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.collections.ListUtils;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
@@ -40,13 +39,13 @@ public class TrackedEntityInstanceAclReadTests
 {
     private static final String _DATAREAD = "..r.*";
 
+    private static final List<User> users = new ArrayList<>();
+
     private MetadataActions metadataActions;
 
     private UserActions userActions;
 
     private TEIActions teiActions;
-
-    private static final List<User> users = new ArrayList<>();
 
     @BeforeAll
     public void before()

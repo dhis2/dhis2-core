@@ -29,7 +29,6 @@
 package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;

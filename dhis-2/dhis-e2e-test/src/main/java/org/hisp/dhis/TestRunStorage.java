@@ -51,7 +51,8 @@ public class TestRunStorage
         @Override
         protected AuthenticationScheme initialValue()
         {
-            return preemptive().basic( TestConfiguration.get().defaultUserUsername(), TestConfiguration.get().defaultUSerPassword() );
+            return preemptive()
+                .basic( TestConfiguration.get().defaultUserUsername(), TestConfiguration.get().defaultUSerPassword() );
         }
     };
 
@@ -64,8 +65,6 @@ public class TestRunStorage
     {
         authenticationScheme.set( scheme );
     }
-
-
 
     public static void addCreatedEntity( final String resource, final String id )
     {

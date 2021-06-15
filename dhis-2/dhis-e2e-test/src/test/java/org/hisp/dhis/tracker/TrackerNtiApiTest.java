@@ -29,14 +29,11 @@
 package org.hisp.dhis.tracker;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.helpers.file.JsonFileReader;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -74,7 +71,7 @@ public class TrackerNtiApiTest
     protected JsonObject buildTeiAndEnrollmentFlat()
         throws IOException
     {
-        return new JsonFileReader(new File( "src/test/resources/tracker/importer/teis/teiAndEnrollment.json" ))
+        return new JsonFileReader( new File( "src/test/resources/tracker/importer/teis/teiAndEnrollment.json" ) )
             .replaceStringsWithIds( "JjZ2Nwds92D", "JjZ2Nwds92E" )
             .get();
     }
@@ -91,10 +88,10 @@ public class TrackerNtiApiTest
     protected List<String> importTeis()
         throws Exception
     {
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/teis/teis.json"  ))
-            .replacePropertyValuesWithIds( "trackedEntity" ).get(JsonObject.class);
+        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/teis/teis.json" ) )
+            .replacePropertyValuesWithIds( "trackedEntity" ).get( JsonObject.class );
 
-        List<String> teis = trackerActions.postAndGetJobReport( object)
+        List<String> teis = trackerActions.postAndGetJobReport( object )
             .validateSuccessfulImport().extractImportedTeis();
 
         return teis;
@@ -135,7 +132,7 @@ public class TrackerNtiApiTest
         throws IOException
     {
         return new JsonFileReader( new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) )
-            .replaceStringsWithIds( "JjZ2Nwds92v", "JjZ2Nwds93v")
-            .get( JsonObject.class);
+            .replaceStringsWithIds( "JjZ2Nwds92v", "JjZ2Nwds93v" )
+            .get( JsonObject.class );
     }
 }

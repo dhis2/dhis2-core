@@ -36,20 +36,22 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class SharingActions extends RestApiActions
+public class SharingActions
+    extends RestApiActions
 {
-    public SharingActions( )
+    public SharingActions()
     {
         super( "/sharing" );
     }
 
-    public void setupSharingForConfiguredUserGroup(String type, String id) {
+    public void setupSharingForConfiguredUserGroup( String type, String id )
+    {
 
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.add( "object", JsonObjectBuilder.jsonObject().addUserGroupAccess().build());
+        jsonObject.add( "object", JsonObjectBuilder.jsonObject().addUserGroupAccess().build() );
 
-        this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type  ).add( "id=" + id ) ).validate().statusCode( 200 );
+        this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type ).add( "id=" + id ) ).validate().statusCode( 200 );
     }
 
 }

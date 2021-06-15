@@ -136,7 +136,7 @@ public class RestApiActions
         ApiResponse response = post( object );
 
         response.validate()
-            .statusCode(  is(oneOf( 200, 201 ) ) );
+            .statusCode( is( oneOf( 200, 201 ) ) );
 
         return response.extractUid();
     }
@@ -181,10 +181,10 @@ public class RestApiActions
     /**
      * Sends get request with provided path, contentType, accepting content type and queryParams appended to URL.
      *
-     * @param resourceId            Id of resource
-     * @param contentType           Content type of the request
-     * @param accept                Accepted response Content type
-     * @param queryParamsBuilder    Query params to append to url
+     * @param resourceId         Id of resource
+     * @param contentType        Content type of the request
+     * @param accept             Accepted response Content type
+     * @param queryParamsBuilder Query params to append to url
      */
     public ApiResponse get( String resourceId, String contentType, String accept, QueryParamsBuilder queryParamsBuilder )
     {
@@ -203,8 +203,8 @@ public class RestApiActions
      * Sends delete request to specified resource.
      * If delete request successful, removes entity from TestRunStorage.
      *
-     * @param resourceId            Id of resource
-     * @param queryParamsBuilder    Query params to append to url
+     * @param resourceId         Id of resource
+     * @param queryParamsBuilder Query params to append to url
      */
     public ApiResponse delete( String resourceId, QueryParamsBuilder queryParamsBuilder )
     {
@@ -251,11 +251,13 @@ public class RestApiActions
 
     /**
      * Sends PATCH request to specified resource
+     *
      * @param resourceId
      * @param object
      * @return
      */
-    public ApiResponse patch( String resourceId, Object object) {
+    public ApiResponse patch( String resourceId, Object object )
+    {
         Response response =
             this.given().body( object, ObjectMapperType.GSON )
                 .when()
@@ -328,7 +330,8 @@ public class RestApiActions
         }
     }
 
-    protected void addCreatedEntity(String ep, String id) {
+    protected void addCreatedEntity( String ep, String id )
+    {
         TestRunStorage.addCreatedEntity( ep, id );
     }
 }

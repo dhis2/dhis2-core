@@ -219,10 +219,12 @@ public class EventsDataValueValidationTests
     {
         JsonObject body = trackerActions.buildEvent( OU_ID, programId, programStageId );
 
-        if ( status.equalsIgnoreCase( "SCHEDULE" ) ) {
-            body.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "scheduledAt", Instant.now().plus( 1, ChronoUnit.DAYS ).toString());
+        if ( status.equalsIgnoreCase( "SCHEDULE" ) )
+        {
+            body.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject()
+                .addProperty( "scheduledAt", Instant.now().plus( 1, ChronoUnit.DAYS ).toString() );
         }
-        
+
         body.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "status", status );
         return body;
     }

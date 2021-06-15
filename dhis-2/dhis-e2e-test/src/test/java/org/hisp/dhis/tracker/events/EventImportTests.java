@@ -130,7 +130,7 @@ public class EventImportTests
     {
         JsonObject obj = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" )
-            .get(JsonObject.class);
+            .get( JsonObject.class );
 
         ApiResponse response = post( obj, false );
 
@@ -166,7 +166,7 @@ public class EventImportTests
         queryParamsBuilder
             .addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID", "async=" + String.valueOf( async ) );
 
-        ApiResponse response = eventActions.post( object , queryParamsBuilder );
+        ApiResponse response = eventActions.post( object, queryParamsBuilder );
         return response;
     }
 

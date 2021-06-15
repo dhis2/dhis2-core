@@ -119,6 +119,7 @@ public class LoginActions
 
     /**
      * Logs in with oAuth2 token
+     *
      * @param token
      */
     public void loginWithToken( String token )

@@ -50,7 +50,6 @@ import java.util.stream.IntStream;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Every.everyItem;
 
 /**
@@ -94,7 +93,7 @@ public class UserAssignmentFilterTests
 
     private void setupData()
     {
-        Program program = programActions.createEventProgram(orgUnit);
+        Program program = programActions.createEventProgram( orgUnit );
         programId = program.getId();
         programStageId = program.getStages().get( 0 );
         programActions.programStageActions.enableUserAssignment( programStageId, true );

@@ -37,9 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Luciano Fiandesio
@@ -62,11 +60,11 @@ public class MetadataPaginationActions
     /**
      * Executes a metadata request using pagination directives
      *
-     * @param filter a List of String, containing the expressions to filter metadata
-     *        on
-     * @param fields a List of String, containing the name of the fields to return
-     * @param sort a List of String, containing the sort expressions
-     * @param page the page to return
+     * @param filter   a List of String, containing the expressions to filter metadata
+     *                 on
+     * @param fields   a List of String, containing the name of the fields to return
+     * @param sort     a List of String, containing the sort expressions
+     * @param page     the page to return
      * @param pageSize the number of elements to return for each page
      * @return an {@see ApiResponse} object
      */
@@ -88,9 +86,9 @@ public class MetadataPaginationActions
      * Executes a metadata request using pagination directives. Uses a default
      * filter expression
      *
-     * @param fields a List of String, containing the name of the fields to return
-     * @param sort a List of String, containing the sort expressions
-     * @param page the page to return
+     * @param fields   a List of String, containing the name of the fields to return
+     * @param sort     a List of String, containing the sort expressions
+     * @param page     the page to return
      * @param pageSize the number of elements to return for each page
      * @return an {@see ApiResponse} object
      */
@@ -103,8 +101,8 @@ public class MetadataPaginationActions
      * Executes a metadata request using pagination directives. Uses a default
      * filter and sort expression
      *
-     * @param fields a List of String, containing the name of the fields to return
-     * @param page the page to return
+     * @param fields   a List of String, containing the name of the fields to return
+     * @param page     the page to return
      * @param pageSize the number of elements to return for each page
      * @return an {@see ApiResponse} object
      */
@@ -120,12 +118,11 @@ public class MetadataPaginationActions
             pageSize );
     }
 
-
     /**
      * Executes a metadata request using pagination directives. Uses a default
      * filter, fields and sort expression
      *
-     * @param page the page to return
+     * @param page     the page to return
      * @param pageSize the number of elements to return for each page
      * @return an {@see ApiResponse} object
      */
@@ -138,11 +135,11 @@ public class MetadataPaginationActions
     /**
      * Assert on the pagination ("pager") data within the API response
      *
-     * @param response an {@see ApiResponse} object
-     * @param expectedTotal the expected minimum total number of metadata items
+     * @param response          an {@see ApiResponse} object
+     * @param expectedTotal     the expected minimum total number of metadata items
      * @param expectedPageCount the expected minimum total number of pages
-     * @param expectedPageSize the expected value for page size
-     * @param expectedPage the expected value for the page
+     * @param expectedPageSize  the expected value for page size
+     * @param expectedPage      the expected value for the page
      */
     public void assertPagination( ApiResponse response, int expectedTotal, int expectedPageCount, int expectedPageSize,
         int expectedPage )

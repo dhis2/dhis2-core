@@ -29,15 +29,12 @@
 package org.hisp.dhis.metadata.users;
 
 import com.google.gson.JsonArray;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.ConcurrentApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;

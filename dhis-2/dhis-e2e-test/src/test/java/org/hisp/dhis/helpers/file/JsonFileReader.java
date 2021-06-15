@@ -72,11 +72,12 @@ public class JsonFileReader
         return this;
     }
 
-    public JsonFileReader replaceStringsWithIds(String... strToReplace) {
+    public JsonFileReader replaceStringsWithIds( String... strToReplace )
+    {
         String replacedJson = obj.toString();
         for ( String s : strToReplace )
         {
-            replacedJson =  replacedJson.replaceAll( s, new IdGenerator().generateUniqueId() );
+            replacedJson = replacedJson.replaceAll( s, new IdGenerator().generateUniqueId() );
         }
 
         obj = JsonParserUtils.toJsonObject( replacedJson );

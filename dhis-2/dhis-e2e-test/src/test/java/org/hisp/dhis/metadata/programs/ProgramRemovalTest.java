@@ -28,22 +28,13 @@
 
 package org.hisp.dhis.metadata.programs;
 
-import com.google.gson.JsonObject;
 import org.hisp.dhis.ConcurrentApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.SchemasActions;
-import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.metadata.RelationshipTypeActions;
-import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -84,10 +75,11 @@ public class ProgramRemovalTest
 
     private void setupData()
     {
-        programId = programActions.createTrackerProgram( ).getId();
+        programId = programActions.createTrackerProgram().getId();
         assertNotNull( programId, "Failed to create program" );
 
-        relationshipTypeId = relationshipTypeActions.create( "TRACKED_ENTITY_INSTANCE", Constants.TRACKED_ENTITY_TYPE_ID, "PROGRAM_STAGE_INSTANCE", programId );
+        relationshipTypeId = relationshipTypeActions
+            .create( "TRACKED_ENTITY_INSTANCE", Constants.TRACKED_ENTITY_TYPE_ID, "PROGRAM_STAGE_INSTANCE", programId );
 
         assertNotNull( relationshipTypeId, "Failed to create relationshipType" );
 

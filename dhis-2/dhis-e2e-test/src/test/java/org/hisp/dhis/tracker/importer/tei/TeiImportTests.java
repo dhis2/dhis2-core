@@ -62,7 +62,7 @@ public class TeiImportTests
     {
         // arrange
         JsonObject trackedEntities = new JsonObjectBuilder()
-            .addProperty( "trackedEntityType", Constants.TRACKED_ENTITY_TYPE_ID)
+            .addProperty( "trackedEntityType", Constants.TRACKED_ENTITY_TYPE_ID )
             .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
             .wrapIntoArray( "trackedEntities" );
 

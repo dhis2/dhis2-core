@@ -104,7 +104,7 @@ public class MetadataImportBasedOnSchemasTest
             "messageConversations",
             "users",
             "organisationUnitLevels",
-            "programRuleActions"); //blacklisted because contains conditionally required properties, which are not marked as required
+            "programRuleActions" ); //blacklisted because contains conditionally required properties, which are not marked as required
 
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 

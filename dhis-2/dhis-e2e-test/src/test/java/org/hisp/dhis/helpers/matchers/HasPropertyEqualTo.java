@@ -31,29 +31,33 @@ package org.hisp.dhis.helpers.matchers;
 import com.google.gson.JsonObject;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
-import org.hamcrest.TypeSafeMatcher;
-import org.hamcrest.beans.HasProperty;
 import org.hisp.dhis.helpers.JsonParserUtils;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class HasPropertyEqualTo extends TypeSafeDiagnosingMatcher<Object>
+public class HasPropertyEqualTo
+    extends TypeSafeDiagnosingMatcher<Object>
 {
     private String propertyName;
+
     private String expected;
-    public HasPropertyEqualTo( String propertyName, String expected ) {
+
+    public HasPropertyEqualTo( String propertyName, String expected )
+    {
         this.propertyName = propertyName;
         this.expected = expected;
+    }
+
+    public static HasPropertyEqualTo hasPropertyEqualTo( String property, String expectedValue )
+    {
+        return new HasPropertyEqualTo( property, expectedValue );
     }
 
     @Override
     public void describeTo( Description description )
     {
-        description.appendValue( String.format( "Property `%s`to equal `%s`", propertyName, expected));
-    }
-    public static HasPropertyEqualTo hasPropertyEqualTo( String property, String expectedValue) {
-        return new HasPropertyEqualTo( property, expectedValue );
+        description.appendValue( String.format( "Property `%s`to equal `%s`", propertyName, expected ) );
     }
 
     @Override
@@ -61,14 +65,17 @@ public class HasPropertyEqualTo extends TypeSafeDiagnosingMatcher<Object>
     {
         JsonObject object = JsonParserUtils.toJsonObject( item );
 
-        if (!object.has( propertyName )) {
-            mismatchDescription.appendText( String.format( "Expected %s, but property wasn't found", expected) );
+        if ( !object.has( propertyName ) )
+        {
+            mismatchDescription.appendText( String.format( "Expected %s, but property wasn't found", expected ) );
             return false;
         }
 
         String value = object.get( propertyName ).getAsString();
-        if (!value.equals( expected )) {
-            mismatchDescription.appendText( String.format( "Expected property %s to equal to %s, but found %s", propertyName, expected, value));
+        if ( !value.equals( expected ) )
+        {
+            mismatchDescription
+                .appendText( String.format( "Expected property %s to equal to %s, but found %s", propertyName, expected, value ) );
             return false;
         }
 

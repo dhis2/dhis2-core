@@ -38,6 +38,10 @@ import java.util.List;
 @JsonIgnoreProperties( ignoreUnknown = true )
 public class SchemaProperty
 {
+    public Double min;
+
+    public Double max;
+
     private String name;
 
     private boolean required;
@@ -45,10 +49,6 @@ public class SchemaProperty
     private List<String> constants;
 
     private String relativeApiEndpoint;
-
-    public Double min;
-
-    public Double max;
 
     private long length;
 

@@ -710,31 +710,33 @@
         "id": "U5HE4IRrZ7S"
       },
       "notificationTemplates": [],
-      "programStageDataElements": [ {
-        "lastUpdated": "2021-01-18T13:54:49.882",
-        "id": "nmzZhFLJPGz",
-        "created": "2021-01-18T13:54:49.882",
-        "displayInReports": false,
-        "skipSynchronization": false,
-        "externalAccess": false,
-        "renderOptionsAsRadio": false,
-        "allowFutureDate": false,
-        "compulsory": false,
-        "allowProvidedElsewhere": false,
-        "sortOrder": 1,
-        "favorite": false,
-        "programStage": {
-          "id": "yKg8CY252Yk"
-        },
-        "dataElement": {
-          "id": "inc5BJvr4W5"
-        },
-        "favorites": [],
-        "translations": [],
-        "userGroupAccesses": [],
-        "attributeValues": [],
-        "userAccesses": []
-      }],
+      "programStageDataElements": [
+        {
+          "lastUpdated": "2021-01-18T13:54:49.882",
+          "id": "nmzZhFLJPGz",
+          "created": "2021-01-18T13:54:49.882",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "programStage": {
+            "id": "yKg8CY252Yk"
+          },
+          "dataElement": {
+            "id": "inc5BJvr4W5"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ],
       "translations": [],
       "userGroupAccesses": [
         {

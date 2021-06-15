@@ -36,18 +36,21 @@ import org.hisp.dhis.utils.DataGenerator;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AttributeActions extends RestApiActions
+public class AttributeActions
+    extends RestApiActions
 {
-    public AttributeActions(  )
+    public AttributeActions()
     {
         super( "/attributes" );
     }
 
-    public String createUniqueAttribute(String valueType, String... metadataObjects) {
+    public String createUniqueAttribute( String valueType, String... metadataObjects )
+    {
         return createAttribute( valueType, true, metadataObjects );
     }
 
-    public String createAttribute(String valueType, boolean unique, String... metadataObjects) {
+    public String createAttribute( String valueType, boolean unique, String... metadataObjects )
+    {
         JsonObject ob = new JsonObjectBuilder()
             .addProperty( "name", String.format( "TA attribute %s", DataGenerator.randomString() ) )
             .addProperty( "unique", String.valueOf( unique ) )

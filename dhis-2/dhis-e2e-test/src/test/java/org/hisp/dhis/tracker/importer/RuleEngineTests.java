@@ -72,7 +72,7 @@ public class RuleEngineTests
         loginActions.loginAsSuperUser();
 
         new MetadataActions()
-            .importAndValidateMetadata( new File( "src/test/resources/tracker/programs_with_program_rules.json" ));
+            .importAndValidateMetadata( new File( "src/test/resources/tracker/programs_with_program_rules.json" ) );
     }
 
     @BeforeEach

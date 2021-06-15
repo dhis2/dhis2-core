@@ -29,7 +29,6 @@ package org.hisp.dhis.dto;
  */
 
 import com.google.gson.JsonObject;
-import io.restassured.http.ContentType;
 import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
@@ -55,7 +54,6 @@ public class ApiResponse
 
     /**
      * Extracts uid when only one object was created.
-     *
      */
     public String extractUid()
     {
@@ -79,7 +77,6 @@ public class ApiResponse
     /**
      * Extracts uids from import summaries.
      * Use when more than one object was created.
-     *
      */
     public List<String> extractUids()
     {

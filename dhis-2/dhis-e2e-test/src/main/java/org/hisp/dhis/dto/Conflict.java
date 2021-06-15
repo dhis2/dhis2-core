@@ -28,7 +28,6 @@ package org.hisp.dhis.dto;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */

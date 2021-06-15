@@ -37,10 +37,12 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -61,7 +63,9 @@ public class EventsTests
     extends TrackerNtiApiTest
 {
     private ProgramStageActions programStageActions;
+
     private String orgUnit = Constants.ORG_UNIT_IDS[0];
+
     private String program = Constants.TRACKER_PROGRAM_ID;
 
     private static Stream<Arguments> provideEventFilesTestArguments()
@@ -71,7 +75,8 @@ public class EventsTests
     }
 
     @BeforeAll
-    public void beforeAll( ) {
+    public void beforeAll()
+    {
         programStageActions = new ProgramStageActions();
     }
 

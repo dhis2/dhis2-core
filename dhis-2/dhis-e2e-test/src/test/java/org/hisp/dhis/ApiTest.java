@@ -29,11 +29,8 @@ package org.hisp.dhis;
  */
 
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.hisp.dhis.helpers.config.TestConfiguration;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;

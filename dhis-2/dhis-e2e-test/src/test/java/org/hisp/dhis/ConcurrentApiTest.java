@@ -28,7 +28,6 @@
 
 package org.hisp.dhis;
 
-import org.hisp.dhis.ApiTest;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 
@@ -36,6 +35,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @Execution( ExecutionMode.CONCURRENT )
-public class ConcurrentApiTest extends ApiTest
+public class ConcurrentApiTest
+    extends ApiTest
 {
 }
