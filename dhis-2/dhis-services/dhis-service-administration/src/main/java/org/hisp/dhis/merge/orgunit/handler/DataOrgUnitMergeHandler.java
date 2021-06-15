@@ -36,6 +36,8 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
+import org.hisp.dhis.validation.ValidationResultService;
+import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -45,6 +47,8 @@ public class DataOrgUnitMergeHandler
 {
     private SessionFactory sessionFactory;
 
+    private ValidationResultService validationResultService;
+
     private MinMaxDataElementService minMaxDataElementService;
 
     public void mergeInterpretations( OrgUnitMergeRequest request )
@@ -52,6 +56,14 @@ public class DataOrgUnitMergeHandler
         migrate( "update Interpretation i " +
             "set i.organisationUnit = :target " +
             "where i.organisationUnit.id in (:sources)", request );
+    }
+
+    public void mergeValidationResults( OrgUnitMergeRequest request )
+    {
+        ValidationResultsDeletionRequest deletionRequest = new ValidationResultsDeletionRequest();
+        deletionRequest.setOu( IdentifiableObjectUtils.getUids( request.getSources() ) );
+
+        validationResultService.deleteValidationResults( deletionRequest );
     }
 
     public void mergeMinMaxDataElements( OrgUnitMergeRequest request )
