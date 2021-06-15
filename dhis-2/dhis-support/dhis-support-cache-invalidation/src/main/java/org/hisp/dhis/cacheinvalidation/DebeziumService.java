@@ -34,22 +34,24 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.kafka.connect.source.SourceRecord;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
 import io.debezium.config.Configuration;
 import io.debezium.embedded.Connect;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.RecordChangeEvent;
 import io.debezium.engine.format.ChangeEventFormat;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.connect.source.SourceRecord;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -71,7 +73,8 @@ public class DebeziumService
 
     private static final CountDownLatch loginLatch = new CountDownLatch( 1 );
 
-    // We need to delay shutdown a little bit to be able to log the exception that caused it. The engine is running in it's own thread.
+    // We need to delay shutdown a little bit to be able to log the exception
+    // that caused it. The engine is running in it's own thread.
     public static final long SHUTDOWN_DELAY_SECONDS = 2L;
 
     public static final long STARTUP_WAIT_TIMEOUT = 5L;
@@ -106,13 +109,15 @@ public class DebeziumService
 
     private final DebeziumEngine.ConnectorCallback connectorCallback = new DebeziumEngine.ConnectorCallback()
     {
-        @Override public void connectorStarted()
+        @Override
+        public void connectorStarted()
         {
             loginLatch.countDown();
             log.debug( "DebeziumEngine connectorStarted() event triggered! " );
         }
 
-        @Override public void connectorStopped()
+        @Override
+        public void connectorStopped()
         {
             if ( shutdownOnConnectorStop )
             {
@@ -126,12 +131,14 @@ public class DebeziumService
             }
         }
 
-        @Override public void taskStarted()
+        @Override
+        public void taskStarted()
         {
             log.info( "task start" );
         }
 
-        @Override public void taskStopped()
+        @Override
+        public void taskStopped()
         {
             log.info( "task stop" );
         }
@@ -145,18 +152,18 @@ public class DebeziumService
         }
         else
         {
-            //            log.warn( "No success: " + message );
+            // log.warn( "No success: " + message );
         }
 
         if ( error != null )
         {
-            //            if ( error instanceof DebeziumException )
-            //            {
-            //                if ( shutdownOnConnectorStop )
-            //                {
-            //                    shutdown( "DebeziumException:" + error.getMessage() );
-            //                }
-            //            }
+            // if ( error instanceof DebeziumException )
+            // {
+            // if ( shutdownOnConnectorStop )
+            // {
+            // shutdown( "DebeziumException:" + error.getMessage() );
+            // }
+            // }
 
             log.error( "A Debezium engine error has occurred! Error message: " + message, error );
         }

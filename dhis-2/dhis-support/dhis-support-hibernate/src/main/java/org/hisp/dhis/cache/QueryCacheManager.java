@@ -33,12 +33,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.hibernate.Cache;
+import org.springframework.stereotype.Service;
+
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Cache;
-import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

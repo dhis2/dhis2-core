@@ -31,19 +31,13 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 import javax.persistence.metamodel.EntityType;
 
-import org.hisp.dhis.cache.PaginationCacheManager;
-import org.hisp.dhis.cache.QueryCacheManager;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-
-import io.debezium.data.Envelope;
-import io.debezium.engine.RecordChangeEvent;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
@@ -54,8 +48,16 @@ import org.hibernate.SessionFactory;
 import org.hibernate.metamodel.internal.MetamodelImpl;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.SingleTableEntityPersister;
+import org.hisp.dhis.cache.PaginationCacheManager;
+import org.hisp.dhis.cache.QueryCacheManager;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import io.debezium.data.Envelope;
+import io.debezium.engine.RecordChangeEvent;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -137,7 +139,7 @@ public class DbChangeEventHandler
             Field idField2 = allIdFields.get( 1 );
             Long o = (Long) keyStruct.get( idField1 );
             Long o2 = (Long) keyStruct.get( idField2 );
-            id = new TrackedEntityAttributeValue(new TrackedEntityAttribute(o2),new TrackedEntityInstance(o) );
+            id = new TrackedEntityAttributeValue( new TrackedEntityAttribute( o2 ), new TrackedEntityInstance( o ) );
         }
         else if ( Schema.Type.INT64 == type )
         {
@@ -148,18 +150,26 @@ public class DbChangeEventHandler
             id = keyStruct.getInt32( idFieldName );
         }
 
-        //        org.apache.kafka.connect.errors.DataException: Field 'trackedentityprogramownerid' is not of type INT64
-        //        at org.apache.kafka.connect.data.Struct.getCheckType(Struct.java:263)
-        //        at org.apache.kafka.connect.data.Struct.getInt64(Struct.java:130)
-        //        at org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.tryEvictCache(DbChangeEventHandler.java:124)
-        //        at org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.handleDbChange(DbChangeEventHandler.java:88)
-        //        at io.debezium.embedded.ConvertingEngineBuilder.lambda$notifying$0(ConvertingEngineBuilder.java:72)
-        //        at io.debezium.embedded.EmbeddedEngine$1.handleBatch(EmbeddedEngine.java:473)
-        //        at io.debezium.embedded.EmbeddedEngine.run(EmbeddedEngine.java:821)
-        //        at io.debezium.embedded.ConvertingEngineBuilder$2.run(ConvertingEngineBuilder.java:188)
-        //        at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
-        //        at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
-        //        at java.base/java.lang.Thread.run(Thread.java:829)
+        // org.apache.kafka.connect.errors.DataException: Field
+        // 'trackedentityprogramownerid' is not of type INT64
+        // at org.apache.kafka.connect.data.Struct.getCheckType(Struct.java:263)
+        // at org.apache.kafka.connect.data.Struct.getInt64(Struct.java:130)
+        // at
+        // org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.tryEvictCache(DbChangeEventHandler.java:124)
+        // at
+        // org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.handleDbChange(DbChangeEventHandler.java:88)
+        // at
+        // io.debezium.embedded.ConvertingEngineBuilder.lambda$notifying$0(ConvertingEngineBuilder.java:72)
+        // at
+        // io.debezium.embedded.EmbeddedEngine$1.handleBatch(EmbeddedEngine.java:473)
+        // at io.debezium.embedded.EmbeddedEngine.run(EmbeddedEngine.java:821)
+        // at
+        // io.debezium.embedded.ConvertingEngineBuilder$2.run(ConvertingEngineBuilder.java:188)
+        // at
+        // java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+        // at
+        // java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+        // at java.base/java.lang.Thread.run(Thread.java:829)
 
         Struct payload = (Struct) record.value();
         if ( payload == null )
@@ -179,16 +189,23 @@ public class DbChangeEventHandler
             e.printStackTrace();
             throw e;
         }
-        //        java.lang.NullPointerException
-        //        at org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.tryEvictCache(DbChangeEventHandler.java:127)
-        //        at org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.handleDbChange(DbChangeEventHandler.java:88)
-        //        at io.debezium.embedded.ConvertingEngineBuilder.lambda$notifying$0(ConvertingEngineBuilder.java:72)
-        //        at io.debezium.embedded.EmbeddedEngine$1.handleBatch(EmbeddedEngine.java:473)
-        //        at io.debezium.embedded.EmbeddedEngine.run(EmbeddedEngine.java:821)
-        //        at io.debezium.embedded.ConvertingEngineBuilder$2.run(ConvertingEngineBuilder.java:188)
-        //        at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
-        //        at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
-        //        at java.base/java.lang.Thread.run(Thread.java:829)
+        // java.lang.NullPointerException
+        // at
+        // org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.tryEvictCache(DbChangeEventHandler.java:127)
+        // at
+        // org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.handleDbChange(DbChangeEventHandler.java:88)
+        // at
+        // io.debezium.embedded.ConvertingEngineBuilder.lambda$notifying$0(ConvertingEngineBuilder.java:72)
+        // at
+        // io.debezium.embedded.EmbeddedEngine$1.handleBatch(EmbeddedEngine.java:473)
+        // at io.debezium.embedded.EmbeddedEngine.run(EmbeddedEngine.java:821)
+        // at
+        // io.debezium.embedded.ConvertingEngineBuilder$2.run(ConvertingEngineBuilder.java:188)
+        // at
+        // java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+        // at
+        // java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+        // at java.base/java.lang.Thread.run(Thread.java:829)
         Envelope.Operation operation = Envelope.Operation.forCode( payload.getString( "op" ) );
 
         if ( !knownTransactionsService.isKnown( txId ) )
@@ -203,14 +220,14 @@ public class DbChangeEventHandler
             else if ( operation == Envelope.Operation.CREATE )
             {
                 log.info( String.format( "RecordChangeEvent is an external %s event! "
-                        + "Trying to find new entity and evict query cache; entityClass=%s", operation.name(),
+                    + "Trying to find new entity and evict query cache; entityClass=%s", operation.name(),
                     entityClass ) );
 
                 queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
 
                 paginationCacheManager.evictCache( entityClass.getName() );
 
-                try (Session session = sessionFactory.openSession())
+                try ( Session session = sessionFactory.openSession() )
                 {
                     Object o = session.get( entityClass, id );
                     log.info( "Found new object:" + o );

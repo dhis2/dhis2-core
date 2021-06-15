@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.security.config;
 
 import java.util.Arrays;
 import java.util.Set;
+
 import javax.sql.DataSource;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -46,8 +47,6 @@ import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
 import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
-
-import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -68,7 +67,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
@@ -93,6 +91,8 @@ import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -111,9 +111,11 @@ public class DhisWebApiWebSecurityConfig
     public DataSource dataSource;
 
     /**
-     * This configuration class is responsible for setting up the OAuth2 /token endpoint and /authorize endpoint. This
-     * config is a modification of the config that is automatically enabled by using the @EnableAuthorizationServer
-     * annotation. The spring-security-oauth2 project is deprecated, but as of August 19, 2020; there is still no other
+     * This configuration class is responsible for setting up the OAuth2 /token
+     * endpoint and /authorize endpoint. This config is a modification of the
+     * config that is automatically enabled by using
+     * the @EnableAuthorizationServer annotation. The spring-security-oauth2
+     * project is deprecated, but as of August 19, 2020; there is still no other
      * viable alternative available.
      */
     @Configuration
@@ -343,8 +345,10 @@ public class DhisWebApiWebSecurityConfig
         }
 
         /**
-         * This AuthenticationManager is responsible for authorizing access, refresh and code OAuth2 tokens from the
-         * /token and /authorize endpoints. It is used only by the OAuth2AuthenticationProcessingFilter.
+         * This AuthenticationManager is responsible for authorizing access,
+         * refresh and code OAuth2 tokens from the /token and /authorize
+         * endpoints. It is used only by the
+         * OAuth2AuthenticationProcessingFilter.
          */
         private AuthenticationManager oauthAuthenticationManager( HttpSecurity http )
         {
@@ -379,7 +383,8 @@ public class DhisWebApiWebSecurityConfig
         }
 
         /**
-         * This method configures almost everything security related to /api endpoints
+         * This method configures almost everything security related to /api
+         * endpoints
          */
         protected void configure( HttpSecurity http )
             throws Exception
@@ -396,7 +401,8 @@ public class DhisWebApiWebSecurityConfig
                     .httpBasic();
 
                 /**
-                 *  Setup session handling, this is handled in @see DhisWebCommonsWebSecurityConfig when running standard mode
+                 * Setup session handling, this is handled in @see
+                 * DhisWebCommonsWebSecurityConfig when running standard mode
                  */
                 http
                     .sessionManagement()
@@ -404,7 +410,7 @@ public class DhisWebApiWebSecurityConfig
                     .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
                     .enableSessionUrlRewriting( false )
                     .maximumSessions( 10 )
-//                    .expiredUrl( "/dhis-web-commons-security/logout.action" )
+                    // .expiredUrl( "/dhis-web-commons-security/logout.action" )
                     .sessionRegistry( sessionRegistry );
 
             }

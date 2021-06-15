@@ -1809,7 +1809,7 @@ public abstract class DhisConvenienceTest
 
     public static TrackedEntityInstance createTrackedEntityInstance( OrganisationUnit organisationUnit )
     {
-        TrackedEntityInstance entityInstance = new TrackedEntityInstance( o2 );
+        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
         entityInstance.setAutoFields();
         entityInstance.setOrganisationUnit( organisationUnit );
 
@@ -1819,7 +1819,7 @@ public abstract class DhisConvenienceTest
     public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar,
         OrganisationUnit organisationUnit )
     {
-        TrackedEntityInstance entityInstance = new TrackedEntityInstance( o2 );
+        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
         entityInstance.setAutoFields();
         entityInstance.setOrganisationUnit( organisationUnit );
         entityInstance.setUid( BASE_TEI_UID + uniqueChar );
@@ -1830,7 +1830,7 @@ public abstract class DhisConvenienceTest
     public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit,
         TrackedEntityAttribute attribute )
     {
-        TrackedEntityInstance entityInstance = new TrackedEntityInstance( o2 );
+        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
         entityInstance.setAutoFields();
         entityInstance.setOrganisationUnit( organisationUnit );
 
