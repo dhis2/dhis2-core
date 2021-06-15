@@ -88,33 +88,6 @@ public class ProgramsTest
     @Test
     public void testProgramOrgUnitsConnections()
     {
-
-        loginActions.loginAsSuperUser();
-
-        Set<String> associatedOrgUnitsAsSuperUser = extractAssociatedOrgUnits( "Zd2rkv8FsWq" );
-
-        loginActions.loginAsDefaultUser();
-
-        Set<String> associatedOrgUnitsAsTracker = extractAssociatedOrgUnits( "Zd2rkv8FsWq" );
-
-        assertTrue( associatedOrgUnitsAsSuperUser.containsAll( associatedOrgUnitsAsTracker ) );
-        assertTrue( associatedOrgUnitsAsSuperUser.size() >= associatedOrgUnitsAsTracker.size() );
-
-    }
-
-    private Set<String> extractAssociatedOrgUnits( String programUid )
-    {
-        return StreamSupport.stream(
-            Spliterators.spliteratorUnknownSize(
-                programActions.getOrgUnitsAssociations( programUid )
-                    .getBody()
-                    .getAsJsonArray( programUid )
-                    .iterator(),
-                Spliterator.ORDERED ),
-            false )
-            .map( JsonElement::getAsString )
-            .collect( Collectors.toSet() );
-
         super.testOrgUnitsConnections( programActions::getOrgUnitsAssociations, PROGRAM_UID );
     }
 }
