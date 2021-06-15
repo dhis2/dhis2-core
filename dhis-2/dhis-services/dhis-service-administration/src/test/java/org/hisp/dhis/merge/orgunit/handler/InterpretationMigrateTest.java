@@ -34,14 +34,13 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationService;
+import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -53,10 +52,13 @@ public class InterpretationMigrateTest
     private VisualizationService visualizationService;
 
     @Autowired
+    private InterpretationService interpretationService;
+
+    @Autowired
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private InterpretationService interpretationService;
+    private DataOrgUnitMergeHandler mergeHandler;
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -105,11 +107,13 @@ public class InterpretationMigrateTest
         assertEquals( 1, getInterpretationCount( ouB ) );
         assertEquals( 1, getInterpretationCount( ouC ) );
 
-        interpretationService.migrateInterpretations( Sets.newHashSet( ouA, ouB ), ouC );
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .addSource( ouA )
+            .addSource( ouB )
+            .withTarget( ouA )
+            .build();
 
-        ipA = interpretationService.getInterpretation( ipA.getUid() );
-        ipB = interpretationService.getInterpretation( ipB.getUid() );
-        ipC = interpretationService.getInterpretation( ipC.getUid() );
+        mergeHandler.mergeInterpretations( request );
 
         assertEquals( 0, getInterpretationCount( ouA ) );
         assertEquals( 0, getInterpretationCount( ouB ) );
