@@ -370,12 +370,6 @@ public class EventAnalyticsServiceTest
         Map<String, EventQueryParams> eventQueryParams = new HashMap<>();
         eventQueryParams.put( "events_2017", events_2017_params );
 
-        // The results
-        Map<String, Double> events_2017_keyValue = new HashMap<>();
-        events_2017_keyValue.put( "ouabcdefghA", 6.0 );
-        Map<String, Map<String, Double>> results = new HashMap<>();
-        results.put( "events_2017", events_2017_keyValue );
-
         for ( Map.Entry<String, EventQueryParams> entry : eventQueryParams.entrySet() )
         {
             EventQueryParams params = entry.getValue();
