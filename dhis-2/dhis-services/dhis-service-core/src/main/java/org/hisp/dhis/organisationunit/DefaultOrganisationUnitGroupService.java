@@ -249,4 +249,12 @@ public class DefaultOrganisationUnitGroupService
 
         updateOrganisationUnitGroup( organisationUnitGroup );
     }
+
+    @Override
+    @Transactional( readOnly = true )
+    public OrganisationUnitGroup getOrgUnitGroupInGroupSet( Set<OrganisationUnitGroup> groups,
+        OrganisationUnitGroupSet groupSet )
+    {
+        return organisationUnitGroupStore.getOrgUnitGroupInGroupSet( groups, groupSet );
+    }
 }

@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.organisationunit;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Defines methods for working with OrganisationUnitGroups and
@@ -180,4 +183,7 @@ public interface OrganisationUnitGroupService extends OrganisationUnitGroupDataI
 
     void mergeWithCurrentUserOrganisationUnits( OrganisationUnitGroup organisationUnitGroup,
         Collection<OrganisationUnit> mergeOrganisationUnits );
+
+    OrganisationUnitGroup getOrgUnitGroupInGroupSet( Set<OrganisationUnitGroup> groups,
+        OrganisationUnitGroupSet groupSet );
 }

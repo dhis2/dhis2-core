@@ -28,14 +28,18 @@
 package org.hisp.dhis.orgunitprofile.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -56,6 +60,7 @@ import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.orgunitprofile.OrgUnitInfo;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
@@ -67,6 +72,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableList;
@@ -88,15 +94,21 @@ public class DefaultOrgUnitProfileService
 
     private AnalyticsService analyticsService;
 
+    private OrganisationUnitGroupService groupService;
+
+    private ObjectMapper jsonMapper;
+
     public DefaultOrgUnitProfileService( KeyJsonValueService dataStore,
-        IdentifiableObjectManager idObjectManager, AnalyticsService analyticsService )
+        IdentifiableObjectManager idObjectManager, AnalyticsService analyticsService, OrganisationUnitGroupService groupService, ObjectMapper jsonMapper )
     {
         this.dataStore = dataStore;
         this.idObjectManager = idObjectManager;
         this.analyticsService = analyticsService;
+        this.jsonMapper = jsonMapper;
+        this.groupService = groupService;
 
         this.dataStore.addProtection( new KeyJsonNamespaceProtection( ORG_UNIT_PROFILE_NAMESPACE, KeyJsonNamespaceProtection.ProtectionType.NONE,
-            KeyJsonNamespaceProtection.ProtectionType.RESTRICTED, false, ORG_UNIT_PROFILE_AUTHORITY ) );
+            KeyJsonNamespaceProtection.ProtectionType.RESTRICTED, false, "ALL", ORG_UNIT_PROFILE_AUTHORITY ) );
     }
 
     @Override
@@ -107,7 +119,7 @@ public class DefaultOrgUnitProfileService
 
         try
         {
-            keyJsonValue.setValue( JacksonObjectMapperConfig.staticJsonMapper().writeValueAsString( profile ) );
+            keyJsonValue.setValue( jsonMapper.writeValueAsString( profile ) );
             dataStore.saveOrUpdateKeyJsonValue( keyJsonValue );
         }
         catch ( JsonProcessingException e )
@@ -130,7 +142,7 @@ public class DefaultOrgUnitProfileService
 
         try
         {
-            return JacksonObjectMapperConfig.staticJsonMapper().readValue( value.getValue(), OrgUnitProfile.class );
+            return jsonMapper.readValue( value.getValue(), OrgUnitProfile.class );
         }
         catch ( JsonProcessingException e )
         {
@@ -139,6 +151,7 @@ public class DefaultOrgUnitProfileService
         }
     }
 
+    @Override
     public OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod )
     {
         // If profile is empty, only fixed info will be included
@@ -177,7 +190,20 @@ public class DefaultOrgUnitProfileService
         info.setEmail( orgUnit.getEmail() );
         info.setPhoneNumber( orgUnit.getPhoneNumber() );
 
-        // Set longitude and latitude based on from geometry
+        if ( orgUnit.getGeometry() != null )
+        {
+            if ( orgUnit.getGeometry().getGeometryType().equals( "Point" ) )
+            {
+                info.setLongitude( orgUnit.getGeometry().getCoordinate().x );
+                info.setLatitude( orgUnit.getGeometry().getCoordinate().y );
+            }
+            else
+            {
+                Point point = orgUnit.getGeometry().getInteriorPoint();
+                info.setLongitude( point.getX() );
+                info.setLatitude( point.getY() );
+            }
+        }
 
         return info;
     }
@@ -185,6 +211,11 @@ public class DefaultOrgUnitProfileService
     private List<ProfileItem> getAttributes( OrgUnitProfile profile, OrganisationUnit orgUnit )
     {
         List<ProfileItem> items = new ArrayList<>();
+
+        if ( CollectionUtils.isEmpty( profile.getAttributes() ) )
+        {
+            return items;
+        }
 
         List<Attribute> attributes = idObjectManager.getByUid( Attribute.class, profile.getAttributes() );
 
@@ -203,15 +234,19 @@ public class DefaultOrgUnitProfileService
     {
         List<ProfileItem> items = new ArrayList<>();
 
+        if ( CollectionUtils.isEmpty( profile.getGroupSets() ) )
+        {
+            return items;
+        }
+
         List<OrganisationUnitGroupSet> groupSets = idObjectManager
             .getByUid( OrganisationUnitGroupSet.class, profile.getGroupSets() );
 
+        Set<OrganisationUnitGroup> groups = orgUnit.getGroups();
+
         for ( OrganisationUnitGroupSet groupSet : groupSets )
         {
-            // Add query method in OrganisationUnitService instead, this might
-            // be very slow on large databases
-
-            OrganisationUnitGroup group = orgUnit.getGroupInGroupSet( groupSet );
+            OrganisationUnitGroup group = groupService.getOrgUnitGroupInGroupSet( groups, groupSet );
 
             items.add( new ProfileItem( groupSet.getUid(), groupSet.getDisplayName(), group.getDisplayName() ) );
         }
@@ -222,6 +257,11 @@ public class DefaultOrgUnitProfileService
     private List<ProfileItem> getDataItems( OrgUnitProfile profile, OrganisationUnit orgUnit, Period period )
     {
         List<ProfileItem> items = new ArrayList<>();
+
+        if ( CollectionUtils.isEmpty( profile.getDataItems() ) )
+        {
+            return items;
+        }
 
         List<DimensionalItemObject> dataItems = idObjectManager.getByUid( DATA_ITEM_CLASSES, profile.getDataItems() );
 

@@ -30,13 +30,37 @@
 
 package org.hisp.dhis.orgunitprofile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.orgunitprofile.impl.DefaultOrgUnitProfileService;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.UserService;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import static org.mockito.ArgumentMatchers.any;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class OrgUnitProfileServiceTest
     extends DhisSpringTest
@@ -47,16 +71,38 @@ public class OrgUnitProfileServiceTest
     @Autowired
     private UserService _userService;
 
-    @Before
-    public void init()
+    @Autowired
+    private IdentifiableObjectManager manager;
+
+    @Autowired
+    private OrganisationUnitGroupService organisationUnitGroupService;
+
+    @Autowired
+    private KeyJsonValueService dataStore;
+
+    @Mock
+    private AnalyticsService mockAnalyticsService;
+
+    @Autowired
+    private ObjectMapper jsonMapper;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    private OrgUnitProfileService mockService;
+
+    @Override
+    public void setUpTest()
     {
         userService = _userService;
+        createAndInjectAdminUser();
+        mockService = new DefaultOrgUnitProfileService( dataStore, manager, mockAnalyticsService, organisationUnitGroupService, jsonMapper );
     }
 
     @Test
     public void testSave()
     {
-        createAndInjectAdminUser( "ALL","F_ORG_UNIT_PROFILE_ADD" );
+
         OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
         orgUnitProfile.getAttributes().add( "Attribute1" );
         orgUnitProfile.getAttributes().add( "Attribute2" );
@@ -73,5 +119,49 @@ public class OrgUnitProfileServiceTest
         assertTrue( savedProfile.getAttributes().contains( "Attribute1" ) );
         assertTrue( savedProfile.getDataItems().contains( "DataItem2" ) );
         assertTrue( savedProfile.getGroupSets().contains( "GroupSet1" ) );
+    }
+
+    @Test
+    public void testGetProfileData()
+    {
+        Attribute attribute = createAttribute( 'A' );
+        attribute.setOrganisationUnitAttribute( true );
+        manager.save( attribute );
+
+        OrganisationUnit orgUnit = createOrganisationUnit( "A" );
+        orgUnit.getAttributeValues().add( new AttributeValue( "testAttributeValue", attribute) );
+        manager.save( orgUnit );
+
+        OrganisationUnitGroup group = createOrganisationUnitGroup( 'A' );
+        group.addOrganisationUnit( orgUnit );
+        manager.save( group );
+
+        OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet( 'A' );
+        groupSet.addOrganisationUnitGroup( group );
+        manager.save( groupSet );
+
+        DataElement dataElement = createDataElement( 'A' );
+        manager.save( dataElement );
+
+        Period period = createPeriod( "202106" );
+        manager.save( period );
+
+        OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
+        orgUnitProfile.getAttributes().add( attribute.getUid() );
+        orgUnitProfile.getDataItems().add( dataElement.getUid() );
+        orgUnitProfile.getGroupSets().add( groupSet.getUid() );
+        service.saveOrgUnitProfile( orgUnitProfile );
+
+        //Mock analytic query for data value
+        Map<String,Object> mapDataItem = new HashMap<>();
+        mapDataItem.put( dataElement.getUid(), "testDataValue" );
+        Mockito.when( mockAnalyticsService.getAggregatedDataValueMapping( any( DataQueryParams.class ) ) )
+            .thenReturn( mapDataItem );
+
+        OrgUnitProfileData data = mockService.getOrgUnitProfileData( orgUnit.getUid(), period.getIsoDate() );
+
+        assertEquals( "testAttributeValue", data.getAttributes().get( 0 ).getValue() );
+        assertEquals( "testDataValue", data.getDataItems().get( 0 ).getValue() );
+        assertEquals( group.getDisplayName(), data.getGroupSets().get( 0 ).getValue() );
     }
 }

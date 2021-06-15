@@ -28,10 +28,12 @@
 package org.hisp.dhis.organisationunit.hibernate;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -64,5 +66,15 @@ public class HibernateOrganisationUnitGroupStore
     public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
     {
         return getQuery( "from OrganisationUnitGroup g where size(g.groupSets) = 0" ).list();
+    }
+
+    @Override
+    public OrganisationUnitGroup getOrgUnitGroupInGroupSet( Set<OrganisationUnitGroup> groups,
+        OrganisationUnitGroupSet groupSet )
+    {
+        return getQuery( "select g from OrganisationUnitGroup g inner join g.groupSets gs where gs = :groupSet and g in :groups" )
+            .setParameter( "groupSet", groupSet  )
+            .setParameter( "groups", groups )
+            .uniqueResult();
     }
 }
