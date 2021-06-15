@@ -28,6 +28,7 @@ package org.hisp.dhis.metadata.programs;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
@@ -38,6 +39,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
