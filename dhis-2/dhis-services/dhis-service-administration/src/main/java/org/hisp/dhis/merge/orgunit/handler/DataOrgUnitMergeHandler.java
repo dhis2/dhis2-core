@@ -35,6 +35,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
+import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -44,11 +45,18 @@ public class DataOrgUnitMergeHandler
 {
     private SessionFactory sessionFactory;
 
+    private MinMaxDataElementService minMaxDataElementService;
+
     public void mergeInterpretations( OrgUnitMergeRequest request )
     {
         migrate( "update Interpretation i " +
             "set i.organisationUnit = :target " +
             "where i.organisationUnit.id in (:sources)", request );
+    }
+
+    public void mergeMinMaxDataElements( OrgUnitMergeRequest request )
+    {
+        request.getSources().forEach( s -> minMaxDataElementService.removeMinMaxDataElements( s ) );
     }
 
     private void migrate( String hql, OrgUnitMergeRequest request )
