@@ -687,7 +687,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      * Adds support for HTTP Patch using JSON Patch (RFC 6902), updated object
      * is run through normal metadata importer and internally looks like a
      * normal PUT (after the JSON Patch has been applied).
-     * 
+     *
      * For now we only support the official mimetype
      * "application/json-patch+json" but in future releases we might also want
      * to support "application/json" after the old patch behavior has been
