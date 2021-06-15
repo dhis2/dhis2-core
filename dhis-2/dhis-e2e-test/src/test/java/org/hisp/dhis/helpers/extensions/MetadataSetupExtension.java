@@ -66,7 +66,6 @@ public class MetadataSetupExtension
         {
             if ( !started )
             {
-                System.out.println( "BeforeAll" );
                 started = true;
                 logger.info( "Importing metadata for tests" );
 
@@ -141,7 +140,6 @@ public class MetadataSetupExtension
     @Override
     public void close()
     {
-        System.out.println( "CLOSE" );
         if ( TestConfiguration.get().shouldCleanUp() )
         {
             new LoginActions().loginAsDefaultUser();
