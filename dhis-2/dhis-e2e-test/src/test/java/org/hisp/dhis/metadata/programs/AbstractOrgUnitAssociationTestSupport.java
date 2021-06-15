@@ -58,7 +58,7 @@ class AbstractOrgUnitAssociationTestSupport extends ApiTest
         return apiResponse;
     }
 
-    public void testOrgUnitsConnections( Function<String, ApiResponse> apiResponseProvider, String uid )
+    protected void testOrgUnitsConnections( Function<String, ApiResponse> apiResponseProvider, String uid )
     {
         loginActions.loginAsSuperUser();
 
