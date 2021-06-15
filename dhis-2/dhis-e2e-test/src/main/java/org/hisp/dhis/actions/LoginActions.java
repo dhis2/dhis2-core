@@ -105,7 +105,6 @@ public class LoginActions
     public void addAuthenticationHeader( final String username, final String password )
     {
         TestRunStorage.setAuthenticationScheme( preemptive().basic( username, password ) );
-        //RestAssured.authentication = RestAssured.preemptive().basic( username, password );
     }
 
     /**
@@ -114,7 +113,6 @@ public class LoginActions
     public void removeAuthenticationHeader()
     {
         TestRunStorage.setAuthenticationScheme( RestAssured.DEFAULT_AUTH );
-        //RestAssured.authentication = RestAssured.DEFAULT_AUTH;
     }
 
     /**
@@ -125,7 +123,6 @@ public class LoginActions
     public void loginWithToken( String token )
     {
         TestRunStorage.setAuthenticationScheme( oauth2( token ) );
-        //RestAssured.authentication = oauth2( token );
     }
 
     public void loginAsAdmin()
