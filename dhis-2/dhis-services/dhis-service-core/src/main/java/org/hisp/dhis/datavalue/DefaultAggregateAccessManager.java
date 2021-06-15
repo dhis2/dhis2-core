@@ -28,6 +28,7 @@
 package org.hisp.dhis.datavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptyList;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -144,15 +145,13 @@ public class DefaultAggregateAccessManager
     @Override
     public List<String> canWrite( User user, CategoryOptionCombo optionCombo )
     {
-        List<String> errors = new ArrayList<>();
-
         if ( user == null || user.isSuper() )
         {
-            return errors;
+            return emptyList();
         }
 
         Set<CategoryOption> options = optionCombo.getCategoryOptions();
-
+        List<String> errors = new ArrayList<>();
         options.forEach( attrOption -> {
             if ( !aclService.canDataWrite( user, attrOption ) )
             {

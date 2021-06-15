@@ -331,6 +331,7 @@ public class DataValueSet
 
     public void close()
     {
+        // potentially overridden by subclasses
     }
 
     /**

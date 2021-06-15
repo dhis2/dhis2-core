@@ -27,56 +27,27 @@
  */
 package org.hisp.dhis.dxf2.importsummary;
 
-import java.util.function.Predicate;
+import org.hisp.dhis.feedback.ErrorCode;
 
-/**
- * A "append only" set of {@link ImportConflict}s.
- *
- * @author Jan Bernitt
- */
-public interface ImportConflicts
+public interface ImportConflictDescriptor
 {
-
-    void addConflict( ImportConflict conflict );
+    // TODO add multiple enums implementing this interface for different imports
+    ErrorCode getErrorCode(); // maybe even ErrorMessage here?
 
     /**
-     * Adds a new conflict to this set of conflicts
-     *
-     * @param object reference or ID of the object causing the conflict
-     * @param message a description of the conflict
+     * @return The type of object that has the conflict and to wich the
+     *         {@code object} reference points.
      */
-    default void addConflict( String object, String message )
+    Class<?>[] getObjectTypes();
+
+    /**
+     * @return The name of the property of the imported object that the conflict
+     *         is related to (if available)
+     */
+    default String getProperty()
     {
-        addConflict( new ImportConflict( object, message ) );
+        // by default conflicts are not related to a single property
+        return null;
     }
 
-    /**
-     * @return A textual description of all {@link ImportConflict}s in this set
-     */
-    String getConflictsDescription();
-
-    /**
-     * @return Number of unique conflicts in the set. This can be less than the
-     *         number of conflicts added using
-     *         {@link #addConflict(String, String)} since duplicates are
-     *         eliminated
-     */
-    int getConflictCount();
-
-    /**
-     * Tests if a {@link ImportConflict} with certain qualities exists in this
-     * set.
-     *
-     * @param test the test to perform
-     * @return true if it exist, otherwise false
-     */
-    boolean hasConflict( Predicate<ImportConflict> test );
-
-    /**
-     * @return true, if there are any conflicts in this set, else false
-     */
-    default boolean hasConflicts()
-    {
-        return getConflictCount() > 0;
-    }
 }

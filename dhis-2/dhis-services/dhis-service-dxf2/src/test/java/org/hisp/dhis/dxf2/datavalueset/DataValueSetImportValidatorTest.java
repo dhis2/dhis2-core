@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -333,7 +334,14 @@ public class DataValueSetImportValidatorTest
         UserCredentials credentials = new UserCredentials();
         credentials.setUsername( "Guest" );
         currentUser.setUserCredentials( credentials );
-        return ImportContext.builder().summary( new ImportSummary() ).currentUser( currentUser );
+        return ImportContext.builder().summary( new ImportSummary() ).currentUser( currentUser )
+            .singularNameForType( DataValueSetImportValidatorTest::getSingularNameForType );
+    }
+
+    private static String getSingularNameForType( Class<? extends IdentifiableObject> klass )
+    {
+        String singular = klass.getSimpleName();
+        return singular.substring( 0, 1 ).toLowerCase().concat( singular.substring( 1 ) );
     }
 
     private DataSetContextBuilder createDataSetContext( DataValueSet dataValueSet )

@@ -40,6 +40,7 @@ import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.dataapproval.DataApproval;
@@ -190,7 +191,7 @@ public class DataValueSetImportValidator
     {
         if ( dataSetContext.getDataSet() == null && trimToNull( dataValueSet.getDataSet() ) != null )
         {
-            context.error().addConflict( dataValueSet.getDataSet(), "Data set not found or not accessible" );
+            context.error().addConflict( DataValueSetImportConflict.DATASET_NOT_FOUND, dataValueSet.getDataSet() );
         }
     }
 
@@ -200,8 +201,7 @@ public class DataValueSetImportValidator
         DataSet dataSet = dataSetContext.getDataSet();
         if ( dataSet != null && !aclService.canDataWrite( context.getCurrentUser(), dataSet ) )
         {
-            context.error().addConflict( dataValueSet.getDataSet(),
-                "User does not have write access for DataSet: " + dataSet.getUid() );
+            context.error().addConflict( DataValueSetImportConflict.DATASET_NOT_ACCESSIBLE, dataValueSet.getDataSet() );
         }
     }
 
@@ -210,7 +210,7 @@ public class DataValueSetImportValidator
     {
         if ( dataSetContext.getDataSet() == null && context.isStrictDataElements() )
         {
-            context.error().addConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS", "A valid dataset is required" );
+            context.error().addConflict( DataValueSetImportConflict.DATASET_NOT_VALID, dataValueSet.getDataSet() );
         }
     }
 
@@ -219,7 +219,8 @@ public class DataValueSetImportValidator
     {
         if ( dataSetContext.getOuterOrgUnit() == null && trimToNull( dataValueSet.getOrgUnit() ) != null )
         {
-            context.error().addConflict( dataValueSet.getOrgUnit(), "Org unit not found or not accessible" );
+            context.error().addConflict( DataValueSetImportConflict.ORG_UNIT_NOT_FOUND,
+                dataValueSet.getOrgUnit(), dataValueSet.getDataSet() );
         }
     }
 
@@ -229,8 +230,8 @@ public class DataValueSetImportValidator
         if ( dataSetContext.getOuterAttrOptionCombo() == null
             && trimToNull( dataValueSet.getAttributeOptionCombo() ) != null )
         {
-            context.error().addConflict( dataValueSet.getAttributeOptionCombo(),
-                "Attribute option combo not found or not accessible" );
+            context.error().addConflict( DataValueSetImportConflict.ATTR_OPTION_COMBO_NOT_FOUND,
+                dataValueSet.getAttributeOptionCombo(), dataValueSet.getDataSet() );
         }
     }
 
@@ -261,7 +262,8 @@ public class DataValueSetImportValidator
     {
         if ( valueContext.getDataElement() == null )
         {
-            context.addConflict( dataValue.getDataElement(), "Data element not found or not accessible" );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.DATA_ELEMENT_NOT_FOUND, dataValue.getDataElement() );
         }
     }
 
@@ -270,7 +272,8 @@ public class DataValueSetImportValidator
     {
         if ( valueContext.getPeriod() == null )
         {
-            context.addConflict( dataValue.getPeriod(), "Period not valid" );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.PERIOD_NOT_VALID, dataValue.getPeriod() );
         }
     }
 
@@ -279,7 +282,8 @@ public class DataValueSetImportValidator
     {
         if ( valueContext.getOrgUnit() == null )
         {
-            context.addConflict( dataValue.getOrgUnit(), "Organisation unit not found or not accessible" );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.ORG_UNIT_NOT_FOUND, dataValue.getOrgUnit() );
         }
     }
 
@@ -289,8 +293,8 @@ public class DataValueSetImportValidator
         if ( valueContext.getCategoryOptionCombo() == null
             && trimToNull( dataValue.getCategoryOptionCombo() ) != null )
         {
-            context.addConflict( dataValue.getCategoryOptionCombo(),
-                "Category option combo not found or not accessible for writing data" );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.CATEGORY_OPTION_COMBO_NOT_FOUND, dataValue.getCategoryOptionCombo() );
         }
     }
 
@@ -299,12 +303,14 @@ public class DataValueSetImportValidator
     {
         if ( valueContext.getCategoryOptionCombo() != null )
         {
-            List<String> errors = accessManager.canWrite( context.getCurrentUser(),
-                valueContext.getCategoryOptionCombo() );
-
-            if ( !errors.isEmpty() )
+            for ( CategoryOption option : valueContext.getCategoryOptionCombo().getCategoryOptions() )
             {
-                context.addConflicts( "dataValueSet", errors );
+                if ( !aclService.canDataWrite( context.getCurrentUser(), option ) )
+                {
+                    context.addConflict( valueContext.getIndex(),
+                        DataValueImportConflict.CATEGORY_OPTION_COMBO_NOT_ACCESSIBLE,
+                        dataValue.getCategoryOptionCombo(), option.getUid() );
+                }
             }
         }
     }
@@ -315,8 +321,8 @@ public class DataValueSetImportValidator
         if ( valueContext.getAttrOptionCombo() == null
             && trimToNull( dataValue.getAttributeOptionCombo() ) != null )
         {
-            context.addConflict( dataValue.getAttributeOptionCombo(),
-                "Attribute option combo not found or not accessible for writing data" );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.ATTR_OPTION_COMBO_NOT_FOUND, dataValue.getAttributeOptionCombo() );
         }
     }
 
@@ -325,12 +331,14 @@ public class DataValueSetImportValidator
     {
         if ( valueContext.getAttrOptionCombo() != null )
         {
-            List<String> errors = accessManager.canWrite( context.getCurrentUser(),
-                valueContext.getAttrOptionCombo() );
-
-            if ( !errors.isEmpty() )
+            for ( CategoryOption option : valueContext.getAttrOptionCombo().getCategoryOptions() )
             {
-                context.addConflicts( "dataValueSet", errors );
+                if ( !aclService.canDataWrite( context.getCurrentUser(), option ) )
+                {
+                    context.addConflict( valueContext.getIndex(),
+                        DataValueImportConflict.ATTR_OPTION_COMBO_NOT_ACCESSIBLE,
+                        dataValue.getAttributeOptionCombo(), option.getUid() );
+                }
             }
         }
     }
@@ -343,8 +351,9 @@ public class DataValueSetImportValidator
 
         if ( !inUserHierarchy )
         {
-            context.addConflict( valueContext.getOrgUnit().getUid(),
-                "Organisation unit not in hierarchy of current user: " + context.getCurrentUserName() );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.ORG_UNIT_NOT_IN_USER_HIERARCHY,
+                dataValue.getOrgUnit(), context.getCurrentUserName() );
         }
     }
 
@@ -353,8 +362,8 @@ public class DataValueSetImportValidator
     {
         if ( dataValue.isNullValue() && !dataValue.isDeletedValue() )
         {
-            context.addConflict( "Value",
-                "Data value or comment not specified for data element: " + valueContext.getDataElement().getUid() );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.DATA_ELEMENT_VALUE_NOT_DEFINED, dataValue.getDataElement() );
         }
     }
 
@@ -365,24 +374,24 @@ public class DataValueSetImportValidator
             ValidationUtils.normalizeBoolean( dataValue.getValue(),
                 valueContext.getDataElement().getValueType() ) );
 
-        String valueValid = ValidationUtils.dataValueIsValid( dataValue.getValue(), valueContext.getDataElement() );
+        String errorKey = ValidationUtils.dataValueIsValid( dataValue.getValue(), valueContext.getDataElement() );
 
-        if ( valueValid != null )
+        if ( errorKey != null )
         {
-            context.addConflict( dataValue.getValue(),
-                context.getI18n().getString( valueValid ) + ", must match data element type: "
-                    + valueContext.getDataElement().getUid() );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.DATA_ELEMENT_VALUE_NOT_VALID,
+                dataValue.getDataElement(), errorKey );
         }
     }
 
     private static void validateDataValueCommentIsValid( DataValue dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        String commentValid = ValidationUtils.commentIsValid( dataValue.getComment() );
+        String errorKey = ValidationUtils.commentIsValid( dataValue.getComment() );
 
-        if ( commentValid != null )
+        if ( errorKey != null )
         {
-            context.addConflict( "Comment", context.getI18n().getString( commentValid ) );
+            context.addConflict( valueContext.getIndex(), DataValueImportConflict.COMMENT_NOT_VALID, errorKey );
         }
     }
 
@@ -397,9 +406,8 @@ public class DataValueSetImportValidator
 
         if ( optionCodes.isPresent() && !optionCodes.get().contains( dataValue.getValue() ) )
         {
-            context.addConflict( dataValue.getValue(),
-                "Data value is not a valid option of the data element option set: "
-                    + valueContext.getDataElement().getUid() );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.DATA_ELEMENT_INVALID_OPTION, dataValue.getDataElement() );
         }
     }
 
@@ -414,8 +422,8 @@ public class DataValueSetImportValidator
         {
             if ( context.isRequireCategoryOptionCombo() )
             {
-                context.addConflict( dataValue.getValue(),
-                    "Category option combo is required but is not specified" );
+                context.addConflict( valueContext.getIndex(),
+                    DataValueImportConflict.CATEGORY_OPTION_COMBO_NOT_SPECIFIED );
             }
             else
             {
@@ -431,8 +439,8 @@ public class DataValueSetImportValidator
         {
             if ( context.isRequireAttrOptionCombo() )
             {
-                context.addConflict( dataValue.getValue(),
-                    "Attribute option combo is required but is not specified" );
+                context.addConflict( valueContext.getIndex(),
+                    DataValueImportConflict.ATTR_OPTION_COMBO_NOT_SPECIFIED );
             }
             else
             {
@@ -449,9 +457,9 @@ public class DataValueSetImportValidator
                 valueContext.getDataElement()::getPeriodTypes )
             .contains( valueContext.getPeriod().getPeriodType() ) )
         {
-            context.addConflict( dataValue.getPeriod(),
-                "Period type of period: " + valueContext.getPeriod().getIsoDate() + " not valid for data element: "
-                    + valueContext.getDataElement().getUid() );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.PERIOD_TYPE_NOT_VALID_FOR_DATA_ELEMENT,
+                dataValue.getPeriod(), dataValue.getDataElement() );
         }
     }
 
@@ -461,9 +469,9 @@ public class DataValueSetImportValidator
         if ( context.isStrictDataElements()
             && !dataSetContext.getDataSetDataElements().contains( valueContext.getDataElement() ) )
         {
-            context.addConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS",
-                "Data element: " + dataValue.getDataElement() + " is not part of dataset: "
-                    + dataSetContext.getDataSet().getUid() );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.DATA_ELEMENT_STRICT,
+                dataValue.getDataElement(), dataSetContext.getDataSet().getUid() );
         }
     }
 
@@ -475,10 +483,9 @@ public class DataValueSetImportValidator
                 valueContext.getDataElement()::getCategoryOptionCombos )
                 .contains( valueContext.getCategoryOptionCombo() ) )
         {
-            context.addConflict( valueContext.getCategoryOptionCombo().getUid(),
-                "Category option combo: " + valueContext.getCategoryOptionCombo().getUid()
-                    + " must be part of category combo of data element: "
-                    + valueContext.getDataElement().getUid() );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.CATEGORY_OPTION_COMBO_STRICT,
+                dataValue.getCategoryOptionCombo(), dataValue.getDataElement() );
         }
     }
 
@@ -490,10 +497,9 @@ public class DataValueSetImportValidator
                 valueContext.getDataElement()::getDataSetCategoryOptionCombos )
                 .contains( valueContext.getAttrOptionCombo() ) )
         {
-            context.addConflict( valueContext.getAttrOptionCombo().getUid(),
-                "Attribute option combo: " + valueContext.getAttrOptionCombo().getUid()
-                    + " must be part of category combo of data sets of data element: "
-                    + valueContext.getDataElement().getUid() );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.ATTR_OPTION_COMBO_STRICT,
+                dataValue.getAttributeOptionCombo(), dataValue.getDataElement() );
         }
     }
 
@@ -506,10 +512,8 @@ public class DataValueSetImportValidator
                     valueContext.getDataElement().getUid() + valueContext.getOrgUnit().getUid(),
                     () -> valueContext.getOrgUnit().hasDataElement( valueContext.getDataElement() ) ) ) )
         {
-            context.addConflict( valueContext.getOrgUnit().getUid(),
-                "Data element: " + valueContext.getDataElement().getUid()
-                    + " must be assigned through data sets to organisation unit: "
-                    + valueContext.getOrgUnit().getUid() );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.ORG_UNIT_STRICT, dataValue.getOrgUnit(), dataValue.getDataElement() );
         }
     }
 
@@ -529,11 +533,12 @@ public class DataValueSetImportValidator
     private static void checkDataValueStoredByIsValid( DataValue dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        String storedByValid = ValidationUtils.storedByIsValid( dataValue.getStoredBy() );
+        String errorKey = ValidationUtils.storedByIsValid( dataValue.getStoredBy() );
 
-        if ( storedByValid != null )
+        if ( errorKey != null )
         {
-            context.addConflict( dataValue.getStoredBy(), context.getI18n().getString( storedByValid ) );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.STORED_BY_NOT_VALID, dataValue.getStoredBy(), errorKey );
         }
     }
 
@@ -555,10 +560,9 @@ public class DataValueSetImportValidator
             || (aocDateRange.getEndDate() != null
                 && aocDateRange.getEndDate().before( valueContext.getPeriod().getStartDate() )) )
         {
-            context.addConflict( valueContext.getOrgUnit().getUid(),
-                "Period: " + valueContext.getPeriod().getIsoDate()
-                    + " is not within date range of attribute option combo: "
-                    + valueContext.getAttrOptionCombo().getUid() );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.PERIOD_NOT_VALID_FOR_ATTR_OPTION_COMBO,
+                dataValue.getPeriod(), dataValue.getAttributeOptionCombo() );
         }
     }
 
@@ -569,10 +573,9 @@ public class DataValueSetImportValidator
             .get( valueContext.getAttrOptionCombo().getUid() + valueContext.getOrgUnit().getUid(),
                 () -> isOrgUnitValidForAttrOptionCombo( valueContext ) ) )
         {
-            context.addConflict( valueContext.getOrgUnit().getUid(),
-                "Organisation unit: " + valueContext.getOrgUnit().getUid()
-                    + " is not valid for attribute option combo: "
-                    + valueContext.getAttrOptionCombo().getUid() );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.ORG_UNIT_NOT_VALID_FOR_ATTR_OPTION_COMBO,
+                dataValue.getOrgUnit(), dataValue.getAttributeOptionCombo() );
         }
     }
 
@@ -596,9 +599,8 @@ public class DataValueSetImportValidator
                 () -> isLocked( context.getCurrentUser(), approvalDataSet, valueContext.getPeriod(),
                     valueContext.getOrgUnit(), context.isSkipLockExceptionCheck() ) ) )
             {
-                context.addConflict( valueContext.getPeriod().getIsoDate(),
-                    "Current date is past expiry days for period " + valueContext.getPeriod().getIsoDate()
-                        + " and data set: " + approvalDataSet.getUid() );
+                context.addConflict( valueContext.getIndex(),
+                    DataValueImportConflict.PERIOD_EXPIRED, dataValue.getPeriod(), approvalDataSet.getUid() );
             }
         }
     }
@@ -617,10 +619,9 @@ public class DataValueSetImportValidator
 
             if ( valueContext.getPeriod().isAfter( latestFuturePeriod ) && context.isIso8601() )
             {
-                context.addConflict( valueContext.getPeriod().getIsoDate(),
-                    "Period: " + valueContext.getPeriod().getIsoDate() + " is after latest open future period: "
-                        + latestFuturePeriod.getIsoDate() + " for data element: "
-                        + valueContext.getDataElement().getUid() );
+                context.addConflict( valueContext.getIndex(),
+                    DataValueImportConflict.PERIOD_AFTER_DATA_ELEMENT_PERIODS,
+                    dataValue.getPeriod(), latestFuturePeriod.getIsoDate(), dataValue.getDataElement() );
             }
         }
     }
@@ -651,12 +652,10 @@ public class DataValueSetImportValidator
                         () -> approvalService.getDataApproval( lowestApproval ) != null );
                 } ) )
                 {
-                    context.addConflict( valueContext.getOrgUnit().getUid(),
-                        "Data is already approved for data set: " + approvalDataSet.getUid() + " period: "
-                            + valueContext.getPeriod().getIsoDate()
-                            + " organisation unit: " + valueContext.getOrgUnit().getUid()
-                            + " attribute option combo: "
-                            + valueContext.getAttrOptionCombo().getUid() );
+                    context.addConflict( valueContext.getIndex(),
+                        DataValueImportConflict.VALUE_ALREADY_APPROVED,
+                        dataValue.getOrgUnit(), dataValue.getPeriod(), dataValue.getAttributeOptionCombo(),
+                        approvalDataSet.getUid() );
                 }
             }
         }
@@ -670,9 +669,9 @@ public class DataValueSetImportValidator
         if ( approvalDataSet != null && !context.isForceDataInput()
             && !approvalDataSet.isDataInputPeriodAndDateAllowed( valueContext.getPeriod(), new Date() ) )
         {
-            context.addConflict( valueContext.getOrgUnit().getUid(),
-                "Period: " + valueContext.getPeriod().getIsoDate() + " is not open for this data set at this time: "
-                    + approvalDataSet.getUid() );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.PERIOD_NOT_OPEN_FOR_DATA_SET,
+                dataValue.getPeriod(), approvalDataSet.getUid() );
         }
     }
 
@@ -685,9 +684,8 @@ public class DataValueSetImportValidator
                 () -> valueContext.getDataElement().isDataInputAllowedForPeriodAndDate( valueContext.getPeriod(),
                     new Date() ) ) )
         {
-            context.addConflict( valueContext.getOrgUnit().getUid(),
-                "Period " + valueContext.getPeriod().getName()
-                    + " does not conform to the open periods of associated data sets" );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.PERIOD_NOT_CONFORM_TO_OPEN_PERIODS, dataValue.getPeriod() );
         }
     }
 
@@ -697,8 +695,8 @@ public class DataValueSetImportValidator
         if ( context.getStrategy().isDelete() && valueContext.getDataElement().isFileType()
             && valueContext.getActualDataValue( dataValueService ) == null )
         {
-            context.addConflict( valueContext.getDataElement().getUid(),
-                "No data value for file resource exist for the given combination" );
+            context.addConflict( valueContext.getIndex(),
+                DataValueImportConflict.FILE_RESOURCE_NOT_FOUND, dataValue.getDataElement() );
         }
     }
 

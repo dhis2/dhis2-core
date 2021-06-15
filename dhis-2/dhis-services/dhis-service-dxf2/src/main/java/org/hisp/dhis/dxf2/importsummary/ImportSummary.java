@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.dxf2.importsummary;
 
-import static java.util.Collections.unmodifiableSet;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import org.hisp.dhis.common.DxfNamespaces;
@@ -56,12 +55,12 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
 
     /**
      * Number of total conflicts. In contrast to the collection of
-     * {@link ImportConflict}s which deduplicate this counts each conflict added
-     * using {@link #addConflict(String, String)}
+     * {@link ImportConflict}s which deduplicate this variable counts each
+     * conflict added.
      */
     private int totalConflictCount = 0;
 
-    private final Set<ImportConflict> conflicts = new HashSet<>();
+    private final Map<String, ImportConflict> conflicts = new LinkedHashMap<>();
 
     private String dataSetComplete;
 
@@ -190,7 +189,7 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
     @JacksonXmlProperty( localName = "conflict", namespace = DxfNamespaces.DXF_2_0 )
     public Iterable<ImportConflict> getConflicts()
     {
-        return unmodifiableSet( conflicts );
+        return conflicts.values();
     }
 
     @JsonProperty
@@ -309,10 +308,11 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
     }
 
     @Override
-    public void addConflict( String object, String message )
+    public void addConflict( ImportConflict conflict )
     {
         totalConflictCount++;
-        conflicts.add( new ImportConflict( object, message ) );
+        conflicts.compute( conflict.getGroupingKey(),
+            ( key, aggregate ) -> aggregate == null ? conflict : aggregate.mergeWith( conflict ) );
     }
 
     public int getTotalConflictCount()
@@ -329,7 +329,7 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
     @Override
     public boolean hasConflict( Predicate<ImportConflict> test )
     {
-        return conflicts.stream().anyMatch( test );
+        return conflicts.values().stream().anyMatch( test );
     }
 
     @Override

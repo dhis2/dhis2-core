@@ -25,58 +25,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.importsummary;
+package org.hisp.dhis.dxf2.datavalueset;
 
-import java.util.function.Predicate;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * A "append only" set of {@link ImportConflict}s.
+ * Possible conflicts related to imported {@link DataSet} during a
+ * {@link DataValueSet} import.
  *
  * @author Jan Bernitt
  */
-public interface ImportConflicts
+public enum DataValueSetImportConflict implements ImportConflictDescriptor
 {
 
-    void addConflict( ImportConflict conflict );
+    DATASET_NOT_FOUND( ErrorCode.E7600 ),
+    DATASET_NOT_ACCESSIBLE( ErrorCode.E7601 ),
+    DATASET_NOT_VALID( ErrorCode.E7602 ),
+    ORG_UNIT_NOT_FOUND( ErrorCode.E7603, "orgUnit", OrganisationUnit.class, DataSet.class ),
+    ATTR_OPTION_COMBO_NOT_FOUND( ErrorCode.E7604, "attributeOptionCombo", CategoryOptionCombo.class,
+        DataSet.class );
 
-    /**
-     * Adds a new conflict to this set of conflicts
-     *
-     * @param object reference or ID of the object causing the conflict
-     * @param message a description of the conflict
-     */
-    default void addConflict( String object, String message )
+    private final ErrorCode errorCode;
+
+    private String property;
+
+    private Class<?>[] objectTypes;
+
+    DataValueSetImportConflict( ErrorCode errorCode )
     {
-        addConflict( new ImportConflict( object, message ) );
+        this( errorCode, null, DataSet.class );
     }
 
-    /**
-     * @return A textual description of all {@link ImportConflict}s in this set
-     */
-    String getConflictsDescription();
-
-    /**
-     * @return Number of unique conflicts in the set. This can be less than the
-     *         number of conflicts added using
-     *         {@link #addConflict(String, String)} since duplicates are
-     *         eliminated
-     */
-    int getConflictCount();
-
-    /**
-     * Tests if a {@link ImportConflict} with certain qualities exists in this
-     * set.
-     *
-     * @param test the test to perform
-     * @return true if it exist, otherwise false
-     */
-    boolean hasConflict( Predicate<ImportConflict> test );
-
-    /**
-     * @return true, if there are any conflicts in this set, else false
-     */
-    default boolean hasConflicts()
+    DataValueSetImportConflict( ErrorCode errorCode, String property, Class<?>... objectTypes )
     {
-        return getConflictCount() > 0;
+        this.errorCode = errorCode;
+        this.property = property;
+        this.objectTypes = objectTypes;
+    }
+
+    @Override
+    public Class<?>[] getObjectTypes()
+    {
+        return objectTypes;
+    }
+
+    @Override
+    public String getProperty()
+    {
+        return property;
+    }
+
+    @Override
+    public ErrorCode getErrorCode()
+    {
+        return errorCode;
     }
 }
