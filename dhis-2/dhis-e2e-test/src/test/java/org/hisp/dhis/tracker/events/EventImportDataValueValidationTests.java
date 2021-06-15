@@ -34,6 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
@@ -41,6 +43,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
@@ -194,14 +197,9 @@ public class EventImportDataValueValidationTests
 
     private void addDataValue( JsonObject body, String dataElementId, String value )
     {
-        JsonArray dataValues = new JsonArray();
-
-        JsonObject dataValue = new JsonObject();
-
-        dataValue.addProperty( "dataElement", dataElementId );
-        dataValue.addProperty( "value", value );
-
-        dataValues.add( dataValue );
-        body.add( "dataValues", dataValues );
+        JsonObjectBuilder.jsonObject( body )
+            .addArray( "dataValues", new JsonObjectBuilder()
+                .addProperty( "dataElement", dataElementId )
+                .addProperty( "value", value ).build());
     }
 }
