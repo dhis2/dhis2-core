@@ -112,9 +112,7 @@ public class Section
             }
         }
 
-        List<CategoryCombo> sortedCategoryombos = categoryCombos.stream().collect( Collectors.toList() );
-
-        Collections.sort( sortedCategoryombos, new CategoryComboComparator() );
+        List<CategoryCombo> sortedCategoryombos = categoryCombos.stream().sorted(new CategoryComboComparator()).collect( Collectors.toList() );
 
         return sortedCategoryombos;
     }
