@@ -89,7 +89,7 @@ public class DefaultOrgUnitMergeService
 
         handlers.forEach( merge -> merge.merge( request ) );
 
-        // Persistence framework inspection will update associated objects
+        // Persistence framework will inspect and update associated objects
 
         idObjectManager.update( request.getTarget() );
     }
