@@ -33,7 +33,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
@@ -53,8 +52,8 @@ public class AttributeOptionComboCheck implements Checker
             && !program.getCategoryCombo().isDefault() )
         {
             ImportSummary importSummary = new ImportSummary( event.getEvent() );
-            importSummary.getConflicts().add( new ImportConflict( "attributeOptionCombo",
-                "Valid attribute option combo must be specified since program does not have the default category combo" ) );
+            importSummary.addConflict( "attributeOptionCombo",
+                "Valid attribute option combo must be specified since program does not have the default category combo" );
             importSummary.setStatus( ImportStatus.ERROR );
             return importSummary.incrementIgnored();
         }

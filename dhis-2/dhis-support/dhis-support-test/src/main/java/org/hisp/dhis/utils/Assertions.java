@@ -46,9 +46,10 @@ public final class Assertions
     public static <E> void assertContainsOnly( Collection<E> actual, E... expected )
     {
         assertEquals( expected.length, actual.size() );
+
         for ( E e : expected )
         {
-            assertTrue( actual.contains( e ) );
+            assertTrue( "Expected " + e.toString() + " in " + actual.toString(), actual.contains( e ) );
         }
     }
 }

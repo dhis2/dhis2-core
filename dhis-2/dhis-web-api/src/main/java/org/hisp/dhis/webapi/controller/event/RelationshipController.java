@@ -46,6 +46,7 @@ import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -236,7 +237,7 @@ public class RelationshipController
     }
 
     @PutMapping( path = "/{id}", consumes = MediaType.APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
-    public ImportSummary updateRelationshipXml(
+    public ImportConflicts updateRelationshipXml(
         @PathVariable String id,
         ImportOptions importOptions,
         HttpServletRequest request )

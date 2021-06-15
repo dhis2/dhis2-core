@@ -35,7 +35,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -71,8 +70,7 @@ public class DataValueAclCheck implements Checker
 
             if ( !errors.isEmpty() )
             {
-                errors.forEach(
-                    error -> importSummary.getConflicts().add( new ImportConflict( dataElement.getUid(), error ) ) );
+                errors.forEach( error -> importSummary.addConflict( dataElement.getUid(), error ) );
             }
         }
 
