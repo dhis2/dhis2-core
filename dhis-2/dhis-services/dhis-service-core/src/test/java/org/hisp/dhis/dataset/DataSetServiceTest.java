@@ -580,5 +580,4 @@ public class DataSetServiceTest
         assertTrue( access.getData().isRead() );
         assertTrue( access.getData().isWrite() );
     }
-
 }
