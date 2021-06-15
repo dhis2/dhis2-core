@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.events.security;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -164,7 +165,7 @@ public class EventSecurityTest
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertTrue( importSummary.getConflicts().isEmpty() );
+        assertFalse( importSummary.hasConflicts() );
     }
 
     @Test

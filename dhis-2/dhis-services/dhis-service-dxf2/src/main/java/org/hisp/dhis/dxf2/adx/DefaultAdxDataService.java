@@ -28,14 +28,29 @@
 package org.hisp.dhis.dxf2.adx;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedOutputStream;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -53,8 +68,8 @@ import org.hisp.dhis.category.CategoryComboMap.CategoryComboMapException;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -77,13 +92,14 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
 import org.hisp.staxwax.writer.XMLWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author bobj
@@ -126,11 +142,13 @@ public class DefaultAdxDataService
         Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, Integer limit,
         IdSchemes outputIdSchemes )
     {
+        outputIdSchemes.setDefaultIdScheme( IdScheme.CODE );
+
         DataExportParams params = new DataExportParams();
 
         if ( dataSets != null )
         {
-            params.getDataSets().addAll( identifiableObjectManager.getByCode( DataSet.class, dataSets ) );
+            params.getDataSets().addAll( getByUidOrCode( DataSet.class, dataSets ) );
         }
 
         if ( periods != null && !periods.isEmpty() )
@@ -146,7 +164,7 @@ public class DefaultAdxDataService
         if ( organisationUnits != null )
         {
             params.getOrganisationUnits()
-                .addAll( identifiableObjectManager.getByCode( OrganisationUnit.class, organisationUnits ) );
+                .addAll( getByUidOrCode( OrganisationUnit.class, organisationUnits ) );
         }
 
         params.setIncludeChildren( includeChildren );
@@ -170,9 +188,14 @@ public class DefaultAdxDataService
         adxWriter.openElement( AdxDataService.ROOT );
         adxWriter.writeAttribute( "xmlns", AdxDataService.NAMESPACE );
 
+        IdSchemes idSchemes = params.getOutputIdSchemes();
+        IdScheme ouScheme = idSchemes.getOrgUnitIdScheme();
+        IdScheme dsScheme = idSchemes.getDataSetIdScheme();
+        IdScheme deScheme = idSchemes.getDataElementIdScheme();
+
         for ( DataSet dataSet : params.getDataSets() )
         {
-            AdxDataSetMetadata metadata = new AdxDataSetMetadata( dataSet );
+            AdxDataSetMetadata metadata = new AdxDataSetMetadata( dataSet, idSchemes );
 
             CategoryCombo categoryCombo = dataSet.getCategoryCombo();
 
@@ -182,48 +205,76 @@ public class DefaultAdxDataService
 
                 for ( OrganisationUnit orgUnit : params.getOrganisationUnits() )
                 {
-                    for ( Period period : params.getPeriods() )
+                    Period currentPeriod = null;
+                    OrganisationUnit currentOrgUnit = null;
+
+                    DataExportParams queryParams = new DataExportParams()
+                        .setDataElements( dataSet.getDataElements() )
+                        .setOrganisationUnits( Sets.newHashSet( orgUnit ) )
+                        .setIncludeChildren( params.isIncludeChildren() )
+                        .setIncludeDeleted( params.isIncludeDeleted() )
+                        .setLastUpdated( params.getLastUpdated() )
+                        .setPeriods( params.getPeriods() )
+                        .setStartDate( params.getStartDate() )
+                        .setEndDate( params.getEndDate() )
+                        .setAttributeOptionCombos( Sets.newHashSet( aoc ) )
+                        .setOrderByOrgUnitPath( true )
+                        .setOrderByPeriod( true );
+
+                    for ( DataValue dv : dataValueService.getDataValues( queryParams ) )
                     {
-                        adxWriter.openElement( AdxDataService.GROUP );
-                        adxWriter.writeAttribute( AdxDataService.DATASET, dataSet.getCode() );
-                        adxWriter.writeAttribute( AdxDataService.PERIOD, AdxPeriod.serialize( period ) );
-                        adxWriter.writeAttribute( AdxDataService.ORGUNIT, orgUnit.getCode() );
-
-                        for ( String attribute : attributeDimensions.keySet() )
+                        if ( !dv.getPeriod().equals( currentPeriod ) || !dv.getSource().equals( currentOrgUnit ) )
                         {
-                            adxWriter.writeAttribute( attribute, attributeDimensions.get( attribute ) );
+                            if ( currentPeriod != null )
+                            {
+                                adxWriter.closeElement(); // GROUP
+                            }
+
+                            currentPeriod = dv.getPeriod();
+                            currentOrgUnit = dv.getSource();
+
+                            adxWriter.openElement( AdxDataService.GROUP );
+                            adxWriter.writeAttribute( AdxDataService.DATASET, dataSet.getPropertyValue( dsScheme ) );
+                            adxWriter.writeAttribute( AdxDataService.PERIOD, AdxPeriod.serialize( currentPeriod ) );
+                            adxWriter.writeAttribute( AdxDataService.ORGUNIT,
+                                currentOrgUnit.getPropertyValue( ouScheme ) );
+
+                            for ( Map.Entry<String, String> e : attributeDimensions.entrySet() )
+                            {
+                                adxWriter.writeAttribute( e.getKey(), e.getValue() );
+                            }
+                        }
+                        adxWriter.openElement( AdxDataService.DATAVALUE );
+
+                        adxWriter.writeAttribute( AdxDataService.DATAELEMENT,
+                            dv.getDataElement().getPropertyValue( deScheme ) );
+
+                        CategoryOptionCombo coc = dv.getCategoryOptionCombo();
+
+                        Map<String, String> categoryDimensions = metadata
+                            .getExplodedCategoryAttributes( coc.getId() );
+
+                        for ( Map.Entry<String, String> e : categoryDimensions.entrySet() )
+                        {
+                            adxWriter.writeAttribute( e.getKey(), e.getValue() );
                         }
 
-                        for ( DataValue dv : dataValueService.getDataValues( orgUnit, period, dataSet.getDataElements(),
-                            aoc ) )
+                        if ( dv.getDataElement().getValueType().isNumeric() )
                         {
-                            adxWriter.openElement( AdxDataService.DATAVALUE );
-
-                            adxWriter.writeAttribute( AdxDataService.DATAELEMENT, dv.getDataElement().getCode() );
-
-                            CategoryOptionCombo coc = dv.getCategoryOptionCombo();
-
-                            Map<String, String> categoryDimensions = metadata
-                                .getExplodedCategoryAttributes( coc.getId() );
-
-                            for ( String attribute : categoryDimensions.keySet() )
-                            {
-                                adxWriter.writeAttribute( attribute, categoryDimensions.get( attribute ) );
-                            }
-
-                            if ( dv.getDataElement().getValueType().isNumeric() )
-                            {
-                                adxWriter.writeAttribute( AdxDataService.VALUE, dv.getValue() );
-                            }
-                            else
-                            {
-                                adxWriter.writeAttribute( AdxDataService.VALUE, "0" );
-                                adxWriter.openElement( AdxDataService.ANNOTATION );
-                                adxWriter.writeCharacters( dv.getValue() );
-                                adxWriter.closeElement(); // ANNOTATION
-                            }
-                            adxWriter.closeElement(); // DATAVALUE
+                            adxWriter.writeAttribute( AdxDataService.VALUE, dv.getValue() );
                         }
+                        else
+                        {
+                            adxWriter.writeAttribute( AdxDataService.VALUE, "0" );
+                            adxWriter.openElement( AdxDataService.ANNOTATION );
+                            adxWriter.writeCharacters( dv.getValue() );
+                            adxWriter.closeElement(); // ANNOTATION
+                        }
+                        adxWriter.closeElement(); // DATAVALUE
+                    }
+
+                    if ( currentPeriod != null )
+                    {
                         adxWriter.closeElement(); // GROUP
                     }
                 }
@@ -239,6 +290,8 @@ public class DefaultAdxDataService
     @Transactional
     public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
+        importOptions.getIdSchemes().setDefaultIdScheme( IdScheme.CODE );
+
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
@@ -251,17 +304,43 @@ public class DefaultAdxDataService
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private <T extends IdentifiableObject> List<T> getByUidOrCode( Class<T> clazz, Set<String> ids )
+    {
+        return ids.stream()
+            .map( id -> getByUidOrCode( clazz, id ) )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toList() );
+    }
+
+    private <T extends IdentifiableObject> T getByUidOrCode( Class<T> clazz, String id )
+    {
+        if ( isValidUid( id ) )
+        {
+            T object = identifiableObjectManager.get( clazz, id );
+
+            if ( object != null )
+            {
+                return object;
+            }
+        }
+
+        return identifiableObjectManager.getByCode( clazz, id );
+    }
+
     private ImportSummary saveDataValueSetInternal( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         notifier.clear( id ).notify( id, "ADX parsing process started" );
 
-        ImportOptions adxImportOptions = ObjectUtils
-            .firstNonNull( importOptions, ImportOptions.getDefaultImportOptions() )
+        ImportOptions adxImportOptions = firstNonNull( importOptions, ImportOptions.getDefaultImportOptions() )
             .instance().setNotificationLevel( NotificationLevel.OFF );
 
         // Get import options
-        IdScheme dataSetIdScheme = importOptions.getIdSchemes().getDataSetIdScheme();
-        IdScheme dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme();
+        IdScheme dsScheme = importOptions.getIdSchemes().getDataSetIdScheme();
+        IdScheme deScheme = importOptions.getIdSchemes().getDataElementIdScheme();
 
         // Create meta-data maps
         CachingMap<String, DataSet> dataSetMap = new CachingMap<>();
@@ -269,17 +348,17 @@ public class DefaultAdxDataService
 
         // Get meta-data maps
         IdentifiableObjectCallable<DataSet> dataSetCallable = new IdentifiableObjectCallable<>(
-            identifiableObjectManager, DataSet.class, dataSetIdScheme, null );
+            identifiableObjectManager, DataSet.class, dsScheme, null );
         IdentifiableObjectCallable<DataElement> dataElementCallable = new IdentifiableObjectCallable<>(
-            identifiableObjectManager, DataElement.class, dataElementIdScheme, null );
+            identifiableObjectManager, DataElement.class, deScheme, null );
 
         // Heat cache
         if ( importOptions.isPreheatCacheDefaultFalse() )
         {
             dataSetMap.load( identifiableObjectManager.getAll( DataSet.class ),
-                o -> o.getPropertyValue( dataSetIdScheme ) );
+                o -> o.getPropertyValue( dsScheme ) );
             dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ),
-                o -> o.getPropertyValue( dataElementIdScheme ) );
+                o -> o.getPropertyValue( deScheme ) );
         }
 
         XMLReader adxReader = XMLFactory.getXMLReader( in );
@@ -328,7 +407,8 @@ public class DefaultAdxDataService
             pipeOut.flush();
 
             importSummary = futureImportSummary.get( TOTAL_MINUTES_TO_WAIT, TimeUnit.MINUTES );
-            importSummary.getConflicts().addAll( adxConflicts );
+            ImportSummary summary = importSummary;
+            adxConflicts.forEach( conflict -> summary.addConflict( conflict.getObject(), conflict.getValue() ) );
             importSummary.getImportCount().incrementIgnored( adxConflicts.size() );
         }
         catch ( AdxException ex )
@@ -336,7 +416,7 @@ public class DefaultAdxDataService
             importSummary = new ImportSummary();
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.setDescription( "Data set import failed within group number: " + groupCount );
-            importSummary.getConflicts().add( ex.getImportConflict() );
+            importSummary.addConflict( ex.getObject(), ex.getMessage() );
             notifier.update( id, NotificationLevel.ERROR, "ADX data import done", true );
             log.warn( "Import failed: " + DebugUtils.getStackTrace( ex ) );
         }
@@ -374,9 +454,6 @@ public class DefaultAdxDataService
     {
         List<ImportConflict> adxConflicts = new LinkedList<>();
 
-        IdScheme categoryOptionComboIdScheme = importOptions.getIdSchemes().getCategoryOptionComboIdScheme();
-        IdScheme categoryOptionIdScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
-
         Map<String, String> groupAttributes = adxReader.readAttributes();
 
         if ( !groupAttributes.containsKey( AdxDataService.PERIOD ) )
@@ -413,7 +490,7 @@ public class DefaultAdxDataService
             groupAttributes.put( AdxDataService.DATASET, dataSet.getUid() );
             CategoryCombo attributeCombo = dataSet.getCategoryCombo();
             convertAttributesToDxf( groupAttributes, AdxDataService.ATTOPTCOMBO, attributeCombo,
-                categoryOptionIdScheme, categoryOptionComboIdScheme );
+                importOptions.getIdSchemes() );
         }
 
         // process the dataValues
@@ -421,21 +498,21 @@ public class DefaultAdxDataService
         {
             try
             {
-                parseADXDataValueToDxf( adxReader, dxfWriter, groupAttributes, importOptions,
+                parseAdxDataValueToDxf( adxReader, dxfWriter, groupAttributes, importOptions,
                     dataElementMap, dataElementCallable );
             }
             catch ( AdxException ex )
             {
-                adxConflicts.add( ex.getImportConflict() );
+                adxConflicts.add( new ImportConflict( ex.getObject(), ex.getMessage() ) );
 
-                log.info( "ADX data value conflict: " + ex.getImportConflict() );
+                log.info( "ADX data value conflict: {} {}", ex.getObject(), ex.getMessage() );
             }
         }
 
         return adxConflicts;
     }
 
-    private void parseADXDataValueToDxf( XMLReader adxReader, XMLStreamWriter dxfWriter,
+    private void parseAdxDataValueToDxf( XMLReader adxReader, XMLStreamWriter dxfWriter,
         Map<String, String> groupAttributes, ImportOptions importOptions,
         CachingMap<String, DataElement> dataElementMap, IdentifiableObjectCallable<DataElement> dataElementCallable )
         throws XMLStreamException,
@@ -454,9 +531,6 @@ public class DefaultAdxDataService
         {
             throw new AdxException( AdxDataService.VALUE + " attribute is required on 'dataValue'" );
         }
-
-        IdScheme categoryOptionComboIdScheme = importOptions.getIdSchemes().getCategoryOptionComboIdScheme();
-        IdScheme categoryOptionIdScheme = importOptions.getIdSchemes().getCategoryOptionIdScheme();
 
         String dataElementStr = trimToNull( dvAttributes.get( AdxDataService.DATAELEMENT ) );
         final DataElement dataElement = dataElementMap.get( dataElementStr,
@@ -478,7 +552,7 @@ public class DefaultAdxDataService
             CategoryCombo categoryCombo = dataElement.getCategoryCombo();
 
             convertAttributesToDxf( dvAttributes, AdxDataService.CATOPTCOMBO, categoryCombo,
-                categoryOptionIdScheme, categoryOptionComboIdScheme );
+                importOptions.getIdSchemes() );
         }
 
         // if data element type is not numeric we need to pick out the
@@ -506,19 +580,31 @@ public class DefaultAdxDataService
         // write the group attributes through to DXF stream
         for ( String attribute : groupAttributes.keySet() )
         {
-            dxfWriter.writeAttribute( attribute, groupAttributes.get( attribute ) );
+            writeAttribute( dxfWriter, attribute, groupAttributes.get( attribute ) );
         }
 
         // pass through the remaining attributes to DXF
         for ( String attribute : dvAttributes.keySet() )
         {
-            dxfWriter.writeAttribute( attribute, dvAttributes.get( attribute ) );
+            writeAttribute( dxfWriter, attribute, dvAttributes.get( attribute ) );
         }
 
         dxfWriter.writeEndElement(); // dataValue
     }
 
-    private Map<String, Category> getCodeCategoryMap( CategoryCombo categoryCombo )
+    private void writeAttribute( XMLStreamWriter dxfWriter, String attribute, String value )
+        throws XMLStreamException,
+        AdxException
+    {
+        if ( value == null )
+        {
+            throw new AdxException( "Value for " + attribute + " is null" );
+        }
+
+        dxfWriter.writeAttribute( attribute, value );
+    }
+
+    private Map<String, Category> getCodeCategoryMap( CategoryCombo categoryCombo, IdScheme catScheme )
         throws AdxException
     {
         Map<String, Category> categoryMap = new HashMap<>();
@@ -527,29 +613,29 @@ public class DefaultAdxDataService
 
         for ( Category category : categories )
         {
-            String categoryCode = category.getCode();
+            String categoryId = category.getPropertyValue( catScheme );
 
-            if ( categoryCode == null || !XMLChar.isValidName( categoryCode ) )
+            if ( categoryId == null || !XMLChar.isValidName( categoryId ) )
             {
-                throw new AdxException(
-                    "Category code for " + category.getName() + " is missing or invalid: " + categoryCode );
+                throw new AdxException( "Category " + catScheme.name() + " for " + category.getName()
+                    + " is missing or invalid: " + categoryId );
             }
 
-            categoryMap.put( category.getCode(), category );
+            categoryMap.put( categoryId, category );
         }
 
         return categoryMap;
     }
 
     private CategoryOptionCombo getCatOptComboFromAttributes( Map<String, String> attributes,
-        CategoryCombo catcombo, IdentifiableProperty scheme )
+        CategoryCombo catcombo, IdSchemes idSchemes )
         throws AdxException
     {
         CategoryComboMap catcomboMap;
 
         try
         {
-            catcomboMap = new CategoryComboMap( catcombo, scheme );
+            catcomboMap = new CategoryComboMap( catcombo, idSchemes.getCategoryOptionIdScheme() );
         }
         catch ( CategoryComboMapException ex )
         {
@@ -561,18 +647,20 @@ public class DefaultAdxDataService
 
         for ( Category category : catcomboMap.getCategories() )
         {
-            String categoryCode = category.getCode();
+            String categoryId = category.getPropertyValue( idSchemes.getCategoryIdScheme() );
 
-            if ( categoryCode == null )
+            if ( categoryId == null )
             {
-                throw new AdxException( "No category matching: " + categoryCode );
+                throw new AdxException(
+                    "No category " + idSchemes.getCategoryIdScheme().name() + " for: " + category.toString() );
             }
 
-            String catAttribute = attributes.get( categoryCode );
+            String catAttribute = attributes.get( categoryId );
 
             if ( catAttribute == null )
             {
-                throw new AdxException( "Missing required attribute from category combo: " + categoryCode );
+                throw new AdxException(
+                    "Missing required attribute from category combo " + catcombo.getName() + ": " + categoryId );
             }
 
             compositeIdentifier += "\"" + catAttribute + "\"";
@@ -582,15 +670,14 @@ public class DefaultAdxDataService
 
         if ( catOptionCombo == null )
         {
-            throw new AdxException( "Invalid attributes:" + attributes );
+            throw new AdxException( "Invalid attributes: " + attributes );
         }
 
         return catOptionCombo;
     }
 
     private void convertAttributesToDxf( Map<String, String> attributes, String optionComboName,
-        CategoryCombo catCombo,
-        IdScheme catOptIdScheme, IdScheme catOptComboIdScheme )
+        CategoryCombo catCombo, IdSchemes idSchemes )
         throws AdxException
     {
         log.debug( "ADX attributes: " + attributes );
@@ -600,7 +687,7 @@ public class DefaultAdxDataService
             return;
         }
 
-        Map<String, Category> categoryMap = getCodeCategoryMap( catCombo );
+        Map<String, Category> categoryMap = getCodeCategoryMap( catCombo, idSchemes.getCategoryIdScheme() );
 
         Map<String, String> attributeOptions = new HashMap<>();
 
@@ -618,10 +705,9 @@ public class DefaultAdxDataService
             }
         }
 
-        CategoryOptionCombo catOptCombo = getCatOptComboFromAttributes( attributeOptions, catCombo,
-            catOptIdScheme.getIdentifiableProperty() );
+        CategoryOptionCombo catOptCombo = getCatOptComboFromAttributes( attributeOptions, catCombo, idSchemes );
 
-        attributes.put( optionComboName, catOptCombo.getPropertyValue( catOptComboIdScheme ) );
+        attributes.put( optionComboName, catOptCombo.getPropertyValue( idSchemes.getCategoryOptionComboIdScheme() ) );
 
         log.debug( "DXF attributes: " + attributes );
     }

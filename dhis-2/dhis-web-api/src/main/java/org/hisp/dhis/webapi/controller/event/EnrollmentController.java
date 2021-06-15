@@ -32,7 +32,6 @@ import static org.hisp.dhis.scheduling.JobType.ENROLLMENT_IMPORT;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +41,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -63,12 +61,11 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.EnrollmentCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -128,25 +125,7 @@ public class EnrollmentController
 
     @RequestMapping( value = "", method = RequestMethod.GET )
     public @ResponseBody RootNode getEnrollments(
-        @RequestParam( required = false ) String ou,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) String program,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Boolean followUp,
-        @RequestParam( required = false ) Date lastUpdated,
-        @RequestParam( required = false ) String lastUpdatedDuration,
-        @RequestParam( required = false ) Date programStartDate,
-        @RequestParam( required = false ) Date programEndDate,
-        @RequestParam( required = false ) String trackedEntityType,
-        @RequestParam( required = false ) String trackedEntityInstance,
-        @RequestParam( required = false ) String enrollment,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) Boolean skipPaging,
-        @RequestParam( required = false ) Boolean paging,
-        @RequestParam( required = false ) List<OrderCriteria> order,
-        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted )
+        EnrollmentCriteria enrollmentCriteria )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -156,19 +135,30 @@ public class EnrollmentController
                 "enrollment,created,lastUpdated,trackedEntityType,trackedEntityInstance,program,status,orgUnit,orgUnitName,enrollmentDate,incidentDate,followup" );
         }
 
-        Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
-
-        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
-
         RootNode rootNode = NodeUtils.createMetadata();
 
         List<Enrollment> listEnrollments;
 
-        if ( enrollment == null )
+        if ( enrollmentCriteria.getEnrollment() == null )
         {
-            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl( orgUnits, ouMode, lastUpdated,
-                lastUpdatedDuration, program, programStatus, programStartDate, programEndDate, trackedEntityType,
-                trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging, includeDeleted, order );
+            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl(
+                TextUtils.splitToArray( enrollmentCriteria.getOu(), TextUtils.SEMICOLON ),
+                enrollmentCriteria.getOuMode(),
+                enrollmentCriteria.getLastUpdated(),
+                enrollmentCriteria.getLastUpdatedDuration(),
+                enrollmentCriteria.getProgram(),
+                enrollmentCriteria.getProgramStatus(),
+                enrollmentCriteria.getProgramStartDate(),
+                enrollmentCriteria.getProgramEndDate(),
+                enrollmentCriteria.getTrackedEntityType(),
+                enrollmentCriteria.getTrackedEntityInstance(),
+                enrollmentCriteria.getFollowUp(),
+                enrollmentCriteria.getPage(),
+                enrollmentCriteria.getPageSize(),
+                enrollmentCriteria.isTotalPages(),
+                PagerUtils.isSkipPaging( enrollmentCriteria.getSkipPaging(), enrollmentCriteria.getPaging() ),
+                enrollmentCriteria.isIncludeDeleted(),
+                enrollmentCriteria.getOrder() );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
@@ -181,7 +171,8 @@ public class EnrollmentController
         }
         else
         {
-            Set<String> enrollmentIds = TextUtils.splitToArray( enrollment, TextUtils.SEMICOLON );
+            Set<String> enrollmentIds = TextUtils.splitToArray( enrollmentCriteria.getEnrollment(),
+                TextUtils.SEMICOLON );
             listEnrollments = enrollmentIds != null ? enrollmentIds.stream()
                 .map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() )
                 : null;

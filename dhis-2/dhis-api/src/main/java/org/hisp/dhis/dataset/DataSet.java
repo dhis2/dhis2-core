@@ -296,6 +296,11 @@ public class DataSet
         return organisationUnit.getDataSets().remove( this );
     }
 
+    public void removeOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        organisationUnits.forEach( this::removeOrganisationUnit );
+    }
+
     public void removeAllOrganisationUnits()
     {
         for ( OrganisationUnit unit : sources )
@@ -624,7 +629,6 @@ public class DataSet
     }
 
     @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0 )
     public Set<DataSetElement> getDataSetElements()

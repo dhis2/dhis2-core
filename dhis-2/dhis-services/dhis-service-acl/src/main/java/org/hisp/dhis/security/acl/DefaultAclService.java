@@ -129,7 +129,8 @@ public class DefaultAclService implements AclService
         return object == null || canRead( user, object, HibernateProxyUtils.getRealClass( object ) );
     }
 
-    private <T extends IdentifiableObject> boolean canRead( User user, T object, Class<? extends T> objType )
+    @Override
+    public <T extends IdentifiableObject> boolean canRead( User user, T object, Class<? extends T> objType )
     {
         if ( readWriteCommonCheck( user, objType ) )
         {

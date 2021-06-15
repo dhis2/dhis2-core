@@ -87,83 +87,83 @@ public class OutlierDetectionRequest
 
     public static class Builder
     {
-        private OutlierDetectionRequest query;
+        private OutlierDetectionRequest request;
 
         /**
          * Initializes the {@link OutlierDetectionRequest} with default values.
          */
         public Builder()
         {
-            this.query = new OutlierDetectionRequest();
+            this.request = new OutlierDetectionRequest();
 
-            this.query.orgUnitSelection = OrgUnitSelection.DESCENDANTS;
-            this.query.algorithm = OutlierDetectionAlgorithm.Z_SCORE;
-            this.query.threshold = 3.0d;
-            this.query.orderBy = Order.MEAN_ABS_DEV;
-            this.query.maxResults = 500;
+            this.request.orgUnitSelection = OrgUnitSelection.DESCENDANTS;
+            this.request.algorithm = OutlierDetectionAlgorithm.Z_SCORE;
+            this.request.threshold = 3.0d;
+            this.request.orderBy = Order.MEAN_ABS_DEV;
+            this.request.maxResults = 500;
         }
 
         public Builder withDataElements( List<DataElement> dataElements )
         {
-            this.query.dataElements = dataElements;
+            this.request.dataElements = dataElements;
             return this;
         }
 
         public Builder withStartEndDate( Date startDate, Date endDate )
         {
-            this.query.startDate = startDate;
-            this.query.endDate = endDate;
+            this.request.startDate = startDate;
+            this.request.endDate = endDate;
             return this;
         }
 
         public Builder withOrgUnits( List<OrganisationUnit> orgUnits )
         {
-            this.query.orgUnits = orgUnits;
+            this.request.orgUnits = orgUnits;
             return this;
         }
 
         public Builder withAlgorithm( OutlierDetectionAlgorithm algorithm )
         {
-            this.query.algorithm = algorithm;
+            this.request.algorithm = algorithm;
             return this;
         }
 
         public Builder withThreshold( double threshold )
         {
-            this.query.threshold = threshold;
+            this.request.threshold = threshold;
             return this;
         }
 
         public Builder withDataStartDate( Date dataStartDate )
         {
-            this.query.dataStartDate = dataStartDate;
+            this.request.dataStartDate = dataStartDate;
             return this;
         }
 
         public Builder withDataEndDate( Date dataEndDate )
         {
-            this.query.dataEndDate = dataEndDate;
+            this.request.dataEndDate = dataEndDate;
             return this;
         }
 
         public Builder withOrderBy( Order orderBy )
         {
-            this.query.orderBy = orderBy;
+            this.request.orderBy = orderBy;
             return this;
         }
 
         public Builder withMaxResults( int maxResults )
         {
-            this.query.maxResults = maxResults;
+            this.request.maxResults = maxResults;
             return this;
         }
 
         public OutlierDetectionRequest build()
         {
-            Preconditions.checkNotNull( this.query.orgUnitSelection );
-            Preconditions.checkNotNull( this.query.algorithm );
-            Preconditions.checkNotNull( this.query.orderBy );
-            return this.query;
+            Preconditions.checkNotNull( this.request.orgUnitSelection );
+            Preconditions.checkNotNull( this.request.algorithm );
+            Preconditions.checkNotNull( this.request.orderBy );
+            return this.request;
         }
     }
 }

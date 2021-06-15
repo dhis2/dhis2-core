@@ -453,7 +453,6 @@ public class JsonFilteringPropertyFilterTest
         }
     }
 
-    @SuppressWarnings( "UnusedReturnValue" )
     private String filter( String filter )
     {
         JsonFilteringParser parser = new JsonFilteringParser();

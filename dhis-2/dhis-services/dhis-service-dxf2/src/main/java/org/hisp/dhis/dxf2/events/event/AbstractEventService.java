@@ -95,7 +95,7 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.report.EventRows;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -313,12 +313,12 @@ public abstract class AbstractEventService implements EventService
 
         for ( Event event : eventList )
         {
-            Program program = programService.getProgram( event.getProgram() );
             boolean canSkipCheck = event.getTrackedEntityInstance() == null ||
-                trackerOwnershipAccessManager.canSkipOwnershipCheck( user, program );
+                trackerOwnershipAccessManager.canSkipOwnershipCheck( user, event.getProgramType() );
 
             if ( canSkipCheck || trackerOwnershipAccessManager.hasAccess( user,
-                entityInstanceService.getTrackedEntityInstance( event.getTrackedEntityInstance() ), program ) )
+                entityInstanceService.getTrackedEntityInstance( event.getTrackedEntityInstance() ),
+                programService.getProgram( event.getProgram() ) ) )
             {
                 events.getEvents().add( event );
             }
@@ -898,7 +898,7 @@ public abstract class AbstractEventService implements EventService
         }
     }
 
-    public static String getValidUsername( String userName, ImportSummary importSummary, String fallbackUsername )
+    public static String getValidUsername( String userName, ImportConflicts importConflicts, String fallbackUsername )
     {
         String validUsername = userName;
 
@@ -908,10 +908,10 @@ public abstract class AbstractEventService implements EventService
         }
         else if ( !ValidationUtils.usernameIsValid( userName ) )
         {
-            if ( importSummary != null )
+            if ( importConflicts != null )
             {
-                importSummary.getConflicts().add( new ImportConflict( "Username", validUsername + " is more than "
-                    + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
+                importConflicts.addConflict( "Username", validUsername + " is more than "
+                    + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" );
             }
 
             validUsername = User.getSafeUsername( fallbackUsername );

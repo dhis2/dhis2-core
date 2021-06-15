@@ -35,8 +35,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Set;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataapproval.DataApprovalService;
@@ -304,9 +302,9 @@ public class DataValueSetImportValidatorTest
 
     private static void assertConflict( String expectedObject, String expectedValue, ImportContext actual )
     {
-        Set<ImportConflict> conflicts = actual.getSummary().getConflicts();
-        assertEquals( 1, conflicts.size() );
-        ImportConflict conflict = conflicts.iterator().next();
+        ImportSummary summary = actual.getSummary();
+        assertEquals( 1, summary.getConflictCount() );
+        ImportConflict conflict = summary.getConflicts().iterator().next();
         assertEquals( expectedValue.replace( "<object>", conflict.getObject() ), conflict.getValue() );
         assertEquals( expectedObject, conflict.getObject() );
     }
