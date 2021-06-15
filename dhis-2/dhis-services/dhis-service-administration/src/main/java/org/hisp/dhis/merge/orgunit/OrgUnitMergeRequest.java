@@ -27,18 +27,25 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+
 import java.util.HashSet;
 import java.util.Set;
+
+import lombok.Getter;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import com.google.common.collect.ImmutableSet;
 
+@Getter
 public class OrgUnitMergeRequest
 {
     private Set<OrganisationUnit> sources = new HashSet<>();
 
     private OrganisationUnit target;
+
+    private boolean deleteSources;
 
     public Set<OrganisationUnit> getSources()
     {
@@ -57,6 +64,8 @@ public class OrgUnitMergeRequest
         public Builder()
         {
             this.request = new OrgUnitMergeRequest();
+
+            this.request.deleteSources = true;
         }
 
         public Builder addSource( OrganisationUnit source )
@@ -74,6 +83,12 @@ public class OrgUnitMergeRequest
         public Builder withTarget( OrganisationUnit target )
         {
             this.request.target = target;
+            return this;
+        }
+
+        public Builder withDeleteSources( Boolean deleteSources )
+        {
+            this.request.deleteSources = firstNonNull( deleteSources, this.request.deleteSources );
             return this;
         }
 

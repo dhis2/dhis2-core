@@ -42,4 +42,7 @@ public class OrgUnitMergeQuery
 
     @JsonProperty
     private String target;
+
+    @JsonProperty
+    private Boolean deleteSources;
 }

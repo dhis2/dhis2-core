@@ -77,6 +77,7 @@ public class OrgUnitMergeServiceTest
         assertEquals( 2, request.getSources().size() );
         assertTrue( request.getSources().contains( ouA ) );
         assertTrue( request.getSources().contains( ouB ) );
+        assertTrue( request.isDeleteSources() );
         assertEquals( ouC, request.getTarget() );
     }
 }

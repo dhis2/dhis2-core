@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.transaction.Transactional;
@@ -92,6 +93,8 @@ public class DefaultOrgUnitMergeService
         // Persistence framework will inspect and update associated objects
 
         idObjectManager.update( request.getTarget() );
+
+        handleDeleteSources( request );
     }
 
     @Override
@@ -105,6 +108,7 @@ public class DefaultOrgUnitMergeService
         return new OrgUnitMergeRequest.Builder()
             .addSources( sources )
             .withTarget( target )
+            .withDeleteSources( query.getDeleteSources() )
             .build();
     }
 
@@ -131,5 +135,18 @@ public class DefaultOrgUnitMergeService
             .add( ( r ) -> trackerHandler.mergeProgramInstances( r ) )
             .add( ( r ) -> trackerHandler.mergeTrackedEntityInstances( r ) )
             .build();
+    }
+
+    private void handleDeleteSources( OrgUnitMergeRequest request )
+    {
+        if ( request.isDeleteSources() )
+        {
+            Iterator<OrganisationUnit> sources = request.getSources().iterator();
+
+            while ( sources.hasNext() )
+            {
+                idObjectManager.delete( sources.next() );
+            }
+        }
     }
 }
