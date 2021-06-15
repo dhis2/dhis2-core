@@ -34,9 +34,8 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
@@ -68,9 +67,10 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.stereotype.Service;
-
-import com.google.common.collect.ImmutableList;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.ImmutableList;
 
 @Slf4j
 @Service
@@ -95,8 +95,9 @@ public class DefaultOrgUnitProfileService
         this.idObjectManager = idObjectManager;
         this.analyticsService = analyticsService;
 
-        this.dataStore.addProtection( new KeyJsonNamespaceProtection( ORG_UNIT_PROFILE_NAMESPACE, KeyJsonNamespaceProtection.ProtectionType.NONE,
-            KeyJsonNamespaceProtection.ProtectionType.RESTRICTED, false, ORG_UNIT_PROFILE_AUTHORITY ) );
+        this.dataStore.addProtection(
+            new KeyJsonNamespaceProtection( ORG_UNIT_PROFILE_NAMESPACE, KeyJsonNamespaceProtection.ProtectionType.NONE,
+                KeyJsonNamespaceProtection.ProtectionType.RESTRICTED, false, ORG_UNIT_PROFILE_AUTHORITY ) );
     }
 
     @Override

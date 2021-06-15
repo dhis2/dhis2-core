@@ -1,6 +1,5 @@
 /*
- *
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,12 +24,16 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
-
 package org.hisp.dhis.webapi.controller.organisationunit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
@@ -45,10 +48,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 @Controller
 @RequestMapping( value = "/orgUnitProfile" )
@@ -80,9 +79,9 @@ public class OrganisationUnitProfileController
         return orgUnitProfileService.getOrgUnitProfile();
     }
 
-    @GetMapping( path="/data/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( path = "/data/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )
     public OrgUnitProfileData getProfile( @PathVariable( value = "uid" ) String uid,
-        @RequestParam(value = "period", required = false ) String isoPperiod )
+        @RequestParam( value = "period", required = false ) String isoPperiod )
     {
         return orgUnitProfileService.getOrgUnitProfileData( uid, isoPperiod );
     }

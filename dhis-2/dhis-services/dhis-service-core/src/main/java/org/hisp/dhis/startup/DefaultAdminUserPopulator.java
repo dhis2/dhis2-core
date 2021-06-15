@@ -86,7 +86,7 @@ public class DefaultAdminUserPopulator
         "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
         "F_TRACKER_IMPORTER_EXPERIMENTAL",
         "F_VIEW_SERVER_INFO",
-        "F_ORG_UNIT_PROFILE_ADD");
+        "F_ORG_UNIT_PROFILE_ADD" );
 
     private final UserService userService;
 

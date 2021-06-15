@@ -1,6 +1,5 @@
 /*
- *
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +24,14 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
-
 package org.hisp.dhis.orgunitprofile;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.user.UserService;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +54,7 @@ public class OrgUnitProfileServiceTest
     @Test
     public void testSave()
     {
-        createAndInjectAdminUser( "ALL","F_ORG_UNIT_PROFILE_ADD" );
+        createAndInjectAdminUser( "ALL", "F_ORG_UNIT_PROFILE_ADD" );
         OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
         orgUnitProfile.getAttributes().add( "Attribute1" );
         orgUnitProfile.getAttributes().add( "Attribute2" );
