@@ -152,12 +152,15 @@ public class SecurityCheck
                 }
             }
 
-            List<ErrorReport> sharingErrorReports = ctx.getAclService().verifySharing( object, bundle.getUser() );
-            if ( !sharingErrorReports.isEmpty() )
+            if ( !bundle.isSkipSharing() )
             {
-                addObjectReports( sharingErrorReports, typeReport, object, bundle );
-                ctx.markForRemoval( object );
+                List<ErrorReport> sharingErrorReports = ctx.getAclService().verifySharing( object, bundle.getUser() );
+                if ( !sharingErrorReports.isEmpty() )
+                {
+                    addObjectReports( sharingErrorReports, typeReport, object, bundle );
+                    ctx.markForRemoval( object );
 
+                }
             }
         }
 
