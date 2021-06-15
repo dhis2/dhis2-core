@@ -18,7 +18,7 @@ services:
       POSTGRES_PASSOWRD: dhis
 
   web:
-    image: "dhis2/core-dev:master"
+    image: "${IMAGE_NAME}"
     volumes:
       - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
     environment:
@@ -31,4 +31,4 @@ services:
       - db
       - redis
     ports:
-      - "8080:8080"
+      - "8080"
