@@ -27,10 +27,15 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThrows;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
@@ -38,8 +43,12 @@ import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsTestUtils;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.DataValue;
@@ -51,10 +60,14 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -76,9 +89,15 @@ import com.google.common.collect.Sets;
 public class EventAnalyticsServiceTest
     extends IntegrationTestBase
 {
-    private Map<String, EventQueryParams> eventQueryParams = new HashMap<>();
+    private OrganisationUnit ouA;
 
-    private Map<String, Map<String, Double>> results = new HashMap<>();
+    private OrganisationUnit ouB;
+
+    private OrganisationUnit ouC;
+
+    private Program programA;
+
+    private Program programB;
 
     @Autowired
     private EventAnalyticsService eventAnalyticsService;
@@ -100,6 +119,9 @@ public class EventAnalyticsServiceTest
 
     @Autowired
     private UserService _userService;
+
+    @Captor
+    private ArgumentCaptor<List<DimensionalItemObject>> canReadItems;
 
     @Override
     public void setUpTest()
@@ -126,9 +148,9 @@ public class EventAnalyticsServiceTest
         dataElementService.addDataElement( deC );
         dataElementService.addDataElement( deD );
 
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrganisationUnit ouC = createOrganisationUnit( 'C' );
+        ouA = createOrganisationUnit( 'A' );
+        ouB = createOrganisationUnit( 'B' );
+        ouC = createOrganisationUnit( 'C' );
         ouC.setOpeningDate( getDate( 2016, 4, 10 ) );
         ouC.setClosedDate( null );
 
@@ -146,9 +168,13 @@ public class EventAnalyticsServiceTest
         idObjectManager.save( ouD );
         idObjectManager.save( ouE );
 
-        Program programA = createProgram( 'A', null, null, Sets.newHashSet( ouA, ouB ), null );
+        programA = createProgram( 'A', null, null, Sets.newHashSet( ouA, ouB ), null );
         programA.setUid( "programA123" );
         idObjectManager.save( programA );
+
+        programB = createProgram( 'B', null, null, Sets.newHashSet( ouA, ouB ), null );
+        programB.setUid( "programB123" );
+        idObjectManager.save( programB );
 
         ProgramStage psA = createProgramStage( 'A', 0 );
         psA.setUid( "programStgA" );
@@ -188,35 +214,11 @@ public class EventAnalyticsServiceTest
         programInstanceService.enrollTrackedEntityInstance( femaleB, programA, null, null, ouA );
 
         // Read event data from CSV file
-
         List<String[]> eventDataLines = CsvUtils.readCsvAsListFromClasspath( "csv/eventData.csv", true );
         parseEventData( eventDataLines );
 
         // Generate analytics tables
-
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build() );
-
-        // Set parameters
-
-        // all events in program A - 2017
-        EventQueryParams events_2017_params = new EventQueryParams.Builder()
-            .withOrganisationUnits( Lists.newArrayList( ouA ) )
-            .withStartDate( getDate( 2017, 1, 1 ) )
-            .withEndDate( getDate( 2017, 12, 31 ) )
-            .withProgram( programA )
-            .build();
-
-        eventQueryParams.put( "events_2017", events_2017_params );
-
-        // Set results
-        // --------------------------------------------------------------------
-
-        Map<String, Double> events_2017_keyValue = new HashMap<>();
-        events_2017_keyValue.put( "ouabcdefghA", 6.0 );
-
-        results.put( "events_2017", events_2017_keyValue );
-
-        createAndInjectAdminUser();
     }
 
     @Override
@@ -228,14 +230,161 @@ public class EventAnalyticsServiceTest
     @Test
     public void testGridAggregation()
     {
+        // Given
+
+        // The user
+        createAndInjectAdminUser();
+
+        // All events in program A - 2017
+        EventQueryParams events_2017_params = new EventQueryParams.Builder()
+            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withStartDate( getDate( 2017, 1, 1 ) )
+            .withEndDate( getDate( 2017, 12, 31 ) )
+            .withProgram( programA )
+            .build();
+
+        // The params
+        Map<String, EventQueryParams> eventQueryParams = new HashMap<>();
+        eventQueryParams.put( "events_2017", events_2017_params );
+
+        // The results
+        Map<String, Double> events_2017_keyValue = new HashMap<>();
+        events_2017_keyValue.put( "ouabcdefghA", 6.0 );
+        Map<String, Map<String, Double>> results = new HashMap<>();
+        results.put( "events_2017", events_2017_keyValue );
+
         for ( Map.Entry<String, EventQueryParams> entry : eventQueryParams.entrySet() )
         {
             String key = entry.getKey();
             EventQueryParams params = entry.getValue();
 
+            // When
             Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( params );
 
+            // Then
             AnalyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, results.get( key ) );
+        }
+    }
+
+    @Test
+    public void testDimensionRestrictionSuccessfully()
+    {
+        // Given
+
+        // The category options
+        CategoryOption coA = createCategoryOption( 'A' );
+        CategoryOption coB = createCategoryOption( 'B' );
+        categoryService.addCategoryOption( coA );
+        categoryService.addCategoryOption( coB );
+
+        // The categories
+        Category caA = createCategory( 'A', coA );
+        Category caB = createCategory( 'B', coB );
+        categoryService.addCategory( caA );
+        categoryService.addCategory( caB );
+
+        // The constraints
+        Set<Category> catDimensionConstraints = Sets.newHashSet( caA, caB );
+
+        // The user
+        User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
+        user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
+        userService.addUser( user );
+        enableDataSharing( user, programB, AccessStringHelper.DATA_READ_WRITE );
+        idObjectManager.update( user );
+        injectSecurityContext( user );
+
+        // All events in program B - 2017
+        EventQueryParams events_2017_params = new EventQueryParams.Builder()
+            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withStartDate( getDate( 2017, 1, 1 ) )
+            .withEndDate( getDate( 2017, 12, 31 ) )
+            .withProgram( programB )
+            .build();
+
+        // The params
+        Map<String, EventQueryParams> eventQueryParams = new HashMap<>();
+        eventQueryParams.put( "events_2017", events_2017_params );
+
+        // The results
+        Map<String, Double> events_2017_keyValue = new HashMap<>();
+        events_2017_keyValue.put( "ouabcdefghA", 6.0 );
+        Map<String, Map<String, Double>> results = new HashMap<>();
+        results.put( "events_2017", events_2017_keyValue );
+
+        for ( Map.Entry<String, EventQueryParams> entry : eventQueryParams.entrySet() )
+        {
+            String key = entry.getKey();
+            EventQueryParams params = entry.getValue();
+
+            // When
+            Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( params );
+
+            // Then
+            AnalyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, results.get( key ) );
+        }
+    }
+
+    @Test
+    public void testDimensionRestrictionWhenUserCannotReadCategoryOptions()
+    {
+        // Given
+
+        // The category options
+        CategoryOption coA = createCategoryOption( 'A' );
+        CategoryOption coB = createCategoryOption( 'B' );
+        coA.getSharing().setOwner( "cannotRead" );
+        coB.getSharing().setOwner( "cannotRead" );
+        categoryService.addCategoryOption( coA );
+        categoryService.addCategoryOption( coB );
+
+        // The categories
+        Category caA = createCategory( 'A', coA );
+        Category caB = createCategory( 'B', coB );
+        categoryService.addCategory( caA );
+        categoryService.addCategory( caB );
+        removeUserAccess( coA );
+        removeUserAccess( coB );
+        categoryService.updateCategoryOption( coA );
+        categoryService.updateCategoryOption( coB );
+
+        // The constraints
+        Set<Category> catDimensionConstraints = Sets.newHashSet( caA, caB );
+
+        // The user
+        User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
+        user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
+        userService.addUser( user );
+        enableDataSharing( user, programB, AccessStringHelper.DATA_READ_WRITE );
+        idObjectManager.update( user );
+        injectSecurityContext( user );
+
+        // All events in program B - 2017
+        EventQueryParams events_2017_params = new EventQueryParams.Builder()
+            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withStartDate( getDate( 2017, 1, 1 ) )
+            .withEndDate( getDate( 2017, 12, 31 ) )
+            .withProgram( programB )
+            .build();
+
+        Map<String, EventQueryParams> eventQueryParams = new HashMap<>();
+        eventQueryParams.put( "events_2017", events_2017_params );
+
+        // The results
+        Map<String, Double> events_2017_keyValue = new HashMap<>();
+        events_2017_keyValue.put( "ouabcdefghA", 6.0 );
+        Map<String, Map<String, Double>> results = new HashMap<>();
+        results.put( "events_2017", events_2017_keyValue );
+
+        for ( Map.Entry<String, EventQueryParams> entry : eventQueryParams.entrySet() )
+        {
+            EventQueryParams params = entry.getValue();
+
+            // Then
+            Throwable exception = assertThrows( IllegalQueryException.class,
+                () -> eventAnalyticsService.getAggregatedEventData( params ) );
+            assertThat( exception.getMessage(),
+                containsString( "Current user is constrained by a dimension but has access to no dimension items" ) );
         }
     }
 
