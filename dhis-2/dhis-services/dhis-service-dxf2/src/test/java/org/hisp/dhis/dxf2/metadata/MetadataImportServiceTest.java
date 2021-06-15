@@ -27,11 +27,18 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,8 +48,10 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.hibernate.MappingException;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
@@ -64,7 +73,10 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.render.type.SectionRenderingObject;
 import org.hisp.dhis.render.type.SectionRenderingType;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
@@ -105,6 +117,9 @@ public class MetadataImportServiceTest extends DhisSpringTest
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private AclService aclService;
 
     @Override
     protected void setUpTest()
@@ -189,6 +204,94 @@ public class MetadataImportServiceTest extends DhisSpringTest
         params.setImportMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( metadata );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+    }
+
+    /**
+     * User only have READ access to Dashboard object User try to update
+     * Dashboard with: skipSharing=true, and payload doesn't include sharing
+     * data. Expected: import error
+     */
+    @Test
+    public void testImportWithSkipSharingIsTrueAndNoPermission()
+    {
+        User userA = createUser( "A" );
+        userService.addUser( userA );
+
+        Dashboard dashboard = new Dashboard();
+        dashboard.setName( "DashboardA" );
+
+        UserAccess userAccess = new UserAccess( userA, AccessStringHelper.READ );
+        dashboard.getUserAccesses().add( userAccess );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
+        metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipSharing( false );
+
+        // Create Dashboard
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        // Check sharing data
+        IdentifiableObject savedDashboard = manager.get( Dashboard.class, dashboard.getUid() );
+        assertFalse( aclService.canWrite( userA, savedDashboard ) );
+        assertTrue( aclService.canRead( userA, savedDashboard ) );
+
+        // Update dashboard with skipSharing=true and no sharing data in payload
+        clearSharing( dashboard );
+
+        metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
+        params = createParams( ImportStrategy.UPDATE, metadata );
+        params.setSkipSharing( true );
+        params.setUser( userA );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.ERROR, report.getStatus() );
+    }
+
+    /**
+     * User have READ-WRITE access to Dashboard object User try to update
+     * Dashboard with: skipSharing=true, and payload doesn't include sharing
+     * data. Expected: import successfully
+     */
+    @Test
+    public void testImportWithSkipSharingIsTrueAndWritePermission()
+    {
+        User userA = createUser( 'A' );
+        userService.addUser( userA );
+
+        Dashboard dashboard = new Dashboard();
+        dashboard.setName( "DashboardA" );
+
+        UserAccess userAccess = new UserAccess( userA, AccessStringHelper.READ_WRITE );
+        dashboard.getUserAccesses().add( userAccess );
+        dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
+        metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipSharing( false );
+
+        // Create Dashboard
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        // Check all sharing data
+        IdentifiableObject savedDashboard = manager.get( Dashboard.class, dashboard.getUid() );
+        assertTrue( aclService.canWrite( userA, savedDashboard ) );
+        assertTrue( aclService.canRead( userA, savedDashboard ) );
+
+        // Update Dashboard with skipSharing=true and no sharing data in payload
+        clearSharing( dashboard );
+
+        metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
+
+        params = createParams( ImportStrategy.UPDATE, metadata );
+        params.setSkipSharing( true );
+        params.setUser( userA );
 
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
@@ -664,5 +767,24 @@ public class MetadataImportServiceTest extends DhisSpringTest
 
         User user = manager.get( User.class, "MwhEJUnTHkn" );
         assertNotNull( user.getUserCredentials().getUser() );
+    }
+
+    private MetadataImportParams createParams( ImportStrategy importStrategy,
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata )
+    {
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( importStrategy );
+        params.setObjects( metadata );
+
+        return params;
+    }
+
+    private void clearSharing( BaseIdentifiableObject object )
+    {
+        object.setPublicAccess( null );
+        object.setExternalAccess( false );
+        object.getUserAccesses().clear();
+        object.getUserGroupAccesses().clear();
     }
 }
