@@ -34,7 +34,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramInstance;
@@ -60,7 +59,7 @@ public abstract class BaseEventAclCheck implements Checker
 
         if ( !errors.isEmpty() )
         {
-            errors.forEach( error -> importSummary.getConflicts().add( new ImportConflict( event.getUid(), error ) ) );
+            errors.forEach( error -> importSummary.addConflict( event.getUid(), error ) );
             importSummary.incrementIgnored();
             importSummary.setStatus( ImportStatus.ERROR );
         }

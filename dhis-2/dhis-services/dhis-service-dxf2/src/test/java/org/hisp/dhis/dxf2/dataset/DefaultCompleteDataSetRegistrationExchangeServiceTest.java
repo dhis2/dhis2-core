@@ -28,9 +28,15 @@
 package org.hisp.dhis.dxf2.dataset;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.assertIllegalQueryEx;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
+import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -296,7 +302,7 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
 
         assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
         assertThat( summary.getImportCount().getIgnored(), is( 1 ) );
-        assertThat( summary.getConflicts(), hasSize( 1 ) );
+        assertEquals( 1, summary.getConflictCount() );
         assertThat( summary.getConflicts().iterator().next().getValue(),
             is( "User has no data write access for CategoryOption: " + categoryOptionA.getUid() ) );
     }

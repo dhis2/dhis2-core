@@ -61,7 +61,7 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.aggregates.TrackedEntityInstanceAggregate;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -384,8 +384,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     {
         if ( StringUtils.isEmpty( dtoEntityInstance.getOrgUnit() ) )
         {
-            importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(),
-                "No org unit ID in tracked entity instance object" ) );
+            importSummary.addConflict( dtoEntityInstance.getTrackedEntityInstance(),
+                "No org unit ID in tracked entity instance object" );
             return null;
         }
 
@@ -396,8 +396,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( organisationUnit == null )
         {
-            importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(),
-                "Invalid org unit ID: " + dtoEntityInstance.getOrgUnit() ) );
+            importSummary.addConflict( dtoEntityInstance.getTrackedEntityInstance(),
+                "Invalid org unit ID: " + dtoEntityInstance.getOrgUnit() );
             return null;
         }
 
@@ -408,8 +408,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( trackedEntityType == null )
         {
-            importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(),
-                "Invalid tracked entity ID: " + dtoEntityInstance.getTrackedEntityType() ) );
+            importSummary.addConflict( dtoEntityInstance.getTrackedEntityInstance(),
+                "Invalid tracked entity ID: " + dtoEntityInstance.getTrackedEntityType() );
             return null;
         }
 
@@ -420,8 +420,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             if ( featureType.equals( FeatureType.NONE ) || !featureType
                 .equals( FeatureType.getTypeFromName( dtoEntityInstance.getGeometry().getGeometryType() ) ) )
             {
-                importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(),
-                    "Geometry does not conform to feature type '" + featureType + "'" ) );
+                importSummary.addConflict( dtoEntityInstance.getTrackedEntityInstance(),
+                    "Geometry does not conform to feature type '" + featureType + "'" );
                 importSummary.incrementIgnored();
                 return null;
             }
@@ -440,8 +440,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             }
             catch ( IOException e )
             {
-                importSummary.getConflicts().add(
-                    new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(), "Could not parse coordinates" ) );
+                importSummary.addConflict( dtoEntityInstance.getTrackedEntityInstance(),
+                    "Could not parse coordinates" );
 
                 importSummary.incrementIgnored();
                 return null;
@@ -507,7 +507,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
             if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
             {
-                importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
+                importSummaries.getImportSummaries().removeIf( is -> !is.hasConflicts() );
             }
 
             notifier.notify( jobId, NotificationLevel.INFO, "Import done", true ).addJobSummary( jobId,
@@ -723,10 +723,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         dtoEntityInstance.trimValuesToNull();
 
         ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
-        importSummary.getConflicts().addAll( checkTrackedEntityType( dtoEntityInstance, importOptions ) );
-        checkAttributes( dtoEntityInstance, importOptions, importSummary.getConflicts(), false );
+        checkTrackedEntityType( dtoEntityInstance, importOptions, importSummary );
+        checkAttributes( dtoEntityInstance, importOptions, importSummary, false );
 
-        if ( !importSummary.getConflicts().isEmpty() )
+        if ( importSummary.hasConflicts() )
         {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.getImportCount().incrementIgnored();
@@ -736,7 +736,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = createDAOTrackedEntityInstance(
             dtoEntityInstance, importOptions, importSummary );
 
-        if ( !importSummary.getConflicts().isEmpty() )
+        if ( importSummary.hasConflicts() )
         {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.getImportCount().incrementIgnored();
@@ -832,8 +832,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         dtoEntityInstance.trimValuesToNull();
 
-        Set<ImportConflict> importConflicts = new HashSet<>();
-        checkAttributes( dtoEntityInstance, importOptions, importConflicts, true );
+        checkAttributes( dtoEntityInstance, importOptions, importSummary, true );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
             .getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance(), importOptions.getUser() );
@@ -842,7 +841,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             dtoEntityInstance.getOrgUnit() );
         Program program = getProgram( importOptions.getIdSchemes(), programId );
 
-        if ( daoEntityInstance == null || !errors.isEmpty() || organisationUnit == null || !importConflicts.isEmpty() )
+        if ( daoEntityInstance == null || !errors.isEmpty() || organisationUnit == null
+            || importSummary.hasConflicts() )
         {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.getImportCount().incrementIgnored();
@@ -852,7 +852,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 String message = "You are trying to add or update tracked entity instance "
                     + dtoEntityInstance.getTrackedEntityInstance() + " that has already been deleted";
 
-                importConflicts.add( new ImportConflict( "TrackedEntityInstance", message ) );
+                importSummary.addConflict( "TrackedEntityInstance", message );
             }
             else if ( !errors.isEmpty() )
             {
@@ -861,10 +861,9 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             else if ( organisationUnit == null )
             {
                 String message = "Org unit " + dtoEntityInstance.getOrgUnit() + " does not exist";
-                importConflicts.add( new ImportConflict( "OrganisationUnit", message ) );
+                importSummary.addConflict( "OrganisationUnit", message );
             }
 
-            importSummary.setConflicts( importConflicts );
             return importSummary;
         }
 
@@ -877,8 +876,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             if ( featureType.equals( FeatureType.NONE ) || !featureType
                 .equals( FeatureType.getTypeFromName( dtoEntityInstance.getGeometry().getGeometryType() ) ) )
             {
-                importSummary.getConflicts().add( new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(),
-                    "Geometry does not conform to feature type '" + featureType + "'" ) );
+                importSummary.addConflict( dtoEntityInstance.getTrackedEntityInstance(),
+                    "Geometry does not conform to feature type '" + featureType + "'" );
 
                 importSummary.getImportCount().incrementIgnored();
                 return importSummary;
@@ -898,8 +897,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             }
             catch ( IOException e )
             {
-                importSummary.getConflicts().add(
-                    new ImportConflict( dtoEntityInstance.getTrackedEntityInstance(), "Could not parse coordinates" ) );
+                importSummary.addConflict( dtoEntityInstance.getTrackedEntityInstance(),
+                    "Could not parse coordinates" );
 
                 importSummary.getImportCount().incrementIgnored();
                 return importSummary;
@@ -985,13 +984,12 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
             if ( importOptions.getUser() != null )
             {
-                List<ImportConflict> importConflicts = isAllowedToDelete( importOptions.getUser(), daoEntityInstance );
+                isAllowedToDelete( importOptions.getUser(), daoEntityInstance, importSummary );
 
-                if ( !importConflicts.isEmpty() )
+                if ( importSummary.hasConflicts() )
                 {
                     importSummary.setStatus( ImportStatus.ERROR );
                     importSummary.setReference( daoEntityInstance.getUid() );
-                    importSummary.getConflicts().addAll( importConflicts );
                     importSummary.incrementIgnored();
                     return importSummary;
                 }
@@ -1402,7 +1400,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     // --------------------------------------------------------------------------
 
     private void validateAttributeType( Attribute attribute, ImportOptions importOptions,
-        Set<ImportConflict> importConflicts )
+        ImportConflicts importConflicts )
     {
         // Cache is populated. I should hit it.
         TrackedEntityAttribute daoTrackedEntityAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(),
@@ -1410,7 +1408,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( daoTrackedEntityAttribute == null )
         {
-            importConflicts.add( new ImportConflict( "Attribute.attribute", "Does not point to a valid attribute" ) );
+            importConflicts.addConflict( "Attribute.attribute", "Does not point to a valid attribute" );
         }
 
         String errorMessage = trackedEntityAttributeService.validateValueType( daoTrackedEntityAttribute,
@@ -1418,25 +1416,25 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( errorMessage != null )
         {
-            importConflicts.add( new ImportConflict( "Attribute.value", errorMessage ) );
+            importConflicts.addConflict( "Attribute.value", errorMessage );
         }
     }
 
     private void checkAttributeUniquenessWithinScope( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
         TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit,
-        Set<ImportConflict> importConflicts )
+        ImportConflicts importConflicts )
     {
         String errorMessage = trackedEntityAttributeService
             .validateAttributeUniquenessWithinScope( trackedEntityAttribute, value, entityInstance, organisationUnit );
 
         if ( errorMessage != null )
         {
-            importConflicts.add( new ImportConflict( "Attribute.value", errorMessage ) );
+            importConflicts.addConflict( "Attribute.value", errorMessage );
         }
     }
 
     private void checkAttributes( TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions,
-        Set<ImportConflict> importConflicts, boolean teiExistsInDatabase )
+        ImportConflicts importConflicts, boolean teiExistsInDatabase )
     {
         if ( dtoEntityInstance.getAttributes().isEmpty() )
         {
@@ -1472,8 +1470,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
                 if ( daoEntityAttribute == null )
                 {
-                    importConflicts.add(
-                        new ImportConflict( "Attribute.attribute", "Invalid attribute " + attribute.getAttribute() ) );
+                    importConflicts.addConflict( "Attribute.attribute",
+                        "Invalid attribute " + attribute.getAttribute() );
                     continue;
                 }
 
@@ -1481,9 +1479,9 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 {
                     // We shorten the value to first 25 characters, since we
                     // dont want to post a 1200+ string back.
-                    importConflicts.add( new ImportConflict( "Attribute.value",
+                    importConflicts.addConflict( "Attribute.value",
                         String.format( "Value exceeds the character limit of %s characters: '%s...'",
-                            TEA_VALUE_MAX_LENGTH, attribute.getValue().substring( 0, 25 ) ) ) );
+                            TEA_VALUE_MAX_LENGTH, attribute.getValue().substring( 0, 25 ) ) );
                 }
 
                 if ( daoEntityAttribute.isUnique() )
@@ -1500,24 +1498,22 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
                 if ( daoEntityAttribute.getValueType().isFile() && checkAssigned( attribute, fileValues ) )
                 {
-                    importConflicts.add( new ImportConflict( "Attribute.value",
+                    importConflicts.addConflict( "Attribute.value",
                         String.format( "File resource with uid '%s' has already been assigned to a different object",
-                            attribute.getValue() ) ) );
+                            attribute.getValue() ) );
                 }
             }
         }
     }
 
-    private List<ImportConflict> checkTrackedEntityType( TrackedEntityInstance entityInstance,
-        ImportOptions importOptions )
+    private void checkTrackedEntityType( TrackedEntityInstance entityInstance,
+        ImportOptions importOptions, ImportConflicts importConflicts )
     {
-        List<ImportConflict> importConflicts = new ArrayList<>();
-
         if ( entityInstance.getTrackedEntityType() == null )
         {
-            importConflicts.add( new ImportConflict( "TrackedEntityInstance.trackedEntityType",
-                "Missing required property trackedEntityType" ) );
-            return importConflicts;
+            importConflicts.addConflict( "TrackedEntityInstance.trackedEntityType",
+                "Missing required property trackedEntityType" );
+            return;
         }
 
         TrackedEntityType daoTrackedEntityType = getTrackedEntityType( importOptions.getIdSchemes(),
@@ -1525,12 +1521,9 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( daoTrackedEntityType == null )
         {
-            importConflicts
-                .add( new ImportConflict( "TrackedEntityInstance.trackedEntityType", "Invalid trackedEntityType " +
-                    entityInstance.getTrackedEntityType() ) );
+            importConflicts.addConflict( "TrackedEntityInstance.trackedEntityType", "Invalid trackedEntityType " +
+                entityInstance.getTrackedEntityType() );
         }
-
-        return importConflicts;
     }
 
     private void clearSession()
@@ -1562,7 +1555,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         daoEntityInstance.setAutoFields();
     }
 
-    private String getStoredBy( Attribute attributeValue, ImportSummary importSummary, String fallbackUsername )
+    private String getStoredBy( Attribute attributeValue, ImportConflicts importConflicts, String fallbackUsername )
     {
         String storedBy = attributeValue.getStoredBy();
 
@@ -1572,10 +1565,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
         else if ( storedBy.length() > UserCredentials.USERNAME_MAX_LENGTH )
         {
-            if ( importSummary != null )
+            if ( importConflicts != null )
             {
-                importSummary.getConflicts().add( new ImportConflict( "stored by", storedBy + " is more than "
-                    + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" ) );
+                importConflicts.addConflict( "stored by", storedBy + " is more than "
+                    + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" );
             }
 
             return fallbackUsername;
@@ -1616,29 +1609,26 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         importOptions.setUser( userService.getUser( importOptions.getUser().getUid() ) );
     }
 
-    private List<ImportConflict> isAllowedToDelete( User user, org.hisp.dhis.trackedentity.TrackedEntityInstance tei )
+    private void isAllowedToDelete( User user, org.hisp.dhis.trackedentity.TrackedEntityInstance tei,
+        ImportConflicts importConflicts )
     {
-        List<ImportConflict> importConflicts = new ArrayList<>();
-
         Set<ProgramInstance> programInstances = tei.getProgramInstances().stream().filter( pi -> !pi.isDeleted() )
             .collect( Collectors.toSet() );
 
         if ( !programInstances.isEmpty() && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
         {
-            importConflicts.add( new ImportConflict( tei.getUid(),
+            importConflicts.addConflict( tei.getUid(),
                 "Tracked entity instance " + tei.getUid()
                     + " cannot be deleted as it has associated enrollments and user does not have authority "
-                    + Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
+                    + Authorities.F_TEI_CASCADE_DELETE.getAuthority() );
         }
 
         List<String> errors = trackerAccessManager.canWrite( user, tei );
 
         if ( !errors.isEmpty() )
         {
-            errors.forEach( error -> importConflicts.add( new ImportConflict( tei.getUid(), error ) ) );
+            errors.forEach( error -> importConflicts.addConflict( tei.getUid(), error ) );
         }
-
-        return importConflicts;
     }
 
     private TrackedEntityInstance getTei( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,

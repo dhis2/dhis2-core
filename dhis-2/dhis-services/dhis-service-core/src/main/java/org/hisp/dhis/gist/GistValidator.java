@@ -184,7 +184,7 @@ final class GistValidator
             }
             if ( operator == Comparison.CAN_ACCESS && ids.length != 2 )
             {
-                throw createIllegalFilter( f, "Filter `%s` requires a user ID and a access pattern argument." );
+                throw createIllegalFilter( f, "Filter `%s` requires a user ID and an access pattern argument." );
             }
             if ( operator == Comparison.CAN_ACCESS )
             {
