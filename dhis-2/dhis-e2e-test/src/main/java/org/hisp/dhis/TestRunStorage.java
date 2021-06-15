@@ -51,7 +51,7 @@ public class TestRunStorage
         @Override
         protected AuthenticationScheme initialValue()
         {
-            return preemptive().basic( TestConfiguration.get().superUserUsername(), TestConfiguration.get().superUserPassword() );
+            return preemptive().basic( TestConfiguration.get().defaultUserUsername(), TestConfiguration.get().defaultUSerPassword() );
         }
     };
 
