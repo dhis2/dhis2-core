@@ -40,7 +40,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.comparator.CategoryComboSizeComparator;
+import org.hisp.dhis.category.comparator.CategoryComboSizeNameComparator;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataelement.DataElement;
@@ -446,14 +446,19 @@ public class LoadFormAction
 
         for ( Section section : sections )
         {
-            Set<Long> categoryCombos = new HashSet<>();
+            List<Long> categoryCombos = new ArrayList<>();
 
-            for ( CategoryCombo categoryCombo : section.getCategoryCombos() )
+            if ( !section.getCategoryCombos().isEmpty() )
             {
-                categoryCombos.add( categoryCombo.getId() );
+                List<CategoryCombo> sortedCategoryCombos = getSortedCategoryCombos( section.getCategoryCombos() );
 
-                sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId(),
-                    section.getDataElementsByCategoryCombo( categoryCombo ) );
+                for ( CategoryCombo categoryCombo : sortedCategoryCombos )
+                {
+                    categoryCombos.add( categoryCombo.getId() );
+
+                    sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId(),
+                        section.getDataElementsByCategoryCombo( categoryCombo ) );
+                }
             }
 
             if ( !categoryCombos.isEmpty() )
@@ -481,11 +486,7 @@ public class LoadFormAction
             categoryCombos.add( dataElement.getDataElementCategoryCombo( dataSet ) );
         }
 
-        List<CategoryCombo> listCategoryCombos = new ArrayList<>( categoryCombos );
-
-        Collections.sort( listCategoryCombos, new CategoryComboSizeComparator() );
-
-        return listCategoryCombos;
+        return getSortedCategoryCombos( categoryCombos );
     }
 
     private void addOptionAccess( User user, Map<String, Boolean> optionAccessMap,
@@ -504,5 +505,14 @@ public class LoadFormAction
                 optionAccessMap.put( o.getUid(), true );
             }
         } );
+    }
+
+    private List<CategoryCombo> getSortedCategoryCombos( Set<CategoryCombo> categoryCombos )
+    {
+        List<CategoryCombo> listCategoryCombos = new ArrayList<>( categoryCombos );
+
+        Collections.sort( listCategoryCombos, new CategoryComboSizeNameComparator() );
+
+        return listCategoryCombos;
     }
 }
