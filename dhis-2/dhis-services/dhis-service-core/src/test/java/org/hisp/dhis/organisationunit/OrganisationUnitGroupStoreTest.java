@@ -72,7 +72,7 @@ public class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTe
         OrganisationUnit organisationUnitC = addOrganisationUnit( 'C' );
         OrganisationUnitGroup groupA = addOrganisationUnitGroup( 'A', organisationUnitA );
         OrganisationUnitGroup groupB = addOrganisationUnitGroup( 'B', organisationUnitB );
-        OrganisationUnitGroup groupC = addOrganisationUnitGroup( 'B', organisationUnitC );
+        OrganisationUnitGroup groupC = addOrganisationUnitGroup( 'C', organisationUnitC );
         Set<OrganisationUnitGroup> groups = Sets.newHashSet( groupA, groupB, groupC );
 
         OrganisationUnitGroupSet groupSet = addOrganisationUnitGroupSet( 'A', groupA );

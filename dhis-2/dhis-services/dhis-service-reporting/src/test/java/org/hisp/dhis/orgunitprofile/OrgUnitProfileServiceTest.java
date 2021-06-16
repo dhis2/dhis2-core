@@ -31,7 +31,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -41,6 +43,8 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -160,5 +164,37 @@ public class OrgUnitProfileServiceTest
         assertEquals( "testAttributeValue", data.getAttributes().get( 0 ).getValue() );
         assertEquals( "testDataValue", data.getDataItems().get( 0 ).getValue() );
         assertEquals( group.getDisplayName(), data.getGroupSets().get( 0 ).getValue() );
+    }
+
+    @Test
+    public void testValidator()
+    {
+        Attribute attribute = createAttribute( 'A' );
+        attribute.setOrganisationUnitAttribute( true );
+
+        OrganisationUnit orgUnit = createOrganisationUnit( "A" );
+        orgUnit.getAttributeValues().add( new AttributeValue( "testAttributeValue", attribute ) );
+
+        OrganisationUnitGroup group = createOrganisationUnitGroup( 'A' );
+        group.addOrganisationUnit( orgUnit );
+
+        OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet( 'A' );
+        groupSet.addOrganisationUnitGroup( group );
+
+        DataElement dataElement = createDataElement( 'A' );
+
+        OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
+        orgUnitProfile.getAttributes().add( attribute.getUid() );
+        orgUnitProfile.getDataItems().add( dataElement.getUid() );
+        orgUnitProfile.getGroupSets().add( groupSet.getUid() );
+        List<ErrorReport> errors = service.validateOrgUnitProfile( orgUnitProfile );
+        assertEquals( 3, errors.size() );
+        assertTrue( errors.contains(
+            new ErrorReport( OrganisationUnitGroupSet.class, ErrorCode.E4014, groupSet.getUid(), "groupSets" ) ) );
+        assertTrue(
+            errors.contains( new ErrorReport( Attribute.class, ErrorCode.E4014, groupSet.getUid(), "attributes" ) ) );
+        assertTrue( errors
+            .contains( new ErrorReport( Collection.class, ErrorCode.E4014, dataElement.getUid(), "dataItems" ) ) );
+
     }
 }

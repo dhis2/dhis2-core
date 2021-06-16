@@ -28,6 +28,8 @@
 package org.hisp.dhis.orgunitprofile.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,7 @@ import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
@@ -50,6 +53,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
@@ -131,6 +135,18 @@ public class DefaultOrgUnitProfileService
 
     @Override
     @Transactional( readOnly = true )
+    public List<ErrorReport> validateOrgUnitProfile( OrgUnitProfile profile )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>();
+        errorReports.addAll( validateAttributes( profile.getAttributes() ) );
+        errorReports.addAll( validateDataItems( profile.getDataItems() ) );
+        errorReports.addAll( validateGroupSets( profile.getGroupSets() ) );
+
+        return errorReports;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public OrgUnitProfile getOrgUnitProfile()
     {
         KeyJsonValue value = dataStore.getKeyJsonValue( ORG_UNIT_PROFILE_NAMESPACE, ORG_UNIT_PROFILE_KEY );
@@ -147,7 +163,7 @@ public class DefaultOrgUnitProfileService
         catch ( JsonProcessingException e )
         {
             log.error( DebugUtils.getStackTrace( e ) );
-            throw new IllegalArgumentException( "Can't deserialize OrgUnitProfile " + value.getValue() );
+            throw new IllegalArgumentException( "Can't deserialize OrgUnitProfile ", e );
         }
     }
 
@@ -210,14 +226,19 @@ public class DefaultOrgUnitProfileService
 
     private List<ProfileItem> getAttributes( OrgUnitProfile profile, OrganisationUnit orgUnit )
     {
-        List<ProfileItem> items = new ArrayList<>();
-
         if ( CollectionUtils.isEmpty( profile.getAttributes() ) )
         {
-            return items;
+            return Collections.EMPTY_LIST;
         }
 
         List<Attribute> attributes = idObjectManager.getByUid( Attribute.class, profile.getAttributes() );
+
+        if ( CollectionUtils.isEmpty( attributes ) )
+        {
+            return Collections.EMPTY_LIST;
+        }
+
+        List<ProfileItem> items = new ArrayList<>();
 
         for ( Attribute attribute : attributes )
         {
@@ -232,15 +253,20 @@ public class DefaultOrgUnitProfileService
 
     private List<ProfileItem> getGroupSets( OrgUnitProfile profile, OrganisationUnit orgUnit )
     {
-        List<ProfileItem> items = new ArrayList<>();
-
         if ( CollectionUtils.isEmpty( profile.getGroupSets() ) )
         {
-            return items;
+            return Collections.EMPTY_LIST;
         }
 
         List<OrganisationUnitGroupSet> groupSets = idObjectManager
             .getByUid( OrganisationUnitGroupSet.class, profile.getGroupSets() );
+
+        if ( CollectionUtils.isEmpty( groupSets ) )
+        {
+            return Collections.EMPTY_LIST;
+        }
+
+        List<ProfileItem> items = new ArrayList<>();
 
         Set<OrganisationUnitGroup> groups = orgUnit.getGroups();
 
@@ -248,7 +274,11 @@ public class DefaultOrgUnitProfileService
         {
             OrganisationUnitGroup group = groupService.getOrgUnitGroupInGroupSet( groups, groupSet );
 
-            items.add( new ProfileItem( groupSet.getUid(), groupSet.getDisplayName(), group.getDisplayName() ) );
+            if ( group != null )
+            {
+                items.add( new ProfileItem( groupSet.getUid(), groupSet.getDisplayName(), group.getDisplayName() ) );
+            }
+
         }
 
         return items;
@@ -256,14 +286,17 @@ public class DefaultOrgUnitProfileService
 
     private List<ProfileItem> getDataItems( OrgUnitProfile profile, OrganisationUnit orgUnit, Period period )
     {
-        List<ProfileItem> items = new ArrayList<>();
-
         if ( CollectionUtils.isEmpty( profile.getDataItems() ) )
         {
-            return items;
+            return Collections.EMPTY_LIST;
         }
 
         List<DimensionalItemObject> dataItems = idObjectManager.getByUid( DATA_ITEM_CLASSES, profile.getDataItems() );
+
+        if ( CollectionUtils.isEmpty( dataItems ) )
+        {
+            return Collections.EMPTY_LIST;
+        }
 
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataDimensionItems( dataItems )
@@ -273,11 +306,21 @@ public class DefaultOrgUnitProfileService
 
         Map<String, Object> values = analyticsService.getAggregatedDataValueMapping( params );
 
+        if ( MapUtils.isEmpty( values ) )
+        {
+            return Collections.EMPTY_LIST;
+        }
+
+        List<ProfileItem> items = new ArrayList<>();
+
         for ( DimensionalItemObject dataItem : dataItems )
         {
             Object value = values.get( dataItem.getUid() );
 
-            items.add( new ProfileItem( dataItem.getUid(), dataItem.getDisplayName(), value ) );
+            if ( value != null )
+            {
+                items.add( new ProfileItem( dataItem.getUid(), dataItem.getDisplayName(), value ) );
+            }
         }
 
         return items;
@@ -319,4 +362,64 @@ public class DefaultOrgUnitProfileService
         }
     }
 
+    private List<ErrorReport> validateGroupSets( List<String> groupSets )
+    {
+        if ( CollectionUtils.isEmpty( groupSets ) )
+        {
+            return Collections.EMPTY_LIST;
+        }
+
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        for ( String groupSetId : groupSets )
+        {
+            if ( idObjectManager.get( OrganisationUnitGroupSet.class, groupSetId ) == null )
+            {
+                errorReports
+                    .add( new ErrorReport( OrganisationUnitGroupSet.class, ErrorCode.E4014, groupSetId, "groupSets" ) );
+            }
+        }
+
+        return errorReports;
+    }
+
+    private List<ErrorReport> validateDataItems( List<String> dataItems )
+    {
+        if ( CollectionUtils.isEmpty( dataItems ) )
+        {
+            return Collections.EMPTY_LIST;
+        }
+
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        for ( String dataItemId : dataItems )
+        {
+            if ( idObjectManager.get( DATA_ITEM_CLASSES, dataItemId ) == null )
+            {
+                errorReports.add( new ErrorReport( Collection.class, ErrorCode.E4014, dataItemId, "dataItems" ) );
+            }
+        }
+
+        return errorReports;
+    }
+
+    private List<ErrorReport> validateAttributes( List<String> attributes )
+    {
+        if ( CollectionUtils.isEmpty( attributes ) )
+        {
+            return Collections.EMPTY_LIST;
+        }
+
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        for ( String attributeId : attributes )
+        {
+            if ( idObjectManager.get( Attribute.class, attributeId ) == null )
+            {
+                errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4014, attributeId, "attributes" ) );
+            }
+        }
+
+        return errorReports;
+    }
 }

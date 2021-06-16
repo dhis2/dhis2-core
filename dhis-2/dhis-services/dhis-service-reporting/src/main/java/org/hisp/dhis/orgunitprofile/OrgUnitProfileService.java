@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.orgunitprofile;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
+
+import org.hisp.dhis.feedback.ErrorReport;
 
 public interface OrgUnitProfileService
 {
@@ -38,6 +42,8 @@ public interface OrgUnitProfileService
     String ORG_UNIT_PROFILE_AUTHORITY = "F_ORG_UNIT_PROFILE_ADD";
 
     void saveOrgUnitProfile( OrgUnitProfile profile );
+
+    List<ErrorReport> validateOrgUnitProfile( OrgUnitProfile profile );
 
     OrgUnitProfile getOrgUnitProfile();
 
