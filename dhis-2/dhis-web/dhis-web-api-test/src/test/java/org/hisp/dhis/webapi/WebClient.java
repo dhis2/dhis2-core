@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi;
 
+import static org.hisp.dhis.webapi.utils.TestUtils.APPLICATION_JSON_PATCH_UTF8;
 import static org.hisp.dhis.webapi.utils.TestUtils.APPLICATION_JSON_UTF8;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
@@ -38,7 +39,6 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.startWithMediaType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -56,6 +56,7 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -139,13 +140,13 @@ public interface WebClient
 
     default HttpResponse PATCH( String url, Object... args )
     {
-        return webRequest( patch( substitutePlaceholders( url, args ) ).contentType( "application/json-patch+json" ),
+        return webRequest( patch( substitutePlaceholders( url, args ) ), APPLICATION_JSON_PATCH_UTF8,
             requestComponentsIn( args ) );
     }
 
     default HttpResponse PATCH( String url, String body )
     {
-        return webRequest( patch( url ).contentType( "application/json-patch+json" ), new Body( body ) );
+        return webRequest( patch( url ), APPLICATION_JSON_PATCH_UTF8, new Body( body ) );
     }
 
     default HttpResponse PUT( String url, Object... args )
@@ -170,6 +171,12 @@ public interface WebClient
 
     default HttpResponse webRequest( MockHttpServletRequestBuilder request, RequestComponent... components )
     {
+        return webRequest( request, MediaType.APPLICATION_JSON, components );
+    }
+
+    default HttpResponse webRequest( MockHttpServletRequestBuilder request, MediaType contentMediaType,
+        RequestComponent... components )
+    {
         // configure headers
         for ( RequestComponent c : components )
         {
@@ -182,22 +189,25 @@ public interface WebClient
         // configure body
         Body bodyComponent = getComponent( Body.class, components );
         String body = bodyComponent == null ? "" : bodyComponent.body;
+
         if ( body != null && body.endsWith( ".json" ) )
         {
             return failOnException( () -> webRequest( request
                 .contentType( APPLICATION_JSON_UTF8 )
                 .content( ByteStreams.toByteArray( new ClassPathResource( body ).getInputStream() ) ) ) );
         }
+
         if ( startWithMediaType( body ) )
         {
             return webRequest( request
                 .contentType( body.substring( 0, body.indexOf( ':' ) ) )
                 .content( body.substring( body.indexOf( ':' ) + 1 ) ) );
         }
+
         return body == null || body.isEmpty()
             ? webRequest( request )
             : webRequest( request
-                .contentType( APPLICATION_JSON )
+                .contentType( contentMediaType )
                 .content( plainTextOrJson( body ) ) );
     }
 
