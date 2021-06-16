@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.organisationunit;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
-import org.apache.http.HttpResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
@@ -63,7 +62,7 @@ public class OrganisationUnitProfileController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ORG_UNIT_PROFILE_ADD')" )
     @PostMapping( consumes = "application/json" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveProfile( @RequestBody OrgUnitProfile profile, HttpResponse response )
+    public void saveProfile( @RequestBody OrgUnitProfile profile )
         throws WebMessageException
     {
         validateAndThrowErrors( () -> orgUnitProfileService.validateOrgUnitProfile( profile ) );
