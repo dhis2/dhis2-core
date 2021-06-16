@@ -80,7 +80,7 @@ public class DataOrgUnitMergeHandler
             "delete from datavalue where sourceid = :target_id; " +
             // Window over data value sources ranked by last modification
             "with dv_rank as ( " +
-                "select *, row_number() over (" +
+                "select dv.*, row_number() over (" +
                     "partition by dv.dataelementid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid " +
                     "order by dv.lastupdated desc, dv.created desc) as lastupdated_rank " +
                 "from datavalue dv " +
@@ -93,6 +93,7 @@ public class DataOrgUnitMergeHandler
             "select dataelementid, periodid, :target_id, categoryoptioncomboid, attributeoptioncomboid, " +
                 "value, storedby, created, lastupdated, comment, followup, false " +
             "from dv_rank " +
+            // Filter for last modified value
             "where dv_rank.lastupdated_rank = 1;";
         // @formatter:on
 
