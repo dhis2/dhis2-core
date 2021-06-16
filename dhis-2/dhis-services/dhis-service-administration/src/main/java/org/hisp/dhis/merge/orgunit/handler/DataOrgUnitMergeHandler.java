@@ -76,10 +76,11 @@ public class DataOrgUnitMergeHandler
     {
         // @formatter:off
         final String sql = String.format(
-            // Delete existing data values for target
+            // Delete existing target data values
             "delete from datavalue where sourceid = :target_id; " +
-            // Window over data value sources ranked by last modification
+            // Insert target data values for last modified source data values
             "with dv_rank as ( " +
+                // Window over data value sources ranked by last modification
                 "select dv.*, row_number() over (" +
                     "partition by dv.dataelementid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid " +
                     "order by dv.lastupdated desc, dv.created desc) as lastupdated_rank " +
@@ -94,7 +95,9 @@ public class DataOrgUnitMergeHandler
             "select dataelementid, periodid, %s, categoryoptioncomboid, attributeoptioncomboid, " +
                 "value, storedby, created, lastupdated, comment, followup, false " +
             "from dv_rank " +
-            "where dv_rank.lastupdated_rank = 1;",
+            "where dv_rank.lastupdated_rank = 1; " +
+            // Delete source data values
+            "delete from datavalue where sourceid in (:source_ids);",
             request.getTarget().getId() );
         // @formatter:on
 
