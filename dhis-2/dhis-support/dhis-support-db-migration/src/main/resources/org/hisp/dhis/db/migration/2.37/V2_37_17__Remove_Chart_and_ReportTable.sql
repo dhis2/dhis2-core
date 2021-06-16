@@ -1,6 +1,7 @@
 -- DHIS2-11047
 -- This script will remove all tables related to Chart and ReportTable.
--- Those entities are being removed from the codebase.
+-- Those entities are being entirely removed from the codebase.
+-- Some statistics data needs are being move into visualization.
 
 -- Drop ReportTable and Chart columns from dashboarditem table.
 ALTER TABLE dashboarditem
@@ -46,3 +47,16 @@ DROP TABLE IF EXISTS reporttable_orgunitgroupsetdimensions;
 DROP TABLE IF EXISTS reporttable_orgunitlevels;
 DROP TABLE IF EXISTS reporttable_periods;
 DROP TABLE IF EXISTS reporttable_rows;
+
+UPDATE datastatisticsevent
+SET eventtype = 'VISUALIZATION_VIEW'
+WHERE eventtype = 'REPORT_TABLE_VIEW' OR eventtype = 'CHART_VIEW';
+
+UPDATE datastatistics
+SET visualizationviews = reporttableviews + chartviews;
+
+ALTER TABLE datastatistics
+    DROP COLUMN IF EXISTS reporttableviews;
+
+ALTER TABLE datastatistics
+    DROP COLUMN IF EXISTS chartviews;
