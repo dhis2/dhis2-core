@@ -33,16 +33,19 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hibernate.FlushMode;
 import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hisp.dhis.cacheinvalidation.KnownTransactionsService;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -64,6 +67,9 @@ public class DeletedObjectPostInsertEventListener
         return true;
     }
 
+    @Autowired
+    private KnownTransactionsService knownTransactionsService;
+
     @Override
     public void onPostInsert( PostInsertEvent event )
     {
@@ -79,7 +85,13 @@ public class DeletedObjectPostInsertEventListener
                 List<DeletedObject> deletedObjects = deletedObjectService
                     .getDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) event.getEntity() ) );
 
-                deletedObjects.forEach( deletedObject -> session.delete( deletedObject ) );
+                deletedObjects.forEach( session::delete );
+
+                Number txId = (Number) event.getSession().createNativeQuery( "SELECT txid_current()" )
+                    .setFlushMode( FlushMode.MANUAL )
+                    .getSingleResult();
+
+                knownTransactionsService.register( txId.longValue() );
 
                 session.getTransaction().commit();
             }

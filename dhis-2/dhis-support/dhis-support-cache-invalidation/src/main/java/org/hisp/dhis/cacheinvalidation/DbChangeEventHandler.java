@@ -54,6 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import io.debezium.data.Envelope;
@@ -62,8 +63,9 @@ import io.debezium.engine.RecordChangeEvent;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 @Component
+@Slf4j
+@Profile( { "!test", "!test-h2" } )
 public class DbChangeEventHandler
 {
     @PersistenceUnit
@@ -85,7 +87,7 @@ public class DbChangeEventHandler
 
     protected void handleDbChange( RecordChangeEvent<SourceRecord> event )
     {
-        init();
+        // init();
 
         try
         {
@@ -100,13 +102,37 @@ public class DbChangeEventHandler
     private void tryEvictCache( RecordChangeEvent<SourceRecord> event )
     {
         SourceRecord record = event.record();
-
         log.info( "New RecordChangeEvent incoming! topic=" + record.topic() );
 
-        String[] topic = record.topic().split( "\\." );
+        Struct payload = (Struct) record.value();
+        if ( payload == null )
+        {
+            log.warn( "payload is null! Skipping..." );
+            return;
+        }
 
+        Long txId;
+        try
+        {
+            txId = ((Struct) payload.get( "source" )).getInt64( "txId" );
+        }
+        catch ( Exception e )
+        {
+            log.error( "Could not fetch txId!", e );
+            throw e;
+        }
+
+        Envelope.Operation operation = Envelope.Operation.forCode( payload.getString( "op" ) );
+        if ( operation == Envelope.Operation.READ )
+        {
+            log.warn( "Operation is READ, skipping..." );
+            return;
+        }
+
+        String[] topic = record.topic().split( "\\." );
         if ( topic.length == 0 )
         {
+            log.warn( "topic is length is 0, skipping..." );
             return;
         }
 
@@ -115,7 +141,11 @@ public class DbChangeEventHandler
 
         if ( entityClass == null )
         {
-            log.info( "No entityClass mapped to the table name, ignoring event! tablename=" + tableName );
+            log.warn( "No entityClass mapped to the table name, ignoring event! tablename=" + tableName );
+            if ( !knownTransactionsService.isKnown( txId ) )
+            {
+                log.error( "\tUnknown txID! txId=" + txId + " totalTxId=" + knownTransactionsService.total() );
+            }
             return;
         }
 
@@ -125,11 +155,8 @@ public class DbChangeEventHandler
         String idFieldName = idField.name();
 
         Schema.Type type = idField.schema().type();
-
         Struct keyStruct = (Struct) record.key();
         Serializable id = null;
-        Object o1 = keyStruct.get( idField );
-        Field field = keyStruct.schema().field( idFieldName );
 
         String cname = entityClass.getName();
         String cname3 = TrackedEntityAttributeValue.class.getName();
@@ -171,24 +198,6 @@ public class DbChangeEventHandler
         // java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
         // at java.base/java.lang.Thread.run(Thread.java:829)
 
-        Struct payload = (Struct) record.value();
-        if ( payload == null )
-        {
-            log.warn( "payload is null!" );
-            return;
-        }
-
-        Long txId = null;
-
-        try
-        {
-            txId = ((Struct) payload.get( "source" )).getInt64( "txId" );
-        }
-        catch ( Exception e )
-        {
-            e.printStackTrace();
-            throw e;
-        }
         // java.lang.NullPointerException
         // at
         // org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.tryEvictCache(DbChangeEventHandler.java:127)
@@ -206,11 +215,13 @@ public class DbChangeEventHandler
         // at
         // java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
         // at java.base/java.lang.Thread.run(Thread.java:829)
-        Envelope.Operation operation = Envelope.Operation.forCode( payload.getString( "op" ) );
 
         if ( !knownTransactionsService.isKnown( txId ) )
         {
-            if ( operation == Envelope.Operation.UPDATE || operation == Envelope.Operation.DELETE )
+            log.error( "\tUnknown txID! txId=" + txId + " totalTxId=" + knownTransactionsService.total() );
+
+            if ( operation == Envelope.Operation.UPDATE || operation == Envelope.Operation.DELETE
+                || operation == Envelope.Operation.TRUNCATE )
             {
                 log.info( String.format( "RecordChangeEvent is an external %s event! "
                     + "Trying to evict; entityClass=%s, id=%s", operation.name(), entityClass, id ) );
@@ -244,7 +255,7 @@ public class DbChangeEventHandler
         }
     }
 
-    private void init()
+    public void init()
     {
         if ( !entityToTableNames.isEmpty() )
         {

@@ -191,7 +191,7 @@ public class DataSourceConfig
     private static class PrettyQueryEntryCreator extends DefaultQueryLogEntryCreator
     {
         // use hibernate to format queries
-        private final Formatter formatter = FormatStyle.BASIC.getFormatter();
+        private final Formatter formatter = FormatStyle.HIGHLIGHT.getFormatter();
 
         @Override
         protected String formatQuery( String query )

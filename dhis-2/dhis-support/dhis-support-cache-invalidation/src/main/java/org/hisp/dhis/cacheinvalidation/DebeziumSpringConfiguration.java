@@ -27,45 +27,44 @@
  */
 package org.hisp.dhis.cacheinvalidation;
 
-import java.io.Serializable;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistryImpl;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TrackedEntityAttributeValuePK implements Serializable
+@Configuration
+@Order( 101 )
+@ComponentScan( basePackages = { "org.hisp.dhis" } )
+// @Profile( "cacheInvalidation" )
+public class DebeziumSpringConfiguration
 {
-    private Long entityInstance;
-
-    private Long attribute;
-
-    public TrackedEntityAttributeValuePK()
+    @Bean
+    public static SessionRegistryImpl sessionRegistry()
     {
-
+        return new SessionRegistryImpl();
     }
 
-    public TrackedEntityAttributeValuePK( Long entityInstance, Long attribute )
+    @Bean( )
+    public EHDebeziumServiceRoutine ehDebeziumServiceRoutine()
     {
-        this.entityInstance = entityInstance;
-        this.attribute = attribute;
+        EHDebeziumServiceRoutine routine = new EHDebeziumServiceRoutine();
+        routine.setName( "EHDebeziumServiceRoutine" );
+        routine.setRunlevel( 1 );
+        routine.setSkipInTests( true );
+        return routine;
     }
 
-    public Long getEntityInstance()
+    @Bean( )
+    public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine()
     {
-        return entityInstance;
-    }
-
-    public void setEntityInstance( Long entityInstance )
-    {
-        this.entityInstance = entityInstance;
-    }
-
-    public Long getAttribute()
-    {
-        return attribute;
-    }
-
-    public void setAttribute( Long attribute )
-    {
-        this.attribute = attribute;
+        StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();
+        routine.setName( "StartupDebeziumServiceRoutine" );
+        routine.setRunlevel( 20 );
+        routine.setSkipInTests( true );
+        return routine;
     }
 }

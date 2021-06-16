@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.cacheinvalidation;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
+import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
 import org.hibernate.event.spi.FlushEvent;
 import org.hibernate.event.spi.FlushEventListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,22 +41,26 @@ import org.springframework.stereotype.Component;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( "!test-h2" )
 @Component
+@Slf4j
+@Profile( { "!test", "!test-h2" } )
 public class HibernateFlushListener implements FlushEventListener
 {
     @Autowired
-    private volatile KnownTransactionsService knownTransactionsService;
+    private KnownTransactionsService knownTransactionsService;
 
     public void onFlush( FlushEvent event )
         throws HibernateException
     {
-        event.getSession().getActionQueue().registerProcess( session -> {
+
+        BeforeTransactionCompletionProcess beforeTransactionCompletionProcess = session -> {
             Number txId = (Number) event.getSession().createNativeQuery( "SELECT txid_current()" )
                 .setFlushMode( FlushMode.MANUAL )
                 .getSingleResult();
 
             knownTransactionsService.register( txId.longValue() );
-        } );
+        };
+
+        event.getSession().getActionQueue().registerProcess( beforeTransactionCompletionProcess );
     }
 }

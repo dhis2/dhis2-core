@@ -41,7 +41,7 @@ public class StartupFinishedRoutine extends AbstractStartupRoutine
     public void execute()
         throws Exception
     {
-        log.info( String.format( "DHIS2 API Server Startup Finished In %s Seconds!",
-            JettyEmbeddedCoreWeb.getElapsedMsSinceStart() / 1000 ) );
+        log.info( String.format( "DHIS2 API Server Startup Finished In %s Seconds! Running on port: %s",
+            (JettyEmbeddedCoreWeb.getElapsedMsSinceStart() / 1000), System.getProperty( "jetty.http.port" ) ) );
     }
 }

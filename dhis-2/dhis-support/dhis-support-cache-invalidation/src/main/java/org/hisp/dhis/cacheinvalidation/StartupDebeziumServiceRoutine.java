@@ -27,46 +27,72 @@
  */
 package org.hisp.dhis.cacheinvalidation;
 
-import java.util.concurrent.TimeUnit;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Service
-@Slf4j
 @Profile( { "!test", "!test-h2" } )
-public class KnownTransactionsService
+@Slf4j
+public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine implements ApplicationContextAware
 {
-    private final Cache<Long, Boolean> applicationTransactions;
+    private ApplicationContext applicationContext;
 
-    public KnownTransactionsService()
+    @Override
+    public void setApplicationContext( ApplicationContext applicationContext )
+        throws BeansException
     {
-        applicationTransactions = CacheBuilder.newBuilder()
-            .expireAfterAccess( 15, TimeUnit.MINUTES )
-            .build();
+        this.applicationContext = applicationContext;
     }
 
-    public void register( long txId )
+    @PersistenceUnit
+    private EntityManagerFactory emf;
+
+    @Autowired
+    private HibernateFlushListener hibernateFlushListener;
+
+    @Autowired
+    private DhisConfigurationProvider config;
+
+    @Autowired
+    private DebeziumService debeziumService;
+
+    @Autowired
+    private DbChangeEventHandler dbChangeEventHandler;
+
+    @Override
+
+    public void execute()
+        throws Exception
     {
-        log.info( "Register txId=" + txId + "  total=" + applicationTransactions.size() );
-        applicationTransactions.put( txId, true );
+        debeziumService.startDebeziumEngine();
+
+        // final ScheduledExecutorService scheduler =
+        // Executors.newScheduledThreadPool( 1 );
+        // scheduler.schedule( this::start, 11, TimeUnit.SECONDS );
     }
 
-    public boolean isKnown( long txId )
+    private void start()
     {
-        return Boolean.TRUE.equals( applicationTransactions.getIfPresent( txId ) );
-    }
-
-    public String total()
-    {
-        return String.valueOf( applicationTransactions.size() );
+        try
+        {
+            debeziumService.startDebeziumEngine();
+        }
+        catch ( Exception e )
+        {
+            log.error( "was an error", e );
+        }
+        log.info( String.format( "DEBEZIUM STARTED!" ) );
     }
 }

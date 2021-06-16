@@ -29,15 +29,18 @@ package org.hisp.dhis.deletedobject.hibernate;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hibernate.FlushMode;
 import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hisp.dhis.cacheinvalidation.KnownTransactionsService;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.deletedobject.DeletedObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -47,6 +50,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEventListener
 {
+    @Autowired
+    private KnownTransactionsService knownTransactionsService;
+
     @Override
     public void onPostDelete( PostDeleteEvent event )
     {
@@ -60,6 +66,12 @@ public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEve
 
             StatelessSession session = event.getPersister().getFactory().openStatelessSession();
             session.beginTransaction();
+
+            Number txId = (Number) event.getSession().createNativeQuery( "SELECT txid_current()" )
+                .setFlushMode( FlushMode.MANUAL )
+                .getSingleResult();
+
+            knownTransactionsService.register( txId.longValue() );
 
             try
             {

@@ -26,3 +26,16 @@ SELECT * FROM pg_replication_slots ;
 select pg_drop_replication_slot('bottledwater');
 
 
+#Problems
+* Datavalue objects dont get catched txid
+
+FIXED* Do we need to reset replication slot on each restart? YES!!
+    - get rid of WARN in log about it
+
+* All <set> in hbm files needs to be explicitly mapped
+
+* deletedobject missing in tx log
+* audit missing ---
+
+* add to cache on create event?
+* delay/chunk full eviction on create.

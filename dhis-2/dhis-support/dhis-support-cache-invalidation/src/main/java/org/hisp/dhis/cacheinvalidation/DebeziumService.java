@@ -35,12 +35,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.connect.source.SourceRecord;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,9 +57,10 @@ import io.debezium.engine.format.ChangeEventFormat;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
+
 @Service
 @Slf4j
+@Profile( { "!test", "!test-h2" } )
 public class DebeziumService
 {
     public static final String DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED = "DebeziumEngine connectorStopped() event triggered! ";
@@ -80,6 +82,9 @@ public class DebeziumService
     public static final long STARTUP_WAIT_TIMEOUT = 5L;
 
     private boolean shutdownOnConnectorStop = true;
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     @Autowired
     private DbChangeEventHandler dbChangeEventHandler;
@@ -152,7 +157,7 @@ public class DebeziumService
         }
         else
         {
-            // log.warn( "No success: " + message );
+            log.warn( "No success: " + message );
         }
 
         if ( error != null )
@@ -169,9 +174,8 @@ public class DebeziumService
         }
     }
 
-    @PostConstruct
-    protected void debeziumEngine()
-        throws InterruptedException
+    public void startDebeziumEngine()
+        throws Exception
     {
         String username = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_CONNECTION_USERNAME );
         String password = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_CONNECTION_PASSWORD );
@@ -179,7 +183,14 @@ public class DebeziumService
         String dbPort = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_DB_PORT );
         String dbName = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_DB_NAME );
 
-        String slotName = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_SLOT_NAME ).toLowerCase();
+        String slotName = configurationService.getConfiguration().getSystemId();
+
+        if ( !StringUtils.isNotEmpty( slotName ) )
+        {
+            throw new Exception( "Slot name can't be empty or null!" );
+        }
+
+        slotName = slotName.replaceAll( "-", "" );
 
         Properties props = Configuration.create().build().asProperties();
         props.setProperty( "name", slotName );
@@ -196,6 +207,14 @@ public class DebeziumService
         props.setProperty( "database.server.name", dbName );
         props.setProperty( "database.dbname", dbName );
         props.setProperty( "snapshot.mode", "never" );
+        props.setProperty( "slot.drop.on.stop", "true" );
+        props.setProperty( "table.exclude.list",
+            "public.jobconfiguration" );
+        //
+        // + ",public.userroleauthorities,"
+        // + "public.periodtype,"
+        // + "public.categoryoptioncombos_categoryoptions,"
+        // + "public.deletedobject" );
 
         engine = DebeziumEngine
             .create( ChangeEventFormat.of( Connect.class ) )

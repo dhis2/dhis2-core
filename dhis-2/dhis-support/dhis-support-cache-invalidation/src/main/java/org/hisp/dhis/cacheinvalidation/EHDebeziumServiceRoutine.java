@@ -27,26 +27,28 @@
  */
 package org.hisp.dhis.cacheinvalidation;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Profile;
 
-@Component
-@RequiredArgsConstructor
-public class CacheInvalidationHibernateListenerConfigurer
-    implements ApplicationContextAware
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Profile( { "!test", "!test-h2" } )
+@Slf4j
+public class EHDebeziumServiceRoutine extends AbstractStartupRoutine implements ApplicationContextAware
 {
     private ApplicationContext applicationContext;
 
@@ -60,20 +62,27 @@ public class CacheInvalidationHibernateListenerConfigurer
     @PersistenceUnit
     private EntityManagerFactory emf;
 
-    @NonNull
-    private final HibernateFlushListener hibernateFlushListener;
+    @Autowired
+    private HibernateFlushListener hibernateFlushListener;
 
-    @NonNull
+    @Autowired
     private DhisConfigurationProvider config;
 
-    @PostConstruct
-    protected void init()
+    @Autowired
+    private DebeziumService debeziumService;
+
+    @Autowired
+    private DbChangeEventHandler dbChangeEventHandler;
+
+    @Override
+
+    public void execute()
+        throws Exception
     {
+        dbChangeEventHandler.init();
+
         SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
-
         EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
-
         registry.getEventListenerGroup( EventType.FLUSH ).appendListener( hibernateFlushListener );
-
     }
 }

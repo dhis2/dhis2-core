@@ -37,12 +37,10 @@ read -p "Do you wan to compile first? (if yes press y/Y to continue) " -n 1 -r
 echo    # (optional) move to a new line
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   # Compile API only and start the API server with embedded Jetty
-  mvn clean install -Pdev -Pjdk11 -T 100C -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true -f dhis-web-embedded-jetty/pom.xml
+#  mvn clean install -Pdev -Pjdk11 -T 100C -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true -f dhis-web-embedded-jetty/pom.xml
 
-  #mvn clean install -Pdev -Pjdk11 -T 100C -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
-  #touch ./lastBon
+  mvn clean install -Pdev -Pjdk11 -T 100C -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
+  touch ./lastBon
 fi
 
 java -Ddhis2.home=$DHIS2_HOME -Djetty.host=$DHIS2_HOSTNAME -Djetty.http.port=$DHIS2_PORT -jar ./dhis-web-embedded-jetty/target/dhis-web-embedded-jetty.jar
-
-/home/nacom/develop/DHIS2/dhis2_homes/latest

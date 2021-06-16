@@ -78,7 +78,7 @@ public class StartupConfig
     public TwoFAPopulator twoFAPopulator( UserService userService, CurrentUserService currentUserService )
     {
         TwoFAPopulator populator = new TwoFAPopulator( userService, currentUserService );
-        populator.setName( "PeriodTypePopulator" );
+        populator.setName( "TwoFAPopulator" );
         populator.setRunlevel( 3 );
         populator.setSkipInTests( true );
         return populator;
@@ -169,7 +169,7 @@ public class StartupConfig
             configurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ),
             configurationProvider.getProperty( ConfigurationKey.LEADER_TIME_TO_LIVE ), jobConfigurationService,
             schedulingManager, messageService );
-        schedulerStart.setRunlevel( 14 );
+        schedulerStart.setRunlevel( 15 );
         schedulerStart.setSkipInTests( true );
         return schedulerStart;
     }
