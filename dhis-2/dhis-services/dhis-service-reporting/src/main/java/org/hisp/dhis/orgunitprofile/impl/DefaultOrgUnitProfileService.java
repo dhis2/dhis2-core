@@ -168,6 +168,7 @@ public class DefaultOrgUnitProfileService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod )
     {
         // If profile is empty, only fixed info will be included
