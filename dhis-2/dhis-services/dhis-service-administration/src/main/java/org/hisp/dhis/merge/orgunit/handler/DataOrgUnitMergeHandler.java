@@ -93,7 +93,6 @@ public class DataOrgUnitMergeHandler
             "select dataelementid, periodid, :target_id, categoryoptioncomboid, attributeoptioncomboid, " +
                 "value, storedby, created, lastupdated, comment, followup, false " +
             "from dv_rank " +
-            // Filter for last modified value
             "where dv_rank.lastupdated_rank = 1;";
         // @formatter:on
 
