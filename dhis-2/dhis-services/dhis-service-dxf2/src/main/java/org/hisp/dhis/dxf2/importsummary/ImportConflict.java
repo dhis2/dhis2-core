@@ -85,9 +85,9 @@ public final class ImportConflict
             String object = objects[i];
             if ( objectType == I18n.class )
             {
-                if ( property != null && !objectsMap.containsKey( property ) )
+                if ( property != null )
                 {
-                    objectsMap.put( property, object );
+                    objectsMap.putIfAbsent( property, object );
                 }
                 objects[i] = i18n.getString( object );
             }
