@@ -29,28 +29,25 @@ package org.hisp.dhis.webapi.controller.organisationunit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+@RestController
 @RequestMapping( value = "/orgUnitProfile" )
 public class OrganisationUnitProfileController
 {
@@ -70,7 +67,7 @@ public class OrganisationUnitProfileController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ORG_UNIT_PROFILE_ADD')" )
     @PostMapping( consumes = "application/json" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveProfile( HttpServletRequest request, HttpServletResponse response )
+    public void saveProfile( HttpServletRequest request )
         throws IOException
     {
         OrgUnitProfile profile = jsonMapper.readValue( request.getInputStream(), OrgUnitProfile.class );
@@ -79,18 +76,15 @@ public class OrganisationUnitProfileController
     }
 
     @GetMapping( produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getProfile( HttpServletResponse response )
-        throws IOException
+    public OrgUnitProfile getProfile()
     {
-        jsonMapper.writeValue( response.getOutputStream(), orgUnitProfileService.getOrgUnitProfile() );
+        return orgUnitProfileService.getOrgUnitProfile();
     }
 
     @GetMapping( value = "/data/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getProfile( @PathVariable( value = "uid" ) String uid,
-        @RequestParam( value = "period", required = false ) String isoPeriod,
-        HttpServletResponse response )
-        throws IOException
+    public OrgUnitProfileData getProfile( @PathVariable( value = "uid" ) String uid,
+        @RequestParam( value = "period", required = false ) String isoPeriod )
     {
-        jsonMapper.writeValue( response.getOutputStream(), orgUnitProfileService.getOrgUnitProfileData( uid, isoPeriod ) );
+        return orgUnitProfileService.getOrgUnitProfileData( uid, isoPeriod );
     }
 }
