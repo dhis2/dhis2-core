@@ -85,7 +85,7 @@ public class DataOrgUnitMergeHandler
                     "order by dv.lastupdated desc, dv.created desc) as lastupdated_rank " +
                 "from datavalue dv " +
                 "where dv.sourceid in (:source_ids) " +
-                "and deleted is false" +
+                "and dv.deleted is false" +
             ") " +
             // Insert target data values
             "insert into datavalue (dataelementid, periodid, sourceid, categoryoptioncomboid, " +
