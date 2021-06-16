@@ -75,11 +75,11 @@ public class ProgramOrgUnitsSupplier extends JdbcAbstractPreheatSupplier
             return;
         }
 
-        final String sql = "select p.uid as programuid, ou.uid as organisationunituid " +
-            "from program_organisationunits po " +
-            "join program p on po.programid=p.programid " +
-            "join organisationunit ou on po.organisationunitid=ou.organisationunitid " +
-            "where po.organisationunitid in ( :ids )";
+        final String sql = "SELECT p.uid AS programuid, ou.uid AS organisationunituid " +
+            "FROM program_organisationunits po " +
+            "JOIN program p ON po.programid=p.programid " +
+            "JOIN organisationunit ou ON po.organisationunitid=ou.organisationunitid " +
+            "WHERE po.organisationunitid IN ( :ids )";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", orgUnitIds );

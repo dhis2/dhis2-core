@@ -113,6 +113,16 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
     private ValidationErrorReporter reporter;
 
+    private OrganisationUnit organisationUnit;
+
+    private OrganisationUnit anotherOrganisationUnit;
+
+    private Program programWithRegistration;
+
+    private Program programWithoutRegistration;
+
+    private TrackedEntityType trackedEntityType;
+
     @Before
     public void setUp()
     {
@@ -121,53 +131,45 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         when( ctx.getBundle() ).thenReturn( bundle );
 
-        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        organisationUnit = createOrganisationUnit( 'A' );
         organisationUnit.setUid( ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
 
-        OrganisationUnit anotherOrganisationUnit = createOrganisationUnit( 'B' );
+        anotherOrganisationUnit = createOrganisationUnit( 'B' );
         anotherOrganisationUnit.setUid( ANOTHER_ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ANOTHER_ORG_UNIT_ID ) ).thenReturn( anotherOrganisationUnit );
 
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityType.setUid( TEI_TYPE_ID );
         when( ctx.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
 
-        TrackedEntityType anotherTrackedEntityType = createTrackedEntityType( 'B' );
-        anotherTrackedEntityType.setUid( ANOTHER_TEI_TYPE_ID );
-        when( ctx.getTrackedEntityType( ANOTHER_TEI_TYPE_ID ) ).thenReturn( anotherTrackedEntityType );
+        setupPrograms();
 
-        Program programWithoutRegistration = createProgram( 'A' );
+        Map<String, List<String>> programWithOrgUnits = Maps.newHashMap();
+        programWithOrgUnits.put( PROGRAM_WITH_REGISTRATION_ID, Lists.newArrayList( ORG_UNIT_ID ) );
+
+        when( ctx.getProgramWithOrgUnitsMap() ).thenReturn( programWithOrgUnits );
+    }
+
+    private void setupPrograms()
+    {
+        programWithoutRegistration = createProgram( 'A' );
         programWithoutRegistration.setUid( PROGRAM_WITHOUT_REGISTRATION_ID );
         programWithoutRegistration.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         programWithoutRegistration.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         programWithoutRegistration.setTrackedEntityType( trackedEntityType );
         when( ctx.getProgram( PROGRAM_WITHOUT_REGISTRATION_ID ) ).thenReturn( programWithoutRegistration );
 
-        Program programWithRegistration = createProgram( 'B' );
+        programWithRegistration = createProgram( 'B' );
         programWithRegistration.setUid( PROGRAM_WITH_REGISTRATION_ID );
         programWithRegistration.setProgramType( ProgramType.WITH_REGISTRATION );
         programWithRegistration.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         programWithRegistration.setTrackedEntityType( trackedEntityType );
         when( ctx.getProgram( PROGRAM_WITH_REGISTRATION_ID ) ).thenReturn( programWithRegistration );
+    }
 
-        TrackedEntityInstance trackedEntity = createTrackedEntityInstance( organisationUnit );
-        trackedEntity.setUid( TEI_ID );
-        trackedEntity.setTrackedEntityType( trackedEntityType );
-
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( trackedEntity );
-
-        TrackedEntityInstance anotherTrackedEntity = createTrackedEntityInstance( organisationUnit );
-        anotherTrackedEntity.setUid( ANOTHER_TEI_ID );
-        anotherTrackedEntity.setTrackedEntityType( anotherTrackedEntityType );
-
-        when( ctx.getTrackedEntityInstance( ANOTHER_TEI_ID ) ).thenReturn( anotherTrackedEntity );
-
-        Map<String, List<String>> programWithOrgUnits = Maps.newHashMap();
-        programWithOrgUnits.put( PROGRAM_WITH_REGISTRATION_ID, Lists.newArrayList( ORG_UNIT_ID ) );
-
-        when( ctx.getProgramWithOrgUnitsMap() ).thenReturn( programWithOrgUnits );
-
+    private void setupForEvents()
+    {
         ProgramStage programStage = createProgramStage( 'A', programWithRegistration );
         programStage.setUid( PROGRAM_STAGE_ID );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) ).thenReturn( programStage );
@@ -185,9 +187,29 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( createCategoryOptionCombo( 'A' ) );
     }
 
+    private void setupEnrollments()
+    {
+        TrackedEntityType anotherTrackedEntityType = createTrackedEntityType( 'B' );
+        anotherTrackedEntityType.setUid( ANOTHER_TEI_TYPE_ID );
+        when( ctx.getTrackedEntityType( ANOTHER_TEI_TYPE_ID ) ).thenReturn( anotherTrackedEntityType );
+
+        TrackedEntityInstance trackedEntity = createTrackedEntityInstance( organisationUnit );
+        trackedEntity.setUid( TEI_ID );
+        trackedEntity.setTrackedEntityType( trackedEntityType );
+
+        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( trackedEntity );
+
+        TrackedEntityInstance anotherTrackedEntity = createTrackedEntityInstance( organisationUnit );
+        anotherTrackedEntity.setUid( ANOTHER_TEI_ID );
+        anotherTrackedEntity.setTrackedEntityType( anotherTrackedEntityType );
+
+        when( ctx.getTrackedEntityInstance( ANOTHER_TEI_ID ) ).thenReturn( anotherTrackedEntity );
+    }
+
     @Test
     public void verifyValidationSuccessForEnrollment()
     {
+        setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .program( PROGRAM_WITH_REGISTRATION_ID )
@@ -205,6 +227,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Test
     public void verifyValidationFailsWhenEnrollmentIsNotARegistration()
     {
+        setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .trackedEntity( TEI_ID )
@@ -223,6 +246,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Test
     public void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
     {
+        setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .trackedEntity( TEI_ID )
@@ -241,6 +265,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Test
     public void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
     {
+        setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .program( PROGRAM_WITH_REGISTRATION_ID )
@@ -259,6 +284,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Test
     public void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
     {
+        setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .program( PROGRAM_WITH_REGISTRATION_ID )
@@ -286,6 +312,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Test
     public void verifyValidationSuccessForEvent()
     {
+        setupForEvents();
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .program( PROGRAM_WITH_REGISTRATION_ID )
@@ -304,6 +331,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Test
     public void verifyValidationFailsWhenEventAndProgramStageProgramDontMatch()
     {
+        setupForEvents();
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .program( PROGRAM_WITHOUT_REGISTRATION_ID )
@@ -324,6 +352,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Test
     public void verifyValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing()
     {
+        setupForEvents();
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .program( PROGRAM_WITH_REGISTRATION_ID )
@@ -344,6 +373,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Test
     public void verifyValidationFailsWhenEventAndEnrollmentProgramDontMatch()
     {
+        setupForEvents();
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .program( PROGRAM_WITH_REGISTRATION_ID )
@@ -365,6 +395,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Test
     public void verifyValidationFailsWhenEventAndProgramOrganisationUnitDontMatch()
     {
+        setupForEvents();
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .program( PROGRAM_WITH_REGISTRATION_ID )
