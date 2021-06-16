@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.importsummary;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.DxfNamespaces;
@@ -190,6 +191,19 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
     public Iterable<ImportConflict> getConflicts()
     {
         return conflicts.values();
+    }
+
+    /**
+     * This is strictly just provided to allow deserialisation form JSON.
+     *
+     * This method does not set but add the provided conflicts which in case of
+     * a fresh summary from deserialisation has the same result.
+     *
+     * @param conflicts list of conflicts to add
+     */
+    public void setConflicts( List<ImportConflict> conflicts )
+    {
+        conflicts.forEach( this::addConflict );
     }
 
     @JsonProperty

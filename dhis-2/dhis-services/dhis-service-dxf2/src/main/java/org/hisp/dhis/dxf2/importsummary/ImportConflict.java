@@ -41,6 +41,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.i18n.I18n;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -68,6 +69,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "conflict", namespace = DxfNamespaces.DXF_2_0 )
 public final class ImportConflict
 {
+
+    private static final String KEY_DELIMITER = ":";
+
     public static ImportConflict createConflict( I18n i18n,
         Function<Class<? extends IdentifiableObject>, String> singularNameForType,
         int index, ImportConflictDescriptor descriptor, String... objects )
@@ -143,11 +147,11 @@ public final class ImportConflict
      */
     private int[] indexes;
 
-    private int occurenceCount;
+    private int occurrenceCount;
 
     public ImportConflict( String object, String message )
     {
-        this( object + ":" + message, object, message, null, null, null, -1 );
+        this( getGroupingKey( object, message ), object, message, null, null, null, -1 );
         requireNonNull( object );
         requireNonNull( message );
     }
@@ -155,7 +159,7 @@ public final class ImportConflict
     public ImportConflict( Map<String, String> objects, String message, ErrorCode errorCode, String property,
         int index )
     {
-        this( errorCode.name() + ":" + String.join( ":", objects.values() ),
+        this( getGroupingKey( errorCode, objects ),
             objects.isEmpty() ? null : objects.values().iterator().next(),
             message, errorCode, objects, property, index );
     }
@@ -172,13 +176,45 @@ public final class ImportConflict
         if ( index >= 0 )
         {
             this.indexes = new int[] { index };
-            this.occurenceCount = 1;
+            this.occurrenceCount = 1;
         }
         else
         {
             this.indexes = null;
-            this.occurenceCount = 0;
+            this.occurrenceCount = 0;
         }
+    }
+
+    /**
+     * Only for deserialisation (when using redis)
+     */
+    @JsonCreator
+    public ImportConflict(
+        @JsonProperty( "object" ) String object,
+        @JsonProperty( "objects" ) Map<String, String> objects,
+        @JsonProperty( "value" ) String message,
+        @JsonProperty( "errorCode" ) ErrorCode errorCode,
+        @JsonProperty( "property" ) String property,
+        @JsonProperty( "indexes" ) int[] indexes )
+    {
+        this.groupingKey = errorCode == null ? getGroupingKey( object, message ) : getGroupingKey( errorCode, objects );
+        this.object = object;
+        this.objects = objects;
+        this.message = message;
+        this.property = property;
+        this.errorCode = errorCode;
+        this.indexes = indexes;
+        this.occurrenceCount = indexes == null ? 0 : indexes.length;
+    }
+
+    private static String getGroupingKey( ErrorCode errorCode, Map<String, String> objects )
+    {
+        return getGroupingKey( errorCode.name(), String.join( KEY_DELIMITER, objects.values() ) );
+    }
+
+    private static String getGroupingKey( String object, String message )
+    {
+        return object + KEY_DELIMITER + message;
     }
 
     @JsonIgnore
@@ -231,13 +267,13 @@ public final class ImportConflict
     @JacksonXmlProperty( isAttribute = true )
     public int[] getIndexes()
     {
-        return indexes == null ? null : Arrays.copyOf( indexes, occurenceCount );
+        return indexes == null ? null : Arrays.copyOf( indexes, occurrenceCount );
     }
 
     @JsonIgnore
     public int getOccurrenceCount()
     {
-        return occurenceCount;
+        return occurrenceCount;
     }
 
     public ImportConflict mergeWith( ImportConflict other )
@@ -246,23 +282,23 @@ public final class ImportConflict
         {
             throw new IllegalArgumentException( "Only errors of same code and object reference can be merged." );
         }
-        if ( other.occurenceCount == 0 )
+        if ( other.occurrenceCount == 0 )
         {
             return this;
         }
-        int newLength = Math.max( occurenceCount * 2, occurenceCount + other.occurenceCount );
+        int newLength = Math.max( occurrenceCount * 2, occurrenceCount + other.occurrenceCount );
         if ( newLength > indexes.length )
         {
             this.indexes = Arrays.copyOf( indexes, newLength );
         }
-        if ( other.occurenceCount == 1 )
+        if ( other.occurrenceCount == 1 )
         {
-            this.indexes[occurenceCount++] = other.indexes[0];
+            this.indexes[occurrenceCount++] = other.indexes[0];
         }
         else
         {
-            System.arraycopy( other.indexes, 0, this.indexes, occurenceCount, other.occurenceCount );
-            this.occurenceCount += other.occurenceCount;
+            System.arraycopy( other.indexes, 0, this.indexes, occurrenceCount, other.occurrenceCount );
+            this.occurrenceCount += other.occurrenceCount;
         }
         return this;
     }
@@ -291,12 +327,12 @@ public final class ImportConflict
 
         final ImportConflict other = (ImportConflict) obj;
         if ( !Objects.equals( groupingKey, other.groupingKey )
-            || occurenceCount != other.occurenceCount
+            || occurrenceCount != other.occurrenceCount
             || !Objects.equals( property, other.property ) )
         {
             return false;
         }
-        for ( int i = 0; i < occurenceCount; i++ )
+        for ( int i = 0; i < occurrenceCount; i++ )
         {
             if ( indexes[i] != other.indexes[i] )
             {
