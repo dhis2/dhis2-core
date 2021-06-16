@@ -189,12 +189,16 @@ public class OrgUnitProfileServiceTest
         orgUnitProfile.getGroupSets().add( groupSet.getUid() );
         List<ErrorReport> errors = service.validateOrgUnitProfile( orgUnitProfile );
         assertEquals( 3, errors.size() );
-        assertTrue( errors.contains(
-            new ErrorReport( OrganisationUnitGroupSet.class, ErrorCode.E4014, groupSet.getUid(), "groupSets" ) ) );
-        assertTrue(
-            errors.contains( new ErrorReport( Attribute.class, ErrorCode.E4014, groupSet.getUid(), "attributes" ) ) );
-        assertTrue( errors
-            .contains( new ErrorReport( Collection.class, ErrorCode.E4014, dataElement.getUid(), "dataItems" ) ) );
+        assertTrue( isErrorContain( errors, ErrorCode.E4014, OrganisationUnitGroupSet.class, groupSet.getUid() ) );
+        assertTrue( isErrorContain( errors, ErrorCode.E4014, Attribute.class, attribute.getUid() ) );
+        assertTrue( isErrorContain( errors, ErrorCode.E4014, Collection.class, dataElement.getUid() ) );
+    }
 
+    private boolean isErrorContain( List<ErrorReport> errors, ErrorCode errorCode, Class clazz, String uid )
+    {
+        return errors.stream().filter( errorReport -> errorReport.getErrorCode() == errorCode
+            && errorReport.getMainKlass().isAssignableFrom( clazz )
+            && errorReport.getMessage().contains( uid ) )
+            .findFirst().isPresent();
     }
 }
