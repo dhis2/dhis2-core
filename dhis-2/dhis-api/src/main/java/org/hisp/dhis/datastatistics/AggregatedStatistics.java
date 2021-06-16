@@ -47,6 +47,8 @@ public class AggregatedStatistics
 
     private Integer mapViews;
 
+    private Integer visualizationViews;
+
     private Integer eventReportViews;
 
     private Integer eventChartViews;
@@ -63,9 +65,7 @@ public class AggregatedStatistics
 
     private Integer averageMapViews;
 
-    private Integer averageChartViews;
-
-    private Integer averagePivotTableViews;
+    private Integer averageVisualizationViews;
 
     private Integer averageEventReportViews;
 
@@ -76,6 +76,8 @@ public class AggregatedStatistics
     private Integer averagePassiveDashboardViews;
 
     private Integer savedMaps;
+
+    private Integer savedVisualizations;
 
     private Integer savedEventReports;
 
@@ -148,6 +150,17 @@ public class AggregatedStatistics
     public void setActiveUsers( Integer activeUsers )
     {
         this.activeUsers = activeUsers;
+    }
+
+    @JsonProperty
+    public Integer getVisualizationViews()
+    {
+        return visualizationViews;
+    }
+
+    public void setVisualizationViews( Integer visualizationViews )
+    {
+        this.visualizationViews = visualizationViews;
     }
 
     @JsonProperty
@@ -272,25 +285,14 @@ public class AggregatedStatistics
     }
 
     @JsonProperty
-    public Integer getAverageChartViews()
+    public Integer getAverageVisualizationViews()
     {
-        return averageChartViews;
+        return averageVisualizationViews;
     }
 
-    public void setAverageChartViews( Integer averageChartViews )
+    public void setAverageVisualizationViews( Integer averageVisualizationViews )
     {
-        this.averageChartViews = averageChartViews;
-    }
-
-    @JsonProperty
-    public Integer getAveragePivotTableViews()
-    {
-        return averagePivotTableViews;
-    }
-
-    public void setAveragePivotTableViews( Integer averagePivotTableViews )
-    {
-        this.averagePivotTableViews = averagePivotTableViews;
+        this.averageVisualizationViews = averageVisualizationViews;
     }
 
     @JsonProperty
@@ -324,6 +326,17 @@ public class AggregatedStatistics
     public void setSavedMaps( Integer savedMaps )
     {
         this.savedMaps = savedMaps;
+    }
+
+    @JsonProperty
+    public Integer getSavedVisualizations()
+    {
+        return savedVisualizations;
+    }
+
+    public void setSavedVisualizations( Integer savedVisualizations )
+    {
+        this.savedVisualizations = savedVisualizations;
     }
 
     @JsonProperty
@@ -401,6 +414,7 @@ public class AggregatedStatistics
             ", week=" + week +
             ", day=" + day +
             ", mapViews=" + mapViews +
+            ", visualizationViews=" + visualizationViews +
             ", eventReportViews=" + eventReportViews +
             ", eventChartViews=" + eventChartViews +
             ", dashboardViews=" + dashboardViews +
@@ -409,13 +423,13 @@ public class AggregatedStatistics
             ", totalViews=" + totalViews +
             ", averageViews=" + averageViews +
             ", averageMapViews=" + averageMapViews +
-            ", averageChartViews=" + averageChartViews +
-            ", averagePivotTableViews=" + averagePivotTableViews +
+            ", averageVisualizationViews=" + averageVisualizationViews +
             ", averageEventReportViews=" + averageEventReportViews +
             ", averageEventChartViews=" + averageEventChartViews +
             ", averageDashboardViews=" + averageDashboardViews +
             ", averagePassiveDashboardViews=" + averagePassiveDashboardViews +
             ", savedMaps=" + savedMaps +
+            ", savedVisualizations=" + savedVisualizations +
             ", savedEventReports=" + savedEventReports +
             ", savedEventCharts=" + savedEventCharts +
             ", savedDashboards=" + savedDashboards +

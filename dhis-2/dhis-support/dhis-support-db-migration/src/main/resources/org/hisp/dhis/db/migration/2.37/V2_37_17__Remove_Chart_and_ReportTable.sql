@@ -60,3 +60,12 @@ ALTER TABLE datastatistics
 
 ALTER TABLE datastatistics
     DROP COLUMN IF EXISTS chartviews;
+
+UPDATE datastatistics
+SET visualizations = reporttables + charts;
+
+ALTER TABLE datastatistics
+    DROP COLUMN IF EXISTS reporttables;
+
+ALTER TABLE datastatistics
+    DROP COLUMN IF EXISTS charts;
