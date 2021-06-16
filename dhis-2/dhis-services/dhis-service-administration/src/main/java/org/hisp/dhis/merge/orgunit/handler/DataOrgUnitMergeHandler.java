@@ -108,7 +108,7 @@ public class DataOrgUnitMergeHandler
         }
         catch ( SQLException ex )
         {
-            throw new QueryRuntimeException( "Data value merge", ex );
+            throw new QueryRuntimeException( "Data value merge failed", ex );
         }
     }
 
