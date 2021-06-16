@@ -14,8 +14,11 @@
 
   <!-- 
     Service modules are grouped in levels, where a module in a level can only
-    depend on modules on a lower level. The modules are built in in ascending 
-    order according to their level.
+    depend on modules on a lower level. Note: New services should be added
+    as high up in the list as possible (at the lowest level).
+    
+    The purpose is to avoid circular dependencies and have a clean dependency 
+    graph. The modules are built in in ascending order according to the level.
   -->
 
   <modules>
@@ -24,6 +27,7 @@
     <module>dhis-service-setting</module>
     <!-- Level 2 -->
     <module>dhis-service-acl</module>
+    <module>dhis-service-audit-consumer</module>
     <!-- Level 4 -->
     <module>dhis-service-node</module>
     <!-- Level 5 -->
@@ -36,10 +40,9 @@
     <module>dhis-service-dxf2</module>
     <!-- Level 8 -->
     <module>dhis-service-analytics</module>
+    <module>dhis-service-tracker</module>
     <!-- Level 9 -->
     <module>dhis-service-reporting</module>
-    <module>dhis-service-tracker</module>
-    <module>dhis-service-audit-consumer</module>
   </modules>
 
   <dependencies>

@@ -39,13 +39,7 @@ import org.hisp.dhis.visualization.Visualization;
 public interface InterpretationStore
     extends IdentifiableObjectStore<Interpretation>
 {
-    long countMapInterpretations( Map map );
-
     List<Interpretation> getInterpretations( Map map );
 
     List<Interpretation> getInterpretations( Visualization visualization );
-
-    long countVisualizationInterpretations( Visualization visualization );
-
-    Interpretation getByVisualizationId( long id );
 }

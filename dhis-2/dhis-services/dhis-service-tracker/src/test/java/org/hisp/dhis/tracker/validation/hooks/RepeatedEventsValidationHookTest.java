@@ -39,6 +39,7 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -109,6 +110,7 @@ public class RepeatedEventsValidationHookTest
     {
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ) );
         bundle.setEvents( events );
+        events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
         ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
 
@@ -120,6 +122,7 @@ public class RepeatedEventsValidationHookTest
     {
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ), notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
+        events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
         ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
 
@@ -139,6 +142,7 @@ public class RepeatedEventsValidationHookTest
     {
         List<Event> events = Lists.newArrayList( repeatableEvent( "A" ), repeatableEvent( "B" ) );
         bundle.setEvents( events );
+        events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
         ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
 
@@ -152,6 +156,7 @@ public class RepeatedEventsValidationHookTest
         List<Event> events = Lists.newArrayList( invalidEvent, notRepeatableEvent( "B" ) );
         ctx.getRootReporter().getInvalidDTOs().put( TrackerType.EVENT, Lists.newArrayList( invalidEvent.getUid() ) );
         bundle.setEvents( events );
+        events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
         ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
 
@@ -166,6 +171,7 @@ public class RepeatedEventsValidationHookTest
         eventEnrollmentB.setEnrollment( ENROLLMENT_B );
         List<Event> events = Lists.newArrayList( eventEnrollmentA, eventEnrollmentB );
         bundle.setEvents( events );
+        events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
         ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
 
@@ -179,6 +185,7 @@ public class RepeatedEventsValidationHookTest
         Event eventProgramB = programEvent( "B" );
         List<Event> events = Lists.newArrayList( eventProgramA, eventProgramB );
         bundle.setEvents( events );
+        events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
         ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
 

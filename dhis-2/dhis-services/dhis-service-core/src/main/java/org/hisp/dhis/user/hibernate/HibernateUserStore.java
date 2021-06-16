@@ -28,6 +28,7 @@
 package org.hisp.dhis.user.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,6 +60,7 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryUtils;
@@ -204,9 +206,9 @@ public class HibernateUserStore
             {
                 hql += hlp.whereAnd() + " (";
 
-                for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
+                for ( OrganisationUnit ou : params.getOrganisationUnits() )
                 {
-                    hql += String.format( "ou.path like :ouUid%d or ", i );
+                    hql += format( "ou.path like :ou%s or ", ou.getUid() );
                 }
 
                 hql = TextUtils.removeLastOr( hql ) + ")";
@@ -225,9 +227,9 @@ public class HibernateUserStore
             {
                 hql += hlp.whereAnd() + " (";
 
-                for ( int i = 0; i < params.getDataViewOrganisationUnits().size(); i++ )
+                for ( OrganisationUnit ou : params.getDataViewOrganisationUnits() )
                 {
-                    hql += String.format( "dwou.path like :dwOuUid%d or ", i );
+                    hql += format( "dwou.path like :dwOu%s or ", ou.getUid() );
                 }
 
                 hql = TextUtils.removeLastOr( hql ) + ")";
@@ -246,9 +248,9 @@ public class HibernateUserStore
             {
                 hql += hlp.whereAnd() + " (";
 
-                for ( int i = 0; i < params.getTeiSearchOrganisationUnits().size(); i++ )
+                for ( OrganisationUnit ou : params.getTeiSearchOrganisationUnits() )
                 {
-                    hql += String.format( "tsou.path like :tsOuUid%d or ", i );
+                    hql += format( "tsou.path like :tsOu%s or ", ou.getUid() );
                 }
 
                 hql = TextUtils.removeLastOr( hql ) + ")";
@@ -417,10 +419,9 @@ public class HibernateUserStore
         {
             if ( params.isIncludeOrgUnitChildren() )
             {
-                for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
+                for ( OrganisationUnit ou : params.getOrganisationUnits() )
                 {
-                    query.setParameter( String.format( "ouUid%d", i ),
-                        "%/" + params.getOrganisationUnits().get( i ).getUid() + "%" );
+                    query.setParameter( format( "ou%s", ou.getUid() ), "%/" + ou.getUid() + "%" );
                 }
             }
             else
@@ -435,10 +436,9 @@ public class HibernateUserStore
         {
             if ( params.isIncludeOrgUnitChildren() )
             {
-                for ( int i = 0; i < params.getDataViewOrganisationUnits().size(); i++ )
+                for ( OrganisationUnit ou : params.getDataViewOrganisationUnits() )
                 {
-                    query.setParameter( String.format( "dwOuUid%d", i ),
-                        "%/" + params.getDataViewOrganisationUnits().get( i ).getUid() + "%" );
+                    query.setParameter( format( "dwOu%s", ou.getUid() ), "%/" + ou.getUid() + "%" );
                 }
             }
             else
@@ -454,10 +454,9 @@ public class HibernateUserStore
         {
             if ( params.isIncludeOrgUnitChildren() )
             {
-                for ( int i = 0; i < params.getTeiSearchOrganisationUnits().size(); i++ )
+                for ( OrganisationUnit ou : params.getTeiSearchOrganisationUnits() )
                 {
-                    query.setParameter( String.format( "tsOuUid%d", i ),
-                        "%/" + params.getTeiSearchOrganisationUnits().get( i ).getUid() + "%" );
+                    query.setParameter( format( "tsOu%s", ou.getUid() ), "%/" + ou.getUid() + "%" );
                 }
             }
             else

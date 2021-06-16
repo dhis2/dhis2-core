@@ -25,54 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.visualization;
-
-import org.hisp.dhis.common.AnalyticalObjectService;
+package org.hisp.dhis.category.comparator;
 
 /**
- * Interface responsible for providing CRUD and business methods related to a
- * Visualization object.
+ * @author Abyot Asalefew Gizaw
+ * @version $Id$
  */
-public interface VisualizationService
-    extends
-    AnalyticalObjectService<Visualization>
+import java.util.Comparator;
+
+import org.hisp.dhis.category.CategoryCombo;
+
+public class CategoryComboSizeNameComparator
+    implements Comparator<CategoryCombo>
 {
-    /**
-     * Saves a Visualization.
-     *
-     * @param visualization the Visualization to save.
-     * @return the generated identifier.
-     */
-    long save( Visualization visualization );
+    @Override
+    public int compare( CategoryCombo o1, CategoryCombo o2 )
+    {
+        int result = o1.getOptionCombos().size() - o2.getOptionCombos().size();
 
-    /**
-     * Retrieves the Visualization with the given id.
-     *
-     * @param id the id of the Visualization to retrieve.
-     * @return the Visualization.
-     */
-    Visualization getVisualization( long id );
+        if ( result == 0 )
+        {
+            result = o1.getDisplayName().compareTo( o2.getDisplayName() );
+        }
 
-    /**
-     * Retrieves the Visualization with the given uid.
-     *
-     * @param uid the uid of the Visualization to retrieve.
-     * @return the Visualization.
-     */
-    Visualization getVisualization( String uid );
-
-    /**
-     * Deletes a Visualization.
-     *
-     * @param visualization the Visualization to delete.
-     */
-    void delete( Visualization visualization );
-
-    /**
-     * Retrieves the Visualization with the given uid. Bypasses the ACL system.
-     *
-     * @param uid the uid of the Visualization to retrieve.
-     * @return the Visualization.
-     */
-    Visualization getVisualizationNoAcl( String uid );
+        return result;
+    }
 }

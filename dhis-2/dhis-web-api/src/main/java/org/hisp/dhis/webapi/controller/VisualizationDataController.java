@@ -59,6 +59,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationGridService;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -85,6 +86,9 @@ public class VisualizationDataController
 
     @NonNull
     private final VisualizationService visualizationService;
+
+    @NonNull
+    private final VisualizationGridService visualizationGridService;
 
     @NonNull
     private final ChartService chartService;
@@ -224,7 +228,7 @@ public class VisualizationDataController
 
         date = date != null ? date : new Date();
 
-        return visualizationService.getVisualizationGrid( uid, date, organisationUnitUid );
+        return visualizationGridService.getVisualizationGrid( uid, date, organisationUnitUid );
     }
 
     // --------------------------------------------------------------------------

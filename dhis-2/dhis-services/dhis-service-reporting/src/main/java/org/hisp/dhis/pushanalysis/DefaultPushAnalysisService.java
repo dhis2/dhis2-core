@@ -81,7 +81,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationService;
+import org.hisp.dhis.visualization.VisualizationGridService;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -117,7 +117,7 @@ public class DefaultPushAnalysisService
 
     private final MapGenerationService mapGenerationService;
 
-    private final VisualizationService visualizationService;
+    private final VisualizationGridService visualizationGridService;
 
     private final ChartService chartService;
 
@@ -130,8 +130,9 @@ public class DefaultPushAnalysisService
     public DefaultPushAnalysisService( Notifier notifier, SystemSettingManager systemSettingManager,
         DhisConfigurationProvider dhisConfigurationProvider, ExternalFileResourceService externalFileResourceService,
         FileResourceService fileResourceService, CurrentUserService currentUserService,
-        MapGenerationService mapGenerationService, VisualizationService visualizationService, ChartService chartService,
-        I18nManager i18nManager, @Qualifier( "emailMessageSender" ) MessageSender messageSender,
+        MapGenerationService mapGenerationService, VisualizationGridService visualizationGridService,
+        ChartService chartService, I18nManager i18nManager,
+        @Qualifier( "emailMessageSender" ) MessageSender messageSender,
         @Qualifier( "org.hisp.dhis.pushanalysis.PushAnalysisStore" ) IdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
     {
         checkNotNull( notifier );
@@ -141,7 +142,7 @@ public class DefaultPushAnalysisService
         checkNotNull( fileResourceService );
         checkNotNull( currentUserService );
         checkNotNull( mapGenerationService );
-        checkNotNull( visualizationService );
+        checkNotNull( visualizationGridService );
         checkNotNull( chartService );
         checkNotNull( i18nManager );
         checkNotNull( messageSender );
@@ -154,7 +155,7 @@ public class DefaultPushAnalysisService
         this.fileResourceService = fileResourceService;
         this.currentUserService = currentUserService;
         this.mapGenerationService = mapGenerationService;
-        this.visualizationService = visualizationService;
+        this.visualizationGridService = visualizationGridService;
         this.chartService = chartService;
         this.i18nManager = i18nManager;
         this.messageSender = messageSender;
@@ -490,8 +491,9 @@ public class DefaultPushAnalysisService
     {
         StringWriter stringWriter = new StringWriter();
 
-        GridUtils.toHtmlInlineCss( visualizationService.getVisualizationGridByUser( visualization.getUid(), new Date(),
-            user.getOrganisationUnit().getUid(), user ), stringWriter );
+        GridUtils
+            .toHtmlInlineCss( visualizationGridService.getVisualizationGridByUser( visualization.getUid(), new Date(),
+                user.getOrganisationUnit().getUid(), user ), stringWriter );
 
         return stringWriter.toString().replaceAll( "\\R", "" );
     }
