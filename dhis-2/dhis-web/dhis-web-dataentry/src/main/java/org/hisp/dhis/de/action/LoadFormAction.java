@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -446,24 +447,18 @@ public class LoadFormAction
 
         for ( Section section : sections )
         {
-            List<Long> categoryCombos = new ArrayList<>();
-
             if ( !section.getCategoryCombos().isEmpty() )
             {
                 List<CategoryCombo> sortedCategoryCombos = getSortedCategoryCombos( section.getCategoryCombos() );
 
                 for ( CategoryCombo categoryCombo : sortedCategoryCombos )
                 {
-                    categoryCombos.add( categoryCombo.getId() );
-
                     sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId(),
                         section.getDataElementsByCategoryCombo( categoryCombo ) );
                 }
-            }
 
-            if ( !categoryCombos.isEmpty() )
-            {
-                sectionCombos.put( section.getId(), categoryCombos );
+                sectionCombos.put( section.getId(),
+                    sortedCategoryCombos.stream().map( CategoryCombo::getId ).collect( Collectors.toList() ) );
             }
 
             for ( DataElementOperand operand : section.getGreyedFields() )
