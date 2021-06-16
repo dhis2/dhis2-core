@@ -75,7 +75,7 @@ public class DataOrgUnitMergeHandler
     public void mergeDataValues( OrgUnitMergeRequest request )
     {
         // @formatter:off
-        final String sql =
+        final String sql = String.format(
             // Delete existing data values for target
             "delete from datavalue where sourceid = :target_id; " +
             // Window over data value sources ranked by last modification
@@ -88,12 +88,14 @@ public class DataOrgUnitMergeHandler
                 "and dv.deleted is false" +
             ") " +
             // Insert target data values
-            "insert into datavalue (dataelementid, periodid, sourceid, categoryoptioncomboid, " +
-                "attributeoptioncomboid, value, storedby, created, lastupdated, comment, followup, deleted) " +
-            "select dataelementid, periodid, :target_id, categoryoptioncomboid, attributeoptioncomboid, " +
+            "insert into datavalue (" +
+                "dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, " +
+                "value, storedby, created, lastupdated, comment, followup, deleted) " +
+            "select dataelementid, periodid, %s, categoryoptioncomboid, attributeoptioncomboid, " +
                 "value, storedby, created, lastupdated, comment, followup, false " +
             "from dv_rank " +
-            "where dv_rank.lastupdated_rank = 1;";
+            "where dv_rank.lastupdated_rank = 1;",
+            request.getTarget().getId() );
         // @formatter:on
 
         final SqlParameterSource params = new MapSqlParameterSource()
