@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.organisationunit;
 
-import com.google.common.collect.Sets;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-
 import static org.junit.Assert.assertEquals;
-import org.junit.Test;
 
 import java.util.Set;
+
+import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Jan Bernitt

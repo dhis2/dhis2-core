@@ -40,5 +40,6 @@ public interface OrganisationUnitGroupStore
 {
     List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets();
 
-    OrganisationUnitGroup getOrgUnitGroupInGroupSet( Set<OrganisationUnitGroup> groups, OrganisationUnitGroupSet groupSet );
+    OrganisationUnitGroup getOrgUnitGroupInGroupSet( Set<OrganisationUnitGroup> groups,
+        OrganisationUnitGroupSet groupSet );
 }

@@ -35,8 +35,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -74,6 +72,8 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 
 @Slf4j
@@ -97,7 +97,8 @@ public class DefaultOrgUnitProfileService
     private ObjectMapper jsonMapper;
 
     public DefaultOrgUnitProfileService( KeyJsonValueService dataStore,
-        IdentifiableObjectManager idObjectManager, AnalyticsService analyticsService, OrganisationUnitGroupService groupService, ObjectMapper jsonMapper )
+        IdentifiableObjectManager idObjectManager, AnalyticsService analyticsService,
+        OrganisationUnitGroupService groupService, ObjectMapper jsonMapper )
     {
         this.dataStore = dataStore;
         this.idObjectManager = idObjectManager;
@@ -107,7 +108,7 @@ public class DefaultOrgUnitProfileService
 
         this.dataStore.addProtection(
             new KeyJsonNamespaceProtection( ORG_UNIT_PROFILE_NAMESPACE, KeyJsonNamespaceProtection.ProtectionType.NONE,
-            KeyJsonNamespaceProtection.ProtectionType.RESTRICTED, false, "ALL", ORG_UNIT_PROFILE_AUTHORITY ) );
+                KeyJsonNamespaceProtection.ProtectionType.RESTRICTED, false, "ALL", ORG_UNIT_PROFILE_AUTHORITY ) );
     }
 
     @Override

@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.orgunitprofile;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -43,20 +49,15 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.orgunitprofile.impl.DefaultOrgUnitProfileService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.UserService;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Rule;
 import org.junit.Test;
-import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class OrgUnitProfileServiceTest
     extends DhisSpringTest
@@ -92,7 +93,8 @@ public class OrgUnitProfileServiceTest
     {
         userService = _userService;
         createAndInjectAdminUser();
-        mockService = new DefaultOrgUnitProfileService( dataStore, manager, mockAnalyticsService, organisationUnitGroupService, jsonMapper );
+        mockService = new DefaultOrgUnitProfileService( dataStore, manager, mockAnalyticsService,
+            organisationUnitGroupService, jsonMapper );
     }
 
     @Test
@@ -124,7 +126,7 @@ public class OrgUnitProfileServiceTest
         manager.save( attribute );
 
         OrganisationUnit orgUnit = createOrganisationUnit( "A" );
-        orgUnit.getAttributeValues().add( new AttributeValue( "testAttributeValue", attribute) );
+        orgUnit.getAttributeValues().add( new AttributeValue( "testAttributeValue", attribute ) );
         manager.save( orgUnit );
 
         OrganisationUnitGroup group = createOrganisationUnitGroup( 'A' );
@@ -147,8 +149,8 @@ public class OrgUnitProfileServiceTest
         orgUnitProfile.getGroupSets().add( groupSet.getUid() );
         service.saveOrgUnitProfile( orgUnitProfile );
 
-        //Mock analytic query for data value
-        Map<String,Object> mapDataItem = new HashMap<>();
+        // Mock analytic query for data value
+        Map<String, Object> mapDataItem = new HashMap<>();
         mapDataItem.put( dataElement.getUid(), "testDataValue" );
         Mockito.when( mockAnalyticsService.getAggregatedDataValueMapping( any( DataQueryParams.class ) ) )
             .thenReturn( mapDataItem );

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.organisationunit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileService;
@@ -38,14 +38,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 @RestController
 @RequestMapping( value = "/orgUnitProfile" )
@@ -53,25 +50,18 @@ public class OrganisationUnitProfileController
 {
     private final OrgUnitProfileService orgUnitProfileService;
 
-    private final ObjectMapper jsonMapper;
-
-    public OrganisationUnitProfileController( OrgUnitProfileService orgUnitProfileService, ObjectMapper jsonMapper )
+    public OrganisationUnitProfileController( OrgUnitProfileService orgUnitProfileService )
     {
         checkNotNull( orgUnitProfileService );
-        checkNotNull( jsonMapper );
 
         this.orgUnitProfileService = orgUnitProfileService;
-        this.jsonMapper = jsonMapper;
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ORG_UNIT_PROFILE_ADD')" )
     @PostMapping( consumes = "application/json" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveProfile( HttpServletRequest request )
-        throws IOException
+    public void saveProfile( @RequestBody OrgUnitProfile profile )
     {
-        OrgUnitProfile profile = jsonMapper.readValue( request.getInputStream(), OrgUnitProfile.class );
-
         orgUnitProfileService.saveOrgUnitProfile( profile );
     }
 
@@ -82,7 +72,7 @@ public class OrganisationUnitProfileController
     }
 
     @GetMapping( value = "/data/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )
-    public OrgUnitProfileData getProfile( @PathVariable( value = "uid" ) String uid,
+    public OrgUnitProfileData getProfileData( @PathVariable( value = "uid" ) String uid,
         @RequestParam( value = "period", required = false ) String isoPeriod )
     {
         return orgUnitProfileService.getOrgUnitProfileData( uid, isoPeriod );
