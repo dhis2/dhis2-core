@@ -38,12 +38,12 @@ import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.springframework.stereotype.Service;
 
 @Service
-@Transactional
 @AllArgsConstructor
 public class TrackerOrgUnitMergeHandler
 {
     private SessionFactory sessionFactory;
 
+    @Transactional
     public void mergeProgramMessages( OrgUnitMergeRequest request )
     {
         migrate( "update ProgramMessage pm " +
@@ -51,6 +51,7 @@ public class TrackerOrgUnitMergeHandler
             "where pm.recipients.organisationUnit.id in (:sources)", request );
     }
 
+    @Transactional
     public void mergeProgramInstances( OrgUnitMergeRequest request )
     {
         migrate( "update ProgramStageInstance psi " +
@@ -62,6 +63,7 @@ public class TrackerOrgUnitMergeHandler
             "where pi.organisationUnit.id in (:sources)", request );
     }
 
+    @Transactional
     public void mergeTrackedEntityInstances( OrgUnitMergeRequest request )
     {
         migrate( "update ProgramOwnershipHistory poh " +

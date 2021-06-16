@@ -27,18 +27,26 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+
+import java.sql.SQLException;
+
 import javax.transaction.Transactional;
 
 import lombok.AllArgsConstructor;
 
+import org.flywaydb.core.internal.jdbc.JdbcTemplate;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -47,6 +55,8 @@ import org.springframework.stereotype.Service;
 public class DataOrgUnitMergeHandler
 {
     private SessionFactory sessionFactory;
+
+    private JdbcTemplate jdbcTemplate;
 
     private DataSetService dataSetService;
 
@@ -59,6 +69,44 @@ public class DataOrgUnitMergeHandler
         migrate( "update Interpretation i " +
             "set i.organisationUnit = :target " +
             "where i.organisationUnit.id in (:sources)", request );
+    }
+
+    @Transactional
+    public void mergeDataValues( OrgUnitMergeRequest request )
+    {
+        final String sql =
+            // Delete existing data values for target
+            "delete from datavalue where sourceid = :target_id; " +
+            // Window over data value sources ranked by last modification
+                "with dv_rank as ( " +
+                "select *, row_number() over (" +
+                "partition by dv.dataelementid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid " +
+                "order by dv.lastupdated desc, dv.created desc) as lastupdated_rank " +
+                "from datavalue dv " +
+                "where dv.sourceid in (:source_ids) " +
+                "and deleted is false" +
+                ") " +
+                // Insert target data values
+                "insert into datavalue (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, "
+                +
+                "value, storedby, created, lastupdated, comment, followup, deleted) " +
+                "select dataelementid, periodid, :target_id, categoryoptioncomboid, attributeoptioncomboid, " +
+                "value, storedby, created, lastupdated, comment, followup, false " +
+                "from dv_rank " +
+                "where dv_rank.lastupdated_rank = 1;";
+
+        final SqlParameterSource params = new MapSqlParameterSource()
+            .addValue( "source_ids", getIdentifiers( request.getSources() ) )
+            .addValue( "target_id", request.getTarget().getId() );
+
+        try
+        {
+            jdbcTemplate.execute( sql, params );
+        }
+        catch ( SQLException ex )
+        {
+            throw new QueryRuntimeException( "Data value merge", ex );
+        }
     }
 
     public void mergeLockExceptions( OrgUnitMergeRequest request )
