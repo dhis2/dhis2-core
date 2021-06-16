@@ -28,6 +28,9 @@
 package org.hisp.dhis.dxf2.importsummary;
 
 import java.util.function.Predicate;
+import java.util.stream.StreamSupport;
+
+import org.hisp.dhis.feedback.ErrorCode;
 
 /**
  * A "append only" set of {@link ImportConflict}s.
@@ -36,6 +39,8 @@ import java.util.function.Predicate;
  */
 public interface ImportConflicts
 {
+
+    Iterable<ImportConflict> getConflicts();
 
     void addConflict( ImportConflict conflict );
 
@@ -63,6 +68,16 @@ public interface ImportConflicts
      */
     int getConflictCount();
 
+    int getTotalConflictOccurrenceCount();
+
+    default int getConflictOccurrenceCount( ErrorCode errorCode )
+    {
+        return StreamSupport.stream( getConflicts().spliterator(), false )
+            .filter( c -> c.getErrorCode() == errorCode )
+            .mapToInt( ImportConflict::getOccurrenceCount )
+            .sum();
+    }
+
     /**
      * Tests if a {@link ImportConflict} with certain qualities exists in this
      * set.
@@ -70,7 +85,10 @@ public interface ImportConflicts
      * @param test the test to perform
      * @return true if it exist, otherwise false
      */
-    boolean hasConflict( Predicate<ImportConflict> test );
+    default boolean hasConflict( Predicate<ImportConflict> test )
+    {
+        return StreamSupport.stream( getConflicts().spliterator(), false ).anyMatch( test );
+    }
 
     /**
      * @return true, if there are any conflicts in this set, else false

@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -58,7 +57,7 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
      * {@link ImportConflict}s which deduplicate this variable counts each
      * conflict added.
      */
-    private int totalConflictCount = 0;
+    private int totalConflictOccurrenceCount = 0;
 
     private final Map<String, ImportConflict> conflicts = new LinkedHashMap<>();
 
@@ -184,6 +183,7 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
         return this;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "conflicts", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "conflict", namespace = DxfNamespaces.DXF_2_0 )
@@ -310,26 +310,21 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
     @Override
     public void addConflict( ImportConflict conflict )
     {
-        totalConflictCount++;
+        totalConflictOccurrenceCount++;
         conflicts.compute( conflict.getGroupingKey(),
             ( key, aggregate ) -> aggregate == null ? conflict : aggregate.mergeWith( conflict ) );
     }
 
-    public int getTotalConflictCount()
+    @Override
+    public int getTotalConflictOccurrenceCount()
     {
-        return totalConflictCount;
+        return totalConflictOccurrenceCount;
     }
 
     @Override
     public int getConflictCount()
     {
         return conflicts.size();
-    }
-
-    @Override
-    public boolean hasConflict( Predicate<ImportConflict> test )
-    {
-        return conflicts.values().stream().anyMatch( test );
     }
 
     @Override

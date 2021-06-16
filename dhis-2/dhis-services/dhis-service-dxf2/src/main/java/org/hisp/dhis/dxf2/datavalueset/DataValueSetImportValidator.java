@@ -244,12 +244,12 @@ public class DataValueSetImportValidator
     {
         ImportSummary summary = context.getSummary();
         int skippedBefore = summary.skippedValueCount();
-        int totalConflictsBefore = summary.getTotalConflictCount();
+        int totalConflictsBefore = summary.getTotalConflictOccurrenceCount();
         for ( DataValueValidation validation : dataValueValidations )
         {
             validation.validate( dataValue, context, dataSetContext, valueContext );
             if ( summary.skippedValueCount() > skippedBefore
-                || summary.getTotalConflictCount() > totalConflictsBefore )
+                || summary.getTotalConflictOccurrenceCount() > totalConflictsBefore )
             {
                 return true;
             }
