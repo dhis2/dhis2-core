@@ -29,22 +29,19 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
-import java.sql.SQLException;
-
 import javax.transaction.Transactional;
 
 import lombok.AllArgsConstructor;
 
-import org.flywaydb.core.internal.jdbc.JdbcTemplate;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
@@ -105,14 +102,7 @@ public class DataOrgUnitMergeHandler
             .addValue( "source_ids", getIdentifiers( request.getSources() ) )
             .addValue( "target_id", request.getTarget().getId() );
 
-        try
-        {
-            jdbcTemplate.execute( sql, params );
-        }
-        catch ( SQLException ex )
-        {
-            throw new QueryRuntimeException( "Data value merge failed", ex );
-        }
+        jdbcTemplate.update( sql, params );
     }
 
     public void mergeLockExceptions( OrgUnitMergeRequest request )
