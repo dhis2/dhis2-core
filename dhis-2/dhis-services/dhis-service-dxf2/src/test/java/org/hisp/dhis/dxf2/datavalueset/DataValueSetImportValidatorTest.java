@@ -28,13 +28,15 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
+
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -52,6 +54,7 @@ import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataValueContext.DataValueC
 import org.hisp.dhis.dxf2.datavalueset.ImportContext.ImportContextBuilder;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -92,7 +95,12 @@ public class DataValueSetImportValidatorTest
         validator = new DataValueSetImportValidator( aclService, accessManager, lockExceptionStore, approvalService,
             dataValueService );
         validator.init();
+        setupUserCanWriteCategoryOptions( true );
     }
+
+    /*
+     * Data Set validation (should the set be aborted)
+     */
 
     @Test
     public void testValidateDataSetExists()
@@ -103,7 +111,8 @@ public class DataValueSetImportValidatorTest
         DataSetContext dataSetContext = DataSetContext.builder().build();
 
         assertTrue( validator.abortDataSetImport( dataValueSet, context, dataSetContext ) );
-        assertConflict( dataValueSet.getDataSet(), "Data set not found or not accessible", context );
+        assertConflict( ErrorCode.E7600, dataValueSet.getDataSet(),
+            "Data set not found or not accessible: `<object1>`", context );
     }
 
     @Test
@@ -118,7 +127,8 @@ public class DataValueSetImportValidatorTest
         DataSetContext dataSetContext = createDataSetContext( dataValueSet ).build();
 
         assertTrue( validator.abortDataSetImport( dataValueSet, context, dataSetContext ) );
-        assertConflict( dataValueSet.getDataSet(), "User does not have write access for DataSet: <object>", context );
+        assertConflict( ErrorCode.E7601, dataValueSet.getDataSet(),
+            "User does not have write access for DataSet: `<object1>`", context );
     }
 
     @Test
@@ -133,7 +143,7 @@ public class DataValueSetImportValidatorTest
         DataSetContext dataSetContext = createDataSetContext( dataValueSet ).build();
 
         assertTrue( validator.abortDataSetImport( dataValueSet, context, dataSetContext ) );
-        assertConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS", "A valid dataset is required", context );
+        assertConflict( ErrorCode.E7602, null, "A valid dataset is required", context );
     }
 
     @Test
@@ -148,7 +158,8 @@ public class DataValueSetImportValidatorTest
         DataSetContext dataSetContext = DataSetContext.builder().build();
 
         assertTrue( validator.abortDataSetImport( dataValueSet, context, dataSetContext ) );
-        assertConflict( dataValueSet.getOrgUnit(), "Org unit not found or not accessible", context );
+        assertConflict( ErrorCode.E7603, dataValueSet.getOrgUnit(),
+            "Org unit not found or not accessible: `<object1>`", context );
     }
 
     @Test
@@ -163,9 +174,13 @@ public class DataValueSetImportValidatorTest
         DataSetContext dataSetContext = DataSetContext.builder().build();
 
         assertTrue( validator.abortDataSetImport( dataValueSet, context, dataSetContext ) );
-        assertConflict( dataValueSet.getAttributeOptionCombo(), "Attribute option combo not found or not accessible",
-            context );
+        assertConflict( ErrorCode.E7604, dataValueSet.getAttributeOptionCombo(),
+            "Attribute option combo not found or not accessible: `<object1>`", context );
     }
+
+    /*
+     * Data Value validation (should the entry be skipped)
+     */
 
     @Test
     public void testValidateDataValueDataElementExists()
@@ -177,7 +192,8 @@ public class DataValueSetImportValidatorTest
         DataValueContext valueContext = DataValueContext.builder().build();
 
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( dataValue.getDataElement(), "Data element not found or not accessible", context );
+        assertConflict( ErrorCode.E7610, dataValue.getDataElement(),
+            "Data element not found or not accessible: `<object1>`", context );
     }
 
     @Test
@@ -191,7 +207,8 @@ public class DataValueSetImportValidatorTest
             .period( null ).build();
 
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( dataValue.getPeriod(), "Period not valid", context );
+        assertConflict( ErrorCode.E7611, dataValue.getPeriod(),
+            "Period not valid: `<object1>`", context );
     }
 
     @Test
@@ -205,7 +222,8 @@ public class DataValueSetImportValidatorTest
             .orgUnit( null ).build();
 
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( dataValue.getOrgUnit(), "Organisation unit not found or not accessible", context );
+        assertConflict( ErrorCode.E7612, dataValue.getOrgUnit(),
+            "Organisation unit not found or not accessible: `<object1>`", context );
     }
 
     @Test
@@ -219,8 +237,8 @@ public class DataValueSetImportValidatorTest
             .categoryOptionCombo( null ).build();
 
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( dataValue.getCategoryOptionCombo(),
-            "Category option combo not found or not accessible for writing data", context );
+        assertConflict( ErrorCode.E7613, dataValue.getCategoryOptionCombo(),
+            "Category option combo not found or not accessible for writing data: `<object1>`", context );
     }
 
     @Test
@@ -234,8 +252,8 @@ public class DataValueSetImportValidatorTest
             .attrOptionCombo( null ).build();
 
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( dataValue.getAttributeOptionCombo(),
-            "Attribute option combo not found or not accessible for writing data", context );
+        assertConflict( ErrorCode.E7615, dataValue.getAttributeOptionCombo(),
+            "Attribute option combo not found or not accessible for writing data: `<object1>`", context );
     }
 
     @Test
@@ -247,11 +265,11 @@ public class DataValueSetImportValidatorTest
         DataSetContext dataSetContext = DataSetContext.builder().build();
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
 
-        when( accessManager.canWrite( any( User.class ), any( CategoryOptionCombo.class ) ) )
-            .thenReturn( singletonList( "error1" ) );
+        setupUserCanWriteCategoryOptions( false );
 
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( "dataValueSet", "error1", context );
+        assertConflict( ErrorCode.E7614, dataValue.getCategoryOptionCombo(),
+            "Category option combo: `<object1>` option not accessible: `<object2>`", context );
     }
 
     @Test
@@ -265,11 +283,11 @@ public class DataValueSetImportValidatorTest
         DataSetContext dataSetContext = DataSetContext.builder().build();
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
 
-        when( accessManager.canWrite( any( User.class ), any( CategoryOptionCombo.class ) ) )
-            .thenReturn( singletonList( "error1" ) );
+        setupUserCanWriteCategoryOptions( false );
 
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( "dataValueSet", "error1", context );
+        assertConflict( ErrorCode.E7616, dataValue.getAttributeOptionCombo(),
+            "Attribute option combo: `<object1>` option not accessible: `<object2>`", context );
     }
 
     @Test
@@ -282,8 +300,10 @@ public class DataValueSetImportValidatorTest
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
 
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( dataValue.getOrgUnit(),
-            "Organisation unit not in hierarchy of current user: " + context.getCurrentUserName(), context );
+        String currentUserId = context.getCurrentUser().getUid();
+        assertConflict( ErrorCode.E7617, dataValue.getOrgUnit(),
+            "Organisation unit: `<object1>` not in hierarchy of current user: `" + currentUserId + "`",
+            context );
     }
 
     @Test
@@ -297,17 +317,38 @@ public class DataValueSetImportValidatorTest
         DataSetContext dataSetContext = DataSetContext.builder().build();
 
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( "Value",
-            "Data value or comment not specified for data element: " + dataValue.getDataElement(), context );
+        assertConflict( ErrorCode.E7618, dataValue.getDataElement(),
+            "Data value or comment not specified for data element: `" + dataValue.getDataElement() + "`", context );
     }
 
-    private static void assertConflict( String expectedObject, String expectedValue, ImportContext actual )
+    private static void assertConflict( ErrorCode expectedError, String expectedObject, String expectedValue,
+        ImportContext actual )
     {
         ImportSummary summary = actual.getSummary();
         assertEquals( 1, summary.getConflictCount() );
         ImportConflict conflict = summary.getConflicts().iterator().next();
-        assertEquals( expectedValue.replace( "<object>", conflict.getObject() ), conflict.getValue() );
-        assertEquals( expectedObject, conflict.getObject() );
+        assertEquals( expectedError, conflict.getErrorCode() );
+        String object = conflict.getObject();
+        String message = expectedValue;
+        if ( object != null )
+        {
+            message = message.replace( "<object>", object );
+        }
+        Map<String, String> objects = conflict.getObjects();
+        if ( objects != null )
+        {
+            int i = 0;
+            for ( String obj : objects.values() )
+            {
+                if ( obj != null )
+                {
+                    message = message.replace( "<object" + (i + 1) + ">", obj );
+                }
+                i++;
+            }
+        }
+        assertEquals( message, conflict.getValue() );
+        assertEquals( expectedObject, object );
     }
 
     private static DataValueSet createEmptyDataValueSet()
@@ -334,6 +375,7 @@ public class DataValueSetImportValidatorTest
         UserCredentials credentials = new UserCredentials();
         credentials.setUsername( "Guest" );
         currentUser.setUserCredentials( credentials );
+        currentUser.setUid( CodeGenerator.generateUid() );
         return ImportContext.builder().summary( new ImportSummary() ).currentUser( currentUser )
             .singularNameForType( DataValueSetImportValidatorTest::getSingularNameForType );
     }
@@ -384,16 +426,27 @@ public class DataValueSetImportValidatorTest
         }
         if ( coId != null )
         {
-            CategoryOptionCombo co = new CategoryOptionCombo();
-            co.setUid( coId );
-            builder.categoryOptionCombo( co );
+            builder.categoryOptionCombo( createMinimalOptionCombo( coId ) );
         }
         if ( aoId != null )
         {
-            CategoryOptionCombo ao = new CategoryOptionCombo();
-            ao.setUid( aoId );
-            builder.attrOptionCombo( ao );
+            builder.attrOptionCombo( createMinimalOptionCombo( aoId ) );
         }
         return builder;
+    }
+
+    private CategoryOptionCombo createMinimalOptionCombo( String uid )
+    {
+        CategoryOptionCombo combo = new CategoryOptionCombo();
+        combo.setUid( uid );
+        CategoryOption option = new CategoryOption( "name" );
+        option.setUid( CodeGenerator.generateUid() );
+        combo.setCategoryOptions( singleton( option ) );
+        return combo;
+    }
+
+    private void setupUserCanWriteCategoryOptions( boolean canWrite )
+    {
+        when( aclService.canDataWrite( any( User.class ), any( CategoryOption.class ) ) ).thenReturn( canWrite );
     }
 }

@@ -210,7 +210,7 @@ public class DataValueSetImportValidator
     {
         if ( dataSetContext.getDataSet() == null && context.isStrictDataElements() )
         {
-            context.error().addConflict( DataValueSetImportConflict.DATASET_NOT_VALID, dataValueSet.getDataSet() );
+            context.error().addConflict( DataValueSetImportConflict.DATASET_NOT_VALID );
         }
     }
 
@@ -353,7 +353,7 @@ public class DataValueSetImportValidator
         {
             context.addConflict( valueContext.getIndex(),
                 DataValueImportConflict.ORG_UNIT_NOT_IN_USER_HIERARCHY,
-                dataValue.getOrgUnit(), context.getCurrentUserName() );
+                dataValue.getOrgUnit(), context.getCurrentUser().getUid() );
         }
     }
 

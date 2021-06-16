@@ -151,7 +151,8 @@ public final class ImportConflict
     public ImportConflict( Map<String, String> objects, String message, ErrorCode errorCode, String property,
         int index )
     {
-        this( errorCode.name() + ":" + String.join( ":", objects.values() ), objects.values().iterator().next(),
+        this( errorCode.name() + ":" + String.join( ":", objects.values() ),
+            objects.isEmpty() ? null : objects.values().iterator().next(),
             message, errorCode, objects, property, index );
     }
 
@@ -166,7 +167,7 @@ public final class ImportConflict
         this.property = property;
         if ( index >= 0 )
         {
-            this.indexes = new int[index];
+            this.indexes = new int[] { index };
             this.indexLength = 1;
         }
         else
@@ -226,7 +227,7 @@ public final class ImportConflict
     @JacksonXmlProperty( isAttribute = true )
     public int[] getIndexes()
     {
-        return Arrays.copyOf( indexes, indexLength );
+        return indexes == null ? null : Arrays.copyOf( indexes, indexLength );
     }
 
     public ImportConflict mergeWith( ImportConflict other )

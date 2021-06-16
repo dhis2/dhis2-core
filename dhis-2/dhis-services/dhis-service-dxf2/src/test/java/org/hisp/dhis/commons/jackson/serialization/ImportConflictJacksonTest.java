@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.commons.jackson.serialization;
 
+import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -58,7 +61,36 @@ public class ImportConflictJacksonTest
         JsonNode conflicts = summaryNodes.get( "conflicts" );
         assertTrue( conflicts.isArray() );
         assertEquals( 2, conflicts.size() );
-        assertEquals( "[{\"object\":\"x\",\"value\":\"y\"},{\"object\":\"foo\",\"value\":\"bar\"}]",
+        assertEquals( "[{\"object\":\"foo\",\"value\":\"bar\"},{\"object\":\"x\",\"value\":\"y\"}]",
             conflicts.toString() );
+    }
+
+    @Test
+    public void testObjectsSerialisedAsIndividualProperties()
+    {
+        ImportConflict conflict = new ImportConflict( singletonMap( "key", "value" ), "message",
+            ErrorCode.E7600, "property", 0 );
+
+        JsonNode conflictNode = jsonMapper.valueToTree( conflict );
+        assertTrue( conflictNode.isObject() );
+        assertEquals( "value", conflictNode.get( "key" ).asText() );
+    }
+
+    @Test
+    public void testIndicesSerialiseAsArray()
+    {
+        ImportConflict conflict1 = new ImportConflict( singletonMap( "key", "value" ), "message",
+            ErrorCode.E7600, "property", 5 );
+        ImportConflict conflict2 = new ImportConflict( singletonMap( "key", "value" ), "message",
+            ErrorCode.E7600, "property", 7 );
+        conflict1.mergeWith( conflict2 );
+
+        JsonNode conflictNode = jsonMapper.valueToTree( conflict1 );
+        assertTrue( conflictNode.isObject() );
+        JsonNode indexesArray = conflictNode.get( "indexes" );
+        assertTrue( indexesArray.isArray() );
+        assertEquals( 2, indexesArray.size() );
+        assertEquals( 5, indexesArray.get( 0 ).asInt() );
+        assertEquals( 7, indexesArray.get( 1 ).asInt() );
     }
 }
