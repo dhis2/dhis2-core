@@ -36,6 +36,7 @@ import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -70,13 +71,13 @@ public class OrganisationUnitProfileController
         orgUnitProfileService.saveOrgUnitProfile( profile );
     }
 
-    @GetMapping( produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( produces = APPLICATION_JSON_VALUE )
     public OrgUnitProfile getProfile()
     {
         return orgUnitProfileService.getOrgUnitProfile();
     }
 
-    @GetMapping( value = "/data/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/data/{uid}", produces = APPLICATION_JSON_VALUE )
     public OrgUnitProfileData getProfileData( @PathVariable( value = "uid" ) String uid,
         @RequestParam( value = "period", required = false ) String isoPeriod )
     {

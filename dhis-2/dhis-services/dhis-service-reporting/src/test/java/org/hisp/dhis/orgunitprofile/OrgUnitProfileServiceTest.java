@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.orgunitprofile;
 
+import com.google.common.collect.Lists;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -99,18 +100,16 @@ public class OrgUnitProfileServiceTest
         createAndInjectAdminUser();
         mockService = new DefaultOrgUnitProfileService( dataStore, manager, mockAnalyticsService,
             organisationUnitGroupService, jsonMapper );
+
+
     }
 
     @Test
     public void testSave()
     {
-        OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
-        orgUnitProfile.getAttributes().add( "Attribute1" );
-        orgUnitProfile.getAttributes().add( "Attribute2" );
-        orgUnitProfile.getDataItems().add( "DataItem1" );
-        orgUnitProfile.getDataItems().add( "DataItem2" );
-        orgUnitProfile.getGroupSets().add( "GroupSet1" );
-        orgUnitProfile.getGroupSets().add( "GroupSet2" );
+        OrgUnitProfile orgUnitProfile = createOrgUnitProfile( Lists.newArrayList( "Attribute1", "Attribute2" )
+            , Lists.newArrayList( "GroupSet1", "GroupSet2" )
+            , Lists.newArrayList( "DataItem1", "DataItem2" ) );
         service.saveOrgUnitProfile( orgUnitProfile );
 
         OrgUnitProfile savedProfile = service.getOrgUnitProfile();
@@ -120,6 +119,68 @@ public class OrgUnitProfileServiceTest
         assertTrue( savedProfile.getAttributes().contains( "Attribute1" ) );
         assertTrue( savedProfile.getDataItems().contains( "DataItem2" ) );
         assertTrue( savedProfile.getGroupSets().contains( "GroupSet1" ) );
+    }
+
+    @Test
+    public void testUpdateOrgUnitProfile()
+    {
+        OrgUnitProfile orgUnitProfile = createOrgUnitProfile( Lists.newArrayList( "Attribute1", "Attribute2" )
+            , Lists.newArrayList( "GroupSet1", "GroupSet2" )
+            , Lists.newArrayList( "DataItem1", "DataItem2" ) );
+        service.saveOrgUnitProfile( orgUnitProfile );
+
+        orgUnitProfile.getGroupSets().clear();
+        orgUnitProfile.getDataItems().remove( "DataItem2" );
+        orgUnitProfile.getAttributes().remove( "Attribute1" );
+        orgUnitProfile.getAttributes().add( "Attribute3" );
+
+        service.saveOrgUnitProfile( orgUnitProfile );
+
+        assertEquals( 2, orgUnitProfile.getAttributes().size() );
+        assertEquals( 1, orgUnitProfile.getDataItems().size() );
+        assertEquals( 0, orgUnitProfile.getGroupSets().size() );
+        assertTrue( orgUnitProfile.getAttributes().contains( "Attribute3" ) );
+        assertTrue( orgUnitProfile.getDataItems().contains( "DataItem1" ) );
+    }
+
+    @Test
+    public void testGetProfileDataWithoutOrgUnitProfile()
+    {
+        Attribute attribute = createAttribute( 'A' );
+        attribute.setOrganisationUnitAttribute( true );
+        manager.save( attribute );
+
+        OrganisationUnit orgUnit = createOrganisationUnit( "A" );
+        orgUnit.getAttributeValues().add( new AttributeValue( "testAttributeValue", attribute ) );
+        manager.save( orgUnit );
+
+        OrganisationUnitGroup group = createOrganisationUnitGroup( 'A' );
+        group.addOrganisationUnit( orgUnit );
+        manager.save( group );
+
+        OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet( 'A' );
+        groupSet.addOrganisationUnitGroup( group );
+        manager.save( groupSet );
+
+        DataElement dataElement = createDataElement( 'A' );
+        manager.save( dataElement );
+
+        Period period = createPeriod( "202106" );
+        manager.save( period );
+
+        // Mock analytic query for data value
+        Map<String, Object> mapDataItem = new HashMap<>();
+        mapDataItem.put( dataElement.getUid(), "testDataValue" );
+        Mockito.when( mockAnalyticsService.getAggregatedDataValueMapping( any( DataQueryParams.class ) ) )
+            .thenReturn( mapDataItem );
+
+        OrgUnitProfileData data = mockService.getOrgUnitProfileData( orgUnit.getUid(), period.getIsoDate() );
+
+        assertEquals( 0, data.getAttributes().size() );
+        assertEquals( 0, data.getDataItems().size() );
+        assertEquals( 0, data.getGroupSets().size() );
+        assertEquals( orgUnit.getCode(), data.getInfo().getCode() );
+        assertEquals( orgUnit.getName(), data.getInfo().getName() );
     }
 
     @Test
@@ -200,5 +261,14 @@ public class OrgUnitProfileServiceTest
             && errorReport.getMainKlass().isAssignableFrom( clazz )
             && errorReport.getMessage().contains( uid ) )
             .findFirst().isPresent();
+    }
+
+    private OrgUnitProfile createOrgUnitProfile( List<String> attributes, List<String> groupSets, List<String> dataItems )
+    {
+        OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
+        orgUnitProfile.getAttributes().addAll( attributes );
+        orgUnitProfile.getDataItems().addAll( dataItems );
+        orgUnitProfile.getGroupSets().addAll( groupSets );
+        return orgUnitProfile;
     }
 }

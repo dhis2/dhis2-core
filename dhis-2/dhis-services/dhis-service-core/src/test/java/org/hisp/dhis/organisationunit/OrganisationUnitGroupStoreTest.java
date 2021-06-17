@@ -41,7 +41,6 @@ import com.google.common.collect.Sets;
  */
 public class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTest
 {
-
     @Test
     public void testGetOrganisationUnitGroupsWithoutGroupSets()
     {
@@ -73,9 +72,9 @@ public class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTe
         OrganisationUnitGroup groupA = addOrganisationUnitGroup( 'A', organisationUnitA );
         OrganisationUnitGroup groupB = addOrganisationUnitGroup( 'B', organisationUnitB );
         OrganisationUnitGroup groupC = addOrganisationUnitGroup( 'C', organisationUnitC );
-        Set<OrganisationUnitGroup> groups = Sets.newHashSet( groupA, groupB, groupC );
+        Set<OrganisationUnitGroup> groups = Sets.newHashSet( groupA );
 
-        OrganisationUnitGroupSet groupSet = addOrganisationUnitGroupSet( 'A', groupA );
+        OrganisationUnitGroupSet groupSet = addOrganisationUnitGroupSet( 'A', groupA, groupB, groupC );
 
         assertEquals( groupA, groupStore.getOrgUnitGroupInGroupSet( groups, groupSet ) );
     }
