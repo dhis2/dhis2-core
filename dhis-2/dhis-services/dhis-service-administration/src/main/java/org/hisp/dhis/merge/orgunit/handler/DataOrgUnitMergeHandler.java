@@ -37,6 +37,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.validation.ValidationResultService;
@@ -55,6 +56,8 @@ public class DataOrgUnitMergeHandler
 
     private JdbcTemplate jdbcTemplate;
 
+    private DataValueAuditService dataValueAuditService;
+
     private DataSetService dataSetService;
 
     private ValidationResultService validationResultService;
@@ -66,6 +69,11 @@ public class DataOrgUnitMergeHandler
         migrate( "update Interpretation i " +
             "set i.organisationUnit = :target " +
             "where i.organisationUnit.id in (:sources)", request );
+    }
+
+    public void mergeDataValueAudits( OrgUnitMergeRequest request )
+    {
+        request.getSources().forEach( ou -> dataValueAuditService.deleteDataValueAudits( ou ) );
     }
 
     @Transactional
