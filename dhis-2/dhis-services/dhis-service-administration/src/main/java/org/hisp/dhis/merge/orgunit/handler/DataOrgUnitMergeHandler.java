@@ -64,13 +64,6 @@ public class DataOrgUnitMergeHandler
 
     private MinMaxDataElementService minMaxDataElementService;
 
-    public void mergeInterpretations( OrgUnitMergeRequest request )
-    {
-        migrate( "update Interpretation i " +
-            "set i.organisationUnit = :target " +
-            "where i.organisationUnit.id in (:sources)", request );
-    }
-
     public void mergeDataValueAudits( OrgUnitMergeRequest request )
     {
         request.getSources().forEach( ou -> dataValueAuditService.deleteDataValueAudits( ou ) );
@@ -129,6 +122,14 @@ public class DataOrgUnitMergeHandler
     public void mergeMinMaxDataElements( OrgUnitMergeRequest request )
     {
         request.getSources().forEach( ou -> minMaxDataElementService.removeMinMaxDataElements( ou ) );
+    }
+
+    @Transactional
+    public void mergeInterpretations( OrgUnitMergeRequest request )
+    {
+        migrate( "update Interpretation i " +
+            "set i.organisationUnit = :target " +
+            "where i.organisationUnit.id in (:sources)", request );
     }
 
     private void migrate( String hql, OrgUnitMergeRequest request )
