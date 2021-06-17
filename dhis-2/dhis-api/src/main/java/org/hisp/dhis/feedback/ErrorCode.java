@@ -334,11 +334,11 @@ public enum ErrorCode
     E7634( "Category option combo: `{0}` must be part of category combo of data element: `{1}`" ),
     E7635( "Attribute option combo: `{0}` must be part of category combo of data sets of data element: `{1}`" ),
     E7636( "Data element: `{1}` must be assigned through data sets to organisation unit: `{0}`" ),
-    E7637( "Invalid stored by `{0}`: {1}" ),
+    E7637( "Invalid storedBy: {0}" ),
     E7638( "Period: `{0}` is not within date range of attribute option combo: `{1}`" ),
     E7639( "Organisation unit: `{0}` is not valid for attribute option combo: `{1}`" ),
     E7640( "Current date is past expiry days for period: `{0}`  and data set: `{1}`" ),
-    E7641( "Period: `{0}` is after latest open future period: `{1}` for data element: `{2}`" ),
+    E7641( "Period: `{0}` is after latest open future period: `{2}` for data element: `{1}`" ),
     E7642(
         "Data is already approved for data set: `{3}` period: `{1}` organisation unit: `{0}` attribute option combo: `{2}`" ),
     E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),

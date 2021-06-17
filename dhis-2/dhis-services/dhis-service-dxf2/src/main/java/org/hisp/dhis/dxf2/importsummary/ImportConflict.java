@@ -79,7 +79,7 @@ public final class ImportConflict
         Class<?>[] objectTypes = descriptor.getObjectTypes();
         Map<String, String> objectsMap = new LinkedHashMap<>();
         String property = descriptor.getProperty();
-        for ( int i = 0; i < objects.length; i++ )
+        for ( int i = 0; i < objectTypes.length; i++ )
         {
             Class<?> objectType = objectTypes[i];
             String object = objects[i];

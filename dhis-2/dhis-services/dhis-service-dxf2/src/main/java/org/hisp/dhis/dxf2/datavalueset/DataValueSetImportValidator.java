@@ -520,8 +520,8 @@ public class DataValueSetImportValidator
     private static void checkDataValueIsNotZeroAndInsignificant( DataValue dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        boolean zeroAndInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant( dataValue.getValue(),
-            valueContext.getDataElement() );
+        boolean zeroAndInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant(
+            dataValue.getValue(), valueContext.getDataElement() );
 
         if ( zeroAndInsignificant )
         {
@@ -538,7 +538,7 @@ public class DataValueSetImportValidator
         if ( errorKey != null )
         {
             context.addConflict( valueContext.getIndex(),
-                DataValueImportConflict.STORED_BY_NOT_VALID, dataValue.getStoredBy(), errorKey );
+                DataValueImportConflict.STORED_BY_NOT_VALID, errorKey );
         }
     }
 
@@ -621,7 +621,7 @@ public class DataValueSetImportValidator
             {
                 context.addConflict( valueContext.getIndex(),
                     DataValueImportConflict.PERIOD_AFTER_DATA_ELEMENT_PERIODS,
-                    dataValue.getPeriod(), latestFuturePeriod.getIsoDate(), dataValue.getDataElement() );
+                    dataValue.getPeriod(), dataValue.getDataElement(), latestFuturePeriod.getIsoDate() );
             }
         }
     }
