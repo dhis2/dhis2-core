@@ -32,7 +32,6 @@ import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.springframework.stereotype.Service;
@@ -81,16 +80,9 @@ public class TrackerOrgUnitMergeHandler
 
     private void migrate( String hql, OrgUnitMergeRequest request )
     {
-        getQuery( hql )
+        sessionFactory.getCurrentSession().createQuery( hql )
             .setParameter( "target", request.getTarget() )
             .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( request.getSources() ) )
             .executeUpdate();
-    }
-
-    private Query<?> getQuery( String hql )
-    {
-        return sessionFactory
-            .getCurrentSession()
-            .createQuery( hql );
     }
 }

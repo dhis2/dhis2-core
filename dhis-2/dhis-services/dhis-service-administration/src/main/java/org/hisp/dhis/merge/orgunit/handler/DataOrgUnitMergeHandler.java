@@ -34,7 +34,6 @@ import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
@@ -134,16 +133,9 @@ public class DataOrgUnitMergeHandler
 
     private void migrate( String hql, OrgUnitMergeRequest request )
     {
-        getQuery( hql )
+        sessionFactory.getCurrentSession().createQuery( hql )
             .setParameter( "target", request.getTarget() )
             .setParameterList( "sources", IdentifiableObjectUtils.getIdentifiers( request.getSources() ) )
             .executeUpdate();
-    }
-
-    private Query<?> getQuery( String hql )
-    {
-        return sessionFactory
-            .getCurrentSession()
-            .createQuery( hql );
     }
 }
