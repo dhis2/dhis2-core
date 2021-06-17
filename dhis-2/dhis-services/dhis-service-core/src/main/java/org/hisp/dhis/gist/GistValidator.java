@@ -117,11 +117,10 @@ final class GistValidator
                     "Property `%s` computes to many values and therefore cannot be used as a field." );
             }
         }
-        if ( f.getTransformation() == Transform.PLUCK )
+        if ( f.getTransformation() == Transform.PLUCK && f.getTransformationArgument() != null )
         {
             String pluckedField = f.getTransformationArgument();
-            Property plucked = context.switchedTo( getBaseType( field ) )
-                .resolveMandatory( pluckedField );
+            Property plucked = context.switchedTo( getBaseType( field ) ).resolveMandatory( pluckedField );
             if ( !plucked.isPersisted() )
             {
                 throw createIllegalProperty( plucked,
