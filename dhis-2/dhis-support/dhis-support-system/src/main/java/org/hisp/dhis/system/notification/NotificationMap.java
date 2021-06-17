@@ -91,10 +91,9 @@ public class NotificationMap
         {
             notificationsWithType.get( jobType ).remove( notifications.removeLast() );
         }
-        notifications.addFirst( jobId );
         notificationsWithType.get( jobType )
             .computeIfAbsent( jobId, key -> new ConcurrentLinkedDeque<>() )
-            .add( notification );
+            .addFirst( notification );
     }
 
     public void addSummary( JobConfiguration configuration, Object summary )

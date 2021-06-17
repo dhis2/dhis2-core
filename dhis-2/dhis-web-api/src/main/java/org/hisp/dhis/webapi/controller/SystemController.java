@@ -239,11 +239,7 @@ public class SystemController
         setNoStore( response );
         response.setContentType( CONTENT_TYPE_JSON );
 
-        // Reverse order to become new->old sorted
-        List<Notification> notificationList = new ArrayList<>( notifications );
-        Collections.reverse( notificationList );
-
-        renderService.toJson( response.getOutputStream(), notificationList );
+        renderService.toJson( response.getOutputStream(), notifications );
     }
 
     // -------------------------------------------------------------------------
