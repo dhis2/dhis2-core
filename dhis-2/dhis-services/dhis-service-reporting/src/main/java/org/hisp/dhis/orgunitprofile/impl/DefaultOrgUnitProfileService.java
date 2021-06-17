@@ -245,8 +245,11 @@ public class DefaultOrgUnitProfileService
         {
             AttributeValue attributeValue = orgUnit.getAttributeValue( attribute );
 
-            items.add( new ProfileItem( attribute.getUid(), attribute.getDisplayName(),
-                attributeValue.getValue() ) );
+            if ( attributeValue != null )
+            {
+                items.add( new ProfileItem( attribute.getUid(), attribute.getDisplayName(),
+                    attributeValue.getValue() ) );
+            }
         }
 
         return items;
@@ -270,6 +273,11 @@ public class DefaultOrgUnitProfileService
         List<ProfileItem> items = new ArrayList<>();
 
         Set<OrganisationUnitGroup> groups = orgUnit.getGroups();
+
+        if ( CollectionUtils.isEmpty( groups ) )
+        {
+            return Collections.EMPTY_LIST;
+        }
 
         for ( OrganisationUnitGroupSet groupSet : groupSets )
         {
