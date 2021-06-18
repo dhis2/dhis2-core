@@ -78,8 +78,5 @@ public class HibernateOrganisationUnitGroupStore
                 .setParameter( "groups", groups )
                 .setMaxResults( 1 )
                 .uniqueResult();
-
-
-
     }
 }
