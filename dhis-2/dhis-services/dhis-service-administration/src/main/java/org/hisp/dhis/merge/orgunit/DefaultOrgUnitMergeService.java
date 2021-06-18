@@ -128,6 +128,7 @@ public class DefaultOrgUnitMergeService
             .add( ( r ) -> metadataHandler.mergeConfiguration( r ) )
             .add( ( r ) -> dataHandler.mergeDataValueAudits( r ) )
             .add( ( r ) -> dataHandler.mergeDataValues( r ) )
+            .add( ( r ) -> dataHandler.mergeDataApprovalAudits( r ) )
             .add( ( r ) -> dataHandler.mergeDataApprovals( r ) )
             .add( ( r ) -> dataHandler.mergeLockExceptions( r ) )
             .add( ( r ) -> dataHandler.mergeValidationResults( r ) )

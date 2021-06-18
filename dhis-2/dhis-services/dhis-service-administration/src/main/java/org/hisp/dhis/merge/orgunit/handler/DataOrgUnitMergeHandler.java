@@ -35,6 +35,7 @@ import lombok.AllArgsConstructor;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
@@ -58,6 +59,8 @@ public class DataOrgUnitMergeHandler
     private DataValueAuditService dataValueAuditService;
 
     private DataSetService dataSetService;
+
+    private DataApprovalAuditService dataApprovalAuditService;
 
     private ValidationResultService validationResultService;
 
@@ -105,9 +108,15 @@ public class DataOrgUnitMergeHandler
         jdbcTemplate.update( sql, params );
     }
 
+    public void mergeDataApprovalAudits( OrgUnitMergeRequest request )
+    {
+        request.getSources().forEach( ou -> dataApprovalAuditService.deleteDataApprovalAudits( ou ) );
+    }
+
+    @Transactional
     public void mergeDataApprovals( OrgUnitMergeRequest request )
     {
-        // @formatter:off
+        // @formatter:offT
         final String sql = String.format(
             // Delete existing target data approvals
             "delete from dataapproval where organisationunitid = :target_id; " +
