@@ -181,7 +181,7 @@ public class OrgUnitProfileServiceTest
     }
 
     @Test
-    public void testGetProfileData()
+    public void testGetProfileDataWithOrgUnitProfile()
     {
         Attribute attribute = createAttribute( 'A' );
         attribute.setOrganisationUnitAttribute( true );
