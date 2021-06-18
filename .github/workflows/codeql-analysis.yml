@@ -58,9 +58,13 @@ jobs:
           config-file: ./.github/codeql/codeql-config.yml
 
       - name: Build core
-        run: mvn clean install -f ./dhis-2/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+        env:
+          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25
+        run: mvn clean install -f ./dhis-2/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -B -V $MAVEN_BUILD_OPTS
       - name: Build web
-        run: mvn clean install -f ./dhis-2/dhis-web/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+        env:
+          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25
+        run: mvn clean install -f ./dhis-2/dhis-web/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -B -V $MAVEN_BUILD_OPTS
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
