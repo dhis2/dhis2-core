@@ -105,6 +105,41 @@ public class DataOrgUnitMergeHandler
         jdbcTemplate.update( sql, params );
     }
 
+    public void mergeDataApprovals( OrgUnitMergeRequest request )
+    {
+        // @formatter:off
+        final String sql = String.format(
+            // Delete existing target data approvals
+            "delete from dataapproval where organisationunitid = :target_id; " +
+            // Insert target data approvals for last created source data approvals
+            "with da_rank as ( " +
+                // Window over data approval sources ranked by last created
+                "select da.*, row_number() over (" +
+                    "partition by da.dataapprovallevelid, da.workflowid, da.periodid, da.attributeoptioncomboid " +
+                    "order by da.created desc) as lastcreated_rank " +
+                    "from dataapproval da " +
+                    "where da.organisationunitid in (:source_ids) " +
+            ") " +
+            // Insert target data approvals
+            "insert into dataapproval (" +
+                "dataapprovalid, dataapprovallevelid, workflowid, periodid, " +
+                "organisationunitid, attributeoptioncomboid, accepted, created, creator) " +
+            "select dataapprovalid, dataapprovallevelid, workflowid, periodid, " +
+            "    %s, attributeoptioncomboid, accepted, created, creator " +
+            "from da_rank " +
+            "where da_rank.lastcreated_rank = 1; " +
+            // Delete source data approvals
+            "delete from dataapproval where organisationunitid in (:source_ids);",
+            request.getTarget().getId() );
+        // @formatter:on
+
+        final SqlParameterSource params = new MapSqlParameterSource()
+            .addValue( "source_ids", getIdentifiers( request.getSources() ) )
+            .addValue( "target_id", request.getTarget().getId() );
+
+        jdbcTemplate.update( sql, params );
+    }
+
     public void mergeLockExceptions( OrgUnitMergeRequest request )
     {
         request.getSources().forEach( ou -> dataSetService.deleteLockExceptions( ou ) );
