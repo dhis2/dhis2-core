@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
+import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.dashboard.DashboardSearchResult;
 import org.hisp.dhis.dashboard.DashboardService;
@@ -96,5 +100,37 @@ public class DashboardController
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dashboard, download );
+    }
+
+    @Override
+    protected void preUpdateEntity( Dashboard dashboard, Dashboard newDashboard )
+        throws WebMessageException
+    {
+        if ( !hasDashboardItemsTypeSet( newDashboard.getItems() ) )
+        {
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Dashboard item does not have any type associated." ) );
+        }
+    }
+
+    private boolean hasDashboardItemsTypeSet( final List<DashboardItem> items )
+    {
+        if ( isNotEmpty( items ) )
+        {
+            for ( final DashboardItem item : items )
+            {
+                final boolean hasAssociatedType = item != null
+                    && (item.getLinkItems() != null || item.getEmbeddedItem() != null || item.getText() != null);
+
+                final boolean hasType = item != null && item.getType() != null;
+
+                if ( !hasType || !hasAssociatedType )
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }
