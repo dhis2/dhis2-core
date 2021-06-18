@@ -20,7 +20,11 @@ jobs:
           restore-keys: ${{ runner.os }}-maven-
 
       - name: Check formatting in core
-        run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/pom.xml
+        env:
+          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25
+        run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/pom.xml $MAVEN_BUILD_OPTS
 
       - name: Check formatting in web
-        run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml
+        env:
+          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25
+        run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml $MAVEN_BUILD_OPTS

@@ -38,8 +38,11 @@ print() {
 
 print "Building dhis2-core..."
 
-mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/pom.xml -pl -dhis-web-embedded-jetty
-mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/dhis-web/pom.xml
+
+MAVEN_BUILD_OPTS="-Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25"
+
+mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/pom.xml -pl -dhis-web-embedded-jetty $MAVEN_BUILD_OPTS
+mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/dhis-web/pom.xml $MAVEN_BUILD_OPTS
 
 rm -rf "$ARTIFACTS/*"
 mkdir -p "$ARTIFACTS"
