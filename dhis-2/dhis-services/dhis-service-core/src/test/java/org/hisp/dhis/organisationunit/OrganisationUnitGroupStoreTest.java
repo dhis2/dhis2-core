@@ -72,9 +72,9 @@ public class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTe
         OrganisationUnitGroup groupA = addOrganisationUnitGroup( 'A', organisationUnitA );
         OrganisationUnitGroup groupB = addOrganisationUnitGroup( 'B', organisationUnitB );
         OrganisationUnitGroup groupC = addOrganisationUnitGroup( 'C', organisationUnitC );
-        Set<OrganisationUnitGroup> groups = Sets.newHashSet( groupA );
+        Set<OrganisationUnitGroup> groups = Sets.newHashSet( groupA, groupB );
 
-        OrganisationUnitGroupSet groupSet = addOrganisationUnitGroupSet( 'A', groupA, groupB, groupC );
+        OrganisationUnitGroupSet groupSet = addOrganisationUnitGroupSet( 'A', groupA, groupC );
 
         assertEquals( groupA, groupStore.getOrgUnitGroupInGroupSet( groups, groupSet ) );
     }

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.orgunitprofile;
 
-import com.google.common.collect.Lists;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -63,6 +62,7 @@ import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 
 public class OrgUnitProfileServiceTest
     extends DhisSpringTest
@@ -101,15 +101,13 @@ public class OrgUnitProfileServiceTest
         mockService = new DefaultOrgUnitProfileService( dataStore, manager, mockAnalyticsService,
             organisationUnitGroupService, jsonMapper );
 
-
     }
 
     @Test
     public void testSave()
     {
-        OrgUnitProfile orgUnitProfile = createOrgUnitProfile( Lists.newArrayList( "Attribute1", "Attribute2" )
-            , Lists.newArrayList( "GroupSet1", "GroupSet2" )
-            , Lists.newArrayList( "DataItem1", "DataItem2" ) );
+        OrgUnitProfile orgUnitProfile = createOrgUnitProfile( Lists.newArrayList( "Attribute1", "Attribute2" ),
+            Lists.newArrayList( "GroupSet1", "GroupSet2" ), Lists.newArrayList( "DataItem1", "DataItem2" ) );
         service.saveOrgUnitProfile( orgUnitProfile );
 
         OrgUnitProfile savedProfile = service.getOrgUnitProfile();
@@ -124,9 +122,8 @@ public class OrgUnitProfileServiceTest
     @Test
     public void testUpdateOrgUnitProfile()
     {
-        OrgUnitProfile orgUnitProfile = createOrgUnitProfile( Lists.newArrayList( "Attribute1", "Attribute2" )
-            , Lists.newArrayList( "GroupSet1", "GroupSet2" )
-            , Lists.newArrayList( "DataItem1", "DataItem2" ) );
+        OrgUnitProfile orgUnitProfile = createOrgUnitProfile( Lists.newArrayList( "Attribute1", "Attribute2" ),
+            Lists.newArrayList( "GroupSet1", "GroupSet2" ), Lists.newArrayList( "DataItem1", "DataItem2" ) );
         service.saveOrgUnitProfile( orgUnitProfile );
 
         orgUnitProfile.getGroupSets().clear();
@@ -263,7 +260,8 @@ public class OrgUnitProfileServiceTest
             .findFirst().isPresent();
     }
 
-    private OrgUnitProfile createOrgUnitProfile( List<String> attributes, List<String> groupSets, List<String> dataItems )
+    private OrgUnitProfile createOrgUnitProfile( List<String> attributes, List<String> groupSets,
+        List<String> dataItems )
     {
         OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
         orgUnitProfile.getAttributes().addAll( attributes );

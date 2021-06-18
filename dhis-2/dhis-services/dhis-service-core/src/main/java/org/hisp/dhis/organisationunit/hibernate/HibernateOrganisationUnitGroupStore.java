@@ -73,7 +73,7 @@ public class HibernateOrganisationUnitGroupStore
         OrganisationUnitGroupSet groupSet )
     {
         return getQuery(
-            "select g from OrganisationUnitGroup g inner join g.groupSets gs where gs = :groupSet and g in :groups" )
+            "select g from OrganisationUnitGroup g inner join g.groupSets gs where gs = :groupSet and g in :groups limit 1" )
                 .setParameter( "groupSet", groupSet )
                 .setParameter( "groups", groups )
                 .uniqueResult();
