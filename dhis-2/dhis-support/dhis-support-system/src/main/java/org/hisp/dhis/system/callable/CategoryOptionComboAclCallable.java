@@ -54,7 +54,7 @@ public class CategoryOptionComboAclCallable
     public CategoryOptionCombo call()
         throws ExecutionException
     {
-        return categoryService.getCategoryOptionComboAcl( idScheme.getIdentifiableProperty(), id );
+        return categoryService.getCategoryOptionComboAcl( idScheme, id );
     }
 
     @Override
