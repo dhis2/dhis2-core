@@ -44,5 +44,11 @@ public class OrgUnitMergeQuery
     private String target;
 
     @JsonProperty
+    private DataMergeStrategy dataValueMergeStrategy;
+
+    @JsonProperty
+    private DataMergeStrategy dataApprovalMergeStrategy;
+
+    @JsonProperty
     private Boolean deleteSources;
 }

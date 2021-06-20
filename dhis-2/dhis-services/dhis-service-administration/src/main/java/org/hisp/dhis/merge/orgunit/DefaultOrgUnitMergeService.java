@@ -108,6 +108,8 @@ public class DefaultOrgUnitMergeService
         return new OrgUnitMergeRequest.Builder()
             .addSources( sources )
             .withTarget( target )
+            .withDataValueMergeStrategy( query.getDataValueMergeStrategy() )
+            .withDataApprovalMergeStrategy( query.getDataApprovalMergeStrategy() )
             .withDeleteSources( query.getDeleteSources() )
             .build();
     }

@@ -92,6 +92,18 @@ public class OrgUnitMergeRequest
             return this;
         }
 
+        public Builder withDataValueMergeStrategy( DataMergeStrategy dataValueMergeStrategy )
+        {
+            this.request.dataValueMergeStrategy = dataValueMergeStrategy;
+            return this;
+        }
+
+        public Builder withDataApprovalMergeStrategy( DataMergeStrategy dataApprovalMergeStrategy )
+        {
+            this.request.dataApprovalMergeStrategy = dataApprovalMergeStrategy;
+            return this;
+        }
+
         public Builder withDeleteSources( Boolean deleteSources )
         {
             this.request.deleteSources = firstNonNull( deleteSources, this.request.deleteSources );
