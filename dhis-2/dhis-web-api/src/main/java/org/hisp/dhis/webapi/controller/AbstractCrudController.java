@@ -585,7 +585,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    @ApiVersion( { DhisApiVersion.V34, DhisApiVersion.V35, DhisApiVersion.V36 } )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request )
@@ -631,7 +630,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    @ApiVersion( { DhisApiVersion.V34, DhisApiVersion.V35, DhisApiVersion.V36 } )
     public void updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
@@ -689,11 +687,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      * Adds support for HTTP Patch using JSON Patch (RFC 6902), updated object
      * is run through normal metadata importer and internally looks like a
      * normal PUT (after the JSON Patch has been applied).
+     *
+     * For now we only support the official mimetype
+     * "application/json-patch+json" but in future releases we might also want
+     * to support "application/json" after the old patch behavior has been
+     * removed.
      */
     @ResponseBody
-    @PatchMapping( path = "/{uid}", consumes = { MediaType.APPLICATION_JSON_VALUE, "application/json-patch+json" } )
-    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V34,
-        DhisApiVersion.V35, DhisApiVersion.V36 } )
+    @PatchMapping( path = "/{uid}", consumes = { "application/json-patch+json" } )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
