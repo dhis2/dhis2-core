@@ -36,8 +36,11 @@ import lombok.AllArgsConstructor;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
+import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.merge.orgunit.DataMergeStrategy;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.validation.ValidationResultService;
@@ -58,9 +61,13 @@ public class DataOrgUnitMergeHandler
 
     private DataValueAuditService dataValueAuditService;
 
+    private DataValueService dataValueService;
+
     private DataSetService dataSetService;
 
     private DataApprovalAuditService dataApprovalAuditService;
+
+    private DataApprovalService dataApprovalService;
 
     private ValidationResultService validationResultService;
 
@@ -73,6 +80,24 @@ public class DataOrgUnitMergeHandler
 
     @Transactional
     public void mergeDataValues( OrgUnitMergeRequest request )
+    {
+        if ( DataMergeStrategy.DISCARD == request.getDataValueMergeStrategy() )
+        {
+            request.getSources().forEach( ou -> dataValueService.deleteDataValues( ou ) );
+        }
+        else
+        {
+            mergeDataValuesLastUpdated( request );
+        }
+    }
+
+    /**
+     * Merges data values linked to the sources by using the last updated value
+     * and linking it to the target org unit.
+     *
+     * @param request the {@link OrgUnitMergeRequest}.
+     */
+    private void mergeDataValuesLastUpdated( OrgUnitMergeRequest request )
     {
         // @formatter:off
         final String sql = String.format(
@@ -115,6 +140,24 @@ public class DataOrgUnitMergeHandler
 
     @Transactional
     public void mergeDataApprovals( OrgUnitMergeRequest request )
+    {
+        if ( DataMergeStrategy.DISCARD == request.getDataApprovalMergeStrategy() )
+        {
+            request.getSources().forEach( ou -> dataApprovalService.deleteDataApprovals( ou ) );
+        }
+        else
+        {
+            mergeDataApprovalsLastUpdated( request );
+        }
+    }
+
+    /**
+     * Merges data approvals linked to the sources by using the last updated
+     * approval record and linking it to the target org unit.
+     *
+     * @param request the {@link OrgUnitMergeRequest}.
+     */
+    private void mergeDataApprovalsLastUpdated( OrgUnitMergeRequest request )
     {
         // @formatter:offT
         final String sql = String.format(

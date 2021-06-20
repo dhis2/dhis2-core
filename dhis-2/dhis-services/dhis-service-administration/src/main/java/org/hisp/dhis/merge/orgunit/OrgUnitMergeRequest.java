@@ -45,6 +45,10 @@ public class OrgUnitMergeRequest
 
     private OrganisationUnit target;
 
+    private DataMergeStrategy dataValueMergeStrategy;
+
+    private DataMergeStrategy dataApprovalMergeStrategy;
+
     private boolean deleteSources;
 
     public Set<OrganisationUnit> getSources()
@@ -65,6 +69,8 @@ public class OrgUnitMergeRequest
         {
             this.request = new OrgUnitMergeRequest();
 
+            this.request.dataValueMergeStrategy = DataMergeStrategy.LAST_UPDATED;
+            this.request.dataApprovalMergeStrategy = DataMergeStrategy.LAST_UPDATED;
             this.request.deleteSources = true;
         }
 
