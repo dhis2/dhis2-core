@@ -36,10 +36,8 @@ import lombok.AllArgsConstructor;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
-import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.merge.orgunit.DataMergeStrategy;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -61,13 +59,9 @@ public class DataOrgUnitMergeHandler
 
     private DataValueAuditService dataValueAuditService;
 
-    private DataValueService dataValueService;
-
     private DataSetService dataSetService;
 
     private DataApprovalAuditService dataApprovalAuditService;
-
-    private DataApprovalService dataApprovalService;
 
     private ValidationResultService validationResultService;
 
@@ -81,26 +75,26 @@ public class DataOrgUnitMergeHandler
     @Transactional
     public void mergeDataValues( OrgUnitMergeRequest request )
     {
-        if ( DataMergeStrategy.DISCARD == request.getDataValueMergeStrategy() )
-        {
-            request.getSources().forEach( ou -> dataValueService.deleteDataValues( ou ) );
-        }
-        else
-        {
-            mergeDataValuesLastUpdated( request );
-        }
+        final String sql = DataMergeStrategy.DISCARD == request.getDataValueMergeStrategy()
+            ? getMergeDataValuesDiscardSql()
+            : getMergeDataValuesLastUpdatedSql( request );
+
+        final SqlParameterSource params = new MapSqlParameterSource()
+            .addValue( "source_ids", getIdentifiers( request.getSources() ) )
+            .addValue( "target_id", request.getTarget().getId() );
+
+        jdbcTemplate.update( sql, params );
     }
 
-    /**
-     * Merges data values linked to the sources by using the last updated value
-     * and linking it to the target org unit.
-     *
-     * @param request the {@link OrgUnitMergeRequest}.
-     */
-    private void mergeDataValuesLastUpdated( OrgUnitMergeRequest request )
+    private String getMergeDataValuesDiscardSql()
+    {
+        return "delete from datavalue where sourceid in (:source_ids);";
+    }
+
+    private String getMergeDataValuesLastUpdatedSql( OrgUnitMergeRequest request )
     {
         // @formatter:off
-        final String sql = String.format(
+        return String.format(
             // Delete existing target data values
             "delete from datavalue where sourceid = :target_id; " +
             // Insert target data values for last modified source data values
@@ -125,12 +119,6 @@ public class DataOrgUnitMergeHandler
             "delete from datavalue where sourceid in (:source_ids);",
             request.getTarget().getId() );
         // @formatter:on
-
-        final SqlParameterSource params = new MapSqlParameterSource()
-            .addValue( "source_ids", getIdentifiers( request.getSources() ) )
-            .addValue( "target_id", request.getTarget().getId() );
-
-        jdbcTemplate.update( sql, params );
     }
 
     public void mergeDataApprovalAudits( OrgUnitMergeRequest request )
@@ -141,26 +129,26 @@ public class DataOrgUnitMergeHandler
     @Transactional
     public void mergeDataApprovals( OrgUnitMergeRequest request )
     {
-        if ( DataMergeStrategy.DISCARD == request.getDataApprovalMergeStrategy() )
-        {
-            request.getSources().forEach( ou -> dataApprovalService.deleteDataApprovals( ou ) );
-        }
-        else
-        {
-            mergeDataApprovalsLastUpdated( request );
-        }
+        final String sql = DataMergeStrategy.DISCARD == request.getDataApprovalMergeStrategy()
+            ? getMergeDataApprovalsDiscardSql()
+            : getMergeDataApprovalsLastUpdatedSql( request );
+
+        final SqlParameterSource params = new MapSqlParameterSource()
+            .addValue( "source_ids", getIdentifiers( request.getSources() ) )
+            .addValue( "target_id", request.getTarget().getId() );
+
+        jdbcTemplate.update( sql, params );
     }
 
-    /**
-     * Merges data approvals linked to the sources by using the last updated
-     * approval record and linking it to the target org unit.
-     *
-     * @param request the {@link OrgUnitMergeRequest}.
-     */
-    private void mergeDataApprovalsLastUpdated( OrgUnitMergeRequest request )
+    private String getMergeDataApprovalsDiscardSql()
+    {
+        return "delete from dataapproval where organisationunitid in (:source_ids);";
+    }
+
+    private String getMergeDataApprovalsLastUpdatedSql( OrgUnitMergeRequest request )
     {
         // @formatter:offT
-        final String sql = String.format(
+        return String.format(
             // Delete existing target data approvals
             "delete from dataapproval where organisationunitid = :target_id; " +
             // Insert target data approvals for last created source data approvals
@@ -184,12 +172,6 @@ public class DataOrgUnitMergeHandler
             "delete from dataapproval where organisationunitid in (:source_ids);",
             request.getTarget().getId() );
         // @formatter:on
-
-        final SqlParameterSource params = new MapSqlParameterSource()
-            .addValue( "source_ids", getIdentifiers( request.getSources() ) )
-            .addValue( "target_id", request.getTarget().getId() );
-
-        jdbcTemplate.update( sql, params );
     }
 
     public void mergeLockExceptions( OrgUnitMergeRequest request )
