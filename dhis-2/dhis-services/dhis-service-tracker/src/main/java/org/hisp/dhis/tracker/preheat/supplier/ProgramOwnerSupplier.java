@@ -28,14 +28,16 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -57,13 +59,39 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        final Map<String, ProgramInstance> enrollments = preheat.getEnrollments().getOrDefault( TrackerIdScheme.UID,
+        final Map<String, TrackedEntityInstance> preheatedTrackedEntities = preheat.getTrackedEntities().getOrDefault(
+            TrackerIdScheme.UID,
             new HashMap<>() );
-        List<Long> teiIds = enrollments.values().stream().map( e -> e.getEntityInstance().getId() )
-            .collect( Collectors.toList() );
+        final Map<String, ProgramInstance> preheatedEnrollments = preheat.getEnrollments().getOrDefault(
+            TrackerIdScheme.UID,
+            new HashMap<>() );
+        Set<Long> teiIds = new HashSet<>();
+        Set<Long> programIds = new HashSet<>();
+        params.getEnrollments().stream().forEach( en -> {
+            TrackedEntityInstance tei = preheatedTrackedEntities.get( en.getTrackedEntity() );
+            if ( tei != null )
+            {
+                teiIds.add( tei.getId() );
+            }
+
+            ProgramInstance pi = preheatedEnrollments.get( en.getEnrollment() );
+            if ( pi != null )
+            {
+                programIds.add( pi.getProgram().getId() );
+            }
+        } );
+
+        params.getEvents().stream().forEach( ev -> {
+            ProgramInstance pi = preheatedEnrollments.get( ev.getEnrollment() );
+            if ( pi != null )
+            {
+                teiIds.add( pi.getEntityInstance().getId() );
+                programIds.add( pi.getProgram().getId() );
+            }
+        } );
 
         List<TrackedEntityProgramOwnerOrgUnit> tepos = trackedEntityProgramOwnerStore
-            .getTrackedEntityProgramOwnerOrgUnits( teiIds );
+            .getTrackedEntityProgramOwnerOrgUnits( teiIds, programIds );
 
         preheat.addProgramOwners( tepos );
     }

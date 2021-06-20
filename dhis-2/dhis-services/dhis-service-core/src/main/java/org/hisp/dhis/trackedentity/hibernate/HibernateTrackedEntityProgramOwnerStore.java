@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity.hibernate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -41,6 +42,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 /**
@@ -125,19 +127,28 @@ public class HibernateTrackedEntityProgramOwnerStore
     }
 
     @Override
-    public List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits( List<Long> teiIds )
+    public List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits( Set<Long> teiIds,
+        Set<Long> programIds )
     {
-        List<List<Long>> teiIdsPartitions = Lists.partition( teiIds, 20000 );
-        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit(tepo.entityInstance.uid, tepo.program.uid, tepo.organisationUnit) from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds)";
+        List<TrackedEntityProgramOwnerOrgUnit> trackedEntityProgramOwnerOrgUnits = new ArrayList<>();
+
+        if ( teiIds == null || programIds == null || teiIds.size() == 0 || programIds.size() == 0 )
+        {
+            return trackedEntityProgramOwnerOrgUnits;
+        }
+
+        Iterable<List<Long>> teiIdsPartitions = Iterables.partition( teiIds, 20000 );
+
+        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit(tepo.entityInstance.uid, tepo.program.uid, tepo.organisationUnit) from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id in (:programIds)";
+
         Query<TrackedEntityProgramOwnerOrgUnit> q = getQuery( hql, TrackedEntityProgramOwnerOrgUnit.class );
 
-        List<TrackedEntityProgramOwnerOrgUnit> trackedEntityProgramOwnerOrgUnits = new ArrayList<>();
-        for ( List<Long> partition : teiIdsPartitions )
-        {
+        q.setParameter( "programIds", programIds );
+        teiIdsPartitions.forEach( partition -> {
             q.setParameterList( "teiIds", partition );
-
             trackedEntityProgramOwnerOrgUnits.addAll( q.list() );
-        }
+        } );
+
         return trackedEntityProgramOwnerOrgUnits;
     }
 

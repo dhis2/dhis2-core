@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
@@ -164,7 +165,16 @@ public class TrackerImportValidationContext
 
     public OrganisationUnit getOwnerOrganisationUnit( String teiUid, String programUid )
     {
-        return bundle.getPreheat().getProgramOwner().get( teiUid ).get( programUid ).getOrganisationUnit();
+        Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner = bundle.getPreheat().getProgramOwner()
+            .get( teiUid );
+        if ( programOwner == null || programOwner.get( programUid ) == null )
+        {
+            return null;
+        }
+        else
+        {
+            return programOwner.get( programUid ).getOrganisationUnit();
+        }
     }
 
     public boolean programInstanceHasEvents( String programInstanceUid )

@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.service;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.OWNER_ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
@@ -124,8 +123,9 @@ public class DefaultTrackerImportAccessManager
                 .addArg( program.getTrackedEntityType() ) );
         }
 
-        if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, ownerOrganisationUnit,
-            program ) )
+        if ( ownerOrganisationUnit != null
+            && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, ownerOrganisationUnit,
+                program ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1102 )
                 .addArg( user )
@@ -166,7 +166,6 @@ public class DefaultTrackerImportAccessManager
         checkNotNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
         checkNotNull( programStage.getProgram(), PROGRAM_CANT_BE_NULL );
         checkNotNull( eventOrgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
-        checkNotNull( ownerOrgUnit, OWNER_ORGANISATION_UNIT_CANT_BE_NULL );
 
         if ( isCreatableInSearchScope ? !organisationUnitService.isInUserSearchHierarchyCached( user, eventOrgUnit )
             : !organisationUnitService.isInUserHierarchyCached( user, eventOrgUnit ) )
