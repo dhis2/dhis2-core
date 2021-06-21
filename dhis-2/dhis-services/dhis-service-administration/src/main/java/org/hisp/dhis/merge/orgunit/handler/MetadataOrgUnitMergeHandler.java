@@ -49,7 +49,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * Merge handler for metadata objects.
+ * Merge handler for metadata entities.
  *
  * @author Lars Helge Overland
  */

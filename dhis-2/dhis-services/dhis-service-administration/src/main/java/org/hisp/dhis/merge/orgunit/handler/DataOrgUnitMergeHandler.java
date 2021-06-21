@@ -50,6 +50,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
 
+/**
+ * Merge handler for data entities.
+ *
+ * @author Lars Helge Overland
+ */
 @Service
 @Transactional
 @AllArgsConstructor

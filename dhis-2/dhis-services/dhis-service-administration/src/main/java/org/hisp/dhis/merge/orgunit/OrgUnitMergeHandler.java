@@ -28,6 +28,8 @@
 package org.hisp.dhis.merge.orgunit;
 
 /**
+ * Functional interface for an org unit merge operation.
+ *
  * @author Lars Helge Overland
  */
 @FunctionalInterface

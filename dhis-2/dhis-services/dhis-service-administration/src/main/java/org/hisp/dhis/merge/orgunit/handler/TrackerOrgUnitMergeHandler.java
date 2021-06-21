@@ -36,6 +36,11 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.springframework.stereotype.Service;
 
+/**
+ * Merge handler for tracker entities.
+ *
+ * @author Lars Helge Overland
+ */
 @Service
 @AllArgsConstructor
 public class TrackerOrgUnitMergeHandler

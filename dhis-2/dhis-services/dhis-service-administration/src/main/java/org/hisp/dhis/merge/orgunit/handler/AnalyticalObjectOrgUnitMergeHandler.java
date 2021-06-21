@@ -44,9 +44,7 @@ import org.hisp.dhis.visualization.VisualizationService;
 import org.springframework.stereotype.Service;
 
 /**
- * Merge handler for analytical object entities. Note that this class uses the
- * store layer for certain entities as this project does not have access to the
- * corresponding services.
+ * Merge handler for analytical object entities.
  *
  * @author Lars Helge Overland
  */
