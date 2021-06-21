@@ -46,7 +46,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "trackedEntityProgramOwner", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityProgramOwner implements Serializable
 {
-    private long id;
+    private int id;
 
     private TrackedEntityInstance entityInstance;
 
@@ -223,12 +223,12 @@ public class TrackedEntityProgramOwner implements Serializable
         this.createdBy = createdBy;
     }
 
-    public long getId()
+    public int getId()
     {
         return id;
     }
 
-    public void setId( long id )
+    public void setId( int id )
     {
         this.id = id;
     }
