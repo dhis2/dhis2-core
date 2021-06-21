@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit;
+package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.mock;
 
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.merge.orgunit.handler.MetadataOrgUnitMergeHandler;
+import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.user.UserService;
