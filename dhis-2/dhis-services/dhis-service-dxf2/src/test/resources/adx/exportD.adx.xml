@@ -1,0 +1,5 @@
+<adx xmlns="urn:ihe:qrph:adx:2015">
+    <group dataSet="MalariaMech" period="2020-01-01/P1M" orgUnit="District Hospital" mechanismmm="McDonalds mechanism">
+        <dataValue dataElement="Mal_num" ageeeeeeeee="Over 5" sexxxxxxxxx="Male" value="2"/>
+    </group>
+</adx>
