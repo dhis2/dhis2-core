@@ -249,10 +249,10 @@ class GistPlanner
     }
 
     @SuppressWarnings( "unchecked" )
-    private boolean canRead( Schema schema, String name )
+    private boolean canRead( Schema schema, String path )
     {
         return !schema.isIdentifiableObject()
-            || access.canRead( (Class<? extends IdentifiableObject>) schema.getKlass(), name );
+            || access.canRead( (Class<? extends IdentifiableObject>) schema.getKlass(), path );
     }
 
     private List<Field> withDisplayAsTranslatedFields( List<Field> fields )
