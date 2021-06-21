@@ -103,10 +103,23 @@ public class DashboardController
     }
 
     @Override
-    protected void preUpdateEntity( Dashboard dashboard, Dashboard newDashboard )
+    protected void preCreateEntity( final Dashboard dashboard )
         throws WebMessageException
     {
-        if ( !hasDashboardItemsTypeSet( newDashboard.getItems() ) )
+        checkPreConditions( dashboard );
+    }
+
+    @Override
+    protected void preUpdateEntity( final Dashboard dashboard, final Dashboard newDashboard )
+        throws WebMessageException
+    {
+        checkPreConditions( newDashboard );
+    }
+
+    private void checkPreConditions( final Dashboard dashboard )
+        throws WebMessageException
+    {
+        if ( !hasDashboardItemsTypeSet( dashboard.getItems() ) )
         {
             throw new WebMessageException(
                 WebMessageUtils.conflict( "Dashboard item does not have any type associated." ) );
@@ -120,7 +133,8 @@ public class DashboardController
             for ( final DashboardItem item : items )
             {
                 final boolean hasAssociatedType = item != null
-                    && (item.getLinkItems() != null || item.getEmbeddedItem() != null || item.getText() != null);
+                    && (item.getLinkItems() != null || item.getEmbeddedItem() != null || item.getText() != null
+                        || item.getMessages() != null);
 
                 final boolean hasType = item != null && item.getType() != null;
 
