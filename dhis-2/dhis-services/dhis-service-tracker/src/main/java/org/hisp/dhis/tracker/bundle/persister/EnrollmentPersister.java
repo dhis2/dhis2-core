@@ -35,7 +35,7 @@ import java.util.Objects;
 import org.hibernate.Session;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -60,19 +60,20 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
 
     private final TrackerSideEffectConverterService sideEffectConverterService;
 
-    private final TrackerOwnershipManager trackerOwnershipManager;
+    private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
     public EnrollmentPersister( ReservedValueService reservedValueService,
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentConverter,
         TrackedEntityCommentService trackedEntityCommentService,
-        TrackerSideEffectConverterService sideEffectConverterService, TrackerOwnershipManager trackerOwnershipManager )
+        TrackerSideEffectConverterService sideEffectConverterService,
+        TrackedEntityProgramOwnerService trackedEntityProgramOwnerService )
     {
         super( reservedValueService );
 
         this.enrollmentConverter = enrollmentConverter;
         this.trackedEntityCommentService = trackedEntityCommentService;
         this.sideEffectConverterService = sideEffectConverterService;
-        this.trackerOwnershipManager = trackerOwnershipManager;
+        this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
     }
 
     @Override
@@ -152,8 +153,13 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
     {
         if ( isNew( preheat, entity.getUid() ) )
         {
-            trackerOwnershipManager.assignOwnership( entity.getEntityInstance(), entity.getProgram(),
-                entity.getOrganisationUnit(), false, true );
+            if ( preheat.getProgramOwner().get( entity.getEntityInstance().getUid() ) == null
+                || preheat.getProgramOwner().get( entity.getEntityInstance().getUid() )
+                    .get( entity.getProgram().getUid() ) == null )
+            {
+                trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entity.getEntityInstance(),
+                    entity.getProgram(), entity.getOrganisationUnit() );
+            }
         }
     }
 }

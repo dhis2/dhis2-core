@@ -139,7 +139,7 @@ public class HibernateTrackedEntityProgramOwnerStore
 
         Iterable<List<Long>> teiIdsPartitions = Iterables.partition( teiIds, 20000 );
 
-        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit(tepo.entityInstance.uid, tepo.program.uid, tepo.organisationUnit) from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id in (:programIds)";
+        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit(tepo.id, tepo.entityInstance.uid, tepo.program.uid, tepo.organisationUnit) from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id in (:programIds)";
 
         Query<TrackedEntityProgramOwnerOrgUnit> q = getQuery( hql, TrackedEntityProgramOwnerOrgUnit.class );
 

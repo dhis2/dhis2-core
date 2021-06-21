@@ -31,15 +31,19 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 public class TrackedEntityProgramOwnerOrgUnit
 {
+
+    private final long id;
+
     private final String trackedEntityInstanceId;
 
     private final String programId;
 
     private final OrganisationUnit organisationUnit;
 
-    public TrackedEntityProgramOwnerOrgUnit( String trackedEntityInstanceId, String programId,
+    public TrackedEntityProgramOwnerOrgUnit( long id, String trackedEntityInstanceId, String programId,
         OrganisationUnit organisationUnit )
     {
+        this.id = id;
         this.trackedEntityInstanceId = trackedEntityInstanceId;
         this.programId = programId;
         this.organisationUnit = organisationUnit;
