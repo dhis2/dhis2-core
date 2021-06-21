@@ -38,7 +38,6 @@ import static org.mockito.Mockito.*;
 import java.util.Collections;
 import java.util.List;
 
-import com.google.common.collect.ImmutableList;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -57,6 +56,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Luca Cambi
