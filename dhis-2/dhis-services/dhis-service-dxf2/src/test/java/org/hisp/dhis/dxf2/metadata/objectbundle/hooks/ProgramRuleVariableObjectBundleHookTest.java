@@ -38,6 +38,7 @@ import static org.mockito.Mockito.*;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.collect.ImmutableList;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -157,7 +158,7 @@ public class ProgramRuleVariableObjectBundleHookTest
         anotherExistingProgramRuleVariable.setUid( "uid2" );
 
         when( query.getResultList() )
-            .thenReturn( List.of( existingProgramRuleVariable, anotherExistingProgramRuleVariable ) );
+            .thenReturn( ImmutableList.of( existingProgramRuleVariable, anotherExistingProgramRuleVariable ) );
 
         when( programRuleVariable.getName() ).thenReturn( "word" );
         when( programRuleVariable.getUid() ).thenReturn( "uid1" );
