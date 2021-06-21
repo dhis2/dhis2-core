@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisTest;
@@ -57,6 +58,8 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -94,6 +97,9 @@ public class AdxDataServiceIntegrationTest
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    private OrganisationUnitGroupService organisationUnitGroupService;
 
     @Autowired
     private UserService _userService;
@@ -151,6 +157,8 @@ public class AdxDataServiceIntegrationTest
     private OrganisationUnit ouA;
 
     private OrganisationUnit ouB;
+
+    private OrganisationUnitGroup ougA;
 
     private User user;
 
@@ -353,6 +361,15 @@ public class AdxDataServiceIntegrationTest
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
 
+        // Organisation Unit Group
+
+        ougA = createOrganisationUnitGroup( 'A' );
+
+        ougA.addOrganisationUnit( ouA );
+        ougA.addOrganisationUnit( ouB );
+
+        organisationUnitGroupService.addOrganisationUnitGroup( ougA );
+
         // User & Current User Service
 
         user = createAndInjectAdminUser();
@@ -390,8 +407,11 @@ public class AdxDataServiceIntegrationTest
             null,
             Sets.newHashSet( ouA.getUid() ),
             true,
+            null,
+            null,
             false,
             now,
+            null,
             999,
             new IdSchemes() );
 
@@ -408,7 +428,10 @@ public class AdxDataServiceIntegrationTest
             .setDataSets( Sets.newHashSet( dsB ) )
             .setStartDate( then )
             .setEndDate( now )
+            .setLastUpdatedDuration( "10d" )
             .setOrganisationUnits( Sets.newHashSet( ouB ) )
+            .setOrganisationUnitGroups( Sets.newHashSet( ougA ) )
+            .setAttributeOptionCombos( Sets.newHashSet( cocMcDonalds ) )
             .setIncludeChildren( false )
             .setIncludeDeleted( true )
             .setLastUpdated( now )
@@ -421,8 +444,11 @@ public class AdxDataServiceIntegrationTest
             now,
             Sets.newHashSet( ouB.getCode() ),
             false,
+            Sets.newHashSet( ougA.getCode() ),
+            Sets.newHashSet( cocMcDonalds.getUid() ),
             true,
             now,
+            "10d",
             null,
             new IdSchemes().setIdScheme( "UID" ) );
 
@@ -457,7 +483,8 @@ public class AdxDataServiceIntegrationTest
                 .setDataSetIdScheme( "NAME" )
                 .setOrgUnitIdScheme( "UID" )
                 .setDataElementIdScheme( "UID" )
-                .setCategoryOptionComboIdScheme( "NAME" ) ) );
+                .setCategoryOptionComboIdScheme( "NAME" ) )
+            .setOrganisationUnitGroups( Sets.newHashSet( ougA ) ) );
     }
 
     @Test
@@ -473,6 +500,22 @@ public class AdxDataServiceIntegrationTest
                 .setCategoryIdScheme( "UID" )
                 .setCategoryOptionIdScheme( "NAME" ) )
             .setIncludeChildren( true ) );
+    }
+
+    @Test
+    public void testWriteDataValueSetD()
+        throws AdxException,
+        IOException
+    {
+        testExport( "adx/exportD.adx.xml", getCommonExportParams()
+            .setOutputIdSchemes( new IdSchemes()
+                .setDefaultIdScheme( CODE )
+                .setDataSetIdScheme( "UID" )
+                .setOrgUnitIdScheme( "NAME" )
+                .setCategoryIdScheme( "UID" )
+                .setCategoryOptionIdScheme( "NAME" ) )
+            .setIncludeChildren( true )
+            .setAttributeOptionCombos( Sets.newHashSet( cocMcDonalds ) ) );
     }
 
     // --------------------------------------------------------------------------
@@ -524,7 +567,7 @@ public class AdxDataServiceIntegrationTest
         return new DataExportParams()
             .setOrganisationUnits( Sets.newHashSet( ouA ) )
             .setPeriods( Sets.newHashSet( pe202001, pe202002 ) )
-            .setDataSets( Sets.newHashSet( dsA ) );
+            .setDataSets( Sets.newHashSet( dsA, dsB ) );
     }
 
     private void testExport( String filePath, DataExportParams params )
@@ -533,7 +576,8 @@ public class AdxDataServiceIntegrationTest
     {
         dataValueService.addDataValue( new DataValue( deA, pe202001, ouA, cocFUnder5, cocDefault, "1" ) );
         dataValueService.addDataValue( new DataValue( deB, pe202002, ouA, cocDefault, cocDefault, "Some text" ) );
-        dataValueService.addDataValue( new DataValue( deA, pe202001, ouB, cocFUnder5, cocDefault, "2" ) );
+        dataValueService.addDataValue( new DataValue( deA, pe202001, ouB, cocMOver5, cocMcDonalds, "2" ) );
+        dataValueService.addDataValue( new DataValue( deA, pe202001, ouB, cocFOver5, cocPepfar, "3" ) );
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -546,7 +590,13 @@ public class AdxDataServiceIntegrationTest
         String expected = new BufferedReader( new InputStreamReader( expectedStream ) )
             .lines().map( String::trim ).collect( Collectors.joining() );
 
-        assertEquals( expected, result );
+        assertEquals( adxGroups( expected ), adxGroups( result ) );
+    }
+
+    // The adx groups could be in any order, but each contains only one value
+    private Set<String> adxGroups( String adx )
+    {
+        return Sets.newHashSet( adx.split( "</*group" ) );
     }
 
     private void testImport( String filePath, IdSchemes idSchemes )
