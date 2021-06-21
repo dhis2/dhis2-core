@@ -151,7 +151,7 @@ public class ExpressionFunctions
     }
 
     /**
-     * Function which will return the number of days between the two given
+     * Function which will return the number of years between the two given
      * dates.
      *
      * @param start the start date.
