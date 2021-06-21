@@ -99,13 +99,15 @@ public class OrgUnitMergeRequest
 
         public Builder withDataValueMergeStrategy( DataMergeStrategy dataValueMergeStrategy )
         {
-            this.request.dataValueMergeStrategy = dataValueMergeStrategy;
+            this.request.dataValueMergeStrategy = firstNonNull(
+                dataValueMergeStrategy, this.request.dataValueMergeStrategy );
             return this;
         }
 
         public Builder withDataApprovalMergeStrategy( DataMergeStrategy dataApprovalMergeStrategy )
         {
-            this.request.dataApprovalMergeStrategy = dataApprovalMergeStrategy;
+            this.request.dataApprovalMergeStrategy = firstNonNull(
+                dataApprovalMergeStrategy, this.request.dataApprovalMergeStrategy );
             return this;
         }
 
