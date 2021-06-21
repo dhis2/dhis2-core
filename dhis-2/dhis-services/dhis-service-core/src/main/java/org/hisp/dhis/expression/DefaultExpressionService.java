@@ -82,6 +82,7 @@ import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
@@ -598,7 +599,7 @@ public class DefaultExpressionService
             visitor.setDays( Double.valueOf( days ) );
         }
 
-        Object value = visit( expression, parseType.getDataType(), visitor, true );
+        Object value = visit( getNormalizedExpression( expression ), parseType.getDataType(), visitor, true );
 
         int itemsFound = visitor.getItemsFound();
         int itemValuesFound = visitor.getItemValuesFound();
@@ -635,6 +636,12 @@ public class DefaultExpressionService
         }
 
         return value;
+    }
+
+    private String getNormalizedExpression( String expression )
+    {
+        String toRemove = StringUtils.substringBetween( expression, ".", ":" ) + ":";
+        return StringUtils.remove( expression, toRemove );
     }
 
     // -------------------------------------------------------------------------

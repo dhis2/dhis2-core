@@ -33,6 +33,7 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import java.util.Objects;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -74,6 +75,10 @@ public class DataElementOperand
 
     private CategoryOptionCombo attributeOptionCombo;
 
+    private CategoryOption categoryOption;
+
+    private CategoryOption attributeOption;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -100,6 +105,14 @@ public class DataElementOperand
         this.dataElement = dataElement;
         this.categoryOptionCombo = categoryOptionCombo;
         this.attributeOptionCombo = attributeOptionCombo;
+    }
+
+    public DataElementOperand( DataElement dataElement, CategoryOption categoryOption,
+        CategoryOption attributeOption )
+    {
+        this.dataElement = dataElement;
+        this.categoryOption = categoryOption;
+        this.attributeOption = attributeOption;
     }
 
     // -------------------------------------------------------------------------
@@ -133,6 +146,20 @@ public class DataElementOperand
             if ( attributeOptionCombo != null )
             {
                 item += SEPARATOR + attributeOptionCombo.getPropertyValue( idScheme );
+            }
+
+            if ( categoryOption != null )
+            {
+                item += SEPARATOR + categoryOption.getPropertyValue( idScheme );
+            }
+            else if ( attributeOption != null )
+            {
+                item += SEPARATOR + SYMBOL_WILDCARD;
+            }
+
+            if ( attributeOption != null )
+            {
+                item += SEPARATOR + attributeOption.getPropertyValue( idScheme );
             }
         }
 
@@ -169,6 +196,10 @@ public class DataElementOperand
         {
             uid += SEPARATOR + categoryOptionCombo.getUid();
         }
+        else if ( categoryOption != null && !categoryOption.isDefault() )
+        {
+            uid += SEPARATOR + categoryOption.getUid();
+        }
 
         return uid;
     }
@@ -188,18 +219,42 @@ public class DataElementOperand
             name = dataElement.getName();
         }
 
-        if ( hasNonDefaultCategoryOptionCombo() )
+        if ( categoryOptionCombo != null )
         {
-            name += SPACE + categoryOptionCombo.getName();
+            if ( hasNonDefaultCategoryOptionCombo() )
+            {
+                name += SPACE + categoryOptionCombo.getName();
+            }
+            else if ( hasNonDefaultAttributeOptionCombo() )
+            {
+                name += SPACE + SYMBOL_WILDCARD;
+            }
         }
-        else if ( hasNonDefaultAttributeOptionCombo() )
+        else if ( categoryOption != null )
         {
-            name += SPACE + SYMBOL_WILDCARD;
+            if ( hasNonDefaultCategoryOption() )
+            {
+                name += SPACE + categoryOption.getName();
+            }
+            else if ( hasNonDefaultAttributeOption() )
+            {
+                name += SPACE + SYMBOL_WILDCARD;
+            }
         }
 
-        if ( hasNonDefaultAttributeOptionCombo() )
+        if ( attributeOptionCombo != null )
         {
-            name += SPACE + attributeOptionCombo.getName();
+            if ( hasNonDefaultAttributeOptionCombo() )
+            {
+                name += SPACE + attributeOptionCombo.getName();
+            }
+        }
+        else if ( attributeOption != null )
+        {
+            if ( hasNonDefaultAttributeOption() )
+            {
+                name += SPACE + attributeOption.getName();
+            }
         }
 
         return name;
@@ -215,20 +270,38 @@ public class DataElementOperand
             shortName = dataElement.getShortName();
         }
 
-        if ( hasNonDefaultCategoryOptionCombo() )
+        if ( categoryOptionCombo != null )
         {
-            shortName += SPACE + categoryOptionCombo.getShortName();
-        }
-        else if ( hasNonDefaultAttributeOptionCombo() )
-        {
-            shortName += SPACE + SYMBOL_WILDCARD;
-        }
+            if ( hasNonDefaultCategoryOptionCombo() )
+            {
+                shortName += SPACE + categoryOptionCombo.getShortName();
+            }
+            else if ( hasNonDefaultAttributeOptionCombo() )
+            {
+                shortName += SPACE + SYMBOL_WILDCARD;
+            }
 
-        if ( hasNonDefaultAttributeOptionCombo() )
-        {
-            shortName += SPACE + attributeOptionCombo.getName();
+            if ( hasNonDefaultAttributeOptionCombo() )
+            {
+                shortName += SPACE + attributeOptionCombo.getName();
+            }
         }
+        else if ( categoryOption != null )
+        {
+            if ( hasNonDefaultCategoryOption() )
+            {
+                shortName += SPACE + categoryOption.getShortName();
+            }
+            else if ( hasNonDefaultAttributeOption() )
+            {
+                shortName += SPACE + SYMBOL_WILDCARD;
+            }
 
+            if ( hasNonDefaultAttributeOption() )
+            {
+                shortName += SPACE + attributeOption.getName();
+            }
+        }
         return shortName;
     }
 
@@ -317,7 +390,8 @@ public class DataElementOperand
      */
     public boolean isTotal()
     {
-        return categoryOptionCombo == null && attributeOptionCombo == null;
+        return categoryOptionCombo == null && attributeOptionCombo == null
+            && categoryOption == null && attributeOption == null;
     }
 
     /**
@@ -336,6 +410,24 @@ public class DataElementOperand
     public boolean hasNonDefaultAttributeOptionCombo()
     {
         return attributeOptionCombo != null && !attributeOptionCombo.isDefault();
+    }
+
+    /**
+     * Indicates whether a category option combination exists which is different
+     * from default.
+     */
+    public boolean hasNonDefaultCategoryOption()
+    {
+        return categoryOption != null && !categoryOption.isDefault();
+    }
+
+    /**
+     * Indicates whether an attribute option combination exists which is
+     * different from default.
+     */
+    public boolean hasNonDefaultAttributeOption()
+    {
+        return attributeOption != null && !attributeOption.isDefault();
     }
 
     // -------------------------------------------------------------------------
@@ -371,6 +463,19 @@ public class DataElementOperand
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public CategoryOption getCategoryOption()
+    {
+        return categoryOption;
+    }
+
+    public void setCategoryOption( CategoryOption categoryOption )
+    {
+        this.categoryOption = categoryOption;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public CategoryOptionCombo getAttributeOptionCombo()
     {
         return attributeOptionCombo;
@@ -379,6 +484,19 @@ public class DataElementOperand
     public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
     {
         this.attributeOptionCombo = attributeOptionCombo;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public CategoryOption getAttributeOption()
+    {
+        return attributeOption;
+    }
+
+    public void setAttributeOption( CategoryOption attributeOption )
+    {
+        this.attributeOption = attributeOption;
     }
 
     // -------------------------------------------------------------------------
@@ -403,7 +521,9 @@ public class DataElementOperand
     @Override
     public int hashCode()
     {
-        return Objects.hash( super.hashCode(), dataElement, categoryOptionCombo, attributeOptionCombo );
+        return Objects.hash( super.hashCode(), dataElement,
+            categoryOptionCombo != null ? categoryOptionCombo : categoryOption,
+            attributeOptionCombo != null ? attributeOptionCombo : attributeOption );
     }
 
     @Override
@@ -416,6 +536,8 @@ public class DataElementOperand
             "\"dataElement\":" + dataElement + ", " +
             "\"categoryOptionCombo\":" + categoryOptionCombo +
             "\"attributeOptionCombo\":" + attributeOptionCombo +
+            "\"categoryOption\":" + categoryOption +
+            "\"attributeOption\":" + attributeOption +
             '}';
     }
 
@@ -425,14 +547,21 @@ public class DataElementOperand
 
     public enum TotalType
     {
-        COC_ONLY( true, false, 1 ),
-        AOC_ONLY( false, true, 1 ),
-        COC_AND_AOC( true, true, 2 ),
-        NONE( false, false, 0 );
+        COC_ONLY( true, false, false, false, 1 ),
+        AOC_ONLY( false, true, false, false, 1 ),
+        COC_AND_AOC( true, true, false, false, 2 ),
+        CO_ONLY( false, false, true, false, 1 ),
+        AO_ONLY( false, false, false, true, 1 ),
+        CO_AND_AO( false, false, true, true, 2 ),
+        NONE( false, false, false, false, 0 );
 
         private boolean coc;
 
         private boolean aoc;
+
+        private boolean co;
+
+        private boolean ao;
 
         private int propertyCount;
 
@@ -440,10 +569,12 @@ public class DataElementOperand
         {
         }
 
-        TotalType( boolean coc, boolean aoc, int propertyCount )
+        TotalType( boolean coc, boolean aoc, boolean co, boolean ao, int propertyCount )
         {
             this.coc = coc;
             this.aoc = aoc;
+            this.co = co;
+            this.ao = ao;
             this.propertyCount = propertyCount;
         }
 
@@ -452,9 +583,19 @@ public class DataElementOperand
             return coc;
         }
 
+        public boolean isCategoryOption()
+        {
+            return co;
+        }
+
         public boolean isAttributeOptionCombo()
         {
             return aoc;
+        }
+
+        public boolean isAttributeOption()
+        {
+            return ao;
         }
 
         public int getPropertyCount()
@@ -476,6 +617,18 @@ public class DataElementOperand
         else if ( attributeOptionCombo != null )
         {
             return TotalType.AOC_ONLY;
+        }
+        else if ( categoryOption != null && attributeOption != null )
+        {
+            return TotalType.CO_AND_AO;
+        }
+        else if ( categoryOption != null )
+        {
+            return TotalType.CO_ONLY;
+        }
+        else if ( attributeOption != null )
+        {
+            return TotalType.AO_ONLY;
         }
         else
         {

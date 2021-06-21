@@ -127,6 +127,10 @@ public class JdbcAnalyticsTableManager
             .withIndexColumns( newArrayList( quote( "dx" ), quote( "co" ) ) ),
         new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" )
             .withIndexColumns( newArrayList( quote( "dx" ), quote( "ao" ) ) ),
+        new AnalyticsTableColumn( quote( "cao" ), CHARACTER_11, NOT_NULL, "cao.uid" )
+            .withIndexColumns( newArrayList( quote( "dx" ), quote( "cao" ) ) ),
+        new AnalyticsTableColumn( quote( "ato" ), CHARACTER_11, NOT_NULL, "ato.uid" )
+            .withIndexColumns( newArrayList( quote( "dx" ), quote( "ato" ) ) ),
         new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ),
         new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ),
         new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ),
@@ -312,6 +316,12 @@ public class JdbcAnalyticsTableManager
             "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid " +
             "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid " +
+            "inner join categoryoptioncombos_categoryoptions coc_co on coc_co.categoryoptioncomboid = dv.categoryoptioncomboid "
+            +
+            "inner join categoryoptioncombos_categoryoptions coc_ao on coc_ao.categoryoptioncomboid = dv.attributeoptioncomboid "
+            +
+            "inner join dataelementcategoryoption cao on cao.categoryoptionid = coc_co.categoryoptionid " +
+            "inner join dataelementcategoryoption ato on ato.categoryoptionid = coc_ao.categoryoptionid " +
 
             approvalClause +
             "where de.valuetype in (" + valTypes + ") " +
@@ -376,7 +386,7 @@ public class JdbcAnalyticsTableManager
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        String idColAlias = "(de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid) as id ";
+        String idColAlias = "(de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid || '-' || cao.uid || '-' || ato.uid) as id ";
         columns.add( new AnalyticsTableColumn( quote( "id" ), ColumnDataType.TEXT, idColAlias ) );
 
         List<DataElementGroupSet> dataElementGroupSets = idObjectManager

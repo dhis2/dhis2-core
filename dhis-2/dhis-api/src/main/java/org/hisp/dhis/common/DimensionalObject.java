@@ -60,6 +60,10 @@ public interface DimensionalObject
 
     String ATTRIBUTEOPTIONCOMBO_DIM_ID = "ao";
 
+    String CATEGORYOPTION_DIM_ID = "cao";
+
+    String ATTRIBUTEOPTION_DIM_ID = "ato";
+
     String PERIOD_DIM_ID = "pe";
 
     String ORGUNIT_DIM_ID = "ou";
@@ -88,6 +92,7 @@ public interface DimensionalObject
     Map<String, String> PRETTY_NAMES = DimensionalObjectUtils.asMap(
         DATA_X_DIM_ID, "Data",
         CATEGORYOPTIONCOMBO_DIM_ID, "Data details",
+        CATEGORYOPTION_DIM_ID, "Option details",
         PERIOD_DIM_ID, "Period",
         ORGUNIT_DIM_ID, "Organisation unit" );
 

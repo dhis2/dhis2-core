@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
 import org.hisp.dhis.dataelement.DataElement;
@@ -560,6 +561,48 @@ public class DimensionalObjectUtils
                 CategoryOptionCombo aoc = o.getAttributeOptionCombo();
                 aoc.setPeriodOffset( o.getPeriodOffset() );
                 return aoc;
+
+            } )
+            .collect( Collectors.toSet() );
+    }
+
+    /**
+     * Gets a set of unique category options based on the given collection of
+     * operands.
+     *
+     * @param operands the collection of operands.
+     * @return a set of category option combinations.
+     */
+    public static Set<DimensionalItemObject> getCategoryOptions( Collection<DataElementOperand> operands )
+    {
+        return operands.stream()
+            .filter( o -> o.getCategoryOption() != null )
+            .map( o -> {
+
+                CategoryOption co = o.getCategoryOption();
+                co.setPeriodOffset( o.getPeriodOffset() );
+                return co;
+
+            } )
+            .collect( Collectors.toSet() );
+    }
+
+    /**
+     * Gets a set of unique attribute options based on the given collection of
+     * operands.
+     *
+     * @param operands the collection of operands.
+     * @return a set of category option combinations.
+     */
+    public static Set<DimensionalItemObject> getAttributeOptions( Collection<DataElementOperand> operands )
+    {
+        return operands.stream()
+            .filter( o -> o.getAttributeOptionCombo() != null )
+            .map( o -> {
+
+                CategoryOption ao = o.getAttributeOption();
+                ao.setPeriodOffset( o.getPeriodOffset() );
+                return ao;
 
             } )
             .collect( Collectors.toSet() );

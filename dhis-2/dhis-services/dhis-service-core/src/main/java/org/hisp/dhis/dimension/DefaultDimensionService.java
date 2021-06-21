@@ -458,11 +458,11 @@ public class DefaultDimensionService
                 atomicIds.putValue( DataElement.class, id.getId0() );
                 if ( id.getId1() != null )
                 {
-                    atomicIds.putValue( CategoryOptionCombo.class, id.getId1() );
+                    atomicIds.putValue( getAtomicIdClass( id.getId1() ), getAtomicId( id.getId1() ) );
                 }
                 if ( id.getId2() != null )
                 {
-                    atomicIds.putValue( CategoryOptionCombo.class, id.getId2() );
+                    atomicIds.putValue( getAtomicIdClass( id.getId2() ), getAtomicId( id.getId2() ) );
                 }
                 break;
 
@@ -495,6 +495,43 @@ public class DefaultDimensionService
         }
 
         return atomicIds;
+    }
+
+    private String getAtomicId( String id )
+    {
+        if ( id == null )
+        {
+            return null;
+        }
+        String[] tokens = id.split( ":" );
+
+        if ( tokens.length < 2 )
+        {
+            return id;
+        }
+
+        return tokens[1];
+    }
+
+    private Class<? extends IdentifiableObject> getAtomicIdClass( String id )
+    {
+        if ( id == null )
+        {
+            return null;
+        }
+
+        String[] tokens = id.split( ":" );
+
+        if ( tokens.length < 2 )
+        {
+            return CategoryOptionCombo.class;
+        }
+
+        if ( "co".equals( tokens[0] ) )
+        {
+            return CategoryOption.class;
+        }
+        return CategoryOptionCombo.class;
     }
 
     /**
@@ -579,16 +616,32 @@ public class DefaultDimensionService
 
             case DATA_ELEMENT_OPERAND:
                 dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
+
                 CategoryOptionCombo categoryOptionCombo = id.getId1() == null ? null
-                    : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId1() );
+                    : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class,
+                        getAtomicId( id.getId1() ) );
                 CategoryOptionCombo attributeOptionCombo = id.getId2() == null ? null
-                    : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId2() );
+                    : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class,
+                        getAtomicId( id.getId2() ) );
+
+                CategoryOption categoryOption = id.getId1() == null ? null
+                    : (CategoryOption) atomicObjects.getValue( CategoryOption.class, getAtomicId( id.getId1() ) );
+                CategoryOption attributeOption = id.getId2() == null ? null
+                    : (CategoryOption) atomicObjects.getValue( CategoryOption.class, getAtomicId( id.getId2() ) );
+
                 if ( dataElement != null &&
                     (id.getId1() != null) == (categoryOptionCombo != null) &&
                     (id.getId2() != null) == (attributeOptionCombo != null) )
                 {
                     dimensionalItemObject = new DataElementOperand( dataElement, categoryOptionCombo,
                         attributeOptionCombo );
+                }
+                else if ( dataElement != null &&
+                    (id.getId1() != null) == (categoryOption != null) &&
+                    (id.getId2() != null) == (attributeOption != null) )
+                {
+                    dimensionalItemObject = new DataElementOperand( dataElement, categoryOption,
+                        attributeOption );
                 }
                 break;
 

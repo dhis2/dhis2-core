@@ -71,24 +71,9 @@ import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DataDimensionItemType.VALIDATION_RULE;
-import static org.hisp.dhis.common.DimensionType.ATTRIBUTE_OPTION_COMBO;
-import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_COMBO;
-import static org.hisp.dhis.common.DimensionType.DATA_X;
-import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
-import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT_GROUP;
-import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
-import static org.hisp.dhis.common.DimensionalObjectUtils.convertToDimItemValueMap;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getAttributeOptionCombos;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getCategoryOptionCombos;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElements;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItem;
-import static org.hisp.dhis.common.DimensionalObjectUtils.replaceOperandTotalsWithDataElements;
+import static org.hisp.dhis.common.DimensionType.*;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.*;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
@@ -726,6 +711,8 @@ public class DataHandler
         List<DimensionalItemObject> dataElements = newArrayList( getDataElements( operands ) );
         List<DimensionalItemObject> categoryOptionCombos = newArrayList( getCategoryOptionCombos( operands ) );
         List<DimensionalItemObject> attributeOptionCombos = newArrayList( getAttributeOptionCombos( operands ) );
+        List<DimensionalItemObject> categoryOptions = newArrayList( getCategoryOptions( operands ) );
+        List<DimensionalItemObject> attributeOptions = newArrayList( getAttributeOptions( operands ) );
 
         // TODO Check if data was dim or filter
 
@@ -738,11 +725,21 @@ public class DataHandler
             builder.addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID,
                 CATEGORY_OPTION_COMBO, categoryOptionCombos ) );
         }
+        else if ( totalType.isCategoryOption() )
+        {
+            builder.addDimension( new BaseDimensionalObject( CATEGORYOPTION_DIM_ID,
+                CATEGORY_OPTION, categoryOptions ) );
+        }
 
         if ( totalType.isAttributeOptionCombo() )
         {
             builder.addDimension( new BaseDimensionalObject( ATTRIBUTEOPTIONCOMBO_DIM_ID,
                 ATTRIBUTE_OPTION_COMBO, attributeOptionCombos ) );
+        }
+        else if ( totalType.isAttributeOption() )
+        {
+            builder.addDimension( new BaseDimensionalObject( ATTRIBUTEOPTION_DIM_ID,
+                ATTRIBUTE_OPTION, attributeOptions ) );
         }
 
         DataQueryParams operandParams = builder.build();
