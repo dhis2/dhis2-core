@@ -82,8 +82,9 @@ public interface AdxDataService
     // --------------------------------------------------------------------------
 
     DataExportParams getFromUrl( Set<String> dataSets, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, Integer limit,
-        IdSchemes outputIdSchemes );
+        Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups,
+        Set<String> attributeOptionCombos, boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration,
+        Integer limit, IdSchemes outputIdSchemes );
 
     /**
      * Post data. Takes ADX Data from input stream and saves a series of DXF2
@@ -101,9 +102,8 @@ public interface AdxDataService
     /**
      * Get data. Writes adx export data to output stream.
      *
-     * @param in the InputStream.
-     * @param importOptions the importOptions.
-     * @param id the task id, can be null.
+     * @param params the data export params.
+     * @param out the output stream to write to.
      *
      * @return an ImportSummaries collection of ImportSummary for each
      *         DataValueSet.
@@ -111,5 +111,4 @@ public interface AdxDataService
      */
     void writeDataValueSet( DataExportParams params, OutputStream out )
         throws AdxException;
-
 }

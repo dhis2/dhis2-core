@@ -7,4 +7,10 @@
             <annotation>Some text</annotation>
         </dataValue>
     </group>
+    <group dataSet="Malaria Mechanism DS" period="2020-01-01/P1M" orgUnit="D4566666666" mechanism="McDonalds">
+        <dataValue dataElement="MalNummmmmm" sex="M" age="over5" value="2"/>
+    </group>
+    <group dataSet="Malaria Mechanism DS" period="2020-01-01/P1M" orgUnit="D4566666666" mechanism="PEPFAR">
+        <dataValue dataElement="MalNummmmmm" sex="F" age="over5" value="3"/>
+    </group>
 </adx>
