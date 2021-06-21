@@ -206,24 +206,7 @@ class GistPlanner
                             {
                                 expanded.add( new Field( p.key(), Transform.AUTO ) );
                             }
-                            Schema propertySchema = context.switchedTo( p.getKlass() ).getHome();
-                            if ( isPersistentReferenceField( p ) && propertySchema.getRelativeApiEndpoint() == null )
-                            {
-                                // reference to an object with no endpoint API
-                                // => include its fields
-                                propertySchema.getProperties().stream()
-                                    .filter( getPresetFilter( path ) )
-                                    .filter( getAccessFilter( propertySchema ) )
-                                    .sorted( GistPlanner::propertyTypeOrder )
-                                    .forEach( rp -> {
-                                        String referencePath = p.key() + "." + rp.key();
-                                        if ( access.canRead( (Class<? extends IdentifiableObject>) schema.getKlass(),
-                                            referencePath ) )
-                                        {
-                                            expanded.add( new Field( referencePath, Transform.AUTO ) );
-                                        }
-                                    } );
-                            }
+                            addReferenceFields( expanded, path, schema, p );
                         }
                     } );
             }
@@ -239,12 +222,37 @@ class GistPlanner
         return expanded;
     }
 
-    @SuppressWarnings( "unchecked" )
+    private void addReferenceFields( List<Field> expanded, String path, Schema schema, Property p )
+    {
+        Schema propertySchema = context.switchedTo( p.getKlass() ).getHome();
+        if ( isPersistentReferenceField( p ) && propertySchema.getRelativeApiEndpoint() == null )
+        {
+            // reference to an object with no endpoint API
+            // => include its fields
+            propertySchema.getProperties().stream()
+                .filter( getPresetFilter( path ) )
+                .filter( getAccessFilter( propertySchema ) )
+                .sorted( GistPlanner::propertyTypeOrder )
+                .forEach( rp -> {
+                    String referencePath = p.key() + "." + rp.key();
+                    if ( canRead( schema, referencePath ) )
+                    {
+                        expanded.add( new Field( referencePath, Transform.AUTO ) );
+                    }
+                } );
+        }
+    }
+
     private Predicate<Property> getAccessFilter( Schema schema )
     {
+        return p -> canRead( schema, p.getName() );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private boolean canRead( Schema schema, String name )
+    {
         return !schema.isIdentifiableObject()
-            ? p -> true
-            : p -> access.canRead( (Class<? extends IdentifiableObject>) schema.getKlass(), p.getName() );
+            || access.canRead( (Class<? extends IdentifiableObject>) schema.getKlass(), name );
     }
 
     private List<Field> withDisplayAsTranslatedFields( List<Field> fields )
