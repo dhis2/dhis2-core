@@ -50,7 +50,9 @@ import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalService;
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockExceptionStore;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
@@ -621,6 +623,94 @@ public class DataValueSetImportValidatorTest
             context, dataValue.getPeriod(), dataValue.getDataElement() );
     }
 
+    @Test
+    public void testCheckDataValueNotAlreadyApproved()
+    {
+        DataValue dataValue = createRandomDataValue();
+
+        DataValueContext valueContext = createDataValueContext( dataValue ).build();
+        DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
+        DataApprovalWorkflow workflow = new DataApprovalWorkflow();
+        workflow.setUid( CodeGenerator.generateUid() );
+        dataSetContext.getDataSet().setWorkflow( workflow );
+        ImportContext context = createMinimalImportContext( valueContext )
+            .forceDataInput( false )
+            .build();
+        final String workflowPeriodAoc = workflow.getUid() + valueContext.getPeriod().getUid()
+            + valueContext.getAttrOptionCombo().getUid();
+        String key = valueContext.getOrgUnit().getUid() + workflowPeriodAoc;
+        context.getApprovalMap().put( key, true ); // already approved
+
+        assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
+        assertConflict( ErrorCode.E7642,
+            "Data is already approved for data set: `<object4>` period: `<object2>` organisation unit: `<object1>` attribute option combo: `<object3>`",
+            context, dataValue.getOrgUnit(), dataValue.getPeriod(), dataValue.getAttributeOptionCombo(),
+            dataSetContext.getDataSet().getUid() );
+    }
+
+    @Test
+    public void testCheckDataValuePeriodIsOpenNow()
+    {
+        DataValue dataValue = createRandomDataValue();
+
+        DataValueContext valueContext = createDataValueContext( dataValue ).build();
+        DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
+        ImportContext context = createMinimalImportContext( valueContext )
+            .forceDataInput( false )
+            .build();
+        DataInputPeriod inputPeriod = new DataInputPeriod();
+        inputPeriod.setPeriod( PeriodType.getPeriodFromIsoString( "2019" ) );
+        dataSetContext.getDataSet().setDataInputPeriods( singleton( inputPeriod ) );
+
+        assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
+        assertConflict( ErrorCode.E7643,
+            "Period: `<object1>` is not open for this data set at this time: `<object2>`",
+            context, dataValue.getPeriod(), dataSetContext.getDataSet().getUid() );
+    }
+
+    @Test
+    public void testCheckDataValueConformsToOpenPeriodsOfAssociatedDataSets()
+    {
+        DataValue dataValue = createRandomDataValue();
+
+        DataValueContext valueContext = createDataValueContext( dataValue ).build();
+        DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
+        ImportContext context = createMinimalImportContext( valueContext )
+            .forceDataInput( false )
+            .build();
+        String key = valueContext.getDataElement().getUid() + valueContext.getPeriod().getIsoDate();
+        context.getPeriodOpenForDataElement().put( key, false );
+
+        assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
+        assertConflict( ErrorCode.E7644,
+            "Period: `<object1>` does not conform to the open periods of associated data sets",
+            context, dataValue.getPeriod() );
+    }
+
+    @Test
+    public void testCheckDataValueFileResourceExists()
+    {
+        DataValue dataValue = createRandomDataValue();
+        dataValue.setValue( CodeGenerator.generateUid() );
+
+        DataValueContext valueContext = createDataValueContext( dataValue ).build();
+        valueContext.getDataElement().setValueType( ValueType.FILE_RESOURCE );
+        DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
+        ImportContext context = createMinimalImportContext( valueContext )
+            .forceDataInput( false )
+            .strategy( ImportStrategy.DELETE )
+            .build();
+
+        when( dataValueService.getDataValue( any( DataElement.class ), any( Period.class ),
+            any( OrganisationUnit.class ), any( CategoryOptionCombo.class ), any( CategoryOptionCombo.class ) ) )
+                .thenReturn( null );
+
+        assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
+        assertConflict( ErrorCode.E7645,
+            "No data value for file resource exist for the given combination for data element: `<object1>`",
+            context, dataValue.getDataElement() );
+    }
+
     private static void assertConflict( ErrorCode expectedError, String expectedValue, ImportContext context,
         String... expectedObjects )
     {
@@ -639,7 +729,7 @@ public class DataValueSetImportValidatorTest
         Iterator<String> actualObjectsIter = objects.values().iterator();
         for ( int i = 0; i < expectedObjects.length; i++ )
         {
-            assertEquals( "unexpected object ID " + i + ": ", expectedObjects[i], actualObjectsIter.next() );
+            assertEquals( "unexpected object ID for object " + i + ": ", expectedObjects[i], actualObjectsIter.next() );
         }
         assertEquals( substituteObjectPlaceholders( expectedValue, conflict ), conflict.getValue() );
     }
