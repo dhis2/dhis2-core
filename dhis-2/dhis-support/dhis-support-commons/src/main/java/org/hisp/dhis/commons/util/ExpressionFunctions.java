@@ -151,7 +151,7 @@ public class ExpressionFunctions
     }
 
     /**
-     * Function which will return the number of days between the two given
+     * Function which will return the number of years between the two given
      * dates.
      *
      * @param start the start date.
@@ -168,7 +168,7 @@ public class ExpressionFunctions
     }
 
     /**
-     * Function will will return true only if the parameter value is not null.
+     * Function will return true only if the parameter value is not null.
      *
      * @param value to check whether has a value.
      * @return true if the parameter has a value.
