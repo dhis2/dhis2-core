@@ -31,19 +31,11 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_INSTANCE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.*;
 
 import java.util.Optional;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -91,8 +83,6 @@ public class PreCheckOwnershipValidationHook
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( bundle.getUser(), USER_CANT_BE_NULL );
-        checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
 
         if ( strategy.isDelete() )
         {
@@ -104,14 +94,6 @@ public class PreCheckOwnershipValidationHook
             {
                 addError( reporter, E1100, bundle.getUser(), tei );
             }
-        }
-
-        // Check acting user is allowed to change/write existing tei type
-        if ( strategy.isUpdateOrDelete() )
-        {
-            TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
-            TrackedEntityType trackedEntityType = tei.getTrackedEntityType();
-            trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, trackedEntityType );
         }
 
         TrackedEntityType trackedEntityType = context
@@ -126,22 +108,9 @@ public class PreCheckOwnershipValidationHook
         TrackerImportStrategy strategy = context.getStrategy( enrollment );
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
+        Program program = context.getProgram( enrollment.getProgram() );
 
         checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
-        checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
-
-        Program program = context.getProgram( enrollment.getProgram() );
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
-        TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
-
-        if ( tei == null && !context.getReference( enrollment.getTrackedEntity() ).isPresent() )
-        {
-            throw new NullPointerException( TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
-        }
-
-        checkNotNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
-        checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
         if ( strategy.isDelete() )
         {
@@ -156,44 +125,8 @@ public class PreCheckOwnershipValidationHook
             addErrorIf( () -> hasNonDeletedEvents && hasNotCascadeDeleteAuthority, reporter, E1103, user, pi );
         }
 
-        // Check acting user is allowed to change/write existing pi and program
-        if ( strategy.isUpdateOrDelete() )
-        {
-            ProgramInstance programInstance = context.getProgramInstance( enrollment.getEnrollment() );
-            trackerImportAccessManager
-                .checkWriteEnrollmentAccess( reporter, programInstance.getProgram(), tei.getUid(), organisationUnit );
-        }
-
-        if ( tei != null )
-        {
-            trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
-                tei.getUid(), tei.getOrganisationUnit() );// This orgUnit could
-                                                          // not be in the
-                                                          // Preheat because is
-                                                          // part of
-                                                          // an already
-                                                          // persisted Entity
-        }
-        else
-        {
-            final Optional<ReferenceTrackerEntity> trackedEntity = context
-                .getReference( enrollment.getTrackedEntity() );
-
-            if ( trackedEntity.isPresent() )
-            {
-                // We need to retrieve the orgUnit from the Preheat getting the
-                // uid from the TEI
-                // in the payload
-                trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
-                    trackedEntity.get().getUid(),
-                    context.getOrganisationUnit( getOrgUnitUidFromTei( context,
-                        trackedEntity.get().getUid() ) ) );
-            }
-            else
-            {
-                // TODO this should be caught by earlier validator
-            }
-        }
+        trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
+            enrollment.getTrackedEntity(), getOrgUnitFromTei( context, enrollment.getTrackedEntity() ) );
     }
 
     @Override
@@ -205,53 +138,13 @@ public class PreCheckOwnershipValidationHook
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( event, EVENT_CANT_BE_NULL );
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         Program program = context.getProgram( event.getProgram() );
-        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
 
-        String teiUid = null;
+        String teiUid = getTeiUidFromEvent( context, event, program );
 
-        if ( programInstance == null )
-        {
-            Optional<ReferenceTrackerEntity> reference = context.getReference( event.getEnrollment() );
-            if ( reference.isPresent() )
-            {
-                if ( !reference.get().isRoot() )
-                {
-                    teiUid = reference.get().getParentUid();
-                }
-                else
-                {
-                    // This is happening when creating a new enrollment linked
-                    // to an already existing TEI
-
-                    Optional<Enrollment> enrollment = bundle.getEnrollment( reference.get().getUid() );
-                    teiUid = enrollment
-                        .flatMap( e -> Optional.ofNullable( context.getTrackedEntityInstance( e.getTrackedEntity() ) ) )
-                        .map( BaseIdentifiableObject::getUid )
-                        .orElse( null );
-                }
-            }
-        }
-        else
-        {
-            if ( programInstance.getEntityInstance() != null ) // TODO luciano:
-                                                               // we should add
-                                                               // a early check
-                                                               // where
-                                                               // validation
-                                                               // fails if a pi
-                                                               // has no TEI and
-                                                               // program is
-                                                               // with
-                                                               // registration
-            {
-                teiUid = programInstance.getEntityInstance().getUid();
-            }
-        }
         CategoryOptionCombo categoryOptionCombo = context.getCategoryOptionCombo( event.getAttributeOptionCombo() );
 
         // Check acting user is allowed to change existing/write event
@@ -321,8 +214,33 @@ public class PreCheckOwnershipValidationHook
         }
     }
 
-    private String getOrgUnitUidFromTei( TrackerImportValidationContext context, String teiUid )
+    private String getTeiUidFromEvent( TrackerImportValidationContext context, Event event, Program program )
     {
+        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
+
+        if ( program.isWithoutRegistration() )
+        {
+            return null;
+        }
+
+        if ( programInstance == null )
+        {
+            Enrollment enrollment = context.getBundle().getEnrollment( event.getEnrollment() ).get();
+            return enrollment.getTrackedEntity();
+        }
+        else
+        {
+            return programInstance.getEntityInstance().getUid();
+        }
+    }
+
+    private OrganisationUnit getOrgUnitFromTei( TrackerImportValidationContext context, String teiUid )
+    {
+        TrackedEntityInstance trackedEntityInstance = context.getTrackedEntityInstance( teiUid );
+        if ( trackedEntityInstance != null )
+        {
+            return trackedEntityInstance.getOrganisationUnit();
+        }
 
         final Optional<ReferenceTrackerEntity> reference = context.getReference( teiUid );
         if ( reference.isPresent() )
@@ -331,7 +249,7 @@ public class PreCheckOwnershipValidationHook
                 .getTrackedEntity( teiUid );
             if ( tei.isPresent() )
             {
-                return tei.get().getOrgUnit();
+                return context.getOrganisationUnit( tei.get().getOrgUnit() );
             }
         }
         return null;
