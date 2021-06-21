@@ -75,18 +75,22 @@ public class ProgramOrgUnitsSupplier extends JdbcAbstractPreheatSupplier
             return;
         }
 
-        final String sql = "select po.programid, po.organisationunitid from program_organisationunits po where po.organisationunitid in ( :ids )";
+        final String sql = "SELECT p.uid AS programuid, ou.uid AS organisationunituid " +
+            "FROM program_organisationunits po " +
+            "JOIN program p ON po.programid=p.programid " +
+            "JOIN organisationunit ou ON po.organisationunitid=ou.organisationunitid " +
+            "WHERE po.organisationunitid IN ( :ids )";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", orgUnitIds );
 
         preheat.setProgramWithOrgUnitsMap( jdbcTemplate.query( sql, parameters, rs -> {
-            Map<Long, List<Long>> map = new HashMap<>();
+            Map<String, List<String>> map = new HashMap<>();
 
             while ( rs.next() )
             {
-                final Long pid = rs.getLong( "programid" );
-                final Long ouid = rs.getLong( "organisationunitid" );
+                final String pid = rs.getString( "programuid" );
+                final String ouid = rs.getString( "organisationunituid" );
 
                 if ( map.containsKey( pid ) )
                 {
@@ -94,7 +98,7 @@ public class ProgramOrgUnitsSupplier extends JdbcAbstractPreheatSupplier
                 }
                 else
                 {
-                    List<Long> ouids = new ArrayList<>();
+                    List<String> ouids = new ArrayList<>();
                     ouids.add( ouid );
                     map.put( pid, ouids );
                 }

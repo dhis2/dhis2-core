@@ -243,7 +243,7 @@ public class TrackerPreheat
      */
     @Getter
     @Setter
-    private Map<Long, List<Long>> programWithOrgUnitsMap;
+    private Map<String, List<String>> programWithOrgUnitsMap;
 
     public TrackerPreheat()
     {
