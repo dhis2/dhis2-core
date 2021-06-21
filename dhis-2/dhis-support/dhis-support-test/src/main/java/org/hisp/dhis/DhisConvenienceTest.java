@@ -1087,8 +1087,8 @@ public abstract class DhisConvenienceTest
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value,
         Date created, Date lastUpdated )
     {
-        DataValue dataValue = createDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo,
-            value );
+        DataValue dataValue = createDataValue( dataElement, period, source,
+            categoryOptionCombo, attributeOptionCombo, value );
         dataValue.setCreated( created );
         dataValue.setLastUpdated( lastUpdated );
         return dataValue;

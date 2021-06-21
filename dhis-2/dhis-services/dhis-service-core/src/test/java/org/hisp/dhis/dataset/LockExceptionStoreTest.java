@@ -95,7 +95,6 @@ public class LockExceptionStoreTest
 
         assertEquals( 0, getLockExceptionCount( ouA ) );
         assertEquals( 0, getLockExceptionCount( ouB ) );
-
     }
 
     /**
