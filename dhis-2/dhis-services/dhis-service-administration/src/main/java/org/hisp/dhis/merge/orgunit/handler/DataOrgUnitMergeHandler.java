@@ -29,8 +29,6 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
-import java.sql.Types;
-
 import javax.transaction.Transactional;
 
 import lombok.AllArgsConstructor;
@@ -87,8 +85,8 @@ public class DataOrgUnitMergeHandler
             : getMergeDataValuesLastUpdatedSql( request );
 
         final SqlParameterSource params = new MapSqlParameterSource()
-            .addValue( "source_ids", getIdentifiers( request.getSources() ), Types.BIGINT )
-            .addValue( "target_id", request.getTarget().getId(), Types.BIGINT );
+            .addValue( "source_ids", getIdentifiers( request.getSources() ) )
+            .addValue( "target_id", request.getTarget().getId() );
 
         jdbcTemplate.update( sql, params );
     }
