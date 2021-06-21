@@ -29,6 +29,8 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
+import java.sql.Types;
+
 import javax.transaction.Transactional;
 
 import lombok.AllArgsConstructor;
@@ -43,8 +45,8 @@ import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
 
@@ -53,19 +55,19 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class DataOrgUnitMergeHandler
 {
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
-    private JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private DataValueAuditService dataValueAuditService;
+    private final DataValueAuditService dataValueAuditService;
 
-    private DataSetService dataSetService;
+    private final DataSetService dataSetService;
 
-    private DataApprovalAuditService dataApprovalAuditService;
+    private final DataApprovalAuditService dataApprovalAuditService;
 
-    private ValidationResultService validationResultService;
+    private final ValidationResultService validationResultService;
 
-    private MinMaxDataElementService minMaxDataElementService;
+    private final MinMaxDataElementService minMaxDataElementService;
 
     public void mergeDataValueAudits( OrgUnitMergeRequest request )
     {
@@ -80,8 +82,8 @@ public class DataOrgUnitMergeHandler
             : getMergeDataValuesLastUpdatedSql( request );
 
         final SqlParameterSource params = new MapSqlParameterSource()
-            .addValue( "source_ids", getIdentifiers( request.getSources() ) )
-            .addValue( "target_id", request.getTarget().getId() );
+            .addValue( "source_ids", getIdentifiers( request.getSources() ), Types.BIGINT )
+            .addValue( "target_id", request.getTarget().getId(), Types.BIGINT );
 
         jdbcTemplate.update( sql, params );
     }

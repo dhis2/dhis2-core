@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
+/**
+ * @author Lars Helge Overland
+ */
 public enum DataMergeStrategy
 {
     LAST_UPDATED,

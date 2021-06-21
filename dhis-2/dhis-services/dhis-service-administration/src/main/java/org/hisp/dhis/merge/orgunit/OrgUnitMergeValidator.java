@@ -32,6 +32,11 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.stereotype.Service;
 
+/**
+ * Validation service for org unit merge requests.
+ *
+ * @author Lars Helge Overland
+ */
 @Service
 public class OrgUnitMergeValidator
 {

@@ -38,6 +38,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import com.google.common.collect.ImmutableSet;
 
+/**
+ * Encapsulation of an org unit merge request.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 public class OrgUnitMergeRequest
 {

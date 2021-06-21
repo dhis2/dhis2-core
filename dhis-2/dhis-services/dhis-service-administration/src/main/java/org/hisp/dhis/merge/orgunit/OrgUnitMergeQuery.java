@@ -34,6 +34,11 @@ import lombok.Data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Encapsulation of a web API request for org unit merge.
+ *
+ * @author Lars Helge Overland
+ */
 @Data
 public class OrgUnitMergeQuery
 {

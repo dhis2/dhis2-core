@@ -40,7 +40,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class TrackerOrgUnitMergeHandler
 {
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
     @Transactional
     public void mergeProgramMessages( OrgUnitMergeRequest request )
