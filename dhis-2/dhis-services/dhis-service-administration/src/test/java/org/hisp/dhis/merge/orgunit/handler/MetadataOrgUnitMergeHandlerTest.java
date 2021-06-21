@@ -30,6 +30,7 @@ package org.hisp.dhis.merge.orgunit.handler;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -38,6 +39,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -94,6 +96,33 @@ public class MetadataOrgUnitMergeHandlerTest
         assertEquals( 0, ouA.getDataSets().size() );
         assertEquals( 0, ouB.getDataSets().size() );
         assertEquals( 2, ouC.getDataSets().size() );
+    }
+
+    @Test
+    public void testMergePrograms()
+    {
+        Program prA = createProgram( 'A' );
+        prA.addOrganisationUnit( ouA );
+        prA.addOrganisationUnit( ouB );
+
+        Program prB = createProgram( 'A' );
+        prB.addOrganisationUnit( ouA );
+
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .addSource( ouA )
+            .addSource( ouB )
+            .withTarget( ouC )
+            .build();
+
+        assertEquals( 2, ouA.getPrograms().size() );
+        assertEquals( 1, ouB.getPrograms().size() );
+        assertEquals( 0, ouC.getPrograms().size() );
+
+        handler.mergePrograms( request );
+
+        assertEquals( 0, ouA.getPrograms().size() );
+        assertEquals( 0, ouB.getPrograms().size() );
+        assertEquals( 2, ouC.getPrograms().size() );
     }
 
     @Test
