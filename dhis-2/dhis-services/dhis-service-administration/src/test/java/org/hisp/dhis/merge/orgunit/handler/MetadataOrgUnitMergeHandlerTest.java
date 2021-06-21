@@ -105,7 +105,7 @@ public class MetadataOrgUnitMergeHandlerTest
         prA.addOrganisationUnit( ouA );
         prA.addOrganisationUnit( ouB );
 
-        Program prB = createProgram( 'A' );
+        Program prB = createProgram( 'B' );
         prB.addOrganisationUnit( ouA );
 
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
