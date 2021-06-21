@@ -109,16 +109,11 @@ public class DataValueOrgUnitMergeHandlerTest
     @Test
     public void testMergeDataValues()
     {
-        DataValue dvA = createDataValue( deA, peA, ouA,
-            cocA, cocA, "10", getDate( 2021, 1, 1 ), getDate( 2021, 1, 1 ) );
-        DataValue dvB = createDataValue( deA, peA, ouB,
-            cocA, cocA, "11", getDate( 2021, 2, 1 ), getDate( 2021, 2, 1 ) );
-        DataValue dvC = createDataValue( deB, peA, ouA,
-            cocA, cocA, "12", getDate( 2021, 3, 1 ), getDate( 2021, 3, 1 ) );
-        DataValue dvD = createDataValue( deB, peA, ouB,
-            cocA, cocA, "13", getDate( 2021, 4, 1 ), getDate( 2021, 4, 1 ) );
-
-        addDataValues( dvA, dvB, dvC, dvD );
+        addDataValues(
+            createDataValue( deA, peA, ouA, cocA, cocA, "10", date( 2021, 1, 1 ), date( 2021, 1, 1 ) ),
+            createDataValue( deA, peA, ouB, cocA, cocA, "11", date( 2021, 2, 1 ), date( 2021, 2, 1 ) ),
+            createDataValue( deB, peA, ouA, cocA, cocA, "12", date( 2021, 3, 1 ), date( 2021, 3, 1 ) ),
+            createDataValue( deB, peA, ouB, cocA, cocA, "13", date( 2021, 4, 1 ), date( 2021, 4, 1 ) ) );
 
         assertEquals( 2, getDataValueCount( ouA ) );
         assertEquals( 2, getDataValueCount( ouB ) );
