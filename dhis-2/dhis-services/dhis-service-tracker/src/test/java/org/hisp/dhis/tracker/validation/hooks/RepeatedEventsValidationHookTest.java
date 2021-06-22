@@ -35,10 +35,13 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -115,6 +118,31 @@ public class RepeatedEventsValidationHookTest
         ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
 
         assertTrue( errorReporter.getReportList().isEmpty() );
+    }
+
+    @Test
+    public void testOneEventInNotRepeatableProgramStageAndOneAlreadyOnDBAreNotPassingValidation()
+    {
+        // given
+        Event event = notRepeatableEvent( "A" );
+        ProgramInstance programInstance = new ProgramInstance();
+        programInstance.setUid( event.getEnrollment() );
+
+        // when
+        bundle.setStrategy( event, TrackerImportStrategy.CREATE );
+
+        when( preheat.getEnrollment( TrackerIdScheme.UID, event.getEnrollment() ) ).thenReturn( programInstance );
+        when( preheat.getProgramStageWithEvents() )
+            .thenReturn( Lists.newArrayList( Pair.of( event.getProgramStage(), event.getEnrollment() ) ) );
+        bundle.setEvents( Lists.newArrayList( event ) );
+        ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
+
+        // then
+        assertEquals( 1, errorReporter.getReportList().size() );
+        assertThat( errorReporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
+        assertThat( errorReporter.getReportList().get( 0 ).getErrorMessage(),
+            is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
+                "`, is not repeatable and an event already exists." ) );
     }
 
     @Test

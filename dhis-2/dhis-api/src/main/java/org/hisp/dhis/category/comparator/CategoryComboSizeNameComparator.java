@@ -25,42 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.callable;
-
-import java.util.concurrent.ExecutionException;
-
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdScheme;
+package org.hisp.dhis.category.comparator;
 
 /**
- * Retrieves the category option combination with the given identifier and id
- * scheme. Checks that the current user has {@code data write} access.
- *
- * @author Lars Helge Overland
+ * @author Abyot Asalefew Gizaw
+ * @version $Id$
  */
-public class CategoryOptionComboAclCallable
-    extends IdentifiableObjectCallable<CategoryOptionCombo>
+import java.util.Comparator;
+
+import org.hisp.dhis.category.CategoryCombo;
+
+public class CategoryComboSizeNameComparator
+    implements Comparator<CategoryCombo>
 {
-    private CategoryService categoryService;
-
-    public CategoryOptionComboAclCallable( CategoryService categoryService, IdScheme idScheme, String id )
-    {
-        super( null, CategoryOptionCombo.class, idScheme, id );
-        this.categoryService = categoryService;
-    }
-
     @Override
-    public CategoryOptionCombo call()
-        throws ExecutionException
+    public int compare( CategoryCombo o1, CategoryCombo o2 )
     {
-        return categoryService.getCategoryOptionComboAcl( idScheme, id );
-    }
+        int result = o1.getOptionCombos().size() - o2.getOptionCombos().size();
 
-    @Override
-    public CategoryOptionComboAclCallable setId( String id )
-    {
-        this.id = id;
-        return this;
+        if ( result == 0 )
+        {
+            result = o1.getDisplayName().compareTo( o2.getDisplayName() );
+        }
+
+        return result;
     }
 }

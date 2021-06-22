@@ -25,42 +25,66 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.callable;
+package org.hisp.dhis.orgunitprofile;
 
-import java.util.concurrent.ExecutionException;
+import java.util.Date;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdScheme;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Retrieves the category option combination with the given identifier and id
- * scheme. Checks that the current user has {@code data write} access.
- *
- * @author Lars Helge Overland
+ * Org unit DTO object.
  */
-public class CategoryOptionComboAclCallable
-    extends IdentifiableObjectCallable<CategoryOptionCombo>
+@Getter
+@Setter
+@NoArgsConstructor
+public class OrgUnitInfo
 {
-    private CategoryService categoryService;
+    @JsonProperty
+    private String id;
 
-    public CategoryOptionComboAclCallable( CategoryService categoryService, IdScheme idScheme, String id )
-    {
-        super( null, CategoryOptionCombo.class, idScheme, id );
-        this.categoryService = categoryService;
-    }
+    @JsonProperty
+    private String code;
 
-    @Override
-    public CategoryOptionCombo call()
-        throws ExecutionException
-    {
-        return categoryService.getCategoryOptionComboAcl( idScheme, id );
-    }
+    @JsonProperty
+    private String name;
 
-    @Override
-    public CategoryOptionComboAclCallable setId( String id )
-    {
-        this.id = id;
-        return this;
-    }
+    @JsonProperty
+    private String shortName;
+
+    @JsonProperty
+    private String description;
+
+    @JsonProperty
+    private Date openingDate;
+
+    @JsonProperty
+    private Date closedDate;
+
+    @JsonProperty
+    private String comment;
+
+    @JsonProperty
+    private String url;
+
+    @JsonProperty
+    private String contactPerson;
+
+    @JsonProperty
+    private String address;
+
+    @JsonProperty
+    private String email;
+
+    @JsonProperty
+    private String phoneNumber;
+
+    @JsonProperty
+    private Double longitude;
+
+    @JsonProperty
+    private Double latitude;
 }

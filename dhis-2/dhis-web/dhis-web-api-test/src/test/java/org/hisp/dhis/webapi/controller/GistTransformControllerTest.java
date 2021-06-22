@@ -77,6 +77,16 @@ public class GistTransformControllerTest extends AbstractGistControllerTest
     }
 
     @Test
+    public void testTransform_Pluck_NoArgument()
+    {
+        JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users::pluck", getSuperuserUid() ).content();
+
+        assertHasPager( gist, 1, 50 );
+        assertEquals( getSuperuserUid(),
+            gist.getArray( "userGroups" ).getObject( 0 ).getArray( "users" ).getString( 0 ).string() );
+    }
+
+    @Test
     public void testTransform_Member()
     {
         String url = "/users/{uid}/userGroups/gist?fields=name,users::member({uid})";

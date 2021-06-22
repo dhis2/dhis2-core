@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.callable;
+package org.hisp.dhis.orgunitprofile;
 
-import java.util.concurrent.ExecutionException;
+import java.util.List;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdScheme;
+import javax.annotation.Nullable;
+
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * Retrieves the category option combination with the given identifier and id
- * scheme. Checks that the current user has {@code data write} access.
+ * Main interface for org unit profile management.
  *
  * @author Lars Helge Overland
  */
-public class CategoryOptionComboAclCallable
-    extends IdentifiableObjectCallable<CategoryOptionCombo>
+public interface OrgUnitProfileService
 {
-    private CategoryService categoryService;
+    /**
+     * Saves or updates the {@link OrgUnitProfile}.
+     *
+     * @param profile the {@link OrgUnitProfile}.
+     */
+    void saveOrgUnitProfile( OrgUnitProfile profile );
 
-    public CategoryOptionComboAclCallable( CategoryService categoryService, IdScheme idScheme, String id )
-    {
-        super( null, CategoryOptionCombo.class, idScheme, id );
-        this.categoryService = categoryService;
-    }
+    /**
+     * Validates the {@link OrgUnitProfile}.
+     *
+     * @param profile the {@link OrgUnitProfile}.
+     * @return a list of {@link ErrorReport}.
+     */
+    List<ErrorReport> validateOrgUnitProfile( OrgUnitProfile profile );
 
-    @Override
-    public CategoryOptionCombo call()
-        throws ExecutionException
-    {
-        return categoryService.getCategoryOptionComboAcl( idScheme, id );
-    }
+    /**
+     * Retrieves the current {@link OrgUnitProfile}. If no profile is set, an
+     * empty profile object is returned.
+     *
+     * @return the {@link OrgUnitProfile}, never null.
+     */
+    OrgUnitProfile getOrgUnitProfile();
 
-    @Override
-    public CategoryOptionComboAclCallable setId( String id )
-    {
-        this.id = id;
-        return this;
-    }
+    /**
+     * Retrieves data for the current {@link OrgUnitProfile}.
+     *
+     * @param orgUnit org unit identifier.
+     * @param isoPeriod the ISO period, optional.
+     * @return the {@link OrgUnitProfileData}.
+     */
+    OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod );
 }

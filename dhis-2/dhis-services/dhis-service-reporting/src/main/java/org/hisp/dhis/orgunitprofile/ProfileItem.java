@@ -25,42 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.callable;
+package org.hisp.dhis.orgunitprofile;
 
-import java.util.concurrent.ExecutionException;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdScheme;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Retrieves the category option combination with the given identifier and id
- * scheme. Checks that the current user has {@code data write} access.
- *
- * @author Lars Helge Overland
+ * Profile item DTO object.
  */
-public class CategoryOptionComboAclCallable
-    extends IdentifiableObjectCallable<CategoryOptionCombo>
+@Getter
+@NoArgsConstructor
+public class ProfileItem
 {
-    private CategoryService categoryService;
+    @JsonProperty
+    private String id;
 
-    public CategoryOptionComboAclCallable( CategoryService categoryService, IdScheme idScheme, String id )
-    {
-        super( null, CategoryOptionCombo.class, idScheme, id );
-        this.categoryService = categoryService;
-    }
+    @JsonProperty
+    private String label;
 
-    @Override
-    public CategoryOptionCombo call()
-        throws ExecutionException
-    {
-        return categoryService.getCategoryOptionComboAcl( idScheme, id );
-    }
+    @JsonProperty
+    private Object value;
 
-    @Override
-    public CategoryOptionComboAclCallable setId( String id )
+    public ProfileItem( String id, String label, Object value )
     {
         this.id = id;
-        return this;
+        this.label = label;
+        this.value = value;
     }
 }

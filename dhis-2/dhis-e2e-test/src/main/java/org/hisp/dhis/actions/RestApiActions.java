@@ -80,8 +80,8 @@ public class RestApiActions
     }
 
     /**
-     * Sends post request to specified endpoint.
-     * If post request successful, saves created entity in TestRunStorage
+     * Sends post request to specified endpoint. If post request successful,
+     * saves created entity in TestRunStorage
      *
      * @param object Body of request
      * @return Response
@@ -122,8 +122,8 @@ public class RestApiActions
     }
 
     /**
-     * Shortcut used in preconditions only.
-     * Sends post request to specified endpoint and verifies that request was successful
+     * Shortcut used in preconditions only. Sends post request to specified
+     * endpoint and verifies that request was successful
      *
      * @param object Body of request
      * @return ID of generated entity.
@@ -133,7 +133,7 @@ public class RestApiActions
         ApiResponse response = post( object );
 
         response.validate()
-            .statusCode(  is(oneOf( 200, 201 ) ) );
+            .statusCode( is( oneOf( 200, 201 ) ) );
 
         return response.extractUid();
     }
@@ -162,7 +162,7 @@ public class RestApiActions
     /**
      * Sends get request with provided path and queryParams appended to URL.
      *
-     * @param resourceId         Id of resource
+     * @param resourceId Id of resource
      * @param queryParamsBuilder Query params to append to url
      */
     public ApiResponse get( String resourceId, QueryParamsBuilder queryParamsBuilder )
@@ -175,14 +175,16 @@ public class RestApiActions
     }
 
     /**
-     * Sends get request with provided path, contentType, accepting content type and queryParams appended to URL.
+     * Sends get request with provided path, contentType, accepting content type
+     * and queryParams appended to URL.
      *
-     * @param resourceId            Id of resource
-     * @param contentType           Content type of the request
-     * @param accept                Accepted response Content type
-     * @param queryParamsBuilder    Query params to append to url
+     * @param resourceId Id of resource
+     * @param contentType Content type of the request
+     * @param accept Accepted response Content type
+     * @param queryParamsBuilder Query params to append to url
      */
-    public ApiResponse get( String resourceId, String contentType, String accept, QueryParamsBuilder queryParamsBuilder )
+    public ApiResponse get( String resourceId, String contentType, String accept,
+        QueryParamsBuilder queryParamsBuilder )
     {
         String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
@@ -196,11 +198,11 @@ public class RestApiActions
     }
 
     /**
-     * Sends delete request to specified resource.
-     * If delete request successful, removes entity from TestRunStorage.
+     * Sends delete request to specified resource. If delete request successful,
+     * removes entity from TestRunStorage.
      *
-     * @param resourceId            Id of resource
-     * @param queryParamsBuilder    Query params to append to url
+     * @param resourceId Id of resource
+     * @param queryParamsBuilder Query params to append to url
      */
     public ApiResponse delete( String resourceId, QueryParamsBuilder queryParamsBuilder )
     {
@@ -210,8 +212,8 @@ public class RestApiActions
     }
 
     /**
-     * Sends delete request to specified resource.
-     * If delete request successful, removes entity from TestRunStorage.
+     * Sends delete request to specified resource. If delete request successful,
+     * removes entity from TestRunStorage.
      *
      * @param path Id of resource
      */
@@ -233,29 +235,30 @@ public class RestApiActions
      * Sends PUT request to specified resource.
      *
      * @param resourceId Id of resource
-     * @param object     Body of request
+     * @param object Body of request
      */
     public ApiResponse update( String resourceId, Object object )
     {
-        Response response =
-            this.given().body( object, ObjectMapperType.GSON )
-                .when()
-                .put( resourceId );
+        Response response = this.given().body( object, ObjectMapperType.GSON )
+            .when()
+            .put( resourceId );
 
         return new ApiResponse( response );
     }
 
     /**
      * Sends PATCH request to specified resource
+     * 
      * @param resourceId
      * @param object
      * @return
      */
-    public ApiResponse patch( String resourceId, Object object) {
-        Response response =
-            this.given().body( object, ObjectMapperType.GSON )
-                .when()
-                .patch( resourceId );
+    public ApiResponse patch( String resourceId, Object object )
+    {
+        Response response = this.given().body( object, ObjectMapperType.GSON )
+            .when()
+            .contentType( "application/json-patch+json" )
+            .patch( resourceId );
 
         return new ApiResponse( response );
     }
@@ -324,8 +327,8 @@ public class RestApiActions
         }
     }
 
-    protected void addCreatedEntity(String ep, String id) {
+    protected void addCreatedEntity( String ep, String id )
+    {
         TestRunStorage.addCreatedEntity( ep, id );
     }
 }
-

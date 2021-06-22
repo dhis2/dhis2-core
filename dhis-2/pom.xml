@@ -85,7 +85,7 @@
     <hibernate.version>5.4.28.Final</hibernate.version>
     <hibernate-types.version>2.10.4</hibernate-types.version>
     <!-- Keep in sync with Hibernate! -->
-    <byte-buddy.version>1.10.18</byte-buddy.version>
+    <byte-buddy.version>1.10.17</byte-buddy.version>
     <!-- Keep in sync with Hibernate! -->
     <javassist.version>3.27.0-GA</javassist.version>
     <!-- Data sources,db pools and db drivers-->

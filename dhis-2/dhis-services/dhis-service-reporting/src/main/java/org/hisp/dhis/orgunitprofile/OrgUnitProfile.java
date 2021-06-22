@@ -25,42 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.callable;
+package org.hisp.dhis.orgunitprofile;
 
-import java.util.concurrent.ExecutionException;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdScheme;
+import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Retrieves the category option combination with the given identifier and id
- * scheme. Checks that the current user has {@code data write} access.
- *
- * @author Lars Helge Overland
+ * Org unit profile data model. Used for persistence.
  */
-public class CategoryOptionComboAclCallable
-    extends IdentifiableObjectCallable<CategoryOptionCombo>
+@Getter
+public class OrgUnitProfile
 {
-    private CategoryService categoryService;
+    /**
+     * UIDs of metadata attributes associated with org units.
+     */
+    @JsonProperty
+    private List<String> attributes = new ArrayList<>();
 
-    public CategoryOptionComboAclCallable( CategoryService categoryService, IdScheme idScheme, String id )
-    {
-        super( null, CategoryOptionCombo.class, idScheme, id );
-        this.categoryService = categoryService;
-    }
+    /**
+     * UIDs of exclusive org unit group sets.
+     */
+    @JsonProperty
+    private List<String> groupSets = new ArrayList<>();
 
-    @Override
-    public CategoryOptionCombo call()
-        throws ExecutionException
-    {
-        return categoryService.getCategoryOptionComboAcl( idScheme, id );
-    }
-
-    @Override
-    public CategoryOptionComboAclCallable setId( String id )
-    {
-        this.id = id;
-        return this;
-    }
+    /**
+     * UIDs of data items. Can be of type data element, indicator, data set and
+     * program indicator. Data element can of type aggregate and tracker.
+     */
+    @JsonProperty
+    private List<String> dataItems = new ArrayList<>();
 }
