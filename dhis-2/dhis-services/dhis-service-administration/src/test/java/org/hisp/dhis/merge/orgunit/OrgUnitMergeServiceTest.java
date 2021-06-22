@@ -121,8 +121,8 @@ public class OrgUnitMergeServiceTest
         idObjectManager.save( ougB );
 
         assertNotNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
-        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
-        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouB.getUid() ) );
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouC.getUid() ) );
 
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
             .addSource( ouA )
@@ -142,7 +142,7 @@ public class OrgUnitMergeServiceTest
         assertEquals( 2, ouC.getGroups().size() );
 
         assertNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
-        assertNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
-        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
+        assertNull( idObjectManager.get( OrganisationUnit.class, ouB.getUid() ) );
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouC.getUid() ) );
     }
 }
