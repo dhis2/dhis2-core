@@ -88,7 +88,7 @@ public interface EventChecking
                             workContext );
 
                         log.debug(
-                            "Event Checker:" + validationCheck.getClass().getName() + " returned importSummary= {}" +
+                            "Event Checker:" + validationCheck.getClass().getName() + " returned importSummary=" +
                                 importSummary.toString() );
 
                         if ( importSummary.isStatus( ERROR ) )
