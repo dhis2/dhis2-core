@@ -87,6 +87,10 @@ public interface EventChecking
                         final ImportSummary importSummary = validationCheck.check( new ImmutableEvent( event ),
                             workContext );
 
+                        log.debug(
+                            "Event Checker:" + validationCheck.getClass().getName() + " returned importSummary= {}" +
+                                importSummary.toString() );
+
                         if ( importSummary.isStatus( ERROR ) )
                         {
                             importSummaries.add( importSummary );
