@@ -28,10 +28,19 @@
 package org.hisp.dhis.merge.orgunit;
 
 /**
+ * Enum for merge strategies.
+ *
  * @author Lars Helge Overland
  */
 public enum DataMergeStrategy
 {
+    /**
+     * Use last updated records.
+     */
     LAST_UPDATED,
+
+    /**
+     * Discard data records.
+     */
     DISCARD
 }

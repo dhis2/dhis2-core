@@ -34,7 +34,19 @@ package org.hisp.dhis.merge.orgunit;
  */
 public interface OrgUnitMergeService
 {
+    /**
+     * Performs an org unit merge operation.
+     *
+     * @param request the {@link OrgUnitMergeRequest}.
+     */
     void merge( OrgUnitMergeRequest request );
 
+    /**
+     * Converts the given {@link OrgUnitMergeQuery} to an
+     * {@link OrgUnitMergeRequest}.
+     *
+     * @param request the {@link OrgUnitMergeQuery}.
+     * @return an {@link OrgUnitMergeRequest}.
+     */
     OrgUnitMergeRequest getFromQuery( OrgUnitMergeQuery query );
 }

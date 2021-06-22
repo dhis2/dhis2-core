@@ -40,6 +40,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrgUnitMergeValidator
 {
+    /**
+     * Validates the given {@link OrgUnitMergeRequest}. Throws
+     * {@link IllegalQueryException} if validation fails.
+     *
+     * @param request the {@link OrgUnitMergeRequest}.
+     * @throws IllegalQueryException if validation failed.
+     */
     public void validate( OrgUnitMergeRequest request )
         throws IllegalQueryException
     {
@@ -51,6 +58,13 @@ public class OrgUnitMergeValidator
         }
     }
 
+    /**
+     * Validates the given {@link OrgUnitMergeRequest}.
+     *
+     * @param request the {@link OrgUnitMergeRequest}.
+     * @return an {@link ErrorMessage} if the validation failed, or null if
+     *         validation was successful.
+     */
     public ErrorMessage validateForErrorMessage( OrgUnitMergeRequest request )
     {
         ErrorMessage error = null;
