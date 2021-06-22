@@ -373,6 +373,7 @@ public abstract class AbstractEnrollmentService
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
     {
+        log.info( String.format( "Start adding enrollments %s", enrollments ) );
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
@@ -457,6 +458,7 @@ public abstract class AbstractEnrollmentService
     private ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean handleEvents )
     {
+        log.info( String.format( "Start adding Enrollment %s", enrollment.getEnrollment() ) );
         importOptions = updateImportOptions( importOptions );
 
         String storedBy = !StringUtils.isEmpty( enrollment.getStoredBy() ) && enrollment.getStoredBy().length() < 31

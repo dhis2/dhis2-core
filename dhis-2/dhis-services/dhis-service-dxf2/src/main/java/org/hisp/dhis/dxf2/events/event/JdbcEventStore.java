@@ -507,10 +507,12 @@ public class JdbcEventStore implements EventStore
     @Override
     public List<ProgramStageInstance> updateEvents( List<ProgramStageInstance> programStageInstances )
     {
+
         try
         {
             jdbcTemplate.batchUpdate( UPDATE_EVENT_SQL, sort( programStageInstances ), programStageInstances.size(),
                 ( ps, programStageInstance ) -> {
+                    log.info( String.format( "Updating ProgramStageInstance %s", ps ) );
                     try
                     {
                         bindEventParamsForUpdate( ps, programStageInstance );
