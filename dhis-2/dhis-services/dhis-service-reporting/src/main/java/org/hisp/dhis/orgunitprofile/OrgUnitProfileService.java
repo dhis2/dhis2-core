@@ -33,37 +33,42 @@ import javax.annotation.Nullable;
 
 import org.hisp.dhis.feedback.ErrorReport;
 
+/**
+ * Main interface for org unit profile management.
+ *
+ * @author Lars Helge Overland
+ */
 public interface OrgUnitProfileService
 {
     /**
-     * Save or Update OrgUnitProfile
+     * Saves or updates the {@link OrgUnitProfile}.
      *
-     * @param profile OrgUnitProfile for saving
+     * @param profile the {@link OrgUnitProfile}.
      */
     void saveOrgUnitProfile( OrgUnitProfile profile );
 
     /**
-     * Validate all properties OrgUnitProfile
+     * Validates the {@link OrgUnitProfile}.
      *
-     * @param profile OrgUnitProfile for validating
-     * @return List ErrorReport
-     * @throws {@code ErrorCode#E4014} if found invalid UID
+     * @param profile the {@link OrgUnitProfile}.
+     * @return a list of {@link ErrorReport}.
      */
     List<ErrorReport> validateOrgUnitProfile( OrgUnitProfile profile );
 
     /**
-     * Get OrgUnitProfile Return empty object if not found
+     * Retrieves the current {@link OrgUnitProfile}. If no profile is set, an
+     * empty profile object is returned.
      *
-     * @return OrgUnitProfile
+     * @return the {@link OrgUnitProfile}, never null.
      */
     OrgUnitProfile getOrgUnitProfile();
 
     /**
-     * Get OrgUnitProfileData for give OrganisationUnit UID and ISO Period
+     * Retrieves data for the current {@link OrgUnitProfile}.
      *
-     * @param orgUnit OrganisationUnit UID
-     * @param isoPeriod ISO Period for getting data values, not required
-     * @return OrgUnitProfileData
+     * @param orgUnit org unit identifier.
+     * @param isoPeriod the ISO period, optional.
+     * @return the {@link OrgUnitProfileData}.
      */
     OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod );
 }

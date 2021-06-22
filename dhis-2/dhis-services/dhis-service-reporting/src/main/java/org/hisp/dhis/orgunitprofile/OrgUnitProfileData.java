@@ -37,7 +37,7 @@ import lombok.Setter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Org unit profile DTO object.
+ * Org unit profile data DTO object.
  */
 @Getter
 @Setter

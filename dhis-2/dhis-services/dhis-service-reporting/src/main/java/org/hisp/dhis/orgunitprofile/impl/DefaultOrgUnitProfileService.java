@@ -29,7 +29,6 @@ package org.hisp.dhis.orgunitprofile.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -166,10 +165,10 @@ public class DefaultOrgUnitProfileService
         {
             return jsonMapper.readValue( value.getValue(), OrgUnitProfile.class );
         }
-        catch ( JsonProcessingException e )
+        catch ( JsonProcessingException ex )
         {
-            log.error( DebugUtils.getStackTrace( e ) );
-            throw new IllegalArgumentException( "Can't deserialize OrgUnitProfile ", e );
+            log.error( DebugUtils.getStackTrace( ex ) );
+            throw new IllegalArgumentException( "Cannot deserialize org unit profile", ex );
         }
     }
 
@@ -196,7 +195,7 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Get basic info of given OrganisationUnit
+     * Retrieves basic profile info of given {@link OrganisationUnit}.
      */
     private OrgUnitInfo getOrgUnitInfo( OrganisationUnit orgUnit )
     {
@@ -235,25 +234,25 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Get List of Attribute's data for given OrgUnit
+     * Retrieves a list of attribute data items for the given org unit profile
+     * and org unit.
      *
-     * @param profile OrgUnitProfile used for getting data
-     * @param orgUnit OrganisationUnit used for getting data
-     * @return List of ProfileItem( Attribute Uid, Attribute displayName,
-     *         Attribute Value )
+     * @param profile the {@link OrganisationUnitProfile}.
+     * @param orgUnit the {@link OrganisationUnit}.
+     * @return a list of {@link ProfileItem}.
      */
     private List<ProfileItem> getAttributes( OrgUnitProfile profile, OrganisationUnit orgUnit )
     {
         if ( CollectionUtils.isEmpty( profile.getAttributes() ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         List<Attribute> attributes = idObjectManager.getByUid( Attribute.class, profile.getAttributes() );
 
         if ( CollectionUtils.isEmpty( attributes ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         List<ProfileItem> items = new ArrayList<>();
@@ -273,18 +272,18 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Get List of OrgUnitGroupSet data for given OrganisationUnit
+     * Retrieves a list of org unit group set data items for the given org unit
+     * profile and org unit.
      *
-     * @param profile OrgUnitProfile used for getting data
-     * @param orgUnit OrganisationUnit used for getting data
-     * @return List of ProfileItem( OrgUnitGroupSet UID, OrgUnitGroupSet
-     *         displayName, OrgUnitGroup displayName )
+     * @param profile the {@link OrganisationUnitProfile}.
+     * @param orgUnit the {@link OrganisationUnit}.
+     * @return a list of {@link ProfileItem}.
      */
     private List<ProfileItem> getGroupSets( OrgUnitProfile profile, OrganisationUnit orgUnit )
     {
         if ( CollectionUtils.isEmpty( profile.getGroupSets() ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         List<OrganisationUnitGroupSet> groupSets = idObjectManager
@@ -292,7 +291,7 @@ public class DefaultOrgUnitProfileService
 
         if ( CollectionUtils.isEmpty( groupSets ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         List<ProfileItem> items = new ArrayList<>();
@@ -301,7 +300,7 @@ public class DefaultOrgUnitProfileService
 
         if ( CollectionUtils.isEmpty( groups ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         for ( OrganisationUnitGroupSet groupSet : groupSets )
@@ -319,29 +318,27 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Get List of DataItem data for given OrganisationUnit. DataItem can be of
-     * type data element, indicator, data set and program indicator. Data
-     * element can of type aggregate and tracker. Data values are queried from
-     * {@code AnalyticsService#getAggregatedDataValueMapping()}
+     * Retrieves a list of data items for the given org unit profile and org
+     * unit. A data item can be of type data element, indicator, data set and
+     * program indicator. Data element can be of type aggregate and tracker.
      *
-     * @param profile OrgUnitProfile used for getting data.
-     * @param orgUnit OrganisationUnit used for getting data.
-     * @param period Period used for getting data, not required.
-     * @return List of ProfileItem( DataItem UID, DataItem displayName, DataItem
-     *         value )
+     * @param profile the {@link OrganisationUnitProfile}.
+     * @param orgUnit the {@link OrganisationUnit}.
+     * @param period the {@link Period}.
+     * @return a list of {@link ProfileItem}.
      */
     private List<ProfileItem> getDataItems( OrgUnitProfile profile, OrganisationUnit orgUnit, Period period )
     {
         if ( CollectionUtils.isEmpty( profile.getDataItems() ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         List<DimensionalItemObject> dataItems = idObjectManager.getByUid( DATA_ITEM_CLASSES, profile.getDataItems() );
 
         if ( CollectionUtils.isEmpty( dataItems ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -354,7 +351,7 @@ public class DefaultOrgUnitProfileService
 
         if ( MapUtils.isEmpty( values ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         List<ProfileItem> items = new ArrayList<>();
@@ -373,9 +370,10 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Get OrganisationUnit by UID
+     * Retrieves the org unit with the given identifier.
      *
-     * @throws {@code ErrorCode#E1102} if not found.
+     * @return an {@link OrganisationUnit}.
+     * @throws IllegalQueryException if not found.
      */
     private OrganisationUnit getOrgUnit( String orgUnit )
     {
@@ -394,7 +392,7 @@ public class DefaultOrgUnitProfileService
      * period is not defined or invalid, the current year is used as fall back.
      *
      * @param isoPeriod the ISO period string, can be null.
-     * @return a Period.
+     * @return a {@link Period}.
      */
     private Period getPeriod( String isoPeriod )
     {
@@ -414,17 +412,16 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Check if any OrganisationUnitGroupSet UID in given List not exist in
-     * database
+     * Validates the list of org unit group set identifiers.
      *
-     * @param groupSets List UID of OrganisationUnitGroupSet
-     * @return List of ErrorReport, empty List if no error found.
+     * @param groupSets the list of org unit group set identifiers.
+     * @return a list of {@link ErrorReport}.
      */
     private List<ErrorReport> validateGroupSets( List<String> groupSets )
     {
         if ( CollectionUtils.isEmpty( groupSets ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         List<ErrorReport> errorReports = new ArrayList<>();
@@ -442,18 +439,16 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Check if any DataItem UID in given List not exist in database DataItem
-     * can be of type data element, indicator, data set and program indicator.
-     * Data element can of type aggregate and tracker.
+     * Validates the list of data item identifiers.
      *
-     * @param dataItems List DataItem UID
-     * @return List of ErrorReport, empty List if no error found.
+     * @param dataItems the list of data item identifiers.
+     * @return a list of {@link ErrorReport}.
      */
     private List<ErrorReport> validateDataItems( List<String> dataItems )
     {
         if ( CollectionUtils.isEmpty( dataItems ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         List<ErrorReport> errorReports = new ArrayList<>();
@@ -470,16 +465,16 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Check if any Attribute UID in given List not exist in database
+     * Validates the list of attribute identifiers.
      *
-     * @param attributes List Attribute UID
-     * @return List of ErrorReport, empty List if no error found.
+     * @param attributes the list ofattributes identifiers.
+     * @return a list of {@link ErrorReport}.
      */
     private List<ErrorReport> validateAttributes( List<String> attributes )
     {
         if ( CollectionUtils.isEmpty( attributes ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         List<ErrorReport> errorReports = new ArrayList<>();
