@@ -31,6 +31,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -63,7 +64,7 @@ public class DataApproval
     /**
      * Identifies the data approval instance (required).
      */
-    private int id;
+    private long id;
 
     /**
      * The approval level for which this approval is defined.
@@ -200,12 +201,12 @@ public class DataApproval
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }
@@ -336,74 +337,17 @@ public class DataApproval
         {
             return true;
         }
-
-        if ( object == null || !(object instanceof DataApproval) )
+        if ( !(object instanceof DataApproval) )
         {
             return false;
         }
 
-        DataApproval that = (DataApproval) object;
+        DataApproval other = (DataApproval) object;
 
-        if ( dataApprovalLevel != null )
-        {
-            if ( !dataApprovalLevel.equals( that.getDataApprovalLevel() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getDataApprovalLevel() != null )
-        {
-            return false;
-        }
-
-        if ( workflow != null )
-        {
-            if ( !workflow.equals( that.getWorkflow() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getWorkflow() != null )
-        {
-            return false;
-        }
-
-        if ( period != null )
-        {
-            if ( !period.equals( that.getPeriod() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getPeriod() != null )
-        {
-            return false;
-        }
-
-        if ( organisationUnit != null )
-        {
-            if ( !organisationUnit.equals( that.getOrganisationUnit() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getOrganisationUnit() != null )
-        {
-            return false;
-        }
-
-        if ( attributeOptionCombo != null )
-        {
-            if ( !attributeOptionCombo.equals( that.getAttributeOptionCombo() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getAttributeOptionCombo() != null )
-        {
-            return false;
-        }
-
-        return true;
+        return Objects.equals( dataApprovalLevel, other.dataApprovalLevel )
+            && Objects.equals( workflow, other.workflow )
+            && Objects.equals( period, other.period )
+            && Objects.equals( organisationUnit, other.organisationUnit )
+            && Objects.equals( attributeOptionCombo, other.attributeOptionCombo );
     }
 }
