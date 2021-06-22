@@ -29,16 +29,12 @@ package org.hisp.dhis.cache;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -136,6 +132,13 @@ public class DefaultCacheProvider
     private long getActualSize( long size )
     {
         return (long) Math.max( this.cacheFactor * size, 1 );
+    }
+
+    @EventListener
+    @Override
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        allCaches.values().forEach( Cache::invalidateAll );
     }
 
     @Override
@@ -429,12 +432,6 @@ public class DefaultCacheProvider
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
-    }
-
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        allCaches.values().forEach( Cache::invalidateAll );
     }
 
     @Override

@@ -66,7 +66,7 @@ public class DataApproval
     private int id;
 
     /**
-     * The approval level for which this approval is defined.
+     * The approval level for which this approval is defined (required).
      */
     private DataApprovalLevel dataApprovalLevel;
 
@@ -86,7 +86,7 @@ public class DataApproval
     private OrganisationUnit organisationUnit;
 
     /**
-     * The attribute category option combo being approved (optional).
+     * The attribute category option combo being approved (required).
      */
     private CategoryOptionCombo attributeOptionCombo;
 
