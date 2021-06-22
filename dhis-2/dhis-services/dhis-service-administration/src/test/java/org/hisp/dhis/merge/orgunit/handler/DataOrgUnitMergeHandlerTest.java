@@ -35,6 +35,10 @@ import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataapproval.DataApproval;
+import org.hisp.dhis.dataapproval.DataApprovalLevel;
+import org.hisp.dhis.dataapproval.DataApprovalStore;
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -47,7 +51,10 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import com.google.common.collect.Sets;
 
 public class DataOrgUnitMergeHandlerTest
     extends IntegrationTestBase
@@ -65,10 +72,13 @@ public class DataOrgUnitMergeHandlerTest
     private DataValueService dataValueService;
 
     @Autowired
+    private DataApprovalStore dataApprovalStore;
+
+    @Autowired
     private DataOrgUnitMergeHandler handler;
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private NamedParameterJdbcTemplate jdbcTemplate;
 
     private DataElement deA;
 
@@ -78,11 +88,17 @@ public class DataOrgUnitMergeHandlerTest
 
     private Period peA;
 
+    private Period peB;
+
     private OrganisationUnit ouA;
 
     private OrganisationUnit ouB;
 
     private OrganisationUnit ouC;
+
+    private DataApprovalLevel dlA;
+
+    private DataApprovalWorkflow dwA;
 
     @Override
     public void setUpTest()
@@ -96,7 +112,9 @@ public class DataOrgUnitMergeHandlerTest
 
         PeriodType monthly = new MonthlyPeriodType();
         peA = monthly.createPeriod( "202101" );
+        peB = monthly.createPeriod( "202102" );
         periodService.addPeriod( peA );
+        periodService.addPeriod( peB );
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
@@ -104,6 +122,12 @@ public class DataOrgUnitMergeHandlerTest
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
+
+        dlA = new DataApprovalLevel( "DataApprovalLevelA", 1 );
+        idObjectManager.save( dlA );
+
+        dwA = new DataApprovalWorkflow( "DataApprovalWorkflowA", monthly, Sets.newHashSet( dlA ) );
+        idObjectManager.save( dwA );
     }
 
     @Test
@@ -133,15 +157,56 @@ public class DataOrgUnitMergeHandlerTest
         assertEquals( 2, getDataValueCount( ouC ) );
     }
 
+    @Test
+    public void testMergeDataApprovals()
+    {
+        addDataApprovals(
+            new DataApproval( dlA, dwA, peA, ouA, cocA ),
+            new DataApproval( dlA, dwA, peA, ouB, cocA ),
+            new DataApproval( dlA, dwA, peB, ouA, cocA ),
+            new DataApproval( dlA, dwA, peB, ouB, cocA ) );
+
+        assertEquals( 2, getDataApprovalCount( ouA ) );
+        assertEquals( 2, getDataApprovalCount( ouB ) );
+        assertEquals( 0, getDataApprovalCount( ouC ) );
+
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .addSource( ouA )
+            .addSource( ouB )
+            .withTarget( ouC )
+            .withDataApprovalMergeStrategy( DataMergeStrategy.LAST_UPDATED )
+            .build();
+
+        handler.mergeDataApprovals( request );
+
+        assertEquals( 0, getDataApprovalCount( ouA ) );
+        assertEquals( 0, getDataApprovalCount( ouB ) );
+        assertEquals( 2, getDataApprovalCount( ouC ) );
+    }
+
     private long getDataValueCount( OrganisationUnit target )
     {
-        final String sql = "select count(*) from datavalue dv where dv.sourceid = ?";
+        final String sql = "select count(*) from datavalue dv where dv.sourceid = :target_id";
 
-        return jdbcTemplate.queryForObject( sql, Long.class, new Object[] { target.getId() } );
+        return jdbcTemplate.queryForObject( sql, new MapSqlParameterSource()
+            .addValue( "target_id", target.getId() ), Long.class );
+    }
+
+    private long getDataApprovalCount( OrganisationUnit target )
+    {
+        final String sql = "select count(*) from dataapproval da where da.organisationunitid = :target_id";
+
+        return jdbcTemplate.queryForObject( sql, new MapSqlParameterSource()
+            .addValue( "target_id", target.getId() ), Long.class );
     }
 
     private void addDataValues( DataValue... dataValues )
     {
         Stream.of( dataValues ).forEach( dataValueService::addDataValue );
+    }
+
+    private void addDataApprovals( DataApproval... dataApprovals )
+    {
+        Stream.of( dataApprovals ).forEach( dataApprovalStore::addDataApproval );
     }
 }
