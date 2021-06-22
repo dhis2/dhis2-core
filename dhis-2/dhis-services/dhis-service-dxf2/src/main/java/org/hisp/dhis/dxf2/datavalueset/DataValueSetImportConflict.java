@@ -25,40 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.serialization;
+package org.hisp.dhis.dxf2.datavalueset;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
+ * Possible conflicts related to imported {@link DataSet} during a
+ * {@link DataValueSet} import.
+ *
  * @author Jan Bernitt
  */
-public class ImportConflictJacksonTest
+public enum DataValueSetImportConflict implements ImportConflictDescriptor
 {
 
-    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+    DATASET_NOT_FOUND( ErrorCode.E7600, "dataSet", DataSet.class ),
+    DATASET_NOT_ACCESSIBLE( ErrorCode.E7601, "dataSet", DataSet.class ),
+    DATASET_NOT_VALID( ErrorCode.E7602, "dataSet" ),
+    ORG_UNIT_NOT_FOUND( ErrorCode.E7603, "orgUnit", OrganisationUnit.class, DataSet.class ),
+    ATTR_OPTION_COMBO_NOT_FOUND( ErrorCode.E7604, "attributeOptionCombo", CategoryOptionCombo.class,
+        DataSet.class );
 
-    @Test
-    public void testIterableSerialisedAsJsonArray()
+    private final ErrorCode errorCode;
+
+    private String property;
+
+    private Class<?>[] objectTypes;
+
+    DataValueSetImportConflict( ErrorCode errorCode, String property, Class<?>... objectTypes )
     {
-        ImportSummary summary = new ImportSummary();
-        summary.addConflict( "foo", "bar" );
-        summary.addConflict( "x", "y" );
+        this.errorCode = errorCode;
+        this.property = property;
+        this.objectTypes = objectTypes;
+    }
 
-        JsonNode summaryNodes = jsonMapper.valueToTree( summary );
+    @Override
+    public Class<?>[] getObjectTypes()
+    {
+        return objectTypes;
+    }
 
-        assertTrue( summaryNodes.has( "conflicts" ) );
-        JsonNode conflicts = summaryNodes.get( "conflicts" );
-        assertTrue( conflicts.isArray() );
-        assertEquals( 2, conflicts.size() );
-        assertEquals( "[{\"object\":\"x\",\"value\":\"y\"},{\"object\":\"foo\",\"value\":\"bar\"}]",
-            conflicts.toString() );
+    @Override
+    public String getProperty()
+    {
+        return property;
+    }
+
+    @Override
+    public ErrorCode getErrorCode()
+    {
+        return errorCode;
     }
 }
