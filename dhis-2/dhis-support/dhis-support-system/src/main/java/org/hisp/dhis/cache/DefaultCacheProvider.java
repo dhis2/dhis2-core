@@ -142,6 +142,13 @@ public class DefaultCacheProvider
         return (long) Math.max( this.cacheFactor * size, 1 );
     }
 
+    @EventListener
+    @Override
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        allCaches.values().forEach( Cache::invalidateAll );
+    }
+
     @Override
     public <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime )
     {
@@ -433,13 +440,6 @@ public class DefaultCacheProvider
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
-    }
-
-    @EventListener
-    @Override
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        allCaches.values().forEach( Cache::invalidateAll );
     }
 
     @Override
