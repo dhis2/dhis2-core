@@ -25,21 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit;
+package org.hisp.dhis.orgunitprofile;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Lars Helge Overland
+ * Org unit profile data DTO object.
  */
-public interface OrganisationUnitGroupStore
-    extends IdentifiableObjectStore<OrganisationUnitGroup>, OrganisationUnitGroupDataIntegrityProvider
+@Getter
+@Setter
+@NoArgsConstructor
+public class OrgUnitProfileData
 {
-    List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets();
+    @JsonProperty
+    private OrgUnitInfo info;
 
-    OrganisationUnitGroup getOrgUnitGroupInGroupSet( Set<OrganisationUnitGroup> groups,
-        OrganisationUnitGroupSet groupSet );
+    @JsonProperty
+    private List<ProfileItem> attributes = new ArrayList<>();
+
+    @JsonProperty
+    private List<ProfileItem> groupSets = new ArrayList<>();
+
+    @JsonProperty
+    private List<ProfileItem> dataItems = new ArrayList<>();
 }

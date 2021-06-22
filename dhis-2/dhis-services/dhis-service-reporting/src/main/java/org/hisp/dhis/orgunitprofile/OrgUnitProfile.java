@@ -25,21 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit;
+package org.hisp.dhis.orgunitprofile;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Lars Helge Overland
+ * Org unit profile data model. Used for persistence.
  */
-public interface OrganisationUnitGroupStore
-    extends IdentifiableObjectStore<OrganisationUnitGroup>, OrganisationUnitGroupDataIntegrityProvider
+@Getter
+public class OrgUnitProfile
 {
-    List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets();
+    /**
+     * UIDs of metadata attributes associated with org units.
+     */
+    @JsonProperty
+    private List<String> attributes = new ArrayList<>();
 
-    OrganisationUnitGroup getOrgUnitGroupInGroupSet( Set<OrganisationUnitGroup> groups,
-        OrganisationUnitGroupSet groupSet );
+    /**
+     * UIDs of exclusive org unit group sets.
+     */
+    @JsonProperty
+    private List<String> groupSets = new ArrayList<>();
+
+    /**
+     * UIDs of data items. Can be of type data element, indicator, data set and
+     * program indicator. Data element can of type aggregate and tracker.
+     */
+    @JsonProperty
+    private List<String> dataItems = new ArrayList<>();
 }

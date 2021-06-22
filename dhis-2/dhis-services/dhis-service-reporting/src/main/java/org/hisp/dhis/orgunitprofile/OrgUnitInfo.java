@@ -25,21 +25,66 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit;
+package org.hisp.dhis.orgunitprofile;
 
-import java.util.List;
-import java.util.Set;
+import java.util.Date;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Lars Helge Overland
+ * Org unit DTO object.
  */
-public interface OrganisationUnitGroupStore
-    extends IdentifiableObjectStore<OrganisationUnitGroup>, OrganisationUnitGroupDataIntegrityProvider
+@Getter
+@Setter
+@NoArgsConstructor
+public class OrgUnitInfo
 {
-    List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets();
+    @JsonProperty
+    private String id;
 
-    OrganisationUnitGroup getOrgUnitGroupInGroupSet( Set<OrganisationUnitGroup> groups,
-        OrganisationUnitGroupSet groupSet );
+    @JsonProperty
+    private String code;
+
+    @JsonProperty
+    private String name;
+
+    @JsonProperty
+    private String shortName;
+
+    @JsonProperty
+    private String description;
+
+    @JsonProperty
+    private Date openingDate;
+
+    @JsonProperty
+    private Date closedDate;
+
+    @JsonProperty
+    private String comment;
+
+    @JsonProperty
+    private String url;
+
+    @JsonProperty
+    private String contactPerson;
+
+    @JsonProperty
+    private String address;
+
+    @JsonProperty
+    private String email;
+
+    @JsonProperty
+    private String phoneNumber;
+
+    @JsonProperty
+    private Double longitude;
+
+    @JsonProperty
+    private Double latitude;
 }
