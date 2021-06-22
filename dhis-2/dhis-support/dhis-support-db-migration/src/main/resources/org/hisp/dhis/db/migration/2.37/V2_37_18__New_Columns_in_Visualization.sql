@@ -4,4 +4,5 @@
 ALTER TABLE visualization RENAME COLUMN legend TO serieskey;
 
 -- Add new boolean flag related to legend.
-ALTER TABLE visualization ADD COLUMN IF NOT EXISTS legendhidekey BOOLEAN DEFAULT FALSE;
+ALTER TABLE visualization ADD COLUMN IF NOT EXISTS legendhidekey BOOLEAN;
+UPDATE visualization SET legendhidekey = FALSE;
