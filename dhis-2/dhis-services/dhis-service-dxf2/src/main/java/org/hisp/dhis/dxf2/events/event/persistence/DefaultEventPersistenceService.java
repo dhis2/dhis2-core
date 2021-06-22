@@ -65,6 +65,7 @@ public class DefaultEventPersistenceService
     {
         if ( isNotEmpty( events ) )
         {
+            events.forEach( event -> log.info( "Saving  event: " + event.getEvent() ) );
             ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
 
             List<ProgramStageInstance> programStageInstances = jdbcEventStore
@@ -92,6 +93,7 @@ public class DefaultEventPersistenceService
     {
         if ( isNotEmpty( events ) )
         {
+            events.forEach( event -> log.info( "Updating event: " + event.getEvent() ) );
             ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
 
             List<ProgramStageInstance> programStageInstances = jdbcEventStore

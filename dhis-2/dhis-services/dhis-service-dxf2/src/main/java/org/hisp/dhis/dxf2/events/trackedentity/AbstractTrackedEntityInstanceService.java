@@ -490,7 +490,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
                 if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
-                    log.info( String.format( "Adding %s enrollments for tei %s" , trackedEntityInstance.getEnrollments().size() , trackedEntityInstance.getTrackedEntityInstance() ) );
                     enrollments.addAll( trackedEntityInstance.getEnrollments() );
                 }
             }

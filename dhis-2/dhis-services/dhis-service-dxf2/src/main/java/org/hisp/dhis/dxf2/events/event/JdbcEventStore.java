@@ -511,7 +511,7 @@ public class JdbcEventStore implements EventStore
         {
             jdbcTemplate.batchUpdate( UPDATE_EVENT_SQL, sort( programStageInstances ), programStageInstances.size(),
                 ( ps, programStageInstance ) -> {
-                    log.info( String.format( "Updating ProgramStageInstance %s", ps ) );
+                    log.info( "Updating ProgramStageInstance: " +  programStageInstance.getUid() );
                     try
                     {
                         bindEventParamsForUpdate( ps, programStageInstance );
