@@ -301,6 +301,19 @@ public abstract class DhisConvenienceTest
     }
 
     /**
+     * Creates a date. Alias for {@code getDate}.
+     *
+     * @param year the year.
+     * @param month the month.
+     * @param day the day of month.
+     * @return a date.
+     */
+    public static Date date( int year, int month, int day )
+    {
+        return getDate( year, month, day );
+    }
+
+    /**
      * Creates a date.
      *
      * @param day the day of the year.
