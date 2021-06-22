@@ -28,11 +28,15 @@
 package org.hisp.dhis.merge.orgunit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -81,5 +85,54 @@ public class OrgUnitMergeServiceTest
         assertEquals( DataMergeStrategy.LAST_UPDATED, request.getDataApprovalMergeStrategy() );
         assertTrue( request.isDeleteSources() );
         assertEquals( ouC, request.getTarget() );
+    }
+
+    @Test
+    public void testMergeDataSets()
+    {
+        DataSet dsA = createDataSet( 'A' );
+        dsA.addOrganisationUnit( ouA );
+        dsA.addOrganisationUnit( ouB );
+
+        DataSet dsB = createDataSet( 'B' );
+        dsB.addOrganisationUnit( ouA );
+
+        idObjectManager.save( dsA );
+        idObjectManager.save( dsB );
+
+        OrganisationUnitGroup ougA = createOrganisationUnitGroup( 'A' );
+        ougA.addOrganisationUnit( ouA );
+        ougA.addOrganisationUnit( ouB );
+
+        OrganisationUnitGroup ougB = createOrganisationUnitGroup( 'B' );
+        ougB.addOrganisationUnit( ouA );
+
+        idObjectManager.save( ougA );
+        idObjectManager.save( ougB );
+
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
+
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .addSource( ouA )
+            .addSource( ouB )
+            .withTarget( ouC )
+            .withDeleteSources( true )
+            .build();
+
+        service.merge( request );
+
+        assertEquals( 0, ouA.getDataSets().size() );
+        assertEquals( 0, ouB.getDataSets().size() );
+        assertEquals( 2, ouC.getDataSets().size() );
+
+        assertEquals( 0, ouA.getGroups().size() );
+        assertEquals( 0, ouB.getGroups().size() );
+        assertEquals( 2, ouC.getGroups().size() );
+
+        assertNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
+        assertNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
     }
 }
