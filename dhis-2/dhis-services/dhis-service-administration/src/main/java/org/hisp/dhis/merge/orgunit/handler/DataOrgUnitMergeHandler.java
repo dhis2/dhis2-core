@@ -169,7 +169,7 @@ public class DataOrgUnitMergeHandler
             "insert into dataapproval (" +
                 "dataapprovalid, dataapprovallevelid, workflowid, periodid, " +
                 "organisationunitid, attributeoptioncomboid, accepted, created, creator) " +
-            "select dataapprovalid, dataapprovallevelid, workflowid, periodid, " +
+            "select nextval('hibernate_sequence'), dataapprovallevelid, workflowid, periodid, " +
             "    %s, attributeoptioncomboid, accepted, created, creator " +
             "from da_rank " +
             "where da_rank.lastcreated_rank = 1; " +
