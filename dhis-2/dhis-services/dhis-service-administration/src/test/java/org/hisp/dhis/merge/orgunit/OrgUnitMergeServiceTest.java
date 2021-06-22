@@ -37,6 +37,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,6 +54,11 @@ public class OrgUnitMergeServiceTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
+    @Autowired
+    private PeriodService periodService;
+
+    private PeriodType ptA;
+
     private OrganisationUnit ouA;
 
     private OrganisationUnit ouB;
@@ -60,6 +68,8 @@ public class OrgUnitMergeServiceTest
     @Override
     public void setUpTest()
     {
+        ptA = periodService.getPeriodTypeByClass( MonthlyPeriodType.class );
+
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
@@ -90,11 +100,11 @@ public class OrgUnitMergeServiceTest
     @Test
     public void testMergeDataSets()
     {
-        DataSet dsA = createDataSet( 'A' );
+        DataSet dsA = createDataSet( 'A', ptA );
         dsA.addOrganisationUnit( ouA );
         dsA.addOrganisationUnit( ouB );
 
-        DataSet dsB = createDataSet( 'B' );
+        DataSet dsB = createDataSet( 'B', ptA );
         dsB.addOrganisationUnit( ouA );
 
         idObjectManager.save( dsA );
