@@ -170,7 +170,7 @@ public class DataOrgUnitMergeHandler
                 "dataapprovalid, dataapprovallevelid, workflowid, periodid, " +
                 "organisationunitid, attributeoptioncomboid, accepted, created, creator) " +
             "select nextval('hibernate_sequence'), dataapprovallevelid, workflowid, periodid, " +
-            "    %s, attributeoptioncomboid, accepted, created, creator " +
+                "%s, attributeoptioncomboid, accepted, created, creator " +
             "from da_rank " +
             "where da_rank.lastcreated_rank = 1; " +
             // Delete source data approvals
