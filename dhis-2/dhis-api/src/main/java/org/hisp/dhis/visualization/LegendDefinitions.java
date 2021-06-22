@@ -29,6 +29,8 @@ package org.hisp.dhis.visualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import java.io.Serializable;
+
 import lombok.Data;
 
 import org.hisp.dhis.legend.LegendDisplayStrategy;
@@ -46,7 +48,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @Data
 @JacksonXmlRootElement( localName = "legend", namespace = DXF_2_0 )
-public class LegendDefinitions
+public class LegendDefinitions implements Serializable
 {
     @JsonProperty( "style" )
     @JacksonXmlProperty( namespace = DXF_2_0 )
