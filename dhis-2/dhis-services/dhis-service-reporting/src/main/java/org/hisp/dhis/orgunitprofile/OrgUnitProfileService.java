@@ -36,35 +36,30 @@ import org.hisp.dhis.feedback.ErrorReport;
 public interface OrgUnitProfileService
 {
     /**
-     * Save or Update {@link org.hisp.dhis.orgunitprofile.OrgUnitProfile}
+     * Save or Update OrgUnitProfile
      *
      * @param profile OrgUnitProfile for saving
      */
     void saveOrgUnitProfile( OrgUnitProfile profile );
 
     /**
-     * Validate all properties of
-     * {@link org.hisp.dhis.orgunitprofile.OrgUnitProfile}
+     * Validate all properties OrgUnitProfile
      *
      * @param profile OrgUnitProfile for validating
-     * @return List {@link org.hisp.dhis.feedback.ErrorReport}
-     * @throws {@link org.hisp.dhis.feedback.ErrorCode#E4014} if found invalid
-     *         UID
+     * @return List ErrorReport
+     * @throws {@code ErrorCode#E4014} if found invalid UID
      */
     List<ErrorReport> validateOrgUnitProfile( OrgUnitProfile profile );
 
     /**
-     * Get {@link org.hisp.dhis.orgunitprofile.OrgUnitProfile} Return empty
-     * object if not found
+     * Get OrgUnitProfile Return empty object if not found
      *
      * @return OrgUnitProfile
      */
     OrgUnitProfile getOrgUnitProfile();
 
     /**
-     * Get {@link org.hisp.dhis.orgunitprofile.OrgUnitProfileData} for given
-     * {@link org.hisp.dhis.organisationunit.OrganisationUnit} UID and ISO
-     * Period
+     * Get OrgUnitProfileData for give OrganisationUnit UID and ISO Period
      *
      * @param orgUnit OrganisationUnit UID
      * @param isoPeriod ISO Period for getting data values, not required

@@ -196,8 +196,7 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Get basic info of given
-     * {@link org.hisp.dhis.organisationunit.OrganisationUnit}
+     * Get basic info of given OrganisationUnit
      */
     private OrgUnitInfo getOrgUnitInfo( OrganisationUnit orgUnit )
     {
@@ -238,10 +237,8 @@ public class DefaultOrgUnitProfileService
     /**
      * Get List of Attribute's data for given OrgUnit
      *
-     * @param profile {@link org.hisp.dhis.orgunitprofile.OrgUnitProfile} used
-     *        for getting data
-     * @param orgUnit {@link org.hisp.dhis.organisationunit.OrganisationUnit}
-     *        used for getting data
+     * @param profile OrgUnitProfile used for getting data
+     * @param orgUnit OrganisationUnit used for getting data
      * @return List of ProfileItem( Attribute Uid, Attribute displayName,
      *         Attribute Value )
      */
@@ -276,11 +273,9 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Get List of OrgUnitGroupSet data for given
-     * {@link org.hisp.dhis.organisationunit.OrganisationUnit}
+     * Get List of OrgUnitGroupSet data for given OrganisationUnit
      *
-     * @param profile {@link org.hisp.dhis.orgunitprofile.OrgUnitProfile} used
-     *        for getting data
+     * @param profile OrgUnitProfile used for getting data
      * @param orgUnit OrganisationUnit used for getting data
      * @return List of ProfileItem( OrgUnitGroupSet UID, OrgUnitGroupSet
      *         displayName, OrgUnitGroup displayName )
@@ -324,17 +319,14 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Get List of DataItem data for given
-     * {@link org.hisp.dhis.organisationunit.OrganisationUnit}. DataItem can be
-     * of type data element, indicator, data set and program indicator. Data
+     * Get List of DataItem data for given OrganisationUnit. DataItem can be of
+     * type data element, indicator, data set and program indicator. Data
      * element can of type aggregate and tracker. Data values are queried from
-     * {@link org.hisp.dhis.analytics.AnalyticsService#getAggregatedDataValueMapping}
+     * {@code AnalyticsService#getAggregatedDataValueMapping()}
      *
-     * @param profile {@link org.hisp.dhis.orgunitprofile.OrgUnitProfile} used
-     *        for getting data.
+     * @param profile OrgUnitProfile used for getting data.
      * @param orgUnit OrganisationUnit used for getting data.
-     * @param period {@link org.hisp.dhis.period.Period} used for getting data,
-     *        not required.
+     * @param period Period used for getting data, not required.
      * @return List of ProfileItem( DataItem UID, DataItem displayName, DataItem
      *         value )
      */
@@ -381,9 +373,9 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Get {@link org.hisp.dhis.organisationunit.OrganisationUnit} by UID
+     * Get OrganisationUnit by UID
      *
-     * @throws {@link org.hisp.dhis.feedback.ErrorCode#E1102} if not found.
+     * @throws {@code ErrorCode#E1102} if not found.
      */
     private OrganisationUnit getOrgUnit( String orgUnit )
     {
@@ -402,7 +394,7 @@ public class DefaultOrgUnitProfileService
      * period is not defined or invalid, the current year is used as fall back.
      *
      * @param isoPeriod the ISO period string, can be null.
-     * @return a {@link Period}.
+     * @return a Period.
      */
     private Period getPeriod( String isoPeriod )
     {
@@ -422,13 +414,11 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Check if any
-     * {@link org.hisp.dhis.organisationunit.OrganisationUnitGroupSet} UID in
-     * given List not exist in database
+     * Check if any OrganisationUnitGroupSet UID in given List not exist in
+     * database
      *
      * @param groupSets List UID of OrganisationUnitGroupSet
-     * @return List of {@link org.hisp.dhis.feedback.ErrorReport}, empty List if
-     *         no error found.
+     * @return List of ErrorReport, empty List if no error found.
      */
     private List<ErrorReport> validateGroupSets( List<String> groupSets )
     {
@@ -457,8 +447,7 @@ public class DefaultOrgUnitProfileService
      * Data element can of type aggregate and tracker.
      *
      * @param dataItems List DataItem UID
-     * @return List of {@link org.hisp.dhis.feedback.ErrorReport}, empty List if
-     *         no error found.
+     * @return List of ErrorReport, empty List if no error found.
      */
     private List<ErrorReport> validateDataItems( List<String> dataItems )
     {
@@ -481,12 +470,10 @@ public class DefaultOrgUnitProfileService
     }
 
     /**
-     * Check if any {@link org.hisp.dhis.attribute.Attribute} UID in given List
-     * not exist in database
+     * Check if any Attribute UID in given List not exist in database
      *
      * @param attributes List Attribute UID
-     * @return List of {@link org.hisp.dhis.feedback.ErrorReport}, empty List if
-     *         no error found.
+     * @return List of ErrorReport, empty List if no error found.
      */
     private List<ErrorReport> validateAttributes( List<String> attributes )
     {
