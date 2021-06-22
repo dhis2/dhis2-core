@@ -98,6 +98,7 @@ public class EventManager
 
     public ImportSummaries addEvents( final List<Event> events, final WorkContext workContext )
     {
+        log.info( String.format( "EventManager.addEvents %s", events ) );
         final ImportSummaries importSummaries = new ImportSummaries();
 
         // filter out events which are already in the database
@@ -121,6 +122,7 @@ public class EventManager
 
         if ( invalidEvents.size() == validEvents.size() )
         {
+            log.info( String.format( "Invalid events %s", importSummaries.getImportSummaries() ) );
             return importSummaries;
         }
 
@@ -130,11 +132,13 @@ public class EventManager
             List<Event> eventsToInsert = invalidEvents.isEmpty() ? validEvents
                 : validEvents.stream().filter( e -> !invalidEvents.contains( e.getEvent() ) ).collect( toList() );
 
+            log.info( String.format( "Event to inserts %s", events.size() ) );
             if ( isNotEmpty( eventsToInsert ) )
             {
                 try
                 {
                     // save the entire batch in one transaction
+                    log.info( String.format( "Adding event %s", events ) );
                     eventPersistenceService.save( workContext, eventsToInsert );
                 }
                 catch ( Exception e )
@@ -147,12 +151,14 @@ public class EventManager
             final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
                 .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
 
+            log.info( String.format( "eventPersistenceFailedUids: %s" + eventPersistenceFailedUids ) );
+
             // Post processing only the events that passed validation and were
             // persisted
             // correctly.
             List<Event> savedEvents = events.stream()
                 .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
-
+            log.info( String.format( "Added Events : %s", savedEvents ) );
             processingManager.getPostInsertProcessorFactory().process( workContext, savedEvents );
 
             incrementSummaryTotals( events, importSummaries, CREATE );
@@ -179,6 +185,7 @@ public class EventManager
 
     public ImportSummaries updateEvents( final List<Event> events, final WorkContext workContext )
     {
+        log.info( String.format( "EventManager.updateEvents %s", events ) );
         final ImportSummaries importSummaries = new ImportSummaries();
 
         // pre-process events
@@ -193,8 +200,10 @@ public class EventManager
             .filter( i -> i.isStatus( ERROR ) )
             .map( ImportSummary::getReference ).collect( toList() );
 
+        log.info( String.format( "Invalid events : %s", eventValidationFailedUids ) );
         if ( eventValidationFailedUids.size() == events.size() )
         {
+            log.info( String.format( "eventValidationFailedUids.size() == events.size() : NOT saving event, return." ) );
             return importSummaries;
         }
 
@@ -202,6 +211,7 @@ public class EventManager
         {
             try
             {
+                log.info( String.format( "Updating event %s", events ) );
                 eventPersistenceService.update( workContext,
                     eventValidationFailedUids.isEmpty() ? events
                         : events.stream().filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) )
@@ -221,7 +231,7 @@ public class EventManager
 
             List<Event> savedEvents = events.stream()
                 .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
-
+            log.info( String.format( "Updated Events : %s", savedEvents ) );
             processingManager.getPostUpdateProcessorFactory().process( workContext, savedEvents );
 
             incrementSummaryTotals( events, importSummaries, UPDATE );
@@ -233,6 +243,7 @@ public class EventManager
 
     public ImportSummaries deleteEvents( final List<Event> events, final WorkContext workContext )
     {
+        log.info( String.format( "EventManager.deleteEvents %s", events ) );
         final ImportSummaries importSummaries = new ImportSummaries();
 
         // pre-process events
