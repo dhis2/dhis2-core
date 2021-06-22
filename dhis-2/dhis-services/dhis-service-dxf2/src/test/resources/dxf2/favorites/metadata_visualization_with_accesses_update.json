@@ -245,6 +245,9 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
+      "seriesKey": {
+        "hidden": true
+      },
       "userOrganisationUnitChildren": false,
       "hideEmptyRows": false,
       "organisationUnitGroups": [ ],
@@ -309,6 +312,9 @@
       "filterDimensions": [
         "ou"
       ],
+      "seriesKey": {
+        "hidden": true
+      },
       "dataDimensionItems": [
         {
           "dataElementOperand": {
@@ -437,6 +443,9 @@
       "filterDimensions": [
         "ou"
       ],
+      "seriesKey": {
+        "hidden": true
+      },
       "showData": true,
       "organisationUnits": [
         {

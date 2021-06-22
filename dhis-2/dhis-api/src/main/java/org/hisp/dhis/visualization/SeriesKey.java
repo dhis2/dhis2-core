@@ -33,36 +33,24 @@ import java.io.Serializable;
 
 import lombok.Data;
 
-import org.hisp.dhis.legend.LegendDisplayStrategy;
-import org.hisp.dhis.legend.LegendDisplayStyle;
-import org.hisp.dhis.legend.LegendSet;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * This class holds the legend definitions and related attributes.
+ * This class holds the legend definitions and settings for each Visualization.
  *
  * @author maikel arabori
  */
 @Data
-@JacksonXmlRootElement( localName = "legend", namespace = DXF_2_0 )
-public class LegendDefinitions implements Serializable
+@JacksonXmlRootElement( localName = "seriesKey", namespace = DXF_2_0 )
+public class SeriesKey implements Serializable
 {
-    @JsonProperty( "style" )
+    @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private LegendDisplayStyle legendDisplayStyle;
-
-    @JsonProperty( "series" )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private LegendSet legendSet;
-
-    @JsonProperty( "strategy" )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private LegendDisplayStrategy legendDisplayStrategy;
+    private StyledObject label;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private boolean hideKey;
+    private boolean hidden;
 }
