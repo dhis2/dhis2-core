@@ -95,9 +95,11 @@ public class VisualizationController
             visualization.getRowDimensions().addAll( getDimensions( visualization.getRows() ) );
             visualization.getFilterDimensions().addAll( getDimensions( visualization.getFilters() ) );
 
-            if ( visualization.getLegendSet() != null )
+            if ( visualization.getLegendDefinitions() != null
+                && visualization.getLegendDefinitions().getLegendSet() != null )
             {
-                visualization.setLegendSet( legendSetService.getLegendSet( visualization.getLegendSet().getUid() ) );
+                visualization.getLegendDefinitions().setLegendSet(
+                    legendSetService.getLegendSet( visualization.getLegendDefinitions().getLegendSet().getUid() ) );
             }
         }
     }

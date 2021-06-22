@@ -79,9 +79,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.legend.LegendDisplayStrategy;
-import org.hisp.dhis.legend.LegendDisplayStyle;
-import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -220,11 +217,7 @@ public class Visualization
      */
     private List<Axis> optionalAxes = new ArrayList<>();
 
-    private LegendDisplayStyle legendDisplayStyle;
-
-    private LegendSet legendSet;
-
-    private LegendDisplayStrategy legendDisplayStrategy;
+    private LegendDefinitions legendDefinitions;
 
     /**
      * The font style for various components of the visualization.
@@ -261,7 +254,7 @@ public class Visualization
 
     private transient String rangeAxisLabel;
 
-    private LegendDefinitions legend;
+    private SeriesKey seriesKey;
 
     private List<AxisV2> axes = new ArrayList<>();
 
@@ -509,30 +502,6 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public LegendSet getLegendSet()
-    {
-        return legendSet;
-    }
-
-    public void setLegendSet( LegendSet legendSet )
-    {
-        this.legendSet = legendSet;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public LegendDisplayStrategy getLegendDisplayStrategy()
-    {
-        return legendDisplayStrategy;
-    }
-
-    public void setLegendDisplayStrategy( LegendDisplayStrategy legendDisplayStrategy )
-    {
-        this.legendDisplayStrategy = legendDisplayStrategy;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getMeasureCriteria()
     {
         return measureCriteria;
@@ -676,16 +645,16 @@ public class Visualization
         this.optionalAxes = optionalAxes;
     }
 
-    @JsonProperty
+    @JsonProperty( "legend" )
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public LegendDisplayStyle getLegendDisplayStyle()
+    public LegendDefinitions getLegendDefinitions()
     {
-        return legendDisplayStyle;
+        return legendDefinitions;
     }
 
-    public void setLegendDisplayStyle( LegendDisplayStyle legendDisplayStyle )
+    public void setLegendDefinitions( LegendDefinitions legendDefinitions )
     {
-        this.legendDisplayStyle = legendDisplayStyle;
+        this.legendDefinitions = legendDefinitions;
     }
 
     @JsonProperty
@@ -1152,16 +1121,16 @@ public class Visualization
         this.outlierAnalysis = outlierAnalysis;
     }
 
-    @JsonProperty( value = "legend" )
-    @JacksonXmlProperty( localName = "legend", namespace = DXF_2_0 )
-    public LegendDefinitions getLegend()
+    @JsonProperty( value = "seriesKey" )
+    @JacksonXmlProperty( localName = "seriesKey", namespace = DXF_2_0 )
+    public SeriesKey getSeriesKey()
     {
-        return legend;
+        return seriesKey;
     }
 
-    public void setLegend( LegendDefinitions legend )
+    public void setSeriesKey( SeriesKey seriesKey )
     {
-        this.legend = legend;
+        this.seriesKey = seriesKey;
 
         keepLegendReadingCompatibility( this );
     }

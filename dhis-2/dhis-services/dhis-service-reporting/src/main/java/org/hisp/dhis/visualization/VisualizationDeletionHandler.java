@@ -78,7 +78,11 @@ public class VisualizationDeletionHandler
 
         for ( final Visualization visualization : visualizations )
         {
-            visualization.setLegendSet( null );
+            if ( visualization.getLegendDefinitions() != null )
+            {
+                visualization.getLegendDefinitions().setLegendSet( null );
+            }
+
             service.update( visualization );
         }
     }

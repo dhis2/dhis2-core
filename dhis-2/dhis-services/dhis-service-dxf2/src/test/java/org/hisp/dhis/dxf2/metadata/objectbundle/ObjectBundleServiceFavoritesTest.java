@@ -150,9 +150,9 @@ public class ObjectBundleServiceFavoritesTest
         assertNotNull( visualizations.get( 0 ).getAxes() );
         assertNotNull( visualizations.get( 1 ).getAxes() );
         assertNotNull( visualizations.get( 2 ).getAxes() );
-        assertNotNull( visualizations.get( 0 ).getLegend() );
-        assertNotNull( visualizations.get( 1 ).getLegend() );
-        assertNotNull( visualizations.get( 2 ).getLegend() );
+        assertNotNull( visualizations.get( 0 ).getSeriesKey() );
+        assertNotNull( visualizations.get( 1 ).getSeriesKey() );
+        assertNotNull( visualizations.get( 2 ).getSeriesKey() );
         assertEquals( 2, visualizations.get( 0 ).getSeries().size() );
         assertEquals( 2, visualizations.get( 1 ).getSeries().size() );
         assertEquals( 2, visualizations.get( 2 ).getSeries().size() );
