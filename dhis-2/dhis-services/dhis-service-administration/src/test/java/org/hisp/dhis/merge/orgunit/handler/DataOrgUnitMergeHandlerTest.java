@@ -37,7 +37,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
-import org.hisp.dhis.dataapproval.DataApprovalStore;
+import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
@@ -49,6 +49,8 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -72,7 +74,10 @@ public class DataOrgUnitMergeHandlerTest
     private DataValueService dataValueService;
 
     @Autowired
-    private DataApprovalStore dataApprovalStore;
+    private DataApprovalService dataApprovalService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private DataOrgUnitMergeHandler handler;
@@ -96,6 +101,8 @@ public class DataOrgUnitMergeHandlerTest
 
     private OrganisationUnit ouC;
 
+    private User usA;
+
     private DataApprovalLevel dlA;
 
     private DataApprovalWorkflow dwA;
@@ -110,7 +117,7 @@ public class DataOrgUnitMergeHandlerTest
         idObjectManager.save( deA );
         idObjectManager.save( deB );
 
-        PeriodType monthly = new MonthlyPeriodType();
+        PeriodType monthly = periodService.getPeriodTypeByClass( MonthlyPeriodType.class );
         peA = monthly.createPeriod( "202101" );
         peB = monthly.createPeriod( "202102" );
         periodService.addPeriod( peA );
@@ -122,6 +129,9 @@ public class DataOrgUnitMergeHandlerTest
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
+
+        usA = createUser( 'A' );
+        userService.addUser( usA );
 
         dlA = new DataApprovalLevel( "DataApprovalLevelA", 1 );
         idObjectManager.save( dlA );
@@ -160,11 +170,12 @@ public class DataOrgUnitMergeHandlerTest
     @Test
     public void testMergeDataApprovals()
     {
-        addDataApprovals(
-            new DataApproval( dlA, dwA, peA, ouA, cocA ),
-            new DataApproval( dlA, dwA, peA, ouB, cocA ),
-            new DataApproval( dlA, dwA, peB, ouA, cocA ),
-            new DataApproval( dlA, dwA, peB, ouB, cocA ) );
+        DataApproval daA = new DataApproval( dlA, dwA, peA, ouA, cocA, false, date( 2021, 1, 1 ), usA );
+        DataApproval daB = new DataApproval( dlA, dwA, peA, ouB, cocA, false, date( 2021, 2, 1 ), usA );
+        DataApproval daC = new DataApproval( dlA, dwA, peB, ouA, cocA, false, date( 2021, 3, 1 ), usA );
+        DataApproval daD = new DataApproval( dlA, dwA, peB, ouB, cocA, false, date( 2021, 4, 1 ), usA );
+
+        addDataApprovals( daA, daB, daC, daD );
 
         assertEquals( 2, getDataApprovalCount( ouA ) );
         assertEquals( 2, getDataApprovalCount( ouB ) );
@@ -207,6 +218,6 @@ public class DataOrgUnitMergeHandlerTest
 
     private void addDataApprovals( DataApproval... dataApprovals )
     {
-        Stream.of( dataApprovals ).forEach( dataApprovalStore::addDataApproval );
+        Stream.of( dataApprovals ).forEach( dataApprovalService::addDataApproval );
     }
 }
