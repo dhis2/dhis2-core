@@ -124,6 +124,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -1076,6 +1077,27 @@ public abstract class DhisConvenienceTest
      * @param dataElement The data element.
      * @param period The period.
      * @param source The source.
+     * @param categoryOptionCombo The category option combo.
+     * @param attributeOptionCombo The attribute option combo.
+     * @param value the value.
+     * @param created the created date.
+     * @param lastUpdated the last updated date.
+     */
+    public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value,
+        Date created, Date lastUpdated )
+    {
+        DataValue dataValue = createDataValue( dataElement, period, source,
+            categoryOptionCombo, attributeOptionCombo, value );
+        dataValue.setCreated( created );
+        dataValue.setLastUpdated( lastUpdated );
+        return dataValue;
+    }
+
+    /**
+     * @param dataElement The data element.
+     * @param period The period.
+     * @param source The source.
      * @param value The value.
      * @param categoryOptionCombo The category option combo.
      * @param attributeOptionCombo The attribute option combo.
@@ -1520,6 +1542,21 @@ public abstract class DhisConvenienceTest
         }
 
         return program;
+    }
+
+    public static ProgramInstance createProgramInstance( Program program, TrackedEntityInstance tei,
+        OrganisationUnit organisationUnit )
+    {
+        ProgramInstance programInstance = new ProgramInstance( program, tei, organisationUnit );
+        programInstance.setAutoFields();
+
+        programInstance.setProgram( program );
+        programInstance.setEntityInstance( tei );
+        programInstance.setOrganisationUnit( organisationUnit );
+        programInstance.setEnrollmentDate( new Date() );
+        programInstance.setIncidentDate( new Date() );
+
+        return programInstance;
     }
 
     public static ProgramRule createProgramRule( char uniqueCharacter, Program parentProgram )

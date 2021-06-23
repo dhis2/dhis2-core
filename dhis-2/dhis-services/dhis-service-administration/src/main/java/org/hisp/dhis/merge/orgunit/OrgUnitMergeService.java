@@ -25,36 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
-
-import java.util.List;
-
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+package org.hisp.dhis.merge.orgunit;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Main interface for org unit merge.
+ *
+ * @author Lars Helge Overland
  */
-public interface LockExceptionStore
-    extends GenericStore<LockException>
+public interface OrgUnitMergeService
 {
-    String ID = LockExceptionStore.class.getName();
+    /**
+     * Performs an org unit merge operation.
+     *
+     * @param request the {@link OrgUnitMergeRequest}.
+     */
+    void merge( OrgUnitMergeRequest request );
 
-    List<LockException> getAllOrderedName( int first, int max );
-
-    List<LockException> getCombinations();
-
-    void deleteCombination( DataSet dataSet, Period period );
-
-    void deleteCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    void delete( OrganisationUnit organisationUnit );
-
-    long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
-
-    long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    boolean anyExists();
+    /**
+     * Converts the given {@link OrgUnitMergeQuery} to an
+     * {@link OrgUnitMergeRequest}.
+     *
+     * @param request the {@link OrgUnitMergeQuery}.
+     * @return an {@link OrgUnitMergeRequest}.
+     */
+    OrgUnitMergeRequest getFromQuery( OrgUnitMergeQuery query );
 }

@@ -25,36 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.merge.orgunit;
 
-import java.util.List;
+import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.junit.Assert.assertEquals;
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.junit.Test;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public interface LockExceptionStore
-    extends GenericStore<LockException>
+public class OrgUnitMergeValidatorTest
 {
-    String ID = LockExceptionStore.class.getName();
+    private OrgUnitMergeValidator validator = new OrgUnitMergeValidator();
 
-    List<LockException> getAllOrderedName( int first, int max );
+    @Test
+    public void testValidateMissingSources()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
 
-    List<LockException> getCombinations();
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .withTarget( ouA )
+            .build();
 
-    void deleteCombination( DataSet dataSet, Period period );
+        assertEquals( ErrorCode.E1500, validator.validateForErrorMessage( request ).getErrorCode() );
+    }
 
-    void deleteCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
+    @Test
+    public void testValidateMissingTarget()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
 
-    void delete( OrganisationUnit organisationUnit );
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .addSource( ouA )
+            .build();
 
-    long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
+        assertEquals( ErrorCode.E1501, validator.validateForErrorMessage( request ).getErrorCode() );
+    }
 
-    long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
+    @Test
+    public void testValidateTargetIsSource()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
 
-    boolean anyExists();
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .addSource( ouA )
+            .addSource( ouB )
+            .withTarget( ouA )
+            .build();
+
+        assertEquals( ErrorCode.E1502, validator.validateForErrorMessage( request ).getErrorCode() );
+    }
 }

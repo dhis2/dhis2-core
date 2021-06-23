@@ -25,36 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.merge.orgunit;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import lombok.Data;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Encapsulation of a web API request for org unit merge.
+ *
+ * @author Lars Helge Overland
  */
-public interface LockExceptionStore
-    extends GenericStore<LockException>
+@Data
+public class OrgUnitMergeQuery
 {
-    String ID = LockExceptionStore.class.getName();
+    @JsonProperty
+    private Set<String> sources = new HashSet<>();
 
-    List<LockException> getAllOrderedName( int first, int max );
+    @JsonProperty
+    private String target;
 
-    List<LockException> getCombinations();
+    @JsonProperty
+    private DataMergeStrategy dataValueMergeStrategy;
 
-    void deleteCombination( DataSet dataSet, Period period );
+    @JsonProperty
+    private DataMergeStrategy dataApprovalMergeStrategy;
 
-    void deleteCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    void delete( OrganisationUnit organisationUnit );
-
-    long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
-
-    long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    boolean anyExists();
+    @JsonProperty
+    private Boolean deleteSources;
 }
