@@ -30,6 +30,7 @@ package org.hisp.dhis.reservedvalue;
 import static org.hisp.dhis.util.Constants.*;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -110,7 +111,7 @@ public class DefaultReservedValueService
         }
         else
         {
-            List<String> usedGeneratedValues = new ArrayList<>();
+            List<String> generatedValues = new ArrayList<>();
 
             int numberOfValuesLeftToGenerate = numberOfReservations;
 
@@ -127,35 +128,30 @@ public class DefaultReservedValueService
 
                     List<String> resolvedPatterns = new ArrayList<>();
 
-                    List<String> generatedValues = new ArrayList<>();
-
-                    int maxGenerateAttempts = RESERVED_VALUE_MAX_GENERATION_ATTEMPT;
-
-                    while ( generatedValues.size() < numberOfValuesLeftToGenerate && maxGenerateAttempts-- > 0 )
-                    {
-                        generatedValues
-                            .addAll( valueGeneratorService.generateValues( generatedSegment, textPattern, key,
-                                numberOfReservations - resultList.size() ) );
-
-                        generatedValues.removeAll( usedGeneratedValues );
-                    }
-
-                    usedGeneratedValues.addAll( generatedValues );
+                    generatedValues
+                        .addAll( valueGeneratorService.generateValues( generatedSegment, textPattern, key,
+                            numberOfReservations - resultList.size() ) );
 
                     // Get a list of resolved patterns
-                    for ( int i = 0; i < numberOfReservations - resultList.size(); i++ )
+                    for ( String generatedValue : generatedValues )
                     {
                         resolvedPatterns.add( textPatternService.resolvePattern( textPattern,
                             ImmutableMap.<String, String> builder()
                                 .putAll( values )
-                                .put( generatedSegment.getMethod().name(), generatedValues.get( i ) )
+                                .put( generatedSegment.getMethod().name(), generatedValue )
                                 .build() ) );
                     }
 
                     if ( isPersistable )
                     {
-                        resultList.addAll(
-                            reservedValueStore.reserveValuesAndCheckUniqueness( reservedValue, resolvedPatterns ) );
+                        List<ReservedValue> availableValues = reservedValueStore.getAvailableValues( reservedValue,
+                            resolvedPatterns );
+
+                        List<ReservedValue> requiredValues = availableValues.subList( 0,
+                            Math.min( availableValues.size(), numberOfReservations ) );
+
+                        reservedValueStore.bulkInsertReservedValues( requiredValues );
+                        resultList.addAll( requiredValues );
                     }
                     else
                     {
@@ -165,10 +161,12 @@ public class DefaultReservedValueService
                     }
 
                     numberOfValuesLeftToGenerate = numberOfReservations - resultList.size();
+
+                    generatedValues = new ArrayList<>();
                 }
 
             }
-            catch ( TimeoutException ex )
+            catch ( TimeoutException | InterruptedException | ExecutionException ex )
             {
                 log.warn( String.format(
                     "Generation and reservation of values for %s wih uid %s timed out. %s values was reserved. You might be running low on available values",
