@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.transaction.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.handler.AnalyticalObjectOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.DataOrgUnitMergeHandler;
@@ -48,6 +50,7 @@ import com.google.common.collect.Sets;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service
 public class DefaultOrgUnitMergeService
     implements OrgUnitMergeService
@@ -86,6 +89,8 @@ public class DefaultOrgUnitMergeService
     @Transactional
     public void merge( OrgUnitMergeRequest request )
     {
+        log.debug( "Org unit merge request: {}", request );
+
         validator.validate( request );
 
         handlers.forEach( merge -> merge.merge( request ) );
@@ -95,6 +100,8 @@ public class DefaultOrgUnitMergeService
         idObjectManager.update( request.getTarget() );
 
         handleDeleteSources( request );
+
+        log.info( "Org unit merge operation done: {}", request );
     }
 
     @Override

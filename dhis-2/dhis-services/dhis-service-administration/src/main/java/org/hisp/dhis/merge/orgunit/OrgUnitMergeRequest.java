@@ -34,8 +34,10 @@ import java.util.Set;
 
 import lombok.Getter;
 
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -64,6 +66,16 @@ public class OrgUnitMergeRequest
     public OrganisationUnit getTarget()
     {
         return target;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )
+            .add( "target", target != null ? target.getId() : null )
+            .add( "deleteSources", deleteSources )
+            .toString();
     }
 
     public static class Builder
