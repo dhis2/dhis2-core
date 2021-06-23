@@ -35,12 +35,12 @@ package org.hisp.dhis.merge.orgunit;
 public enum DataMergeStrategy
 {
     /**
-     * Use last updated records.
+     * Use last updated source data records.
      */
     LAST_UPDATED,
 
     /**
-     * Discard data records.
+     * Discard source data records.
      */
     DISCARD
 }
