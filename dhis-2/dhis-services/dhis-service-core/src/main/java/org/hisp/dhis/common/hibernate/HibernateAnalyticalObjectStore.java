@@ -46,6 +46,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -158,7 +159,14 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     @Override
     public List<T> getAnalyticalObjects( LegendSet legendSet )
     {
-        String hql = "from " + clazz.getName() + " c where c.legendSet = :legendSet";
+        String embeddedObject = "";
+
+        if ( clazz == Visualization.class )
+        {
+            embeddedObject = "legendDefinitions.";
+        }
+
+        String hql = "from " + clazz.getName() + " c where c." + embeddedObject + "legendSet = :legendSet";
         return getQuery( hql ).setParameter( "legendSet", legendSet ).list();
     }
 

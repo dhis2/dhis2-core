@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
@@ -48,7 +50,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,14 +71,23 @@ import com.google.common.base.MoreObjects;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class FileResourceController
 {
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private FileResourceService fileResourceService;
+    private final FileResourceService fileResourceService;
 
-    @Autowired
-    private FileResourceUtils fileResourceUtils;
+    private final FileResourceUtils fileResourceUtils;
+
+    public FileResourceController( CurrentUserService currentUserService,
+        FileResourceService fileResourceService, FileResourceUtils fileResourceUtils )
+    {
+        checkNotNull( currentUserService );
+        checkNotNull( fileResourceService );
+        checkNotNull( fileResourceUtils );
+
+        this.currentUserService = currentUserService;
+        this.fileResourceService = fileResourceService;
+        this.fileResourceUtils = fileResourceUtils;
+    }
 
     // -------------------------------------------------------------------------
     // Controller methods
@@ -169,17 +179,17 @@ public class FileResourceController
          * doesn't make sense So we will return false if the fileResource have
          * either of these domains.
          */
+        if ( fileResource.getDomain().equals( FileResourceDomain.DATA_VALUE )
+            || fileResource.getDomain().equals( FileResourceDomain.PUSH_ANALYSIS ) )
+        {
+            return false;
+        }
 
         if ( fileResource.getDomain().equals( FileResourceDomain.USER_AVATAR ) )
         {
             return currentUser.isAuthorized( "F_USER_VIEW" ) || currentUser.getAvatar().equals( fileResource );
         }
 
-        if ( fileResource.getDomain().equals( FileResourceDomain.DOCUMENT ) )
-        {
-            return true;
-        }
-
-        return false;
+        return true;
     }
 }
