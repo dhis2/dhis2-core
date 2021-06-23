@@ -231,8 +231,6 @@ public class ReservedValueServiceIntegrationTest extends TransactionalIntegratio
         assertEquals( 0, reservedValueStore.getCount() );
     }
 
-    // Helpers
-
     private static TextPattern createTextPattern( IdentifiableObject owner, String pattern )
     {
         try
