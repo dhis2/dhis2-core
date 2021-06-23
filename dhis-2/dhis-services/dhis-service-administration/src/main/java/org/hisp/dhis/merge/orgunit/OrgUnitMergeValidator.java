@@ -67,21 +67,19 @@ public class OrgUnitMergeValidator
      */
     public ErrorMessage validateForErrorMessage( OrgUnitMergeRequest request )
     {
-        ErrorMessage error = null;
-
         if ( request.getSources().isEmpty() )
         {
-            error = new ErrorMessage( ErrorCode.E1500 );
+            return new ErrorMessage( ErrorCode.E1500 );
         }
-        else if ( request.getTarget() == null )
+        if ( request.getTarget() == null )
         {
-            error = new ErrorMessage( ErrorCode.E1501 );
+            return new ErrorMessage( ErrorCode.E1501 );
         }
-        else if ( request.getSources().contains( request.getTarget() ) )
+        if ( request.getSources().contains( request.getTarget() ) )
         {
-            error = new ErrorMessage( ErrorCode.E1502 );
+            return new ErrorMessage( ErrorCode.E1502 );
         }
 
-        return error;
+        return null;
     }
 }
