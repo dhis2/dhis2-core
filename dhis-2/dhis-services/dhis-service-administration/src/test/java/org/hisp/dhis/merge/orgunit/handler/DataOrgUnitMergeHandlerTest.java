@@ -170,12 +170,11 @@ public class DataOrgUnitMergeHandlerTest
     @Test
     public void testMergeDataApprovals()
     {
-        DataApproval daA = new DataApproval( dlA, dwA, peA, ouA, cocA, false, date( 2021, 1, 1 ), usA );
-        DataApproval daB = new DataApproval( dlA, dwA, peA, ouB, cocA, false, date( 2021, 2, 1 ), usA );
-        DataApproval daC = new DataApproval( dlA, dwA, peB, ouA, cocA, false, date( 2021, 3, 1 ), usA );
-        DataApproval daD = new DataApproval( dlA, dwA, peB, ouB, cocA, false, date( 2021, 4, 1 ), usA );
-
-        addDataApprovals( daA, daB, daC, daD );
+        addDataApprovals(
+            new DataApproval( dlA, dwA, peA, ouA, cocA, false, date( 2021, 1, 1 ), usA ),
+            new DataApproval( dlA, dwA, peA, ouB, cocA, false, date( 2021, 2, 1 ), usA ),
+            new DataApproval( dlA, dwA, peB, ouA, cocA, false, date( 2021, 3, 1 ), usA ),
+            new DataApproval( dlA, dwA, peB, ouB, cocA, false, date( 2021, 4, 1 ), usA ) );
 
         assertEquals( 2, getDataApprovalCount( ouA ) );
         assertEquals( 2, getDataApprovalCount( ouB ) );
