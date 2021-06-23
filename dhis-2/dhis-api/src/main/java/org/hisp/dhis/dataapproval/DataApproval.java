@@ -300,17 +300,7 @@ public class DataApproval
     @Override
     public int hashCode()
     {
-        final int prime = 31;
-
-        int result = 1;
-
-        result = prime * result + ((dataApprovalLevel == null) ? 0 : dataApprovalLevel.hashCode());
-        result = prime * result + ((workflow == null) ? 0 : workflow.hashCode());
-        result = prime * result + ((period == null) ? 0 : period.hashCode());
-        result = prime * result + ((organisationUnit == null) ? 0 : organisationUnit.hashCode());
-        result = prime * result + ((attributeOptionCombo == null) ? 0 : attributeOptionCombo.hashCode());
-
-        return result;
+        return Objects.hash( dataApprovalLevel, workflow, period, organisationUnit, attributeOptionCombo );
     }
 
     @Override

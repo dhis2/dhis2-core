@@ -235,22 +235,8 @@ public class DataApprovalAudit
     @Override
     public int hashCode()
     {
-
-        final int prime = 31;
-
-        int result = 1;
-
-        result = prime * result + (int) id;
-        result = prime * result + ((level == null) ? 0 : level.hashCode());
-        result = prime * result + ((workflow == null) ? 0 : workflow.hashCode());
-        result = prime * result + ((period == null) ? 0 : period.hashCode());
-        result = prime * result + ((organisationUnit == null) ? 0 : organisationUnit.hashCode());
-        result = prime * result + ((attributeOptionCombo == null) ? 0 : attributeOptionCombo.hashCode());
-        result = prime * result + ((action == null) ? 0 : action.hashCode());
-        result = prime * result + ((created == null) ? 0 : created.hashCode());
-        result = prime * result + ((creator == null) ? 0 : creator.hashCode());
-
-        return result;
+        return Objects.hash( id, level, workflow, period, organisationUnit, attributeOptionCombo, action, created,
+            creator );
     }
 
     @Override
