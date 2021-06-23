@@ -166,11 +166,23 @@ public class DefaultReservedValueService
                 }
 
             }
-            catch ( TimeoutException | InterruptedException | ExecutionException ex )
+            catch ( TimeoutException ex )
             {
                 log.warn( String.format(
                     "Generation and reservation of values for %s wih uid %s timed out. %s values was reserved. You might be running low on available values",
                     textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), resultList.size() ) );
+            }
+            catch ( ExecutionException e )
+            {
+                log.error( String.format(
+                    "Generation and reservation of values error %s : ", e.getMessage() ) );
+            }
+            catch ( InterruptedException e )
+            {
+                log.error( String.format(
+                    "Generation and reservation of values error %s : ", e.getMessage() ) );
+
+                Thread.currentThread().interrupt();
             }
 
         }
