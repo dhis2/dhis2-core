@@ -173,6 +173,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             {
                 trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entityInstance, program, orgUnit );
             }
+
+            ownerCache.invalidate( getOwnershipCacheKey( () -> entityInstance.getId(), program ) );
         }
         else
         {
@@ -216,6 +218,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
                 trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entityInstance, program,
                     organisationUnit );
             }
+
+            ownerCache.invalidate( getOwnershipCacheKey( () -> entityInstance.getId(), program ) );
         }
         else
         {
