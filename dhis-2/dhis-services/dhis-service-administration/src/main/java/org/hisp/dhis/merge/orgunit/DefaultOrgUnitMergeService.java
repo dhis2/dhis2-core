@@ -78,7 +78,7 @@ public class DefaultOrgUnitMergeService
     @Transactional
     public void merge( OrgUnitMergeRequest request )
     {
-        log.debug( "Org unit merge request: {}", request );
+        log.info( "Org unit merge request: {}", request );
 
         validator.validate( request );
 

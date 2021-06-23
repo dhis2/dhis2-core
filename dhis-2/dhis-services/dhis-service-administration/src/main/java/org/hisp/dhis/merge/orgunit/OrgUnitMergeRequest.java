@@ -72,8 +72,8 @@ public class OrgUnitMergeRequest
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "sources", IdentifiableObjectUtils.getIdentifiers( sources ) )
-            .add( "target", target != null ? target.getId() : null )
+            .add( "sources", IdentifiableObjectUtils.getUids( sources ) )
+            .add( "target", target != null ? target.getUid() : null )
             .add( "deleteSources", deleteSources )
             .toString();
     }
