@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -146,9 +147,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         ownerCache = cacheProvider.newCacheBuilder( OrganisationUnit.class )
             .forRegion( "OrganisationUnitOwner" )
             .expireAfterWrite( 5, TimeUnit.MINUTES )
-            .withMaximumSize( 0 ).disabled()
-            // .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles()
-            // ) ? 0 : 1000 )
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 1000 )
             .build();
     }
 
