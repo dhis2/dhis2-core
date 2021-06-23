@@ -409,8 +409,7 @@ public abstract class AbstractEnrollmentService
                 }
             }
 
-            // TODO: Nigeria investigation
-            if ( clearSession )
+            if ( clearSession && enrollments.size() >= FLUSH_FREQUENCY )
             {
                 clearSession();
             }
@@ -766,8 +765,7 @@ public abstract class AbstractEnrollmentService
                 }
             }
 
-            // TODO: Nigeria investigation
-            if ( clearSession )
+            if ( clearSession && enrollments.size() >= FLUSH_FREQUENCY )
             {
                 clearSession();
             }
