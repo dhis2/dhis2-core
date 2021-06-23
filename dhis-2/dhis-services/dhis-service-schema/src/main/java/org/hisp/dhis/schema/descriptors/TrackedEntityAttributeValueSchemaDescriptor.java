@@ -45,9 +45,6 @@ public class TrackedEntityAttributeValueSchemaDescriptor implements SchemaDescri
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( TrackedEntityAttributeValue.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-
-        return schema;
+        return new Schema( TrackedEntityAttributeValue.class, SINGULAR, PLURAL );
     }
 }
