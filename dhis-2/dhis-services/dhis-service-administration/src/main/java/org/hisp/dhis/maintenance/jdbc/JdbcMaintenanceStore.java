@@ -28,11 +28,17 @@ package org.hisp.dhis.maintenance.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.maintenance.MaintenanceStore;
@@ -40,12 +46,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -99,11 +99,18 @@ public class JdbcMaintenanceStore
     {
         String psiSelect = "(select programstageinstanceid from programstageinstance where deleted is true)";
 
+        String pmSelect = "(select id from programmessage where programstageinstanceid in "
+            + psiSelect + " )";
+
         /*
          * Delete event values, event value audits, event comments, events
          *
          */
         String[] sqlStmts = new String[] {
+            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + pmSelect,
+            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
+            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
+            "delete from programmessage where programstageinstanceid in " + psiSelect,
             "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
@@ -124,8 +131,8 @@ public class JdbcMaintenanceStore
             + piSelect + " )";
 
         /*
-         * Delete event values, event value audits, event comments, events,
-         * enrollment comments, enrollments
+         * Delete event values, event value audits, event comments, events, enrollment
+         * comments, enrollments
          *
          */
         String[] sqlStmts = new String[] {
@@ -149,7 +156,7 @@ public class JdbcMaintenanceStore
     public int deleteSoftDeletedTrackedEntityInstances()
     {
         /*
-         *  Get all soft deleted TEIs before they are hard deleted from database
+         * Get all soft deleted TEIs before they are hard deleted from database
          */
         List<String> deletedTeiUids = new ArrayList<>();
 
@@ -178,8 +185,7 @@ public class JdbcMaintenanceStore
 
         /*
          * Delete event values, event audits, event comments, events, enrollment
-         * comments, enrollments, tei attribtue values, tei attribtue value
-         * audits, teis
+         * comments, enrollments, tei attribtue values, tei attribtue value audits, teis
          *
          */
         String[] sqlStmts = new String[] {
@@ -222,8 +228,8 @@ public class JdbcMaintenanceStore
                 .createdAt( LocalDateTime.now() )
                 .object( tei )
                 .uid( teiUid )
-                .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, tei  ) )
+                .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, tei ) )
                 .build() );
-        });
+        } );
     }
 }
