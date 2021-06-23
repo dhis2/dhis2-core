@@ -31,8 +31,8 @@ public class Constants
 {
     public static final int RESERVED_VALUE_GENERATION_ATTEMPT = 10;
 
-    public static final int RESERVED_VALUE_MAX_GENERATION_ATTEMPT = 10;
+    public static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
 
-    public static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30); // 30
-                                                                              // seconds
+    public static final int RANDOM_GENERATION_CHUNK = 10;
+
 }
