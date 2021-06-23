@@ -34,7 +34,6 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Stian Sandvold
  */
-
 public class ExternalFileResourceSchemaDescriptor
     implements SchemaDescriptor
 {
