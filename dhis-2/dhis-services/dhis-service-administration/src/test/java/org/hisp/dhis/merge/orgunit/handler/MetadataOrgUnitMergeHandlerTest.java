@@ -47,6 +47,9 @@ import org.junit.Test;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class MetadataOrgUnitMergeHandlerTest
 {
     @Rule

@@ -47,6 +47,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class ProgramInstanceMigrateTest
     extends DhisSpringTest
 {

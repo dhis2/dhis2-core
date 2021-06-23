@@ -34,6 +34,9 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Test;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class OrgUnitMergeValidatorTest
 {
     private OrgUnitMergeValidator validator = new OrgUnitMergeValidator();

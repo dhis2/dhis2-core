@@ -58,6 +58,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import com.google.common.collect.Sets;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class DataOrgUnitMergeHandlerTest
     extends IntegrationTestBase
 {

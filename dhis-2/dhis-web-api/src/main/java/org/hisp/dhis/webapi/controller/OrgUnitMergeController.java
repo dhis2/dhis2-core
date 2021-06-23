@@ -40,6 +40,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Org unit merge API controller.
+ *
+ * @author Lars Helge Overland
+ */
 @RestController
 @AllArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

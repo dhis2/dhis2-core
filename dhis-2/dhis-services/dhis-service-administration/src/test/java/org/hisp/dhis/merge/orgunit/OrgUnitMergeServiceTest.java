@@ -45,6 +45,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class OrgUnitMergeServiceTest
     extends DhisSpringTest
 {
