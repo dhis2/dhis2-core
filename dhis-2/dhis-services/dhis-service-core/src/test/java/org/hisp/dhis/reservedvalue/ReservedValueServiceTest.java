@@ -163,6 +163,47 @@ public class ReservedValueServiceTest
         verify( reservedValueStore, times( 1 ) ).removeUsedOrExpiredReservations();
     }
 
+    @Test
+    public void shouldExitLoopWithInterruptedException()
+        throws TextPatternParser.TextPatternParsingException,
+        TextPatternGenerationException,
+        ReserveValueException,
+        ExecutionException,
+        InterruptedException
+    {
+        when( reservedValueStore.getAvailableValues( any(), any() ) )
+            .thenReturn( Arrays.asList( ReservedValue.builder().build(), ReservedValue.builder().build(),
+                ReservedValue.builder().build() ) );
+
+        when( valueGeneratorService.generateValues( any(), any(), any(), anyInt() ) )
+            .thenReturn( Arrays.asList( "AAA", "BBB" ) )
+            .thenThrow( new InterruptedException( "Interruption exception" ) );
+
+        assertEquals( 2,
+            reservedValueService
+                .reserve( createTextPattern( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, randomText ), 2,
+                    new HashMap<>(), futureDate )
+                .size() );
+    }
+
+    @Test
+    public void shouldExitLoopWithExecutionException()
+        throws TextPatternParser.TextPatternParsingException,
+        TextPatternGenerationException,
+        ReserveValueException,
+        ExecutionException,
+        InterruptedException
+    {
+        when( valueGeneratorService.generateValues( any(), any(), any(), anyInt() ) )
+            .thenThrow( new ExecutionException( new Exception( "Execution exception" ) ) );
+
+        assertEquals( 0,
+            reservedValueService
+                .reserve( createTextPattern( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, randomText ), 2,
+                    new HashMap<>(), futureDate )
+                .size() );
+    }
+
     private static TextPattern createTextPattern( Objects objects, String uid, String pattern )
         throws TextPatternParser.TextPatternParsingException
     {

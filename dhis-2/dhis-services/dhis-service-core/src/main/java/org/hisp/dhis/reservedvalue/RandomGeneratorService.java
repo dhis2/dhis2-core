@@ -86,7 +86,6 @@ public class RandomGeneratorService implements Callable<List<String>>
     public List<String> call()
         throws Exception
     {
-
         LinkedList<String> patterns = new LinkedList<>();
 
         List<String> randomList = new ArrayList<>();
@@ -101,7 +100,6 @@ public class RandomGeneratorService implements Callable<List<String>>
 
         for ( int j = 0; j < RANDOM_GENERATION_CHUNK; j++ )
         {
-
             StringBuilder stringBuilder = new StringBuilder();
 
             for ( String pattern : patterns )
@@ -109,35 +107,21 @@ public class RandomGeneratorService implements Callable<List<String>>
                 switch ( pattern.charAt( 0 ) )
                 {
                 case '*':
-
                     setForRandomAll( stringBuilder, pattern );
-
                     break;
-
                 case '#':
-
                     stringBuilder.append( new BigInteger( 256, new SecureRandom() ).abs().toString(), 0,
                         pattern.length() );
-
                     break;
-
                 case 'X':
-
                     setForRandomUpperCase( stringBuilder, pattern );
-
                     break;
-
                 case 'x':
-
                     setForRandomLowerCase( stringBuilder, pattern );
-
                     break;
-
                 default:
                     break;
-
                 }
-
             }
 
             randomList.add( stringBuilder.toString() );
