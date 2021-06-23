@@ -374,9 +374,9 @@ public abstract class AbstractEnrollmentService
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
     {
         enrollments.forEach( enrollment -> {
-            log.info( "Add Enrollment : " + enrollment.getEnrollment()  );
+            log.info( "Add Enrollment : " + enrollment.getEnrollment() );
             enrollment.getEvents().forEach( event -> log.info( "Event : " + event.getEvent() ) );
-        });
+        } );
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
@@ -409,7 +409,8 @@ public abstract class AbstractEnrollmentService
                 }
             }
 
-            if ( clearSession && enrollments.size() >= FLUSH_FREQUENCY )
+            // TODO: Nigeria investigation
+            if ( clearSession )
             {
                 clearSession();
             }
@@ -461,7 +462,7 @@ public abstract class AbstractEnrollmentService
     private ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean handleEvents )
     {
-        log.info( "Start adding Enrollment: " +  enrollment.getEnrollment() );
+        log.info( "Start adding Enrollment: " + enrollment.getEnrollment() );
         importOptions = updateImportOptions( importOptions );
 
         String storedBy = !StringUtils.isEmpty( enrollment.getStoredBy() ) && enrollment.getStoredBy().length() < 31
@@ -739,9 +740,9 @@ public abstract class AbstractEnrollmentService
         boolean clearSession )
     {
         enrollments.forEach( enrollment -> {
-            log.info( "Add Enrollment : " + enrollment.getEnrollment()  );
+            log.info( "Add Enrollment : " + enrollment.getEnrollment() );
             enrollment.getEvents().forEach( event -> log.info( "Event : " + event.getEvent() ) );
-        });
+        } );
         List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
@@ -765,7 +766,8 @@ public abstract class AbstractEnrollmentService
                 }
             }
 
-            if ( clearSession && enrollments.size() >= FLUSH_FREQUENCY )
+            // TODO: Nigeria investigation
+            if ( clearSession )
             {
                 clearSession();
             }
@@ -774,7 +776,7 @@ public abstract class AbstractEnrollmentService
         enrollments.forEach( enrollment -> {
             log.info( "Process Event Import : " + enrollment.getEnrollment() );
             enrollment.getEvents().forEach( event -> log.info( "Event : " + event.getEvent() ) );
-        });
+        } );
 
         ImportSummaries eventImportSummaries = eventService.processEventImport( events, importOptions, null );
         linkEventSummaries( importSummaries, eventImportSummaries, events );

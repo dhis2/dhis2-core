@@ -271,6 +271,12 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
         OrganisationUnit ou = getOwner( entityInstance.getId(), program, entityInstance::getOrganisationUnit );
 
+        log.info(
+            "Ownership check, ou={}, programAccessLevel={},user={}, isInUserSearchHierarchyCached={}, isInUserHierarchyCached={}",
+            ou.getUid(), program.getAccessLevel(), user.getUsername(),
+            organisationUnitService.isInUserSearchHierarchyCached( user, ou ),
+            organisationUnitService.isInUserHierarchyCached( user, ou ) );
+
         if ( program.isOpen() || program.isAudited() )
         {
             return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
