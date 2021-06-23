@@ -52,6 +52,14 @@ import org.springframework.stereotype.Service;
  *         Generate random values from a pattern using 256 bit BigInteger for
  *         numbers and random UUID for alphanumerics.
  *
+ *         x = lower case
+ *
+ *         X = upper case
+ *
+ *         # = digit
+ *
+ *         * = digit or lower case or upper case
+ *
  *         For alphanumeric we have some corner cases:
  *
  *         - '*' it shuffles between lower and upper case and gets a number when
@@ -66,10 +74,10 @@ import org.springframework.stereotype.Service;
 public class RandomGeneratorService implements Callable<List<String>>
 {
 
-    private final List<Character> lowercase = IntStream.range( 0, 26 ).mapToObj( ( n ) -> (char) (n + 'a') )
+    private final List<Character> lowercase = IntStream.range( 0, 26 ).mapToObj( n -> (char) (n + 'a') )
         .collect( Collectors.toList() );
 
-    private final List<Character> uppercase = IntStream.range( 0, 26 ).mapToObj( ( n ) -> (char) (n + 'A') )
+    private final List<Character> uppercase = IntStream.range( 0, 26 ).mapToObj( n -> (char) (n + 'A') )
         .collect( Collectors.toList() );
 
     private String textPattern;
@@ -91,8 +99,6 @@ public class RandomGeneratorService implements Callable<List<String>>
             patterns.add( textPattern.substring( matcher.start(), matcher.end() ) );
         }
 
-        boolean isUpper = false;
-
         for ( int j = 0; j < RANDOM_GENERATION_CHUNK; j++ )
         {
 
@@ -100,39 +106,11 @@ public class RandomGeneratorService implements Callable<List<String>>
 
             for ( String pattern : patterns )
             {
-                int i = 0;
-
                 switch ( pattern.charAt( 0 ) )
                 {
                 case '*':
 
-                    String randomUUIDForAll = UUID.randomUUID().toString();
-
-                    while ( i < pattern.length() )
-                    {
-
-                        if ( Character.isLetter( randomUUIDForAll.charAt( i ) ) )
-                        {
-
-                            if ( isUpper )
-                            {
-                                stringBuilder.append( Character.toUpperCase( randomUUIDForAll.charAt( i ) ) );
-                                isUpper = false;
-                            }
-                            else
-                            {
-                                stringBuilder.append( randomUUIDForAll.charAt( i ) );
-                                isUpper = true;
-                            }
-
-                        }
-                        else if ( Character.isDigit( randomUUIDForAll.charAt( i ) ) )
-                        {
-                            stringBuilder.append( randomUUIDForAll.charAt( i ) );
-                        }
-
-                        i++;
-                    }
+                    setForRandomAll( stringBuilder, pattern );
 
                     break;
 
@@ -140,46 +118,24 @@ public class RandomGeneratorService implements Callable<List<String>>
 
                     stringBuilder.append( new BigInteger( 256, new SecureRandom() ).abs().toString(), 0,
                         pattern.length() );
+
                     break;
 
                 case 'X':
-                    String randomUUIDForUpper = UUID.randomUUID().toString();
 
-                    while ( i < pattern.length() )
-                    {
-                        if ( Character.isLetter( randomUUIDForUpper.charAt( i ) ) )
-                        {
-                            stringBuilder.append( Character.toUpperCase( randomUUIDForUpper.charAt( i ) ) );
-                        }
-                        else if ( Character.isDigit( randomUUIDForUpper.charAt( i ) ) )
-                        {
-                            stringBuilder
-                                .append( uppercase.get( Character.getNumericValue( randomUUIDForUpper.charAt( i ) ) ) );
-                        }
-
-                        i++;
-                    }
+                    setForRandomUpperCase( stringBuilder, pattern );
 
                     break;
+
                 case 'x':
-                    String randomUUIDForLower = UUID.randomUUID().toString();
 
-                    while ( i < pattern.length() )
-                    {
-                        if ( Character.isLetter( randomUUIDForLower.charAt( i ) ) )
-                        {
-                            stringBuilder.append( randomUUIDForLower.charAt( i ) );
-                        }
-                        else if ( Character.isDigit( randomUUIDForLower.charAt( i ) ) )
-                        {
-                            stringBuilder
-                                .append( lowercase.get( Character.getNumericValue( randomUUIDForLower.charAt( i ) ) ) );
-                        }
-
-                        i++;
-                    }
+                    setForRandomLowerCase( stringBuilder, pattern );
 
                     break;
+
+                default:
+                    break;
+
                 }
 
             }
@@ -188,5 +144,80 @@ public class RandomGeneratorService implements Callable<List<String>>
         }
 
         return randomList;
+    }
+
+    private void setForRandomLowerCase( StringBuilder stringBuilder, String pattern )
+    {
+        int i = 0;
+        String randomUUIDForLower = UUID.randomUUID().toString();
+
+        while ( i < pattern.length() )
+        {
+            if ( Character.isLetter( randomUUIDForLower.charAt( i ) ) )
+            {
+                stringBuilder.append( randomUUIDForLower.charAt( i ) );
+            }
+            else if ( Character.isDigit( randomUUIDForLower.charAt( i ) ) )
+            {
+                stringBuilder
+                    .append( lowercase.get( Character.getNumericValue( randomUUIDForLower.charAt( i ) ) ) );
+            }
+
+            i++;
+        }
+    }
+
+    private void setForRandomUpperCase( StringBuilder stringBuilder, String pattern )
+    {
+        int i = 0;
+        String randomUUIDForUpper = UUID.randomUUID().toString();
+
+        while ( i < pattern.length() )
+        {
+            if ( Character.isLetter( randomUUIDForUpper.charAt( i ) ) )
+            {
+                stringBuilder.append( Character.toUpperCase( randomUUIDForUpper.charAt( i ) ) );
+            }
+            else if ( Character.isDigit( randomUUIDForUpper.charAt( i ) ) )
+            {
+                stringBuilder
+                    .append( uppercase.get( Character.getNumericValue( randomUUIDForUpper.charAt( i ) ) ) );
+            }
+
+            i++;
+        }
+    }
+
+    private void setForRandomAll( StringBuilder stringBuilder, String pattern )
+    {
+        int i = 0;
+        boolean isUpper = false;
+        String randomUUIDForAll = UUID.randomUUID().toString();
+
+        while ( i < pattern.length() )
+        {
+
+            if ( Character.isLetter( randomUUIDForAll.charAt( i ) ) )
+            {
+
+                if ( isUpper )
+                {
+                    stringBuilder.append( Character.toUpperCase( randomUUIDForAll.charAt( i ) ) );
+                    isUpper = false;
+                }
+                else
+                {
+                    stringBuilder.append( randomUUIDForAll.charAt( i ) );
+                    isUpper = true;
+                }
+
+            }
+            else if ( Character.isDigit( randomUUIDForAll.charAt( i ) ) )
+            {
+                stringBuilder.append( randomUUIDForAll.charAt( i ) );
+            }
+
+            i++;
+        }
     }
 }
