@@ -49,11 +49,14 @@ import org.springframework.stereotype.Service;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  *
- * Generate random values from a pattern using 256 bit BigInteger for numbers and random UUID for alphanumerics
- * For alphanumeric we have some corner cases:
+ *         Generate random values from a pattern using 256 bit BigInteger for
+ *         numbers and random UUID for alphanumerics For alphanumeric we have
+ *         some corner cases:
  *
- * - '*' it shuffles between lower and upper case and gets a number when if finds it in UUID random string
- * - 'x' or 'X' if we find a number in UUID random string it gets the alphabetic char at that position in order to maintain random pattern
+ *         - '*' it shuffles between lower and upper case and gets a number when
+ *         if finds it in UUID random string - 'x' or 'X' if we find a number in
+ *         UUID random string it gets the alphabetic char at that position in
+ *         order to maintain random pattern
  *
  */
 @Service
