@@ -75,7 +75,6 @@ public class EventImporter
     public ImportSummaries importAll( final List<Event> events, final ImportOptions importOptions,
         final JobConfiguration jobConfiguration )
     {
-        events.forEach( event -> log.info( "Importing Event : " + event.getEvent() ) );
         assert importOptions != null;
 
         final ImportSummaries importSummaries = new ImportSummaries();

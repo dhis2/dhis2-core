@@ -98,7 +98,6 @@ public class EventManager
 
     public ImportSummaries addEvents( final List<Event> events, final WorkContext workContext )
     {
-        events.forEach( event -> log.info( "Add Event :" + event.getEvent() ) );
         final ImportSummaries importSummaries = new ImportSummaries();
 
         // filter out events which are already in the database
@@ -116,7 +115,7 @@ public class EventManager
             // Run validation against the remaining "insertable" events //
             insertValidationFactory.check( workContext, validEvents ) );
 
-        log.info( "Validate addEvents"   + importSummaries );
+        log.info( "Validate addEvents: "   + importSummaries );
 
         // collect the UIDs of events that did not pass validation
         final List<String> invalidEvents = importSummaries.getImportSummaries().stream()
@@ -124,7 +123,7 @@ public class EventManager
 
         if ( invalidEvents.size() == validEvents.size() )
         {
-            log.info( "Invalid events ", importSummaries.getImportSummaries() );
+            log.info( "Invalid events: ", importSummaries.getImportSummaries() );
             return importSummaries;
         }
 
@@ -134,7 +133,6 @@ public class EventManager
             List<Event> eventsToInsert = invalidEvents.isEmpty() ? validEvents
                 : validEvents.stream().filter( e -> !invalidEvents.contains( e.getEvent() ) ).collect( toList() );
 
-            events.forEach( event -> log.info( " Event to inserts:" + event.getEvent() ) );
             if ( isNotEmpty( eventsToInsert ) )
             {
                 try
@@ -152,14 +150,12 @@ public class EventManager
             final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
                 .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
 
-            log.info( "eventPersistenceFailedUids: " + eventPersistenceFailedUids );
-
             // Post processing only the events that passed validation and were
             // persisted
             // correctly.
             List<Event> savedEvents = events.stream()
                 .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
-            savedEvents.forEach( event -> log.info( " Saved  event:" + event.getEvent() ) );
+            savedEvents.forEach( event -> log.info( " Saved  event: " + event.getEvent() ) );
             processingManager.getPostInsertProcessorFactory().process( workContext, savedEvents );
 
             incrementSummaryTotals( events, importSummaries, CREATE );
@@ -186,7 +182,6 @@ public class EventManager
 
     public ImportSummaries updateEvents( final List<Event> events, final WorkContext workContext )
     {
-        events.forEach( event -> log.info( "Update Event :" + event.getEvent() ) );
         final ImportSummaries importSummaries = new ImportSummaries();
 
         // pre-process events
@@ -196,7 +191,7 @@ public class EventManager
             // Run validation against the remaining "updatable" events //
             updateValidationFactory.check( workContext, events ) );
 
-        log.info( "Validate updateEvents"   + importSummaries );
+        log.info( "Validate updateEvents: " + importSummaries );
 
         // collect the UIDs of events that did not pass validation
         final List<String> eventValidationFailedUids = importSummaries.getImportSummaries().stream()
@@ -207,7 +202,6 @@ public class EventManager
 
         if ( eventValidationFailedUids.size() == events.size() )
         {
-            log.info( "eventValidationFailedUids.size() == events.size() " + importSummaries );
             return importSummaries;
         }
 
@@ -215,7 +209,6 @@ public class EventManager
         {
             try
             {
-                events.forEach( event -> log.info( " Event to update:" + event.getEvent() ) );
                 eventPersistenceService.update( workContext,
                     eventValidationFailedUids.isEmpty() ? events
                         : events.stream().filter( e -> !eventValidationFailedUids.contains( e.getEvent() ) )
@@ -236,7 +229,7 @@ public class EventManager
             List<Event> savedEvents = events.stream()
                 .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
 
-            savedEvents.forEach( event -> log.info( " Updated  event:" + event.getEvent() ) );
+            savedEvents.forEach( event -> log.info( " Updated event: " + event.getEvent() ) );
             processingManager.getPostUpdateProcessorFactory().process( workContext, savedEvents );
 
             incrementSummaryTotals( events, importSummaries, UPDATE );
