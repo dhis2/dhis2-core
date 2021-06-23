@@ -33,15 +33,18 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 
 public class ProgramInstanceSchemaDescriptor implements SchemaDescriptor
 {
-    public static final String SINGULAR = "programInstance";
+    public static final String SINGULAR = "enrollment";
 
-    public static final String PLURAL = "programInstances";
+    public static final String PLURAL = "enrollments";
 
     public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
     public Schema getSchema()
     {
-        return new Schema( ProgramInstance.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( ProgramInstance.class, SINGULAR, PLURAL );
+        schema.setApiEndpoint( API_ENDPOINT );
+
+        return schema;
     }
 }
