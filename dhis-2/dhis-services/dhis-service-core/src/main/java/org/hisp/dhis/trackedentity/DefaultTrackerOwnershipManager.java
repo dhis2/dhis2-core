@@ -184,6 +184,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             {
                 trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entityInstance, program, orgUnit );
             }
+            log.info( "Invalidating ownerCache key= {}",
+                getOwnershipCacheKey( () -> entityInstance.getId(), program ) );
+
             ownerCache.invalidate( getOwnershipCacheKey( () -> entityInstance.getId(), program ) );
         }
         else
@@ -227,6 +230,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
                 trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entityInstance, program,
                     organisationUnit );
             }
+            log.info( "Invalidating ownerCache key= {}",
+                getOwnershipCacheKey( () -> entityInstance.getId(), program ) );
             ownerCache.invalidate( getOwnershipCacheKey( () -> entityInstance.getId(), program ) );
         }
         else
@@ -385,10 +390,23 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService
                 .getTrackedEntityProgramOwner(
                     entityInstanceId, program.getId() );
+            if ( trackedEntityProgramOwner != null )
+            {
+                log.info( "Ownership ou={} fetched from db trackedentityprogramowner table",
+                    trackedEntityProgramOwner.getOrganisationUnit().getUid() );
+            }
+            else
+            {
+                log.info( "Ownership ou={} fallback to registration ou of tei",
+                    orgUnitIfMissingSupplier.get().getUid() );
+            }
 
-            return Optional.ofNullable( trackedEntityProgramOwner )
+            OrganisationUnit ownerOu = Optional.ofNullable( trackedEntityProgramOwner )
                 .map( TrackedEntityProgramOwner::getOrganisationUnit )
                 .orElseGet( orgUnitIfMissingSupplier );
+
+            log.info( "Inserting ownerOu={} for key={} into ownerCache", ownerOu.getUid(), ownershipCacheKey );
+            return ownerOu;
 
         } ).get();
     }
