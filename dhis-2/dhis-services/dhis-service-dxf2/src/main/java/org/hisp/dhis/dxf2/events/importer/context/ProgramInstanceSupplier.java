@@ -243,7 +243,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         Multimap<String, String> programInstanceToEvent, Set<String> uids )
     {
 
-        final String sql = "select pi.programinstanceid, pi.programid, pi.uid, t.uid as tei_uid, "
+        final String sql = "select pi.programinstanceid, pi.programid, pi.uid, t.trackedentityinstanceid as tei_id, t.uid as tei_uid, "
             + "ou.uid as tei_ou_uid, ou.path as tei_ou_path "
             + "from programinstance pi join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
             + "join organisationunit ou on t.organisationunitid = ou.organisationunitid where pi.uid in (:ids)";
@@ -282,6 +282,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         if ( teiUid != null )
         {
             TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+            trackedEntityInstance.setId( rs.getLong( "tei_id" ) );
             String teiOuUid = rs.getString( "tei_ou_uid" );
             if ( teiOuUid != null )
             {
