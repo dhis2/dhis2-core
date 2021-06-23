@@ -1857,20 +1857,7 @@ public class JdbcEventStore implements EventStore
                 .collect( toList() );
             final String uids = Joiner.on( "," ).join( psiUids );
 
-            jdbcTemplate.execute( "DELETE FROM programstageinstancecomments where programstageinstanceid in "
-                + "(select programstageinstanceid from programstageinstance where uid in (" + uids + ") )" );
-
-            // remove link between comment and psi
-
-            jdbcTemplate.execute( "DELETE FROM trackedentitycomment t "
-                + "    where t.trackedentitycommentid in (SELECT psic.trackedentitycommentid "
-                + "                FROM programstageinstancecomments psic "
-                + "                WHERE psic.programstageinstanceid in "
-                + "                (select programstageinstanceid from programstageinstance where uid in (" + uids
-                + ")))" );
-
-            jdbcTemplate.execute( "DELETE FROM programstageinstance where uid in ( " + uids + ")" );
-
+            jdbcTemplate.execute( "UPDATE programstageinstance SET deleted = true where uid in ( " + uids + ")" );
         }
     }
 
