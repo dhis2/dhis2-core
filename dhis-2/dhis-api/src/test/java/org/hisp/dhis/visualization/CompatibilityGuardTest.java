@@ -59,9 +59,9 @@ public class CompatibilityGuardTest
 
         // Then
         assertThat( visualization.getFontStyle().getLegend(),
-            is( equalTo( visualization.getLegend().getLabel().getFontStyle() ) ) );
+            is( equalTo( visualization.getSeriesKey().getLabel().getFontStyle() ) ) );
         assertThat( visualization.getFontStyle().getLegend().getFont(),
-            is( equalTo( visualization.getLegend().getLabel().getFontStyle().getFont() ) ) );
+            is( equalTo( visualization.getSeriesKey().getLabel().getFontStyle().getFont() ) ) );
     }
 
     @Test
@@ -116,7 +116,7 @@ public class CompatibilityGuardTest
 
     private Visualization mockVisualizationWithLegend()
     {
-        final LegendDefinitions legend = new LegendDefinitions();
+        final SeriesKey legend = new SeriesKey();
         final StyledObject label = new StyledObject();
         final FontStyle fontStyle = new FontStyle();
         fontStyle.setFont( Font.ARIAL );
@@ -124,7 +124,7 @@ public class CompatibilityGuardTest
         legend.setLabel( label );
 
         final Visualization visualization = new Visualization();
-        visualization.setLegend( legend );
+        visualization.setSeriesKey( legend );
 
         return visualization;
     }
