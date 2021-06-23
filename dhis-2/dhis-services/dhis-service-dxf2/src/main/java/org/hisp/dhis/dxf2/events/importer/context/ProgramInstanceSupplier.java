@@ -177,7 +177,8 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
 
     private ProgramInstance getByTeiAndProgram( ImportOptions importOptions, Long teiId, Long programId, Event event )
     {
-        final String sql = "select pi.programinstanceid, pi.programid, pi.uid , t.uid as tei_uid, " +
+        final String sql = "select pi.programinstanceid, pi.programid, pi.uid , t.trackedentityinstanceid as tei_id, t.uid as tei_uid, "
+            +
             "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi " +
             "join trackedentityinstance t on t.trackedentityinstanceid = pi.trackedentityinstanceid " +
             "join organisationunit ou on t.organisationunitid = ou.organisationunitid " +
@@ -218,7 +219,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
             return new HashMap<>();
         }
 
-        final String sql = "select psi.uid as psi_uid, pi.programinstanceid, pi.programid, pi.uid , t.uid as tei_uid, "
+        final String sql = "select psi.uid as psi_uid, pi.programinstanceid, pi.programid, pi.uid , t.trackedentityinstanceid as tei_id, t.uid as tei_uid, "
             + "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi "
             + "left outer join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
             + "left join organisationunit ou on t.organisationunitid = ou.organisationunitid "
