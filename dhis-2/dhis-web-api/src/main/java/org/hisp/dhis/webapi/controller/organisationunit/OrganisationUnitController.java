@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.organisationunit;
 
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,6 +43,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.merge.orgunit.OrgUnitMergeQuery;
+import org.hisp.dhis.merge.orgunit.OrgUnitMergeService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
@@ -58,13 +61,18 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -84,6 +92,17 @@ public class OrganisationUnitController
 
     @Autowired
     private VersionService versionService;
+
+    @Autowired
+    private OrgUnitMergeService orgUnitMergeService;
+
+    @ResponseStatus( HttpStatus.OK )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_MERGE')" )
+    @PostMapping( value = "/merge", produces = { APPLICATION_JSON_VALUE } )
+    public void mergeOrgUnits( @RequestBody OrgUnitMergeQuery query )
+    {
+        orgUnitMergeService.merge( orgUnitMergeService.getFromQuery( query ) );
+    }
 
     @Override
     @SuppressWarnings( "unchecked" )
