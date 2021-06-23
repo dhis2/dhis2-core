@@ -378,7 +378,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     private OrganisationUnit getOwner( Long entityInstanceId, Program program,
         Supplier<OrganisationUnit> orgUnitIfMissingSupplier )
     {
-        return ownerCache.get( getOwnershipCacheKey( () -> entityInstanceId, program ), s -> {
+        String ownershipCacheKey = getOwnershipCacheKey( () -> entityInstanceId, program );
+        log.info( "Ownership cache key generated = {}", ownershipCacheKey );
+        return ownerCache.get( ownershipCacheKey, s -> {
 
             TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService
                 .getTrackedEntityProgramOwner(
