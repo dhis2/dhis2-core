@@ -28,15 +28,13 @@
 package org.hisp.dhis.reservedvalue;
 
 import static java.util.Calendar.DATE;
-import static org.hisp.dhis.util.Constants.RESERVED_VALUE_GENERATION_ATTEMPT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 import java.util.*;
-import java.util.stream.IntStream;
+import java.util.concurrent.ExecutionException;
 
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.textpattern.*;
@@ -51,7 +49,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith( MockitoJUnitRunner.class )
 public class ReservedValueServiceTest
 {
-
     private ReservedValueService reservedValueService;
 
     private final TextPatternService textPatternService = new DefaultTextPatternService();
@@ -60,7 +57,7 @@ public class ReservedValueServiceTest
     private ReservedValueStore reservedValueStore;
 
     @Mock
-    private SequentialNumberCounterStore sequentialNumberCounterStore;
+    private ValueGeneratorService valueGeneratorService;
 
     @Captor
     private ArgumentCaptor<ReservedValue> reservedValue;
@@ -79,7 +76,7 @@ public class ReservedValueServiceTest
     public void setUpClass()
     {
         reservedValueService = new DefaultReservedValueService( textPatternService, reservedValueStore,
-            new ValueGeneratorService( sequentialNumberCounterStore ) );
+            valueGeneratorService );
 
         Calendar calendar = Calendar.getInstance();
         calendar.add( DATE, 1 );
@@ -118,22 +115,24 @@ public class ReservedValueServiceTest
     public void shouldNotReserveValuesSequentialPattern()
         throws TextPatternParser.TextPatternParsingException,
         TextPatternGenerationException,
-        ReserveValueException
+        ReserveValueException,
+        ExecutionException,
+        InterruptedException
     {
-        List<Integer> generatedValues = new ArrayList<>();
+        when( valueGeneratorService.generateValues( any(), any(), any(), anyInt() ) )
+            .thenReturn( Arrays.asList( "12", "34" ) );
 
-        IntStream.range( 1, RESERVED_VALUE_GENERATION_ATTEMPT + 1 ).forEach( generatedValues::add );
+        int requestedValues = 10;
 
-        when( sequentialNumberCounterStore.getNextValues( any(), any(), anyInt() ) )
-            .thenReturn( generatedValues );
-
-        assertEquals( RESERVED_VALUE_GENERATION_ATTEMPT,
+        assertEquals( requestedValues,
             reservedValueService
-                .reserve( createTextPattern( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, sequentialText ), 10,
+                .reserve( createTextPattern( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, sequentialText ),
+                    requestedValues,
                     new HashMap<>(), futureDate )
                 .size() );
 
         verify( reservedValueStore, times( 0 ) ).reserveValues( any() );
+        verify( reservedValueStore, times( 0 ) ).bulkInsertReservedValues( anyList() );
     }
 
     @Test
@@ -142,8 +141,9 @@ public class ReservedValueServiceTest
         TextPatternGenerationException,
         ReserveValueException
     {
-        when( reservedValueStore.reserveValuesAndCheckUniqueness( any(), any() ) )
-            .thenReturn( Arrays.asList( ReservedValue.builder().build(), ReservedValue.builder().build() ) );
+        when( reservedValueStore.getAvailableValues( any(), any() ) )
+            .thenReturn( Arrays.asList( ReservedValue.builder().build(), ReservedValue.builder().build(),
+                ReservedValue.builder().build() ) );
 
         assertEquals( 2,
             reservedValueService
@@ -151,7 +151,8 @@ public class ReservedValueServiceTest
                     new HashMap<>(), futureDate )
                 .size() );
 
-        verify( reservedValueStore, times( 1 ) ).reserveValuesAndCheckUniqueness( any(), any() );
+        verify( reservedValueStore, times( 1 ) ).getAvailableValues( any(), any() );
+        verify( reservedValueStore, times( 1 ) ).bulkInsertReservedValues( anyList() );
     }
 
     @Test

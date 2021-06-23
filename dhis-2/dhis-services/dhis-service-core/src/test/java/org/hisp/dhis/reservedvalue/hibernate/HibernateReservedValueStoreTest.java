@@ -61,11 +61,11 @@ public class HibernateReservedValueStoreTest
 
     private final static String prog002 = "002";
 
-    private final ReservedValue reservedValue = ReservedValue.builder()
-        .ownerObject( Objects.TRACKEDENTITYATTRIBUTE.name() ).created( new Date() ).ownerUid( teaUid ).key( "00X" )
-        .value( prog001 ).build();
-
     private Date futureDate;
+
+    private final ReservedValue.ReservedValueBuilder reservedValue = ReservedValue.builder()
+        .ownerObject( Objects.TRACKEDENTITYATTRIBUTE.name() ).created( new Date() ).ownerUid( teaUid ).key( "00X" )
+        .expiryDate( futureDate );
 
     @Autowired
     private ReservedValueStore reservedValueStore;
@@ -88,17 +88,17 @@ public class HibernateReservedValueStoreTest
         Calendar future = Calendar.getInstance();
         future.add( Calendar.DATE, 10 );
         futureDate = future.getTime();
-        reservedValue.setExpiryDate( futureDate );
+        reservedValue.expiryDate( futureDate );
     }
 
     @Test
     public void reserveValuesSingleValue()
     {
-        reservedValueStore.save( reservedValue );
+        reservedValueStore.save( reservedValue.value( prog001 ).build() );
 
         int count = reservedValueStore.getCount();
 
-        ReservedValue rv = reservedValue.toBuilder().value( prog002 ).build();
+        ReservedValue rv = reservedValue.value( prog002 ).build();
 
         List<ReservedValue> res = reservedValueStore.reserveValuesJpa( rv, Lists.newArrayList( rv.getValue() ) );
 
@@ -109,26 +109,32 @@ public class HibernateReservedValueStoreTest
     @Test
     public void isReservedShouldBeTrue()
     {
-        reservedValueStore.save( reservedValue );
+        ReservedValue rv = reservedValue.value( prog001 ).build();
+
+        reservedValueStore.save( rv );
 
         assertTrue(
-            reservedValueStore.isReserved( reservedValue.getOwnerObject(), reservedValue.getOwnerUid(),
+            reservedValueStore.isReserved( rv.getOwnerObject(), rv.getOwnerUid(),
                 prog001 ) );
     }
 
     @Test
     public void isReservedShouldBeFalse()
     {
-        reservedValueStore.save( reservedValue );
+        ReservedValue rv = reservedValue.value( prog001 ).build();
+
+        reservedValueStore.save( rv );
 
         assertFalse(
-            reservedValueStore.isReserved( reservedValue.getOwnerObject(), reservedValue.getOwnerUid(), "100" ) );
+            reservedValueStore.isReserved( rv.getOwnerObject(), rv.getOwnerUid(), "100" ) );
     }
 
     @Test
     public void reserveValuesMultipleValues()
     {
-        reservedValueStore.save( reservedValue );
+        ReservedValue rv = reservedValue.value( prog001 ).build();
+
+        reservedValueStore.save( rv );
 
         int count = reservedValueStore.getCount();
 
@@ -149,12 +155,14 @@ public class HibernateReservedValueStoreTest
     @Test
     public void reserveValuesMultipleValuesAlreadyReservedAndUsed()
     {
-        reservedValueStore.save( reservedValue );
+        ReservedValue rv = reservedValue.value( prog001 ).build();
+
+        reservedValueStore.save( rv );
 
         int count = reservedValueStore.getCount();
 
         List<ReservedValue> res = reservedValueStore
-            .reserveValuesJpa( reservedValue, Lists.newArrayList( "002", "003", "004" ) );
+            .reserveValuesJpa( rv, Lists.newArrayList( "002", "003", "004" ) );
 
         assertEquals( 1, count );
         assertEquals( 3, res.size() );
@@ -164,22 +172,26 @@ public class HibernateReservedValueStoreTest
     @Test
     public void getIfReservedValuesReturnsReservedValue()
     {
-        reservedValueStore.save( reservedValue );
+        ReservedValue rv = reservedValue.value( prog001 ).build();
+
+        reservedValueStore.save( rv );
 
         List<ReservedValue> res = reservedValueStore
-            .getIfReservedValues( reservedValue, Lists.newArrayList( reservedValue.getValue() ) );
+            .getReservedValues( rv, Lists.newArrayList( rv.getValue() ) );
 
-        assertEquals( reservedValue, res.get( 0 ) );
+        assertEquals( rv, res.get( 0 ) );
         assertEquals( 1, res.size() );
     }
 
     @Test
     public void getIfReservedValuesReturnEmptyListWhenNotReserved()
     {
-        reservedValueStore.save( reservedValue );
+        ReservedValue rv = reservedValue.value( prog001 ).build();
+
+        reservedValueStore.save( rv );
 
         List<ReservedValue> res = reservedValueStore
-            .getIfReservedValues( reservedValue, Lists.newArrayList( "999" ) );
+            .getReservedValues( rv, Lists.newArrayList( "999" ) );
 
         assertEquals( 0, res.size() );
     }
@@ -187,10 +199,12 @@ public class HibernateReservedValueStoreTest
     @Test
     public void getIfReservedValuesReturnOnlyReservedValuesWhenSendingMultipleValues()
     {
-        reservedValueStore.save( reservedValue );
+        ReservedValue rv = reservedValue.value( prog001 ).build();
+
+        reservedValueStore.save( rv );
 
         List<ReservedValue> res = reservedValueStore
-            .getIfReservedValues( reservedValue, Lists.newArrayList( prog001, prog002 ) );
+            .getReservedValues( rv, Lists.newArrayList( prog001, prog002 ) );
 
         assertTrue( res.stream().anyMatch( r -> r.getValue().equals( prog001 ) ) );
         assertFalse( res.stream().anyMatch( r -> r.getValue().equals( prog002 ) ) );
@@ -203,23 +217,27 @@ public class HibernateReservedValueStoreTest
     {
         Calendar pastDate = Calendar.getInstance();
         pastDate.add( Calendar.DATE, -1 );
-        reservedValue.setExpiryDate( pastDate.getTime() );
+        reservedValue.expiryDate( pastDate.getTime() );
 
-        reservedValueStore.reserveValuesJpa( reservedValue, Lists.newArrayList( reservedValue.getValue() ) );
+        ReservedValue rv = reservedValue.value( prog001 ).build();
+
+        reservedValueStore.reserveValuesJpa( rv, Lists.newArrayList( rv.getValue() ) );
 
         assertTrue( reservedValueStore.isReserved( Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001 ) );
 
         reservedValueStore.removeUsedOrExpiredReservations();
 
         assertFalse( reservedValueStore
-            .getIfReservedValues( reservedValue, Lists.newArrayList( reservedValue.getValue() ) )
-            .contains( reservedValue ) );
+            .getReservedValues( rv, Lists.newArrayList( rv.getValue() ) )
+            .contains( rv ) );
     }
 
     @Test
     public void removeExpiredReservationsDoesNotRemoveAnythingIfNothingHasExpired()
     {
-        reservedValueStore.save( reservedValue );
+        ReservedValue rv = reservedValue.value( prog001 ).build();
+
+        reservedValueStore.save( rv );
 
         int num = reservedValueStore.getCount();
 
@@ -231,8 +249,9 @@ public class HibernateReservedValueStoreTest
     @Test
     public void shouldNotAddAlreadyReservedValues()
     {
+        ReservedValue rv = reservedValue.value( prog001 ).build();
 
-        reservedValueStore.save( reservedValue );
+        reservedValueStore.save( rv );
 
         OrganisationUnit ou = createOrganisationUnit( "OU" );
         organisationUnitStore.save( ou );
@@ -248,7 +267,7 @@ public class HibernateReservedValueStoreTest
         teav.setValue( prog001 );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teav );
 
-        reservedValueStore.reserveValuesAndCheckUniqueness( reservedValue,
+        reservedValueStore.getAvailableValues( rv,
             new ArrayList<String>( Collections.singletonList( prog001 ) ) );
 
         assertEquals( 1, reservedValueStore.getCount() );
@@ -257,7 +276,9 @@ public class HibernateReservedValueStoreTest
     @Test
     public void shouldRemoveAlreadyUsedReservedValues()
     {
-        reservedValueStore.save( reservedValue );
+        ReservedValue rv = reservedValue.value( prog001 ).build();
+
+        reservedValueStore.save( rv );
 
         OrganisationUnit ou = createOrganisationUnit( "OU" );
         organisationUnitStore.save( ou );
@@ -288,7 +309,7 @@ public class HibernateReservedValueStoreTest
         pastDate.add( Calendar.DATE, -1 );
 
         reservedValueStore.reserveValuesJpa(
-            reservedValue.toBuilder().expiryDate( pastDate.getTime() ).value( prog002 ).build(),
+            reservedValue.expiryDate( pastDate.getTime() ).value( prog002 ).build(),
             Lists.newArrayList( prog002 ) );
 
         // used value
@@ -306,7 +327,9 @@ public class HibernateReservedValueStoreTest
         teav.setValue( prog001 );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teav );
 
-        reservedValueStore.save( reservedValue );
+        ReservedValue rv = reservedValue.value( prog001 ).build();
+
+        reservedValueStore.save( rv );
 
         reservedValueStore.removeUsedOrExpiredReservations();
 
