@@ -55,14 +55,6 @@ import com.google.common.collect.Sets;
 public class DefaultOrgUnitMergeService
     implements OrgUnitMergeService
 {
-    private final MetadataOrgUnitMergeHandler metadataHandler;
-
-    private final AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler;
-
-    private final DataOrgUnitMergeHandler dataHandler;
-
-    private final TrackerOrgUnitMergeHandler trackerHandler;
-
     private final OrgUnitMergeValidator validator;
 
     private final IdentifiableObjectManager idObjectManager;
@@ -70,19 +62,16 @@ public class DefaultOrgUnitMergeService
     private final ImmutableList<OrgUnitMergeHandler> handlers;
 
     public DefaultOrgUnitMergeService( MetadataOrgUnitMergeHandler metadataHandler,
-        AnalyticalObjectOrgUnitMergeHandler analyticalObjectMergeHandler,
+        AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler,
         DataOrgUnitMergeHandler dataHandler,
         TrackerOrgUnitMergeHandler trackerHandler,
         OrgUnitMergeValidator validator,
         IdentifiableObjectManager idObjectManager )
     {
-        this.metadataHandler = metadataHandler;
-        this.analyticalObjectHandler = analyticalObjectMergeHandler;
-        this.dataHandler = dataHandler;
-        this.trackerHandler = trackerHandler;
         this.validator = validator;
         this.idObjectManager = idObjectManager;
-        this.handlers = getMergeHandlers();
+        this.handlers = getMergeHandlers( metadataHandler,
+            analyticalObjectHandler, dataHandler, trackerHandler );
     }
 
     @Override
@@ -125,7 +114,11 @@ public class DefaultOrgUnitMergeService
     // Private methods
     // -------------------------------------------------------------------------
 
-    private ImmutableList<OrgUnitMergeHandler> getMergeHandlers()
+    private ImmutableList<OrgUnitMergeHandler> getMergeHandlers(
+        MetadataOrgUnitMergeHandler metadataHandler,
+        AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler,
+        DataOrgUnitMergeHandler dataHandler,
+        TrackerOrgUnitMergeHandler trackerHandler )
     {
         return ImmutableList.<OrgUnitMergeHandler> builder()
             .add( ( r ) -> metadataHandler.mergeDataSets( r ) )
