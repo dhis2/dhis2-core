@@ -123,7 +123,8 @@ public class RandomGeneratorService implements Callable<List<String>>
 
                 case '#':
 
-                    stringBuilder.append( new BigInteger( 256, new SecureRandom() ).abs().toString(), 0, pattern.length() );
+                    stringBuilder.append( new BigInteger( 256, new SecureRandom() ).abs().toString(), 0,
+                        pattern.length() );
                     break;
 
                 case 'X':
