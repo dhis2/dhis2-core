@@ -29,8 +29,6 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import java.util.Set;
 
-import javax.transaction.Transactional;
-
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.AnalyticalObject;
@@ -60,13 +58,11 @@ public class AnalyticalObjectOrgUnitMergeHandler
 
     private final EventChartService eventChartService;
 
-    @Transactional
     public void mergeVisualizations( OrgUnitMergeRequest request )
     {
         mergeAnalyticalObject( visualizationService, request.getSources(), request.getTarget() );
     }
 
-    @Transactional
     public void mergeMaps( OrgUnitMergeRequest request )
     {
         mergeAnalyticalObject( mapViewService, request.getSources(), request.getTarget() );
