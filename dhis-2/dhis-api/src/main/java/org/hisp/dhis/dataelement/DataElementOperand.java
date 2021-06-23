@@ -219,42 +219,32 @@ public class DataElementOperand
             name = dataElement.getName();
         }
 
-        if ( categoryOptionCombo != null )
+        if ( hasNonDefaultCategoryOptionCombo() )
         {
-            if ( hasNonDefaultCategoryOptionCombo() )
-            {
-                name += SPACE + categoryOptionCombo.getName();
-            }
-            else if ( hasNonDefaultAttributeOptionCombo() )
-            {
-                name += SPACE + SYMBOL_WILDCARD;
-            }
+            name += SPACE + categoryOptionCombo.getName();
         }
-        else if ( categoryOption != null )
+        else if ( hasNonDefaultAttributeOptionCombo() )
         {
-            if ( hasNonDefaultCategoryOption() )
-            {
-                name += SPACE + categoryOption.getName();
-            }
-            else if ( hasNonDefaultAttributeOption() )
-            {
-                name += SPACE + SYMBOL_WILDCARD;
-            }
+            name += SPACE + SYMBOL_WILDCARD;
         }
 
-        if ( attributeOptionCombo != null )
+        if ( hasNonDefaultAttributeOptionCombo() )
         {
-            if ( hasNonDefaultAttributeOptionCombo() )
-            {
-                name += SPACE + attributeOptionCombo.getName();
-            }
+            name += SPACE + attributeOptionCombo.getName();
         }
-        else if ( attributeOption != null )
+
+        if ( hasNonDefaultCategoryOption() )
         {
-            if ( hasNonDefaultAttributeOption() )
-            {
-                name += SPACE + attributeOption.getName();
-            }
+            name += SPACE + categoryOption.getName();
+        }
+        else if ( hasNonDefaultAttributeOption() )
+        {
+            name += SPACE + SYMBOL_WILDCARD;
+        }
+
+        if ( hasNonDefaultAttributeOption() )
+        {
+            name += SPACE + attributeOptionCombo.getName();
         }
 
         return name;

@@ -318,6 +318,9 @@ public class ExpressionServiceTest
         categoryService.addCategoryOptionCombo( categoryOptionComboA );
         categoryService.addCategoryOptionCombo( categoryOptionComboB );
 
+        categoryService.addCategoryOptionCombo( categoryOptionComboA );
+        categoryService.addCategoryOptionCombo( categoryOptionComboB );
+
         dataElementOperandA = new DataElementOperand( dataElementA, categoryOptionComboB );
         dataElementOperandB = new DataElementOperand( dataElementB, categoryOptionComboA );
         dataElementOperandC = new DataElementOperand( dataElementA, categoryOptionComboA, categoryOptionComboB );
@@ -1040,13 +1043,6 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testExpressionItemsToBeRemoved()
-    {
-        assertEquals( "9 DeA * CocB", eval( "#{dataElemenA.*.catOptCombB}" ) );
-        assertEquals( "19 DeB * CocA", eval( "#{dataElemenB.*.catOptCombA}" ) );
-    }
-
-    @Test
     public void testExpressionItems()
     {
         assertEquals( "HllvX50cXC0", categoryService.getDefaultCategoryOptionCombo().getUid() );
@@ -1064,6 +1060,10 @@ public class ExpressionServiceTest
         assertEquals( "15 DeB CocA", eval( "#{dataElemenB.catOptCombA.*}" ) );
         assertEquals( "7 DeA CocA CocB", eval( "#{dataElemenA.catOptCombA.catOptCombB}" ) );
         assertEquals( "17 DeB CocB CocA", eval( "#{dataElemenB.catOptCombB.catOptCombA}" ) );
+        assertEquals( "9 DeA * CocB", eval( "#{dataElemenA.*.catOptCombB}" ) );
+        assertEquals( "19 DeB * CocA", eval( "#{dataElemenB.*.catOptCombA}" ) );
+        assertEquals( "9 DeA * CocB", eval( "#{dataElemenA.*.catOptCombB}" ) );
+        assertEquals( "19 DeB * CocA", eval( "#{dataElemenB.*.catOptCombA}" ) );
 
         // Indicator operand
 
