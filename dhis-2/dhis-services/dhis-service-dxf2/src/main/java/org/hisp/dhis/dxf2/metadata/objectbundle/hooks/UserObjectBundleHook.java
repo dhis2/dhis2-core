@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -209,10 +208,12 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
     @SuppressWarnings( "unchecked" )
     public void postCommit( ObjectBundle bundle )
     {
-        if ( !bundle.getObjectMap().containsKey( User.class ) )
+        if ( !bundle.hasObjects( User.class ) )
+        {
             return;
+        }
 
-        List<IdentifiableObject> objects = bundle.getObjectMap().get( User.class );
+        Iterable<User> objects = bundle.getObjects( User.class );
         Map<String, Map<String, Object>> userReferences = bundle.getObjectReferences( User.class );
         Map<String, Map<String, Object>> userCredentialsReferences = bundle
             .getObjectReferences( UserCredentials.class );
@@ -223,9 +224,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
             return;
         }
 
-        for ( IdentifiableObject identifiableObject : objects )
+        for ( User identifiableObject : objects )
         {
-            User user = (User) identifiableObject;
+            User user = identifiableObject;
             handleNoAccessRoles( user, bundle );
 
             user = bundle.getPreheat().get( bundle.getPreheatIdentifier(), user );
