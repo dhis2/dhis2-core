@@ -32,6 +32,8 @@ import static org.hisp.dhis.analytics.QueryKey.NV;
 import java.util.List;
 import java.util.function.Function;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
@@ -92,7 +94,12 @@ public class QueryFilter
             return null;
         }
 
-        return OPERATOR_MAP.get( operator ).apply( filter.contains( NV ) );
+        return safelyGetOperator();
+    }
+
+    private String safelyGetOperator()
+    {
+        return OPERATOR_MAP.get( operator ).apply( StringUtils.trimToEmpty( filter ).contains( NV ) );
     }
 
     // TODO: unused. Remove ?
@@ -108,7 +115,7 @@ public class QueryFilter
             return "==";
         }
 
-        return OPERATOR_MAP.get( operator ).apply( filter.contains( NV ) );
+        return safelyGetOperator();
     }
 
     public String getSqlFilter( String encodedFilter )
