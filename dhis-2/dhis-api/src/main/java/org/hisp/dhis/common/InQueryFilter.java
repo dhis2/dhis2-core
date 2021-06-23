@@ -36,18 +36,33 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * A specialization of {@link QueryFilter} to properly render "in" condition
+ *
  * @author Giuseppe Nespolino
  */
 public class InQueryFilter extends QueryFilter
 {
     private final String field;
 
+    /**
+     * Construct a InQueryFilter using field name and the original
+     * {@link QueryFilter}
+     *
+     * @param field the field on which to construct the InQueryFilter
+     * @param queryFilter The original {@link QueryFilter}
+     */
     public InQueryFilter( String field, QueryFilter queryFilter )
     {
         super( IN, queryFilter.getFilter() );
         this.field = field;
     }
 
+    /**
+     * Renders this InQueryFilter into SQL
+     *
+     * @param encodedFilter actual "in" parameters
+     * @return a SQL condition representing this InQueryFilter
+     */
     public String getSqlFilter( String encodedFilter )
     {
         List<String> filterItems = getFilterItems( encodedFilter );
