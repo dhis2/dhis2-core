@@ -1369,6 +1369,12 @@ public class EventQueryParams
             return this;
         }
 
+        public Builder withOutputIdScheme( IdScheme outputIdScheme )
+        {
+            this.params.outputIdScheme = outputIdScheme;
+            return this;
+        }
+
         public EventQueryParams build()
         {
             return params;
