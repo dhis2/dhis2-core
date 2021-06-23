@@ -146,6 +146,11 @@ public class DefaultOrgUnitMergeService
             .build();
     }
 
+    /**
+     * Handles deletion of the source {@link OrganisationUnit}.
+     *
+     * @param request the {@link OrgUnitMergeRequest}.
+     */
     private void handleDeleteSources( OrgUnitMergeRequest request )
     {
         if ( request.isDeleteSources() )
