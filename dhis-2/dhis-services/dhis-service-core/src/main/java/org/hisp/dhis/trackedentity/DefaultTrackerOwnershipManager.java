@@ -30,6 +30,10 @@ package org.hisp.dhis.trackedentity;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
+import java.util.Optional;
+import java.util.function.LongSupplier;
+import java.util.function.Supplier;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.cache.Cache;
@@ -166,6 +170,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             {
                 trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entityInstance, program, orgUnit );
             }
+
+            ownerCache.invalidate( getOwnershipCacheKey( () -> entityInstance.getId(), program ) );
         }
         else
         {
@@ -209,6 +215,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
                 trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entityInstance, program,
                     organisationUnit );
             }
+
+            ownerCache.invalidate( getOwnershipCacheKey( () -> entityInstance.getId(), program ) );
         }
         else
         {
@@ -252,7 +260,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             return true;
         }
 
-        OrganisationUnit ou = getOwner( entityInstance, program );
+        OrganisationUnit ou = getOwner( entityInstance.getId(), program, entityInstance::getOrganisationUnit );
 
         if ( program.isOpen() || program.isAudited() )
         {
@@ -295,27 +303,20 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      * Get the current owner of this tei-program combination. Fallbacks to the
      * registered OU if no owner explicitly exists for the program
      *
-     * @param entityInstance The tei
+     * @param entityInstanceId The tei
      * @param program The program
      * @return The owning Organisation unit.
      */
-    private OrganisationUnit getOwner( TrackedEntityInstance entityInstance, Program program )
+    private OrganisationUnit getOwner( Long entityInstanceId, Program program,
+        Supplier<OrganisationUnit> orgUnitIfMissingSupplier )
     {
-        return ownerCache.get( getOwnershipCacheKey( entityInstance, program ), s -> {
-            OrganisationUnit ou;
+        return ownerCache.get( getOwnershipCacheKey( () -> entityInstanceId, program ), s -> {
             TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService
                 .getTrackedEntityProgramOwner(
-                    entityInstance.getId(), program.getId() );
-
-            if ( trackedEntityProgramOwner == null )
-            {
-                ou = entityInstance.getOrganisationUnit();
-            }
-            else
-            {
-                ou = trackedEntityProgramOwner.getOrganisationUnit();
-            }
-            return ou;
+                    entityInstanceId, program.getId() );
+            return Optional.ofNullable( trackedEntityProgramOwner )
+                .map( TrackedEntityProgramOwner::getOrganisationUnit )
+                .orElseGet( orgUnitIfMissingSupplier );
         } ).get();
     }
 
@@ -398,9 +399,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      * @param program
      * @return a String representing a record of ownership
      */
-    private String getOwnershipCacheKey( TrackedEntityInstance trackedEntityInstance, Program program )
+    private String getOwnershipCacheKey( LongSupplier trackedEntityInstanceIdSupplier, Program program )
     {
-        return trackedEntityInstance.getUid() + "_" + program.getUid();
+        return trackedEntityInstanceIdSupplier.getAsLong() + "_" + program.getUid();
     }
 
     private String getOwnershipCacheKeyWithUid( String trackedEntityInstance, Program program )
