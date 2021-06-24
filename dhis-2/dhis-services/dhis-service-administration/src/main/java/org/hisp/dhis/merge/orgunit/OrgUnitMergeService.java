@@ -25,23 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.merge.orgunit;
 
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-
-public class ProgramStageInstanceSchemaDescriptor implements SchemaDescriptor
+/**
+ * Main interface for org unit merge.
+ *
+ * @author Lars Helge Overland
+ */
+public interface OrgUnitMergeService
 {
-    public static final String SINGULAR = "programStageInstance";
+    /**
+     * Performs an org unit merge operation.
+     *
+     * @param request the {@link OrgUnitMergeRequest}.
+     */
+    void merge( OrgUnitMergeRequest request );
 
-    public static final String PLURAL = "programStageInstances";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( ProgramStageInstance.class, SINGULAR, PLURAL );
-    }
+    /**
+     * Converts the given {@link OrgUnitMergeQuery} to an
+     * {@link OrgUnitMergeRequest}.
+     *
+     * @param request the {@link OrgUnitMergeQuery}.
+     * @return an {@link OrgUnitMergeRequest}.
+     */
+    OrgUnitMergeRequest getFromQuery( OrgUnitMergeQuery query );
 }

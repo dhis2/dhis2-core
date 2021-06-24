@@ -25,23 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.merge.orgunit;
 
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import java.util.HashSet;
+import java.util.Set;
 
-public class ProgramStageInstanceSchemaDescriptor implements SchemaDescriptor
+import lombok.Data;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * Encapsulation of a web API request for org unit merge.
+ *
+ * @author Lars Helge Overland
+ */
+@Data
+public class OrgUnitMergeQuery
 {
-    public static final String SINGULAR = "programStageInstance";
+    @JsonProperty
+    private Set<String> sources = new HashSet<>();
 
-    public static final String PLURAL = "programStageInstances";
+    @JsonProperty
+    private String target;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    @JsonProperty
+    private DataMergeStrategy dataValueMergeStrategy;
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( ProgramStageInstance.class, SINGULAR, PLURAL );
-    }
+    @JsonProperty
+    private DataMergeStrategy dataApprovalMergeStrategy;
+
+    @JsonProperty
+    private Boolean deleteSources;
 }

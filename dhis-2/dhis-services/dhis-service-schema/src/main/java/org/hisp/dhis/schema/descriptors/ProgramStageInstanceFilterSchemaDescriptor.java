@@ -41,7 +41,6 @@ import com.google.common.collect.Lists;
  */
 public class ProgramStageInstanceFilterSchemaDescriptor implements SchemaDescriptor
 {
-
     public static final String SINGULAR = "eventFilter";
 
     public static final String PLURAL = "eventFilters";

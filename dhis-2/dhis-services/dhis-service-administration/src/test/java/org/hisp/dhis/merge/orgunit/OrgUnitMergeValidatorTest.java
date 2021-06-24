@@ -25,26 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.merge.orgunit;
 
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.junit.Assert.assertEquals;
+
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.junit.Test;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public class TrackedEntityAttributeValueSchemaDescriptor implements SchemaDescriptor
+public class OrgUnitMergeValidatorTest
 {
-    public static final String SINGULAR = "trackedEntityAttributeValue";
+    private OrgUnitMergeValidator validator = new OrgUnitMergeValidator();
 
-    public static final String PLURAL = "trackedEntityAttributeValues";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    @Test
+    public void testValidateMissingSources()
     {
-        return new Schema( TrackedEntityAttributeValue.class, SINGULAR, PLURAL );
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .withTarget( ouA )
+            .build();
+
+        assertEquals( ErrorCode.E1500, validator.validateForErrorMessage( request ).getErrorCode() );
+    }
+
+    @Test
+    public void testValidateMissingTarget()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .addSource( ouA )
+            .build();
+
+        assertEquals( ErrorCode.E1501, validator.validateForErrorMessage( request ).getErrorCode() );
+    }
+
+    @Test
+    public void testValidateTargetIsSource()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .addSource( ouA )
+            .addSource( ouB )
+            .withTarget( ouA )
+            .build();
+
+        assertEquals( ErrorCode.E1502, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 }

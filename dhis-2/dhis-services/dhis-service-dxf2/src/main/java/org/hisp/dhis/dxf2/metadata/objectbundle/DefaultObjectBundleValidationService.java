@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
-import java.util.ArrayList;
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 import java.util.Map;
 
@@ -135,19 +136,9 @@ public class DefaultObjectBundleValidationService
     @SuppressWarnings( "unchecked" )
     private List<Class<? extends IdentifiableObject>> getSortedClasses( ObjectBundle bundle )
     {
-        List<Class<? extends IdentifiableObject>> klasses = new ArrayList<>();
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = bundle.getObjectMap();
-
-        schemaService.getMetadataSchemas().forEach( schema -> {
-            Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) schema.getKlass();
-
-            if ( objectMap.containsKey( klass ) )
-            {
-                klasses.add( klass );
-            }
-        } );
-
-        return klasses;
+        return schemaService.getMetadataSchemas().stream()
+            .map( schema -> (Class<? extends IdentifiableObject>) schema.getKlass() )
+            .filter( bundle::hasObjects )
+            .collect( toList() );
     }
 }
