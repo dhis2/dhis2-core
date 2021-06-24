@@ -182,22 +182,13 @@ public class DbChangeEventHandler
 
         if ( operation == Envelope.Operation.CREATE )
         {
+            // Make sure queries will re-fetch
             queryCacheManager.evictQueryCache( sessionFactory.getCache(), firstEntityClass );
             paginationCacheManager.evictCache( firstEntityClass.getName() );
-        }
-        else if ( operation == Envelope.Operation.UPDATE
-            || operation == Envelope.Operation.DELETE
-            || operation == Envelope.Operation.TRUNCATE )
-        {
-            sessionFactory.getCache().evict( firstEntityClass, entityId );
-        }
 
-        // Same operation semantics for collection eviction
-        evictCollections( entityClasses, entityId );
+            evictCollections( entityClasses, entityId );
 
-        // Try to fetch new entity so it might get cached
-        if ( operation == Envelope.Operation.CREATE )
-        {
+            // Try to fetch new entity so it might get cached
             try ( Session session = sessionFactory.openSession() )
             {
                 session.get( firstEntityClass, entityId );
@@ -206,6 +197,14 @@ public class DbChangeEventHandler
             {
                 log.warn( "Failed to execute get query!", e );
             }
+        }
+        else if ( operation == Envelope.Operation.UPDATE
+            || operation == Envelope.Operation.DELETE
+            || operation == Envelope.Operation.TRUNCATE )
+        {
+            sessionFactory.getCache().evict( firstEntityClass, entityId );
+
+            evictCollections( entityClasses, entityId );
         }
     }
 
