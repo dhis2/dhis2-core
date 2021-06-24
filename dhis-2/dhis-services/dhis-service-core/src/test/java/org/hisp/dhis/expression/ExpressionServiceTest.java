@@ -1062,8 +1062,6 @@ public class ExpressionServiceTest
         assertEquals( "17 DeB CocB CocA", eval( "#{dataElemenB.catOptCombB.catOptCombA}" ) );
         assertEquals( "9 DeA * CocB", eval( "#{dataElemenA.*.catOptCombB}" ) );
         assertEquals( "19 DeB * CocA", eval( "#{dataElemenB.*.catOptCombA}" ) );
-        assertEquals( "9 DeA * CocB", eval( "#{dataElemenA.*.catOptCombB}" ) );
-        assertEquals( "19 DeB * CocA", eval( "#{dataElemenB.*.catOptCombA}" ) );
 
         // Indicator operand
 
