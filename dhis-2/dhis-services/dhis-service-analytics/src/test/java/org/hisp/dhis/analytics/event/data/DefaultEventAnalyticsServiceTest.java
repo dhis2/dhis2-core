@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -116,18 +117,13 @@ public class DefaultEventAnalyticsServiceTest
     }
 
     @Test
-    public void testOutputSchemeInvocation()
+    public void testOutputSchemeWhenSchemeIsSet()
     {
         // Given mock variables
+        final IdScheme codeScheme = IdScheme.CODE;
         final OrganisationUnit mockOrgUnit = createOrganisationUnit( 'A' );
         final Program mockProgram = createProgram( 'A', null, null, Sets.newHashSet( mockOrgUnit ), null );
-        final EventQueryParams mockParams = new EventQueryParams.Builder()
-            .withPeriods( getList( createPeriod( "2000Q1" ) ), "monthly" )
-            .withPartitions( new Partitions() )
-            .withOrganisationUnits( getList( mockOrgUnit ) )
-            .withProgram( mockProgram )
-            .withOutputIdScheme( IdScheme.CODE )
-            .build();
+        final EventQueryParams mockParams = mockEventQueryParams( mockOrgUnit, mockProgram, codeScheme );
 
         // Given mock calls
         doNothing().when( securityManager ).decideAccessEventQuery( mockParams );
@@ -140,5 +136,39 @@ public class DefaultEventAnalyticsServiceTest
 
         // Then
         verify( schemaIdResponseMapper, atMost( 1 ) ).getSchemeIdResponseMap( mockParams );
+    }
+
+    @Test
+    public void testOutputSchemeWhenNoSchemeIsSet()
+    {
+        // Given mock variables
+        final IdScheme noScheme = null;
+        final OrganisationUnit mockOrgUnit = createOrganisationUnit( 'A' );
+        final Program mockProgram = createProgram( 'A', null, null, Sets.newHashSet( mockOrgUnit ), null );
+        final EventQueryParams mockParams = mockEventQueryParams( mockOrgUnit, mockProgram, noScheme );
+
+        // Given mock calls
+        doNothing().when( securityManager ).decideAccessEventQuery( mockParams );
+        when( securityManager.withUserConstraints( mockParams ) ).thenReturn( mockParams );
+        doNothing().when( eventQueryValidator ).validate( mockParams );
+        when( queryPlanner.planEventQuery( any( EventQueryParams.class ) ) ).thenReturn( mockParams );
+
+        // When
+        defaultEventAnalyticsService.getEvents( mockParams );
+
+        // Then
+        verify( schemaIdResponseMapper, never() ).getSchemeIdResponseMap( mockParams );
+    }
+
+    private EventQueryParams mockEventQueryParams( final OrganisationUnit mockOrgUnit, final Program mockProgram,
+        final IdScheme scheme )
+    {
+        return new EventQueryParams.Builder()
+            .withPeriods( getList( createPeriod( "2000Q1" ) ), "monthly" )
+            .withPartitions( new Partitions() )
+            .withOrganisationUnits( getList( mockOrgUnit ) )
+            .withProgram( mockProgram )
+            .withOutputIdScheme( scheme )
+            .build();
     }
 }

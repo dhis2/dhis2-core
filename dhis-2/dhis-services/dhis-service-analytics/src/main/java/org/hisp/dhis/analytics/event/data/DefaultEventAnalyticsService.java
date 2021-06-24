@@ -584,12 +584,13 @@ public class DefaultEventAnalyticsService
 
     /**
      * Substitutes the meta data of the grid with the identifier scheme meta
-     * data property indicated in the query.
+     * data property indicated in the query. This happens only when a custom ID
+     * Schema is set.
      *
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
-    void applyIdScheme( DataQueryParams params, Grid grid )
+    private void maybeApplyIdScheme( DataQueryParams params, Grid grid )
     {
         if ( !params.isSkipMeta() )
         {
@@ -610,7 +611,7 @@ public class DefaultEventAnalyticsService
     {
         final Grid grid = getGrid( params );
 
-        applyIdScheme( params, grid );
+        maybeApplyIdScheme( params, grid );
 
         return grid;
     }
