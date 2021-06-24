@@ -318,9 +318,6 @@ public class ExpressionServiceTest
         categoryService.addCategoryOptionCombo( categoryOptionComboA );
         categoryService.addCategoryOptionCombo( categoryOptionComboB );
 
-        categoryService.addCategoryOptionCombo( categoryOptionComboA );
-        categoryService.addCategoryOptionCombo( categoryOptionComboB );
-
         dataElementOperandA = new DataElementOperand( dataElementA, categoryOptionComboB );
         dataElementOperandB = new DataElementOperand( dataElementB, categoryOptionComboA );
         dataElementOperandC = new DataElementOperand( dataElementA, categoryOptionComboA, categoryOptionComboB );
