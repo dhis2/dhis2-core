@@ -119,11 +119,6 @@ public class TrackedEntityAttribute
         this.displayOnVisitSchedule = displayOnVisitSchedule;
     }
 
-    public TrackedEntityAttribute( Long o )
-    {
-        this.id = o;
-    }
-
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
