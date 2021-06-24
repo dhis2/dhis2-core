@@ -52,8 +52,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.program.jdbc.JdbcOrgUnitAssociationsStore;
@@ -481,12 +481,6 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryOptionCombo getCategoryOptionCombo( IdentifiableProperty property, String id )
-    {
-        return idObjectManager.getObject( CategoryOptionCombo.class, property, id );
-    }
-
-    @Override
     @Transactional( readOnly = true )
     public List<CategoryOptionCombo> getAllCategoryOptionCombos()
     {
@@ -643,9 +637,9 @@ public class DefaultCategoryService
 
     @Override
     @Transactional( readOnly = true )
-    public CategoryOptionCombo getCategoryOptionComboAcl( IdentifiableProperty property, String id )
+    public CategoryOptionCombo getCategoryOptionComboAcl( IdScheme idScheme, String id )
     {
-        CategoryOptionCombo coc = idObjectManager.getObject( CategoryOptionCombo.class, property, id );
+        CategoryOptionCombo coc = idObjectManager.getObject( CategoryOptionCombo.class, idScheme, id );
 
         if ( coc != null )
         {

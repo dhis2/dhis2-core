@@ -39,6 +39,7 @@ import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +86,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -139,8 +141,9 @@ public class DefaultAdxDataService
 
     @Override
     public DataExportParams getFromUrl( Set<String> dataSets, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, Integer limit,
-        IdSchemes outputIdSchemes )
+        Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups,
+        Set<String> attributeOptionCombos, boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration,
+        Integer limit, IdSchemes outputIdSchemes )
     {
         outputIdSchemes.setDefaultIdScheme( IdScheme.CODE );
 
@@ -167,9 +170,22 @@ public class DefaultAdxDataService
                 .addAll( getByUidOrCode( OrganisationUnit.class, organisationUnits ) );
         }
 
+        if ( organisationUnitGroups != null )
+        {
+            params.getOrganisationUnitGroups()
+                .addAll( getByUidOrCode( OrganisationUnitGroup.class, organisationUnitGroups ) );
+        }
+
+        if ( attributeOptionCombos != null )
+        {
+            params.getAttributeOptionCombos()
+                .addAll( getByUidOrCode( CategoryOptionCombo.class, attributeOptionCombos ) );
+        }
+
         params.setIncludeChildren( includeChildren );
         params.setIncludeDeleted( includeDeleted );
         params.setLastUpdated( lastUpdated );
+        params.setLastUpdatedDuration( lastUpdatedDuration );
         params.setLimit( limit );
         params.setOutputIdSchemes( outputIdSchemes );
 
@@ -197,13 +213,11 @@ public class DefaultAdxDataService
         {
             AdxDataSetMetadata metadata = new AdxDataSetMetadata( dataSet, idSchemes );
 
-            CategoryCombo categoryCombo = dataSet.getCategoryCombo();
-
-            for ( CategoryOptionCombo aoc : categoryCombo.getOptionCombos() )
+            for ( CategoryOptionCombo aoc : getAttribuetOptionCombos( dataSet, params ) )
             {
                 Map<String, String> attributeDimensions = metadata.getExplodedCategoryAttributes( aoc.getId() );
 
-                for ( OrganisationUnit orgUnit : params.getOrganisationUnits() )
+                for ( OrganisationUnit orgUnit : params.getAllOrganisationUnits() )
                 {
                     Period currentPeriod = null;
                     OrganisationUnit currentOrgUnit = null;
@@ -214,6 +228,7 @@ public class DefaultAdxDataService
                         .setIncludeChildren( params.isIncludeChildren() )
                         .setIncludeDeleted( params.isIncludeDeleted() )
                         .setLastUpdated( params.getLastUpdated() )
+                        .setLastUpdatedDuration( params.getLastUpdatedDuration() )
                         .setPeriods( params.getPeriods() )
                         .setStartDate( params.getStartDate() )
                         .setEndDate( params.getEndDate() )
@@ -329,6 +344,20 @@ public class DefaultAdxDataService
         }
 
         return identifiableObjectManager.getByCode( clazz, id );
+    }
+
+    private Set<CategoryOptionCombo> getAttribuetOptionCombos( DataSet dataSet, DataExportParams params )
+    {
+        Set<CategoryOptionCombo> aocs = dataSet.getCategoryCombo().getOptionCombos();
+
+        if ( params.hasAttributeOptionCombos() )
+        {
+            aocs = new HashSet<>( aocs );
+
+            aocs.retainAll( params.getAttributeOptionCombos() );
+        }
+
+        return aocs;
     }
 
     private ImportSummary saveDataValueSetInternal( InputStream in, ImportOptions importOptions, JobConfiguration id )

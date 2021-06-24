@@ -28,6 +28,9 @@
 package org.hisp.dhis.dxf2.importsummary;
 
 import java.util.function.Predicate;
+import java.util.stream.StreamSupport;
+
+import org.hisp.dhis.feedback.ErrorCode;
 
 /**
  * A "append only" set of {@link ImportConflict}s.
@@ -36,13 +39,29 @@ import java.util.function.Predicate;
  */
 public interface ImportConflicts
 {
+
+    /**
+     * @return read-only access to the set of conflicts (in order of occurrence)
+     */
+    Iterable<ImportConflict> getConflicts();
+
+    /**
+     * Adds a new conflict to this set of conflicts
+     *
+     * @param conflict the added conflict
+     */
+    void addConflict( ImportConflict conflict );
+
     /**
      * Adds a new conflict to this set of conflicts
      *
      * @param object reference or ID of the object causing the conflict
      * @param message a description of the conflict
      */
-    void addConflict( String object, String message );
+    default void addConflict( String object, String message )
+    {
+        addConflict( new ImportConflict( object, message ) );
+    }
 
     /**
      * @return A textual description of all {@link ImportConflict}s in this set
@@ -50,12 +69,35 @@ public interface ImportConflicts
     String getConflictsDescription();
 
     /**
-     * @return Number of unique conflicts in the set. This can be less than the
+     * @return Number of grouped conflicts in the set. This can be less than the
      *         number of conflicts added using
      *         {@link #addConflict(String, String)} since duplicates are
      *         eliminated
      */
     int getConflictCount();
+
+    /**
+     *
+     * @return The total number of occurred conflicts (no grouping) which is
+     *         similar to the number of conflicts added using
+     *         {@link #addConflict(ImportConflict)}.
+     */
+    int getTotalConflictOccurrenceCount();
+
+    /**
+     * Count number of conflicts occurred for a particular error type.
+     *
+     * @param errorCode error code to count
+     * @return number of total occurred conflicts with the provided
+     *         {@link ErrorCode}
+     */
+    default int getConflictOccurrenceCount( ErrorCode errorCode )
+    {
+        return StreamSupport.stream( getConflicts().spliterator(), false )
+            .filter( c -> c.getErrorCode() == errorCode )
+            .mapToInt( ImportConflict::getOccurrenceCount )
+            .sum();
+    }
 
     /**
      * Tests if a {@link ImportConflict} with certain qualities exists in this
@@ -64,7 +106,10 @@ public interface ImportConflicts
      * @param test the test to perform
      * @return true if it exist, otherwise false
      */
-    boolean hasConflict( Predicate<ImportConflict> test );
+    default boolean hasConflict( Predicate<ImportConflict> test )
+    {
+        return StreamSupport.stream( getConflicts().spliterator(), false ).anyMatch( test );
+    }
 
     /**
      * @return true, if there are any conflicts in this set, else false

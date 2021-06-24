@@ -264,34 +264,6 @@ public class EnrollmentSecurityImportValidationTest
     }
 
     @Test
-    public void testEnrollmentOrgUnitProgramOrgUnitMismatch()
-        throws IOException
-    {
-        setupMetadata();
-
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        manager.update( programA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        userService.addUser( user );
-        injectSecurityContext( user );
-
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_orgunit-mismatch.json" );
-
-        params.setUserId( user.getUid() );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1041 ) ) ) );
-    }
-
-    @Test
     public void testUserNoAccessToTrackedEntity()
         throws IOException
     {

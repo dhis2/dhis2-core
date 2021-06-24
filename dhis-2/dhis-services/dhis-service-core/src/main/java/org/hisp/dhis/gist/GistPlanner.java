@@ -92,7 +92,7 @@ class GistPlanner
         {
             fields = singletonList( Field.ALL );
         }
-        fields = withDefaultFields( fields ); // 1:n
+        fields = withPresetFields( fields ); // 1:n
         fields = withDisplayAsTranslatedFields( fields ); // 1:1
         fields = withInnerAsSeparateFields( fields ); // 1:n
         fields = withCollectionItemPropertyAsTransformation( fields ); // 1:1
@@ -180,7 +180,11 @@ class GistPlanner
             query.getDefaultTransformation(), field.getTransformation() ) );
     }
 
-    private List<Field> withDefaultFields( List<Field> fields )
+    /**
+     * Expands any field presets into individual fields while taking explicitly
+     * removed fields into account.
+     */
+    private List<Field> withPresetFields( List<Field> fields )
     {
         Set<String> explicit = fields.stream().map( Field::getPropertyPath ).collect( toSet() );
         List<Field> expanded = new ArrayList<>();
@@ -190,15 +194,19 @@ class GistPlanner
             if ( isPresetField( path ) )
             {
                 Schema schema = context.getHome();
+                Predicate<Property> canRead = getAccessFilter( schema );
                 schema.getProperties().stream()
                     .filter( getPresetFilter( path ) )
-                    .filter( getAccessFilter( schema ) )
                     .sorted( GistPlanner::propertyTypeOrder )
                     .forEach( p -> {
                         if ( !explicit.contains( p.key() ) && !explicit.contains( "-" + p.key() )
                             && !explicit.contains( "!" + p.key() ) )
                         {
-                            expanded.add( new Field( p.key(), Transform.AUTO ) );
+                            if ( canRead.test( p ) )
+                            {
+                                expanded.add( new Field( p.key(), Transform.AUTO ) );
+                            }
+                            addReferenceFields( expanded, path, schema, p );
                         }
                     } );
             }
@@ -214,12 +222,37 @@ class GistPlanner
         return expanded;
     }
 
-    @SuppressWarnings( "unchecked" )
+    private void addReferenceFields( List<Field> expanded, String path, Schema schema, Property p )
+    {
+        Schema propertySchema = context.switchedTo( p.getKlass() ).getHome();
+        if ( isPersistentReferenceField( p ) && propertySchema.getRelativeApiEndpoint() == null )
+        {
+            // reference to an object with no endpoint API
+            // => include its fields
+            propertySchema.getProperties().stream()
+                .filter( getPresetFilter( path ) )
+                .filter( getAccessFilter( propertySchema ) )
+                .sorted( GistPlanner::propertyTypeOrder )
+                .forEach( rp -> {
+                    String referencePath = p.key() + "." + rp.key();
+                    if ( canRead( schema, referencePath ) )
+                    {
+                        expanded.add( new Field( referencePath, Transform.AUTO ) );
+                    }
+                } );
+        }
+    }
+
     private Predicate<Property> getAccessFilter( Schema schema )
     {
+        return p -> canRead( schema, p.getName() );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private boolean canRead( Schema schema, String path )
+    {
         return !schema.isIdentifiableObject()
-            ? p -> true
-            : p -> access.canRead( (Class<? extends IdentifiableObject>) schema.getKlass(), p.getName() );
+            || access.canRead( (Class<? extends IdentifiableObject>) schema.getKlass(), path );
     }
 
     private List<Field> withDisplayAsTranslatedFields( List<Field> fields )

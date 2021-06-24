@@ -158,7 +158,7 @@
     <jsoup.version>1.11.3</jsoup.version>
 
     <!-- Embedded Jetty -->
-    <jetty.version>9.4.38.v20210224</jetty.version>
+    <jetty.version>9.4.41.v20210516</jetty.version>
     <maven-jetty-plugin.version>9.4.38.v20210224</maven-jetty-plugin.version>
 
     <!-- Div. utils -->

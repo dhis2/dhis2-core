@@ -34,6 +34,8 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.visualization.ReportingParams;
 import org.hisp.dhis.visualization.Visualization;
 
@@ -169,6 +171,7 @@ public class Report
         this.visualization = visualization;
     }
 
+    @Gist( included = Include.FALSE )
     @JsonProperty( "relativePeriods" )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public RelativePeriods getRelatives()

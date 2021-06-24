@@ -33,12 +33,16 @@ import java.io.Serializable;
 
 import lombok.Data;
 
+import org.hisp.dhis.legend.LegendDisplayStrategy;
+import org.hisp.dhis.legend.LegendDisplayStyle;
+import org.hisp.dhis.legend.LegendSet;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * This class holds the legend definitions and settings for each Visualization.
+ * This class holds the legend definitions and related attributes.
  *
  * @author maikel arabori
  */
@@ -46,11 +50,19 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "legend", namespace = DXF_2_0 )
 public class LegendDefinitions implements Serializable
 {
-    @JsonProperty
+    @JsonProperty( "style" )
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private StyledObject label;
+    private LegendDisplayStyle legendDisplayStyle;
+
+    @JsonProperty( "series" )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private LegendSet legendSet;
+
+    @JsonProperty( "strategy" )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private LegendDisplayStrategy legendDisplayStrategy;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private boolean hidden;
+    private boolean hideKey;
 }
