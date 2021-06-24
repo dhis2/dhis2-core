@@ -45,18 +45,20 @@ import com.google.common.cache.CacheBuilder;
 @Profile( { "!test", "!test-h2" } )
 public class KnownTransactionsService
 {
+    public static final int LOCAL_TXID_CACHE_TIME_MIN = 15;
+
     private final Cache<Long, Boolean> applicationTransactions;
 
     public KnownTransactionsService()
     {
         applicationTransactions = CacheBuilder.newBuilder()
-            .expireAfterAccess( 15, TimeUnit.MINUTES )
+            .expireAfterAccess( LOCAL_TXID_CACHE_TIME_MIN, TimeUnit.MINUTES )
             .build();
     }
 
     public void register( long txId )
     {
-        log.info( "Register txId=" + txId + "  total=" + applicationTransactions.size() );
+        log.debug( "Register txId=" + txId + ", total=" + applicationTransactions.size() );
         applicationTransactions.put( txId, true );
     }
 
@@ -65,8 +67,8 @@ public class KnownTransactionsService
         return Boolean.TRUE.equals( applicationTransactions.getIfPresent( txId ) );
     }
 
-    public String total()
+    public Long size()
     {
-        return String.valueOf( applicationTransactions.size() );
+        return applicationTransactions.size();
     }
 }

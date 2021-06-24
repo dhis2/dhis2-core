@@ -27,39 +27,30 @@
  */
 package org.hisp.dhis.cacheinvalidation;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hibernate.FlushMode;
-import org.hibernate.HibernateException;
-import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
-import org.hibernate.event.spi.FlushEvent;
-import org.hibernate.event.spi.FlushEventListener;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component
-@Slf4j
-@Profile( { "!test", "!test-h2" } )
-public class HibernateFlushListener implements FlushEventListener
+public class DebeziumCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
 {
-    @Autowired
-    private KnownTransactionsService knownTransactionsService;
-
-    public void onFlush( FlushEvent event )
-        throws HibernateException
+    @Override
+    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        BeforeTransactionCompletionProcess beforeTransactionCompletionProcess = session -> {
-            Number txId = (Number) event.getSession().createNativeQuery( "SELECT txid_current()" )
-                .setFlushMode( FlushMode.MANUAL )
-                .getSingleResult();
+        if ( isTestRun( context ) )
+        {
+            return false;
+        }
 
-            knownTransactionsService.register( txId.longValue() );
-        };
+        return getConfiguration().isEnabled( ConfigurationKey.DEBEZIUM_ENABLED );
+    }
 
-        event.getSession().getActionQueue().registerProcess( beforeTransactionCompletionProcess );
+    @Override
+    public ConfigurationPhase getConfigurationPhase()
+    {
+        return ConfigurationPhase.PARSE_CONFIGURATION;
     }
 }

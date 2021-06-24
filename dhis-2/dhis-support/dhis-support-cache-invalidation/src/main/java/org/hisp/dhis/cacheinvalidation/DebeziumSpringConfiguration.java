@@ -29,6 +29,7 @@ package org.hisp.dhis.cacheinvalidation;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.core.session.SessionRegistryImpl;
@@ -39,7 +40,7 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 @Configuration
 @Order( 101 )
 @ComponentScan( basePackages = { "org.hisp.dhis" } )
-// @Profile( "cacheInvalidation" )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
 public class DebeziumSpringConfiguration
 {
     @Bean
@@ -49,10 +50,10 @@ public class DebeziumSpringConfiguration
     }
 
     @Bean( )
-    public EHDebeziumServiceRoutine ehDebeziumServiceRoutine()
+    public DebeziumPreStartupRoutine debeziumPreStartupRoutine()
     {
-        EHDebeziumServiceRoutine routine = new EHDebeziumServiceRoutine();
-        routine.setName( "EHDebeziumServiceRoutine" );
+        DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
+        routine.setName( "debeziumPreStartupRoutine" );
         routine.setRunlevel( 1 );
         routine.setSkipInTests( true );
         return routine;

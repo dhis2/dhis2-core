@@ -27,14 +27,11 @@
  */
 package org.hisp.dhis.cacheinvalidation;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import static org.hisp.dhis.cacheinvalidation.EntityToDbTableMapping.printEntityTableValue;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
-import javax.persistence.metamodel.EntityType;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,15 +42,10 @@ import org.apache.kafka.connect.source.SourceRecord;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.metamodel.internal.MetamodelImpl;
-import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.persister.entity.SingleTableEntityPersister;
 import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.cache.QueryCacheManager;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -66,11 +58,9 @@ import io.debezium.engine.RecordChangeEvent;
 @Component
 @Slf4j
 @Profile( { "!test", "!test-h2" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
 public class DbChangeEventHandler
 {
-    @PersistenceUnit
-    private EntityManagerFactory emf;
-
     @Autowired
     private SessionFactory sessionFactory;
 
@@ -83,31 +73,32 @@ public class DbChangeEventHandler
     @Autowired
     private QueryCacheManager queryCacheManager;
 
-    private final Map<String, Class<?>> entityToTableNames = new HashMap<>();
+    @Autowired
+    private EntityToDbTableMapping entityToDbTableMapping;
 
     protected void handleDbChange( RecordChangeEvent<SourceRecord> event )
     {
-        // init();
-
         try
         {
             tryEvictCache( event );
         }
         catch ( Exception e )
         {
-            log.error( "Failed to evict cache!", e );
+            log.error( "Exception thrown during Debezium event handling, this is an unexpected error!", e );
         }
     }
 
     private void tryEvictCache( RecordChangeEvent<SourceRecord> event )
     {
+        log.debug( "New RecordChangeEvent incoming! Event=" + event );
+
         SourceRecord record = event.record();
-        log.info( "New RecordChangeEvent incoming! topic=" + record.topic() );
+        Objects.requireNonNull( record, "Event record is null! Event=" + event );
 
         Struct payload = (Struct) record.value();
         if ( payload == null )
         {
-            log.warn( "payload is null! Skipping..." );
+            log.debug( "Payload is null! Skipping event..." );
             return;
         }
 
@@ -115,173 +106,127 @@ public class DbChangeEventHandler
         try
         {
             txId = ((Struct) payload.get( "source" )).getInt64( "txId" );
+            Objects.requireNonNull( txId, "TxId is null!" );
         }
         catch ( Exception e )
         {
-            log.error( "Could not fetch txId!", e );
+            log.error( "Could not extract txId! Skipping event...", e );
             throw e;
+        }
+
+        if ( knownTransactionsService.isKnown( txId ) )
+        {
+            log.debug( "Incoming event txId is registered on this instance, skipping this event..." );
+            return;
         }
 
         Envelope.Operation operation = Envelope.Operation.forCode( payload.getString( "op" ) );
         if ( operation == Envelope.Operation.READ )
         {
-            log.warn( "Operation is READ, skipping..." );
+            log.debug( "Operation is READ, skipping event..." );
             return;
         }
 
         String[] topic = record.topic().split( "\\." );
         if ( topic.length == 0 )
         {
-            log.warn( "topic is length is 0, skipping..." );
+            log.warn( "Topic is length is 0, skipping event..." );
             return;
         }
 
         String tableName = topic[topic.length - 1];
-        Class<?> entityClass = entityToTableNames.get( tableName );
 
-        if ( entityClass == null )
-        {
-            log.warn( "No entityClass mapped to the table name, ignoring event! tablename=" + tableName );
-            if ( !knownTransactionsService.isKnown( txId ) )
-            {
-                log.error( "\tUnknown txID! txId=" + txId + " totalTxId=" + knownTransactionsService.total() );
-            }
-            return;
-        }
+        List<Object[]> entityClasses = entityToDbTableMapping.get( tableName );
+        Objects.requireNonNull( entityClasses, "Failed to look up entity in entity table! Table name=" + tableName );
 
+        Serializable entityId = getEntityId( record );
+        Objects.requireNonNull( entityId, "Failed to extract entity id!" );
+
+        evictExternalEntityChanges( txId, operation, entityClasses, entityId );
+    }
+
+    private Serializable getEntityId( SourceRecord record )
+    {
         Schema schema = record.keySchema();
         List<Field> allIdFields = schema.fields();
-        Field idField = allIdFields.get( 0 );
-        String idFieldName = idField.name();
 
-        Schema.Type type = idField.schema().type();
+        Field firstIdField = allIdFields.get( 0 );
+        String idFieldName = firstIdField.name();
+
+        Schema.Type idType = firstIdField.schema().type();
         Struct keyStruct = (Struct) record.key();
-        Serializable id = null;
 
-        String cname = entityClass.getName();
-        String cname3 = TrackedEntityAttributeValue.class.getName();
-        if ( cname.equals( cname3 ) )
+        Serializable entityId = null;
+
+        if ( Schema.Type.INT64 == idType )
         {
-            Field idField1 = allIdFields.get( 0 );
-            Field idField2 = allIdFields.get( 1 );
-            Long o = (Long) keyStruct.get( idField1 );
-            Long o2 = (Long) keyStruct.get( idField2 );
-            id = new TrackedEntityAttributeValue( new TrackedEntityAttribute( o2 ), new TrackedEntityInstance( o ) );
+            entityId = keyStruct.getInt64( idFieldName );
         }
-        else if ( Schema.Type.INT64 == type )
+        else if ( Schema.Type.INT32 == idType )
         {
-            id = keyStruct.getInt64( idFieldName );
-        }
-        else if ( Schema.Type.INT32 == type )
-        {
-            id = keyStruct.getInt32( idFieldName );
+            entityId = keyStruct.getInt32( idFieldName );
         }
 
-        // org.apache.kafka.connect.errors.DataException: Field
-        // 'trackedentityprogramownerid' is not of type INT64
-        // at org.apache.kafka.connect.data.Struct.getCheckType(Struct.java:263)
-        // at org.apache.kafka.connect.data.Struct.getInt64(Struct.java:130)
-        // at
-        // org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.tryEvictCache(DbChangeEventHandler.java:124)
-        // at
-        // org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.handleDbChange(DbChangeEventHandler.java:88)
-        // at
-        // io.debezium.embedded.ConvertingEngineBuilder.lambda$notifying$0(ConvertingEngineBuilder.java:72)
-        // at
-        // io.debezium.embedded.EmbeddedEngine$1.handleBatch(EmbeddedEngine.java:473)
-        // at io.debezium.embedded.EmbeddedEngine.run(EmbeddedEngine.java:821)
-        // at
-        // io.debezium.embedded.ConvertingEngineBuilder$2.run(ConvertingEngineBuilder.java:188)
-        // at
-        // java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
-        // at
-        // java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
-        // at java.base/java.lang.Thread.run(Thread.java:829)
+        return entityId;
+    }
 
-        // java.lang.NullPointerException
-        // at
-        // org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.tryEvictCache(DbChangeEventHandler.java:127)
-        // at
-        // org.hisp.dhis.cacheinvalidation.DbChangeEventHandler.handleDbChange(DbChangeEventHandler.java:88)
-        // at
-        // io.debezium.embedded.ConvertingEngineBuilder.lambda$notifying$0(ConvertingEngineBuilder.java:72)
-        // at
-        // io.debezium.embedded.EmbeddedEngine$1.handleBatch(EmbeddedEngine.java:473)
-        // at io.debezium.embedded.EmbeddedEngine.run(EmbeddedEngine.java:821)
-        // at
-        // io.debezium.embedded.ConvertingEngineBuilder$2.run(ConvertingEngineBuilder.java:188)
-        // at
-        // java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
-        // at
-        // java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
-        // at java.base/java.lang.Thread.run(Thread.java:829)
+    private void evictExternalEntityChanges( Long txId, Envelope.Operation operation, List<Object[]> entityClasses,
+        Serializable entityId )
+    {
+        log.debug( String.format( "Handling external event! "
+            + "txId=%s, totalTxId=%s, operation=%s, entityClasses=%s, entityId=%s",
+            txId, knownTransactionsService.size(), operation, printEntityTableValue( entityClasses ), entityId ) );
 
-        if ( !knownTransactionsService.isKnown( txId ) )
+        Class<?> firstEntityClass = (Class<?>) entityClasses.get( 0 )[0];
+        Objects.requireNonNull( firstEntityClass, "Entity can't be null!" );
+
+        if ( operation == Envelope.Operation.CREATE )
         {
-            log.error( "\tUnknown txID! txId=" + txId + " totalTxId=" + knownTransactionsService.total() );
+            queryCacheManager.evictQueryCache( sessionFactory.getCache(), firstEntityClass );
+            paginationCacheManager.evictCache( firstEntityClass.getName() );
+        }
+        else if ( operation == Envelope.Operation.UPDATE
+            || operation == Envelope.Operation.DELETE
+            || operation == Envelope.Operation.TRUNCATE )
+        {
+            sessionFactory.getCache().evict( firstEntityClass, entityId );
+        }
 
-            if ( operation == Envelope.Operation.UPDATE || operation == Envelope.Operation.DELETE
-                || operation == Envelope.Operation.TRUNCATE )
+        // Same operation semantics for collection eviction
+        evictCollections( entityClasses, entityId );
+
+        // Try to fetch new entity so it might get cached
+        if ( operation == Envelope.Operation.CREATE )
+        {
+            try ( Session session = sessionFactory.openSession() )
             {
-                log.info( String.format( "RecordChangeEvent is an external %s event! "
-                    + "Trying to evict; entityClass=%s, id=%s", operation.name(), entityClass, id ) );
-
-                sessionFactory.getCache().evict( entityClass, id );
+                session.get( firstEntityClass, entityId );
             }
-            else if ( operation == Envelope.Operation.CREATE )
+            catch ( HibernateException e )
             {
-                log.info( String.format( "RecordChangeEvent is an external %s event! "
-                    + "Trying to find new entity and evict query cache; entityClass=%s", operation.name(),
-                    entityClass ) );
-
-                queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
-
-                paginationCacheManager.evictCache( entityClass.getName() );
-
-                try ( Session session = sessionFactory.openSession() )
-                {
-                    Object o = session.get( entityClass, id );
-                    log.info( "Found new object:" + o );
-                }
-                catch ( HibernateException e )
-                {
-                    log.error( "Failed to execute get query!", e );
-                }
+                log.warn( "Failed to execute get query!", e );
             }
-        }
-        else
-        {
-            log.info( "RecordChangeEvent is a local event, ignoring..." );
         }
     }
 
-    public void init()
+    private void evictCollections( List<Object[]> entityAndRoles, Serializable id )
     {
-        if ( !entityToTableNames.isEmpty() )
-        {
-            return;
-        }
+        Object[] firstEntityAndRole = entityAndRoles.get( 0 );
+        Objects.requireNonNull( firstEntityAndRole, "firstEntityAndRole can't be null!" );
 
-        for ( EntityType<?> entity : sessionFactory.getMetamodel().getEntities() )
+        // It's only a collection if we also have a role mapped
+        if ( firstEntityAndRole.length == 2 )
         {
-            Class<?> javaType = entity.getJavaType();
-            String value = extractTableName( javaType );
-            entityToTableNames.put( value, javaType );
-        }
-    }
+            for ( Object[] entityAndRole : entityAndRoles )
+            {
+                Class<?> eKlass = (Class<?>) entityAndRole[0];
+                sessionFactory.getCache().evict( eKlass, id );
+                queryCacheManager.evictQueryCache( sessionFactory.getCache(), eKlass );
+                paginationCacheManager.evictCache( eKlass.getName() );
 
-    public String extractTableName( final Class<?> modelClazz )
-    {
-        final MetamodelImpl metamodel = (MetamodelImpl) sessionFactory.getMetamodel();
-        final EntityPersister entityPersister = metamodel.entityPersister( modelClazz );
-
-        if ( entityPersister instanceof SingleTableEntityPersister )
-        {
-            return ((SingleTableEntityPersister) entityPersister).getTableName();
-        }
-        else
-        {
-            throw new IllegalArgumentException( modelClazz + " does not map to a single table." );
+                String role = (String) entityAndRole[1];
+                sessionFactory.getCache().evictCollectionData( role, id );
+            }
         }
     }
 }

@@ -46,9 +46,9 @@ import org.springframework.context.annotation.Profile;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
 @Slf4j
-public class EHDebeziumServiceRoutine extends AbstractStartupRoutine implements ApplicationContextAware
+@Profile( { "!test", "!test-h2" } )
+public class DebeziumPreStartupRoutine extends AbstractStartupRoutine implements ApplicationContextAware
 {
     private ApplicationContext applicationContext;
 
@@ -72,14 +72,14 @@ public class EHDebeziumServiceRoutine extends AbstractStartupRoutine implements 
     private DebeziumService debeziumService;
 
     @Autowired
-    private DbChangeEventHandler dbChangeEventHandler;
+    private EntityToDbTableMapping entityToDbTableMapping;
 
     @Override
 
     public void execute()
         throws Exception
     {
-        dbChangeEventHandler.init();
+        entityToDbTableMapping.init();
 
         SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
         EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );

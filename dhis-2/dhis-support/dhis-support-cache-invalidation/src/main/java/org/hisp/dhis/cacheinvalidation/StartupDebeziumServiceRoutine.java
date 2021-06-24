@@ -27,72 +27,25 @@
  */
 package org.hisp.dhis.cacheinvalidation;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
-
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Profile;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
 @Slf4j
-public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine implements ApplicationContextAware
+@Profile( { "!test", "!test-h2" } )
+public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine
 {
-    private ApplicationContext applicationContext;
-
-    @Override
-    public void setApplicationContext( ApplicationContext applicationContext )
-        throws BeansException
-    {
-        this.applicationContext = applicationContext;
-    }
-
-    @PersistenceUnit
-    private EntityManagerFactory emf;
-
-    @Autowired
-    private HibernateFlushListener hibernateFlushListener;
-
-    @Autowired
-    private DhisConfigurationProvider config;
-
     @Autowired
     private DebeziumService debeziumService;
-
-    @Autowired
-    private DbChangeEventHandler dbChangeEventHandler;
-
-    @Override
 
     public void execute()
         throws Exception
     {
         debeziumService.startDebeziumEngine();
-
-        // final ScheduledExecutorService scheduler =
-        // Executors.newScheduledThreadPool( 1 );
-        // scheduler.schedule( this::start, 11, TimeUnit.SECONDS );
-    }
-
-    private void start()
-    {
-        try
-        {
-            debeziumService.startDebeziumEngine();
-        }
-        catch ( Exception e )
-        {
-            log.error( "was an error", e );
-        }
-        log.info( String.format( "DEBEZIUM STARTED!" ) );
     }
 }

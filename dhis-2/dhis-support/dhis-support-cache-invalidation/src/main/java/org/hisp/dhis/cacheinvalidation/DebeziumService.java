@@ -29,6 +29,7 @@ package org.hisp.dhis.cacheinvalidation;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -39,14 +40,16 @@ import javax.annotation.PreDestroy;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+
+import com.google.common.base.MoreObjects;
 
 import io.debezium.config.Configuration;
 import io.debezium.embedded.Connect;
@@ -61,27 +64,28 @@ import io.debezium.engine.format.ChangeEventFormat;
 @Service
 @Slf4j
 @Profile( { "!test", "!test-h2" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
 public class DebeziumService
 {
+    private static final Executor executor = Executors.newSingleThreadExecutor();
+
+    public static final long STARTUP_WAIT_TIMEOUT_SECONDS = 5L;
+
+    private static final CountDownLatch engineStartupLatch = new CountDownLatch( 1 );
+
+    public static final long SHUTDOWN_DELAY_SECONDS = 10L;
+
+    public static final String SHUTDOWN_DISABLED_MSG = "shutdownOnConnectorStop is set to TRUE, the server will shutdown in "
+        + SHUTDOWN_DELAY_SECONDS + " seconds...";
+
     public static final String DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED = "DebeziumEngine connectorStopped() event triggered! ";
 
-    public static final String SHUTDOWN_ENABLED_MSG = "shutdownOnConnectorStop is set to FALSE, ignoring this event... NOTE: This will result in cache invalidation not working properly!";
-
-    public static final String SHUTDOWN_DISABLED_MSG = "shutdownOnConnectorStop is set to TRUE, the server will shutdown in 10 seconds...";
+    public static final String SHUTDOWN_ENABLED_MSG = "shutdownOnConnectorStop is set to FALSE, ignoring this event... "
+        + "NOTE: This will result in cache invalidation not working properly!";
 
     public static final String SEE_LOG_MSG = "Check the log for errors causing the shutdown!";
 
-    private static final Executor executor = Executors.newSingleThreadExecutor();
-
-    private static final CountDownLatch loginLatch = new CountDownLatch( 1 );
-
-    // We need to delay shutdown a little bit to be able to log the exception
-    // that caused it. The engine is running in it's own thread.
-    public static final long SHUTDOWN_DELAY_SECONDS = 2L;
-
-    public static final long STARTUP_WAIT_TIMEOUT = 5L;
-
-    private boolean shutdownOnConnectorStop = true;
+    private boolean shutdownOnConnectorStop = false;
 
     @Autowired
     private ConfigurationService configurationService;
@@ -94,86 +98,6 @@ public class DebeziumService
 
     private DebeziumEngine<RecordChangeEvent<SourceRecord>> engine;
 
-    private void shutdown( String msg )
-    {
-        shutdown( msg, null, null );
-    }
-
-    private void shutdown( String msg, Long countDown, Throwable throwable )
-    {
-        if ( countDown != null )
-        {
-            final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool( 1 );
-            scheduler.schedule( () -> shutdown( msg ), countDown, TimeUnit.SECONDS );
-            return;
-        }
-
-        log.error( "Shutting down due to a critical error. Reason: " + msg, throwable );
-        System.exit( 1 );
-    }
-
-    private final DebeziumEngine.ConnectorCallback connectorCallback = new DebeziumEngine.ConnectorCallback()
-    {
-        @Override
-        public void connectorStarted()
-        {
-            loginLatch.countDown();
-            log.debug( "DebeziumEngine connectorStarted() event triggered! " );
-        }
-
-        @Override
-        public void connectorStopped()
-        {
-            if ( shutdownOnConnectorStop )
-            {
-                log.error( DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED + SHUTDOWN_DISABLED_MSG );
-                shutdown( DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED + SEE_LOG_MSG, SHUTDOWN_DELAY_SECONDS,
-                    null );
-            }
-            else
-            {
-                log.warn( DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED + SHUTDOWN_ENABLED_MSG );
-            }
-        }
-
-        @Override
-        public void taskStarted()
-        {
-            log.info( "task start" );
-        }
-
-        @Override
-        public void taskStopped()
-        {
-            log.info( "task stop" );
-        }
-    };
-
-    private void handleCompletionCallback( boolean success, String message, Throwable error )
-    {
-        if ( success )
-        {
-            log.warn( "Success: " + message );
-        }
-        else
-        {
-            log.warn( "No success: " + message );
-        }
-
-        if ( error != null )
-        {
-            // if ( error instanceof DebeziumException )
-            // {
-            // if ( shutdownOnConnectorStop )
-            // {
-            // shutdown( "DebeziumException:" + error.getMessage() );
-            // }
-            // }
-
-            log.error( "A Debezium engine error has occurred! Error message: " + message, error );
-        }
-    }
-
     public void startDebeziumEngine()
         throws Exception
     {
@@ -182,20 +106,23 @@ public class DebeziumService
         String dbHostname = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_DB_HOSTNAME );
         String dbPort = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_DB_PORT );
         String dbName = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_DB_NAME );
+        String excludeList = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_EXCLUDE_LIST );
+        String configSlotName = MoreObjects
+            .firstNonNull( dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_SLOT_NAME ).trim(), "" );
 
-        String slotName = configurationService.getConfiguration().getSystemId();
+        this.shutdownOnConnectorStop = dhisConfig.isEnabled( ConfigurationKey.DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP );
 
-        if ( !StringUtils.isNotEmpty( slotName ) )
-        {
-            throw new Exception( "Slot name can't be empty or null!" );
-        }
-
-        slotName = slotName.replaceAll( "-", "" );
+        // Build replication slot name as:
+        // "dhis2_[EPOCH_SECONDS]_[OPTIONAL_CONFIG_ID]_[UUID4]
+        long timeNow = System.currentTimeMillis() / 1000L;
+        String slotName = "dhis2_" + timeNow + "_" + configSlotName + "_"
+            + UUID.randomUUID().toString().replaceAll( "-", "" );
 
         Properties props = Configuration.create().build().asProperties();
         props.setProperty( "name", slotName );
         props.setProperty( "slot.name", slotName );
         props.setProperty( "plugin.name", "pgoutput" );
+        props.setProperty( "publication.autocreate.mode", "filtered" );
         props.setProperty( "connector.class", "io.debezium.connector.postgresql.PostgresConnector" );
         props.setProperty( "offset.storage", "org.apache.kafka.connect.storage.MemoryOffsetBackingStore" );
         props.setProperty( "offset.flush.interval.ms", "60000" );
@@ -208,13 +135,7 @@ public class DebeziumService
         props.setProperty( "database.dbname", dbName );
         props.setProperty( "snapshot.mode", "never" );
         props.setProperty( "slot.drop.on.stop", "true" );
-        props.setProperty( "table.exclude.list",
-            "public.jobconfiguration" );
-        //
-        // + ",public.userroleauthorities,"
-        // + "public.periodtype,"
-        // + "public.categoryoptioncombos_categoryoptions,"
-        // + "public.deletedobject" );
+        props.setProperty( "table.exclude.list", "public.spatial_ref_sys,public.audit," + excludeList );
 
         engine = DebeziumEngine
             .create( ChangeEventFormat.of( Connect.class ) )
@@ -226,27 +147,83 @@ public class DebeziumService
 
         executor.execute( engine );
 
-        if ( !loginLatch.await( STARTUP_WAIT_TIMEOUT, TimeUnit.SECONDS ) )
+        if ( !engineStartupLatch.await( STARTUP_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
         {
+            log.error( "Debezium engine startup timeout exceeded! " + SHUTDOWN_DISABLED_MSG );
+
             if ( shutdownOnConnectorStop )
             {
-                shutdown( "Debezium engine startup timeout exceeded! " + SEE_LOG_MSG );
-            }
-            else
-            {
-                log.warn( "Debezium engine startup timeout exceeded! " + SHUTDOWN_DISABLED_MSG );
+                shutdown( "Debezium engine startup failed! " + SEE_LOG_MSG, SHUTDOWN_DELAY_SECONDS, null );
             }
         }
-
-        log.info( "Debezium engine started!" );
+        else
+        {
+            log.info( "Debezium engine started successfully!" );
+        }
     }
 
+    /**
+     * Important that this is called before shutdown so Debezium can remove its
+     * replication slot.
+     */
     @PreDestroy
     public void stopDebezium()
         throws IOException
     {
+        log.info( "Stopping the Debezium engine..." );
         engine.close();
     }
 
-    // TODO: Impl. keep alive/watchdog to make sure connection is alive...
+    private void shutdown( String msg, Long countDownSeconds, Throwable throwable )
+    {
+        if ( countDownSeconds != null )
+        {
+            final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool( 1 );
+            scheduler.schedule( () -> shutdown( msg, null, throwable ), countDownSeconds, TimeUnit.SECONDS );
+            return;
+        }
+
+        log.error( "Shutting down due to a critical error. Reason: " + msg, throwable );
+        System.exit( 1 );
+    }
+
+    private final DebeziumEngine.ConnectorCallback connectorCallback = new DebeziumEngine.ConnectorCallback()
+    {
+        @Override
+        public void connectorStarted()
+        {
+            log.debug( "DebeziumEngine connectorStarted() event triggered! " );
+            engineStartupLatch.countDown();
+        }
+
+        @Override
+        public void connectorStopped()
+        {
+            if ( shutdownOnConnectorStop )
+            {
+                log.error( DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED + SHUTDOWN_DISABLED_MSG );
+
+                shutdown( (DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED + SEE_LOG_MSG), SHUTDOWN_DELAY_SECONDS,
+                    null );
+            }
+            else
+            {
+                log.error( DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED + SHUTDOWN_ENABLED_MSG );
+            }
+        }
+    };
+
+    private void handleCompletionCallback( boolean success, String message, Throwable error )
+    {
+        if ( error != null )
+        {
+            if ( shutdownOnConnectorStop )
+            {
+                shutdown( "DebeziumException:" + error.getMessage(), SHUTDOWN_DELAY_SECONDS, error );
+            }
+
+            log.error( "A Debezium engine error has occurred! Error message= " + message, error );
+        }
+    }
+
 }

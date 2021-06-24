@@ -163,7 +163,8 @@ public abstract class EmbeddedJettyBase
     {
         Preconditions.checkNotNull( key );
         Preconditions.checkNotNull( defaultValue );
-        System.setProperty( key, System.getProperty( key, defaultValue ) );
+        String property = System.getProperty( key, defaultValue );
+        System.setProperty( key, property );
     }
 
     public abstract ServletContextHandler getServletContextHandler();
