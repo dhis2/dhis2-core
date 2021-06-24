@@ -204,7 +204,7 @@ public abstract class AbstractEventService implements EventService
 
     protected EventServiceContextBuilder eventServiceContextBuilder;
 
-    protected Cache<DataElement> dataElementCache;
+    protected Cache<Boolean> dataElementCache;
 
     private static final int FLUSH_FREQUENCY = 100;
 
@@ -215,10 +215,6 @@ public abstract class AbstractEventService implements EventService
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
     private final Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
-
-    private static final Cache<Boolean> DATA_ELEM_CACHE = new SimpleCacheBuilder<Boolean>()
-        .forRegion( "dataElementCache" ).expireAfterAccess( 60, TimeUnit.MINUTES ).withInitialCapacity( 10000 )
-        .withMaximumSize( 100000 ).build();
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -932,7 +928,7 @@ public abstract class AbstractEventService implements EventService
     private boolean getDataElement( String userUid, String dataElementUid )
     {
         String key = userUid + "-" + dataElementUid;
-        return DATA_ELEM_CACHE.get( key, k -> manager.get( DataElement.class, dataElementUid ) != null )
+        return dataElementCache.get( key, k -> manager.get( DataElement.class, dataElementUid ) != null )
             .orElse( false );
     }
 
@@ -1060,12 +1056,5 @@ public abstract class AbstractEventService implements EventService
         }
 
         importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
-    }
-
-    @Override
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        DATA_ELEM_CACHE.invalidateAll();
     }
 }
