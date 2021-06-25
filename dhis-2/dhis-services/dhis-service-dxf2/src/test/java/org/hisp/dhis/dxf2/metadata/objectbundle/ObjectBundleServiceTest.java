@@ -38,6 +38,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
@@ -154,7 +155,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
         bundle.getPreheat().put( bundle.getPreheatIdentifier(), dataElementGroup );
 
-        assertTrue( bundle.getObjectMap().get( DataElementGroup.class ).contains( dataElementGroup ) );
+        assertTrue( StreamSupport.stream( bundle.getObjects( DataElementGroup.class ).spliterator(), false )
+            .anyMatch( dataElementGroup::equals ) );
         assertTrue( bundle.getPreheat().containsKey( PreheatIdentifier.UID, DataElementGroup.class,
             dataElementGroup.getUid() ) );
     }
@@ -347,7 +349,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         assertEquals( 1, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5001 ).size() );
         assertFalse( validate.getErrorReportsByCode( DataElement.class, ErrorCode.E4000 ).isEmpty() );
-        assertEquals( 0, bundle.getObjectMap().get( DataElement.class ).size() );
+        assertEquals( 0, bundle.getObjectsCount( DataElement.class ) );
     }
 
     @Test

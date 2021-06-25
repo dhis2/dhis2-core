@@ -239,8 +239,8 @@
         </type>
       </property>
 
-      <property name="hideKey">
-        <column name="legendhidekey" default="false"/>
+      <property name="showKey">
+        <column name="legendshowkey" default="false"/>
       </property>
 
       <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"

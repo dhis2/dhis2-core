@@ -342,14 +342,10 @@ public class DefaultMetadataImportService implements MetadataImportService
             return;
         }
 
-        for ( Class<? extends IdentifiableObject> klass : bundle.getObjectMap().keySet() )
-        {
-            bundle.getObjectMap().get( klass )
-                .forEach( o -> postCreateBundleObject( (BaseIdentifiableObject) o, bundle, params ) );
-        }
+        bundle.forEach( object -> postCreateBundleObject( object, bundle, params ) );
     }
 
-    private void postCreateBundleObject( BaseIdentifiableObject object, ObjectBundle bundle, ObjectBundleParams params )
+    private void postCreateBundleObject( IdentifiableObject object, ObjectBundle bundle, ObjectBundleParams params )
     {
         IdentifiableObject userByReference = bundle.getPreheat().get( params.getPreheatIdentifier(),
             User.class, params.getPreheatIdentifier().getIdentifier( object.getCreatedBy() ) );
