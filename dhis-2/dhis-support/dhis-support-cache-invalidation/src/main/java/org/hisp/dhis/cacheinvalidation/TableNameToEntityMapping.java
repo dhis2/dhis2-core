@@ -66,13 +66,16 @@ public class TableNameToEntityMapping
     {
         extractTableNamesFromHibernateMetamodel();
 
-        log.debug( "Finished extracting table names from the Hibernate metamodel. "
-            + "tableNameToEntity=\n" + printEntityTable( tableNameToEntity ) );
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( "Finished extracting table names from the Hibernate metamodel. "
+                + "tableNameToEntity=\n" + printEntityTable( tableNameToEntity ) );
+        }
     }
 
     protected List<Object[]> getEntities( String tableName )
     {
-        if ( tableNameToEntity.size() == 0 )
+        if ( tableNameToEntity.isEmpty() )
         {
             throw new IllegalStateException( "EntityToDbTableMapping is not initialized yet!" );
         }

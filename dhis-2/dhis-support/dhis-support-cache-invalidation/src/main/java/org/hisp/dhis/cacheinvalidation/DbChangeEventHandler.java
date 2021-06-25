@@ -173,9 +173,12 @@ public class DbChangeEventHandler
     private void evictExternalEntityChanges( Long txId, Envelope.Operation operation, List<Object[]> entityClasses,
         Serializable entityId )
     {
-        log.debug( String.format( "Handling external event! "
-            + "txId=%s, totalTxId=%s, operation=%s, entityClasses=%s, entityId=%s",
-            txId, knownTransactionsService.size(), operation, printEntityTableValue( entityClasses ), entityId ) );
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( String.format( "Handling external event! "
+                + "txId=%s, totalTxId=%s, operation=%s, entityClasses=%s, entityId=%s",
+                txId, knownTransactionsService.size(), operation, printEntityTableValue( entityClasses ), entityId ) );
+        }
 
         Class<?> firstEntityClass = (Class<?>) entityClasses.get( 0 )[0];
         Objects.requireNonNull( firstEntityClass, "Entity can't be null!" );
