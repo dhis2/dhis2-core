@@ -54,7 +54,7 @@ public class LegendDefinitions implements Serializable
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private LegendDisplayStyle legendDisplayStyle;
 
-    @JsonProperty( "series" )
+    @JsonProperty( "set" )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private LegendSet legendSet;
 
@@ -64,5 +64,5 @@ public class LegendDefinitions implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private boolean hideKey;
+    private boolean showKey;
 }
