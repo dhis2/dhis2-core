@@ -98,6 +98,7 @@ public class TableNameToEntityMapping
         for ( int i = 0; i < entityPersister.getPropertyTypes().length; i++ )
         {
             Type type = entityPersister.getPropertyTypes()[i];
+
             if ( type.isCollectionType() )
             {
                 CollectionType collectionType = (CollectionType) type;
@@ -117,6 +118,7 @@ public class TableNameToEntityMapping
         if ( entityPersister instanceof SingleTableEntityPersister )
         {
             String tableName = ((SingleTableEntityPersister) entityPersister).getTableName();
+
             tableNameToEntity.computeIfAbsent( tableName, s -> new ArrayList<>() )
                 .add( new Object[] { modelClazz } );
         }

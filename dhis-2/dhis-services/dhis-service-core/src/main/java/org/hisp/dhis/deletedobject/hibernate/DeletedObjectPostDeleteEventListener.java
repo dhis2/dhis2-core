@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.FlushMode;
 import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
@@ -73,11 +72,7 @@ public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEve
             StatelessSession session = event.getPersister().getFactory().openStatelessSession();
             session.beginTransaction();
 
-            Number txId = (Number) event.getSession().createNativeQuery( "SELECT txid_current()" )
-                .setFlushMode( FlushMode.MANUAL )
-                .getSingleResult();
-
-            knownTransactionsService.register( txId.longValue() );
+            knownTransactionsService.registerEvent( event );
 
             try
             {

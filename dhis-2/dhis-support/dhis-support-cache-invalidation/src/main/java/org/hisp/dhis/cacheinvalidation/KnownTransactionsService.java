@@ -31,6 +31,8 @@ import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hibernate.FlushMode;
+import org.hibernate.event.spi.AbstractEvent;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +54,27 @@ public class KnownTransactionsService
     private DhisConfigurationProvider dhisConfig;
 
     private Cache<Long, Boolean> applicationTransactions;
+
+    public void registerEvent( AbstractEvent event )
+    {
+        if ( !dhisConfig.isEnabled( ConfigurationKey.DEBEZIUM_ENABLED ) )
+        {
+            return;
+        }
+
+        try
+        {
+            Number txId = (Number) event.getSession().createNativeQuery( "SELECT txid_current()" )
+                .setFlushMode( FlushMode.MANUAL )
+                .getSingleResult();
+
+            register( (Long) txId );
+        }
+        catch ( Exception e )
+        {
+            log.error( "Failed to register Hibernate session event!", e );
+        }
+    }
 
     public void register( long txId )
     {

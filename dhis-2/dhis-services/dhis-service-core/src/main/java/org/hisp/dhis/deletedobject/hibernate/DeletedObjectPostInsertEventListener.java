@@ -33,7 +33,6 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.FlushMode;
 import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
@@ -88,11 +87,7 @@ public class DeletedObjectPostInsertEventListener
 
                 deletedObjects.forEach( session::delete );
 
-                Number txId = (Number) event.getSession().createNativeQuery( "SELECT txid_current()" )
-                    .setFlushMode( FlushMode.MANUAL )
-                    .getSingleResult();
-
-                knownTransactionsService.register( txId.longValue() );
+                knownTransactionsService.registerEvent( event );
 
                 session.getTransaction().commit();
             }

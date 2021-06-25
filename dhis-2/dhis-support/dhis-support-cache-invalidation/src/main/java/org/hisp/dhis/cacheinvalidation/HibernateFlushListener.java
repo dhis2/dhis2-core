@@ -29,12 +29,12 @@ package org.hisp.dhis.cacheinvalidation;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
 import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
 import org.hibernate.event.spi.FlushEvent;
 import org.hibernate.event.spi.FlushEventListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +43,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Profile( { "!test", "!test-h2" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
 @Component
 public class HibernateFlushListener implements FlushEventListener
 {
@@ -52,13 +53,8 @@ public class HibernateFlushListener implements FlushEventListener
     public void onFlush( FlushEvent event )
         throws HibernateException
     {
-        BeforeTransactionCompletionProcess beforeTransactionCompletionProcess = session -> {
-            Number txId = (Number) event.getSession().createNativeQuery( "SELECT txid_current()" )
-                .setFlushMode( FlushMode.MANUAL )
-                .getSingleResult();
-
-            knownTransactionsService.register( txId.longValue() );
-        };
+        BeforeTransactionCompletionProcess beforeTransactionCompletionProcess = session -> knownTransactionsService
+            .registerEvent( event );
 
         event.getSession().getActionQueue().registerProcess( beforeTransactionCompletionProcess );
     }
