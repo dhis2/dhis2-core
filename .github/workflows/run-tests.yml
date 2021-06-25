@@ -24,7 +24,7 @@ jobs:
         run: mvn clean install -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/pom.xml
 
       - name: Test dhis-web
-        run: mvn clean install -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml
+        run: mvn clean install -Pdefault -Pjdk11 --update-snapshots -f ./dhis-2/dhis-web/pom.xml
 
   integration-test:
     runs-on: ubuntu-latest
