@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
 public class HibernateFlushListener implements FlushEventListener
 {
     @Autowired
-    private KnownTransactionsService knownTransactionsService;
+    private transient KnownTransactionsService knownTransactionsService;
 
     public void onFlush( FlushEvent event )
         throws HibernateException

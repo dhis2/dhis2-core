@@ -53,14 +53,14 @@ public class DebeziumPreStartupRoutine extends AbstractStartupRoutine
     private HibernateFlushListener hibernateFlushListener;
 
     @Autowired
-    private TableNameToEntityMapping TableNameToEntityMapping;
+    private TableNameToEntityMapping tableNameToEntityMapping;
 
     @Override
 
     public void execute()
         throws Exception
     {
-        TableNameToEntityMapping.init();
+        tableNameToEntityMapping.init();
 
         SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
         EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );

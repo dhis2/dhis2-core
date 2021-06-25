@@ -53,7 +53,7 @@ public class DeletedObjectPostInsertEventListener
 {
     private final DeletedObjectService deletedObjectService;
 
-    private final KnownTransactionsService knownTransactionsService;
+    private final transient KnownTransactionsService knownTransactionsService;
 
     public DeletedObjectPostInsertEventListener( DeletedObjectService deletedObjectService,
         KnownTransactionsService knownTransactionsService )

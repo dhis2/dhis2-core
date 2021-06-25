@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEventListener
 {
-    private final KnownTransactionsService knownTransactionsService;
+    private final transient KnownTransactionsService knownTransactionsService;
 
     public DeletedObjectPostDeleteEventListener( KnownTransactionsService knownTransactionsService )
     {

@@ -74,7 +74,7 @@ public class DbChangeEventHandler
     private QueryCacheManager queryCacheManager;
 
     @Autowired
-    private TableNameToEntityMapping TableNameToEntityMapping;
+    private TableNameToEntityMapping tableNameToEntityMapping;
 
     protected void handleDbChange( RecordChangeEvent<SourceRecord> event )
     {
@@ -136,7 +136,7 @@ public class DbChangeEventHandler
 
         String tableName = topic[topic.length - 1];
 
-        List<Object[]> entityClasses = TableNameToEntityMapping.getEntities( tableName );
+        List<Object[]> entityClasses = tableNameToEntityMapping.getEntities( tableName );
         Objects.requireNonNull( entityClasses, "Failed to look up entity in entity table! Table name=" + tableName );
 
         Serializable entityId = getEntityId( sourceRecord );
