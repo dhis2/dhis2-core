@@ -25,28 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit;
+package org.hisp.dhis.split.orgunit;
 
-/**
- * Main interface for org unit merge.
- *
- * @author Lars Helge Overland
- */
-public interface OrgUnitMergeService
+import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
+
+public interface OrgUnitSplitService
 {
     /**
-     * Performs an org unit merge operation.
+     * Performs an org unit split operation.
      *
-     * @param request the {@link OrgUnitMergeRequest}.
+     * @param request the {@link OrgUnitSplitRequest}.
      */
-    void merge( OrgUnitMergeRequest request );
+    void split( OrgUnitSplitRequest request );
 
     /**
-     * Converts the given {@link OrgUnitMergeQuery} to an
-     * {@link OrgUnitMergeQuery}.
+     * Converts the given {@link OrgUnitSplitRequest} to an
+     * {@link OrgUnitSplitQuery}.
      *
-     * @param request the {@link OrgUnitMergeQuery}.
-     * @return an {@link OrgUnitMergeRequest}.
+     * @param request the {@link OrgUnitSplitQuery}.
+     * @return an {@link OrgUnitSplitRequest}.
      */
-    OrgUnitMergeRequest getFromQuery( OrgUnitMergeQuery query );
+    OrgUnitMergeRequest getFromQuery( OrgUnitSplitRequest query );
 }

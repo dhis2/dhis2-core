@@ -25,28 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit;
+package org.hisp.dhis.split.orgunit;
 
-/**
- * Main interface for org unit merge.
- *
- * @author Lars Helge Overland
- */
-public interface OrgUnitMergeService
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
+import org.springframework.stereotype.Service;
+
+@Service
+public class OrgUnitSplitValidator
 {
     /**
-     * Performs an org unit merge operation.
+     * Validates the given {@link OrgUnitSplitRequest}. Throws
+     * {@link IllegalQueryException} if validation fails.
      *
      * @param request the {@link OrgUnitMergeRequest}.
+     * @throws IllegalQueryException if validation failed.
      */
-    void merge( OrgUnitMergeRequest request );
+    public void validate( OrgUnitSplitRequest request )
+        throws IllegalQueryException
+    {
+        ErrorMessage error = validateForErrorMessage( request );
+
+        if ( error != null )
+        {
+            throw new IllegalQueryException( error );
+        }
+    }
 
     /**
-     * Converts the given {@link OrgUnitMergeQuery} to an
-     * {@link OrgUnitMergeQuery}.
+     * Validates the given {@link OrgUnitSplitRequest}.
      *
-     * @param request the {@link OrgUnitMergeQuery}.
-     * @return an {@link OrgUnitMergeRequest}.
+     * @param request the {@link OrgUnitSplitRequest}.
+     * @return an {@link ErrorMessage} if the validation failed, or null if
+     *         validation was successful.
      */
-    OrgUnitMergeRequest getFromQuery( OrgUnitMergeQuery query );
+    public ErrorMessage validateForErrorMessage( OrgUnitSplitRequest request )
+    {
+        return null;
+    }
 }
