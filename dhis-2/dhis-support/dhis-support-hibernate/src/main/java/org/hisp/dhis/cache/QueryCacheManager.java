@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.cache;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,7 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Cache;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
@@ -55,7 +55,8 @@ public class QueryCacheManager
 
     public String generateRegionName( Class<?> klass, String queryString )
     {
-        String queryStringHash = sessionIdHasher.newHasher().putString( queryString, Charsets.UTF_8 ).hash().toString();
+        String queryStringHash = sessionIdHasher.newHasher().putString( queryString, StandardCharsets.UTF_8 ).hash()
+            .toString();
         String regionName = klass.getName() + "_" + queryStringHash;
 
         Set<String> allQueriesOnKlass = regionNameMap.computeIfAbsent( klass.getName(), s -> new HashSet<>() );

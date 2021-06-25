@@ -57,7 +57,7 @@ public class PaginationCacheManager
         }
     }
 
-    private <T extends IdentifiableObject> Cache<String, Long> getPaginationCacheStrict( String key )
+    private Cache<String, Long> getPaginationCacheStrict( String key )
     {
         return cacheMap.get( key );
     }

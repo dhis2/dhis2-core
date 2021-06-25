@@ -400,9 +400,11 @@ public class DhisWebApiWebSecurityConfig
                     .authorizeRequests( this::configureAccessRestrictions )
                     .httpBasic();
 
-                /**
-                 * Setup session handling, this is handled in @see
-                 * DhisWebCommonsWebSecurityConfig when running standard mode
+                /*
+                 * Setup session handling, this is configured in
+                 *
+                 * @see:DhisWebCommonsWebSecurityConfig when running in
+                 * non-embedded Jetty mode.
                  */
                 http
                     .sessionManagement()
@@ -410,9 +412,7 @@ public class DhisWebApiWebSecurityConfig
                     .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
                     .enableSessionUrlRewriting( false )
                     .maximumSessions( 10 )
-                    // .expiredUrl( "/dhis-web-commons-security/logout.action" )
                     .sessionRegistry( sessionRegistry );
-
             }
             else
             {

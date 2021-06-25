@@ -164,8 +164,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     protected static final String DEFAULTS = "INCLUDE";
 
-    private Cache<String, Long> paginationCountCache;
-
     // --------------------------------------------------------------------------
     // Dependencies
     // --------------------------------------------------------------------------

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.cacheinvalidation;
 
-import static org.hisp.dhis.cacheinvalidation.EntityToDbTableMapping.printEntityTableValue;
+import static org.hisp.dhis.cacheinvalidation.TableNameToEntityMapping.printEntityTableValue;
 
 import java.io.Serializable;
 import java.util.List;
@@ -55,10 +55,10 @@ import io.debezium.engine.RecordChangeEvent;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component
 @Slf4j
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+@Component
 public class DbChangeEventHandler
 {
     @Autowired
@@ -74,7 +74,7 @@ public class DbChangeEventHandler
     private QueryCacheManager queryCacheManager;
 
     @Autowired
-    private EntityToDbTableMapping entityToDbTableMapping;
+    private TableNameToEntityMapping TableNameToEntityMapping;
 
     protected void handleDbChange( RecordChangeEvent<SourceRecord> event )
     {
@@ -92,10 +92,10 @@ public class DbChangeEventHandler
     {
         log.debug( "New RecordChangeEvent incoming! Event=" + event );
 
-        SourceRecord record = event.record();
-        Objects.requireNonNull( record, "Event record is null! Event=" + event );
+        SourceRecord sourceRecord = event.record();
+        Objects.requireNonNull( sourceRecord, "Event record is null! Event=" + event );
 
-        Struct payload = (Struct) record.value();
+        Struct payload = (Struct) sourceRecord.value();
         if ( payload == null )
         {
             log.debug( "Payload is null! Skipping event..." );
@@ -127,7 +127,7 @@ public class DbChangeEventHandler
             return;
         }
 
-        String[] topic = record.topic().split( "\\." );
+        String[] topic = sourceRecord.topic().split( "\\." );
         if ( topic.length == 0 )
         {
             log.warn( "Topic is length is 0, skipping event..." );
@@ -136,25 +136,25 @@ public class DbChangeEventHandler
 
         String tableName = topic[topic.length - 1];
 
-        List<Object[]> entityClasses = entityToDbTableMapping.get( tableName );
+        List<Object[]> entityClasses = TableNameToEntityMapping.getEntities( tableName );
         Objects.requireNonNull( entityClasses, "Failed to look up entity in entity table! Table name=" + tableName );
 
-        Serializable entityId = getEntityId( record );
+        Serializable entityId = getEntityId( sourceRecord );
         Objects.requireNonNull( entityId, "Failed to extract entity id!" );
 
         evictExternalEntityChanges( txId, operation, entityClasses, entityId );
     }
 
-    private Serializable getEntityId( SourceRecord record )
+    private Serializable getEntityId( SourceRecord sourceRecord )
     {
-        Schema schema = record.keySchema();
+        Schema schema = sourceRecord.keySchema();
         List<Field> allIdFields = schema.fields();
 
         Field firstIdField = allIdFields.get( 0 );
         String idFieldName = firstIdField.name();
 
         Schema.Type idType = firstIdField.schema().type();
-        Struct keyStruct = (Struct) record.key();
+        Struct keyStruct = (Struct) sourceRecord.key();
 
         Serializable entityId = null;
 

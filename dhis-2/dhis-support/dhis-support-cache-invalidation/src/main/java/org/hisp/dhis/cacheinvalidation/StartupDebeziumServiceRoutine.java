@@ -44,7 +44,7 @@ public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine
     private DebeziumService debeziumService;
 
     public void execute()
-        throws Exception
+        throws InterruptedException
     {
         debeziumService.startDebeziumEngine();
     }

@@ -60,18 +60,13 @@ import io.debezium.engine.format.ChangeEventFormat;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-
-@Service
 @Slf4j
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+@Service
 public class DebeziumService
 {
-    private static final Executor executor = Executors.newSingleThreadExecutor();
-
     public static final long STARTUP_WAIT_TIMEOUT_SECONDS = 5L;
-
-    private static final CountDownLatch engineStartupLatch = new CountDownLatch( 1 );
 
     public static final long SHUTDOWN_DELAY_SECONDS = 10L;
 
@@ -85,7 +80,9 @@ public class DebeziumService
 
     public static final String SEE_LOG_MSG = "Check the log for errors causing the shutdown!";
 
-    private boolean shutdownOnConnectorStop = false;
+    private static final Executor EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
+
+    private static final CountDownLatch COUNT_DOWN_LATCH = new CountDownLatch( 1 );
 
     @Autowired
     private ConfigurationService configurationService;
@@ -98,8 +95,22 @@ public class DebeziumService
 
     private DebeziumEngine<RecordChangeEvent<SourceRecord>> engine;
 
+    private boolean shutdownOnConnectorStopOrError = false;
+
+    /**
+     * Important that this is called before server shutdown so Debezium can
+     * remove its replication slot from the database.
+     */
+    @PreDestroy
+    public void stopDebezium()
+        throws IOException
+    {
+        log.info( "Stopping the Debezium engine..." );
+        engine.close();
+    }
+
     public void startDebeziumEngine()
-        throws Exception
+        throws InterruptedException
     {
         String username = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_CONNECTION_USERNAME );
         String password = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_CONNECTION_PASSWORD );
@@ -110,13 +121,14 @@ public class DebeziumService
         String configSlotName = MoreObjects
             .firstNonNull( dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_SLOT_NAME ).trim(), "" );
 
-        this.shutdownOnConnectorStop = dhisConfig.isEnabled( ConfigurationKey.DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP );
+        this.shutdownOnConnectorStopOrError = dhisConfig
+            .isEnabled( ConfigurationKey.DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP );
 
         // Build replication slot name as:
         // "dhis2_[EPOCH_SECONDS]_[OPTIONAL_CONFIG_ID]_[UUID4]
         long timeNow = System.currentTimeMillis() / 1000L;
         String slotName = "dhis2_" + timeNow + "_" + configSlotName + "_"
-            + UUID.randomUUID().toString().replaceAll( "-", "" );
+            + UUID.randomUUID().toString().replace( "-", "" );
 
         Properties props = Configuration.create().build().asProperties();
         props.setProperty( "name", slotName );
@@ -145,13 +157,19 @@ public class DebeziumService
             .notifying( dbChangeEventHandler::handleDbChange )
             .build();
 
-        executor.execute( engine );
+        startupEngineOnExecutor();
+    }
 
-        if ( !engineStartupLatch.await( STARTUP_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
+    private void startupEngineOnExecutor()
+        throws InterruptedException
+    {
+        EXECUTOR_SERVICE.execute( engine );
+
+        if ( !COUNT_DOWN_LATCH.await( STARTUP_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
         {
             log.error( "Debezium engine startup timeout exceeded! " + SHUTDOWN_DISABLED_MSG );
 
-            if ( shutdownOnConnectorStop )
+            if ( shutdownOnConnectorStopOrError )
             {
                 shutdown( "Debezium engine startup failed! " + SEE_LOG_MSG, SHUTDOWN_DELAY_SECONDS, null );
             }
@@ -162,44 +180,19 @@ public class DebeziumService
         }
     }
 
-    /**
-     * Important that this is called before shutdown so Debezium can remove its
-     * replication slot.
-     */
-    @PreDestroy
-    public void stopDebezium()
-        throws IOException
-    {
-        log.info( "Stopping the Debezium engine..." );
-        engine.close();
-    }
-
-    private void shutdown( String msg, Long countDownSeconds, Throwable throwable )
-    {
-        if ( countDownSeconds != null )
-        {
-            final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool( 1 );
-            scheduler.schedule( () -> shutdown( msg, null, throwable ), countDownSeconds, TimeUnit.SECONDS );
-            return;
-        }
-
-        log.error( "Shutting down due to a critical error. Reason: " + msg, throwable );
-        System.exit( 1 );
-    }
-
     private final DebeziumEngine.ConnectorCallback connectorCallback = new DebeziumEngine.ConnectorCallback()
     {
         @Override
         public void connectorStarted()
         {
             log.debug( "DebeziumEngine connectorStarted() event triggered! " );
-            engineStartupLatch.countDown();
+            COUNT_DOWN_LATCH.countDown();
         }
 
         @Override
         public void connectorStopped()
         {
-            if ( shutdownOnConnectorStop )
+            if ( shutdownOnConnectorStopOrError )
             {
                 log.error( DEBEZIUM_ENGINE_CONNECTOR_STOPPED_EVENT_TRIGGERED + SHUTDOWN_DISABLED_MSG );
 
@@ -217,7 +210,7 @@ public class DebeziumService
     {
         if ( error != null )
         {
-            if ( shutdownOnConnectorStop )
+            if ( shutdownOnConnectorStopOrError )
             {
                 shutdown( "DebeziumException:" + error.getMessage(), SHUTDOWN_DELAY_SECONDS, error );
             }
@@ -226,4 +219,16 @@ public class DebeziumService
         }
     }
 
+    private void shutdown( String msg, Long countDownSeconds, Throwable throwable )
+    {
+        if ( countDownSeconds != null )
+        {
+            final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool( 1 );
+            scheduler.schedule( () -> shutdown( msg, null, throwable ), countDownSeconds, TimeUnit.SECONDS );
+            return;
+        }
+
+        log.error( "Shutting down due to a critical error. Reason: " + msg, throwable );
+        System.exit( 1 );
+    }
 }

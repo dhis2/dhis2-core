@@ -35,12 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Profile;
 
 /**
@@ -48,17 +44,8 @@ import org.springframework.context.annotation.Profile;
  */
 @Slf4j
 @Profile( { "!test", "!test-h2" } )
-public class DebeziumPreStartupRoutine extends AbstractStartupRoutine implements ApplicationContextAware
+public class DebeziumPreStartupRoutine extends AbstractStartupRoutine
 {
-    private ApplicationContext applicationContext;
-
-    @Override
-    public void setApplicationContext( ApplicationContext applicationContext )
-        throws BeansException
-    {
-        this.applicationContext = applicationContext;
-    }
-
     @PersistenceUnit
     private EntityManagerFactory emf;
 
@@ -66,20 +53,14 @@ public class DebeziumPreStartupRoutine extends AbstractStartupRoutine implements
     private HibernateFlushListener hibernateFlushListener;
 
     @Autowired
-    private DhisConfigurationProvider config;
-
-    @Autowired
-    private DebeziumService debeziumService;
-
-    @Autowired
-    private EntityToDbTableMapping entityToDbTableMapping;
+    private TableNameToEntityMapping TableNameToEntityMapping;
 
     @Override
 
     public void execute()
         throws Exception
     {
-        entityToDbTableMapping.init();
+        TableNameToEntityMapping.init();
 
         SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
         EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );

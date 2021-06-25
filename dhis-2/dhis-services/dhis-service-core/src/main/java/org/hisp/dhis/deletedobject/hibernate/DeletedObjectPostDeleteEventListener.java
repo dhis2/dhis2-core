@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.deletedobject.hibernate;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.FlushMode;
@@ -40,7 +42,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.deletedobject.DeletedObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,8 +51,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEventListener
 {
-    @Autowired
-    private KnownTransactionsService knownTransactionsService;
+    private final KnownTransactionsService knownTransactionsService;
+
+    public DeletedObjectPostDeleteEventListener( KnownTransactionsService knownTransactionsService )
+    {
+        checkNotNull( knownTransactionsService );
+        this.knownTransactionsService = knownTransactionsService;
+    }
 
     @Override
     public void onPostDelete( PostDeleteEvent event )

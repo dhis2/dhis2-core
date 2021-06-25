@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 import javax.persistence.metamodel.EntityType;
@@ -47,35 +46,37 @@ import org.hibernate.persister.entity.SingleTableEntityPersister;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.Type;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
+@Profile( { "!test", "!test-h2" } )
 @Component
-public class EntityToDbTableMapping
+public class TableNameToEntityMapping
 {
     @Autowired
     private SessionFactory sessionFactory;
 
-    private final TreeMap<String, List<Object[]>> entityToTableNames = new TreeMap<>();
+    private final TreeMap<String, List<Object[]>> tableNameToEntity = new TreeMap<>();
 
     protected void init()
     {
         extractTableNamesFromHibernateMetamodel();
 
-        log.debug( "Finished extracting table names from the Hibernate metamodel. Entity table=\n" + printEntityTable(
-            entityToTableNames ) );
+        log.debug( "Finished extracting table names from the Hibernate metamodel. "
+            + "tableNameToEntity=\n" + printEntityTable( tableNameToEntity ) );
     }
 
-    protected List<Object[]> get( String tableName )
+    protected List<Object[]> getEntities( String tableName )
     {
-        if ( entityToTableNames.size() == 0 )
+        if ( tableNameToEntity.size() == 0 )
         {
             throw new IllegalStateException( "EntityToDbTableMapping is not initialized yet!" );
         }
-        return entityToTableNames.get( tableName );
+        return tableNameToEntity.get( tableName );
     }
 
     private void extractTableNamesFromHibernateMetamodel()
@@ -89,8 +90,8 @@ public class EntityToDbTableMapping
     public void extractTableNames( final Class<?> modelClazz )
     {
         final MetamodelImpl metamodel = (MetamodelImpl) sessionFactory.getMetamodel();
-
         final EntityPersister entityPersister = metamodel.entityPersister( modelClazz );
+
         for ( int i = 0; i < entityPersister.getPropertyTypes().length; i++ )
         {
             Type type = entityPersister.getPropertyTypes()[i];
@@ -103,17 +104,9 @@ public class EntityToDbTableMapping
                 {
                     BasicCollectionPersister bc = (BasicCollectionPersister) collectionPersister;
                     String tableName = bc.getTableName();
-                    if ( entityToTableNames.get( tableName ) != null )
-                    {
-                        entityToTableNames.get( tableName )
-                            .add( new Object[] { modelClazz, collectionType.getRole() } );
-                    }
-                    else
-                    {
-                        List<Object[]> objects = new ArrayList<>();
-                        objects.add( new Object[] { modelClazz, collectionType.getRole() } );
-                        entityToTableNames.put( tableName, objects );
-                    }
+
+                    tableNameToEntity.computeIfAbsent( tableName, s -> new ArrayList<>() )
+                        .add( new Object[] { modelClazz, collectionType.getRole() } );
                 }
             }
         }
@@ -121,16 +114,8 @@ public class EntityToDbTableMapping
         if ( entityPersister instanceof SingleTableEntityPersister )
         {
             String tableName = ((SingleTableEntityPersister) entityPersister).getTableName();
-            if ( entityToTableNames.get( tableName ) != null )
-            {
-                entityToTableNames.get( tableName ).add( new Object[] { modelClazz } );
-            }
-            else
-            {
-                List<Object[]> objects = new ArrayList<>();
-                objects.add( new Object[] { modelClazz } );
-                entityToTableNames.put( tableName, objects );
-            }
+            tableNameToEntity.computeIfAbsent( tableName, s -> new ArrayList<>() )
+                .add( new Object[] { modelClazz } );
         }
         else
         {
@@ -141,11 +126,10 @@ public class EntityToDbTableMapping
     private String printEntityTable( TreeMap<String, List<Object[]>> entityToTableNames )
     {
         StringBuilder sb = new StringBuilder();
-        Set<Map.Entry<String, List<Object[]>>> entries = entityToTableNames.entrySet();
-        for ( Map.Entry<String, List<Object[]>> entry : entries )
+        for ( Map.Entry<String, List<Object[]>> entry : entityToTableNames.entrySet() )
         {
             sb.append( String.format(
-                "Table=%s, Entities=%s \n", entry.getKey(), printEntityTableValue( entry.getValue() ) ) );
+                "Table=%s, Entities=%s %n", entry.getKey(), printEntityTableValue( entry.getValue() ) ) );
         }
         return sb.toString();
     }
@@ -173,5 +157,4 @@ public class EntityToDbTableMapping
         sb.append( ")" );
         return sb.toString();
     }
-
 }

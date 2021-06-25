@@ -41,9 +41,9 @@ import org.springframework.stereotype.Component;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component
 @Slf4j
 @Profile( { "!test", "!test-h2" } )
+@Component
 public class HibernateFlushListener implements FlushEventListener
 {
     @Autowired

@@ -45,7 +45,6 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -55,10 +54,15 @@ public class DeletedObjectPostInsertEventListener
 {
     private final DeletedObjectService deletedObjectService;
 
-    public DeletedObjectPostInsertEventListener( DeletedObjectService deletedObjectService )
+    private final KnownTransactionsService knownTransactionsService;
+
+    public DeletedObjectPostInsertEventListener( DeletedObjectService deletedObjectService,
+        KnownTransactionsService knownTransactionsService )
     {
         checkNotNull( deletedObjectService );
+        checkNotNull( knownTransactionsService );
         this.deletedObjectService = deletedObjectService;
+        this.knownTransactionsService = knownTransactionsService;
     }
 
     @Override
@@ -66,9 +70,6 @@ public class DeletedObjectPostInsertEventListener
     {
         return true;
     }
-
-    @Autowired
-    private KnownTransactionsService knownTransactionsService;
 
     @Override
     public void onPostInsert( PostInsertEvent event )

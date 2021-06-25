@@ -37,10 +37,10 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Configuration
 @Order( 101 )
 @ComponentScan( basePackages = { "org.hisp.dhis" } )
 @Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+@Configuration
 public class DebeziumSpringConfiguration
 {
     @Bean
@@ -49,7 +49,7 @@ public class DebeziumSpringConfiguration
         return new SessionRegistryImpl();
     }
 
-    @Bean( )
+    @Bean
     public DebeziumPreStartupRoutine debeziumPreStartupRoutine()
     {
         DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
@@ -59,7 +59,7 @@ public class DebeziumSpringConfiguration
         return routine;
     }
 
-    @Bean( )
+    @Bean
     public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine()
     {
         StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();

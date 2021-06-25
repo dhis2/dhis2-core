@@ -31,7 +31,9 @@ import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.context.annotation.Profile;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.cache.Cache;
@@ -40,26 +42,31 @@ import com.google.common.cache.CacheBuilder;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Service
 @Slf4j
-@Profile( { "!test", "!test-h2" } )
+@Service
 public class KnownTransactionsService
 {
     public static final int LOCAL_TXID_CACHE_TIME_MIN = 15;
 
-    private final Cache<Long, Boolean> applicationTransactions;
+    @Autowired
+    private DhisConfigurationProvider dhisConfig;
 
-    public KnownTransactionsService()
-    {
-        applicationTransactions = CacheBuilder.newBuilder()
-            .expireAfterAccess( LOCAL_TXID_CACHE_TIME_MIN, TimeUnit.MINUTES )
-            .build();
-    }
+    private Cache<Long, Boolean> applicationTransactions;
 
     public void register( long txId )
     {
-        log.debug( "Register txId=" + txId + ", total=" + applicationTransactions.size() );
-        applicationTransactions.put( txId, true );
+        if ( dhisConfig.isEnabled( ConfigurationKey.DEBEZIUM_ENABLED ) )
+        {
+            log.debug( "Register local txId=" + txId );
+            if ( applicationTransactions == null )
+            {
+                applicationTransactions = CacheBuilder.newBuilder()
+                    .expireAfterAccess( LOCAL_TXID_CACHE_TIME_MIN, TimeUnit.MINUTES )
+                    .build();
+            }
+
+            applicationTransactions.put( txId, true );
+        }
     }
 
     public boolean isKnown( long txId )
