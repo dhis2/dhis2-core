@@ -25,44 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.visualization;
+package org.hisp.dhis.common;
 
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import java.io.IOException;
 
-import java.io.Serializable;
+import org.hisp.dhis.indicator.IndicatorType;
 
-import lombok.Data;
-
-import org.hisp.dhis.legend.LegendDisplayStrategy;
-import org.hisp.dhis.legend.LegendDisplayStyle;
-import org.hisp.dhis.legend.LegendSet;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
- * This class holds the legend definitions and related attributes.
+ * Specific serializer to output only the minimum scope of attributes related to
+ * IndicatorType.
  *
  * @author maikel arabori
  */
-@Data
-@JacksonXmlRootElement( localName = "legend", namespace = DXF_2_0 )
-public class LegendDefinitions implements Serializable
+public class IndicatorTypeSerializer extends JsonSerializer<IndicatorType>
 {
-    @JsonProperty( "style" )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private LegendDisplayStyle legendDisplayStyle;
-
-    @JsonProperty( "set" )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private LegendSet legendSet;
-
-    @JsonProperty( "strategy" )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private LegendDisplayStrategy legendDisplayStrategy;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private boolean showKey;
+    @Override
+    public void serialize( final IndicatorType indicatorType, final JsonGenerator jsonGenerator,
+        final SerializerProvider provider )
+        throws IOException
+    {
+        jsonGenerator.writeStartObject();
+        jsonGenerator.writeStringField( "name", indicatorType.getName() );
+        jsonGenerator.writeStringField( "displayName", indicatorType.getDisplayName() );
+        jsonGenerator.writeNumberField( "factor", indicatorType.getFactor() );
+        jsonGenerator.writeBooleanField( "number", indicatorType.isNumber() );
+        jsonGenerator.writeEndObject();
+    }
 }

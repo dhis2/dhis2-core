@@ -244,6 +244,7 @@ public class DefaultEventDataQueryService
             .withCoordinateOuFallback( request.isCoordinateOuFallback() )
             .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
             .withDataIdScheme( request.getDataIdScheme() )
+            .withOutputIdScheme( request.getOutputIdScheme() )
             .withEventStatus( request.getEventStatus() )
             .withDisplayProperty( request.getDisplayProperty() )
             .withTimeField( request.getTimeField() )
