@@ -43,7 +43,7 @@ pipeline {
                 sh 'chmod +x update-play-instance.sh'
                 script {
                     withCredentials([usernameColonPassword(credentialsId: 'awx-bot-user-credentials', variable: 'AWX_AUTH')]) {
-                        sh './update-play-instance.sh 2.36dev $AWX_AUTH'
+                        sh './update-play-instance.sh ${GIT_BRANCH}dev $AWX_AUTH'
                     }
                 }
 
