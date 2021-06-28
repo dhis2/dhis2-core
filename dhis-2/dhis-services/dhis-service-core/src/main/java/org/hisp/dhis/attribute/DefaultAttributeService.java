@@ -123,6 +123,7 @@ public class DefaultAttributeService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Attribute getAttribute( String uid )
     {
         Optional<Attribute> attribute = attributeCache.get( uid, attr -> attributeStore.getByUid( uid ) );

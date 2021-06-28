@@ -262,6 +262,11 @@ public class DefaultFieldFilterService implements FieldFilterService
             ((BaseIdentifiableObject) object).setAccess( aclService.getAccess( (IdentifiableObject) object, user ) );
         }
 
+        if ( fieldMap.containsKey( "attribute" ) && AttributeValue.class.isAssignableFrom( object.getClass() ) )
+        {
+            AttributeValue attributeValue = (AttributeValue) object;
+            attributeValue.setAttribute( attributeService.getAttribute( attributeValue.getAttribute().getUid() ) );
+        }
 
         for ( String fieldKey : fieldMap.keySet() )
         {
