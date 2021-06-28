@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit.handler;
+package org.hisp.dhis.split.orgunit.handler;
 
 import static org.junit.Assert.assertEquals;
 
@@ -33,13 +33,13 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class AnalyticalObjectOrgUnitMergeHandlerTest
+public class AnalyticalObjectOrgUnitSplitHandlerTest
     extends DhisSpringTest
 {
     @Autowired
@@ -49,7 +49,7 @@ public class AnalyticalObjectOrgUnitMergeHandlerTest
     private SessionFactory sessionFactory;
 
     @Autowired
-    private AnalyticalObjectOrgUnitMergeHandler handler;
+    private AnalyticalObjectOrgUnitSplitHandler handler;
 
     private DataElement deA;
 
@@ -76,37 +76,36 @@ public class AnalyticalObjectOrgUnitMergeHandlerTest
     }
 
     @Test
-    public void testMergeVisualizations()
+    public void testSplitVisualizations()
     {
         Visualization vA = createVisualization( 'A' );
         vA.addDataDimensionItem( deA );
         vA.getOrganisationUnits().add( ouA );
-        vA.getOrganisationUnits().add( ouB );
 
         Visualization vB = createVisualization( 'B' );
         vB.addDataDimensionItem( deA );
         vB.getOrganisationUnits().add( ouA );
-        vB.getOrganisationUnits().add( ouB );
 
         idObjectManager.save( vA );
         idObjectManager.save( vB );
 
         assertEquals( 2, getVisualizationCount( ouA ) );
-        assertEquals( 2, getVisualizationCount( ouB ) );
+        assertEquals( 0, getVisualizationCount( ouB ) );
         assertEquals( 0, getVisualizationCount( ouC ) );
 
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
+            .withSource( ouA )
+            .addTarget( ouB )
+            .addTarget( ouC )
+            .withPrimaryTarget( ouB )
             .build();
 
-        handler.mergeAnalyticalObjects( request );
+        handler.splitAnalyticalObjects( request );
 
         idObjectManager.update( ouC );
 
         assertEquals( 0, getVisualizationCount( ouA ) );
-        assertEquals( 0, getVisualizationCount( ouB ) );
+        assertEquals( 2, getVisualizationCount( ouB ) );
         assertEquals( 2, getVisualizationCount( ouC ) );
     }
 

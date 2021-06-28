@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.split.orgunit.handler;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.eventreport.EventReportService;
 import org.hisp.dhis.mapping.MappingService;
+import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.springframework.stereotype.Service;
 
@@ -47,4 +52,22 @@ public class AnalyticalObjectOrgUnitSplitHandler
 
     private final EventChartService eventChartService;
 
+    public void splitAnalyticalObjects( OrgUnitSplitRequest request )
+    {
+        splitAnalyticalObject( visualizationService, request );
+        splitAnalyticalObject( mapViewService, request );
+        splitAnalyticalObject( eventReportService, request );
+        splitAnalyticalObject( eventChartService, request );
+    }
+
+    private <T extends AnalyticalObject> void splitAnalyticalObject(
+        AnalyticalObjectService<T> service, OrgUnitSplitRequest request )
+    {
+        List<T> objects = service.getAnalyticalObjects( request.getSource() );
+
+        objects.forEach( ao -> {
+            ao.getOrganisationUnits().addAll( request.getTargets() );
+            ao.getOrganisationUnits().remove( request.getSource() );
+        } );
+    }
 }
