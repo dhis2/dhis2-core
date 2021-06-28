@@ -82,7 +82,7 @@ public class DefaultOrgUnitMergeService
 
         validator.validate( request );
 
-        handlers.forEach( merge -> merge.merge( request ) );
+        handlers.forEach( handler -> handler.merge( request ) );
 
         // Persistence framework will inspect and update associated objects
 
@@ -136,10 +136,7 @@ public class DefaultOrgUnitMergeService
             .add( ( r ) -> dataHandler.mergeValidationResults( r ) )
             .add( ( r ) -> dataHandler.mergeMinMaxDataElements( r ) )
             .add( ( r ) -> dataHandler.mergeInterpretations( r ) )
-            .add( ( r ) -> analyticalObjectHandler.mergeVisualizations( r ) )
-            .add( ( r ) -> analyticalObjectHandler.mergeEventReports( r ) )
-            .add( ( r ) -> analyticalObjectHandler.mergeEventCharts( r ) )
-            .add( ( r ) -> analyticalObjectHandler.mergeMaps( r ) )
+            .add( ( r ) -> analyticalObjectHandler.mergeAnalyticalObjects( r ) )
             .add( ( r ) -> trackerHandler.mergeProgramMessages( r ) )
             .add( ( r ) -> trackerHandler.mergeProgramInstances( r ) )
             .add( ( r ) -> trackerHandler.mergeTrackedEntityInstances( r ) )

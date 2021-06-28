@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -37,7 +38,6 @@ import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.eventreport.EventReportService;
 import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.springframework.stereotype.Service;
 
@@ -58,33 +58,30 @@ public class AnalyticalObjectOrgUnitMergeHandler
 
     private final EventChartService eventChartService;
 
-    public void mergeVisualizations( OrgUnitMergeRequest request )
+    public void mergeAnalyticalObjects( OrgUnitMergeRequest request )
     {
-        mergeAnalyticalObject( visualizationService, request.getSources(), request.getTarget() );
+        mergeAnalyticalObject( visualizationService, request );
+        mergeAnalyticalObject( mapViewService, request );
+        mergeAnalyticalObject( eventReportService, request );
+        mergeAnalyticalObject( eventChartService, request );
     }
 
-    public void mergeMaps( OrgUnitMergeRequest request )
+    private <T extends AnalyticalObject> void mergeAnalyticalObject(
+        AnalyticalObjectService<T> service, OrgUnitMergeRequest request )
     {
-        mergeAnalyticalObject( mapViewService, request.getSources(), request.getTarget() );
+        Set<T> objects = getAnalyticalObjects( service, request );
+
+        objects.forEach( ao -> {
+            ao.getOrganisationUnits().add( request.getTarget() );
+            ao.getOrganisationUnits().removeAll( request.getSources() );
+        } );
     }
 
-    public void mergeEventReports( OrgUnitMergeRequest request )
+    private <T extends AnalyticalObject> Set<T> getAnalyticalObjects(
+        AnalyticalObjectService<T> service, OrgUnitMergeRequest request )
     {
-        mergeAnalyticalObject( eventReportService, request.getSources(), request.getTarget() );
-    }
-
-    public void mergeEventCharts( OrgUnitMergeRequest request )
-    {
-        mergeAnalyticalObject( eventChartService, request.getSources(), request.getTarget() );
-    }
-
-    private void mergeAnalyticalObject( AnalyticalObjectService<? extends AnalyticalObject> service,
-        Set<OrganisationUnit> sources, OrganisationUnit target )
-    {
-        for ( OrganisationUnit source : sources )
-        {
-            service.getAnalyticalObjects( source )
-                .forEach( o -> o.addDataDimensionItem( target ) );
-        }
+        Set<T> objects = new HashSet<>();
+        request.getSources().forEach( ou -> objects.addAll( service.getAnalyticalObjects( ou ) ) );
+        return objects;
     }
 }
