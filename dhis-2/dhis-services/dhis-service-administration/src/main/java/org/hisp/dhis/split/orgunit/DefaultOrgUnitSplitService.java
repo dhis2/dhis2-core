@@ -103,9 +103,12 @@ public class DefaultOrgUnitSplitService
         Set<OrganisationUnit> targets = Sets.newHashSet(
             idObjectManager.getByUid( OrganisationUnit.class, query.getTargets() ) );
 
+        OrganisationUnit primaryTarget = idObjectManager.get( OrganisationUnit.class, query.getPrimaryTarget() );
+
         return new OrgUnitSplitRequest.Builder()
             .withSource( source )
             .addTargets( targets )
+            .withPrimaryTarget( primaryTarget )
             .withDeleteSource( query.getDeleteSource() )
             .build();
     }

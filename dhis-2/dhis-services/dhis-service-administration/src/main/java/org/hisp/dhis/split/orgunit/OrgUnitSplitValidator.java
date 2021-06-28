@@ -75,6 +75,14 @@ public class OrgUnitSplitValidator
         {
             return new ErrorMessage( ErrorCode.E1512 );
         }
+        if ( request.getPrimaryTarget() == null )
+        {
+            return new ErrorMessage( ErrorCode.E1513 );
+        }
+        if ( request.getTargets().contains( request.getPrimaryTarget() ) )
+        {
+            return new ErrorMessage( ErrorCode.E1514 );
+        }
 
         return null;
     }

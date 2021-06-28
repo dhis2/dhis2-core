@@ -49,9 +49,12 @@ public class OrgUnitSplitValidatorTest
     public void testValidateMissingSource()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
 
         OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
             .addTarget( ouA )
+            .addTarget( ouB )
+            .withPrimaryTarget( ouA )
             .build();
 
         assertEquals( ErrorCode.E1510, validator.validateForErrorMessage( request ).getErrorCode() );
@@ -82,5 +85,19 @@ public class OrgUnitSplitValidatorTest
             .build();
 
         assertEquals( ErrorCode.E1512, validator.validateForErrorMessage( request ).getErrorCode() );
+    }
+
+    @Test
+    public void testValidateLessThanTwoTargets()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
+            .withSource( ouA )
+            .addTarget( ouB )
+            .build();
+
+        assertEquals( ErrorCode.E1513, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 }

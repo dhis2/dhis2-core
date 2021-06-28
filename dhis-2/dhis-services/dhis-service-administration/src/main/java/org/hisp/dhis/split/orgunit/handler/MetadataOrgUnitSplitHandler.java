@@ -29,11 +29,51 @@ package org.hisp.dhis.split.orgunit.handler;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
+
+import com.google.common.collect.Sets;
 
 @Service
 @AllArgsConstructor
 public class MetadataOrgUnitSplitHandler
 {
+    private final UserService userService;
+
+    private final ConfigurationService configService;
+
+    public void splitDataSets( OrgUnitSplitRequest request )
+    {
+        Sets.newHashSet( request.getSource().getDataSets() ).forEach( ds -> {
+            ds.addOrganisationUnits( request.getTargets() );
+            ds.removeOrganisationUnit( request.getSource() );
+        } );
+    }
+
+    public void splitPrograms( OrgUnitSplitRequest request )
+    {
+        Sets.newHashSet( request.getSource().getPrograms() ).forEach( p -> {
+            p.addOrganisationUnits( request.getTargets() );
+            p.removeOrganisationUnit( request.getSource() );
+        } );
+    }
+
+    public void splitOrgUnitGroups( OrgUnitSplitRequest request )
+    {
+        Sets.newHashSet( request.getSource().getGroups() ).forEach( oug -> {
+            oug.addOrganisationUnits( request.getTargets() );
+            oug.removeOrganisationUnit( request.getSource() );
+        } );
+    }
+
+    public void splitCategoryOptions( OrgUnitSplitRequest request )
+    {
+        Sets.newHashSet( request.getSource().getCategoryOptions() ).forEach( co -> {
+            co.addOrganisationUnits( request.getTargets() );
+            co.removeOrganisationUnit( request.getSource() );
+        } );
+    }
 
 }

@@ -47,6 +47,8 @@ public class OrgUnitSplitRequest
 
     private Set<OrganisationUnit> targets = new HashSet<>();
 
+    private OrganisationUnit primaryTarget;
+
     private boolean deleteSource;
 
     public Set<OrganisationUnit> getTargets()
@@ -60,6 +62,7 @@ public class OrgUnitSplitRequest
         return MoreObjects.toStringHelper( this )
             .add( "source", source != null ? source.getUid() : null )
             .add( "targets", IdentifiableObjectUtils.getUids( targets ) )
+            .add( "primaryTarget", primaryTarget != null ? primaryTarget.getUid() : null )
             .add( "deleteSource", deleteSource )
             .toString();
     }
@@ -90,6 +93,12 @@ public class OrgUnitSplitRequest
         public Builder addTargets( Set<OrganisationUnit> targets )
         {
             this.request.targets.addAll( targets );
+            return this;
+        }
+
+        public Builder withPrimaryTarget( OrganisationUnit primaryTarget )
+        {
+            this.request.primaryTarget = primaryTarget;
             return this;
         }
 

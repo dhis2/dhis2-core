@@ -139,6 +139,11 @@ public class CategoryOption
         organisationUnit.getCategoryOptions().add( this );
     }
 
+    public void addOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        organisationUnits.forEach( this::addOrganisationUnit );
+    }
+
     public void removeOrganisationUnit( OrganisationUnit organisationUnit )
     {
         organisationUnits.remove( organisationUnit );

@@ -49,11 +49,15 @@ public enum ErrorCode
     E1500( "At least one source org unit must be specified" ),
     E1501( "Target org unit must be specified" ),
     E1502( "Target org unit cannot be a source org unit" ),
+    E1503( "At least two source units must be specified" ),
 
     /* Org unit split */
     E1510( "Source org unit must be specified" ),
     E1511( "Target org units must be specified" ),
     E1512( "Source org unit cannot be a target org unit" ),
+    E1513( "At least two target org units must be specified" ),
+    E1514( "Primary target must be specified" ),
+    E1515( "Primary target must be a target org unit" ),
 
     /* Data */
     E2000( "Query parameters cannot be null" ),

@@ -40,7 +40,11 @@ public class OrgUnitSplitQuery
     @JsonProperty
     private String source;
 
+    @JsonProperty
     private Set<String> targets = new HashSet<>();
+
+    @JsonProperty
+    private String primaryTarget;
 
     @JsonProperty
     private Boolean deleteSource;

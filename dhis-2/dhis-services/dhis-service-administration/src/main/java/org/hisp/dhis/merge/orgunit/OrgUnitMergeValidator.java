@@ -79,6 +79,10 @@ public class OrgUnitMergeValidator
         {
             return new ErrorMessage( ErrorCode.E1502 );
         }
+        if ( request.getSources().size() < 2 )
+        {
+            return new ErrorMessage( ErrorCode.E1503 );
+        }
 
         return null;
     }

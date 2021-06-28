@@ -64,9 +64,11 @@ public class OrgUnitMergeValidatorTest
     public void testValidateMissingTarget()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
 
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
             .addSource( ouA )
+            .addSource( ouB )
             .build();
 
         assertEquals( ErrorCode.E1501, validator.validateForErrorMessage( request ).getErrorCode() );
@@ -85,5 +87,19 @@ public class OrgUnitMergeValidatorTest
             .build();
 
         assertEquals( ErrorCode.E1502, validator.validateForErrorMessage( request ).getErrorCode() );
+    }
+
+    @Test
+    public void testValidateLessThanTwoSources()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .addSource( ouA )
+            .withTarget( ouB )
+            .build();
+
+        assertEquals( ErrorCode.E1503, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 }
