@@ -31,6 +31,7 @@ import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
@@ -110,4 +111,15 @@ public class MetadataOrgUnitSplitHandler
         } );
     }
 
+    public void splitConfiguration( OrgUnitSplitRequest request )
+    {
+        Configuration config = configService.getConfiguration();
+        OrganisationUnit selfRegistrationOrgUnit = config.getSelfRegistrationOrgUnit();
+
+        if ( selfRegistrationOrgUnit != null && request.getSource().equals( selfRegistrationOrgUnit ) )
+        {
+            config.setSelfRegistrationOrgUnit( request.getPrimaryTarget() );
+            configService.setConfiguration( config );
+        }
+    }
 }

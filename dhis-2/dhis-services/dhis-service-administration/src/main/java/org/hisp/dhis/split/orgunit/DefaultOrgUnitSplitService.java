@@ -124,6 +124,13 @@ public class DefaultOrgUnitSplitService
         TrackerOrgUnitSplitHandler trackerHandler )
     {
         return ImmutableList.<OrgUnitSplitHandler> builder()
+            .add( ( r ) -> metadataHandler.splitDataSets( r ) )
+            .add( ( r ) -> metadataHandler.splitPrograms( r ) )
+            .add( ( r ) -> metadataHandler.splitOrgUnitGroups( r ) )
+            .add( ( r ) -> metadataHandler.splitCategoryOptions( r ) )
+            .add( ( r ) -> metadataHandler.splitOrganisationUnits( r ) )
+            .add( ( r ) -> metadataHandler.splitUsers( r ) )
+            .add( ( r ) -> metadataHandler.splitConfiguration( r ) )
             .build();
     }
 
