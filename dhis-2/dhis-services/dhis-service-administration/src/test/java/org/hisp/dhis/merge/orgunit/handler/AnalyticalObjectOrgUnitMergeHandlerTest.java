@@ -105,9 +105,9 @@ public class AnalyticalObjectOrgUnitMergeHandlerTest
 
         idObjectManager.update( ouC );
 
-        assertEquals( 2, getVisualizationCount( ouC ) );
         assertEquals( 0, getVisualizationCount( ouA ) );
         assertEquals( 0, getVisualizationCount( ouB ) );
+        assertEquals( 2, getVisualizationCount( ouC ) );
     }
 
     /**
