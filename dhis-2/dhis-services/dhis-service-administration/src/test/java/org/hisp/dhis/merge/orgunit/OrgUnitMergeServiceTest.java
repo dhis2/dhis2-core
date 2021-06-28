@@ -101,7 +101,7 @@ public class OrgUnitMergeServiceTest
     }
 
     @Test
-    public void testMergeDataSets()
+    public void testMerge()
     {
         DataSet dsA = createDataSet( 'A', ptA );
         dsA.addOrganisationUnit( ouA );
@@ -127,6 +127,10 @@ public class OrgUnitMergeServiceTest
         assertNotNull( idObjectManager.get( OrganisationUnit.class, ouB.getUid() ) );
         assertNotNull( idObjectManager.get( OrganisationUnit.class, ouC.getUid() ) );
 
+        assertEquals( 2, ouA.getDataSets().size() );
+        assertEquals( 1, ouB.getDataSets().size() );
+        assertEquals( 0, ouC.getDataSets().size() );
+
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
             .addSource( ouA )
             .addSource( ouB )
@@ -136,12 +140,6 @@ public class OrgUnitMergeServiceTest
 
         service.merge( request );
 
-        assertEquals( 0, ouA.getDataSets().size() );
-        assertEquals( 0, ouB.getDataSets().size() );
-        assertEquals( 2, ouC.getDataSets().size() );
-
-        assertEquals( 0, ouA.getGroups().size() );
-        assertEquals( 0, ouB.getGroups().size() );
         assertEquals( 2, ouC.getGroups().size() );
 
         assertNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );

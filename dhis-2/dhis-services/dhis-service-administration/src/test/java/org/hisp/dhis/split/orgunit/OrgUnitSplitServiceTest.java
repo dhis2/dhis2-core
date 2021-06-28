@@ -28,11 +28,17 @@
 package org.hisp.dhis.split.orgunit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,6 +53,11 @@ public class OrgUnitSplitServiceTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
+    @Autowired
+    private PeriodService periodService;
+
+    private PeriodType ptA;
+
     private OrganisationUnit ouA;
 
     private OrganisationUnit ouB;
@@ -56,6 +67,8 @@ public class OrgUnitSplitServiceTest
     @Override
     public void setUpTest()
     {
+        ptA = periodService.getPeriodTypeByClass( MonthlyPeriodType.class );
+
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
@@ -70,7 +83,7 @@ public class OrgUnitSplitServiceTest
     {
         OrgUnitSplitQuery query = new OrgUnitSplitQuery();
         query.setSource( BASE_OU_UID + 'A' );
-        query.setTargets( Sets.newHashSet( BASE_OU_UID + 'B', BASE_OU_UID + 'A' ) );
+        query.setTargets( Sets.newHashSet( BASE_OU_UID + 'B', BASE_OU_UID + 'C' ) );
 
         OrgUnitSplitRequest request = service.getFromQuery( query );
 
@@ -79,5 +92,42 @@ public class OrgUnitSplitServiceTest
         assertTrue( request.getTargets().contains( ouB ) );
         assertTrue( request.getTargets().contains( ouC ) );
         assertTrue( request.isDeleteSource() );
+    }
+
+    @Test
+    public void testSplit()
+    {
+        DataSet dsA = createDataSet( 'A', ptA );
+        dsA.addOrganisationUnit( ouA );
+
+        DataSet dsB = createDataSet( 'B', ptA );
+        dsB.addOrganisationUnit( ouA );
+
+        idObjectManager.save( dsA );
+        idObjectManager.save( dsB );
+
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouB.getUid() ) );
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouC.getUid() ) );
+
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
+            .withSource( ouA )
+            .addTarget( ouB )
+            .addTarget( ouC )
+            .withPrimaryTarget( ouB )
+            .build();
+
+        assertEquals( 2, ouA.getDataSets().size() );
+        assertEquals( 0, ouB.getDataSets().size() );
+        assertEquals( 0, ouC.getDataSets().size() );
+
+        service.split( request );
+
+        assertEquals( 2, ouB.getDataSets().size() );
+        assertEquals( 2, ouC.getDataSets().size() );
+
+        assertNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouB.getUid() ) );
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouC.getUid() ) );
     }
 }

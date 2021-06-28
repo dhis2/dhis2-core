@@ -102,7 +102,7 @@ public class OrgUnitSplitRequest
             return this;
         }
 
-        public Builder withDeleteSource( boolean deleteSource )
+        public Builder withDeleteSource( Boolean deleteSource )
         {
             this.request.deleteSource = firstNonNull( deleteSource, this.request.deleteSource );
             return this;
