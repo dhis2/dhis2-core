@@ -58,7 +58,14 @@ import io.debezium.engine.RecordChangeEvent;
 import io.debezium.engine.format.ChangeEventFormat;
 
 /**
+ * Service responsible for starting the Debezium engine {@link DebeziumEngine}
+ * used for cache invalidation in DHIS2.
+ * <p>
+ * The Debezium engine in this service will call the event handler
+ * {@link DbChangeEventHandler} when a new replication event occurs.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @see <a href="https://debezium.io">https://debezium.io</a>
  */
 @Slf4j
 @Profile( { "!test", "!test-h2" } )
@@ -147,7 +154,10 @@ public class DebeziumService
         props.setProperty( "database.dbname", dbName );
         props.setProperty( "snapshot.mode", "never" );
         props.setProperty( "slot.drop.on.stop", "true" );
-        props.setProperty( "table.exclude.list", "public.spatial_ref_sys,public.audit," + excludeList );
+        props.setProperty( "table.exclude.list",
+            "public.spatial_ref_sys,public.audit,public.userroleauthorities,"
+                + "public.oauth_access_token,public.oauth_refresh_token,"
+                + "public.oauth_code," + excludeList );
 
         engine = DebeziumEngine
             .create( ChangeEventFormat.of( Connect.class ) )
@@ -160,6 +170,13 @@ public class DebeziumService
         startupEngineOnExecutor();
     }
 
+    /**
+     * Starts the engine and waits with a count down latch that will timeout if
+     * startup time exceeds {@link DebeziumService#STARTUP_WAIT_TIMEOUT_SECONDS}
+     *
+     * @throws InterruptedException thrown if the CountDownLatch await is
+     *         interrupted.
+     */
     private void startupEngineOnExecutor()
         throws InterruptedException
     {
@@ -180,6 +197,13 @@ public class DebeziumService
         }
     }
 
+    /**
+     * Callback connected to the engine that will react on connector stopped
+     * events and shutdown the DHIS2 server if
+     * {@link DebeziumService#shutdownOnConnectorStopOrError} is true, the
+     * default is false. This can be configured with the
+     * {@code debezium.shutdown_on.connector_stop = on/off}
+     */
     private final DebeziumEngine.ConnectorCallback connectorCallback = new DebeziumEngine.ConnectorCallback()
     {
         @Override

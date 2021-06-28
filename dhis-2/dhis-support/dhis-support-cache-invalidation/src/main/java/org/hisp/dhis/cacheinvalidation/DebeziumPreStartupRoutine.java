@@ -37,13 +37,20 @@ import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 
 /**
+ * Startup routine responsible for pre-populating the table name to entity
+ * lookup table {@link TableNameToEntityMapping} This class is executed before
+ * the {@link StartupDebeziumServiceRoutine} which starts the Debezium engine
+ * itself.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Profile( { "!test", "!test-h2" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
 public class DebeziumPreStartupRoutine extends AbstractStartupRoutine
 {
     @PersistenceUnit

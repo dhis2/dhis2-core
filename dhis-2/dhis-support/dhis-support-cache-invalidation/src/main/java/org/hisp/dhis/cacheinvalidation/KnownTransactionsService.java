@@ -42,6 +42,10 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 /**
+ * Service responsible for registering local transaction ID in a lookup table.
+ * The hash table is a {@link Cache<Long,Boolean>} with a lifetime of:
+ * {@link KnownTransactionsService#LOCAL_TXID_CACHE_TIME_MIN}
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
@@ -68,7 +72,7 @@ public class KnownTransactionsService
                 .setFlushMode( FlushMode.MANUAL )
                 .getSingleResult();
 
-            register( (Long) txId );
+            registerTransactionId( txId.longValue() );
         }
         catch ( Exception e )
         {
@@ -76,24 +80,29 @@ public class KnownTransactionsService
         }
     }
 
-    public void register( long txId )
+    public void registerTransactionId( long txId )
     {
         if ( dhisConfig.isEnabled( ConfigurationKey.DEBEZIUM_ENABLED ) )
         {
             log.debug( "Register local txId=" + txId );
-            if ( applicationTransactions == null )
-            {
-                applicationTransactions = CacheBuilder.newBuilder()
-                    .expireAfterAccess( LOCAL_TXID_CACHE_TIME_MIN, TimeUnit.MINUTES )
-                    .build();
-            }
-
+            buildIfNull();
             applicationTransactions.put( txId, true );
+        }
+    }
+
+    private void buildIfNull()
+    {
+        if ( applicationTransactions == null )
+        {
+            applicationTransactions = CacheBuilder.newBuilder()
+                .expireAfterAccess( LOCAL_TXID_CACHE_TIME_MIN, TimeUnit.MINUTES )
+                .build();
         }
     }
 
     public boolean isKnown( long txId )
     {
+        buildIfNull();
         return Boolean.TRUE.equals( applicationTransactions.getIfPresent( txId ) );
     }
 

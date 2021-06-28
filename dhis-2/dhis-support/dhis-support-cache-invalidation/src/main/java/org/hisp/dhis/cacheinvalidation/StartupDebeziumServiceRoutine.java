@@ -31,13 +31,20 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 
 /**
+ * Startup routine responsible for starting the Debezium engine service. The
+ * {@link DebeziumPreStartupRoutine} is called first so that the
+ * {@link TableNameToEntityMapping} is already been initialized, see
+ * {@link TableNameToEntityMapping#init}
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Profile( { "!test", "!test-h2" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
 public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine
 {
     @Autowired

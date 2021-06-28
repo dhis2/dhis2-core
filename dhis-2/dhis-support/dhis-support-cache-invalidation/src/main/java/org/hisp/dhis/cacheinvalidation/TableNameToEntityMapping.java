@@ -50,6 +50,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
+ * TreeMap responsible for keeping the mapping between raw database tables names
+ * to Hibernate entity classes. The mapping is constructed by inspecting the
+ * Hibernate metadata model {@link MetamodelImpl}
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j

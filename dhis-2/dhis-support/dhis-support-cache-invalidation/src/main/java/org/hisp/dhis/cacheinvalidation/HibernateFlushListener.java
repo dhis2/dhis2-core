@@ -39,6 +39,14 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
+ * HibernateFlushListener that is listening for {@link FlushEvent}s and
+ * registering a before the transaction completes
+ * {@link BeforeTransactionCompletionProcess} to capture the transaction ID. The
+ * captured transaction ID is put in to a hash table to enable lookup of
+ * incoming replication events to see if the event/ID matches local transactions
+ * or if the transactions/replication event comes from another DHIS2 server
+ * instance.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j

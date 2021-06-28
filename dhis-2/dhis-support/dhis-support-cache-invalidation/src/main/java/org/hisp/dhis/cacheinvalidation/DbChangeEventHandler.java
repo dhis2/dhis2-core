@@ -53,6 +53,15 @@ import io.debezium.data.Envelope;
 import io.debezium.engine.RecordChangeEvent;
 
 /**
+ * Debezium event handler responsible for acting on {@link RecordChangeEvent}s
+ * emitted from the Debezium engine. This handler is attached to the Debezium
+ * engine configuration in {@link DebeziumService#startDebeziumEngine()}
+ * <p>
+ * This class will try to evict the cache elements based on information in the
+ * incoming {@link RecordChangeEvent} objects and then calling
+ * {@link org.hibernate.Cache#evict(Class, Object)} and
+ * {@link org.hibernate.Cache#evictCollectionData(String, Serializable)}.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
@@ -76,6 +85,13 @@ public class DbChangeEventHandler
     @Autowired
     private TableNameToEntityMapping tableNameToEntityMapping;
 
+    /**
+     * Called by the {@link io.debezium.embedded.EmbeddedEngine}'s event
+     * handler. Configured in {@link DebeziumService#startDebeziumEngine()}
+     *
+     * @param event RecordChangeEvent<SourceRecord> containing the database
+     *        replication event information
+     */
     protected void handleDbChange( RecordChangeEvent<SourceRecord> event )
     {
         try
@@ -114,6 +130,7 @@ public class DbChangeEventHandler
             throw e;
         }
 
+        // Looks up the incoming transaction ID in our local txId cache.
         if ( knownTransactionsService.isKnown( txId ) )
         {
             log.debug( "Incoming event txId is registered on this instance, skipping this event..." );
@@ -139,12 +156,26 @@ public class DbChangeEventHandler
         List<Object[]> entityClasses = tableNameToEntityMapping.getEntities( tableName );
         Objects.requireNonNull( entityClasses, "Failed to look up entity in entity table! Table name=" + tableName );
 
+        Schema keySchema = sourceRecord.keySchema();
+        if ( keySchema == null )
+        {
+            Object key = sourceRecord.key();
+            log.warn( String.format( "No key schema for tablename=%s, key=%s", tableName, key ) );
+            return;
+        }
         Serializable entityId = getEntityId( sourceRecord );
         Objects.requireNonNull( entityId, "Failed to extract entity id!" );
 
         evictExternalEntityChanges( txId, operation, entityClasses, entityId );
     }
 
+    /**
+     * Tries to extract the entity ID from the source record.
+     *
+     * @param sourceRecord SourceRecord object containing info on the event.
+     *
+     * @return A Serializable object representing an entity ID.
+     */
     private Serializable getEntityId( SourceRecord sourceRecord )
     {
         Schema schema = sourceRecord.keySchema();
@@ -185,13 +216,13 @@ public class DbChangeEventHandler
 
         if ( operation == Envelope.Operation.CREATE )
         {
-            // Make sure queries will re-fetch
+            // Make sure queries will re-fetch to capture the new object.
             queryCacheManager.evictQueryCache( sessionFactory.getCache(), firstEntityClass );
             paginationCacheManager.evictCache( firstEntityClass.getName() );
 
             evictCollections( entityClasses, entityId );
 
-            // Try to fetch new entity so it might get cached
+            // Try to fetch the new entity so it might get cached.
             try ( Session session = sessionFactory.openSession() )
             {
                 session.get( firstEntityClass, entityId );

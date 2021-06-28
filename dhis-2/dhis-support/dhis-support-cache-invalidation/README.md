@@ -1,59 +1,98 @@
-# How to use:
+### Cache invalidation configuration
 
-## Configuration
+DHIS2 has the ability to invalidate its cache by listening to replication events emitted by the Postgres database, this
+feature makes it possible to add new instances without having individual configuration for each "node".
 
+The automatic cache invalidation is based on the open source project [Debezium](https://debezium.io/), it works by
+listening the replication stream from the Postgres database and detect changes made by other nodes.
 
-debezium.enabled = on
-debezium.db.name = dhis2_2206_3
-debezium.db.port = 5432
-debezium.db.hostname = localhost
-debezium.connection.username = dhis2_2206_3
-debezium.connection.password = dhis
-debezium.shutdown_on.connector_stop = on
+## Prerequisites:
 
-### Postgres.conf
+* Postgres 10+
+* Logical replication enabled
+* A Postgres user with replication access
 
-############ REPLICATION ##############
-# pgoutput
-# MODULES
-#shared_preload_libraries = 'wal2json'
+## Postgres configuration
 
-# Mandatory config variables
+To enable replication in your database, the following variables needs to be set in your postgres.conf file:
+
+```
 wal_level = logical              
+
+# This number has to be the same or bigger as the number of 
+# DHIS2 nodes/instances you intend to run at the same time.  
 max_wal_senders = 20              
+
+# This number has to be the same or bigger as the number of 
+# DHIS2 nodes/instances you intend to run at the same time.
 max_replication_slots = 20
+```
 
+> **Note**
+>
+> The database needs to be restarted for the replication to be enabled.
 
-#https://gist.github.com/alexhwoods/4c4c90d83db3c47d9303cb734135130d
+## DHIS2 configuration
 
-# Grant replication access to the DHIS2 database user
-ALTER ROLE dhis2_2206_1 WITH replication;
+The following variables is required in the DHIS2 conf file.
 
+```
+debezium.enabled = on 
+debezium.db.name = DHIS2_DATABASE_NAME
+debezium.db.port = DHIS2_DATABASE_POST_NUMBER
+debezium.db.hostname = DHIS2_DATABASE_HOSTNAME
+debezium.connection.username = DHIS2_DATABASE_USER 
+debezium.connection.password = DHIS2_DATABASE_PASSWORD
 
-#https://debezium.io/documentation/reference/postgres-plugins.html
+# If you want the server to shutdown if the replication connection is lost. (defaults off)
+debezium.shutdown_on.connector_stop = off
+```
 
-#https://debezium.io/documentation/reference/connectors/postgresql.html
-#https://debezium.io/documentation/reference/connectors/postgresql.html#setting-up-postgresql
-#https://medium.com/@lmramos.usa/debezium-cdc-postgres-c9ce4da05ce1
+## Enable replication access on the database user
 
-# Clean/delete replication slots
-SELECT * FROM pg_replication_slots ;
-select pg_drop_replication_slot('bottledwater');
+Execute the following statement with an admin user to give replication access to your user.
 
-#
-#CREATE ROLE replication WITH REPLICATION PASSWORD 'admin123' LOGIN
-#CREATE ROLE replication WITH REPLICATION
+```
+ALTER ROLE [YOUR DHIS2 DATABASE USER] WITH replication;
+```
 
-# Grant replication access to the DHIS2 database user
-ALTER ROLE dhis2_2206_1 WITH replication;
+## Potential issues
 
-#Problems
-* Datavalue objects dont get catched txid
+### Running out of available replication slots
 
+Every time an instance is started a new replication slot is created in the database. On every normal shutdown of the
+instance, the replication created on startup is automatically removed. However, if the server is not shutdown normally,
+like for example on a power outage the replication slot will remain in the database until it is manually removed. Each
+replication slot name includes the date it was created and a random string, such that no replication slot will ever have
+the same name. The number of available replication slots is fixed and is determined by the postgres config variables:
+'max_wal_senders' and 'max_replication_slots'. You can see that if you have a lot of stale replication slots you might
+run out of available slots.
 
-* deletedobject missing in tx log
-* audit missing ---
+To manually remove old stale and unused replication slots you can use the following statements:
 
-* add to cache on create event?
-  
-* delay/chunk full eviction on create.
+#### List all replication slots
+
+```
+SELECT * FROM pg_replication_slots;
+```
+
+#### Remove a stale replication slot
+
+```
+SELECT pg_drop_replication_slot('dhis2_1624530654__a890ba555e634f50983d4d6ad0fd63f1');
+```
+
+###             
+
+### The Debezium engine lose its connection to the database
+
+In the event that the replication connection fails and can not recover, the node will eventually be out of sync with
+other nodes caches. To prevent this from happening you can enable the server to shut down if it detects it has lost
+connection. This feature is disabled by default since it can take down the instance without warning. If however you have
+several nodes in a typical load balanced setup and can tolerate that some nodes are down, and you have adequate
+monitoring and alerting of your implementation you might consider enabling this. It can be enabled by setting the
+"dhis.conf" file variable below to "on".
+
+```
+debezium.shutdown_on.connector_stop = on
+```
