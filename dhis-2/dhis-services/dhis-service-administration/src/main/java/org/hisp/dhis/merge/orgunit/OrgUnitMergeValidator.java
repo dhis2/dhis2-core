@@ -67,7 +67,7 @@ public class OrgUnitMergeValidator
      */
     public ErrorMessage validateForErrorMessage( OrgUnitMergeRequest request )
     {
-        if ( request.getSources().isEmpty() )
+        if ( request.getSources().size() < 2 )
         {
             return new ErrorMessage( ErrorCode.E1500 );
         }
@@ -78,10 +78,6 @@ public class OrgUnitMergeValidator
         if ( request.getSources().contains( request.getTarget() ) )
         {
             return new ErrorMessage( ErrorCode.E1502 );
-        }
-        if ( request.getSources().size() < 2 )
-        {
-            return new ErrorMessage( ErrorCode.E1503 );
         }
 
         return null;

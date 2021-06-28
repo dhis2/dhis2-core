@@ -67,7 +67,7 @@ public class OrgUnitSplitValidator
         {
             return new ErrorMessage( ErrorCode.E1510 );
         }
-        if ( request.getTargets().isEmpty() )
+        if ( request.getTargets().size() < 2 )
         {
             return new ErrorMessage( ErrorCode.E1511 );
         }
@@ -79,7 +79,7 @@ public class OrgUnitSplitValidator
         {
             return new ErrorMessage( ErrorCode.E1513 );
         }
-        if ( request.getTargets().contains( request.getPrimaryTarget() ) )
+        if ( !request.getTargets().contains( request.getPrimaryTarget() ) )
         {
             return new ErrorMessage( ErrorCode.E1514 );
         }

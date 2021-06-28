@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -52,9 +53,11 @@ public class OrgUnitMergeValidatorTest
     public void testValidateMissingSources()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
 
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .withTarget( ouA )
+            .addSource( ouA )
+            .withTarget( ouB )
             .build();
 
         assertEquals( ErrorCode.E1500, validator.validateForErrorMessage( request ).getErrorCode() );
@@ -90,16 +93,18 @@ public class OrgUnitMergeValidatorTest
     }
 
     @Test
-    public void testValidateLessThanTwoSources()
+    public void testValidateSuccess()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
+        OrganisationUnit ouC = createOrganisationUnit( 'C' );
 
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
             .addSource( ouA )
-            .withTarget( ouB )
+            .addSource( ouB )
+            .withTarget( ouC )
             .build();
 
-        assertEquals( ErrorCode.E1503, validator.validateForErrorMessage( request ).getErrorCode() );
+        assertNull( validator.validateForErrorMessage( request ) );
     }
 }
