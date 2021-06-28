@@ -25,34 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.split.orgunit;
+package org.hisp.dhis.split.orgunit.handler;
 
-import java.util.HashSet;
-import java.util.Set;
+import org.hisp.dhis.split.orgunit.OrgUnitSplitValidator;
+import org.junit.Before;
 
-import lombok.Getter;
-
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import com.google.common.base.MoreObjects;
-
-@Getter
-public class OrgUnitSplitRequest
+public class MetadataOrgUnitSplitHandlerTest
 {
-    private OrganisationUnit source;
+    private OrgUnitSplitValidator validator;
 
-    private Set<OrganisationUnit> targets = new HashSet<>();
-
-    private boolean deleteSource;
-
-    @Override
-    public String toString()
+    @Before
+    public void before()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "source", source != null ? source.getUid() : null )
-            .add( "targets", IdentifiableObjectUtils.getUids( targets ) )
-            .add( "deleteSource", deleteSource )
-            .toString();
+        validator = new OrgUnitSplitValidator();
     }
 }

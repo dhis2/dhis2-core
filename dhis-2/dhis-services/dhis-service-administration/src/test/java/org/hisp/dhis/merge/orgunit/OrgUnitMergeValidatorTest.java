@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -39,7 +40,13 @@ import org.junit.Test;
  */
 public class OrgUnitMergeValidatorTest
 {
-    private OrgUnitMergeValidator validator = new OrgUnitMergeValidator();
+    private OrgUnitMergeValidator validator;
+
+    @Before
+    public void before()
+    {
+        validator = new OrgUnitMergeValidator();
+    }
 
     @Test
     public void testValidateMissingSources()

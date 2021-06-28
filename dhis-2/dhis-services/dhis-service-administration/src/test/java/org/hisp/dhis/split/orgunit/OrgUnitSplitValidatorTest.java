@@ -27,55 +27,7 @@
  */
 package org.hisp.dhis.split.orgunit;
 
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
-import org.springframework.stereotype.Service;
-
-@Service
-public class OrgUnitSplitValidator
+public class OrgUnitSplitValidatorTest
 {
-    /**
-     * Validates the given {@link OrgUnitSplitRequest}. Throws
-     * {@link IllegalQueryException} if validation fails.
-     *
-     * @param request the {@link OrgUnitMergeRequest}.
-     * @throws IllegalQueryException if validation failed.
-     */
-    public void validate( OrgUnitSplitRequest request )
-        throws IllegalQueryException
-    {
-        ErrorMessage error = validateForErrorMessage( request );
 
-        if ( error != null )
-        {
-            throw new IllegalQueryException( error );
-        }
-    }
-
-    /**
-     * Validates the given {@link OrgUnitSplitRequest}.
-     *
-     * @param request the {@link OrgUnitSplitRequest}.
-     * @return an {@link ErrorMessage} if the validation failed, or null if
-     *         validation was successful.
-     */
-    public ErrorMessage validateForErrorMessage( OrgUnitSplitRequest request )
-    {
-        if ( request.getSource() == null )
-        {
-            return new ErrorMessage( ErrorCode.E1510 );
-        }
-        if ( request.getTargets().isEmpty() )
-        {
-            return new ErrorMessage( ErrorCode.E1511 );
-        }
-        if ( request.getTargets().contains( request.getSource() ) )
-        {
-            return new ErrorMessage( ErrorCode.E1512 );
-        }
-
-        return null;
-    }
 }

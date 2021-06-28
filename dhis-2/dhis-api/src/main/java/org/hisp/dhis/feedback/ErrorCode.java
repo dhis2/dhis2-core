@@ -50,6 +50,11 @@ public enum ErrorCode
     E1501( "Target org unit must be specified" ),
     E1502( "Target org unit cannot be a source org unit" ),
 
+    /* Org unit split */
+    E1510( "Source org unit must be specified" ),
+    E1511( "Target org units must be specified" ),
+    E1512( "Source org unit cannot be a target org unit" ),
+
     /* Data */
     E2000( "Query parameters cannot be null" ),
     E2001( "At least one data element, data set or data element group must be specified" ),
