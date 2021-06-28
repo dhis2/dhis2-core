@@ -29,11 +29,22 @@ package org.hisp.dhis.split.orgunit.handler;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.eventchart.EventChartService;
+import org.hisp.dhis.eventreport.EventReportService;
+import org.hisp.dhis.mapping.MappingService;
+import org.hisp.dhis.visualization.VisualizationService;
 import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
 public class AnalyticalObjectOrgUnitSplitHandler
 {
+    private final VisualizationService visualizationService;
+
+    private final MappingService mapViewService;
+
+    private final EventReportService eventReportService;
+
+    private final EventChartService eventChartService;
 
 }

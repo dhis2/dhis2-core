@@ -38,7 +38,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.split.orgunit.handler.AnalyticalObjectOrgUnitSplitHandler;
 import org.hisp.dhis.split.orgunit.handler.DataOrgUnitSplitHandler;
 import org.hisp.dhis.split.orgunit.handler.MetadataOrgUnitSplitHandler;
-import org.hisp.dhis.split.orgunit.handler.TrackerOrgUnitSplitHandler;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableList;
@@ -64,13 +63,12 @@ public class DefaultOrgUnitSplitService
         IdentifiableObjectManager idObjectManager,
         MetadataOrgUnitSplitHandler metadataHandler,
         AnalyticalObjectOrgUnitSplitHandler analyticalObjectHandler,
-        DataOrgUnitSplitHandler dataHandler,
-        TrackerOrgUnitSplitHandler trackerHandler )
+        DataOrgUnitSplitHandler dataHandler )
     {
         this.validator = validator;
         this.idObjectManager = idObjectManager;
         this.handlers = getSplitHandlers( metadataHandler,
-            analyticalObjectHandler, dataHandler, trackerHandler );
+            analyticalObjectHandler, dataHandler );
     }
 
     @Override
@@ -120,8 +118,7 @@ public class DefaultOrgUnitSplitService
     private ImmutableList<OrgUnitSplitHandler> getSplitHandlers(
         MetadataOrgUnitSplitHandler metadataHandler,
         AnalyticalObjectOrgUnitSplitHandler analyticalObjectHandler,
-        DataOrgUnitSplitHandler dataHandler,
-        TrackerOrgUnitSplitHandler trackerHandler )
+        DataOrgUnitSplitHandler dataHandler )
     {
         return ImmutableList.<OrgUnitSplitHandler> builder()
             .add( ( r ) -> metadataHandler.splitDataSets( r ) )

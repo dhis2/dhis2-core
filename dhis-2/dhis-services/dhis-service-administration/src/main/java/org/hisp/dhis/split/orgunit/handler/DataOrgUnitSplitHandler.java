@@ -53,6 +53,13 @@ public class DataOrgUnitSplitHandler
         migrate( request, "ValidationResult", "organisationUnit" );
         migrate( request, "MinMaxDataElement", "source" );
         migrate( request, "Interpretation", "organisationUnit" );
+
+        migrate( request, "ProgramMessage", "recipients.organisationUnit" );
+        migrate( request, "ProgramStageInstance", "organisationUnit" );
+        migrate( request, "ProgramInstance", "organisationUnit" );
+        migrate( request, "ProgramOwnershipHistory", "organisationUnit" );
+        migrate( request, "TrackedEntityProgramOwner", "organisationUnit" );
+        migrate( request, "TrackedEntityInstance", "organisationUnit" );
     }
 
     private void migrate( OrgUnitSplitRequest request, String entity, String property )
