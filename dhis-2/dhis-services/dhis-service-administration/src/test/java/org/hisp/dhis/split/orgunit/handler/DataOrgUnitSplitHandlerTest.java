@@ -216,5 +216,4 @@ public class DataOrgUnitSplitHandlerTest
     {
         Stream.of( dataApprovals ).forEach( dataApprovalService::addDataApproval );
     }
-
 }
