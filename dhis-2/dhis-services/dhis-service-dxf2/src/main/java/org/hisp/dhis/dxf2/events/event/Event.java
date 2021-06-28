@@ -576,6 +576,8 @@ public class Event
             ", relationships=" + relationships +
             ", eventDate='" + eventDate + '\'' +
             ", dueDate='" + dueDate + '\'' +
+            ", assignedUser=''" + assignedUser + '\'' +
+            ", assignedUserUsername=''" + assignedUserUsername + '\'' +
             ", assignedUserDisplayName=''" + assignedUserDisplayName + '\'' +
             ", dataValues=" + dataValues +
             ", notes=" + notes +
