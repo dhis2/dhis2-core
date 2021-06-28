@@ -27,13 +27,19 @@
  */
 package org.hisp.dhis.split.orgunit.handler;
 
+import java.util.Set;
+
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 @Service
@@ -78,7 +84,30 @@ public class MetadataOrgUnitSplitHandler
 
     public void splitOrganisationUnits( OrgUnitSplitRequest request )
     {
+        Sets.newHashSet( request.getSource().getChildren() ).forEach(
+            ou -> ou.updateParent( request.getPrimaryTarget() ) );
+    }
 
+    public void splitUsers( OrgUnitSplitRequest request )
+    {
+        Set<OrganisationUnit> organisationUnits = Sets.newHashSet( request.getSource() );
+
+        Set<User> users = ImmutableSet.<User> builder()
+            .addAll( userService.getUsers( new UserQueryParams()
+                .setCanSeeOwnUserAuthorityGroups( true )
+                .setOrganisationUnits( organisationUnits ) ) )
+            .addAll( userService.getUsers( new UserQueryParams()
+                .setCanSeeOwnUserAuthorityGroups( true )
+                .setDataViewOrganisationUnits( organisationUnits ) ) )
+            .addAll( userService.getUsers( new UserQueryParams()
+                .setCanSeeOwnUserAuthorityGroups( true )
+                .setTeiSearchOrganisationUnits( organisationUnits ) ) )
+            .build();
+
+        users.forEach( u -> {
+            u.addOrganisationUnits( request.getTargets() );
+            u.removeOrganisationUnit( request.getSource() );
+        } );
     }
 
 }
