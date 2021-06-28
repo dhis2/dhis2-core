@@ -1,4 +1,4 @@
-### Cache invalidation configuration
+### Hibernate cache invalidation with Debezium
 
 DHIS2 has the ability to invalidate its cache by listening to replication events emitted by the Postgres database, this
 feature makes it possible to add new instances without having individual configuration for each "node".
@@ -30,7 +30,7 @@ max_replication_slots = 20
 
 > **Note**
 >
-> The database needs to be restarted for the replication to be enabled.
+> The database needs to be restarted for the replication feature to start.
 
 ## DHIS2 configuration
 
