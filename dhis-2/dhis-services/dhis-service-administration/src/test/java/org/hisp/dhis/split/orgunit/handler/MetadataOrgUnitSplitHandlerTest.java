@@ -27,17 +27,99 @@
  */
 package org.hisp.dhis.split.orgunit.handler;
 
-import org.hisp.dhis.split.orgunit.OrgUnitSplitValidator;
+import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+
+import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
+import org.hisp.dhis.user.UserService;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 public class MetadataOrgUnitSplitHandlerTest
 {
-    private OrgUnitSplitValidator validator;
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    private MetadataOrgUnitSplitHandler handler;
+
+    private OrganisationUnit ouA;
+
+    private OrganisationUnit ouB;
+
+    private OrganisationUnit ouC;
 
     @Before
-    public void before()
+    public void setUp()
     {
-        validator = new OrgUnitSplitValidator();
+        handler = new MetadataOrgUnitSplitHandler(
+            mock( UserService.class ), mock( ConfigurationService.class ) );
+
+        ouA = createOrganisationUnit( 'A' );
+        ouB = createOrganisationUnit( 'B' );
+        ouC = createOrganisationUnit( 'C' );
     }
 
+    @Test
+    public void testSplitDataSets()
+    {
+        DataSet dsA = createDataSet( 'A' );
+        dsA.addOrganisationUnit( ouA );
+
+        DataSet dsB = createDataSet( 'B' );
+        dsB.addOrganisationUnit( ouA );
+
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
+            .withSource( ouA )
+            .addTarget( ouB )
+            .addTarget( ouC )
+            .withPrimaryTarget( ouB )
+            .build();
+
+        assertEquals( 2, ouA.getDataSets().size() );
+        assertEquals( 0, ouB.getDataSets().size() );
+        assertEquals( 0, ouC.getDataSets().size() );
+
+        handler.splitDataSets( request );
+
+        assertEquals( 0, ouA.getDataSets().size() );
+        assertEquals( 2, ouB.getDataSets().size() );
+        assertEquals( 2, ouC.getDataSets().size() );
+    }
+
+    @Test
+    public void testSplitPrograms()
+    {
+        Program prA = createProgram( 'A' );
+        prA.addOrganisationUnit( ouA );
+
+        Program prB = createProgram( 'B' );
+        prB.addOrganisationUnit( ouA );
+
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
+            .withSource( ouA )
+            .addTarget( ouB )
+            .addTarget( ouC )
+            .withPrimaryTarget( ouB )
+            .build();
+
+        assertEquals( 2, ouA.getPrograms().size() );
+        assertEquals( 0, ouB.getPrograms().size() );
+        assertEquals( 0, ouC.getPrograms().size() );
+
+        handler.splitPrograms( request );
+
+        assertEquals( 0, ouA.getPrograms().size() );
+        assertEquals( 2, ouB.getPrograms().size() );
+        assertEquals( 2, ouC.getPrograms().size() );
+    }
 }

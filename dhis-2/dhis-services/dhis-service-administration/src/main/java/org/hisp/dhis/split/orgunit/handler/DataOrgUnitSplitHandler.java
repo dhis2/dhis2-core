@@ -31,6 +31,8 @@ import javax.transaction.Transactional;
 
 import lombok.AllArgsConstructor;
 
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -38,5 +40,21 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class DataOrgUnitSplitHandler
 {
+    private final SessionFactory sessionFactory;
 
+    @Transactional
+    public void splitInterpretations( OrgUnitSplitRequest request )
+    {
+        migrate( "update Interpretation i " +
+            "set i.organisationUnit = :target " +
+            "where i.organisationUnit = :source", request );
+    }
+
+    private void migrate( String hql, OrgUnitSplitRequest request )
+    {
+        sessionFactory.getCurrentSession().createQuery( hql )
+            .setParameter( "source", request.getSource() )
+            .setParameter( "target", request.getPrimaryTarget() )
+            .executeUpdate();
+    }
 }
