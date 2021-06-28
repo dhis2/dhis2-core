@@ -73,7 +73,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -199,7 +198,7 @@ public abstract class AbstractEventService implements EventService
 
     protected EventSyncService eventSyncService;
 
-    protected Cache<DataElement> dataElementCache;
+    protected Cache<Boolean> dataElementCache;
 
     private static final int FLUSH_FREQUENCY = 100;
 
@@ -600,18 +599,8 @@ public abstract class AbstractEventService implements EventService
 
         for ( EventDataValue dataValue : dataValues )
         {
-
-            DataElement dataElement = getDataElement( IdScheme.UID, dataValue.getDataElement() );
-
-            if ( dataElement != null )
+            if ( getDataElement( user.getUid(), dataValue.getDataElement() ) )
             {
-                errors = trackerAccessManager.canRead( user, programStageInstance, dataElement, true );
-
-                if ( !errors.isEmpty() )
-                {
-                    continue;
-                }
-
                 DataValue value = new DataValue();
                 value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
                 value.setCreatedByUserInfo( dataValue.getCreatedByUserInfo() );
@@ -918,9 +907,18 @@ public abstract class AbstractEventService implements EventService
             () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
     }
 
-    private DataElement getDataElement( IdScheme idScheme, String id )
+    /**
+     * Get DataElement by given uid
+     *
+     * @return FALSE if currentUser doesn't have READ access to given
+     *         DataElement OR no DataElement with given uid exist TRUE if
+     *         DataElement exist and currentUser has READ access
+     */
+    private boolean getDataElement( String userUid, String dataElementUid )
     {
-        return dataElementCache.get( id, s -> manager.getObject( DataElement.class, idScheme, id ) ).orElse( null );
+        String key = userUid + "-" + dataElementUid;
+        return dataElementCache.get( key, k -> manager.get( DataElement.class, dataElementUid ) != null )
+            .orElse( false );
     }
 
     @Override
