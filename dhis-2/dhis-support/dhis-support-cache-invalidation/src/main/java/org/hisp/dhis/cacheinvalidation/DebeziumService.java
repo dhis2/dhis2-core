@@ -119,6 +119,21 @@ public class DebeziumService
     public void startDebeziumEngine()
         throws InterruptedException
     {
+        Properties configuration = getConfiguration();
+
+        engine = DebeziumEngine
+            .create( ChangeEventFormat.of( Connect.class ) )
+            .using( configuration )
+            .using( this::handleCompletionCallback )
+            .using( connectorCallback )
+            .notifying( dbChangeEventHandler::handleDbChange )
+            .build();
+
+        startupEngineOnExecutor();
+    }
+
+    private Properties getConfiguration()
+    {
         String username = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_CONNECTION_USERNAME );
         String password = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_CONNECTION_PASSWORD );
         String dbHostname = dhisConfig.getProperty( ConfigurationKey.DEBEZIUM_DB_HOSTNAME );
@@ -155,19 +170,14 @@ public class DebeziumService
         props.setProperty( "snapshot.mode", "never" );
         props.setProperty( "slot.drop.on.stop", "true" );
         props.setProperty( "table.exclude.list",
-            "public.spatial_ref_sys,public.audit,public.userroleauthorities,"
-                + "public.oauth_access_token,public.oauth_refresh_token,"
+            "public.spatial_ref_sys,"
+                + "public.audit,"
+                + "public.userroleauthorities,"
+                + "public.oauth_access_token,"
+                + "public.oauth_refresh_token,"
                 + "public.oauth_code," + excludeList );
 
-        engine = DebeziumEngine
-            .create( ChangeEventFormat.of( Connect.class ) )
-            .using( props )
-            .using( this::handleCompletionCallback )
-            .using( connectorCallback )
-            .notifying( dbChangeEventHandler::handleDbChange )
-            .build();
-
-        startupEngineOnExecutor();
+        return props;
     }
 
     /**
