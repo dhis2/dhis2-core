@@ -27,7 +27,15 @@
  */
 package org.hisp.dhis.split.orgunit;
 
+import org.junit.Before;
+
 public class OrgUnitSplitValidatorTest
 {
+    private OrgUnitSplitValidator validator;
 
+    @Before
+    public void before()
+    {
+        this.validator = new OrgUnitSplitValidator();
+    }
 }
