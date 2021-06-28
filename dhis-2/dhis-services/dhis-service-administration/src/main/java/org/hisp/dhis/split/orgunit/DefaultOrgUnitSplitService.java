@@ -131,6 +131,7 @@ public class DefaultOrgUnitSplitService
             .add( ( r ) -> metadataHandler.splitOrganisationUnits( r ) )
             .add( ( r ) -> metadataHandler.splitUsers( r ) )
             .add( ( r ) -> metadataHandler.splitConfiguration( r ) )
+            .add( ( r ) -> dataHandler.splitInterpretations( r ) )
             .build();
     }
 
