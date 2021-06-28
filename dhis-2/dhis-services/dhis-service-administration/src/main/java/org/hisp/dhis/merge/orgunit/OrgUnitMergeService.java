@@ -43,7 +43,7 @@ public interface OrgUnitMergeService
 
     /**
      * Converts the given {@link OrgUnitMergeQuery} to an
-     * {@link OrgUnitMergeQuery}.
+     * {@link OrgUnitMergeRequest}.
      *
      * @param request the {@link OrgUnitMergeQuery}.
      * @return an {@link OrgUnitMergeRequest}.

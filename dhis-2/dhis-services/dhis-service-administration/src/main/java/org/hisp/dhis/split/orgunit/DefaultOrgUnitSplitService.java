@@ -27,19 +27,113 @@
  */
 package org.hisp.dhis.split.orgunit;
 
-import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
+import java.util.Set;
 
+import javax.transaction.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.split.orgunit.handler.AnalyticalObjectOrgUnitSplitHandler;
+import org.hisp.dhis.split.orgunit.handler.DataOrgUnitSplitHandler;
+import org.hisp.dhis.split.orgunit.handler.MetadataOrgUnitSplitHandler;
+import org.hisp.dhis.split.orgunit.handler.TrackerOrgUnitSplitHandler;
+import org.springframework.stereotype.Service;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
+
+/**
+ * Main class for org unit split.
+ *
+ * @author Lars Helge Overland
+ */
+@Slf4j
+@Service
 public class DefaultOrgUnitSplitService
     implements OrgUnitSplitService
 {
-    @Override
-    public void split( OrgUnitSplitRequest request )
+    private final OrgUnitSplitValidator validator;
+
+    private final IdentifiableObjectManager idObjectManager;
+
+    private final ImmutableList<OrgUnitSplitHandler> handlers;
+
+    public DefaultOrgUnitSplitService( OrgUnitSplitValidator validator,
+        IdentifiableObjectManager idObjectManager,
+        MetadataOrgUnitSplitHandler metadataHandler,
+        AnalyticalObjectOrgUnitSplitHandler analyticalObjectHandler,
+        DataOrgUnitSplitHandler dataHandler,
+        TrackerOrgUnitSplitHandler trackerHandler )
     {
+        this.validator = validator;
+        this.idObjectManager = idObjectManager;
+        this.handlers = getSplitHandlers( metadataHandler,
+            analyticalObjectHandler, dataHandler, trackerHandler );
     }
 
     @Override
-    public OrgUnitMergeRequest getFromQuery( OrgUnitSplitRequest query )
+    @Transactional
+    public void split( OrgUnitSplitRequest request )
     {
-        return null;
+        log.info( "Org unit split request: {}", request );
+
+        validator.validate( request );
+
+        handlers.forEach( handler -> handler.split( request ) );
+
+        // Persistence framework will inspect and update associated objects
+
+        for ( OrganisationUnit target : request.getTargets() )
+        {
+            idObjectManager.update( target );
+        }
+
+        handleDeleteSource( request );
+
+        log.info( "Org unit split operation done: {}", request );
+    }
+
+    @Override
+    public OrgUnitSplitRequest getFromQuery( OrgUnitSplitQuery query )
+    {
+        OrganisationUnit source = idObjectManager.get( OrganisationUnit.class, query.getSource() );
+
+        Set<OrganisationUnit> targets = Sets.newHashSet(
+            idObjectManager.getByUid( OrganisationUnit.class, query.getTargets() ) );
+
+        return new OrgUnitSplitRequest.Builder()
+            .withSource( source )
+            .addTargets( targets )
+            .withDeleteSource( query.getDeleteSource() )
+            .build();
+    }
+
+    // -------------------------------------------------------------------------
+    // Private methods
+    // -------------------------------------------------------------------------
+
+    private ImmutableList<OrgUnitSplitHandler> getSplitHandlers(
+        MetadataOrgUnitSplitHandler metadataHandler,
+        AnalyticalObjectOrgUnitSplitHandler analyticalObjectHandler,
+        DataOrgUnitSplitHandler dataHandler,
+        TrackerOrgUnitSplitHandler trackerHandler )
+    {
+        return ImmutableList.<OrgUnitSplitHandler> builder()
+            .build();
+    }
+
+    /**
+     * Handles deletion of the source {@link OrganisationUnit}.
+     *
+     * @param request the {@link OrgUnitSplitRequest}.
+     */
+    private void handleDeleteSource( OrgUnitSplitRequest request )
+    {
+        if ( request.isDeleteSource() )
+        {
+            idObjectManager.delete( request.getSource() );
+        }
     }
 }

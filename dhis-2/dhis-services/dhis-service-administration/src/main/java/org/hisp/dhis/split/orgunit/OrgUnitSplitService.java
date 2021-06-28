@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.split.orgunit;
 
-import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
-
 public interface OrgUnitSplitService
 {
     /**
@@ -39,11 +37,11 @@ public interface OrgUnitSplitService
     void split( OrgUnitSplitRequest request );
 
     /**
-     * Converts the given {@link OrgUnitSplitRequest} to an
-     * {@link OrgUnitSplitQuery}.
+     * Converts the given {@link OrgUnitSplitQuery} to an
+     * {@link OrgUnitSplitRequest}.
      *
      * @param request the {@link OrgUnitSplitQuery}.
      * @return an {@link OrgUnitSplitRequest}.
      */
-    OrgUnitMergeRequest getFromQuery( OrgUnitSplitRequest query );
+    OrgUnitSplitRequest getFromQuery( OrgUnitSplitQuery query );
 }

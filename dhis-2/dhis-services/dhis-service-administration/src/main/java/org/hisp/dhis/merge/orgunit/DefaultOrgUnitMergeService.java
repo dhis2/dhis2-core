@@ -61,12 +61,12 @@ public class DefaultOrgUnitMergeService
 
     private final ImmutableList<OrgUnitMergeHandler> handlers;
 
-    public DefaultOrgUnitMergeService( MetadataOrgUnitMergeHandler metadataHandler,
+    public DefaultOrgUnitMergeService( OrgUnitMergeValidator validator,
+        IdentifiableObjectManager idObjectManager,
+        MetadataOrgUnitMergeHandler metadataHandler,
         AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler,
         DataOrgUnitMergeHandler dataHandler,
-        TrackerOrgUnitMergeHandler trackerHandler,
-        OrgUnitMergeValidator validator,
-        IdentifiableObjectManager idObjectManager )
+        TrackerOrgUnitMergeHandler trackerHandler )
     {
         this.validator = validator;
         this.idObjectManager = idObjectManager;
@@ -82,7 +82,7 @@ public class DefaultOrgUnitMergeService
 
         validator.validate( request );
 
-        handlers.forEach( merge -> merge.merge( request ) );
+        handlers.forEach( handler -> handler.merge( request ) );
 
         // Persistence framework will inspect and update associated objects
 
