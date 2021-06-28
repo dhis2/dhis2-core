@@ -43,26 +43,30 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class DataOrgUnitSplitHandler
 {
+    private static final String PARAM_ORG_UNIT = "organisationUnit";
+
+    private static final String PARAM_SOURCE = "source";
+
     private final SessionFactory sessionFactory;
 
     @Transactional
     public void splitData( OrgUnitSplitRequest request )
     {
-        migrate( request, "DataValueAudit", "organisationUnit" );
-        migrate( request, "DataValue", "source" );
-        migrate( request, "DataApprovalAudit", "organisationUnit" );
-        migrate( request, "DataApproval", "organisationUnit" );
-        migrate( request, "LockException", "organisationUnit" );
-        migrate( request, "ValidationResult", "organisationUnit" );
-        migrate( request, "MinMaxDataElement", "source" );
-        migrate( request, "Interpretation", "organisationUnit" );
+        migrate( request, "DataValueAudit", PARAM_ORG_UNIT );
+        migrate( request, "DataValue", PARAM_SOURCE );
+        migrate( request, "DataApprovalAudit", PARAM_ORG_UNIT );
+        migrate( request, "DataApproval", PARAM_ORG_UNIT );
+        migrate( request, "LockException", PARAM_ORG_UNIT );
+        migrate( request, "ValidationResult", PARAM_ORG_UNIT );
+        migrate( request, "MinMaxDataElement", PARAM_SOURCE );
+        migrate( request, "Interpretation", PARAM_ORG_UNIT );
 
-        migrate( request, "ProgramMessage", "recipients.organisationUnit" );
-        migrate( request, "ProgramStageInstance", "organisationUnit" );
-        migrate( request, "ProgramInstance", "organisationUnit" );
-        migrate( request, "ProgramOwnershipHistory", "organisationUnit" );
-        migrate( request, "TrackedEntityProgramOwner", "organisationUnit" );
-        migrate( request, "TrackedEntityInstance", "organisationUnit" );
+        migrate( request, "ProgramMessage", "recipients." + PARAM_ORG_UNIT );
+        migrate( request, "ProgramStageInstance", PARAM_ORG_UNIT );
+        migrate( request, "ProgramInstance", PARAM_ORG_UNIT );
+        migrate( request, "ProgramOwnershipHistory", PARAM_ORG_UNIT );
+        migrate( request, "TrackedEntityProgramOwner", PARAM_ORG_UNIT );
+        migrate( request, "TrackedEntityInstance", PARAM_ORG_UNIT );
     }
 
     private void migrate( OrgUnitSplitRequest request, String entity, String property )
