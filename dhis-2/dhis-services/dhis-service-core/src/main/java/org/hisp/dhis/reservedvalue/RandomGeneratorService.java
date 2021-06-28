@@ -80,7 +80,7 @@ public class RandomGeneratorService implements Callable<List<String>>
     private final List<Character> uppercase = IntStream.range( 0, 26 ).mapToObj( n -> (char) (n + 'A') )
         .collect( Collectors.toList() );
 
-    private String textPattern;
+    private String segmentParameter;
 
     @Override
     public List<String> call()
@@ -91,11 +91,11 @@ public class RandomGeneratorService implements Callable<List<String>>
         List<String> randomList = new ArrayList<>();
 
         Pattern randomPattern = Pattern.compile( "[X]+|[x]+|[#]+|[*]+" );
-        Matcher matcher = randomPattern.matcher( textPattern );
+        Matcher matcher = randomPattern.matcher( segmentParameter );
 
         while ( matcher.find() )
         {
-            patterns.add( textPattern.substring( matcher.start(), matcher.end() ) );
+            patterns.add( segmentParameter.substring( matcher.start(), matcher.end() ) );
         }
 
         for ( int j = 0; j < RANDOM_GENERATION_CHUNK; j++ )
@@ -133,7 +133,8 @@ public class RandomGeneratorService implements Callable<List<String>>
     private void setForRandomLowerCase( StringBuilder stringBuilder, String pattern )
     {
         int i = 0;
-        String randomUUIDForLower = UUID.randomUUID().toString();
+
+        String randomUUIDForLower = getRandomUUIDFor( pattern );
 
         while ( i < pattern.length() )
         {
@@ -154,7 +155,7 @@ public class RandomGeneratorService implements Callable<List<String>>
     private void setForRandomUpperCase( StringBuilder stringBuilder, String pattern )
     {
         int i = 0;
-        String randomUUIDForUpper = UUID.randomUUID().toString();
+        String randomUUIDForUpper = getRandomUUIDFor( pattern );
 
         while ( i < pattern.length() )
         {
@@ -176,7 +177,7 @@ public class RandomGeneratorService implements Callable<List<String>>
     {
         int i = 0;
         boolean isUpper = false;
-        String randomUUIDForAll = UUID.randomUUID().toString();
+        String randomUUIDForAll = getRandomUUIDFor( pattern );
 
         while ( i < pattern.length() )
         {
@@ -203,5 +204,18 @@ public class RandomGeneratorService implements Callable<List<String>>
 
             i++;
         }
+    }
+
+    private String getRandomUUIDFor( String pattern )
+    {
+
+        StringBuilder randomUUIDString = new StringBuilder();
+
+        while ( randomUUIDString.length() < pattern.length() )
+        {
+            randomUUIDString.append( UUID.randomUUID().toString().replaceAll( "-", "" ) );
+        }
+
+        return randomUUIDString.toString();
     }
 }

@@ -86,7 +86,7 @@ public class ValueGeneratorService
 
             ExecutorService executorService = Executors.newFixedThreadPool( 10 );
 
-            randomGeneratorService.setTextPattern( segment.getParameter() );
+            randomGeneratorService.setSegmentParameter( segment.getParameter() );
 
             for ( int i = 0; i < numberOfValues; i++ )
             {
