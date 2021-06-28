@@ -43,15 +43,24 @@ public class DataOrgUnitSplitHandler
     private final SessionFactory sessionFactory;
 
     @Transactional
-    public void splitInterpretations( OrgUnitSplitRequest request )
+    public void splitData( OrgUnitSplitRequest request )
     {
-        migrate( "update Interpretation i " +
-            "set i.organisationUnit = :target " +
-            "where i.organisationUnit = :source", request );
+        migrate( request, "DataValueAudit", "organisationUnit" );
+        migrate( request, "DataValue", "source" );
+        migrate( request, "DataApprovalAudit", "organisationUnit" );
+        migrate( request, "DataApproval", "organisationUnit" );
+        migrate( request, "LockException", "organisationUnit" );
+        migrate( request, "ValidationResult", "organisationUnit" );
+        migrate( request, "MinMaxDataElement", "source" );
+        migrate( request, "Interpretation", "organisationUnit" );
     }
 
-    private void migrate( String hql, OrgUnitSplitRequest request )
+    private void migrate( OrgUnitSplitRequest request, String entity, String property )
     {
+        String hql = String.format(
+            "update %s e set e.%s = :target where e.%s = :source",
+            entity, property, property );
+
         sessionFactory.getCurrentSession().createQuery( hql )
             .setParameter( "source", request.getSource() )
             .setParameter( "target", request.getPrimaryTarget() )
