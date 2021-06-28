@@ -213,7 +213,7 @@ public class RandomGeneratorService implements Callable<List<String>>
 
         while ( randomUUIDString.length() < pattern.length() )
         {
-            randomUUIDString.append( UUID.randomUUID().toString().replaceAll( "-", "" ) );
+            randomUUIDString.append( UUID.randomUUID().toString().replace( "-", "" ) );
         }
 
         return randomUUIDString.toString();
