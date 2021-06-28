@@ -145,10 +145,13 @@ public class DataValueSetController
         @RequestParam( required = false ) Set<String> period,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> orgUnit,
+        @RequestParam( required = false ) Set<String> orgUnit,
         @RequestParam( required = false ) boolean children,
+        @RequestParam( required = false ) Set<String> orgUnitGroup,
+        @RequestParam( required = false ) Set<String> attributeOptionCombo,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) Date lastUpdated,
+        @RequestParam( required = false ) String lastUpdatedDuration,
         @RequestParam( required = false ) Integer limit,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
@@ -159,8 +162,9 @@ public class DataValueSetController
         response.setContentType( CONTENT_TYPE_XML_ADX );
         setNoStore( response );
 
-        DataExportParams params = adxDataService.getFromUrl( dataSet, period,
-            startDate, endDate, orgUnit, children, includeDeleted, lastUpdated, limit, idSchemes );
+        DataExportParams params = adxDataService.getFromUrl( dataSet,
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
+            includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
         OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
 

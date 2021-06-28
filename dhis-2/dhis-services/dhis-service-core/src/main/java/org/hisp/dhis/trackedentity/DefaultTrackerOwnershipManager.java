@@ -173,6 +173,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             {
                 trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entityInstance, program, orgUnit );
             }
+
+            ownerCache.invalidate( getOwnershipCacheKey( () -> entityInstance.getId(), program ) );
         }
         else
         {
@@ -216,6 +218,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
                 trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entityInstance, program,
                     organisationUnit );
             }
+
+            ownerCache.invalidate( getOwnershipCacheKey( () -> entityInstance.getId(), program ) );
         }
         else
         {
@@ -345,34 +349,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     // -------------------------------------------------------------------------
     // Private Helper Methods
     // -------------------------------------------------------------------------
-
-    /**
-     * Get the current owner of this tei-program combination. Fallbacks to the
-     * registered OU if no owner explicitly exists for the program
-     *
-     * @param entityInstance The tei
-     * @param program The program
-     * @return The owning Organisation unit.
-     */
-    private OrganisationUnit getOwner( TrackedEntityInstance entityInstance, Program program )
-    {
-        return ownerCache.get( getOwnershipCacheKey( entityInstance::getId, program ), s -> {
-            OrganisationUnit ou;
-            TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService
-                .getTrackedEntityProgramOwner(
-                    entityInstance.getId(), program.getId() );
-
-            if ( trackedEntityProgramOwner == null )
-            {
-                ou = entityInstance.getOrganisationUnit();
-            }
-            else
-            {
-                ou = trackedEntityProgramOwner.getOrganisationUnit();
-            }
-            return ou;
-        } ).get();
-    }
 
     private OrganisationUnit getOwnerExpanded( String entityInstance, OrganisationUnit organisationUnit,
         Program program )
