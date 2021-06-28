@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.split.orgunit;
 
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,6 +38,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 
 @Getter
 public class OrgUnitSplitRequest
@@ -46,6 +49,11 @@ public class OrgUnitSplitRequest
 
     private boolean deleteSource;
 
+    public Set<OrganisationUnit> getTargets()
+    {
+        return ImmutableSet.copyOf( targets );
+    }
+
     @Override
     public String toString()
     {
@@ -54,5 +62,46 @@ public class OrgUnitSplitRequest
             .add( "targets", IdentifiableObjectUtils.getUids( targets ) )
             .add( "deleteSource", deleteSource )
             .toString();
+    }
+
+    public static class Builder
+    {
+        private OrgUnitSplitRequest request;
+
+        public Builder()
+        {
+            this.request = new OrgUnitSplitRequest();
+
+            this.request.deleteSource = true;
+        }
+
+        public Builder withSource( OrganisationUnit source )
+        {
+            this.request.source = source;
+            return this;
+        }
+
+        public Builder addTarget( OrganisationUnit target )
+        {
+            this.request.targets.add( target );
+            return this;
+        }
+
+        public Builder addTargets( Set<OrganisationUnit> targets )
+        {
+            this.request.targets.addAll( targets );
+            return this;
+        }
+
+        public Builder withDeleteSource( boolean deleteSource )
+        {
+            this.request.deleteSource = firstNonNull( deleteSource, this.request.deleteSource );
+            return this;
+        }
+
+        public OrgUnitSplitRequest build()
+        {
+            return request;
+        }
     }
 }

@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.split.orgunit;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.junit.Assert.assertEquals;
+
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Before;
+import org.junit.Test;
 
 public class OrgUnitSplitValidatorTest
 {
@@ -37,5 +43,44 @@ public class OrgUnitSplitValidatorTest
     public void before()
     {
         this.validator = new OrgUnitSplitValidator();
+    }
+
+    @Test
+    public void testValidateMissingSource()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
+            .addTarget( ouA )
+            .build();
+
+        assertEquals( ErrorCode.E1510, validator.validateForErrorMessage( request ).getErrorCode() );
+    }
+
+    @Test
+    public void testValidateMissingTargets()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
+            .withSource( ouA )
+            .build();
+
+        assertEquals( ErrorCode.E1511, validator.validateForErrorMessage( request ).getErrorCode() );
+    }
+
+    @Test
+    public void testValidateTargetIsSource()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
+            .withSource( ouA )
+            .addTarget( ouA )
+            .addTarget( ouB )
+            .build();
+
+        assertEquals( ErrorCode.E1512, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 }
