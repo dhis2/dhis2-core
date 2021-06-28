@@ -35,6 +35,9 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
 import org.springframework.stereotype.Service;
 
+/**
+ * @author Lars Helge Overland
+ */
 @Service
 @Transactional
 @AllArgsConstructor

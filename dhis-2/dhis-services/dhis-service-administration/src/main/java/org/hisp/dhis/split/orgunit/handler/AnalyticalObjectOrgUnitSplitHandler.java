@@ -40,6 +40,9 @@ import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.springframework.stereotype.Service;
 
+/**
+ * @author Lars Helge Overland
+ */
 @Service
 @AllArgsConstructor
 public class AnalyticalObjectOrgUnitSplitHandler

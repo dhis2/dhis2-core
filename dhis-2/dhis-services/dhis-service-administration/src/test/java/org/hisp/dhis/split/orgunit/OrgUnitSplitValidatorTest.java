@@ -36,6 +36,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class OrgUnitSplitValidatorTest
 {
     private OrgUnitSplitValidator validator;

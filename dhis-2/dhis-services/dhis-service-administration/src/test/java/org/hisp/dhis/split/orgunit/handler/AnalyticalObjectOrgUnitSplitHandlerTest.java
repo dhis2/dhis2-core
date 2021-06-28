@@ -39,6 +39,9 @@ import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class AnalyticalObjectOrgUnitSplitHandlerTest
     extends DhisSpringTest
 {

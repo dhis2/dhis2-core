@@ -33,6 +33,11 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.springframework.stereotype.Service;
 
+/**
+ * Validation service for org unit split requests.
+ *
+ * @author Lars Helge Overland
+ */
 @Service
 public class OrgUnitSplitValidator
 {

@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.split.orgunit;
 
+/**
+ * Main interface for org unit split.
+ *
+ * @author Lars Helge Overland
+ */
 public interface OrgUnitSplitService
 {
     /**

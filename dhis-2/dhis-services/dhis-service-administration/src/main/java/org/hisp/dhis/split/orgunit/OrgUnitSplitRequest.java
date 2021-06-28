@@ -40,6 +40,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 
+/**
+ * Encapsulation of an org unit split request.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 public class OrgUnitSplitRequest
 {

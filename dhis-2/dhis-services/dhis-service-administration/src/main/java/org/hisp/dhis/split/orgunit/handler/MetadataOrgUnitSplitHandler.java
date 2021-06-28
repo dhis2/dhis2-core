@@ -43,6 +43,9 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
+/**
+ * @author Lars Helge Overland
+ */
 @Service
 @AllArgsConstructor
 public class MetadataOrgUnitSplitHandler

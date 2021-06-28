@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.split.orgunit;
 
+/**
+ * Functional interface representing an org unit split operation.
+ *
+ * @author Lars Helge Overland
+ */
 @FunctionalInterface
 public interface OrgUnitSplitHandler
 {
