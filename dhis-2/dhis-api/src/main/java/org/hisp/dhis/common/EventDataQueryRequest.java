@@ -92,6 +92,8 @@ public class EventDataQueryRequest
 
     private IdScheme dataIdScheme;
 
+    private IdScheme outputIdScheme;
+
     private DisplayProperty displayProperty;
 
     private Date relativePeriodDate;
@@ -215,6 +217,7 @@ public class EventDataQueryRequest
                 .userOrgUnit( criteria.getUserOrgUnit() )
                 .value( criteria.getValue() )
                 .dataIdScheme( criteria.getDataIdScheme() )
+                .outputIdScheme( criteria.getOutputIdScheme() )
                 .orgUnitField( criteria.getOrgUnitField() )
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .coordinateOuFallback( criteria.isCoordinateOuFallback() );
