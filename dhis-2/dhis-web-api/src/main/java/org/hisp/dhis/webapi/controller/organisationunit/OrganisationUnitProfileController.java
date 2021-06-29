@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping( value = "/orgUnitProfile" )
+@RequestMapping( value = "/organisationUnitProfile" )
 public class OrganisationUnitProfileController
 {
     private final OrgUnitProfileService orgUnitProfileService;
@@ -76,10 +76,10 @@ public class OrganisationUnitProfileController
         return orgUnitProfileService.getOrgUnitProfile();
     }
 
-    @GetMapping( value = "/data/{uid}", produces = APPLICATION_JSON_VALUE )
-    public OrgUnitProfileData getProfileData( @PathVariable( value = "uid" ) String uid,
-        @RequestParam( value = "period", required = false ) String isoPeriod )
+    @GetMapping( value = "/{uid}/data", produces = APPLICATION_JSON_VALUE )
+    public OrgUnitProfileData getProfileData( @PathVariable String uid,
+        @RequestParam( required = false ) String period )
     {
-        return orgUnitProfileService.getOrgUnitProfileData( uid, isoPeriod );
+        return orgUnitProfileService.getOrgUnitProfileData( uid, period );
     }
 }
