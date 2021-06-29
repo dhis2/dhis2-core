@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.split.orgunit;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.Data;
 
@@ -46,7 +46,7 @@ public class OrgUnitSplitQuery
     private String source;
 
     @JsonProperty
-    private Set<String> targets = new HashSet<>();
+    private List<String> targets = new ArrayList<>();
 
     @JsonProperty
     private String primaryTarget;

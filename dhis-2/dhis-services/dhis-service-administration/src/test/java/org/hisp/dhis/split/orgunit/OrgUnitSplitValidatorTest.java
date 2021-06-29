@@ -96,22 +96,6 @@ public class OrgUnitSplitValidatorTest
     }
 
     @Test
-    public void validateMissingPrimaryTarget()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrganisationUnit ouC = createOrganisationUnit( 'C' );
-
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
-            .withSource( ouA )
-            .addTarget( ouB )
-            .addTarget( ouC )
-            .build();
-
-        assertEquals( ErrorCode.E1513, validator.validateForErrorMessage( request ).getErrorCode() );
-    }
-
-    @Test
     public void validatePrimaryTargetNotTarget()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
@@ -126,7 +110,7 @@ public class OrgUnitSplitValidatorTest
             .withPrimaryTarget( ouD )
             .build();
 
-        assertEquals( ErrorCode.E1514, validator.validateForErrorMessage( request ).getErrorCode() );
+        assertEquals( ErrorCode.E1513, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test

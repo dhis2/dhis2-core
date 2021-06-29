@@ -42,7 +42,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -86,7 +86,8 @@ public class OrgUnitSplitServiceTest
     {
         OrgUnitSplitQuery query = new OrgUnitSplitQuery();
         query.setSource( BASE_OU_UID + 'A' );
-        query.setTargets( Sets.newHashSet( BASE_OU_UID + 'B', BASE_OU_UID + 'C' ) );
+        query.setTargets( Lists.newArrayList( BASE_OU_UID + 'B', BASE_OU_UID + 'C' ) );
+        query.setPrimaryTarget( BASE_OU_UID + 'B' );
 
         OrgUnitSplitRequest request = service.getFromQuery( query );
 
@@ -94,6 +95,24 @@ public class OrgUnitSplitServiceTest
         assertEquals( 2, request.getTargets().size() );
         assertTrue( request.getTargets().contains( ouB ) );
         assertTrue( request.getTargets().contains( ouC ) );
+        assertEquals( ouB, request.getPrimaryTarget() );
+        assertTrue( request.isDeleteSource() );
+    }
+
+    @Test
+    public void testGetFromQueryWithoutPrimaryTarget()
+    {
+        OrgUnitSplitQuery query = new OrgUnitSplitQuery();
+        query.setSource( BASE_OU_UID + 'A' );
+        query.setTargets( Lists.newArrayList( BASE_OU_UID + 'B', BASE_OU_UID + 'C' ) );
+
+        OrgUnitSplitRequest request = service.getFromQuery( query );
+
+        assertEquals( ouA, request.getSource() );
+        assertEquals( 2, request.getTargets().size() );
+        assertTrue( request.getTargets().contains( ouB ) );
+        assertTrue( request.getTargets().contains( ouC ) );
+        assertEquals( ouB, request.getPrimaryTarget() );
         assertTrue( request.isDeleteSource() );
     }
 

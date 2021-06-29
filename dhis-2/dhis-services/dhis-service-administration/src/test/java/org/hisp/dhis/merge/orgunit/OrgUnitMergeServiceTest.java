@@ -43,7 +43,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -86,7 +86,7 @@ public class OrgUnitMergeServiceTest
     public void testGetFromQuery()
     {
         OrgUnitMergeQuery query = new OrgUnitMergeQuery();
-        query.setSources( Sets.newHashSet( BASE_OU_UID + 'A', BASE_OU_UID + 'B' ) );
+        query.setSources( Lists.newArrayList( BASE_OU_UID + 'A', BASE_OU_UID + 'B' ) );
         query.setTarget( BASE_OU_UID + 'C' );
 
         OrgUnitMergeRequest request = service.getFromQuery( query );

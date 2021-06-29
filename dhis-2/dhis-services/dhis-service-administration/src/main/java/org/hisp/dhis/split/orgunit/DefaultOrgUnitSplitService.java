@@ -103,6 +103,13 @@ public class DefaultOrgUnitSplitService
 
         OrganisationUnit primaryTarget = idObjectManager.get( OrganisationUnit.class, query.getPrimaryTarget() );
 
+        // If primary target is undefined, set to first target
+
+        if ( query.getPrimaryTarget() == null && !query.getTargets().isEmpty() )
+        {
+            query.setPrimaryTarget( query.getTargets().get( 0 ) );
+        }
+
         return new OrgUnitSplitRequest.Builder()
             .withSource( source )
             .addTargets( targets )
