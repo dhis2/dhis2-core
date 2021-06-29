@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.attribute.Attribute;
@@ -115,143 +117,26 @@ public class Metadata
 {
     private Date created;
 
-    private List<Schema> schemas = new ArrayList<>();
-
-    private List<MetadataVersion> metadataVersions = new ArrayList<>();
-
-    private List<Attribute> attributes = new ArrayList<>();
-
-    private List<DataApprovalLevel> dataApprovalLevels = new ArrayList<>();
-
-    private List<DataApprovalWorkflow> dataApprovalWorkflows = new ArrayList<>();
-
-    private List<Document> documents = new ArrayList<>();
-
-    private List<Constant> constants = new ArrayList<>();
-
-    private List<User> users = new ArrayList<>();
-
-    private List<UserAuthorityGroup> userRoles = new ArrayList<>();
-
-    private List<UserGroup> userGroups = new ArrayList<>();
-
-    private List<Interpretation> interpretations = new ArrayList<>();
-
-    private List<Option> options = new ArrayList<>();
-
-    private List<OptionSet> optionSets = new ArrayList<>();
-
-    private List<OptionGroup> optionGroups = new ArrayList<>();
-
-    private List<OptionGroupSet> optionGroupSets = new ArrayList<>();
-
-    private List<Category> categories = new ArrayList<>();
-
-    private List<CategoryOption> categoryOptions = new ArrayList<>();
-
-    private List<CategoryCombo> categoryCombos = new ArrayList<>();
-
-    private List<CategoryOptionCombo> categoryOptionCombos = new ArrayList<>();
-
-    private List<CategoryOptionGroup> categoryOptionGroups = new ArrayList<>();
-
-    private List<CategoryOptionGroupSet> categoryOptionGroupSets = new ArrayList<>();
-
-    private List<DataElementOperand> dataElementOperands = new ArrayList<>();
-
-    private List<DashboardItem> dashboardItems = new ArrayList<>();
-
-    private List<Dashboard> dashboards = new ArrayList<>();
-
-    private List<DataElement> dataElements = new ArrayList<>();
-
-    private List<DataElementGroup> dataElementGroups = new ArrayList<>();
-
-    private List<DataElementGroupSet> dataElementGroupSets = new ArrayList<>();
-
-    private List<DimensionalObject> dimensions = new ArrayList<>();
-
-    private List<Indicator> indicators = new ArrayList<>();
-
-    private List<IndicatorGroup> indicatorGroups = new ArrayList<>();
-
-    private List<IndicatorGroupSet> indicatorGroupSets = new ArrayList<>();
-
-    private List<IndicatorType> indicatorTypes = new ArrayList<>();
-
-    private List<NameableObject> items = new ArrayList<>();
-
-    private List<OrganisationUnit> organisationUnits = new ArrayList<>();
-
-    private List<OrganisationUnitGroup> organisationUnitGroups = new ArrayList<>();
-
-    private List<OrganisationUnitGroupSet> organisationUnitGroupSets = new ArrayList<>();
-
-    private List<OrganisationUnitLevel> organisationUnitLevels = new ArrayList<>();
-
-    private List<ValidationRule> validationRules = new ArrayList<>();
-
-    private List<ValidationRuleGroup> validationRuleGroups = new ArrayList<>();
-
-    private List<SqlView> sqlViews = new ArrayList<>();
-
-    private List<Chart> charts = new ArrayList<>();
-
-    private List<Report> reports = new ArrayList<>();
-
-    private List<ReportTable> reportTables = new ArrayList<>();
-
-    private List<Map> maps = new ArrayList<>();
-
-    private List<MapView> mapViews = new ArrayList<>();
-
-    private List<LegendSet> legendSets = new ArrayList<>();
-
-    private List<ExternalMapLayer> externalMapLayers = new ArrayList<>();
-
-    private List<DataEntryForm> dataEntryForms = new ArrayList<>();
-
-    private List<Section> sections = new ArrayList<>();
-
-    private List<DataSet> dataSets = new ArrayList<>();
-
-    private List<Event> events = new ArrayList<>();
-
-    private List<EventReport> eventReports = new ArrayList<>();
-
-    private List<EventChart> eventCharts = new ArrayList<>();
-
-    private List<Program> programs = new ArrayList<>();
-
-    private List<ProgramStage> programStages = new ArrayList<>();
-
-    private List<ProgramIndicator> programIndicators = new ArrayList<>();
-
-    private List<ProgramStageSection> programStageSections = new ArrayList<>();
-
-    private List<RelationshipType> relationshipTypes = new ArrayList<>();
-
-    private List<ProgramRule> programRules = new ArrayList<>();
-
-    private List<ProgramRuleAction> programRuleActions = new ArrayList<>();
-
-    private List<ProgramRuleVariable> programRuleVariables = new ArrayList<>();
-
-    private List<TrackedEntityType> trackedEntityTypes = new ArrayList<>();
-
-    private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
-
-    private List<Predictor> predictors = new ArrayList<>();
-
-    private List<PredictorGroup> predictorGroups = new ArrayList<>();
-
-    private List<ProgramNotificationTemplate> programNotificationTemplates = new ArrayList<>();
-
-    private List<AnalyticsTableHook> analyticsTableHooks = new ArrayList<>();
-
-    private List<ValidationNotificationTemplate> validationNotificationTemplates = new ArrayList<>();
-
-    private List<JobConfiguration> jobConfigurations = new ArrayList<>();
+    private final java.util.Map<Class<?>, List<?>> values = new HashMap<>();
+
+    @SuppressWarnings( "unchecked" )
+    public final <T> List<T> getValues( Class<T> type )
+    {
+        List<?> objects = values.get( type );
+        return objects == null ? Collections.emptyList() : (List<T>) objects;
+    }
+
+    private <T> void setValues( Class<T> type, List<T> list )
+    {
+        if ( list == null )
+        {
+            values.remove( type );
+        }
+        else
+        {
+            values.put( type, list );
+        }
+    }
 
     public Metadata()
     {
@@ -274,12 +159,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "schema", namespace = DxfNamespaces.DXF_2_0 )
     public List<Schema> getSchemas()
     {
-        return schemas;
+        return getValues( Schema.class );
     }
 
     public void setSchemas( List<Schema> schemas )
     {
-        this.schemas = schemas;
+        setValues( Schema.class, schemas );
     }
 
     @JsonProperty
@@ -287,12 +172,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "metadataVersion", namespace = DxfNamespaces.DXF_2_0 )
     public List<MetadataVersion> getMetadataVersions()
     {
-        return metadataVersions;
+        return getValues( MetadataVersion.class );
     }
 
     public void setMetadataVersions( List<MetadataVersion> metadataVersions )
     {
-        this.metadataVersions = metadataVersions;
+        setValues( MetadataVersion.class, metadataVersions );
     }
 
     @JsonProperty
@@ -300,12 +185,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "attribute", namespace = DxfNamespaces.DXF_2_0 )
     public List<Attribute> getAttributes()
     {
-        return attributes;
+        return getValues( Attribute.class );
     }
 
     public void setAttributes( List<Attribute> attributes )
     {
-        this.attributes = attributes;
+        setValues( Attribute.class, attributes );
     }
 
     @JsonProperty
@@ -313,12 +198,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "dataApprovalLevel", namespace = DxfNamespaces.DXF_2_0 )
     public List<DataApprovalLevel> getDataApprovalLevels()
     {
-        return dataApprovalLevels;
+        return getValues( DataApprovalLevel.class );
     }
 
     public void setDataApprovalLevels( List<DataApprovalLevel> dataApprovalLevels )
     {
-        this.dataApprovalLevels = dataApprovalLevels;
+        setValues( DataApprovalLevel.class, dataApprovalLevels );
     }
 
     @JsonProperty
@@ -326,12 +211,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "dataApprovalWorkflow", namespace = DxfNamespaces.DXF_2_0 )
     public List<DataApprovalWorkflow> getDataApprovalWorkflows()
     {
-        return dataApprovalWorkflows;
+        return getValues( DataApprovalWorkflow.class );
     }
 
     public void setDataApprovalWorkflows( List<DataApprovalWorkflow> dataApprovalWorkflows )
     {
-        this.dataApprovalWorkflows = dataApprovalWorkflows;
+        setValues( DataApprovalWorkflow.class, dataApprovalWorkflows );
     }
 
     @JsonProperty
@@ -339,12 +224,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
     public List<User> getUsers()
     {
-        return users;
+        return getValues( User.class );
     }
 
     public void setUsers( List<User> users )
     {
-        this.users = users;
+        setValues( User.class, users );
     }
 
     @JsonProperty
@@ -352,12 +237,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "userRole", namespace = DxfNamespaces.DXF_2_0 )
     public List<UserAuthorityGroup> getUserRoles()
     {
-        return userRoles;
+        return getValues( UserAuthorityGroup.class );
     }
 
     public void setUserRoles( List<UserAuthorityGroup> userRoles )
     {
-        this.userRoles = userRoles;
+        setValues( UserAuthorityGroup.class, userRoles );
     }
 
     @JsonProperty
@@ -365,12 +250,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "userGroup", namespace = DxfNamespaces.DXF_2_0 )
     public List<UserGroup> getUserGroups()
     {
-        return userGroups;
+        return getValues( UserGroup.class );
     }
 
     public void setUserGroups( List<UserGroup> userGroups )
     {
-        this.userGroups = userGroups;
+        setValues( UserGroup.class, userGroups );
     }
 
     @JsonProperty
@@ -378,12 +263,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "interpretation", namespace = DxfNamespaces.DXF_2_0 )
     public List<Interpretation> getInterpretations()
     {
-        return interpretations;
+        return getValues( Interpretation.class );
     }
 
     public void setInterpretations( List<Interpretation> interpretations )
     {
-        this.interpretations = interpretations;
+        setValues( Interpretation.class, interpretations );
     }
 
     @JsonProperty
@@ -391,12 +276,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
     public List<DataElement> getDataElements()
     {
-        return dataElements;
+        return getValues( DataElement.class );
     }
 
     public void setDataElements( List<DataElement> dataElements )
     {
-        this.dataElements = dataElements;
+        setValues( DataElement.class, dataElements );
     }
 
     @JsonProperty
@@ -404,12 +289,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "option", namespace = DxfNamespaces.DXF_2_0 )
     public List<Option> getOptions()
     {
-        return options;
+        return getValues( Option.class );
     }
 
     public void setOptions( List<Option> options )
     {
-        this.options = options;
+        setValues( Option.class, options );
     }
 
     @JsonProperty
@@ -417,12 +302,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "optionSet", namespace = DxfNamespaces.DXF_2_0 )
     public List<OptionSet> getOptionSets()
     {
-        return optionSets;
+        return getValues( OptionSet.class );
     }
 
     public void setOptionSets( List<OptionSet> optionSets )
     {
-        this.optionSets = optionSets;
+        setValues( OptionSet.class, optionSets );
     }
 
     @JsonProperty
@@ -430,12 +315,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "optionGroup", namespace = DxfNamespaces.DXF_2_0 )
     public List<OptionGroup> getOptionGroups()
     {
-        return optionGroups;
+        return getValues( OptionGroup.class );
     }
 
     public void setOptionGroups( List<OptionGroup> optionGroups )
     {
-        this.optionGroups = optionGroups;
+        setValues( OptionGroup.class, optionGroups );
     }
 
     @JsonProperty
@@ -443,12 +328,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "optionGroupSet", namespace = DxfNamespaces.DXF_2_0 )
     public List<OptionGroupSet> getOptionGroupSets()
     {
-        return optionGroupSets;
+        return getValues( OptionGroupSet.class );
     }
 
     public void setOptionGroupSets( List<OptionGroupSet> optionGroupSets )
     {
-        this.optionGroupSets = optionGroupSets;
+        setValues( OptionGroupSet.class, optionGroupSets );
     }
 
     @JsonProperty
@@ -456,12 +341,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "dataElementGroup", namespace = DxfNamespaces.DXF_2_0 )
     public List<DataElementGroup> getDataElementGroups()
     {
-        return dataElementGroups;
+        return getValues( DataElementGroup.class );
     }
 
     public void setDataElementGroups( List<DataElementGroup> dataElementGroups )
     {
-        this.dataElementGroups = dataElementGroups;
+        setValues( DataElementGroup.class, dataElementGroups );
     }
 
     @JsonProperty
@@ -469,12 +354,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "dataElementGroupSet", namespace = DxfNamespaces.DXF_2_0 )
     public List<DataElementGroupSet> getDataElementGroupSets()
     {
-        return dataElementGroupSets;
+        return getValues( DataElementGroupSet.class );
     }
 
     public void setDataElementGroupSets( List<DataElementGroupSet> dataElementGroupSets )
     {
-        this.dataElementGroupSets = dataElementGroupSets;
+        setValues( DataElementGroupSet.class, dataElementGroupSets );
     }
 
     @JsonProperty
@@ -482,12 +367,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
     public List<Category> getCategories()
     {
-        return categories;
+        return getValues( Category.class );
     }
 
     public void setCategories( List<Category> categories )
     {
-        this.categories = categories;
+        setValues( Category.class, categories );
     }
 
     @JsonProperty
@@ -495,12 +380,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
     public List<CategoryOption> getCategoryOptions()
     {
-        return categoryOptions;
+        return getValues( CategoryOption.class );
     }
 
     public void setCategoryOptions( List<CategoryOption> categoryOptions )
     {
-        this.categoryOptions = categoryOptions;
+        setValues( CategoryOption.class, categoryOptions );
     }
 
     @JsonProperty
@@ -508,12 +393,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
     public List<CategoryCombo> getCategoryCombos()
     {
-        return categoryCombos;
+        return getValues( CategoryCombo.class );
     }
 
     public void setCategoryCombos( List<CategoryCombo> categoryCombos )
     {
-        this.categoryCombos = categoryCombos;
+        setValues( CategoryCombo.class, categoryCombos );
     }
 
     @JsonProperty
@@ -521,12 +406,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0 )
     public List<CategoryOptionCombo> getCategoryOptionCombos()
     {
-        return categoryOptionCombos;
+        return getValues( CategoryOptionCombo.class );
     }
 
     public void setCategoryOptionCombos( List<CategoryOptionCombo> categoryOptionCombos )
     {
-        this.categoryOptionCombos = categoryOptionCombos;
+        setValues( CategoryOptionCombo.class, categoryOptionCombos );
     }
 
     @JsonProperty
@@ -534,12 +419,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0 )
     public List<CategoryOptionGroup> getCategoryOptionGroups()
     {
-        return categoryOptionGroups;
+        return getValues( CategoryOptionGroup.class );
     }
 
     public void setCategoryOptionGroups( List<CategoryOptionGroup> categoryOptionGroups )
     {
-        this.categoryOptionGroups = categoryOptionGroups;
+        setValues( CategoryOptionGroup.class, categoryOptionGroups );
     }
 
     @JsonProperty
@@ -547,12 +432,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "categoryOptionGroupSet", namespace = DxfNamespaces.DXF_2_0 )
     public List<CategoryOptionGroupSet> getCategoryOptionGroupSets()
     {
-        return categoryOptionGroupSets;
+        return getValues( CategoryOptionGroupSet.class );
     }
 
     public void setCategoryOptionGroupSets( List<CategoryOptionGroupSet> categoryOptionGroupSets )
     {
-        this.categoryOptionGroupSets = categoryOptionGroupSets;
+        setValues( CategoryOptionGroupSet.class, categoryOptionGroupSets );
     }
 
     @JsonProperty
@@ -560,12 +445,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "dataElementOperand", namespace = DxfNamespaces.DXF_2_0 )
     public List<DataElementOperand> getDataElementOperands()
     {
-        return dataElementOperands;
+        return getValues( DataElementOperand.class );
     }
 
     public void setDataElementOperands( List<DataElementOperand> dataElementOperands )
     {
-        this.dataElementOperands = dataElementOperands;
+        setValues( DataElementOperand.class, dataElementOperands );
     }
 
     @JsonProperty
@@ -573,12 +458,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "indicator", namespace = DxfNamespaces.DXF_2_0 )
     public List<Indicator> getIndicators()
     {
-        return indicators;
+        return getValues( Indicator.class );
     }
 
     public void setIndicators( List<Indicator> indicators )
     {
-        this.indicators = indicators;
+        setValues( Indicator.class, indicators );
     }
 
     @JsonProperty
@@ -586,12 +471,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "indicatorGroup", namespace = DxfNamespaces.DXF_2_0 )
     public List<IndicatorGroup> getIndicatorGroups()
     {
-        return indicatorGroups;
+        return getValues( IndicatorGroup.class );
     }
 
     public void setIndicatorGroups( List<IndicatorGroup> indicatorGroups )
     {
-        this.indicatorGroups = indicatorGroups;
+        setValues( IndicatorGroup.class, indicatorGroups );
     }
 
     @JsonProperty
@@ -599,12 +484,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "indicatorGroupSet", namespace = DxfNamespaces.DXF_2_0 )
     public List<IndicatorGroupSet> getIndicatorGroupSets()
     {
-        return indicatorGroupSets;
+        return getValues( IndicatorGroupSet.class );
     }
 
     public void setIndicatorGroupSets( List<IndicatorGroupSet> indicatorGroupSets )
     {
-        this.indicatorGroupSets = indicatorGroupSets;
+        setValues( IndicatorGroupSet.class, indicatorGroupSets );
     }
 
     @JsonProperty
@@ -612,12 +497,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "indicatorType", namespace = DxfNamespaces.DXF_2_0 )
     public List<IndicatorType> getIndicatorTypes()
     {
-        return indicatorTypes;
+        return getValues( IndicatorType.class );
     }
 
     public void setIndicatorTypes( List<IndicatorType> indicatorTypes )
     {
-        this.indicatorTypes = indicatorTypes;
+        setValues( IndicatorType.class, indicatorTypes );
     }
 
     @JsonProperty
@@ -625,12 +510,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "item", namespace = DxfNamespaces.DXF_2_0 )
     public List<NameableObject> getItems()
     {
-        return items;
+        return getValues( NameableObject.class );
     }
 
     public void setItems( List<NameableObject> items )
     {
-        this.items = items;
+        setValues( NameableObject.class, items );
     }
 
     @JsonProperty
@@ -638,12 +523,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
     public List<OrganisationUnit> getOrganisationUnits()
     {
-        return organisationUnits;
+        return getValues( OrganisationUnit.class );
     }
 
     public void setOrganisationUnits( List<OrganisationUnit> organisationUnits )
     {
-        this.organisationUnits = organisationUnits;
+        setValues( OrganisationUnit.class, organisationUnits );
     }
 
     @JsonProperty
@@ -651,12 +536,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "organisationUnitGroup", namespace = DxfNamespaces.DXF_2_0 )
     public List<OrganisationUnitGroup> getOrganisationUnitGroups()
     {
-        return organisationUnitGroups;
+        return getValues( OrganisationUnitGroup.class );
     }
 
     public void setOrganisationUnitGroups( List<OrganisationUnitGroup> organisationUnitGroups )
     {
-        this.organisationUnitGroups = organisationUnitGroups;
+        setValues( OrganisationUnitGroup.class, organisationUnitGroups );
     }
 
     @JsonProperty
@@ -664,12 +549,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "organisationUnitGroupSet", namespace = DxfNamespaces.DXF_2_0 )
     public List<OrganisationUnitGroupSet> getOrganisationUnitGroupSets()
     {
-        return organisationUnitGroupSets;
+        return getValues( OrganisationUnitGroupSet.class );
     }
 
     public void setOrganisationUnitGroupSets( List<OrganisationUnitGroupSet> organisationUnitGroupSets )
     {
-        this.organisationUnitGroupSets = organisationUnitGroupSets;
+        setValues( OrganisationUnitGroupSet.class, organisationUnitGroupSets );
     }
 
     @JsonProperty
@@ -677,12 +562,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "organisationUnitLevel", namespace = DxfNamespaces.DXF_2_0 )
     public List<OrganisationUnitLevel> getOrganisationUnitLevels()
     {
-        return organisationUnitLevels;
+        return getValues( OrganisationUnitLevel.class );
     }
 
     public void setOrganisationUnitLevels( List<OrganisationUnitLevel> organisationUnitLevels )
     {
-        this.organisationUnitLevels = organisationUnitLevels;
+        setValues( OrganisationUnitLevel.class, organisationUnitLevels );
     }
 
     @JsonProperty
@@ -690,12 +575,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "dataEntryForm", namespace = DxfNamespaces.DXF_2_0 )
     public List<DataEntryForm> getDataEntryForms()
     {
-        return dataEntryForms;
+        return getValues( DataEntryForm.class );
     }
 
     public void setDataEntryForms( List<DataEntryForm> dataEntryForms )
     {
-        this.dataEntryForms = dataEntryForms;
+        setValues( DataEntryForm.class, dataEntryForms );
     }
 
     @JsonProperty
@@ -703,12 +588,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "section", namespace = DxfNamespaces.DXF_2_0 )
     public List<Section> getSections()
     {
-        return sections;
+        return getValues( Section.class );
     }
 
     public void setSections( List<Section> sections )
     {
-        this.sections = sections;
+        setValues( Section.class, sections );
     }
 
     @JsonProperty
@@ -716,12 +601,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "dataSet", namespace = DxfNamespaces.DXF_2_0 )
     public List<DataSet> getDataSets()
     {
-        return dataSets;
+        return getValues( DataSet.class );
     }
 
     public void setDataSets( List<DataSet> dataSets )
     {
-        this.dataSets = dataSets;
+        setValues( DataSet.class, dataSets );
     }
 
     @JsonProperty
@@ -729,12 +614,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "validationRule", namespace = DxfNamespaces.DXF_2_0 )
     public List<ValidationRule> getValidationRules()
     {
-        return validationRules;
+        return getValues( ValidationRule.class );
     }
 
     public void setValidationRules( List<ValidationRule> validationRules )
     {
-        this.validationRules = validationRules;
+        setValues( ValidationRule.class, validationRules );
     }
 
     @JsonProperty
@@ -742,12 +627,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "validationRuleGroup", namespace = DxfNamespaces.DXF_2_0 )
     public List<ValidationRuleGroup> getValidationRuleGroups()
     {
-        return validationRuleGroups;
+        return getValues( ValidationRuleGroup.class );
     }
 
     public void setValidationRuleGroups( List<ValidationRuleGroup> validationRuleGroups )
     {
-        this.validationRuleGroups = validationRuleGroups;
+        setValues( ValidationRuleGroup.class, validationRuleGroups );
     }
 
     @JsonProperty
@@ -755,12 +640,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "sqlView", namespace = DxfNamespaces.DXF_2_0 )
     public List<SqlView> getSqlViews()
     {
-        return sqlViews;
+        return getValues( SqlView.class );
     }
 
     public void setSqlViews( List<SqlView> sqlViews )
     {
-        this.sqlViews = sqlViews;
+        setValues( SqlView.class, sqlViews );
     }
 
     @JsonProperty
@@ -768,12 +653,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "chart", namespace = DxfNamespaces.DXF_2_0 )
     public List<Chart> getCharts()
     {
-        return charts;
+        return getValues( Chart.class );
     }
 
     public void setCharts( List<Chart> charts )
     {
-        this.charts = charts;
+        setValues( Chart.class, charts );
     }
 
     @JsonProperty
@@ -781,12 +666,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "report", namespace = DxfNamespaces.DXF_2_0 )
     public List<Report> getReports()
     {
-        return reports;
+        return getValues( Report.class );
     }
 
     public void setReports( List<Report> reports )
     {
-        this.reports = reports;
+        setValues( Report.class, reports );
     }
 
     @JsonProperty
@@ -794,12 +679,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "reportTable", namespace = DxfNamespaces.DXF_2_0 )
     public List<ReportTable> getReportTables()
     {
-        return reportTables;
+        return getValues( ReportTable.class );
     }
 
     public void setReportTables( List<ReportTable> reportTables )
     {
-        this.reportTables = reportTables;
+        setValues( ReportTable.class, reportTables );
     }
 
     @JsonProperty
@@ -807,12 +692,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "document", namespace = DxfNamespaces.DXF_2_0 )
     public List<Document> getDocuments()
     {
-        return documents;
+        return getValues( Document.class );
     }
 
     public void setDocuments( List<Document> documents )
     {
-        this.documents = documents;
+        setValues( Document.class, documents );
     }
 
     @JsonProperty
@@ -820,12 +705,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "constant", namespace = DxfNamespaces.DXF_2_0 )
     public List<Constant> getConstants()
     {
-        return constants;
+        return getValues( Constant.class );
     }
 
     public void setConstants( List<Constant> constants )
     {
-        this.constants = constants;
+        setValues( Constant.class, constants );
     }
 
     @JsonProperty
@@ -833,12 +718,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "dashboardItem", namespace = DxfNamespaces.DXF_2_0 )
     public List<DashboardItem> getDashboardItems()
     {
-        return dashboardItems;
+        return getValues( DashboardItem.class );
     }
 
     public void setDashboardItems( List<DashboardItem> dashboardItems )
     {
-        this.dashboardItems = dashboardItems;
+        setValues( DashboardItem.class, dashboardItems );
     }
 
     @JsonProperty
@@ -846,12 +731,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "dashboard", namespace = DxfNamespaces.DXF_2_0 )
     public List<Dashboard> getDashboards()
     {
-        return dashboards;
+        return getValues( Dashboard.class );
     }
 
     public void setDashboards( List<Dashboard> dashboards )
     {
-        this.dashboards = dashboards;
+        setValues( Dashboard.class, dashboards );
     }
 
     @JsonProperty
@@ -859,12 +744,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "map", namespace = DxfNamespaces.DXF_2_0 )
     public List<Map> getMaps()
     {
-        return maps;
+        return getValues( Map.class );
     }
 
     public void setMaps( List<Map> maps )
     {
-        this.maps = maps;
+        setValues( Map.class, maps );
     }
 
     @JsonProperty
@@ -872,12 +757,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "mapView", namespace = DxfNamespaces.DXF_2_0 )
     public List<MapView> getMapViews()
     {
-        return mapViews;
+        return getValues( MapView.class );
     }
 
     public void setMapViews( List<MapView> mapViews )
     {
-        this.mapViews = mapViews;
+        setValues( MapView.class, mapViews );
     }
 
     @JsonProperty
@@ -885,12 +770,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "legendSet", namespace = DxfNamespaces.DXF_2_0 )
     public List<LegendSet> getLegendSets()
     {
-        return legendSets;
+        return getValues( LegendSet.class );
     }
 
     public void setLegendSets( List<LegendSet> legendSets )
     {
-        this.legendSets = legendSets;
+        setValues( LegendSet.class, legendSets );
     }
 
     @JsonProperty
@@ -898,12 +783,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "externalMapLayer", namespace = DxfNamespaces.DXF_2_0 )
     public List<ExternalMapLayer> getExternalMapLayers()
     {
-        return externalMapLayers;
+        return getValues( ExternalMapLayer.class );
     }
 
     public void setExternalMapLayers( List<ExternalMapLayer> externalMapLayers )
     {
-        this.externalMapLayers = externalMapLayers;
+        setValues( ExternalMapLayer.class, externalMapLayers );
     }
 
     @JsonProperty
@@ -911,12 +796,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "program", namespace = DxfNamespaces.DXF_2_0 )
     public List<Program> getPrograms()
     {
-        return programs;
+        return getValues( Program.class );
     }
 
     public void setPrograms( List<Program> programs )
     {
-        this.programs = programs;
+        setValues( Program.class, programs );
     }
 
     @JsonProperty
@@ -924,12 +809,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "programStage", namespace = DxfNamespaces.DXF_2_0 )
     public List<ProgramStage> getProgramStages()
     {
-        return programStages;
+        return getValues( ProgramStage.class );
     }
 
     public void setProgramStages( List<ProgramStage> programStages )
     {
-        this.programStages = programStages;
+        setValues( ProgramStage.class, programStages );
     }
 
     @JsonProperty
@@ -937,12 +822,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "programIndicator", namespace = DxfNamespaces.DXF_2_0 )
     public List<ProgramIndicator> getProgramIndicators()
     {
-        return programIndicators;
+        return getValues( ProgramIndicator.class );
     }
 
     public void setProgramIndicators( List<ProgramIndicator> programIndicators )
     {
-        this.programIndicators = programIndicators;
+        setValues( ProgramIndicator.class, programIndicators );
     }
 
     @JsonProperty
@@ -950,12 +835,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "programStageSection", namespace = DxfNamespaces.DXF_2_0 )
     public List<ProgramStageSection> getProgramStageSections()
     {
-        return programStageSections;
+        return getValues( ProgramStageSection.class );
     }
 
     public void setProgramStageSections( List<ProgramStageSection> programStageSections )
     {
-        this.programStageSections = programStageSections;
+        setValues( ProgramStageSection.class, programStageSections );
     }
 
     @JsonProperty
@@ -963,12 +848,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "relationshipType", namespace = DxfNamespaces.DXF_2_0 )
     public List<RelationshipType> getRelationshipTypes()
     {
-        return relationshipTypes;
+        return getValues( RelationshipType.class );
     }
 
     public void setRelationshipTypes( List<RelationshipType> relationshipTypes )
     {
-        this.relationshipTypes = relationshipTypes;
+        setValues( RelationshipType.class, relationshipTypes );
     }
 
     @JsonProperty
@@ -976,12 +861,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
     public List<ProgramRule> getProgramRules()
     {
-        return programRules;
+        return getValues( ProgramRule.class );
     }
 
     public void setProgramRules( List<ProgramRule> programRules )
     {
-        this.programRules = programRules;
+        setValues( ProgramRule.class, programRules );
     }
 
     @JsonProperty
@@ -989,12 +874,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "programRuleAction", namespace = DxfNamespaces.DXF_2_0 )
     public List<ProgramRuleAction> getProgramRuleActions()
     {
-        return programRuleActions;
+        return getValues( ProgramRuleAction.class );
     }
 
     public void setProgramRuleActions( List<ProgramRuleAction> programRuleActions )
     {
-        this.programRuleActions = programRuleActions;
+        setValues( ProgramRuleAction.class, programRuleActions );
     }
 
     @JsonProperty
@@ -1002,12 +887,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "programRuleVariable", namespace = DxfNamespaces.DXF_2_0 )
     public List<ProgramRuleVariable> getProgramRuleVariables()
     {
-        return programRuleVariables;
+        return getValues( ProgramRuleVariable.class );
     }
 
     public void setProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables )
     {
-        this.programRuleVariables = programRuleVariables;
+        setValues( ProgramRuleVariable.class, programRuleVariables );
     }
 
     @JsonProperty
@@ -1015,12 +900,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "event", namespace = DxfNamespaces.DXF_2_0 )
     public List<Event> getEvents()
     {
-        return events;
+        return getValues( Event.class );
     }
 
     public void setEvents( List<Event> events )
     {
-        this.events = events;
+        setValues( Event.class, events );
     }
 
     @JsonProperty
@@ -1028,12 +913,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "eventReport", namespace = DxfNamespaces.DXF_2_0 )
     public List<EventReport> getEventReports()
     {
-        return eventReports;
+        return getValues( EventReport.class );
     }
 
     public void setEventReports( List<EventReport> eventReports )
     {
-        this.eventReports = eventReports;
+        setValues( EventReport.class, eventReports );
     }
 
     @JsonProperty
@@ -1041,12 +926,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "eventChart", namespace = DxfNamespaces.DXF_2_0 )
     public List<EventChart> getEventCharts()
     {
-        return eventCharts;
+        return getValues( EventChart.class );
     }
 
     public void setEventCharts( List<EventChart> eventCharts )
     {
-        this.eventCharts = eventCharts;
+        setValues( EventChart.class, eventCharts );
     }
 
     @JsonProperty
@@ -1054,12 +939,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
     public List<TrackedEntityType> getTrackedEntityTypes()
     {
-        return trackedEntityTypes;
+        return getValues( TrackedEntityType.class );
     }
 
     public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
     {
-        this.trackedEntityTypes = trackedEntityTypes;
+        setValues( TrackedEntityType.class, trackedEntityTypes );
     }
 
     @JsonProperty
@@ -1067,12 +952,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "trackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
     public List<TrackedEntityAttribute> getTrackedEntityAttributes()
     {
-        return trackedEntityAttributes;
+        return getValues( TrackedEntityAttribute.class );
     }
 
     public void setTrackedEntityAttributes( List<TrackedEntityAttribute> trackedEntityAttributes )
     {
-        this.trackedEntityAttributes = trackedEntityAttributes;
+        setValues( TrackedEntityAttribute.class, trackedEntityAttributes );
     }
 
     @JsonProperty
@@ -1080,12 +965,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "dimension", namespace = DxfNamespaces.DXF_2_0 )
     public List<DimensionalObject> getDimensions()
     {
-        return dimensions;
+        return getValues( DimensionalObject.class );
     }
 
     public void setDimensions( List<DimensionalObject> dimensions )
     {
-        this.dimensions = dimensions;
+        setValues( DimensionalObject.class, dimensions );
     }
 
     @JsonProperty
@@ -1093,12 +978,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "predictor", namespace = DxfNamespaces.DXF_2_0 )
     public List<Predictor> getPredictors()
     {
-        return predictors;
+        return getValues( Predictor.class );
     }
 
     public void setPredictors( List<Predictor> predictors )
     {
-        this.predictors = predictors;
+        setValues( Predictor.class, predictors );
     }
 
     @JsonProperty
@@ -1106,12 +991,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "predictorGroup", namespace = DxfNamespaces.DXF_2_0 )
     public List<PredictorGroup> getPredictorGroups()
     {
-        return predictorGroups;
+        return getValues( PredictorGroup.class );
     }
 
     public void setPredictorGroups( List<PredictorGroup> predictorGroups )
     {
-        this.predictorGroups = predictorGroups;
+        setValues( PredictorGroup.class, predictorGroups );
     }
 
     @JsonProperty
@@ -1119,12 +1004,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "programNotificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
     public List<ProgramNotificationTemplate> getProgramNotificationTemplates()
     {
-        return programNotificationTemplates;
+        return getValues( ProgramNotificationTemplate.class );
     }
 
     public void setProgramNotificationTemplates( List<ProgramNotificationTemplate> programNotificationTemplates )
     {
-        this.programNotificationTemplates = programNotificationTemplates;
+        setValues( ProgramNotificationTemplate.class, programNotificationTemplates );
     }
 
     @JsonProperty
@@ -1132,12 +1017,12 @@ public class Metadata
     @JacksonXmlProperty( localName = "analyticsTableHook", namespace = DxfNamespaces.DXF_2_0 )
     public List<AnalyticsTableHook> getAnalyticsTableHooks()
     {
-        return analyticsTableHooks;
+        return getValues( AnalyticsTableHook.class );
     }
 
     public void setAnalyticsTableHooks( List<AnalyticsTableHook> analyticsTableHooks )
     {
-        this.analyticsTableHooks = analyticsTableHooks;
+        setValues( AnalyticsTableHook.class, analyticsTableHooks );
     }
 
     @JsonProperty
@@ -1145,13 +1030,13 @@ public class Metadata
     @JacksonXmlProperty( localName = "validationNotificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
     public List<ValidationNotificationTemplate> getValidationNotificationTemplates()
     {
-        return this.validationNotificationTemplates;
+        return getValues( ValidationNotificationTemplate.class );
     }
 
     public void setValidationNotificationTemplates(
         List<ValidationNotificationTemplate> validationNotificationTemplates )
     {
-        this.validationNotificationTemplates = validationNotificationTemplates;
+        setValues( ValidationNotificationTemplate.class, validationNotificationTemplates );
     }
 
     @JsonProperty
@@ -1159,74 +1044,27 @@ public class Metadata
     @JacksonXmlProperty( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
     public List<JobConfiguration> getJobConfigurations()
     {
-        return jobConfigurations;
+        return getValues( JobConfiguration.class );
     }
 
     public void setJobConfigurations( List<JobConfiguration> jobConfigurations )
     {
-        this.jobConfigurations = jobConfigurations;
+        setValues( JobConfiguration.class, jobConfigurations );
     }
 
     @Override
     public String toString()
     {
-        return "MetaData{" +
-            "created=" + created +
-            ", schemas=" + schemas +
-            ", attributes=" + attributes +
-            ", documents=" + documents +
-            ", constants=" + constants +
-            ", users=" + users +
-            ", userRoles=" + userRoles +
-            ", userGroups=" + userGroups +
-            ", interpretations=" + interpretations +
-            ", optionSets=" + optionSets +
-            ", optionGroups=" + optionGroups +
-            ", optionGroupSets=" + optionGroupSets +
-            ", categories=" + categories +
-            ", categoryOptions=" + categoryOptions +
-            ", categoryCombos=" + categoryCombos +
-            ", categoryOptionCombos=" + categoryOptionCombos +
-            ", categoryOptionGroups=" + categoryOptionGroups +
-            ", categoryOptionGroupSets=" + categoryOptionGroupSets +
-            ", dataElementOperands=" + dataElementOperands +
-            ", dashboards=" + dashboards +
-            ", dataElements=" + dataElements +
-            ", dataElementGroups=" + dataElementGroups +
-            ", dataElementGroupSets=" + dataElementGroupSets +
-            ", dimensions=" + dimensions +
-            ", indicators=" + indicators +
-            ", indicatorGroups=" + indicatorGroups +
-            ", indicatorGroupSets=" + indicatorGroupSets +
-            ", indicatorTypes=" + indicatorTypes +
-            ", items=" + items +
-            ", organisationUnits=" + organisationUnits +
-            ", organisationUnitGroups=" + organisationUnitGroups +
-            ", organisationUnitGroupSets=" + organisationUnitGroupSets +
-            ", organisationUnitLevels=" + organisationUnitLevels +
-            ", validationRules=" + validationRules +
-            ", validationRuleGroups=" + validationRuleGroups +
-            ", sqlViews=" + sqlViews +
-            ", charts=" + charts +
-            ", reports=" + reports +
-            ", reportTables=" + reportTables +
-            ", maps=" + maps +
-            ", mapViews=" + mapViews +
-            ", legendSets=" + legendSets +
-            ", externalMapLayers=" + externalMapLayers +
-            ", sections=" + sections +
-            ", dataSets=" + dataSets +
-            ", programs=" + programs +
-            ", programStages=" + programStages +
-            ", relationshipTypes=" + relationshipTypes +
-            ", trackedEntityTypes=" + trackedEntityTypes +
-            ", trackedEntityAttributes=" + trackedEntityAttributes +
-            ", programNotificationTemplates=" + programNotificationTemplates +
-            ", predictors=" + predictors +
-            ", predictorGroups=" + predictorGroups +
-            ", analyticsTableHooks=" + analyticsTableHooks +
-            ", validationNotificationTemplates=" + validationNotificationTemplates +
-            ", jobConfigurations=" + jobConfigurations +
-            '}';
+        StringBuilder str = new StringBuilder();
+        str.append( "MetaData{" );
+        str.append( "created=" ).append( created );
+        for ( Entry<Class<?>, List<?>> e : values.entrySet() )
+        {
+            String key = e.getKey().getSimpleName();
+            str.append( Character.toLowerCase( key.charAt( 0 ) ) + key.substring( 1 ) )
+                .append( e.getValue().toString() );
+        }
+        str.append( "}" );
+        return str.toString();
     }
 }
