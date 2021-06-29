@@ -25,35 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.Data;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.hisp.dhis.split.orgunit;
 
 /**
- * Encapsulation of a web API request for org unit merge.
+ * Functional interface representing an org unit split operation.
  *
  * @author Lars Helge Overland
  */
-@Data
-public class OrgUnitMergeQuery
+@FunctionalInterface
+public interface OrgUnitSplitHandler
 {
-    @JsonProperty
-    private List<String> sources = new ArrayList<>();
-
-    @JsonProperty
-    private String target;
-
-    @JsonProperty
-    private DataMergeStrategy dataValueMergeStrategy;
-
-    @JsonProperty
-    private DataMergeStrategy dataApprovalMergeStrategy;
-
-    @JsonProperty
-    private Boolean deleteSources;
+    public void split( OrgUnitSplitRequest request );
 }

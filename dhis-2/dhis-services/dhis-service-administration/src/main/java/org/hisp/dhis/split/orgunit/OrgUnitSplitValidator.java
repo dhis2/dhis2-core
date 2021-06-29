@@ -25,29 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit;
+package org.hisp.dhis.split.orgunit;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.springframework.stereotype.Service;
 
 /**
- * Validation service for org unit merge requests.
+ * Validation service for org unit split requests.
  *
  * @author Lars Helge Overland
  */
 @Service
-public class OrgUnitMergeValidator
+public class OrgUnitSplitValidator
 {
     /**
-     * Validates the given {@link OrgUnitMergeRequest}. Throws
+     * Validates the given {@link OrgUnitSplitRequest}. Throws
      * {@link IllegalQueryException} if validation fails.
      *
      * @param request the {@link OrgUnitMergeRequest}.
      * @throws IllegalQueryException if validation failed.
      */
-    public void validate( OrgUnitMergeRequest request )
+    public void validate( OrgUnitSplitRequest request )
         throws IllegalQueryException
     {
         ErrorMessage error = validateForErrorMessage( request );
@@ -59,25 +60,33 @@ public class OrgUnitMergeValidator
     }
 
     /**
-     * Validates the given {@link OrgUnitMergeRequest}.
+     * Validates the given {@link OrgUnitSplitRequest}.
      *
-     * @param request the {@link OrgUnitMergeRequest}.
+     * @param request the {@link OrgUnitSplitRequest}.
      * @return an {@link ErrorMessage} if the validation failed, or null if
      *         validation was successful.
      */
-    public ErrorMessage validateForErrorMessage( OrgUnitMergeRequest request )
+    public ErrorMessage validateForErrorMessage( OrgUnitSplitRequest request )
     {
-        if ( request.getSources().size() < 2 )
+        if ( request.getSource() == null )
         {
-            return new ErrorMessage( ErrorCode.E1500 );
+            return new ErrorMessage( ErrorCode.E1510 );
         }
-        if ( request.getTarget() == null )
+        if ( request.getTargets().size() < 2 )
         {
-            return new ErrorMessage( ErrorCode.E1501 );
+            return new ErrorMessage( ErrorCode.E1511 );
         }
-        if ( request.getSources().contains( request.getTarget() ) )
+        if ( request.getTargets().contains( request.getSource() ) )
         {
-            return new ErrorMessage( ErrorCode.E1502 );
+            return new ErrorMessage( ErrorCode.E1512 );
+        }
+        if ( request.getPrimaryTarget() == null )
+        {
+            return new ErrorMessage( ErrorCode.E1513 );
+        }
+        if ( !request.getTargets().contains( request.getPrimaryTarget() ) )
+        {
+            return new ErrorMessage( ErrorCode.E1514 );
         }
 
         return null;

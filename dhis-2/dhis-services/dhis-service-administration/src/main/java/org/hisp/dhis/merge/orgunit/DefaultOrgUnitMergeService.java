@@ -61,12 +61,12 @@ public class DefaultOrgUnitMergeService
 
     private final ImmutableList<OrgUnitMergeHandler> handlers;
 
-    public DefaultOrgUnitMergeService( MetadataOrgUnitMergeHandler metadataHandler,
+    public DefaultOrgUnitMergeService( OrgUnitMergeValidator validator,
+        IdentifiableObjectManager idObjectManager,
+        MetadataOrgUnitMergeHandler metadataHandler,
         AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler,
         DataOrgUnitMergeHandler dataHandler,
-        TrackerOrgUnitMergeHandler trackerHandler,
-        OrgUnitMergeValidator validator,
-        IdentifiableObjectManager idObjectManager )
+        TrackerOrgUnitMergeHandler trackerHandler )
     {
         this.validator = validator;
         this.idObjectManager = idObjectManager;
@@ -128,6 +128,7 @@ public class DefaultOrgUnitMergeService
             .add( ( r ) -> metadataHandler.mergeOrganisationUnits( r ) )
             .add( ( r ) -> metadataHandler.mergeUsers( r ) )
             .add( ( r ) -> metadataHandler.mergeConfiguration( r ) )
+            .add( ( r ) -> analyticalObjectHandler.mergeAnalyticalObjects( r ) )
             .add( ( r ) -> dataHandler.mergeDataValueAudits( r ) )
             .add( ( r ) -> dataHandler.mergeDataValues( r ) )
             .add( ( r ) -> dataHandler.mergeDataApprovalAudits( r ) )
@@ -136,7 +137,6 @@ public class DefaultOrgUnitMergeService
             .add( ( r ) -> dataHandler.mergeValidationResults( r ) )
             .add( ( r ) -> dataHandler.mergeMinMaxDataElements( r ) )
             .add( ( r ) -> dataHandler.mergeInterpretations( r ) )
-            .add( ( r ) -> analyticalObjectHandler.mergeAnalyticalObjects( r ) )
             .add( ( r ) -> trackerHandler.mergeProgramMessages( r ) )
             .add( ( r ) -> trackerHandler.mergeProgramInstances( r ) )
             .add( ( r ) -> trackerHandler.mergeTrackedEntityInstances( r ) )
