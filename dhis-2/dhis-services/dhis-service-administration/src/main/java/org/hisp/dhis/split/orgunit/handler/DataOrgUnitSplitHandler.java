@@ -30,6 +30,7 @@ package org.hisp.dhis.split.orgunit.handler;
 import javax.transaction.Transactional;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Service;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service
 @Transactional
 @AllArgsConstructor
@@ -74,6 +76,8 @@ public class DataOrgUnitSplitHandler
         String hql = String.format(
             "update %s e set e.%s = :target where e.%s = :source",
             entity, property, property );
+
+        log.debug( "Update data HQL: '{}'", hql );
 
         sessionFactory.getCurrentSession().createQuery( hql )
             .setParameter( "source", request.getSource() )
