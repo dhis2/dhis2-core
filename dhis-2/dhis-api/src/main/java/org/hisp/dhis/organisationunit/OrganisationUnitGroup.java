@@ -82,6 +82,11 @@ public class OrganisationUnitGroup
         return organisationUnit.getGroups().add( this );
     }
 
+    public void addOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        organisationUnits.forEach( this::addOrganisationUnit );
+    }
+
     public boolean removeOrganisationUnit( OrganisationUnit organisationUnit )
     {
         members.remove( organisationUnit );

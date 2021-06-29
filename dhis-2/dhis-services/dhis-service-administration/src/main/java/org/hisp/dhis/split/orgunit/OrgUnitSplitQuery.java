@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit;
+package org.hisp.dhis.split.orgunit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,25 +35,22 @@ import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Encapsulation of a web API request for org unit merge.
+ * Encapsulation of a web API request for org unit split.
  *
  * @author Lars Helge Overland
  */
 @Data
-public class OrgUnitMergeQuery
+public class OrgUnitSplitQuery
 {
     @JsonProperty
-    private List<String> sources = new ArrayList<>();
+    private String source;
 
     @JsonProperty
-    private String target;
+    private List<String> targets = new ArrayList<>();
 
     @JsonProperty
-    private DataMergeStrategy dataValueMergeStrategy;
+    private String primaryTarget;
 
     @JsonProperty
-    private DataMergeStrategy dataApprovalMergeStrategy;
-
-    @JsonProperty
-    private Boolean deleteSources;
+    private Boolean deleteSource;
 }

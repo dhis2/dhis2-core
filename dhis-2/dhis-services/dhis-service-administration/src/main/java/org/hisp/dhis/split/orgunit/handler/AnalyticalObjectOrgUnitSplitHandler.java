@@ -25,35 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit;
+package org.hisp.dhis.split.orgunit.handler;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.AnalyticalObjectService;
+import org.hisp.dhis.eventchart.EventChartService;
+import org.hisp.dhis.eventreport.EventReportService;
+import org.hisp.dhis.mapping.MappingService;
+import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
+import org.hisp.dhis.visualization.VisualizationService;
+import org.springframework.stereotype.Service;
 
 /**
- * Encapsulation of a web API request for org unit merge.
- *
  * @author Lars Helge Overland
  */
-@Data
-public class OrgUnitMergeQuery
+@Service
+@AllArgsConstructor
+public class AnalyticalObjectOrgUnitSplitHandler
 {
-    @JsonProperty
-    private List<String> sources = new ArrayList<>();
+    private final VisualizationService visualizationService;
 
-    @JsonProperty
-    private String target;
+    private final MappingService mapViewService;
 
-    @JsonProperty
-    private DataMergeStrategy dataValueMergeStrategy;
+    private final EventReportService eventReportService;
 
-    @JsonProperty
-    private DataMergeStrategy dataApprovalMergeStrategy;
+    private final EventChartService eventChartService;
 
-    @JsonProperty
-    private Boolean deleteSources;
+    public void splitAnalyticalObjects( OrgUnitSplitRequest request )
+    {
+        splitAnalyticalObject( visualizationService, request );
+        splitAnalyticalObject( mapViewService, request );
+        splitAnalyticalObject( eventReportService, request );
+        splitAnalyticalObject( eventChartService, request );
+    }
+
+    private <T extends AnalyticalObject> void splitAnalyticalObject(
+        AnalyticalObjectService<T> service, OrgUnitSplitRequest request )
+    {
+        List<T> objects = service.getAnalyticalObjects( request.getSource() );
+
+        objects.forEach( ao -> {
+            ao.getOrganisationUnits().addAll( request.getTargets() );
+            ao.getOrganisationUnits().remove( request.getSource() );
+        } );
+    }
 }
