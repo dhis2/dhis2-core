@@ -96,19 +96,14 @@ public class DefaultOrgUnitSplitService
     @Override
     public OrgUnitSplitRequest getFromQuery( OrgUnitSplitQuery query )
     {
+        preHandleQuery( query );
+
         OrganisationUnit source = idObjectManager.get( OrganisationUnit.class, query.getSource() );
 
         Set<OrganisationUnit> targets = Sets.newHashSet(
             idObjectManager.getByUid( OrganisationUnit.class, query.getTargets() ) );
 
         OrganisationUnit primaryTarget = idObjectManager.get( OrganisationUnit.class, query.getPrimaryTarget() );
-
-        // If primary target is undefined, set to first target
-
-        if ( query.getPrimaryTarget() == null && !query.getTargets().isEmpty() )
-        {
-            query.setPrimaryTarget( query.getTargets().get( 0 ) );
-        }
 
         return new OrgUnitSplitRequest.Builder()
             .withSource( source )
@@ -138,6 +133,20 @@ public class DefaultOrgUnitSplitService
             .add( ( r ) -> analyticalObjectHandler.splitAnalyticalObjects( r ) )
             .add( ( r ) -> dataHandler.splitData( r ) )
             .build();
+    }
+
+    /**
+     * Pre-handles the {@link OrgUnitSplitQuery}. If the primary target is
+     * undefined, it is set to the first target.
+     *
+     * @param query the {@link OrgUnitSplitQuery}
+     */
+    private void preHandleQuery( OrgUnitSplitQuery query )
+    {
+        if ( query.getPrimaryTarget() == null && !query.getTargets().isEmpty() )
+        {
+            query.setPrimaryTarget( query.getTargets().get( 0 ) );
+        }
     }
 
     /**

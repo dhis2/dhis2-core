@@ -54,7 +54,8 @@ public enum ErrorCode
     E1510( "Source org unit must be specified" ),
     E1511( "At least two target org units must be specified" ),
     E1512( "Source org unit cannot be a target org unit" ),
-    E1513( "Primary target must be a target org unit" ),
+    E1513( "Primary target must be specified" ),
+    E1514( "Primary target must be a target org unit" ),
 
     /* Data */
     E2000( "Query parameters cannot be null" ),
