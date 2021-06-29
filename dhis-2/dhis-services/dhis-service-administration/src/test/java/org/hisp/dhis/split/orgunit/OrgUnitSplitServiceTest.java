@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.orgunit;
+package org.hisp.dhis.split.orgunit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -36,7 +36,6 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -48,11 +47,11 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-public class OrgUnitMergeServiceTest
+public class OrgUnitSplitServiceTest
     extends DhisSpringTest
 {
     @Autowired
-    private OrgUnitMergeService service;
+    private OrgUnitSplitService service;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -85,27 +84,43 @@ public class OrgUnitMergeServiceTest
     @Test
     public void testGetFromQuery()
     {
-        OrgUnitMergeQuery query = new OrgUnitMergeQuery();
-        query.setSources( Lists.newArrayList( BASE_OU_UID + 'A', BASE_OU_UID + 'B' ) );
-        query.setTarget( BASE_OU_UID + 'C' );
+        OrgUnitSplitQuery query = new OrgUnitSplitQuery();
+        query.setSource( BASE_OU_UID + 'A' );
+        query.setTargets( Lists.newArrayList( BASE_OU_UID + 'B', BASE_OU_UID + 'C' ) );
+        query.setPrimaryTarget( BASE_OU_UID + 'B' );
 
-        OrgUnitMergeRequest request = service.getFromQuery( query );
+        OrgUnitSplitRequest request = service.getFromQuery( query );
 
-        assertEquals( 2, request.getSources().size() );
-        assertTrue( request.getSources().contains( ouA ) );
-        assertTrue( request.getSources().contains( ouB ) );
-        assertEquals( ouC, request.getTarget() );
-        assertEquals( DataMergeStrategy.LAST_UPDATED, request.getDataValueMergeStrategy() );
-        assertEquals( DataMergeStrategy.LAST_UPDATED, request.getDataApprovalMergeStrategy() );
-        assertTrue( request.isDeleteSources() );
+        assertEquals( ouA, request.getSource() );
+        assertEquals( 2, request.getTargets().size() );
+        assertTrue( request.getTargets().contains( ouB ) );
+        assertTrue( request.getTargets().contains( ouC ) );
+        assertEquals( ouB, request.getPrimaryTarget() );
+        assertTrue( request.isDeleteSource() );
     }
 
     @Test
-    public void testMerge()
+    public void testGetFromQueryWithoutPrimaryTarget()
+    {
+        OrgUnitSplitQuery query = new OrgUnitSplitQuery();
+        query.setSource( BASE_OU_UID + 'A' );
+        query.setTargets( Lists.newArrayList( BASE_OU_UID + 'B', BASE_OU_UID + 'C' ) );
+
+        OrgUnitSplitRequest request = service.getFromQuery( query );
+
+        assertEquals( ouA, request.getSource() );
+        assertEquals( 2, request.getTargets().size() );
+        assertTrue( request.getTargets().contains( ouB ) );
+        assertTrue( request.getTargets().contains( ouC ) );
+        assertEquals( ouB, request.getPrimaryTarget() );
+        assertTrue( request.isDeleteSource() );
+    }
+
+    @Test
+    public void testSplit()
     {
         DataSet dsA = createDataSet( 'A', ptA );
         dsA.addOrganisationUnit( ouA );
-        dsA.addOrganisationUnit( ouB );
 
         DataSet dsB = createDataSet( 'B', ptA );
         dsB.addOrganisationUnit( ouA );
@@ -113,37 +128,28 @@ public class OrgUnitMergeServiceTest
         idObjectManager.save( dsA );
         idObjectManager.save( dsB );
 
-        OrganisationUnitGroup ougA = createOrganisationUnitGroup( 'A' );
-        ougA.addOrganisationUnit( ouA );
-        ougA.addOrganisationUnit( ouB );
-
-        OrganisationUnitGroup ougB = createOrganisationUnitGroup( 'B' );
-        ougB.addOrganisationUnit( ouA );
-
-        idObjectManager.save( ougA );
-        idObjectManager.save( ougB );
-
         assertNotNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
         assertNotNull( idObjectManager.get( OrganisationUnit.class, ouB.getUid() ) );
         assertNotNull( idObjectManager.get( OrganisationUnit.class, ouC.getUid() ) );
 
-        assertEquals( 2, ouA.getDataSets().size() );
-        assertEquals( 1, ouB.getDataSets().size() );
-        assertEquals( 0, ouC.getDataSets().size() );
-
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
-            .withDeleteSources( true )
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
+            .withSource( ouA )
+            .addTarget( ouB )
+            .addTarget( ouC )
+            .withPrimaryTarget( ouB )
             .build();
 
-        service.merge( request );
+        assertEquals( 2, ouA.getDataSets().size() );
+        assertEquals( 0, ouB.getDataSets().size() );
+        assertEquals( 0, ouC.getDataSets().size() );
 
-        assertEquals( 2, ouC.getGroups().size() );
+        service.split( request );
+
+        assertEquals( 2, ouB.getDataSets().size() );
+        assertEquals( 2, ouC.getDataSets().size() );
 
         assertNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
-        assertNull( idObjectManager.get( OrganisationUnit.class, ouB.getUid() ) );
+        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouB.getUid() ) );
         assertNotNull( idObjectManager.get( OrganisationUnit.class, ouC.getUid() ) );
     }
 }

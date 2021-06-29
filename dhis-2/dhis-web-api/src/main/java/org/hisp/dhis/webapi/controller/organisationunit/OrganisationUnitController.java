@@ -54,6 +54,8 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
+import org.hisp.dhis.split.orgunit.OrgUnitSplitQuery;
+import org.hisp.dhis.split.orgunit.OrgUnitSplitService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.version.VersionService;
@@ -94,7 +96,18 @@ public class OrganisationUnitController
     private VersionService versionService;
 
     @Autowired
+    private OrgUnitSplitService orgUnitSplitService;
+
+    @Autowired
     private OrgUnitMergeService orgUnitMergeService;
+
+    @ResponseStatus( HttpStatus.OK )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_SPLIT')" )
+    @PostMapping( value = "/split", produces = { APPLICATION_JSON_VALUE } )
+    public void splitOrgUnits( @RequestBody OrgUnitSplitQuery query )
+    {
+        orgUnitSplitService.split( orgUnitSplitService.getFromQuery( query ) );
+    }
 
     @ResponseStatus( HttpStatus.OK )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_MERGE')" )
