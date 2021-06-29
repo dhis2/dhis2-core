@@ -33,25 +33,30 @@ import static org.junit.Assert.assertNotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -80,52 +85,79 @@ public class CsvMetadataImportTest
     @Autowired
     private IdentifiableObjectManager manager;
 
-    private InputStream input;
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    private UserService _userService;
+
+    @Before
+    public void setUp()
+    {
+        userService = _userService;
+    }
+
+    @Test
+    public void testOrgUnitImport()
+        throws Exception
+    {
+        ImportReport importReport = runImport( "metadata/organisationUnits.csv", CsvImportClass.ORGANISATION_UNIT,
+            metadata -> assertEquals( 5, metadata.getOrganisationUnits().size() ) );
+
+        assertEquals( 5, importReport.getStats().getCreated() );
+        assertEquals( 5, organisationUnitService.getAllOrganisationUnits().size() );
+    }
+
+    @Test
+    public void testOrgUnitImport_SuperUser()
+        throws Exception
+    {
+        User admin = createAndInjectAdminUser();
+        ImportReport importReport = runImport( "metadata/organisationUnits.csv", CsvImportClass.ORGANISATION_UNIT,
+            metadata -> assertEquals( 5, metadata.getOrganisationUnits().size() ) );
+
+        assertEquals( 5, importReport.getStats().getCreated() );
+        assertEquals( 5, organisationUnitService.getAllOrganisationUnits().size() );
+    }
+
+    @Test
+    public void testOrgUnitImport_IllegalMove()
+        throws Exception
+    {
+        ImportReport importReport = runImport( "metadata/organisationUnits.csv", CsvImportClass.ORGANISATION_UNIT,
+            metadata -> assertEquals( 5, metadata.getOrganisationUnits().size() ) );
+        assertEquals( 5, importReport.getStats().getCreated() );
+
+        User admin = createAndInjectAdminUser( new String[0] );
+        importReport = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT, null,
+            params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
+
+        assertEquals( Status.ERROR, importReport.getStatus() );
+    }
 
     @Test
     public void testDataElementImport()
         throws Exception
     {
-        input = new ClassPathResource( "metadata/dataElements.csv" ).getInputStream();
-
-        Metadata metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( CsvImportClass.DATA_ELEMENT )
-            .setFirstRowIsHeader( true ) );
-
-        assertEquals( 2, metadata.getDataElements().size() );
-
-        MetadataImportParams params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        ImportReport importReport = importService.importMetadata( params );
+        ImportReport importReport = runImport( "metadata/dataElements.csv", CsvImportClass.DATA_ELEMENT,
+            metadata -> assertEquals( 2, metadata.getDataElements().size() ) );
 
         assertEquals( 2, importReport.getStats().getCreated() );
-
-        Collection<DataElement> dataElements = dataElementService.getAllDataElements();
-
-        assertEquals( 2, dataElements.size() );
+        assertEquals( 2, dataElementService.getAllDataElements().size() );
     }
 
     @Test
     public void testOptionSetImport()
         throws Exception
     {
-        input = new ClassPathResource( "metadata/optionSets.csv" ).getInputStream();
-
-        Metadata metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( CsvImportClass.OPTION_SET )
-            .setFirstRowIsHeader( true ) );
-
-        assertEquals( 4, metadata.getOptionSets().size() );
-        assertEquals( 3, metadata.getOptionSets().get( 0 ).getOptions().size() );
-        assertEquals( 3, metadata.getOptionSets().get( 1 ).getOptions().size() );
-        assertEquals( 3, metadata.getOptionSets().get( 2 ).getOptions().size() );
-        assertEquals( 3, metadata.getOptionSets().get( 3 ).getOptions().size() );
-
-        MetadataImportParams params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        ImportReport importReport = importService.importMetadata( params );
+        ImportReport importReport = runImport( "metadata/optionSets.csv", CsvImportClass.OPTION_SET,
+            metadata -> {
+                assertEquals( 4, metadata.getOptionSets().size() );
+                assertEquals( 3, metadata.getOptionSets().get( 0 ).getOptions().size() );
+                assertEquals( 3, metadata.getOptionSets().get( 1 ).getOptions().size() );
+                assertEquals( 3, metadata.getOptionSets().get( 2 ).getOptions().size() );
+                assertEquals( 3, metadata.getOptionSets().get( 3 ).getOptions().size() );
+            } );
 
         assertEquals( 16, importReport.getStats().getCreated() );
 
@@ -143,31 +175,13 @@ public class CsvMetadataImportTest
         throws IOException
     {
         // Import 1 OptionSet with 3 Options
-        input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
-
-        Metadata metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( CsvImportClass.OPTION_SET )
-            .setFirstRowIsHeader( true ) );
-
-        MetadataImportParams params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        ImportReport importReport = importService.importMetadata( params );
+        ImportReport importReport = runImport( "metadata/optionSet_add.csv", CsvImportClass.OPTION_SET );
 
         assertEquals( 4, importReport.getStats().getCreated() );
 
         // Send payload with 2 new Options
-        input = new ClassPathResource( "metadata/optionSet_update.csv" ).getInputStream();
-
-        metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( CsvImportClass.OPTION_SET )
-            .setFirstRowIsHeader( true ) );
-
-        params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-        params.setMergeMode( MergeMode.MERGE );
-
-        importReport = importService.importMetadata( params );
+        importReport = runImport( "metadata/optionSet_update.csv", CsvImportClass.OPTION_SET, null,
+            params -> params.setMergeMode( MergeMode.MERGE ) );
 
         assertEquals( 2, importReport.getStats().getCreated() );
 
@@ -182,32 +196,16 @@ public class CsvMetadataImportTest
         throws IOException
     {
         // Import 1 OptionSet with 3 Options
-        input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
-
-        Metadata metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( CsvImportClass.OPTION_SET )
-            .setFirstRowIsHeader( true ) );
-
-        MetadataImportParams params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        ImportReport importReport = importService.importMetadata( params );
+        ImportReport importReport = runImport( "metadata/optionSet_add.csv", CsvImportClass.OPTION_SET );
 
         assertEquals( 4, importReport.getStats().getCreated() );
 
         // Send payload with 5 Options, 2 new and 3 old from above
-        input = new ClassPathResource( "metadata/optionSet_update_duplicate.csv" ).getInputStream();
-
-        metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( CsvImportClass.OPTION_SET )
-            .setFirstRowIsHeader( true ) );
-
-        params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-        params.setIdentifier( PreheatIdentifier.CODE );
-        params.setMergeMode( MergeMode.MERGE );
-
-        importReport = importService.importMetadata( params );
+        importReport = runImport( "metadata/optionSet_update_duplicate.csv", CsvImportClass.OPTION_SET, null,
+            params -> {
+                params.setIdentifier( PreheatIdentifier.CODE );
+                params.setMergeMode( MergeMode.MERGE );
+            } );
 
         // Only 2 new Options are added
         assertEquals( 2, importReport.getStats().getCreated() );
@@ -224,30 +222,12 @@ public class CsvMetadataImportTest
         throws IOException
     {
         // Import 1 OptionSet with 3 Options
-        input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
-
-        Metadata metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( CsvImportClass.OPTION_SET )
-            .setFirstRowIsHeader( true ) );
-
-        MetadataImportParams params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        ImportReport importReport = importService.importMetadata( params );
+        ImportReport importReport = runImport( "metadata/optionSet_add.csv", CsvImportClass.OPTION_SET );
 
         assertEquals( 4, importReport.getStats().getCreated() );
 
         // Send payload with 2 new Options
-        input = new ClassPathResource( "metadata/optionSet_update.csv" ).getInputStream();
-
-        metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( CsvImportClass.OPTION_SET )
-            .setFirstRowIsHeader( true ) );
-
-        params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        importReport = importService.importMetadata( params );
+        importReport = runImport( "metadata/optionSet_update.csv", CsvImportClass.OPTION_SET );
 
         assertEquals( 2, importReport.getStats().getCreated() );
 
@@ -261,15 +241,7 @@ public class CsvMetadataImportTest
     public void testImportOptionGroupSet()
         throws IOException
     {
-        input = new ClassPathResource( "metadata/option_set.csv" ).getInputStream();
-        Metadata metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( CsvImportClass.OPTION_SET )
-            .setFirstRowIsHeader( true ) );
-
-        MetadataImportParams params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        ImportReport importReport = importService.importMetadata( params );
+        ImportReport importReport = runImport( "metadata/option_set.csv", CsvImportClass.OPTION_SET );
 
         assertEquals( 5, importReport.getStats().getCreated() );
 
@@ -281,15 +253,7 @@ public class CsvMetadataImportTest
         assertNotNull( optionSetB );
         assertEquals( 1, optionSetB.getOptions().size() );
 
-        input = new ClassPathResource( "metadata/option_groups.csv" ).getInputStream();
-        metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( CsvImportClass.OPTION_GROUP )
-            .setFirstRowIsHeader( true ) );
-
-        params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        importReport = importService.importMetadata( params );
+        importReport = runImport( "metadata/option_groups.csv", CsvImportClass.OPTION_GROUP );
 
         assertEquals( 2, importReport.getStats().getCreated() );
 
@@ -301,15 +265,7 @@ public class CsvMetadataImportTest
         assertNotNull( optionGroupB );
         assertEquals( 1, optionGroupB.getMembers().size() );
 
-        input = new ClassPathResource( "metadata/option_group_set.csv" ).getInputStream();
-        metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( CsvImportClass.OPTION_GROUP_SET )
-            .setFirstRowIsHeader( true ) );
-
-        params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        importReport = importService.importMetadata( params );
+        importReport = runImport( "metadata/option_group_set.csv", CsvImportClass.OPTION_GROUP_SET );
 
         assertEquals( 2, importReport.getStats().getCreated() );
 
@@ -319,15 +275,7 @@ public class CsvMetadataImportTest
         OptionGroupSet optionGroupSetB = manager.get( OptionGroupSet.class, "K30djctzUtN" );
         assertNotNull( optionGroupSetB );
 
-        input = new ClassPathResource( "metadata/option_group_set_members.csv" ).getInputStream();
-        metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( CsvImportClass.OPTION_GROUP_SET_MEMBERSHIP )
-            .setFirstRowIsHeader( true ) );
-
-        params = new MetadataImportParams();
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        importReport = importService.importMetadata( params );
+        importReport = runImport( "metadata/option_group_set_members.csv", CsvImportClass.OPTION_GROUP_SET_MEMBERSHIP );
 
         assertEquals( 2, importReport.getStats().getUpdated() );
 
@@ -338,6 +286,42 @@ public class CsvMetadataImportTest
         assertEquals( 1, ogsB.getMembers().size() );
 
         assertEquals( 2, ogsA.getMembers().get( 0 ).getMembers().size() );
+    }
 
+    private ImportReport runImport( String csvFile, CsvImportClass importClass )
+        throws IOException
+    {
+        return runImport( csvFile, importClass, null );
+    }
+
+    private ImportReport runImport( String csvFile, CsvImportClass importClass, Consumer<Metadata> preCondition )
+        throws IOException
+    {
+        return runImport( csvFile, importClass, preCondition, null );
+    }
+
+    private ImportReport runImport( String csvFile, CsvImportClass importClass, Consumer<Metadata> preCondition,
+        Consumer<MetadataImportParams> modifier )
+        throws IOException
+    {
+        InputStream input = new ClassPathResource( csvFile ).getInputStream();
+
+        Metadata metadata = csvImportService.fromCsv( input, new CsvImportOptions()
+            .setImportClass( importClass )
+            .setFirstRowIsHeader( true ) );
+
+        if ( preCondition != null )
+        {
+            preCondition.accept( metadata );
+        }
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
+        if ( modifier != null )
+        {
+            modifier.accept( params );
+        }
+
+        return importService.importMetadata( params );
     }
 }

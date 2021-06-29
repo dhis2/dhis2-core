@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import org.hibernate.Session;
@@ -37,16 +38,24 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComparator;
 import org.hisp.dhis.system.util.GeoUtils;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
+
+import lombok.AllArgsConstructor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
+@AllArgsConstructor
 public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
 {
+
+    private final OrganisationUnitService organisationUnitService;
+
     @Override
     public void preCommit( ObjectBundle objectBundle )
     {
@@ -119,13 +128,62 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
 
         OrganisationUnit organisationUnit = (OrganisationUnit) object;
 
-        if ( organisationUnit.getClosedDate() != null
-            && organisationUnit.getClosedDate().before( organisationUnit.getOpeningDate() ) )
+        validateOpeningClosingDate( organisationUnit, addReports );
+        validateMove( organisationUnit, bundle, addReports );
+    }
+
+    private void validateOpeningClosingDate( OrganisationUnit object, Consumer<ErrorReport> addReports )
+    {
+        if ( object.getClosedDate() != null && object.getClosedDate().before( object.getOpeningDate() ) )
         {
-            addReports
-                .accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013, organisationUnit.getClosedDate(),
-                    organisationUnit.getOpeningDate() ) );
+            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013,
+                object.getClosedDate(), object.getOpeningDate() ) );
         }
+    }
+
+    private void validateMove( OrganisationUnit object, ObjectBundle bundle, Consumer<ErrorReport> addReports )
+    {
+        User user = bundle.getUser();
+        if ( user == null || user.isSuper() )
+        {
+            return;
+        }
+        if ( !bundle.isPersisted( object ) )
+        {
+            if ( !isParentInUserHierarchy( object, bundle ) )
+            {
+                addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1511, user.getUid(),
+                    getParentIdentifier( object ) ) );
+            }
+        }
+        else if ( !Objects.equals(
+            getParentIdentifier( bundle.getPreheat().get( bundle.getPreheatIdentifier(), object ) ),
+            getParentIdentifier( object ) ) )
+        {
+            if ( !user.isAuthorized( "F_ORGANISATIONUNIT_MOVE" ) )
+            {
+                addReports.accept(
+                    new ErrorReport( OrganisationUnit.class, ErrorCode.E1510, user.getUid() ) );
+            }
+            if ( !isParentInUserHierarchy( object, bundle ) )
+            {
+                addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1512, user.getUid(),
+                    object.getUid(), getParentIdentifier( object ) ) );
+            }
+        }
+    }
+
+    private String getParentIdentifier( OrganisationUnit object )
+    {
+        OrganisationUnit parent = object.getParent();
+        return parent == null ? "(root)" : parent.getUid();
+    }
+
+    private boolean isParentInUserHierarchy( OrganisationUnit object, ObjectBundle bundle )
+    {
+        OrganisationUnit parent = object.getParent();
+        User user = bundle.getUser();
+        return parent != null && organisationUnitService.isInUserHierarchy( user, parent );
     }
 
     private void setSRID( IdentifiableObject object )

@@ -50,6 +50,12 @@ public enum ErrorCode
     E1501( "Target org unit must be specified" ),
     E1502( "Target org unit cannot be a source org unit" ),
 
+    /* Org unit move/create */
+    E1510( "User `{0}` is not allowed to move organisation units" ),
+    E1511( "User `{0}` is not allowed to create organisation with parent `{1}` outside of user''s hierarchy" ),
+    E1512(
+        "User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}` which is outside of user''s hierarchy" ),
+
     /* Data */
     E2000( "Query parameters cannot be null" ),
     E2001( "At least one data element, data set or data element group must be specified" ),
