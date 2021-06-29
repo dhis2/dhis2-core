@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping( value = "/orgUnitProfile" )
+@RequestMapping( value = "/organisationUnitProfile" )
 public class OrganisationUnitProfileController
 {
     private final OrgUnitProfileService orgUnitProfileService;
