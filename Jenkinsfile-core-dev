@@ -1,3 +1,5 @@
+@Library('pipeline-library') _
+
 pipeline {
     agent {
         label 'ec2-jdk8'
@@ -13,6 +15,9 @@ pipeline {
 
     environment {
         MAVEN_OPTS = '-Xms1024m -Xmx4096m'
+        AWX_TEMPLATE = 37
+        HOST = 'play.dhis2.org'
+        INSTANCE_NAME = 'dev'
     }
 
     stages {
@@ -39,14 +44,11 @@ pipeline {
         stage ('Update Play Instance') {
             steps {
                 echo 'Updating Play Instance ...'
-                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/update-play-instance.sh" -o update-play-instance.sh'
-                sh 'chmod +x update-play-instance.sh'
                 script {
-                    withCredentials([usernameColonPassword(credentialsId: 'awx-bot-user-credentials', variable: 'AWX_AUTH')]) {
-                        sh './update-play-instance.sh ${GIT_BRANCH}dev $AWX_AUTH'
+                    withCredentials([usernameColonPassword(credentialsId: 'awx-bot-user-credentials', variable: 'AWX_CREDENTIALS')]) {
+                        awx.resetWar("$AWX_CREDENTIALS", "$HOST", "$GIT_BRANCH$INSTANCE_NAME", "$AWX_TEMPLATE")
                     }
                 }
-
             }
         }
     }
