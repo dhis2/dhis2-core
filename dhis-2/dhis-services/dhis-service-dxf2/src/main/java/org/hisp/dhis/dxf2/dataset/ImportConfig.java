@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.dxf2.dataset;
 
+import java.util.function.Supplier;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.setting.SettingKey;
@@ -41,46 +45,53 @@ import org.hisp.dhis.setting.SystemSettingManager;
  * @author Lars Helge Overland
  */
 @Slf4j
-class ImportConfig
+@Getter
+final class ImportConfig
 {
-    private IdScheme dsScheme;
+    private final IdScheme dsScheme;
 
-    private IdScheme ouScheme;
+    private final IdScheme ouScheme;
 
-    private IdScheme aocScheme;
+    private final IdScheme aocScheme;
 
-    private ImportStrategy strategy;
+    private final ImportStrategy strategy;
 
-    private boolean dryRun;
+    private final boolean dryRun;
 
-    private boolean skipExistingCheck;
+    private final boolean skipExistingCheck;
 
-    private boolean strictPeriods;
+    private final boolean strictPeriods;
 
-    private boolean strictAttrOptionCombos;
+    private final boolean strictAttrOptionCombos;
 
-    private boolean strictOrgUnits;
+    private final boolean strictOrgUnits;
 
-    private boolean requireAttrOptionCombos;
+    private final boolean requireAttrOptionCombos;
 
-    private boolean skipNotifications;
+    private final boolean skipNotifications;
 
-    private CategoryOptionCombo fallbackCatOptCombo;
+    private final CategoryOptionCombo fallbackCatOptCombo;
 
     ImportConfig( SystemSettingManager systemSettingManager, CategoryService categoryService,
-        CompleteDataSetRegistrations cdsr, ImportOptions options )
+        CompleteDataSetRegistrations registrations, ImportOptions options )
     {
-        dsScheme = IdScheme.from( cdsr.getDataSetIdSchemeProperty() );
-        ouScheme = IdScheme.from( cdsr.getOrgUnitIdSchemeProperty() );
-        aocScheme = IdScheme.from( cdsr.getAttributeOptionComboIdSchemeProperty() );
+
+        IdSchemes idSchemes = options.getIdSchemes();
+        dsScheme = getIdScheme( registrations::getDataSetIdScheme, registrations::getIdScheme,
+            idSchemes::getDataSetIdScheme, idSchemes::getIdScheme );
+        ouScheme = getIdScheme( registrations::getOrgUnitIdScheme, registrations::getIdScheme,
+            idSchemes::getOrgUnitIdScheme, idSchemes::getIdScheme );
+        aocScheme = getIdScheme( registrations::getAttributeOptionComboIdScheme, registrations::getIdScheme,
+            idSchemes::getAttributeOptionComboIdScheme, idSchemes::getIdScheme );
 
         log.info( String.format( "Data set scheme: %s, org unit scheme: %s, attribute option combo scheme: %s",
             dsScheme, ouScheme, aocScheme ) );
 
-        strategy = cdsr.getStrategy() != null ? ImportStrategy.valueOf( cdsr.getStrategy() )
+        strategy = registrations.getStrategy() != null
+            ? ImportStrategy.valueOf( registrations.getStrategy() )
             : options.getImportStrategy();
 
-        dryRun = cdsr.getDryRun() != null ? cdsr.getDryRun() : options.isDryRun();
+        dryRun = registrations.getDryRun() != null ? registrations.getDryRun() : options.isDryRun();
 
         skipNotifications = options.isSkipNotifications();
 
@@ -101,64 +112,33 @@ class ImportConfig
         fallbackCatOptCombo = categoryService.getDefaultCategoryOptionCombo();
     }
 
-    IdScheme getDsScheme()
+    /**
+     * For the effective {@link IdScheme} the explicit value from
+     * {@link CompleteDataSetRegistrations} (payload) takes precedence over
+     * explicit scheme from {@link ImportOptions} (URL params). If no scheme is
+     * set again the default of
+     * {@link CompleteDataSetRegistrations#getIdScheme()} takes precedence over
+     * the default from {@link ImportOptions#getIdSchemes()}
+     * {@link IdSchemes#getIdScheme()}.
+     */
+    private static IdScheme getIdScheme( Supplier<String> primary, Supplier<String> primaryDefault,
+        Supplier<IdScheme> secondary, Supplier<IdScheme> secondaryDefault )
     {
-        return dsScheme;
-    }
-
-    IdScheme getOuScheme()
-    {
-        return ouScheme;
-    }
-
-    IdScheme getAocScheme()
-    {
-        return aocScheme;
-    }
-
-    ImportStrategy getStrategy()
-
-    {
-        return strategy;
-    }
-
-    boolean isDryRun()
-    {
-        return dryRun;
-    }
-
-    boolean isSkipExistingCheck()
-    {
-        return skipExistingCheck;
-    }
-
-    boolean isStrictPeriods()
-    {
-        return strictPeriods;
-    }
-
-    boolean isStrictAttrOptionCombos()
-    {
-        return strictAttrOptionCombos;
-    }
-
-    boolean isStrictOrgUnits()
-    {
-        return strictOrgUnits;
-    }
-
-    boolean isRequireAttrOptionCombos()
-    {
-        return requireAttrOptionCombos;
-    }
-
-    boolean isSkipNotifications()
-    {
-        return skipNotifications;
-    }
-
-    CategoryOptionCombo getFallbackCatOptCombo()
-    {
-        return fallbackCatOptCombo;
+        String schemeName = primary.get();
+        if ( schemeName != null )
+        {
+            return IdScheme.from( schemeName );
+        }
+        IdScheme scheme = secondary.get();
+        if ( scheme != null && scheme != IdScheme.NULL )
+        {
+            return scheme;
+        }
+        schemeName = primaryDefault.get();
+        if ( schemeName != null )
+        {
+            return IdScheme.from( schemeName );
+        }
+        return IdScheme.from( secondaryDefault.get() );
     }
 }
