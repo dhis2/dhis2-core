@@ -6,6 +6,7 @@ pipeline {
     }
 
     triggers {
+        cron('H H(9-16)/2 * * 1-5')
         pollSCM('H/30 * * * *')
     }
 
@@ -17,7 +18,7 @@ pipeline {
         MAVEN_OPTS = '-Xms1024m -Xmx4096m'
         AWX_TEMPLATE = 37
         HOST = 'play.dhis2.org'
-        INSTANCE_NAME = 'dev'
+        INSTANCE_NAME = "${GIT_BRANCH}dev"
     }
 
     stages {
@@ -46,7 +47,7 @@ pipeline {
                 echo 'Updating Play Instance ...'
                 script {
                     withCredentials([usernameColonPassword(credentialsId: 'awx-bot-user-credentials', variable: 'AWX_CREDENTIALS')]) {
-                        awx.resetWar("$AWX_CREDENTIALS", "$HOST", "$GIT_BRANCH$INSTANCE_NAME", "$AWX_TEMPLATE")
+                        awx.resetWar("$AWX_CREDENTIALS", "$HOST", "$INSTANCE_NAME", "$AWX_TEMPLATE")
                     }
                 }
             }
