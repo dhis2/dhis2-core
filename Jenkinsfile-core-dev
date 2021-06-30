@@ -58,5 +58,15 @@ pipeline {
         success {
             archiveArtifacts artifacts: 'dhis-2/dhis-web/dhis-web-portal/target/dhis.war'
         }
+
+        failure {
+            script {
+                slackSend(
+                    color: '#ff0000',
+                    message: "${JOB_NAME} failed. Go to ${BUILD_URL} for more information.",
+                    channel: 'jenkins'
+                )
+            }
+        }
     }
 }
