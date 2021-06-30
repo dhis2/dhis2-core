@@ -124,6 +124,14 @@ public interface DataApprovalService
     void unacceptData( List<DataApproval> dataApprovalList );
 
     /**
+     * Adds a data approval. Prefer to use
+     * {@link DataApprovalService#approveData(List)}.
+     *
+     * @param dataApproval the DataApproval to add.
+     */
+    void addDataApproval( DataApproval dataApproval );
+
+    /**
      * Gets the data approval record if it exists.
      *
      * @param approval the DataApproval object properties to look for

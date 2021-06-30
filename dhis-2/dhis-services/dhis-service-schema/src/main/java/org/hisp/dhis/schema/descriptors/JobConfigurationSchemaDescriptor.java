@@ -54,10 +54,8 @@ public class JobConfigurationSchemaDescriptor implements SchemaDescriptor
 
         schema.setOrder( 1040 );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_SCHEDULING_ADMIN" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_SCHEDULING_ADMIN" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_SCHEDULING_ADMIN" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_SCHEDULING_ADMIN" ) ) );
 
         return schema;
     }

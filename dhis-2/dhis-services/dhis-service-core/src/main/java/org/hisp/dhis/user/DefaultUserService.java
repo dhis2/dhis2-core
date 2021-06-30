@@ -292,9 +292,9 @@ public class DefaultUserService
 
     private void handleUserQueryParams( UserQueryParams params )
     {
-        boolean canGrantOwnRoles = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
-        params.setDisjointRoles( !canGrantOwnRoles );
+        boolean canSeeOwnRoles = params.isCanSeeOwnUserAuthorityGroups() ||
+            (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        params.setDisjointRoles( !canSeeOwnRoles );
 
         if ( !params.hasUser() )
         {
@@ -317,7 +317,7 @@ public class DefaultUserService
 
         if ( params.isUserOrgUnits() && params.hasUser() )
         {
-            params.setOrganisationUnits( Lists.newArrayList( params.getUser().getOrganisationUnits() ) );
+            params.setOrganisationUnits( params.getUser().getOrganisationUnits() );
         }
     }
 

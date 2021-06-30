@@ -160,7 +160,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
             mediaTypeMap );
         pathExtensionNegotiationStrategy.setUseJaf( false );
 
-        String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls", "pdf", "csv" };
+        String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls", "pdf", "csv", "adx.xml" };
 
         ParameterContentNegotiationStrategy parameterContentNegotiationStrategy = new ParameterContentNegotiationStrategy(
             mediaTypeMap.entrySet().stream()
@@ -209,6 +209,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         .put( "csv", parseMediaType( "application/csv" ) )
         .put( "csv.gz", parseMediaType( "application/csv+gzip" ) )
         .put( "csv.zip", parseMediaType( "application/csv+zip" ) )
+        .put( "adx.xml", parseMediaType( "application/adx+xml" ) )
+        .put( "adx.xml.gz", parseMediaType( "application/adx+xml+gzip" ) )
+        .put( "adx.xml.zip", parseMediaType( "application/adx+xml+zip" ) )
         .put( "geojson", parseMediaType( "application/json+geojson" ) )
         .build();
 }

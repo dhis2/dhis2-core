@@ -207,6 +207,11 @@ public class ValidationErrorReporter
         return this.invalidDTOs.getOrDefault( trackerType, new ArrayList<>() ).contains( uid );
     }
 
+    public boolean isInvalid( TrackerDto dto )
+    {
+        return this.isInvalid( dto.getTrackerType(), dto.getUid() );
+    }
+
     public TrackerPreheat getPreheat()
     {
         return this.getValidationContext().getBundle().getPreheat();

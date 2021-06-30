@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi;
 import javax.transaction.Transactional;
 
 import org.hisp.dhis.artemis.config.ArtemisConfig;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.config.DataSourceConfig;
 import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.config.HibernateConfig;
@@ -86,7 +87,7 @@ import org.springframework.stereotype.Service;
     org.hisp.dhis.programrule.config.ProgramRuleConfig.class,
     org.hisp.dhis.reporting.config.StoreConfig.class,
     org.hisp.dhis.analytics.config.ServiceConfig.class,
-    org.hisp.dhis.commons.config.JacksonObjectMapperConfig.class,
+    JacksonObjectMapperConfig.class,
     StartupConfig.class,
     ArtemisConfig.class,
     AuthenticationProviderConfig.class,

@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.common;
 
 import java.io.IOException;
 
-import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseExtractor;

@@ -230,6 +230,19 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             hql += "and dv.deleted is false ";
         }
 
+        if ( params.isOrderByOrgUnitPath() )
+        {
+            hql += "order by ou.path ";
+        }
+
+        if ( params.isOrderByPeriod() )
+        {
+            hql += params.isOrderByOrgUnitPath()
+                ? ","
+                : "order by";
+            hql += " pe.startDate, pe.endDate ";
+        }
+
         // ---------------------------------------------------------------------
         // Query parameters
         // ---------------------------------------------------------------------
@@ -282,46 +295,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "deleted" ), false ) ) );
-    }
-
-    @Override
-    public List<DataValue> getDataValues( OrganisationUnit source, Period period,
-        Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo )
-    {
-        Period storedPeriod = periodStore.reloadPeriod( period );
-
-        if ( storedPeriod == null || dataElements == null || dataElements.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        String hql = "select dv from DataValue dv  where dv.dataElement in (:dataElements) and dv.period =:period and dv.deleted = false ";
-
-        if ( source != null )
-        {
-            hql += " and dv.source =:source ";
-        }
-
-        if ( attributeOptionCombo != null )
-        {
-            hql += " and dv.attributeOptionCombo =:attributeOptionCombo ";
-        }
-
-        Query<DataValue> query = getQuery( hql )
-            .setParameter( "dataElements", dataElements )
-            .setParameter( "period", storedPeriod );
-
-        if ( source != null )
-        {
-            query.setParameter( "source", source );
-        }
-
-        if ( attributeOptionCombo != null )
-        {
-            query.setParameter( "attributeOptionCombo", attributeOptionCombo );
-        }
-
-        return getList( query );
     }
 
     @Override

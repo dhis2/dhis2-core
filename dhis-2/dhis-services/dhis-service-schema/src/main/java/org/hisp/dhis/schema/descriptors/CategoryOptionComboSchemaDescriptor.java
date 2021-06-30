@@ -53,10 +53,9 @@ public class CategoryOptionComboSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1190 );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE,
+        schema.add( new Authority( AuthorityType.CREATE,
             Lists.newArrayList( "F_CATEGORY_COMBO_PUBLIC_ADD", "F_CATEGORY_COMBO_PRIVATE_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_CATEGORY_COMBO_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_CATEGORY_COMBO_DELETE" ) ) );
 
         return schema;
     }

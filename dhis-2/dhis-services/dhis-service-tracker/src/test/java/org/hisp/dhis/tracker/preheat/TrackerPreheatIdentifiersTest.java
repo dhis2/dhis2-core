@@ -43,7 +43,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
@@ -67,26 +66,6 @@ public class TrackerPreheatIdentifiersTest extends TrackerTest
         throws IOException
     {
         setUpMetadata( "tracker/identifier_metadata.json" );
-    }
-
-    @Test
-    public void testProgramIdentifiers()
-    {
-        List<Pair<String, TrackerIdentifier>> data = buildDataSet( "QfUVllTs6cS", "PRG1", "ProgramA" );
-
-        for ( Pair<String, TrackerIdentifier> pair : data )
-        {
-            Event event = new Event();
-            event.setProgram( pair.getLeft() );
-
-            TrackerImportParams params = buildParams( event, builder()
-                .programIdScheme( pair.getRight() )
-                .build() );
-
-            TrackerPreheat preheat = trackerPreheatService.preheat( params );
-
-            assertPreheatedObjectExists( preheat, Program.class, pair.getRight(), pair.getLeft() );
-        }
     }
 
     @Test

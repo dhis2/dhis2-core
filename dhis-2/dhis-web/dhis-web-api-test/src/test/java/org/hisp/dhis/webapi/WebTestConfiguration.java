@@ -32,6 +32,7 @@ import static org.mockito.Mockito.doAnswer;
 
 import javax.transaction.Transactional;
 
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.config.DataSourceConfig;
 import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.config.HibernateConfig;
@@ -46,6 +47,7 @@ import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.program.jdbc.JdbcOrgUnitAssociationStoreConfiguration;
 import org.hisp.dhis.scheduling.DefaultJobInstance;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
@@ -108,7 +110,8 @@ import com.google.common.collect.ImmutableMap;
     org.hisp.dhis.programrule.config.ProgramRuleConfig.class,
     org.hisp.dhis.reporting.config.StoreConfig.class,
     org.hisp.dhis.analytics.config.ServiceConfig.class,
-    org.hisp.dhis.commons.config.JacksonObjectMapperConfig.class,
+    JacksonObjectMapperConfig.class,
+    JdbcOrgUnitAssociationStoreConfiguration.class,
     StartupConfig.class
 } )
 @Transactional
@@ -197,4 +200,5 @@ public class WebTestConfiguration
         } ).when( manager ).getJob( any() );
         return manager;
     }
+
 }

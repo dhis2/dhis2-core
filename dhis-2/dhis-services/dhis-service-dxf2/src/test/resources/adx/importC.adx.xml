@@ -1,0 +1,23 @@
+<adx xmlns="urn:ihe:qrph:adx:2015">
+    <group dataSet="MalariaDSSS" period="2020-01-01/P1M" orgUnit="Provincial Hospital">
+        <dataValue dataElement="Mal_num" sexxxxxxxxx="Female" ageeeeeeeee="Under 5" value="1"/>
+        <dataValue dataElement="Mal_num" sexxxxxxxxx="Male" ageeeeeeeee="Under 5" value="2"/>
+        <dataValue dataElement="Mal_num" categoryOptionCombo="F_Over5" value="3"/>
+        <dataValue dataElement="Mal_num" categoryOptionCombo="M_Over5" value="4"/>
+        <dataValue dataElement="Mal_text" value="0">
+            <annotation>Text data value</annotation>
+        </dataValue>
+    </group>
+    <group dataSet="MalariaDSSS" period="2020-02-01/P1M" orgUnit="District Hospital">
+        <dataValue dataElement="Mal_num" sexxxxxxxxx="Female" ageeeeeeeee="Under 5" value="6"/>
+    </group>
+    <group dataSet="MalariaMech" mechanismmm="PEPFAR mechanism" period="2021-01-01/P3M" orgUnit="District Hospital">
+        <dataValue dataElement="Mal_num" sexxxxxxxxx="Female" ageeeeeeeee="Under 5" value="10"/>
+    </group>
+    <group dataSet="MalariaMech" mechanismmm="McDonalds mechanism" period="2021-01-01/P3M" orgUnit="District Hospital">
+        <dataValue dataElement="Mal_num" sexxxxxxxxx="Female" ageeeeeeeee="Over 5" value="20"/>
+    </group>
+    <group dataSet="MalariaMech" attributeOptionCombo="coc_McDonalds" period="2021-01-01/P3M" orgUnit="District Hospital">
+        <dataValue dataElement="Mal_num" sexxxxxxxxx="Male" ageeeeeeeee="Under 5" value="30"/>
+    </group>
+</adx>

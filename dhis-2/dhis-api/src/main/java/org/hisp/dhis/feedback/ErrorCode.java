@@ -45,6 +45,18 @@ public enum ErrorCode
     E1104( "Attribute option combo not found or not accessible: `{0}`" ),
     E1105( "Data set not found or not accessible: `{0}`" ),
 
+    /* Org unit merge */
+    E1500( "At least two source orgs unit must be specified" ),
+    E1501( "Target org unit must be specified" ),
+    E1502( "Target org unit cannot be a source org unit" ),
+
+    /* Org unit split */
+    E1510( "Source org unit must be specified" ),
+    E1511( "At least two target org units must be specified" ),
+    E1512( "Source org unit cannot be a target org unit" ),
+    E1513( "Primary target must be specified" ),
+    E1514( "Primary target must be a target org unit" ),
+
     /* Data */
     E2000( "Query parameters cannot be null" ),
     E2001( "At least one data element, data set or data element group must be specified" ),
@@ -84,6 +96,7 @@ public enum ErrorCode
     E2035( "Operator not supported: `{0}`" ),
     E2036( "Combination not supported: `{0}`" ),
     E2037( "Order not supported: `{0}`" ),
+    E2038( "Field not supported: `{0}`" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),
@@ -111,8 +124,7 @@ public enum ErrorCode
     E3008( "User `{0}` is not allowed to make public objects of type `{1}`." ),
     E3009( "User `{0}` is not allowed to make private objects of type `{1}`." ),
     E3010( "Invalid access string `{0}`." ),
-    E3011(
-        "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
+    E3011( "Data sharing is not enabled for type `{0}`, but access strings contain data sharing read or write." ),
     E3012( "User `{0}` does not have read access for object `{1}`." ),
     E3013( "Sharing settings of system default metadata object of type `{0}` cannot be modified." ),
     E3014( "You do not have manage access to this object." ),
@@ -192,9 +204,8 @@ public enum ErrorCode
     E4312( "Current user is not authorised to read data from SQL view: `{0}`" ),
 
     /* Preheat */
-    E5000(
-        "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
-    E5001( "No matching object for given reference. Identifier was {0}, and object was {1}." ),
+    E5000( "Found matching object for reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
+    E5001( "No matching object for reference. Identifier was {0}, and object was {1}." ),
     E5002( "Invalid reference {0} on object {1} for association `{2}`." ),
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." ),
@@ -202,8 +213,8 @@ public enum ErrorCode
 
     /* Metadata import */
     E6000( "Program `{0}` has more than one Program Instances" ),
-    E6001(
-        "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage." ),
+    E6001( "ProgramStage `{0}` has invalid next event scheduling property `{1}`. " +
+        "This property need to be data element of value type date and belong the program stage." ),
 
     /* File resource */
     E6100( "Filename not present" ),
@@ -213,16 +224,12 @@ public enum ErrorCode
     E6200( "Feedback message recipients user group not defined" ),
 
     /* Scheduling */
-    E7000(
-        "Failed to add/update job configuration, another job of the same type already scheduled with cron expression: `{0}`" ),
-    E7002( "Failed to add/update job configuration, UID does not exist" ),
-    E7003(
-        "Failed to add/update job configuration, only interval can be configured for non configurable job type: `{0}`" ),
-    E7004(
-        "Failed to add/update job configuration, cron expression must be not null for job with scheduling type CRON: `{0}`" ),
-    E7005( "Failed to add/update job configuration, cron expression is invalid: `{0}` " ),
+    E7000( "Job of same type already scheduled with cron expression: `{0}`" ),
+    E7003( "Only interval property can be configured for non configurable job type: `{0}`" ),
+    E7004( "Cron expression must be not null for job with scheduling type CRON: `{0}`" ),
+    E7005( "Cron expression is invalid for job: `{0}` " ),
     E7006( "Failed to execute job: `{0}`." ),
-    E7007( "Failed to add/update job configuration, delay must be not null with scheduling type FIXED_DELAY: `{0}`" ),
+    E7007( "Delay must be not null for job with scheduling type FIXED_DELAY: `{0}`" ),
     E7010( "Failed to validate job runtime: `{0}`" ),
 
     /* Aggregate analytics */
@@ -240,7 +247,7 @@ public enum ErrorCode
     E7111( "Dimensions cannot be specified more than once: `{0}`" ),
     E7112( "Reporting rates can only be specified together with dimensions of type: `{0}`" ),
     E7113( "Assigned categories cannot be specified when data elements are not specified" ),
-    E7114( "Assigned categories can only be specified together with data elements, not indicators or reporting rates" ),
+    E7114( "Assigned categories can only be specified together with data elements" ),
     E7115( "Data elements must be of a value and aggregation type that allow aggregation: `{0}`" ),
     E7116( "Indicator expressions cannot contain cyclic references: `{0}`" ),
     E7117( "A data dimension 'dx' must be specified when output format is DATA_VALUE_SET" ),
@@ -281,8 +288,8 @@ public enum ErrorCode
     E7216( "Query item must be aggregateable when used in aggregate query: `{0}`" ),
     E7217( "User is not allowed to view event analytics data: `{0}`" ),
     E7218( "Spatial database support is not enabled" ),
-    E7219( "Data element must be of value type coordinate or org unit in order to be used as coordinate field: `{0}`" ),
-    E7220( "Attribute must be of value type coordinate or org unit in order to be used as coordinate field: `{0}`" ),
+    E7219( "Data element must be of value type coordinate or org unit to be used as coordinate field: `{0}`" ),
+    E7220( "Attribute must be of value type coordinate or org unit to be used as coordinate field: `{0}`" ),
     E7221( "Coordinate field is invalid: `{0}`" ),
     E7222( "Query item or filter is invalid: `{0}`" ),
     E7223( "Value does not refer to a data element or attribute which are numeric and part of the program: `{0}`" ),
@@ -303,7 +310,46 @@ public enum ErrorCode
     E7500( "Organisation unit does not exist: `{0}`" ),
     E7501( "Validation rule does not exist: `{0}`" ),
     E7502( "Filter for period is not valid: `{0}`" ),
-    E7503( "Filter for created date period is not valid: `{0}`" );
+    E7503( "Filter for created date period is not valid: `{0}`" ),
+
+    /* Data import validation */
+    // Data Set validation
+    E7600( "Data set not found or not accessible: `{0}`" ),
+    E7601( "User does not have write access for DataSet: `{0}`" ),
+    E7602( "A valid dataset is required" ),
+    E7603( "Org unit not found or not accessible: `{0}`" ),
+    E7604( "Attribute option combo not found or not accessible: `{0}`" ),
+    // Data Value validation
+    E7610( "Data element not found or not accessible: `{0}`" ),
+    E7611( "Period not valid: `{0}`" ),
+    E7612( "Organisation unit not found or not accessible: `{0}`" ),
+    E7613( "Category option combo not found or not accessible for writing data: `{0}`" ),
+    E7614( "Category option combo: `{0}` option not accessible: `{1}`" ),
+    E7615( "Attribute option combo not found or not accessible for writing data: `{0}`" ),
+    E7616( "Attribute option combo: `{0}` option not accessible: `{1}`" ),
+    E7617( "Organisation unit: `{0}` not in hierarchy of current user: `{1}`" ),
+    E7618( "Data value or comment not specified for data element: `{0}`" ),
+    E7619( "Value must match data element''s `{0}` type constraints: {1}" ),
+    E7620( "Invalid comment: {0}" ),
+    E7621( "Data value is not a valid option of the data element option set: `{0}`" ),
+    // Data Value constraints
+    E7630( "Category option combo is required but is not specified" ),
+    E7631( "Attribute option combo is required but is not specified" ),
+    E7632( "Period type of period: `{0}` not valid for data element: `{1}`" ),
+    E7633( "Data element: `{0}` is not part of dataset: `{1}`" ),
+    E7634( "Category option combo: `{0}` must be part of category combo of data element: `{1}`" ),
+    E7635( "Attribute option combo: `{0}` must be part of category combo of data sets of data element: `{1}`" ),
+    E7636( "Data element: `{1}` must be assigned through data sets to organisation unit: `{0}`" ),
+    E7637( "Invalid storedBy: {0}" ),
+    E7638( "Period: `{0}` is not within date range of attribute option combo: `{1}`" ),
+    E7639( "Organisation unit: `{0}` is not valid for attribute option combo: `{1}`" ),
+    E7640( "Current date is past expiry days for period: `{0}`  and data set: `{1}`" ),
+    E7641( "Period: `{0}` is after latest open future period: `{2}` for data element: `{1}`" ),
+    E7642(
+        "Data is already approved for data set: `{3}` period: `{1}` organisation unit: `{0}` attribute option combo: `{2}`" ),
+    E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),
+    E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),
+    E7645( "No data value for file resource exist for the given combination for data element: `{0}`" );
 
     private String message;
 

@@ -31,7 +31,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.association.IdentifiableObjectAssociations;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -221,6 +222,15 @@ public interface CategoryService
      */
     Set<CategoryOption> getCoDimensionConstraints( UserCredentials userCredentials );
 
+    /**
+     * returns associations between categoryOptions and orgUnits
+     *
+     * @param categoryOptionsUids a list of categoryOption uids
+     * @return an IdentifiableObjectAssociations representing associations
+     *         between each categoryOption in input and orgUnits
+     */
+    IdentifiableObjectAssociations getCategoryOptionOrganisationUnitsAssociations( Set<String> categoryOptionsUids );
+
     // -------------------------------------------------------------------------
     // CategoryCombo
     // -------------------------------------------------------------------------
@@ -375,16 +385,6 @@ public interface CategoryService
         Set<CategoryOption> categoryOptions );
 
     /**
-     * Retrieves the CategoryOptionCombo with the given uid and
-     * {@link IdentifiableProperty}.
-     *
-     * @param id the id of the CategoryOptionCombo.
-     * @param property the type of id to use
-     * @return the CategoryOptionCombo.
-     */
-    CategoryOptionCombo getCategoryOptionCombo( IdentifiableProperty property, String id );
-
-    /**
      * Retrieves all CategoryOptionCombos.
      *
      * @return a list of CategoryOptionCombos.
@@ -433,11 +433,11 @@ public interface CategoryService
      * control by only returning objects which the current user has
      * {@code data write} access to.
      *
-     * @param property the property.
+     * @param idScheme the id scheme.
      * @param id the id.
      * @return a category option combo.
      */
-    CategoryOptionCombo getCategoryOptionComboAcl( IdentifiableProperty property, String id );
+    CategoryOptionCombo getCategoryOptionComboAcl( IdScheme idScheme, String id );
 
     /**
      * Updates the name property of all category option combinations.

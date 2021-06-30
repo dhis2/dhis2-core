@@ -69,7 +69,7 @@ import org.hisp.dhis.system.util.JRExportUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationService;
+import org.hisp.dhis.visualization.VisualizationGridService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
@@ -95,7 +95,7 @@ public class DefaultReportService
 
     private final IdentifiableObjectStore<Report> reportStore;
 
-    private final VisualizationService visualizationService;
+    private final VisualizationGridService visualizationService;
 
     private final ConstantService constantService;
 
@@ -111,7 +111,7 @@ public class DefaultReportService
 
     public DefaultReportService(
         @Qualifier( "org.hisp.dhis.report.ReportStore" ) IdentifiableObjectStore<Report> reportStore,
-        VisualizationService visualizationService,
+        VisualizationGridService visualizationService,
         ConstantService constantService, OrganisationUnitService organisationUnitService, PeriodService periodService,
         I18nManager i18nManager, DataSource dataSource, SystemSettingManager systemSettingManager )
     {

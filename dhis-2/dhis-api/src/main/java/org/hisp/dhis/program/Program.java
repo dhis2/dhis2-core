@@ -209,6 +209,22 @@ public class Program
         organisationUnit.getPrograms().add( this );
     }
 
+    public void addOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        organisationUnits.forEach( this::addOrganisationUnit );
+    }
+
+    public boolean removeOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        organisationUnits.remove( organisationUnit );
+        return organisationUnit.getPrograms().remove( this );
+    }
+
+    public void removeOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        organisationUnits.forEach( this::removeOrganisationUnit );
+    }
+
     /**
      * Returns IDs of searchable TrackedEntityAttributes.
      */

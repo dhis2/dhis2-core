@@ -34,7 +34,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
@@ -74,7 +74,7 @@ public class SynchronizationController
     public void execute( HttpServletResponse response )
         throws IOException
     {
-        ImportSummary summary = synchronizationManager.executeDataValuePush();
+        ImportConflicts summary = synchronizationManager.executeDataValuePush();
 
         response.setContentType( CONTENT_TYPE_JSON );
         renderService.toJson( response.getOutputStream(), summary );

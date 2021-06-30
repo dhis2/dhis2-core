@@ -46,7 +46,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -81,9 +80,6 @@ public class ProgramRuleIntegrationTest
 
     @Autowired
     private ObjectBundleValidationService objectBundleValidationService;
-
-    @Autowired
-    private SystemSettingManager systemSettingManager;
 
     private User userA;
 

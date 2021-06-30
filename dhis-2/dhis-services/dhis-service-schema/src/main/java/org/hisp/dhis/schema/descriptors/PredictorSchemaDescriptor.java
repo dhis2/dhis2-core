@@ -53,9 +53,8 @@ public class PredictorSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 2001 );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PREDICTOR_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PREDICTOR_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PREDICTOR_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PREDICTOR_DELETE" ) ) );
 
         return schema;
     }

@@ -82,6 +82,7 @@ public class ResourceTableController
         HttpServletResponse response, HttpServletRequest request )
     {
         Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
+        Set<String> skipPrograms = new HashSet<>();
 
         if ( skipAggregate )
         {
@@ -101,6 +102,7 @@ public class ResourceTableController
         }
 
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
+            skipPrograms,
             skipResourceTables );
 
         JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "",

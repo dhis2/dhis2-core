@@ -65,17 +65,17 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public void postCommit( ObjectBundle bundle )
     {
-        if ( !bundle.getObjectMap().containsKey( OrganisationUnit.class ) )
+        if ( !bundle.hasObjects( OrganisationUnit.class ) )
         {
             return;
         }
 
-        List<IdentifiableObject> objects = bundle.getObjectMap().get( OrganisationUnit.class );
+        Iterable<OrganisationUnit> objects = bundle.getObjects( OrganisationUnit.class );
         Map<String, Map<String, Object>> objectReferences = bundle.getObjectReferences( OrganisationUnit.class );
 
         Session session = sessionFactory.getCurrentSession();
 
-        for ( IdentifiableObject identifiableObject : objects )
+        for ( OrganisationUnit identifiableObject : objects )
         {
             identifiableObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), identifiableObject );
             Map<String, Object> objectReferenceMap = objectReferences
@@ -87,7 +87,7 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
                 continue;
             }
 
-            OrganisationUnit organisationUnit = (OrganisationUnit) identifiableObject;
+            OrganisationUnit organisationUnit = identifiableObject;
             OrganisationUnit parentRef = (OrganisationUnit) objectReferenceMap.get( "parent" );
             OrganisationUnit parent = bundle.getPreheat().get( bundle.getPreheatIdentifier(), parentRef );
 

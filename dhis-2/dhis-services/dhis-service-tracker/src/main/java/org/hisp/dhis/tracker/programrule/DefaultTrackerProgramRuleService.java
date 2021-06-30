@@ -53,6 +53,7 @@ import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -160,7 +161,7 @@ public class DefaultTrackerProgramRuleService
                 if ( enrollment == null )
                 {
                     return programRuleEngine.evaluateProgramEvents( Sets.newHashSet( programStageInstances ),
-                        bundle.getPreheat().get( Program.class, entry.getValue().get( 0 ).getProgram() ) )
+                        getProgramFromEvent( bundle.getPreheat(), entry.getValue().get( 0 ) ) )
                         .stream();
                 }
                 else
@@ -177,6 +178,11 @@ public class DefaultTrackerProgramRuleService
                 }
             } )
             .collect( Collectors.toList() );
+    }
+
+    private Program getProgramFromEvent( TrackerPreheat preheat, Event event )
+    {
+        return preheat.get( Program.class, event.getProgram() );
     }
 
     private ProgramInstance getEnrollment( TrackerBundle bundle, String enrollmentUid )

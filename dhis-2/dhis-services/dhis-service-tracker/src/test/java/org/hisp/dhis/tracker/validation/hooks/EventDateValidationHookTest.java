@@ -67,8 +67,6 @@ import com.google.common.collect.Sets;
 public class EventDateValidationHookTest
     extends DhisConvenienceTest
 {
-    private static final String PROGRAM_STAGE = "ProgramStage";
-
     private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";
 
     private static final String PROGRAM_WITHOUT_REGISTRATION_ID = "ProgramWithoutRegistration";
@@ -92,11 +90,11 @@ public class EventDateValidationHookTest
 
         when( validationContext.getBundle() ).thenReturn( bundle );
 
-        when( validationContext.getProgram( PROGRAM_WITHOUT_REGISTRATION_ID ) )
-            .thenReturn( getProgramWithoutRegistration() );
-
         when( validationContext.getProgram( PROGRAM_WITH_REGISTRATION_ID ) )
             .thenReturn( getProgramWithRegistration() );
+
+        when( validationContext.getProgram( PROGRAM_WITHOUT_REGISTRATION_ID ) )
+            .thenReturn( getProgramWithoutRegistration() );
     }
 
     @Test

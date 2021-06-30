@@ -42,6 +42,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -185,7 +186,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 3, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 3, dataValueService.getAllDataValues().size() );
@@ -199,7 +200,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 0, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 3, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 0, dataValueService.getAllDataValues().size() );
@@ -221,7 +222,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 12, dataValueService.getAllDataValues().size() );
@@ -253,7 +254,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 4, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 14, dataValueService.getAllDataValues().size() );
@@ -313,7 +314,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 8, dataValueService.getAllDataValues().size() );
@@ -347,7 +348,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 4, summary.getImportCount().getImported() );
         assertEquals( 8, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 12, dataValueService.getAllDataValues().size() );
@@ -381,7 +382,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 8, summary.getImportCount().getImported() );
         assertEquals( 4, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 16, dataValueService.getAllDataValues().size() );
@@ -414,7 +415,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 0, summary.getImportCount().getImported() );
         assertEquals( 8, summary.getImportCount().getUpdated() );
         assertEquals( 4, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 8, dataValueService.getAllDataValues().size() );
@@ -447,7 +448,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 6, summary.getImportCount().getUpdated() );
         assertEquals( 4, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 10, dataValueService.getAllDataValues().size() );
@@ -483,9 +484,17 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 0, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 12, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 0, dataValueService.getAllDataValues().size() );
+    }
+
+    private static void assertHasNoConflicts( ImportConflicts summary )
+    {
+        if ( summary.hasConflicts() )
+        {
+            assertEquals( summary.getConflictsDescription(), 0, summary.getConflictCount() );
+        }
     }
 }

@@ -28,15 +28,19 @@
 package org.hisp.dhis.organisationunit;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Set;
 
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Jan Bernitt
  */
 public class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTest
 {
-
     @Test
     public void testGetOrganisationUnitGroupsWithoutGroupSets()
     {
@@ -57,5 +61,21 @@ public class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTe
         addOrganisationUnitGroupSet( 'S', withSet );
 
         assertContainsOnly( groupStore.getOrganisationUnitGroupsWithGroupSets(), withSet );
+    }
+
+    @Test
+    public void testGetOrgUnitGroupInGroupSet()
+    {
+        OrganisationUnit organisationUnitA = addOrganisationUnit( 'A' );
+        OrganisationUnit organisationUnitB = addOrganisationUnit( 'B' );
+        OrganisationUnit organisationUnitC = addOrganisationUnit( 'C' );
+        OrganisationUnitGroup groupA = addOrganisationUnitGroup( 'A', organisationUnitA );
+        OrganisationUnitGroup groupB = addOrganisationUnitGroup( 'B', organisationUnitB );
+        OrganisationUnitGroup groupC = addOrganisationUnitGroup( 'C', organisationUnitC );
+        Set<OrganisationUnitGroup> groups = Sets.newHashSet( groupA, groupB );
+
+        OrganisationUnitGroupSet groupSet = addOrganisationUnitGroupSet( 'A', groupA, groupC );
+
+        assertEquals( groupA, groupStore.getOrgUnitGroupInGroupSet( groups, groupSet ) );
     }
 }
