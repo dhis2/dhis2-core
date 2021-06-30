@@ -613,7 +613,7 @@ public class DefaultCsvImportService
     {
         ListMap<String, Option> nameOptionMap = new ListMap<>();
         Map<String, OptionSet> nameOptionSetMap = new HashMap<>();
-
+        List<Option> options = new ArrayList<>();
         // Read option sets and options and put in maps
 
         while ( reader.readRecord() )
@@ -642,7 +642,7 @@ public class DefaultCsvImportService
 
                 nameOptionMap.putValue( optionSet.getName(), option );
 
-                metadata.getOptions().add( option );
+                options.add( option );
             }
         }
 
@@ -651,13 +651,10 @@ public class DefaultCsvImportService
         for ( String optionSetName : nameOptionSetMap.keySet() )
         {
             OptionSet optionSet = nameOptionSetMap.get( optionSetName );
-
-            List<Option> options = new ArrayList<>( nameOptionMap.get( optionSetName ) );
-
-            optionSet.setOptions( options );
-
-            metadata.getOptionSets().add( optionSet );
+            optionSet.setOptions( new ArrayList<>( nameOptionMap.get( optionSetName ) ) );
         }
+        metadata.setOptions( options );
+        metadata.setOptionSets( new ArrayList<>( nameOptionSetMap.values() ) );
     }
 
     /**
@@ -766,9 +763,8 @@ public class DefaultCsvImportService
             Set<Option> options = new HashSet<>( nameOptionMap.get( optionGroupName ) );
 
             optionGroup.setMembers( options );
-
-            metadata.getOptionGroups().add( optionGroup );
         }
+        metadata.setOptionGroups( new ArrayList<>( nameOptionGroupMap.values() ) );
     }
 
     /**
