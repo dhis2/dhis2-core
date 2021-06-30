@@ -138,9 +138,9 @@ public class MetadataOrgUnitMergeHandler
                 .setTeiSearchOrganisationUnits( request.getSources() ) ) )
             .build();
 
-        users.forEach( o -> {
-            o.addOrganisationUnit( request.getTarget() );
-            o.removeOrganisationUnits( request.getSources() );
+        users.forEach( u -> {
+            u.addOrganisationUnit( request.getTarget() );
+            u.removeOrganisationUnits( request.getSources() );
         } );
     }
 
