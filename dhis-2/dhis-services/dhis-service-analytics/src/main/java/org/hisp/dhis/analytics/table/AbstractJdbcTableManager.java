@@ -182,7 +182,7 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void createTable( AnalyticsTable table )
     {
-        if ( getPartitionColumn() != null )
+        if ( tableTypeIsPartitioned() )
         {
             createPartitionTableWithPartitions( table );
         }
@@ -190,7 +190,6 @@ public abstract class AbstractJdbcTableManager
         {
             createNonPartitionedAnalyticsTable( table );
         }
-
     }
 
     @Override
@@ -213,11 +212,11 @@ public abstract class AbstractJdbcTableManager
                 "on " + inx.getTable() + " " +
                 "using " + inx.getType().keyword() + " (" + indexColumns + ");";
 
-            log.debug( "Create index: {} SQl: {}", indexName, sql );
+            log.debug( "Create index: '{}' with SQL: '{}'", indexName, sql );
 
             jdbcTemplate.execute( sql );
 
-            log.debug( "Created index: {}", indexName );
+            log.debug( "Created index: '{}'", indexName );
         }
 
         return null;
@@ -230,6 +229,7 @@ public abstract class AbstractJdbcTableManager
         boolean skipMasterTable = params.isPartialUpdate() && tableExists;
 
         log.info( "Swapping table, master table exists: {}, skip master table: {}", tableExists, skipMasterTable );
+
         if ( getPartitionColumn() != null )
         {
             table.getTablePartitions().forEach( p -> swapTable( table, p ) );
@@ -309,9 +309,8 @@ public abstract class AbstractJdbcTableManager
     protected abstract List<String> getPartitionChecks( AnalyticsTablePartition partition );
 
     /**
-     * Returns a list of table checks (constraints) for the given analytics
-     * table partition.
-     *
+     * Returns the partition column name for the analytics table type, or null
+     * if the table type is not partitioned.
      */
     protected abstract String getPartitionColumn();
 
@@ -395,11 +394,12 @@ public abstract class AbstractJdbcTableManager
 
     private void createNonPartitionedAnalyticsTable( AnalyticsTable table )
     {
-        String tableName = table.getTableName();
-        String tempTableName = table.getTempTableName();
-        final String CREATE_TABLE = "create table if not exists ";
-        String sqlCreate = CREATE_TABLE + tableName + " (";
-        String sqlCreateTemp = CREATE_TABLE + tempTableName + " (";
+        final String tableName = table.getTableName();
+        final String tempTableName = table.getTempTableName();
+        final String createTableSql = "create table if not exists ";
+
+        String sqlCreate = createTableSql + tableName + " (";
+        String sqlCreateTemp = createTableSql + tempTableName + " (";
 
         String columns = ListUtils.union( table.getDimensionColumns(), table.getValueColumns() )
             .stream()
@@ -412,12 +412,14 @@ public abstract class AbstractJdbcTableManager
         sqlCreate = sqlCreate + columns;
         sqlCreateTemp = sqlCreateTemp + columns;
 
-        log.debug( "Creating non partitioned analytic table: {}", tableName );
+        log.debug( "Creating non partitioned analytic table: '{}'", tableName );
 
-        log.debug( "Create SQL: {}", sqlCreate );
+        log.debug( "Create SQL: '{}'", sqlCreate );
+
         jdbcTemplate.execute( sqlCreate );
 
-        log.debug( "CreateTemp SQL: {}", sqlCreateTemp );
+        log.debug( "CreateTemp SQL: '{}'", sqlCreateTemp );
+
         jdbcTemplate.execute( sqlCreateTemp );
     }
 
@@ -578,7 +580,6 @@ public abstract class AbstractJdbcTableManager
      *
      * @return a List of {@link AnalyticsTableColumn}
      */
-    @SuppressWarnings( "JavadocReference" )
     protected List<AnalyticsTableColumn> addOrganisationUnitLevels()
     {
         return organisationUnitService.getFilledOrganisationUnitLevels().stream()
@@ -630,8 +631,11 @@ public abstract class AbstractJdbcTableManager
             " alter table " + mainTableName + " attach partition " + realTableName
                 + " for values in (" + tablePartition.getYear() + ")"
         };
+
         final String sql = String.join( ";", sqlSteps ) + ";";
+
         log.debug( sql );
+
         executeSilently( sql );
     }
 
@@ -644,8 +648,11 @@ public abstract class AbstractJdbcTableManager
             " drop table if exists " + mainTableName + " cascade",
             " alter table " + tempTableName + " rename to " + mainTableName
         };
+
         final String sql = String.join( ";", sqlSteps ) + ";";
+
         log.debug( sql );
+
         executeSilently( sql );
     }
 
@@ -688,16 +695,15 @@ public abstract class AbstractJdbcTableManager
             sqlCreate += " partition by list(\"" + partitionColumn + "\")";
         }
 
-        log.debug( "Creating table: {}, columns: {}", tableName, table.getDimensionColumns().size() );
-
-        log.debug( "Created SQL: {}", sqlCreate );
+        log.debug( "Creating table: '{}', columns: {}", tableName, table.getDimensionColumns().size() );
+        log.debug( "Created SQL: '{}'", sqlCreate );
 
         jdbcTemplate.execute( sqlCreate );
     }
 
     /**
      * Create a table partition when partition is not null and there is a valid
-     * column for partition index
+     * column for partition index.
      *
      * @param table the partition table.
      * @param partition the table partition.
@@ -707,13 +713,20 @@ public abstract class AbstractJdbcTableManager
         if ( partition != null && getPartitionColumn() != null )
         {
             String createTableAsPartitionOfSql = "create table if not exists " + partition.getTableName()
-                + " partition of " +
-                table.getTableName() + " for values in " + "(" + partition.getYear() + ")";
+                + " partition of " + table.getTableName() + " for values in " + "(" + partition.getYear() + ")";
 
-            log.debug( "Creating table: {}, columns: {}", partition.getTableName(),
+            log.debug( "Creating table: '{}', columns: {}", partition.getTableName(),
                 table.getDimensionColumns().size() );
-            log.debug( "Create table as partition of: {}" + createTableAsPartitionOfSql );
+
             jdbcTemplate.execute( createTableAsPartitionOfSql );
         }
+    }
+
+    /**
+     * Indicates whether this analytics table type is partitioned.
+     */
+    private boolean tableTypeIsPartitioned()
+    {
+        return getPartitionColumn() != null;
     }
 }

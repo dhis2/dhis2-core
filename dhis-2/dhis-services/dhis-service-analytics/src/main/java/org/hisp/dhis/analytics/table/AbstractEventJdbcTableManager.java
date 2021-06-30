@@ -63,7 +63,6 @@ import org.springframework.scheduling.annotation.Async;
 /**
  * @author Markus Bekken
  */
-
 public abstract class AbstractEventJdbcTableManager
     extends AbstractJdbcTableManager
 {
