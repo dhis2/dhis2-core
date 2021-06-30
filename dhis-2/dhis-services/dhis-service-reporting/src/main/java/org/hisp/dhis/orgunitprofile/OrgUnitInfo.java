@@ -59,6 +59,12 @@ public class OrgUnitInfo
     private String description;
 
     @JsonProperty
+    private String parent;
+
+    @JsonProperty
+    private Integer hierarchyLevel;
+
+    @JsonProperty
     private Date openingDate;
 
     @JsonProperty
