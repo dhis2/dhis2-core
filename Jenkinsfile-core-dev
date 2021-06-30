@@ -18,7 +18,7 @@ pipeline {
         MAVEN_OPTS = '-Xms1024m -Xmx4096m'
         AWX_TEMPLATE = 37
         HOST = 'play.dhis2.org'
-        INSTANCE_NAME = 'dev'
+        INSTANCE_NAME = "${env.GIT_BRANCH == 'master' ? 'dev' : env.GIT_BRANCH + 'dev'}"
     }
 
     stages {
