@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.csv;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
 
 import java.io.IOException;
@@ -36,8 +37,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -51,7 +53,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -204,8 +205,8 @@ public class DefaultCsvImportService
                 DataElement object = new DataElement();
                 setIdentifiableObject( object, values );
                 object.setShortName( getSafe( values, 3, object.getName(), 50 ) );
-                object.setDescription( getSafe( values, 4, null, null ) );
-                object.setFormName( getSafe( values, 5, null, 230 ) );
+                object.setDescription( getSafe( values, 4 ) );
+                object.setFormName( getSafe( values, 5, 230 ) );
 
                 String domainType = getSafe( values, 6, DataElementDomain.AGGREGATE.getValue(), 16 );
                 object.setDomainType( DataElementDomain.fromValue( domainType ) );
@@ -213,11 +214,11 @@ public class DefaultCsvImportService
 
                 object.setAggregationType(
                     AggregationType.valueOf( getSafe( values, 8, AggregationType.SUM.toString(), 50 ) ) );
-                String categoryComboUid = getSafe( values, 9, null, 11 );
-                object.setUrl( getSafe( values, 10, null, 255 ) );
-                object.setZeroIsSignificant( Boolean.valueOf( getSafe( values, 11, "false", null ) ) );
-                String optionSetUid = getSafe( values, 12, null, 11 );
-                String commentOptionSetUid = getSafe( values, 13, null, 11 );
+                String categoryComboUid = getSafe( values, 9, 11 );
+                object.setUrl( getSafe( values, 10, 255 ) );
+                object.setZeroIsSignificant( Boolean.parseBoolean( getSafe( values, 11, "false", null ) ) );
+                String optionSetUid = getSafe( values, 12, 11 );
+                String commentOptionSetUid = getSafe( values, 13, 11 );
                 object.setAutoFields();
 
                 CategoryCombo cc = new CategoryCombo();
@@ -279,7 +280,7 @@ public class DefaultCsvImportService
     private List<DataElementGroup> dataElementGroupMembersFromCsv( CsvReader reader )
         throws IOException
     {
-        CachingMap<String, DataElementGroup> uidMap = new CachingMap<>();
+        Map<String, DataElementGroup> uidMap = new HashMap<>();
 
         while ( reader.readRecord() )
         {
@@ -294,7 +295,7 @@ public class DefaultCsvImportService
 
                 if ( persistedGroup != null )
                 {
-                    DataElementGroup group = uidMap.get( groupUid, () -> {
+                    DataElementGroup group = uidMap.computeIfAbsent( groupUid, key -> {
                         DataElementGroup nonPersistedGroup = new DataElementGroup();
                         nonPersistedGroup.setUid( persistedGroup.getUid() );
                         nonPersistedGroup.setName( persistedGroup.getName() );
@@ -314,7 +315,7 @@ public class DefaultCsvImportService
     private List<IndicatorGroup> indicatorGroupMembersFromCsv( CsvReader reader )
         throws IOException
     {
-        CachingMap<String, IndicatorGroup> uidMap = new CachingMap<>();
+        Map<String, IndicatorGroup> uidMap = new HashMap<>();
 
         while ( reader.readRecord() )
         {
@@ -330,7 +331,7 @@ public class DefaultCsvImportService
                 if ( persistedGroup != null )
                 {
 
-                    IndicatorGroup group = uidMap.get( groupUid, () -> {
+                    IndicatorGroup group = uidMap.computeIfAbsent( groupUid, key -> {
                         IndicatorGroup nonPersistedGroup = new IndicatorGroup();
                         nonPersistedGroup.setUid( persistedGroup.getUid() );
                         nonPersistedGroup.setName( persistedGroup.getName() );
@@ -380,10 +381,10 @@ public class DefaultCsvImportService
             {
                 Category object = new Category();
                 setIdentifiableObject( object, values );
-                object.setDescription( getSafe( values, 3, null, 255 ) );
+                object.setDescription( getSafe( values, 3, 255 ) );
                 object.setDataDimensionType( DataDimensionType
                     .valueOf( getSafe( values, 4, DataDimensionType.DISAGGREGATION.toString(), 40 ) ) );
-                object.setDataDimension( Boolean.valueOf( getSafe( values, 5, Boolean.FALSE.toString(), 40 ) ) );
+                object.setDataDimension( Boolean.parseBoolean( getSafe( values, 5, Boolean.FALSE.toString(), 40 ) ) );
                 list.add( object );
             }
         }
@@ -406,7 +407,7 @@ public class DefaultCsvImportService
                 setIdentifiableObject( object, values );
                 object.setDataDimensionType( DataDimensionType
                     .valueOf( getSafe( values, 3, DataDimensionType.DISAGGREGATION.toString(), 40 ) ) );
-                object.setSkipTotal( Boolean.valueOf( getSafe( values, 4, Boolean.FALSE.toString(), 40 ) ) );
+                object.setSkipTotal( Boolean.parseBoolean( getSafe( values, 4, Boolean.FALSE.toString(), 40 ) ) );
                 list.add( object );
             }
         }
@@ -451,8 +452,8 @@ public class DefaultCsvImportService
 
                 ValidationRule object = new ValidationRule();
                 setIdentifiableObject( object, values );
-                object.setDescription( getSafe( values, 3, null, 255 ) );
-                object.setInstruction( getSafe( values, 4, null, 255 ) );
+                object.setDescription( getSafe( values, 3, 255 ) );
+                object.setInstruction( getSafe( values, 4, 255 ) );
                 object.setImportance( Importance.valueOf( getSafe( values, 5, Importance.MEDIUM.toString(), 255 ) ) );
                 // Index 6 was rule type which has been removed from the data
                 // model
@@ -460,13 +461,13 @@ public class DefaultCsvImportService
                 object.setPeriodType(
                     PeriodType.getByNameIgnoreCase( getSafe( values, 8, MonthlyPeriodType.NAME, 255 ) ) );
 
-                leftSide.setExpression( getSafe( values, 9, null, 255 ) );
-                leftSide.setDescription( getSafe( values, 10, null, 255 ) );
+                leftSide.setExpression( getSafe( values, 9, 255 ) );
+                leftSide.setDescription( getSafe( values, 10, 255 ) );
                 leftSide.setMissingValueStrategy( MissingValueStrategy
                     .safeValueOf( getSafe( values, 11, MissingValueStrategy.NEVER_SKIP.toString(), 50 ) ) );
 
-                rightSide.setExpression( getSafe( values, 12, null, 255 ) );
-                rightSide.setDescription( getSafe( values, 13, null, 255 ) );
+                rightSide.setExpression( getSafe( values, 12, 255 ) );
+                rightSide.setDescription( getSafe( values, 13, 255 ) );
                 rightSide.setMissingValueStrategy( MissingValueStrategy
                     .safeValueOf( getSafe( values, 14, MissingValueStrategy.NEVER_SKIP.toString(), 50 ) ) );
 
@@ -482,9 +483,8 @@ public class DefaultCsvImportService
     }
 
     private void setGeometry( OrganisationUnit ou, FeatureType featureType, String coordinates )
-        throws IOException
     {
-        if ( !(featureType == FeatureType.NONE) && StringUtils.isNotBlank( coordinates ) )
+        if ( featureType != FeatureType.NONE && StringUtils.isNotBlank( coordinates ) )
         {
             ou.setGeometryAsJson( String.format( JSON_GEOM_TEMPL, featureType.value(), coordinates ) );
         }
@@ -503,22 +503,19 @@ public class DefaultCsvImportService
             {
                 OrganisationUnit object = new OrganisationUnit();
                 setIdentifiableObject( object, values );
-                String parentUid = getSafe( values, 3, null, 230 ); // Could be
-                                                                    // UID,
-                                                                    // code,
-                                                                    // name
+                String parentUid = getSafe( values, 3, 230 );
                 object.setShortName( getSafe( values, 4, object.getName(), 50 ) );
-                object.setDescription( getSafe( values, 5, null, null ) );
+                object.setDescription( getSafe( values, 5 ) );
                 object.setOpeningDate( getMediumDate( getSafe( values, 6, "1970-01-01", null ) ) );
-                object.setClosedDate( getMediumDate( getSafe( values, 7, null, null ) ) );
-                object.setComment( getSafe( values, 8, null, null ) );
+                object.setClosedDate( getMediumDate( getSafe( values, 7 ) ) );
+                object.setComment( getSafe( values, 8 ) );
                 setGeometry( object, FeatureType.valueOf( getSafe( values, 9, "NONE", 50 ) ),
-                    getSafe( values, 10, null, null ) );
-                object.setUrl( getSafe( values, 11, null, 255 ) );
-                object.setContactPerson( getSafe( values, 12, null, 255 ) );
-                object.setAddress( getSafe( values, 13, null, 255 ) );
-                object.setEmail( getSafe( values, 14, null, 150 ) );
-                object.setPhoneNumber( getSafe( values, 15, null, 150 ) );
+                    getSafe( values, 10 ) );
+                object.setUrl( getSafe( values, 11, 255 ) );
+                object.setContactPerson( getSafe( values, 12, 255 ) );
+                object.setAddress( getSafe( values, 13, 255 ) );
+                object.setEmail( getSafe( values, 14, 150 ) );
+                object.setPhoneNumber( getSafe( values, 15, 150 ) );
                 object.setAutoFields();
 
                 if ( parentUid != null )
@@ -560,7 +557,7 @@ public class DefaultCsvImportService
     private List<OrganisationUnitGroup> orgUnitGroupMembersFromCsv( CsvReader reader )
         throws IOException
     {
-        CachingMap<String, OrganisationUnitGroup> uidMap = new CachingMap<>();
+        Map<String, OrganisationUnitGroup> uidMap = new HashMap<>();
 
         while ( reader.readRecord() )
         {
@@ -577,7 +574,7 @@ public class DefaultCsvImportService
                 if ( persistedGroup != null )
                 {
 
-                    OrganisationUnitGroup group = uidMap.get( groupUid, () -> {
+                    OrganisationUnitGroup group = uidMap.computeIfAbsent( groupUid, key -> {
                         OrganisationUnitGroup nonPersistedGroup = new OrganisationUnitGroup();
 
                         nonPersistedGroup.setUid( persistedGroup.getUid() );
@@ -628,9 +625,9 @@ public class DefaultCsvImportService
                 optionSet.setValueType( ValueType.TEXT );
 
                 Option option = new Option();
-                option.setName( getSafe( values, 3, null, 230 ) );
+                option.setName( getSafe( values, 3, 230 ) );
                 option.setUid( getSafe( values, 4, CodeGenerator.generateUid(), 11 ) );
-                option.setCode( getSafe( values, 5, null, 50 ) );
+                option.setCode( getSafe( values, 5, 50 ) );
                 option.setAutoFields();
 
                 if ( optionSet.getName() == null || option.getCode() == null )
@@ -648,10 +645,9 @@ public class DefaultCsvImportService
 
         // Read option sets from map and set in meta data
 
-        for ( String optionSetName : nameOptionSetMap.keySet() )
+        for ( Entry<String, OptionSet> optionSetEntry : nameOptionSetMap.entrySet() )
         {
-            OptionSet optionSet = nameOptionSetMap.get( optionSetName );
-            optionSet.setOptions( new ArrayList<>( nameOptionMap.get( optionSetName ) ) );
+            optionSetEntry.getValue().setOptions( new ArrayList<>( nameOptionMap.get( optionSetEntry.getKey() ) ) );
         }
         metadata.setOptions( options );
         metadata.setOptionSets( new ArrayList<>( nameOptionSetMap.values() ) );
@@ -668,17 +664,13 @@ public class DefaultCsvImportService
      * <li>option set uid</li>
      * <li>option uid</li>
      * </ul>
-     *
-     * @param reader
-     * @param metadata
-     * @throws IOException
      */
     private void setOptionGroupsFromCsv( CsvReader reader, Metadata metadata )
         throws IOException
     {
         ListMap<String, Option> nameOptionMap = new ListMap<>();
         Map<String, OptionGroup> nameOptionGroupMap = new HashMap<>();
-        CachingMap<String, OptionSet> mapOptionSet = new CachingMap<>();
+        Map<String, OptionSet> mapOptionSet = new HashMap<>();
 
         while ( reader.readRecord() )
         {
@@ -688,7 +680,7 @@ public class DefaultCsvImportService
             {
                 OptionGroup optionGroup = new OptionGroup();
                 setIdentifiableObject( optionGroup, values );
-                optionGroup.setShortName( getSafe( values, 3, null, 50 ) );
+                optionGroup.setShortName( getSafe( values, 3, 50 ) );
                 optionGroup.setAutoFields();
 
                 if ( optionGroup.getName() == null || optionGroup.getShortName() == null )
@@ -697,7 +689,7 @@ public class DefaultCsvImportService
                 }
 
                 OptionSet optionSet = new OptionSet();
-                optionSet.setUid( getSafe( values, 4, null, 11 ) );
+                optionSet.setUid( getSafe( values, 4, 11 ) );
 
                 if ( optionSet.getUid() == null )
                 {
@@ -705,17 +697,10 @@ public class DefaultCsvImportService
                 }
 
                 OptionSet persistedOptionSet = optionSet.getUid() != null
-                    ? mapOptionSet.get( optionSet.getUid(), () -> {
-                        OptionSet persistedOS = optionService.getOptionSet( optionSet.getUid() );
-                        persistedOS.getOptions();
-                        return persistedOS;
-                    } )
-                    : mapOptionSet.get( optionSet.getCode(), () -> {
-                        OptionSet persistedOS = optionService.getOptionSetByCode( optionSet.getUid() );
-                        persistedOS.getOptions();
-                        return persistedOS;
-                    } );
-
+                    ? mapOptionSet.computeIfAbsent( optionSet.getUid(),
+                        key -> optionService.getOptionSet( optionSet.getUid() ) )
+                    : mapOptionSet.computeIfAbsent( optionSet.getCode(),
+                        key -> optionService.getOptionSetByCode( optionSet.getCode() ) );
                 if ( persistedOptionSet == null )
                 {
                     continue;
@@ -724,8 +709,8 @@ public class DefaultCsvImportService
                 optionGroup.setOptionSet( optionSet );
 
                 Option option = new Option();
-                option.setUid( getSafe( values, 5, null, 11 ) );
-                option.setCode( getSafe( values, 6, null, 50 ) );
+                option.setUid( getSafe( values, 5, 11 ) );
+                option.setCode( getSafe( values, 6, 50 ) );
 
                 if ( option.getCode() == null && option.getUid() == null )
                 {
@@ -755,14 +740,9 @@ public class DefaultCsvImportService
         }
 
         // Read option groups from map and set in meta data
-
-        for ( String optionGroupName : nameOptionGroupMap.keySet() )
+        for ( Entry<String, OptionGroup> optionGroupEntry : nameOptionGroupMap.entrySet() )
         {
-            OptionGroup optionGroup = nameOptionGroupMap.get( optionGroupName );
-
-            Set<Option> options = new HashSet<>( nameOptionMap.get( optionGroupName ) );
-
-            optionGroup.setMembers( options );
+            optionGroupEntry.getValue().setMembers( new HashSet<>( nameOptionMap.get( optionGroupEntry.getKey() ) ) );
         }
         metadata.setOptionGroups( new ArrayList<>( nameOptionGroupMap.values() ) );
     }
@@ -779,16 +759,12 @@ public class DefaultCsvImportService
      * <li>option set uid</li>
      * <li>option set code</li>
      * </ul>
-     *
-     * @param reader
-     * @return
-     * @throws IOException
      */
     private List<OptionGroupSet> setOptionGroupSetFromCsv( CsvReader reader )
         throws IOException
     {
         List<OptionGroupSet> optionGroupSets = new ArrayList<>();
-        CachingMap<String, OptionSet> mapOptionSet = new CachingMap<>();
+        Map<String, OptionSet> mapOptionSet = new HashMap<>();
 
         while ( reader.readRecord() )
         {
@@ -799,13 +775,13 @@ public class DefaultCsvImportService
                 OptionGroupSet optionGroupSet = new OptionGroupSet();
                 optionGroupSet.setAutoFields();
                 setIdentifiableObject( optionGroupSet, values );
-                optionGroupSet.setDescription( getSafe( values, 4, null, null ) );
+                optionGroupSet.setDescription( getSafe( values, 4 ) );
                 optionGroupSet
-                    .setDataDimension( Boolean.valueOf( getSafe( values, 3, Boolean.FALSE.toString(), 40 ) ) ); // boolean
+                    .setDataDimension( Boolean.parseBoolean( getSafe( values, 3, Boolean.FALSE.toString(), 40 ) ) ); // boolean
 
                 OptionSet optionSet = new OptionSet();
-                optionSet.setUid( getSafe( values, 5, null, 11 ) );
-                optionSet.setCode( getSafe( values, 6, null, 50 ) );
+                optionSet.setUid( getSafe( values, 5, 11 ) );
+                optionSet.setCode( getSafe( values, 6, 50 ) );
 
                 if ( optionSet.getUid() == null && optionSet.getCode() == null )
                 {
@@ -813,9 +789,10 @@ public class DefaultCsvImportService
                 }
 
                 OptionSet persistedOptionSet = optionSet.getUid() != null
-                    ? mapOptionSet.get( optionSet.getUid(), () -> optionService.getOptionSet( optionSet.getUid() ) )
-                    : mapOptionSet.get( optionSet.getCode(),
-                        () -> optionService.getOptionSetByCode( optionSet.getCode() ) );
+                    ? mapOptionSet.computeIfAbsent( optionSet.getUid(),
+                        key -> optionService.getOptionSet( optionSet.getUid() ) )
+                    : mapOptionSet.computeIfAbsent( optionSet.getCode(),
+                        key -> optionService.getOptionSetByCode( optionSet.getCode() ) );
 
                 if ( persistedOptionSet == null )
                 {
@@ -836,20 +813,12 @@ public class DefaultCsvImportService
      * <li>option group set uid</li>
      * <li>option group uid</li>
      * </ul>
-     *
-     * @param reader
-     * @return
-     * @throws IOException
      */
     public List<OptionGroupSet> optionGroupSetMembersFromCsv( CsvReader reader )
         throws IOException
     {
-        // NOSONAR
-        CachingMap<String, OptionGroupSet> uidMap = new CachingMap<>(); // NOSONAR
-        // TODO: Why is this? Looks like it is not in use? See:
-        // https://github.com/dhis2/dhis2-core/security/code-scanning/1347
-        // NOSONAR
-        CachingMap<String, OptionGroupSet> persistedGroupSetMap = new CachingMap<>(); // NOSONAR
+        Map<String, OptionGroupSet> uidMap = new HashMap<>();
+        Map<String, OptionGroupSet> persistedGroupSetMap = new HashMap<>();
 
         while ( reader.readRecord() )
         {
@@ -857,19 +826,19 @@ public class DefaultCsvImportService
 
             if ( values != null && values.length > 0 )
             {
-                String groupSetUid = getSafe( values, 0, null, 11 );
-                String groupUid = getSafe( values, 1, null, 11 );
+                String groupSetUid = getSafe( values, 0, 11 );
+                String groupUid = getSafe( values, 1, 11 );
                 if ( groupSetUid == null || groupUid == null )
                 {
                     continue;
                 }
 
-                OptionGroupSet persistedGroupSet = persistedGroupSetMap.get( groupSetUid,
-                    () -> optionService.getOptionGroupSet( groupSetUid ) );
+                OptionGroupSet persistedGroupSet = persistedGroupSetMap.computeIfAbsent( groupSetUid,
+                    key -> optionService.getOptionGroupSet( key ) );
 
                 if ( persistedGroupSet != null )
                 {
-                    OptionGroupSet optionSetGroup = uidMap.get( groupSetUid, () -> {
+                    OptionGroupSet optionSetGroup = uidMap.computeIfAbsent( groupSetUid, key -> {
                         OptionGroupSet nonPersistedGroup = new OptionGroupSet();
                         nonPersistedGroup.setAutoFields();
                         nonPersistedGroup.setUid( persistedGroupSet.getUid() );
@@ -900,9 +869,9 @@ public class DefaultCsvImportService
      */
     private static void setIdentifiableObject( BaseIdentifiableObject object, String[] values )
     {
-        object.setName( getSafe( values, 0, null, 230 ) );
-        object.setUid( getSafe( values, 1, CodeGenerator.generateUid(), 11 ) );
-        object.setCode( getSafe( values, 2, null, 50 ) );
+        object.setName( getSafe( values, 0, 230 ) );
+        object.setUid( getSafe( values, 1, CodeGenerator::generateUid, 11 ) );
+        object.setCode( getSafe( values, 2, 50 ) );
     }
 
     /**
@@ -915,24 +884,34 @@ public class DefaultCsvImportService
      */
     private static String getSafe( String[] values, int index, String defaultValue, Integer maxChars )
     {
-        String string;
-
-        if ( values == null || index < 0 || index >= values.length )
+        if ( values == null || index < 0 || index >= values.length || isBlank( values[index] ) )
         {
-            string = defaultValue;
+            return defaultValue == null ? null : limitLength( defaultValue, maxChars );
         }
-        else
+        return limitLength( values[index], maxChars );
+    }
+
+    private static String getSafe( String[] values, int index, int maxChars )
+    {
+        return getSafe( values, index, (String) null, maxChars );
+    }
+
+    private static String getSafe( String[] values, int index )
+    {
+        return getSafe( values, index, (String) null, null );
+    }
+
+    private static String getSafe( String[] values, int index, Supplier<String> defaultValue, Integer maxChars )
+    {
+        if ( values == null || index < 0 || index >= values.length || isBlank( values[index] ) )
         {
-            string = values[index];
+            return defaultValue == null ? null : limitLength( defaultValue.get(), maxChars );
         }
+        return limitLength( values[index], maxChars );
+    }
 
-        string = StringUtils.defaultIfBlank( string, defaultValue );
-
-        if ( string != null )
-        {
-            return maxChars != null ? StringUtils.substring( string, 0, maxChars ) : string;
-        }
-
-        return null;
+    private static String limitLength( String str, Integer maxChars )
+    {
+        return maxChars != null ? StringUtils.substring( str, 0, maxChars ) : str;
     }
 }
