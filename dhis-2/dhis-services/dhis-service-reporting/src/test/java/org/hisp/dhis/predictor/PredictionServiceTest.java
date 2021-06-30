@@ -67,6 +67,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.joda.time.DateTime;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -134,11 +135,11 @@ public class PredictionServiceTest
 
     private CategoryOptionCombo altCombo;
 
-    CategoryOption altCategoryOption;
+    private CategoryOption altCategoryOption;
 
-    Category altCategory;
+    private Category altCategory;
 
-    CategoryCombo altCategoryCombo;
+    private CategoryCombo altCategoryCombo;
 
     private Set<DataElement> dataElements;
 
@@ -525,6 +526,7 @@ public class PredictionServiceTest
     }
 
     @Test
+    @Ignore
     public void testPredictSequential()
     {
         setupTestData();
