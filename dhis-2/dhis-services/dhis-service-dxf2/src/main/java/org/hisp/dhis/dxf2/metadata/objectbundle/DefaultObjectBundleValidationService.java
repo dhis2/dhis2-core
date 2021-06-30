@@ -125,7 +125,7 @@ public class DefaultObjectBundleValidationService
 
         if ( AtomicMode.ALL == bundle.getAtomicMode() )
         {
-            if ( !validation.getErrorReports().isEmpty() )
+            if ( validation.hasErrorReports() )
             {
                 nonPersistedObjects.clear();
                 persistedObjects.clear();
