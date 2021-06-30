@@ -1,7 +1,5 @@
-package org.hisp.dhis.maintenance;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.maintenance;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.maintenance;
 
 /**
  * @author Lars Helge Overland
@@ -34,24 +33,24 @@ package org.hisp.dhis.maintenance;
 public interface MaintenanceStore
 {
     /**
-     * Deletes data values registered with 0 as value and associated with
-     * data elements with sum as aggregation operator.
-     * 
+     * Deletes data values registered with 0 as value and associated with data
+     * elements with sum as aggregation operator.
+     *
      * @return the number of deleted data values.
      */
     int deleteZeroDataValues();
-    
+
     /**
-     * Permanently deletes data values which have been soft deleted, i.e.
-     * data values where the deleted property is true.
-     * 
+     * Permanently deletes data values which have been soft deleted, i.e. data
+     * values where the deleted property is true.
+     *
      * @return the number of deleted data values.
      */
     int deleteSoftDeletedDataValues();
 
     /**
-     * Permanently deletes program stage instances which have been soft deleted, i.e.
-     * program stage instances where the deleted property is true.
+     * Permanently deletes program stage instances which have been soft deleted,
+     * i.e. program stage instances where the deleted property is true.
      *
      * @return the number of deleted program stage instances
      */
@@ -66,8 +65,9 @@ public interface MaintenanceStore
     int deleteSoftDeletedProgramInstances();
 
     /**
-     * Permanently deletes tracked entity instances which have been soft deleted, i.e.
-     * tracked entity instances where the deleted property is true.
+     * Permanently deletes tracked entity instances which have been soft
+     * deleted, i.e. tracked entity instances where the deleted property is
+     * true.
      *
      * @return the number of deleted tracked entity instances
      */

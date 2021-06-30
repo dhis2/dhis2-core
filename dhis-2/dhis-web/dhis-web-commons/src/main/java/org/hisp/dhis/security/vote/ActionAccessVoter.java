@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.vote;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,18 @@ package org.hisp.dhis.security.vote;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.vote;
 
-import com.opensymphony.xwork2.config.entities.ActionConfig;
+import java.util.Collection;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.security.StrutsAuthorityUtils;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
-import java.util.Collection;
+import com.opensymphony.xwork2.config.entities.ActionConfig;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -89,8 +90,10 @@ public class ActionAccessVoter
         }
 
         ActionConfig actionConfig = (ActionConfig) object;
-        Collection<ConfigAttribute> requiredAuthorities = StrutsAuthorityUtils.getConfigAttributes( actionConfig, requiredAuthoritiesKey );
-        Collection<ConfigAttribute> anyAuthorities = StrutsAuthorityUtils.getConfigAttributes( actionConfig, anyAuthoritiesKey );
+        Collection<ConfigAttribute> requiredAuthorities = StrutsAuthorityUtils.getConfigAttributes( actionConfig,
+            requiredAuthoritiesKey );
+        Collection<ConfigAttribute> anyAuthorities = StrutsAuthorityUtils.getConfigAttributes( actionConfig,
+            anyAuthoritiesKey );
 
         int allStatus = allAuthorities( authentication, object, requiredAuthorities );
 

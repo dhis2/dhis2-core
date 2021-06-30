@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.controller;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,7 +103,8 @@ public class MobileOrganisationUnitController
     // For client version 2.8 and lower
     @RequestMapping( method = RequestMethod.GET, value = "orgUnits/{id}/all" )
     @ResponseBody
-    public MobileModel getAllDataForOrgUnit2_8( @PathVariable int id, @RequestHeader( "accept-language" ) String locale )
+    public MobileModel getAllDataForOrgUnit2_8( @PathVariable int id,
+        @RequestHeader( "accept-language" ) String locale )
     {
         MobileModel mobileModel = new MobileModel();
         mobileModel.setClientVersion( DataStreamSerializable.TWO_POINT_EIGHT );
@@ -127,7 +127,7 @@ public class MobileOrganisationUnitController
 
     /**
      * Save a facility report for unit
-     * 
+     *
      * @param dataSetValue - the report to save
      * @throws NotAllowedException if the {@link DataSetValue} is invalid
      */
@@ -142,7 +142,7 @@ public class MobileOrganisationUnitController
 
     /**
      * Save activity report for unit
-     * 
+     *
      * @param activityValue - the report to save
      * @throws NotAllowedException if the {@link ActivityValue activity value}
      *         is invalid
@@ -169,7 +169,8 @@ public class MobileOrganisationUnitController
 
     @RequestMapping( method = RequestMethod.GET, value = "orgUnits/{id}/changeLanguageDataSet" )
     @ResponseBody
-    public DataSetList changeLanguageDataSet2_8( @PathVariable int id, @RequestHeader( "accept-language" ) String locale )
+    public DataSetList changeLanguageDataSet2_8( @PathVariable int id,
+        @RequestHeader( "accept-language" ) String locale )
     {
         return facilityReportingService.getDataSetsForLocale( getUnit( id ), locale );
     }
@@ -207,7 +208,7 @@ public class MobileOrganisationUnitController
 
     /**
      * Save a facility report for unit
-     * 
+     *
      * @param dataSetValue - the report to save
      * @throws NotAllowedException if the {@link DataSetValue} is invalid
      */
@@ -242,7 +243,7 @@ public class MobileOrganisationUnitController
 
     /**
      * Save a facility report for unit
-     * 
+     *
      * @param dataSetValue - the report to save
      * @throws NotAllowedException if the {@link DataSetValue} is invalid
      */
@@ -261,7 +262,7 @@ public class MobileOrganisationUnitController
 
     /**
      * Save activity report for unit
-     * 
+     *
      * @param activityValue - the report to save
      * @throws NotAllowedException if the {@link ActivityValue activity value}
      *         is invalid
@@ -297,7 +298,7 @@ public class MobileOrganisationUnitController
         org.hisp.dhis.api.mobile.model.LWUITmodel.MobileModel mobileModel = new org.hisp.dhis.api.mobile.model.LWUITmodel.MobileModel();
         mobileModel.setClientVersion( clientVersion );
         mobileModel.setServerCurrentDate( new Date() );
-        
+
         return mobileModel;
     }
 

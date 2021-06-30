@@ -1,7 +1,5 @@
-package org.hisp.dhis.node.serializers;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,12 @@ package org.hisp.dhis.node.serializers;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.node.serializers;
 
-import com.bedatadriven.jackson.datatype.jts.JtsModule;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Geometry;
+import java.io.OutputStream;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.node.AbstractNodeSerializer;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
@@ -44,9 +41,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
-import java.io.OutputStream;
-import java.util.Date;
-import java.util.List;
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -66,7 +66,7 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
         objectMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
         objectMapper.configure( SerializationFeature.WRAP_EXCEPTIONS, true );
         objectMapper.getFactory().enable( JsonGenerator.Feature.QUOTE_FIELD_NAMES );
-        objectMapper.registerModule( new JtsModule(  ) );
+        objectMapper.registerModule( new JtsModule() );
     }
 
     private JsonGenerator generator = null;
@@ -78,19 +78,22 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void flushStream() throws Exception
+    protected void flushStream()
+        throws Exception
     {
         generator.flush();
     }
 
     @Override
-    protected void startSerialize( RootNode rootNode, OutputStream outputStream ) throws Exception
+    protected void startSerialize( RootNode rootNode, OutputStream outputStream )
+        throws Exception
     {
         generator = objectMapper.getFactory().createGenerator( outputStream );
     }
 
     @Override
-    protected void startWriteRootNode( RootNode rootNode ) throws Exception
+    protected void startWriteRootNode( RootNode rootNode )
+        throws Exception
     {
         if ( config.getProperties().containsKey( JSONP_CALLBACK ) )
         {
@@ -101,7 +104,8 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteRootNode( RootNode rootNode ) throws Exception
+    protected void endWriteRootNode( RootNode rootNode )
+        throws Exception
     {
         generator.writeEndObject();
 
@@ -112,7 +116,8 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void startWriteSimpleNode( SimpleNode simpleNode ) throws Exception
+    protected void startWriteSimpleNode( SimpleNode simpleNode )
+        throws Exception
     {
         Object value = simpleNode.getValue();
 
@@ -143,12 +148,14 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteSimpleNode( SimpleNode simpleNode ) throws Exception
+    protected void endWriteSimpleNode( SimpleNode simpleNode )
+        throws Exception
     {
     }
 
     @Override
-    protected void startWriteComplexNode( ComplexNode complexNode ) throws Exception
+    protected void startWriteComplexNode( ComplexNode complexNode )
+        throws Exception
     {
         if ( complexNode.getParent().isCollection() )
         {
@@ -161,13 +168,15 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteComplexNode( ComplexNode complexNode ) throws Exception
+    protected void endWriteComplexNode( ComplexNode complexNode )
+        throws Exception
     {
         generator.writeEndObject();
     }
 
     @Override
-    protected void startWriteCollectionNode( CollectionNode collectionNode ) throws Exception
+    protected void startWriteCollectionNode( CollectionNode collectionNode )
+        throws Exception
     {
         if ( collectionNode.getParent().isCollection() )
         {
@@ -180,7 +189,8 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteCollectionNode( CollectionNode collectionNode ) throws Exception
+    protected void endWriteCollectionNode( CollectionNode collectionNode )
+        throws Exception
     {
         generator.writeEndArray();
     }

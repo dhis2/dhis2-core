@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,15 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
+
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.translation.TranslationProperty;
 
 /**
  * @author Bob Jolliffe
@@ -103,8 +103,8 @@ public class BaseNameableObject
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the display property indicated by the given display property. Falls
-     * back to display name if display short name is null.
+     * Returns the display property indicated by the given display property.
+     * Falls back to display name if display short name is null.
      *
      * @param displayProperty the display property.
      * @return the display property.
@@ -137,7 +137,8 @@ public class BaseNameableObject
     }
 
     /**
-     * Class check uses isAssignableFrom and get-methods to handle proxied objects.
+     * Class check uses isAssignableFrom and get-methods to handle proxied
+     * objects.
      */
     @Override
     public boolean equals( Object o )
@@ -169,7 +170,8 @@ public class BaseNameableObject
             return false;
         }
 
-        if ( getDescription() != null ? !getDescription().equals( other.getDescription() ) : other.getDescription() != null )
+        if ( getDescription() != null ? !getDescription().equals( other.getDescription() )
+            : other.getDescription() != null )
         {
             return false;
         }

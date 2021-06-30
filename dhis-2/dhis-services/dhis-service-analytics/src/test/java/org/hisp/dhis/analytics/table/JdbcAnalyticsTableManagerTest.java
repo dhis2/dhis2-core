@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,13 @@ package org.hisp.dhis.analytics.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.table;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
@@ -61,17 +53,22 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 /**
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public class JdbcAnalyticsTableManagerTest
 {
     @Mock
@@ -88,7 +85,8 @@ public class JdbcAnalyticsTableManagerTest
     @Before
     public void setUp()
     {
-        subject = new JdbcAnalyticsTableManager( mock( IdentifiableObjectManager.class ), mock( OrganisationUnitService.class ),
+        subject = new JdbcAnalyticsTableManager( mock( IdentifiableObjectManager.class ),
+            mock( OrganisationUnitService.class ),
             mock( CategoryService.class ), systemSettingManager, mock( DataApprovalLevelService.class ),
             mock( ResourceTableService.class ), mock( AnalyticsTableHookService.class ), mock( StatementBuilder.class ),
             mock( PartitionManager.class ), mock( DatabaseInfo.class ), jdbcTemplate );
@@ -104,7 +102,8 @@ public class JdbcAnalyticsTableManagerTest
             .withStartTime( startTime )
             .build();
 
-        when( jdbcTemplate.queryForList( Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any() ) ).thenReturn( dataYears );
+        when( jdbcTemplate.queryForList( Mockito.anyString(), ArgumentMatchers.<Class<Integer>> any() ) )
+            .thenReturn( dataYears );
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
@@ -145,8 +144,10 @@ public class JdbcAnalyticsTableManagerTest
         List<Map<String, Object>> queryResp = Lists.newArrayList();
         queryResp.add( ImmutableMap.of( "dataelementid", 1 ) );
 
-        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) ).thenReturn( lastFullTableUpdate );
-        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) ).thenReturn( lastLatestPartitionUpdate );
+        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
+            .thenReturn( lastFullTableUpdate );
+        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) )
+            .thenReturn( lastLatestPartitionUpdate );
         when( jdbcTemplate.queryForList( Mockito.anyString() ) ).thenReturn( queryResp );
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
@@ -167,7 +168,7 @@ public class JdbcAnalyticsTableManagerTest
         assertEquals( startTime, partition.getEndDate() );
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test( expected = IllegalArgumentException.class )
     public void testGetLatestAnalyticsTableNoFullTableUpdate()
     {
         Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
@@ -178,8 +179,10 @@ public class JdbcAnalyticsTableManagerTest
             .withLatestPartition()
             .build();
 
-        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) ).thenReturn( null );
-        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) ).thenReturn( lastLatestPartitionUpdate );
+        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
+            .thenReturn( null );
+        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) )
+            .thenReturn( lastLatestPartitionUpdate );
 
         subject.getAnalyticsTables( params );
     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.expression;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +25,31 @@ package org.hisp.dhis.expression;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.expression;
+
+import java.io.Serializable;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-
-import java.io.Serializable;
 
 /**
  * An Expression is the expression of e.g. a validation rule. It consist of a
  * String representation of the rule as well as references to the data elements
  * and category option combos included in the expression.
  * <p/>
- * The expression can contain numbers and mathematical operators and contain references
- * to data elements and category option combos on the form:
+ * The expression can contain numbers and mathematical operators and contain
+ * references to data elements and category option combos on the form:
  * <p/>
  * i) [1.2] where 1 refers to the data element identifier and 2 refers to the
  * category option combo identifier.
  * <p/>
- * ii) [1] where 1 refers to the data element identifier, in this case the formula
- * represents the total value for all category option combos for that data element.
+ * ii) [1] where 1 refers to the data element identifier, in this case the
+ * formula represents the total value for all category option combos for that
+ * data element.
  *
  * @author Margrethe Store
  * @version $Id: Expression.java 5011 2008-04-24 20:41:28Z larshelg $
@@ -63,7 +64,9 @@ public class Expression
     private static final long serialVersionUID = -4868682510629094282L;
 
     public static final String SEPARATOR = ".";
+
     public static final String EXP_OPEN = "#{";
+
     public static final String EXP_CLOSE = "}";
 
     /**
@@ -104,7 +107,7 @@ public class Expression
     }
 
     /**
-     * @param expression  The expression as a String
+     * @param expression The expression as a String
      * @param description A description of the Expression.
      */
     public Expression( String expression, String description )
@@ -116,8 +119,8 @@ public class Expression
     /**
      * Constructor with all the parameters.
      *
-     * @param expression           The expression as a String
-     * @param description          A description of the Expression.
+     * @param expression The expression as a String
+     * @param description A description of the Expression.
      * @param missingValueStrategy Strategy for handling missing values.
      */
     public Expression( String expression, String description,

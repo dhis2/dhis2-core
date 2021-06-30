@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,16 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.appmanager.AppStatus;
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.apphub.WebApp;
+import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -45,10 +49,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Created by zubair@dhis2.org on 07.09.17.
@@ -66,7 +66,6 @@ public class AppHubController
     @Autowired
     private I18nManager i18nManager;
 
-
     @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody List<WebApp> listAppHub( HttpServletResponse response )
         throws IOException
@@ -77,7 +76,8 @@ public class AppHubController
     @RequestMapping( value = "/{versionId}", method = RequestMethod.POST )
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void installAppFromAppHub(@PathVariable String versionId ) throws WebMessageException
+    public void installAppFromAppHub( @PathVariable String versionId )
+        throws WebMessageException
     {
         AppStatus status = appHubService.installAppFromAppHub( versionId );
         if ( !status.ok() )

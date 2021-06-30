@@ -1,7 +1,5 @@
-package org.hisp.dhis.fileresource;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.fileresource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fileresource;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -36,17 +35,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * Job will fetch all the image FileResources with flag hasMultiple set to false. It will process those image FileResources create three images files for each of them.
- * Once created, images will be stored at EWS and flag hasMultiple is set to true.
+ * Job will fetch all the image FileResources with flag hasMultiple set to
+ * false. It will process those image FileResources create three images files
+ * for each of them. Once created, images will be stored at EWS and flag
+ * hasMultiple is set to true.
  *
  * @Author Zubair Asghar.
  */
@@ -60,7 +61,7 @@ public class ImageResizingJob extends AbstractJob
 
     private final ImageProcessingService imageProcessingService;
 
-    public ImageResizingJob(FileResourceContentStore fileResourceContentStore, FileResourceService fileResourceService,
+    public ImageResizingJob( FileResourceContentStore fileResourceContentStore, FileResourceService fileResourceService,
         ImageProcessingService imageProcessingService )
     {
         this.fileResourceContentStore = fileResourceContentStore;
@@ -91,7 +92,7 @@ public class ImageResizingJob extends AbstractJob
 
             tmpFile = new File( UUID.randomUUID().toString() );
 
-	    if ( !fileResourceContentStore.fileResourceContentExists( key ) )
+            if ( !fileResourceContentStore.fileResourceContentExists( key ) )
             {
                 log.error( "The referenced file could not be found for FileResource: " + fileResource.getUid() );
                 continue;

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.webdomain.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.webdomain.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.webdomain.user;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,10 +38,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class UserAccount
 {
     private String id;
-    
+
     // user account
     private String username;
-    
+
     private String firstName;
 
     private String surname;
@@ -71,7 +70,7 @@ public class UserAccount
     private String languages;
 
     private Map<String, String> settings = new HashMap<>();
-    
+
     public UserAccount()
     {
     }
@@ -92,12 +91,12 @@ public class UserAccount
     {
         return username;
     }
-    
+
     public void setUsername( String username )
     {
         this.username = username;
     }
-    
+
     @JsonProperty( required = true )
     public String getFirstName()
     {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -41,7 +40,8 @@ import org.springframework.mock.web.MockHttpSession;
 public class ApiVersionTypeTest extends DhisWebSpringTest
 {
     @Test
-    public void testTypeAnnotationDefault() throws Exception
+    public void testTypeAnnotationDefault()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testDefault";
@@ -57,7 +57,8 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testTypeAnnotationDefaultV31() throws Exception
+    public void testTypeAnnotationDefaultV31()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testDefaultV31";
@@ -73,7 +74,8 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testTypeAnnotationV31V32() throws Exception
+    public void testTypeAnnotationV31V32()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testV31V32";
@@ -89,7 +91,8 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testTypeAnnotationAll() throws Exception
+    public void testTypeAnnotationAll()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testAll";
@@ -105,7 +108,8 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testTypeAnnotationAllExcludeV32() throws Exception
+    public void testTypeAnnotationAllExcludeV32()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testAllExcludeV32";
@@ -121,7 +125,8 @@ public class ApiVersionTypeTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testTypeAnnotationDefaultAll() throws Exception
+    public void testTypeAnnotationDefaultAll()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/type/testDefaultAll";

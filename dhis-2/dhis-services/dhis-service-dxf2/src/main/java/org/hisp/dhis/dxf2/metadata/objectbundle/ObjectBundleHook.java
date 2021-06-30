@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
+
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
-
-import java.util.List;
 
 /**
  * Contains hooks for object bundle commit phase.
@@ -45,7 +44,8 @@ public interface ObjectBundleHook
      *
      * @param object Object to validate
      * @param bundle Current validation phase bundle
-     * @return Empty list if not errors, if errors then populated with one or more ErrorReports
+     * @return Empty list if not errors, if errors then populated with one or
+     *         more ErrorReports
      */
     <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle );
 
@@ -64,18 +64,22 @@ public interface ObjectBundleHook
     void postCommit( ObjectBundle bundle );
 
     /**
-     * Run before a type import has started. I.e. run before importing orgUnits, dataElements, etc.
+     * Run before a type import has started. I.e. run before importing orgUnits,
+     * dataElements, etc.
      *
      * @param bundle Current commit phase bundle
      */
-    <T extends IdentifiableObject> void preTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle );
+    <T extends IdentifiableObject> void preTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects,
+        ObjectBundle bundle );
 
     /**
-     * Run after a type import has finished. I.e. run before importing orgUnits, dataElements, etc.
+     * Run after a type import has finished. I.e. run before importing orgUnits,
+     * dataElements, etc.
      *
      * @param bundle Current commit phase bundle
      */
-    <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle );
+    <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects,
+        ObjectBundle bundle );
 
     /**
      * Run before object has been created.

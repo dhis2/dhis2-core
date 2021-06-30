@@ -1,5 +1,3 @@
-package org.hisp.dhis.user.hibernate;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,9 @@ package org.hisp.dhis.user.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user.hibernate;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
@@ -34,8 +35,6 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupInfoStore;
 import org.springframework.stereotype.Repository;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen

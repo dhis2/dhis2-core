@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.acl;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,13 @@ package org.hisp.dhis.security.acl;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.acl;
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+
+import java.util.HashSet;
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -54,10 +57,7 @@ import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashSet;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -78,7 +78,8 @@ public class AclServiceTest
     private CurrentUserService currentUserService;
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         userService = _userService;
     }
@@ -499,7 +500,7 @@ public class AclServiceTest
         assertTrue( aclService.canDelete( user1, dashboard ) );
         assertTrue( aclService.canManage( user1, dashboard ) );
 
-        UserAccess userAccess = new UserAccess(  );
+        UserAccess userAccess = new UserAccess();
         userAccess.setUser( user2 );
         userAccess.setAccess( AccessStringHelper.READ_WRITE );
         dashboard.getUserAccesses().add( userAccess );
@@ -530,7 +531,7 @@ public class AclServiceTest
         assertTrue( aclService.canDelete( user1, dashboard ) );
         assertTrue( aclService.canManage( user1, dashboard ) );
 
-        UserAccess userAccess = new UserAccess(  );
+        UserAccess userAccess = new UserAccess();
         userAccess.setUser( user2 );
         userAccess.setAccess( AccessStringHelper.READ );
         dashboard.getUserAccesses().add( userAccess );
@@ -1157,7 +1158,7 @@ public class AclServiceTest
     }
 
     @Test
-    public void testCanDataOrMetadataRead() 
+    public void testCanDataOrMetadataRead()
     {
         User user1 = createUser( "user1", "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD" );
         manager.save( user1 );
@@ -1176,12 +1177,12 @@ public class AclServiceTest
 
         CategoryOption categoryOption = new CategoryOption();
         categoryOption.setAutoFields();
-        categoryOption.setName( "coA");
+        categoryOption.setName( "coA" );
         categoryOption.setPublicAccess( AccessStringHelper.DATA_READ );
         categoryOption.setUser( user1 );
-        categoryOption.setPublicAccess("rwrw----");
+        categoryOption.setPublicAccess( "rwrw----" );
 
-        manager.save( categoryOption , false);
+        manager.save( categoryOption, false );
 
         assertTrue( aclService.canDataOrMetadataRead( user1, categoryOption ) );
     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.textpattern;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.textpattern;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.textpattern;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,12 +38,13 @@ import java.util.regex.Pattern;
 public class TextPatternParser
 {
     private static final String METHOD_REGEX = "(?<MethodName>[A-Z_]+?)\\(.*?\\)";
+
     private static final String JOIN_REGEX = "(?<Join>[\\s]*(?<JoinValue>\\+)[\\s]*)";
+
     private static final String TEXT_REGEX = "\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"";
 
     private static final Pattern EXPRESSION_REGEX = Pattern.compile(
-        String.format( "[\\s]*(?<Segment>(?<Method>%s|%s)|%s)+?[\\s]*", TEXT_REGEX, METHOD_REGEX, JOIN_REGEX )
-    );
+        String.format( "[\\s]*(?<Segment>(?<Method>%s|%s)|%s)+?[\\s]*", TEXT_REGEX, METHOD_REGEX, JOIN_REGEX ) );
 
     /**
      * Parses an expression, identifying segments and builds an IDExpression.
@@ -58,7 +58,8 @@ public class TextPatternParser
     {
         List<TextPatternSegment> segments = new ArrayList<>();
 
-        // True if we just parsed a Segment, False if we parsed a join or haven't parsed anything.
+        // True if we just parsed a Segment, False if we parsed a join or
+        // haven't parsed anything.
         boolean segment = false;
 
         boolean invalidExpression = true;
@@ -76,12 +77,9 @@ public class TextPatternParser
 
         /*
          * We go trough all matches. Matches can be one of the following:
-         * 
-         * <ul>
-         *   <li>a TEXT method ("..")</li>
-         *   <li>any TextPatternMethod (Excluding TEXT) (method(param))</li>
-         *   <li>a join ( + )</li>
-         * </ul>
+         *
+         * <ul> <li>a TEXT method ("..")</li> <li>any TextPatternMethod
+         * (Excluding TEXT) (method(param))</li> <li>a join ( + )</li> </ul>
          *
          * Matches that are invalid includes methods with unknown method names
          */
@@ -96,14 +94,16 @@ public class TextPatternParser
             if ( method != null )
             {
 
-                // This returns only the name of the method (see TextPatternMethod for valid names)
+                // This returns only the name of the method (see
+                // TextPatternMethod for valid names)
                 String methodName = m.group( "MethodName" );
 
                 // This means we encountered the syntax for TEXT method
                 if ( methodName == null ) // Text
                 {
 
-                    // Only add if valid syntax, else it will throw exception after if-else.
+                    // Only add if valid syntax, else it will throw exception
+                    // after if-else.
                     if ( TextPatternMethod.TEXT.getType().validatePattern( method ) )
                     {
                         segment = true;
@@ -116,12 +116,14 @@ public class TextPatternParser
                 // Catch all other methods
                 else
                 {
-                    // Attempt to find a matching method name in TextPatternMethod
+                    // Attempt to find a matching method name in
+                    // TextPatternMethod
                     try
                     {
                         TextPatternMethod textPatternMethod = TextPatternMethod.valueOf( methodName );
 
-                        // Only add if valid syntax, else it will throw exception after if-else.
+                        // Only add if valid syntax, else it will throw
+                        // exception after if-else.
                         if ( textPatternMethod.getType().validatePattern( method ) )
                         {
                             segment = true;
@@ -135,8 +137,10 @@ public class TextPatternParser
                     }
                 }
 
-                // If we are here, that means we found no matching methods, so throw an exception
-                throw new TextPatternParsingException( "Failed to parse the following method: '" + method + "'", m.start( "Method" ) );
+                // If we are here, that means we found no matching methods, so
+                // throw an exception
+                throw new TextPatternParsingException( "Failed to parse the following method: '" + method + "'",
+                    m.start( "Method" ) );
             }
 
             // Handle Join
@@ -174,7 +178,8 @@ public class TextPatternParser
     {
         TextPatternParsingException( String message, int position )
         {
-            super( "Could not parse expression: " + message + (position != -1 ? " at position " + (position + 1) : "") );
+            super(
+                "Could not parse expression: " + message + (position != -1 ? " at position " + (position + 1) : "") );
         }
     }
 }

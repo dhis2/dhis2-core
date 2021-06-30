@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentityattributevalue.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentityattributevalue.hibernate;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.SessionFactory;
@@ -41,10 +44,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 /**
  * @author Abyot Asalefew
  */
@@ -53,7 +52,8 @@ public class HibernateTrackedEntityAttributeValueStore
     extends HibernateGenericStore<TrackedEntityAttributeValue>
     implements TrackedEntityAttributeValueStore
 {
-    public HibernateTrackedEntityAttributeValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateTrackedEntityAttributeValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAttributeValue.class, false );
     }
@@ -70,7 +70,8 @@ public class HibernateTrackedEntityAttributeValueStore
     @Override
     public int deleteByTrackedEntityInstance( TrackedEntityInstance entityInstance )
     {
-        Query<TrackedEntityAttributeValue> query = getQuery( "delete from TrackedEntityAttributeValue where entityInstance = :entityInstance" );
+        Query<TrackedEntityAttributeValue> query = getQuery(
+            "delete from TrackedEntityAttributeValue where entityInstance = :entityInstance" );
         query.setParameter( "entityInstance", entityInstance );
         return query.executeUpdate();
     }
@@ -92,7 +93,8 @@ public class HibernateTrackedEntityAttributeValueStore
     {
         String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance";
 
-        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstance", entityInstance );
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstance",
+            entityInstance );
 
         return getList( typedQuery );
     }
@@ -117,7 +119,8 @@ public class HibernateTrackedEntityAttributeValueStore
 
         String query = " from TrackedEntityAttributeValue v where v.entityInstance  in :entityInstances";
 
-        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstances", entityInstances );
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstances",
+            entityInstances );
 
         return getList( typedQuery );
     }
@@ -129,7 +132,7 @@ public class HibernateTrackedEntityAttributeValueStore
 
         Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
             .setParameter( "attribute", attribute )
-            .setParameter( "searchText", "%" + StringUtils.lowerCase( searchText  ) + "%");
+            .setParameter( "searchText", "%" + StringUtils.lowerCase( searchText ) + "%" );
 
         return getList( typedQuery );
     }
@@ -161,7 +164,8 @@ public class HibernateTrackedEntityAttributeValueStore
     @Override
     public int getCountOfAssignedTEAValues( TrackedEntityAttribute attribute )
     {
-        Query query = getQuery( "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute" );
+        Query query = getQuery(
+            "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute" );
         query.setParameter( "attribute", attribute );
 
         return ((Long) query.getSingleResult()).intValue();

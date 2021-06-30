@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.collection;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.commons.collection;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.collection;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -47,8 +46,8 @@ public class CollectionUtils
     /**
      * Returns the intersection of the given Collections.
      *
-     * @param c1  the first Collection.
-     * @param c2  the second Collection.
+     * @param c1 the first Collection.
+     * @param c2 the second Collection.
      * @param <T> the type.
      * @return the intersection of the Collections.
      */
@@ -64,7 +63,7 @@ public class CollectionUtils
      * prefix. Removes the match from the collection.
      *
      * @param collection the collection.
-     * @param prefix     the string prefix.
+     * @param prefix the string prefix.
      * @return a string, or null if no matches.
      */
     public static String popStartsWith( Collection<String> collection, String prefix )
@@ -86,8 +85,8 @@ public class CollectionUtils
     }
 
     /**
-     * Applies the given consumer to each item in the given collection after filtering
-     * out null items.
+     * Applies the given consumer to each item in the given collection after
+     * filtering out null items.
      *
      * @param collection the collection.
      * @param consumer the consumer.

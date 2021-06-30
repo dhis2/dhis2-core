@@ -1,7 +1,5 @@
-package org.hisp.dhis.predictor;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,17 @@ package org.hisp.dhis.predictor;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.predictor;
 
-import org.hisp.dhis.dataelement.DataElement;
-
-import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Iterator;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Ken Haase
@@ -66,26 +64,26 @@ public class PredictorDeletionHandler
     @Override
     public String getClassName()
     {
-        return Predictor .class.getSimpleName();
+        return Predictor.class.getSimpleName();
     }
 
     @Override
     public void deleteExpression( Expression expression )
     {
         Iterator<Predictor> iterator = predictorService.getAllPredictors().iterator();
-        
+
         while ( iterator.hasNext() )
         {
             Predictor predictor = iterator.next();
-            
+
             Expression generator = predictor.getGenerator();
-            Expression skipTest= predictor.getSampleSkipTest();
+            Expression skipTest = predictor.getSampleSkipTest();
 
             if ( generator != null && generator.equals( expression ) ||
-                 skipTest != null && skipTest.equals( expression ) )
+                skipTest != null && skipTest.equals( expression ) )
             {
                 iterator.remove();
-                predictorService.deletePredictor ( predictor );
+                predictorService.deletePredictor( predictor );
             }
         }
     }
@@ -104,7 +102,7 @@ public class PredictorDeletionHandler
     public String allowDeleteDataElement( DataElement dataElement )
     {
         List<Predictor> predictors = predictorService.getAllPredictors();
-        
+
         for ( Predictor predictor : predictors )
         {
             if ( dataElement.typedEquals( predictor.getOutput() ) )
@@ -112,7 +110,7 @@ public class PredictorDeletionHandler
                 return predictor.getName();
             }
         }
-        
+
         return null;
     }
 }

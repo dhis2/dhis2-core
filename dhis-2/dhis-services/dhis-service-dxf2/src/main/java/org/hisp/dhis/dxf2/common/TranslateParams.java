@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,11 @@ package org.hisp.dhis.dxf2.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.apache.commons.lang3.StringUtils;
+package org.hisp.dhis.dxf2.common;
 
 import java.util.Locale;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

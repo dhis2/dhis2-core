@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.user.User;
+package org.hisp.dhis.dataapproval;
 
 import java.util.Date;
 
+import org.hisp.dhis.user.User;
+
 /**
- * Current status of data approval for a given selection of data from a
- * data set. Returns the approval state and, if approved for this particular
+ * Current status of data approval for a given selection of data from a data
+ * set. Returns the approval state and, if approved for this particular
  * selection, approval information.
  *
  * @author Jim Grace
@@ -47,9 +46,9 @@ public class DataApprovalStatus
     private DataApprovalState state;
 
     /**
-     * If the selection of data is approved, the data approval level object
-     * at which it is approved. If the selection is approved at more than
-     * one level, this is for the highest level of approval.
+     * If the selection of data is approved, the data approval level object at
+     * which it is approved. If the selection is approved at more than one
+     * level, this is for the highest level of approval.
      */
     private DataApprovalLevel approvedLevel;
 
@@ -61,8 +60,8 @@ public class DataApprovalStatus
 
     /**
      * If the selection of data is approved, the approval level (same as above)
-     * but if the selection is not approved, the level for this orgUnit at
-     * which it could be approved (if any).
+     * but if the selection is not approved, the level for this orgUnit at which
+     * it could be approved (if any).
      */
     private DataApprovalLevel actionLevel;
 
@@ -70,7 +69,7 @@ public class DataApprovalStatus
      * If the selection is approved, the OrganisationUnit UID.
      */
     private String organisationUnitUid;
-    
+
     /**
      * If the selection is approved, the OrganisationUnit name.
      */
@@ -82,8 +81,8 @@ public class DataApprovalStatus
     private String attributeOptionComboUid;
 
     /**
-     * If the selection is approved, whether or not it is accepted
-     * at the highest level approved.
+     * If the selection is approved, whether or not it is accepted at the
+     * highest level approved.
      */
     private boolean accepted;
 
@@ -93,14 +92,14 @@ public class DataApprovalStatus
     private DataApprovalPermissions permissions;
 
     /**
-     * If the selection is approved, and if present (not always needed),
-     * the date at which the highest level of approval was created.
+     * If the selection is approved, and if present (not always needed), the
+     * date at which the highest level of approval was created.
      */
     private Date created;
 
     /**
-     * If the selection is approved, and if present (not always needed),
-     * The user who made this approval.
+     * If the selection is approved, and if present (not always needed), The
+     * user who made this approval.
      */
     private User creator;
 

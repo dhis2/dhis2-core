@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.synch;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.synch;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.synch;
 
 /**
  * @author Lars Helge Overland
@@ -34,22 +33,22 @@ package org.hisp.dhis.dxf2.synch;
 public class SystemInstance
 {
     private String url;
-    
+
     private String username;
-    
+
     private String password;
 
     protected SystemInstance()
-    {        
+    {
     }
-    
+
     public SystemInstance( String url, String username, String password )
     {
         this.url = url;
         this.username = username;
         this.password = password;
     }
-    
+
     public String getUrl()
     {
         return url;

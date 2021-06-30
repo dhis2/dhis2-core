@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 import java.util.Collection;
 import java.util.List;
@@ -34,9 +33,10 @@ import java.util.List;
 /**
  * Defines methods for working with OrganisationUnitGroups and
  * OrganisationUnitGroupSets.
- * 
+ *
  * @author Torgeir Lorange Ostby
- * @version $Id: OrganisationUnitGroupService.java 3286 2007-05-07 18:05:21Z larshelg $
+ * @version $Id: OrganisationUnitGroupService.java 3286 2007-05-07 18:05:21Z
+ *          larshelg $
  */
 public interface OrganisationUnitGroupService
 {
@@ -48,7 +48,7 @@ public interface OrganisationUnitGroupService
 
     /**
      * Adds an OrganisationUnitGroup.
-     * 
+     *
      * @param organisationUnitGroup the OrganisationUnitGroup to add.
      * @return a generated unique id of the added OrganisationUnitGroup.
      */
@@ -56,21 +56,21 @@ public interface OrganisationUnitGroupService
 
     /**
      * Updates an OrganisationUnitGroup.
-     * 
+     *
      * @param organisationUnitGroup the OrganisationUnitGroup to update.
      */
     void updateOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup );
 
     /**
      * Deletes an OrganisationUnitGroup.
-     * 
+     *
      * @param organisationUnitGroup the OrganisationUnitGroup to delete.
      */
     void deleteOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup );
 
     /**
      * Returns an OrganisationUnitGroup.
-     * 
+     *
      * @param id the id of the OrganisationUnitGroup.
      * @return the OrganisationGroup with the given id, or null if no match.
      */
@@ -78,7 +78,7 @@ public interface OrganisationUnitGroupService
 
     /**
      * Returns the OrganisationUnitGroup with the given UID.
-     * 
+     *
      * @param uid the UID of the OrganisationUnitGroup.
      * @return the OrganisationGroup with the given UID, or null if no match.
      */
@@ -86,15 +86,15 @@ public interface OrganisationUnitGroupService
 
     /**
      * Returns all OrganisationUnitGroups.
-     * 
-     * @return a list of all the OrganisationUnitGroups, or an empty
-     *         list if no OrganisationUnitGroup exists.
+     *
+     * @return a list of all the OrganisationUnitGroups, or an empty list if no
+     *         OrganisationUnitGroup exists.
      */
     List<OrganisationUnitGroup> getAllOrganisationUnitGroups();
-    
+
     /**
      * Returns all OrganisationUnitGroups which have a OrganisationUnitGroupSet.
-     * 
+     *
      * @return a collection of OrganisationUnitGroups.
      */
     List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets();
@@ -105,7 +105,7 @@ public interface OrganisationUnitGroupService
 
     /**
      * Adds an OrganisationUnitGroupSet.
-     * 
+     *
      * @param organisationUnitGroupSet the OrganisationUnitGroupSet to add.
      * @return the generated unique id of the added OrganisationUnitGroupSet.
      */
@@ -113,21 +113,21 @@ public interface OrganisationUnitGroupService
 
     /**
      * Updates an OrganisationUnitGroupSet.
-     * 
+     *
      * @param organisationUnitGroupSet the OrganisationUnitGroupSet to update.
      */
     void updateOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet );
 
     /**
      * Deletes an OrganisationUnitGroupSet.
-     * 
+     *
      * @param organisationUnitGroupSet the OrganisationUnitGroupSet to delete.
      */
     void deleteOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet );
 
     /**
      * Returns an OrganisationUnitGroupSet.
-     * 
+     *
      * @param id the id of the OrganisationUnitGroupSet to return.
      * @return the OrganisationUnitGroupSet with the given id, or null if no
      *         match.
@@ -136,7 +136,7 @@ public interface OrganisationUnitGroupService
 
     /**
      * Returns an OrganisationUnitGroupSet.
-     * 
+     *
      * @param uid the id of the OrganisationUnitGroupSet to return.
      * @return the OrganisationUnitGroupSet with the given uid, or null if no
      *         match.
@@ -145,39 +145,39 @@ public interface OrganisationUnitGroupService
 
     /**
      * Returns all OrganisationUnitGroupSets.
-     * 
-     * @return a list of all OrganisationUnitGroupSets, or an empty
-     *         collection if no OrganisationUnitGroupSet exists.
+     *
+     * @return a list of all OrganisationUnitGroupSets, or an empty collection
+     *         if no OrganisationUnitGroupSet exists.
      */
     List<OrganisationUnitGroupSet> getAllOrganisationUnitGroupSets();
 
     /**
      * Returns all compulsory OrganisationUnitGroupSets.
-     * 
-     * @return a list of all compulsory OrganisationUnitGroupSets, or an
-     *         empty collection if there are no compulsory
-     *         OrganisationUnitGroupSets.
+     *
+     * @return a list of all compulsory OrganisationUnitGroupSets, or an empty
+     *         collection if there are no compulsory OrganisationUnitGroupSets.
      */
     List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSets();
 
     /**
      * Returns all compulsory OrganisationUnitGroupSets which have one ore more
      * members.
-     * 
-     * @return a list of all OrganisationUnitGroupSets, or an
-     *         empty collection if there are no compulsory
-     *         OrganisationUnitGroupSets.
+     *
+     * @return a list of all OrganisationUnitGroupSets, or an empty collection
+     *         if there are no compulsory OrganisationUnitGroupSets.
      */
     List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSetsWithMembers();
 
     /**
      * Returns a Collection of compulsory OrganisationUnitGroupSets which groups
      * the given OrganisationUnit is not a member of.
-     * 
+     *
      * @param organisationUnit the OrganisationUnit.
      * @return a Collection of OrganisationUnitGroupSets.
      */
-    List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSetsNotAssignedTo( OrganisationUnit organisationUnit );
-    
-    void mergeWithCurrentUserOrganisationUnits( OrganisationUnitGroup organisationUnitGroup, Collection<OrganisationUnit> mergeOrganisationUnits );
+    List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSetsNotAssignedTo(
+        OrganisationUnit organisationUnit );
+
+    void mergeWithCurrentUserOrganisationUnits( OrganisationUnitGroup organisationUnitGroup,
+        Collection<OrganisationUnit> mergeOrganisationUnits );
 }

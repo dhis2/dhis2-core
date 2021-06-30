@@ -1,7 +1,5 @@
-package org.hisp.dhis.interceptor;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.interceptor;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.interceptor;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
@@ -51,15 +50,18 @@ public class SystemSettingInterceptor
     implements Interceptor
 {
     private static final String DATE_FORMAT = "dateFormat";
+
     private static final String SYSPROP_PORTAL = "runningAsPortal";
 
-    private static final Set<SettingKey> SETTINGS = Sets.newHashSet( SettingKey.APPLICATION_TITLE, SettingKey.APPLICATION_INTRO,
+    private static final Set<SettingKey> SETTINGS = Sets.newHashSet( SettingKey.APPLICATION_TITLE,
+        SettingKey.APPLICATION_INTRO,
         SettingKey.APPLICATION_NOTIFICATION, SettingKey.APPLICATION_FOOTER, SettingKey.APPLICATION_RIGHT_FOOTER,
         SettingKey.FLAG, SettingKey.START_MODULE, SettingKey.MULTI_ORGANISATION_UNIT_FORMS, SettingKey.ACCOUNT_RECOVERY,
         SettingKey.GOOGLE_ANALYTICS_UA, SettingKey.OPENID_PROVIDER,
-        SettingKey.OPENID_PROVIDER_LABEL, SettingKey.HELP_PAGE_LINK, SettingKey.REQUIRE_ADD_TO_VIEW, SettingKey.ALLOW_OBJECT_ASSIGNMENT,
+        SettingKey.OPENID_PROVIDER_LABEL, SettingKey.HELP_PAGE_LINK, SettingKey.REQUIRE_ADD_TO_VIEW,
+        SettingKey.ALLOW_OBJECT_ASSIGNMENT,
         SettingKey.CALENDAR, SettingKey.DATE_FORMAT, SettingKey.RECAPTCHA_SITE );
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -100,16 +102,17 @@ public class SystemSettingInterceptor
         throws Exception
     {
         Map<String, Object> map = new HashMap<>();
-        
+
         map.put( DATE_FORMAT, calendarService.getSystemDateFormat() );
         map.put( SettingKey.CONFIGURATION.getName(), configurationService.getConfiguration() );
         map.put( SettingKey.FLAG_IMAGE.getName(), systemSettingManager.getFlagImage() );
         map.put( SettingKey.CREDENTIALS_EXPIRES.getName(), systemSettingManager.credentialsExpires() );
-        map.put( SettingKey.SELF_REGISTRATION_NO_RECAPTCHA.getName(), systemSettingManager.selfRegistrationNoRecaptcha() );
+        map.put( SettingKey.SELF_REGISTRATION_NO_RECAPTCHA.getName(),
+            systemSettingManager.selfRegistrationNoRecaptcha() );
         map.put( SYSPROP_PORTAL, defaultIfEmpty( System.getProperty( SYSPROP_PORTAL ), String.valueOf( false ) ) );
-        
+
         map.putAll( systemSettingManager.getSystemSettings( SETTINGS ) );
-        
+
         invocation.getStack().push( map );
 
         return invocation.invoke();

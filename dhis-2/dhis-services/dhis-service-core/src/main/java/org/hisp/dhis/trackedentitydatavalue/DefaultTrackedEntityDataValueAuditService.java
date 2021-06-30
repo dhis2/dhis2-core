@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentitydatavalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.trackedentitydatavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentitydatavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -54,6 +53,7 @@ public class DefaultTrackedEntityDataValueAuditService
     // -------------------------------------------------------------------------
 
     private final TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore;
+
     private Predicate<TrackedEntityDataValueAudit> aclFilter;
 
     public DefaultTrackedEntityDataValueAuditService( TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore,
@@ -87,7 +87,7 @@ public class DefaultTrackedEntityDataValueAuditService
     {
         return trackedEntityDataValueAuditStore
             .getTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType ).stream()
-            .filter(aclFilter).collect( Collectors.toList() );
+            .filter( aclFilter ).collect( Collectors.toList() );
     }
 
     @Override
@@ -97,7 +97,7 @@ public class DefaultTrackedEntityDataValueAuditService
     {
         return trackedEntityDataValueAuditStore
             .getTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType, first, max ).stream()
-            .filter(aclFilter).collect( Collectors.toList() );
+            .filter( aclFilter ).collect( Collectors.toList() );
     }
 
     @Override

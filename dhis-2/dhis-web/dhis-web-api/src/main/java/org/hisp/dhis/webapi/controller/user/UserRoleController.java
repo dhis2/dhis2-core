@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,14 @@ package org.hisp.dhis.webapi.controller.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.user;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.query.Order;
@@ -38,7 +42,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,9 +51,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -64,12 +64,14 @@ public class UserRoleController
     private UserService userService;
 
     @Override
-    protected List<UserAuthorityGroup> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    protected List<UserAuthorityGroup> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
+        List<Order> orders )
         throws QueryParserException
     {
         List<UserAuthorityGroup> entityList = super.getEntityList( metadata, options, filters, orders );
 
-        if ( options.getOptions().containsKey( "canIssue" ) && Boolean.parseBoolean( options.getOptions().get( "canIssue" ) ) )
+        if ( options.getOptions().containsKey( "canIssue" )
+            && Boolean.parseBoolean( options.getOptions().get( "canIssue" ) ) )
         {
             userService.canIssueFilter( entityList );
         }
@@ -79,7 +81,9 @@ public class UserRoleController
 
     @RequestMapping( value = "/{id}/users/{userId}", method = { RequestMethod.POST, RequestMethod.PUT } )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void addUserToRole( @PathVariable( value = "id" ) String pvId, @PathVariable( "userId" ) String pvUserId, HttpServletResponse response ) throws WebMessageException
+    public void addUserToRole( @PathVariable( value = "id" ) String pvId, @PathVariable( "userId" ) String pvUserId,
+        HttpServletResponse response )
+        throws WebMessageException
     {
         UserAuthorityGroup userAuthorityGroup = userService.getUserAuthorityGroup( pvId );
 
@@ -109,7 +113,9 @@ public class UserRoleController
 
     @RequestMapping( value = "/{id}/users/{userId}", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeUserFromRole( @PathVariable( value = "id" ) String pvId, @PathVariable( "userId" ) String pvUserId, HttpServletResponse response ) throws WebMessageException
+    public void removeUserFromRole( @PathVariable( value = "id" ) String pvId,
+        @PathVariable( "userId" ) String pvUserId, HttpServletResponse response )
+        throws WebMessageException
     {
         UserAuthorityGroup userAuthorityGroup = userService.getUserAuthorityGroup( pvId );
 

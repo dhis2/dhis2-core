@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.config.jackson;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,16 @@ package org.hisp.dhis.commons.config.jackson;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.config.jackson;
+
+import java.io.IOException;
+import java.util.Date;
+
+import org.hisp.dhis.util.DateUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.hisp.dhis.util.DateUtils;
-
-import java.io.IOException;
-import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,7 +42,8 @@ import java.util.Date;
 public class ParseDateStdDeserializer extends JsonDeserializer<Date>
 {
     @Override
-    public Date deserialize( JsonParser parser, DeserializationContext context ) throws IOException
+    public Date deserialize( JsonParser parser, DeserializationContext context )
+        throws IOException
     {
         return DateUtils.parseDate( parser.getValueAsString() );
     }

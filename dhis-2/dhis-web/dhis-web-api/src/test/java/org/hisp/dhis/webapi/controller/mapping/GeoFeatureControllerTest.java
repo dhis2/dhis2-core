@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.mapping;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.mapping;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.mapping;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
@@ -108,17 +107,17 @@ public class GeoFeatureControllerTest
         // This ou should be filtered out since it has no Coordinates
         OrganisationUnit ouD = createOrgUnitWithoutCoordinates();
 
-        User user = beanRandomizer.randomObject(User.class);
+        User user = beanRandomizer.randomObject( User.class );
         DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnits( getList( ouA, ouB, ouC, ouD ) )
             .build();
 
         when( dataQueryService.getFromRequest( any( DataQueryRequest.class ) ) ).thenReturn( params );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
 
-        mockMvc.perform( get( ENDPOINT ).accept(ContextUtils.CONTENT_TYPE_JSON)
+        mockMvc.perform( get( ENDPOINT ).accept( ContextUtils.CONTENT_TYPE_JSON )
             .param( "ou", "ou:LEVEL-2;LEVEL-3" ) )
             .andExpect( status().isOk() )
-            .andExpect( content().contentType(ContextUtils.CONTENT_TYPE_JSON) )
+            .andExpect( content().contentType( ContextUtils.CONTENT_TYPE_JSON ) )
             .andExpect( jsonPath( "$", hasSize( 3 ) ) );
     }
 

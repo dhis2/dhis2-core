@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
 
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.setting.SettingKey;
@@ -41,6 +40,7 @@ import org.springframework.stereotype.Component;
 public class PasswordLengthValidationRule implements PasswordValidationRule
 {
     public static final String ERROR = "Password must have at least %d, and at most %d characters";
+
     private static final String I18_ERROR = "password_length_validation";
 
     private final SystemSettingManager systemSettingManager;
@@ -72,7 +72,7 @@ public class PasswordLengthValidationRule implements PasswordValidationRule
 
         return new PasswordValidationResult( true );
     }
-    
+
     @Override
     public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
     {

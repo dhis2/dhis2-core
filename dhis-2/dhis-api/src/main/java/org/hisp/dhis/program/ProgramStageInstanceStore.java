@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import java.util.Collection;
 import java.util.Date;
@@ -51,7 +50,7 @@ public interface ProgramStageInstanceStore
      * repeatable stage, the system returns the last event
      *
      * @param programInstance ProgramInstance
-     * @param programStage    ProgramStage
+     * @param programStage ProgramStage
      * @return ProgramStageInstance
      */
     ProgramStageInstance get( ProgramInstance programInstance, ProgramStage programStage );
@@ -60,16 +59,17 @@ public interface ProgramStageInstanceStore
      * Retrieve an event list on program instance list with a certain status
      *
      * @param programInstances ProgramInstance list
-     * @param status           EventStatus
+     * @param status EventStatus
      * @return ProgramStageInstance list
      */
     List<ProgramStageInstance> get( Collection<ProgramInstance> programInstances, EventStatus status );
 
     /**
-     * Get all events by TrackedEntityInstance, optionally filtering by completed.
+     * Get all events by TrackedEntityInstance, optionally filtering by
+     * completed.
      *
      * @param entityInstance TrackedEntityInstance
-     * @param status         EventStatus
+     * @param status EventStatus
      * @return ProgramStageInstance list
      */
     List<ProgramStageInstance> get( TrackedEntityInstance entityInstance, EventStatus status );
@@ -83,7 +83,8 @@ public interface ProgramStageInstanceStore
     long getProgramStageInstanceCountLastUpdatedAfter( Date time );
 
     /**
-     * Checks for the existence of a PSI by UID. The deleted PSIs are not taken into account.
+     * Checks for the existence of a PSI by UID. The deleted PSIs are not taken
+     * into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -91,7 +92,8 @@ public interface ProgramStageInstanceStore
     boolean exists( String uid );
 
     /**
-     * Checks for the existence of a PSI by UID. It takes into account also the deleted PSIs.
+     * Checks for the existence of a PSI by UID. It takes into account also the
+     * deleted PSIs.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -99,7 +101,8 @@ public interface ProgramStageInstanceStore
     boolean existsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing ProgramStageInstances (including deleted) from the provided UIDs
+     * Returns UIDs of existing ProgramStageInstances (including deleted) from
+     * the provided UIDs
      *
      * @param uids PSI UIDs to check
      * @return Set containing UIDs of existing PSIs (including deleted)
@@ -107,19 +110,22 @@ public interface ProgramStageInstanceStore
     List<String> getUidsIncludingDeleted( List<String> uids );
 
     /**
-     * Get all ProgramStageInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
+     * Get all ProgramStageInstances which have notifications with the given
+     * ProgramNotificationTemplate scheduled on the given date.
      *
-     * @param template         the template.
+     * @param template the template.
      * @param notificationDate the Date for which the notification is scheduled.
      * @return a list of ProgramStageInstance.
      */
-    List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
+    List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template,
+        Date notificationDate );
 
     /**
      * Set lastSynchronized timestamp to provided timestamp for provided PSIs
      *
-     * @param programStageInstanceUIDs UIDs of ProgramStageInstances where the lastSynchronized flag should be updated
-     * @param lastSynchronized         The date of last successful sync
+     * @param programStageInstanceUIDs UIDs of ProgramStageInstances where the
+     *        lastSynchronized flag should be updated
+     * @param lastSynchronized The date of last successful sync
      */
     void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized );
 }

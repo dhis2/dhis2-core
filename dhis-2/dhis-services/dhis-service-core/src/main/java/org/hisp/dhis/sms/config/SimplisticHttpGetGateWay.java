@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,15 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
@@ -52,8 +53,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Component( "org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" )
 public class SimplisticHttpGetGateWay
@@ -68,7 +67,7 @@ public class SimplisticHttpGetGateWay
     // -------------------------------------------------------------------------
 
     public SimplisticHttpGetGateWay( RestTemplate restTemplate,
-                                     @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
+        @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
     {
         checkNotNull( restTemplate );
         checkNotNull( pbeStringEncryptor );
@@ -91,9 +90,9 @@ public class SimplisticHttpGetGateWay
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         return batch.getMessages()
-                .parallelStream()
-                .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
-                .collect( Collectors.toList() );
+            .parallelStream()
+            .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
+            .collect( Collectors.toList() );
     }
 
     @Override
@@ -116,7 +115,7 @@ public class SimplisticHttpGetGateWay
             if ( genericConfig.isSendUrlParameters() )
             {
                 uriBuilder = UriComponentsBuilder
-                        .fromHttpUrl( config.getUrlTemplate() + "?" + requestEntity.getBody() );
+                    .fromHttpUrl( config.getUrlTemplate() + "?" + requestEntity.getBody() );
             }
             else
             {
@@ -126,7 +125,7 @@ public class SimplisticHttpGetGateWay
             uri = uriBuilder.build().encode().toUri();
 
             responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST,
-                    requestEntity, String.class );
+                requestEntity, String.class );
         }
         catch ( HttpClientErrorException ex )
         {

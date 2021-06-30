@@ -1,7 +1,5 @@
-package org.hisp.dhis.mapgeneration;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.mapgeneration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapgeneration;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -41,18 +40,18 @@ import org.springframework.util.Assert;
 
 /**
  * An internal representation of a map layer in a map.
- * 
+ *
  * It encapsulates all the information of a layer on a map that should contain
  * map objects associated with the same data-set. Thus, a map layer should
  * represent grouped data from a data-set e.g. 'deaths from malaria' is one
  * layer, 'anc coverage' is another layer, etc.
- * 
+ *
  * It is typically built using the properties of an external map layer
  * (currently MapView) defined by the user.
- * 
+ *
  * Finally, one might extend this class with an implementation that uses a
  * specific platform, if needed.
- * 
+ *
  * @author Olai Solheim <olais@ifi.uio.no>
  */
 public class InternalMapLayer
@@ -64,7 +63,7 @@ public class InternalMapLayer
     protected Integer method;
 
     protected String layer;
-    
+
     protected Integer radiusHigh;
 
     protected Integer radiusLow;
@@ -74,9 +73,9 @@ public class InternalMapLayer
     protected Color colorLow;
 
     protected float opacity;
-    
+
     protected Integer classes;
-    
+
     protected IntervalSet intervalSet;
 
     protected List<InternalMapObject> mapObjects;
@@ -97,10 +96,11 @@ public class InternalMapLayer
     @Override
     public String toString()
     {
-        return "[Name: " + name + ", period: " + period + ", radius high: " + radiusHigh + ", radius low: " + radiusLow +
+        return "[Name: " + name + ", period: " + period + ", radius high: " + radiusHigh + ", radius low: " + radiusLow
+            +
             ", color high: " + colorHigh + ", color low: " + colorLow + ", classes: " + classes + "]";
     }
-    
+
     /**
      * Indicates whether this layer is a data layer.
      */
@@ -108,7 +108,7 @@ public class InternalMapLayer
     {
         return MapView.DATA_LAYERS.contains( layer );
     }
-        
+
     /**
      * Interpolates the radii of this map layer's set of map objects according
      * the highest and lowest values among them.
@@ -127,7 +127,7 @@ public class InternalMapLayer
             {
                 min = mapObject;
             }
-            
+
             if ( max == null || mapObject.getValue() > max.getValue() )
             {
                 max = mapObject;
@@ -146,14 +146,14 @@ public class InternalMapLayer
 
     /**
      * Adds a map object to this map layer.
-     * 
+     *
      * @param mapObject the map object
      */
     public void addMapObject( InternalMapObject mapObject )
     {
         mapObjects.add( mapObject );
     }
-    
+
     /**
      * Indicates whether this map layer has any map objects.
      */
@@ -165,21 +165,22 @@ public class InternalMapLayer
     /**
      * Creates a map object and adds it to this map layer. Sets this map layer
      * on the map object.
-     * 
+     *
      * @param mapValue the map values to set on the map object.
      * @param unit the organisation unit which name to set on the map object.
      */
     public void addDataMapObject( double mapValue, OrganisationUnit unit )
     {
         InternalMapObject mapObject = new InternalMapObject();
-        
+
         mapObject.setName( unit.getName() );
         mapObject.setValue( mapValue );
         mapObject.setFillOpacity( opacity );
         mapObject.setStrokeColor( Color.WHITE );
         mapObject.setMapLayerType( MapLayerType.THEMATIC );
 
-        // Build and set the geometric primitive that outlines org unit on the map
+        // Build and set the geometric primitive that outlines org unit on the
+        // map
         mapObject.buildGeometryForOrganisationUnit( unit );
 
         // Add the map object to the map layer
@@ -188,16 +189,16 @@ public class InternalMapLayer
         // Set the map layer for the map object
         mapObject.setMapLayer( this );
     }
-    
+
     /**
      * Adds a map object for the given organisation unit to this map layer.
-     * 
+     *
      * @param unit the organisation unit.
      */
     public void addBoundaryMapObject( OrganisationUnit unit )
     {
         InternalMapObject mapObject = new InternalMapObject();
-        
+
         mapObject.setName( unit.getName() );
         mapObject.setFillOpacity( opacity );
         mapObject.setStrokeColor( Color.BLACK );
@@ -207,27 +208,27 @@ public class InternalMapLayer
         addMapObject( mapObject );
         mapObject.setMapLayer( this );
     }
-    
+
     /**
      * Sets an interval set on this map layer based on the given legend set.
-     * 
+     *
      * @param legendSet the legend set.
      */
     public void setIntervalSetFromLegendSet( org.hisp.dhis.legend.LegendSet legendSet )
     {
         IntervalSet intervalSet = new IntervalSet();
-        
+
         for ( org.hisp.dhis.legend.Legend legend : legendSet.getLegends() )
         {
             Color color = MapUtils.createColorFromString( legend.getColor() );
-            
+
             Interval interval = new Interval( color, legend.getStartValue(), legend.getEndValue() );
-            
+
             intervalSet.getIntervals().add( interval );
         }
 
         Collections.sort( intervalSet.getIntervals(), IntervalLowValueAscComparator.INSTANCE );
-        
+
         this.intervalSet = intervalSet;
     }
 
@@ -245,7 +246,8 @@ public class InternalMapLayer
                 // boundaries, add it to this interval
                 if ( mapObject.getValue() >= interval.getValueLow() && mapObject.getValue() <= interval.getValueHigh() )
                 {
-                    // Add map object to interval and set interval for map object
+                    // Add map object to interval and set interval for map
+                    // object
                     interval.addMember( mapObject );
                     mapObject.setInterval( interval );
 
@@ -258,37 +260,37 @@ public class InternalMapLayer
 
     /**
      * Creates and applies a fixed length interval set to the given map layer.
-     * 
+     *
      * How map objects are distributed among intervals depends on the
      * distribution strategy that is used, which may be either 'equal range' or
      * 'equal size'.
-     * 
+     *
      * The 'equal range' strategy is defined by passing
      * DistributionStrategy.STRATEGY_EQUAL_RANGE to this method. It creates and
      * applies to the given map layer a fixed length interval set distributing
      * map objects into intervals that has the same range.
-     * 
+     *
      * The 'equal size' strategy is defined by passing
      * DistributionStrategy.STRATEGY_EQUAL_SIZE to this method. It creates and
      * applies to the given map layer a fixed length interval set distributing
      * map objects into intervals that has (optimally) the same amount of map
      * objects.
-     * 
+     *
      * For example, given the map object collection of a map layer
      * [a:3,b:2,c:5,d:18,e:0,f:50,g:22], where the objects with the lowest and
      * highest values are e:0 and f:50, this collection of map objects will
      * distribute differently into intervals depending on the distribution
      * strategy chosen.
-     * 
+     *
      * Strategy 'equal range' with length 5: interval [e:0,b:2,a:3,c:5] range
      * 0-10 size 4 interval [d:18] range 11-20 size 1 interval [g:22] range
      * 21-30 size 1 interval [] range 31-40 size 0 interval [f:50] range 41-50
      * size 1
-     * 
+     *
      * Strategy 'equal size' with length 5: interval [e:0,b:2] range 0-2 size 2
      * interval [a:3,c:5] range 3-5 size 2 interval [d:18] range 5-18 size 1
      * interval [g:22] range 18-22 size 1 interval [f:50] range 22-50 size 1
-     * 
+     *
      * @param length the number of intervals in the set.
      */
     public void setAutomaticIntervalSet( int length )
@@ -310,7 +312,7 @@ public class InternalMapLayer
     /**
      * Creates and applies to the given map layer a fixed length interval set
      * distributing map objects into intervals that has the same range.
-     * 
+     *
      * @param length the number of equal sized intervals.
      */
     public void setEqualRangeIntervalSet( int length )
@@ -320,11 +322,14 @@ public class InternalMapLayer
 
         IntervalSet intervalSet = new IntervalSet().setLowHigh( mapObjects );
 
-        // Set the color for each of the intervals according to highest/lowest values
+        // Set the color for each of the intervals according to highest/lowest
+        // values
         for ( int i = 0; i < length; i++ )
         {
-            double low = MapUtils.lerp( intervalSet.getObjectLow().getValue(), intervalSet.getObjectHigh().getValue(), ((i + 0d) / length) );
-            double high = MapUtils.lerp( intervalSet.getObjectLow().getValue(), intervalSet.getObjectHigh().getValue(), ((i + 1d) / length) );
+            double low = MapUtils.lerp( intervalSet.getObjectLow().getValue(), intervalSet.getObjectHigh().getValue(),
+                ((i + 0d) / length) );
+            double high = MapUtils.lerp( intervalSet.getObjectLow().getValue(), intervalSet.getObjectHigh().getValue(),
+                ((i + 1d) / length) );
 
             Color color = MapUtils.lerp( colorLow, colorHigh, (i + 0.5) / length );
 
@@ -335,7 +340,7 @@ public class InternalMapLayer
         }
 
         Collections.sort( intervalSet.getIntervals(), IntervalLowValueAscComparator.INSTANCE );
-        
+
         this.intervalSet = intervalSet;
     }
 
@@ -347,20 +352,20 @@ public class InternalMapLayer
         IntervalSet intervalSet = new IntervalSet().setLowHigh( mapObjects );
 
         List<Double> values = getSortedMapObjectValues();
-        
+
         Assert.notEmpty( values, "Values cannot be empty" );
-        
+
         int range = values.size() / length;
-        
+
         for ( int i = 0; i < length; i++ )
         {
             int lowIndex = range * i;
             int highIndex = Math.max( lowIndex + range - 1, 0 );
-            
+
             double low = values.get( lowIndex );
 
             double high = values.get( highIndex );
-            
+
             if ( length == i + 1 ) // At last position
             {
                 high = values.get( values.size() - 1 );
@@ -370,29 +375,29 @@ public class InternalMapLayer
 
             Interval interval = new Interval( low, high );
             interval.setColor( color );
-            
+
             intervalSet.getIntervals().add( interval );
         }
 
         Collections.sort( intervalSet.getIntervals(), IntervalLowValueAscComparator.INSTANCE );
-        
+
         this.intervalSet = intervalSet;
     }
-    
+
     private List<Double> getSortedMapObjectValues()
     {
         List<Double> values = new ArrayList<>();
-        
+
         for ( InternalMapObject object : mapObjects )
         {
             values.add( object.getValue() );
         }
-        
+
         Collections.sort( values );
-        
+
         return values;
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

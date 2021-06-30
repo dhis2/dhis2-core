@@ -1,7 +1,5 @@
-package org.hisp.dhis.de.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,27 @@ package org.hisp.dhis.de.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.de.action;
 
-import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.dataelement.DataElement;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.comparator.CategoryComboSizeNameComparator;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.category.comparator.CategoryComboSizeComparator;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
@@ -53,14 +61,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -242,7 +243,7 @@ public class LoadFormAction
     {
         return dataSet;
     }
-    
+
     private Map<String, Collection<DataElement>> sectionCategoryComboDataElements = new HashMap<>();
 
     public Map<String, Collection<DataElement>> getSectionCategoryComboDataElements()
@@ -315,7 +316,7 @@ public class LoadFormAction
             numberOfTotalColumns.put( categoryCombo.getId(), optionCombos.size() );
 
             orderedCategories.put( categoryCombo.getId(), categoryCombo.getCategories() );
-  
+
             Map<Long, List<CategoryOption>> optionsMap = new HashMap<>();
 
             for ( Category category : categoryCombo.getCategories() )
@@ -376,7 +377,6 @@ public class LoadFormAction
             dataSetCopy.setRenderHorizontally( dataSet.isRenderHorizontally() );
             dataSetCopy.setDataElementDecoration( dataSet.isDataElementDecoration() );
             dataSetCopy.setCompulsoryDataElementOperands( dataSet.getCompulsoryDataElementOperands() );
-            dataSet = dataSetCopy;
 
             for ( int i = 0; i < orderedCategoryCombos.size(); i++ )
             {
@@ -392,8 +392,14 @@ public class LoadFormAction
                 dataSetCopy.getSections().add( section );
 
                 section.getDataElements().addAll( orderedDataElements.get( categoryCombo ) );
-                section.setIndicators( new ArrayList<>( dataSet.getIndicators() ) );
+
+                if ( i == 0 )
+                {
+                    section.setIndicators( new ArrayList<>( dataSet.getIndicators() ) );
+                }
             }
+
+            dataSet = dataSetCopy;
 
             formType = FormType.SECTION;
         }
@@ -441,30 +447,31 @@ public class LoadFormAction
 
         for ( Section section : sections )
         {
-            Set<Long> categoryCombos = new HashSet<>();
-            
-            for( CategoryCombo categoryCombo : section.getCategoryCombos() )
+            if ( !section.getCategoryCombos().isEmpty() )
             {
-                categoryCombos.add( categoryCombo.getId() );
-                
-                sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId() , section.getDataElementsByCategoryCombo( categoryCombo ) );
-            }
-            
-            if( !categoryCombos.isEmpty() )
-            {
-                sectionCombos.put( section.getId(), categoryCombos );
+                List<CategoryCombo> sortedCategoryCombos = getSortedCategoryCombos( section.getCategoryCombos() );
+
+                for ( CategoryCombo categoryCombo : sortedCategoryCombos )
+                {
+                    sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId(),
+                        section.getDataElementsByCategoryCombo( categoryCombo ) );
+                }
+
+                sectionCombos.put( section.getId(),
+                    sortedCategoryCombos.stream().map( CategoryCombo::getId ).collect( Collectors.toList() ) );
             }
 
             for ( DataElementOperand operand : section.getGreyedFields() )
             {
                 if ( operand != null && operand.getDataElement() != null && operand.getCategoryOptionCombo() != null )
                 {
-                    greyedFields.put( operand.getDataElement().getUid() + ":" + operand.getCategoryOptionCombo().getUid(), true );
+                    greyedFields.put(
+                        operand.getDataElement().getUid() + ":" + operand.getCategoryOptionCombo().getUid(), true );
                 }
             }
         }
     }
-    
+
     private List<CategoryCombo> getCategoryCombos( List<DataElement> dataElements, DataSet dataSet )
     {
         Set<CategoryCombo> categoryCombos = new HashSet<>();
@@ -474,28 +481,33 @@ public class LoadFormAction
             categoryCombos.add( dataElement.getDataElementCategoryCombo( dataSet ) );
         }
 
-        List<CategoryCombo> listCategoryCombos = new ArrayList<>( categoryCombos );
-
-        Collections.sort( listCategoryCombos, new CategoryComboSizeComparator() );
-
-        return listCategoryCombos;
+        return getSortedCategoryCombos( categoryCombos );
     }
 
-    private void addOptionAccess( User user,  Map<String, Boolean> optionAccessMap, List<CategoryOptionCombo>
-        optionCombos )
+    private void addOptionAccess( User user, Map<String, Boolean> optionAccessMap,
+        List<CategoryOptionCombo> optionCombos )
     {
         optionCombos.forEach( o -> {
 
-           List<String> err = accessManager.canWrite( user, o );
+            List<String> err = accessManager.canWrite( user, o );
 
-           if ( !err.isEmpty() )
-           {
-               optionAccessMap.put( o.getUid(), false );
-           }
-           else
-           {
-               optionAccessMap.put( o.getUid(), true );
-           }
+            if ( !err.isEmpty() )
+            {
+                optionAccessMap.put( o.getUid(), false );
+            }
+            else
+            {
+                optionAccessMap.put( o.getUid(), true );
+            }
         } );
+    }
+
+    private List<CategoryCombo> getSortedCategoryCombos( Set<CategoryCombo> categoryCombos )
+    {
+        List<CategoryCombo> listCategoryCombos = new ArrayList<>( categoryCombos );
+
+        Collections.sort( listCategoryCombos, new CategoryComboSizeNameComparator() );
+
+        return listCategoryCombos;
     }
 }

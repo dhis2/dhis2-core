@@ -1,7 +1,5 @@
-package org.hisp.dhis.programstagefilter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,20 @@ package org.hisp.dhis.programstagefilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programstagefilter;
+
+import java.io.Serializable;
+import java.util.Date;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.period.RelativePeriodEnum;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import java.io.Serializable;
-import java.util.Date;
 
 /**
  * Filtering parameters for date type.
- * 
+ *
  * @author Ameen Mohamed <ameen@dhis2.com>
  *
  */
@@ -55,22 +55,22 @@ public class DateFilterPeriod implements Serializable
      * An integer referring to relative startDate based on the current date.
      */
     private int endBuffer;
-    
+
     /**
      * An absolute start date
      */
     private Date startDate;
-    
+
     /**
      * An absolute end date
      */
     private Date endDate;
-    
+
     /**
      * Relative period.
      */
     private RelativePeriodEnum period;
-    
+
     /**
      * Enum indicating whether this date filter is absolute or relative
      */
@@ -160,5 +160,5 @@ public class DateFilterPeriod implements Serializable
     {
         this.type = type;
     }
-    
+
 }

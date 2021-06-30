@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.sideeffect;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,10 @@ package org.hisp.dhis.tracker.sideeffect;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.sideeffect;
 
-import com.google.common.collect.ImmutableMap;
+import java.time.LocalDateTime;
+
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
@@ -38,7 +38,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Zubair Asghar
@@ -47,8 +47,7 @@ import java.time.LocalDateTime;
 @Service
 public class AuditSideEffectHandlerService implements SideEffectHandlerService
 {
-    private static final ImmutableMap<TrackerImportStrategy, AuditType> TYPE_MAPPER =
-        new ImmutableMap.Builder<TrackerImportStrategy, AuditType>()
+    private static final ImmutableMap<TrackerImportStrategy, AuditType> TYPE_MAPPER = new ImmutableMap.Builder<TrackerImportStrategy, AuditType>()
         .put( TrackerImportStrategy.CREATE, AuditType.CREATE )
         .put( TrackerImportStrategy.UPDATE, AuditType.UPDATE )
         .put( TrackerImportStrategy.DELETE, AuditType.DELETE )

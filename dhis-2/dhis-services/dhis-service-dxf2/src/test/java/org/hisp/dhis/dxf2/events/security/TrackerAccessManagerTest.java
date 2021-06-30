@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.security;
 
 import static org.junit.Assert.assertTrue;
 
@@ -45,7 +44,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -63,6 +61,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -199,7 +198,8 @@ public class TrackerAccessManagerTest extends DhisSpringTest
         manager.save( femaleA );
         manager.save( femaleB );
 
-        enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
+        enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
+            ImportOptions.getDefaultImportOptions() );
     }
 
     @Test
@@ -251,7 +251,7 @@ public class TrackerAccessManagerTest extends DhisSpringTest
         assertTrue( errors.size() == 0 );
 
     }
-    
+
     @Test
     public void checkAccessPermissionForTeiWhenTeiOuOutsideSearchScope()
     {
@@ -521,7 +521,7 @@ public class TrackerAccessManagerTest extends DhisSpringTest
 
         ProgramInstance pi = tei.getProgramInstances().iterator().next();
 
-        // Active  event on orgUnitA
+        // Active event on orgUnitA
         ProgramStageInstance psi = pi.getProgramStageInstanceByStage( 2 );
 
         if ( psi.getStatus() == EventStatus.SCHEDULE )
@@ -548,7 +548,8 @@ public class TrackerAccessManagerTest extends DhisSpringTest
 
         trackerOwnershipManager.transferOwnership( tei, programA, organisationUnitB, true, true );
 
-        // Cannot create events with eventOu outside capture scope, even if ownerOu is also in capture scope
+        // Cannot create events with eventOu outside capture scope, even if
+        // ownerOu is also in capture scope
         errors = trackerAccessManager.canCreate( user, psi, false );
         assertTrue( errors.size() == 1 );
         assertTrue( errors.get( 0 ).contains( "User has no create access to organisation unit:" ) );
@@ -566,8 +567,7 @@ public class TrackerAccessManagerTest extends DhisSpringTest
         assertTrue( errors.size() == 0 );
 
     }
-    
-    
+
     private Enrollment createEnrollment( String program, String person )
     {
         Enrollment enrollment = new Enrollment();
@@ -580,7 +580,8 @@ public class TrackerAccessManagerTest extends DhisSpringTest
 
         Event event1 = new Event();
         event1.setEnrollment( enrollment.getEnrollment() );
-        event1.setEventDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
+        event1
+            .setEventDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
         event1.setProgram( programA.getUid() );
         event1.setProgramStage( programStageA.getUid() );
         event1.setStatus( EventStatus.COMPLETED );
@@ -589,7 +590,8 @@ public class TrackerAccessManagerTest extends DhisSpringTest
 
         Event event2 = new Event();
         event2.setEnrollment( enrollment.getEnrollment() );
-        event2.setDueDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now().plusDays( 10 ) ) );
+        event2.setDueDate(
+            DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now().plusDays( 10 ) ) );
         event2.setProgram( programA.getUid() );
         event2.setProgramStage( programStageB.getUid() );
         event2.setStatus( EventStatus.SCHEDULE );

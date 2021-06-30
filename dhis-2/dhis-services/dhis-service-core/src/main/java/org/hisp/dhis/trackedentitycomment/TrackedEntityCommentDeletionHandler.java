@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentitycomment;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.trackedentitycomment;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentitycomment;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -60,7 +59,7 @@ public class TrackedEntityCommentDeletionHandler
     @Override
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
-        for( TrackedEntityComment comment : programInstance.getComments())
+        for ( TrackedEntityComment comment : programInstance.getComments() )
         {
             commentService.deleteTrackedEntityComment( comment );
         }
@@ -69,7 +68,7 @@ public class TrackedEntityCommentDeletionHandler
     @Override
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
-        for( TrackedEntityComment comment : programStageInstance.getComments())
+        for ( TrackedEntityComment comment : programStageInstance.getComments() )
         {
             commentService.deleteTrackedEntityComment( comment );
         }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.userkeyjsonvalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.userkeyjsonvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.userkeyjsonvalue;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
 
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Stian Sandvold
@@ -52,7 +51,7 @@ public class DefaultUserKeyJsonValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public UserKeyJsonValue getUserKeyJsonValue( User user, String namespace, String key )
     {
         return userKeyJsonValueStore.getUserKeyJsonValue( user, namespace, key );
@@ -81,14 +80,14 @@ public class DefaultUserKeyJsonValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<String> getNamespacesByUser( User user )
     {
         return userKeyJsonValueStore.getNamespacesByUser( user );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<String> getKeysByUserAndNamespace( User user, String namespace )
     {
         return userKeyJsonValueStore.getKeysByUserAndNamespace( user, namespace );

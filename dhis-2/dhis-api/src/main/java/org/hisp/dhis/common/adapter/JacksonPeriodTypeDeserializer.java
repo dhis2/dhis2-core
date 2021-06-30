@@ -1,7 +1,5 @@
-package org.hisp.dhis.common.adapter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,15 @@ package org.hisp.dhis.common.adapter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common.adapter;
+
+import java.io.IOException;
+
+import org.hisp.dhis.period.PeriodType;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import org.hisp.dhis.period.PeriodType;
-
-import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,7 +42,8 @@ public class JacksonPeriodTypeDeserializer
     extends JsonDeserializer<PeriodType>
 {
     @Override
-    public PeriodType deserialize( JsonParser jp, DeserializationContext context ) throws IOException
+    public PeriodType deserialize( JsonParser jp, DeserializationContext context )
+        throws IOException
     {
         String periodTypeString = jp.readValueAs( String.class );
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,13 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
 
+import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.User;
 
 /**
@@ -50,7 +51,7 @@ public interface TrackerOwnershipManager
      *        skipped or not.
      */
     void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit,
-                            boolean skipAccessValidation, boolean createIfNotExists );
+        boolean skipAccessValidation, boolean createIfNotExists );
 
     /**
      * @param entityInstance The tracked entity instance object
@@ -58,7 +59,7 @@ public interface TrackerOwnershipManager
      * @param organisationUnit The org unit that has to become the owner
      */
     void assignOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit organisationUnit,
-                          boolean skipAccessValidation, boolean overwriteIfExists );
+        boolean skipAccessValidation, boolean overwriteIfExists );
 
     /**
      * Check whether the user has access (as owner or has temporarily broken the
@@ -71,6 +72,8 @@ public interface TrackerOwnershipManager
      */
     boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program );
 
+    boolean hasAccessUsingContext( User user, String trackedEntityInstanceUid, String programUid,
+        EventContext eventContext );
 
     /**
      * Check whether the user has access (as owner or has temporarily broken the
@@ -92,4 +95,26 @@ public interface TrackerOwnershipManager
      * @param reason The reason for requesting temporary ownership
      */
     void grantTemporaryOwnership( TrackedEntityInstance entityInstance, Program program, User user, String reason );
+
+    /**
+     * Ownership check can be skipped if the user is super user or if the
+     * program type is without registration.
+     *
+     * @param user the {@User}.
+     * @param program the {@link Program}.
+     *
+     * @return true if ownership check can be skipped.
+     */
+    boolean canSkipOwnershipCheck( User user, Program program );
+
+    /**
+     * Ownership check can be skipped if the user is super user or if the
+     * program type is without registration.
+     *
+     * @param user the {@User}.
+     * @param programType the {@link ProgramType}.
+     *
+     * @return true if ownership check can be skipped.
+     */
+    boolean canSkipOwnershipCheck( User user, ProgramType programType );
 }

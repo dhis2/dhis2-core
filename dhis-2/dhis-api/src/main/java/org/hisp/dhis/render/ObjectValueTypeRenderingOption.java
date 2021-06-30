@@ -1,7 +1,5 @@
-package org.hisp.dhis.render;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,21 @@ package org.hisp.dhis.render;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.render.type.ValueTypeRenderingType;
+package org.hisp.dhis.render;
 
 import java.util.Objects;
 import java.util.Set;
 
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.render.type.ValueTypeRenderingType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 /**
- * This class represents how a class (DataElement or TrackedEntityAttribute), a ValueType or OptionSet can be rendered
+ * This class represents how a class (DataElement or TrackedEntityAttribute), a
+ * ValueType or OptionSet can be rendered
  */
 public class ObjectValueTypeRenderingOption
 {
@@ -58,7 +59,8 @@ public class ObjectValueTypeRenderingOption
     private boolean hasOptionSet;
 
     /**
-     * A set of renderingTypes available for the combination of clazz valueType and hasOptionSet
+     * A set of renderingTypes available for the combination of clazz valueType
+     * and hasOptionSet
      */
     private Set<ValueTypeRenderingType> renderingTypes;
 

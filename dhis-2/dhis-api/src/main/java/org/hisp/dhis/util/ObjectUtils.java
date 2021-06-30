@@ -1,7 +1,5 @@
-package org.hisp.dhis.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,7 @@ package org.hisp.dhis.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.apache.commons.lang3.StringUtils;
+package org.hisp.dhis.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,13 +33,16 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @author Lars Helge Overland
  */
 public class ObjectUtils
 {
     /**
-     * Returns the first non-null argument. Returns null if all arguments are null.
+     * Returns the first non-null argument. Returns null if all arguments are
+     * null.
      *
      * @param objects the objects.
      * @return the first non-null argument.
@@ -152,12 +152,12 @@ public class ObjectUtils
     }
 
     /**
-     * Joins the elements of the provided collection into a string. The
-     * provided string mapping function is used to produce the string for each
-     * object. Null is returned if the provided collection is null.
+     * Joins the elements of the provided collection into a string. The provided
+     * string mapping function is used to produce the string for each object.
+     * Null is returned if the provided collection is null.
      *
-     * @param collection   the collection of elements.
-     * @param separator    the separator of elements in the returned string.
+     * @param collection the collection of elements.
+     * @param separator the separator of elements in the returned string.
      * @param stringMapper the function to produce the string for each object.
      * @return the joined string.
      */

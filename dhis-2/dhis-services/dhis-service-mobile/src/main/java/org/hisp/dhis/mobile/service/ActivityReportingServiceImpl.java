@@ -1,7 +1,5 @@
-package org.hisp.dhis.mobile.service;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.mobile.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mobile.service;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -81,13 +80,14 @@ public class ActivityReportingServiceImpl
     private final VisualizationService visualizationService;
 
     public ActivityReportingServiceImpl( CurrentUserService currentUserService, MessageService messageService,
-        UserService userService, InterpretationService interpretationService, VisualizationService visualizationService)
+        UserService userService, InterpretationService interpretationService,
+        VisualizationService visualizationService )
     {
         checkNotNull( currentUserService );
         checkNotNull( messageService );
         checkNotNull( userService );
         checkNotNull( interpretationService );
-        checkNotNull(visualizationService);
+        checkNotNull( visualizationService );
 
         this.currentUserService = currentUserService;
         this.messageService = messageService;
@@ -97,7 +97,8 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public String sendFeedback( org.hisp.dhis.api.mobile.model.Message message ) {
+    public String sendFeedback( org.hisp.dhis.api.mobile.model.Message message )
+    {
 
         String subject = message.getSubject();
         String text = message.getText();
@@ -109,7 +110,8 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public Collection<org.hisp.dhis.api.mobile.model.User> findUser( String keyword ) {
+    public Collection<org.hisp.dhis.api.mobile.model.User> findUser( String keyword )
+    {
         Collection<User> users;
 
         Collection<org.hisp.dhis.api.mobile.model.User> userList = new HashSet<>();
@@ -147,25 +149,27 @@ public class ActivityReportingServiceImpl
     {
         Calendar calendar = Calendar.getInstance();
 
-        switch (adjustment) {
-            case "1 day":
-                calendar.add(Calendar.DATE, operation);
-                break;
-            case "3 days":
-                calendar.add(Calendar.DATE, operation * 3);
-                break;
-            case "1 week":
-                calendar.add(Calendar.DATE, operation * 7);
-                break;
-            case "1 month":
-                calendar.add(Calendar.DATE, operation * 30);
-                break;
+        switch ( adjustment )
+        {
+        case "1 day":
+            calendar.add( Calendar.DATE, operation );
+            break;
+        case "3 days":
+            calendar.add( Calendar.DATE, operation * 3 );
+            break;
+        case "1 week":
+            calendar.add( Calendar.DATE, operation * 7 );
+            break;
+        case "1 month":
+            calendar.add( Calendar.DATE, operation * 30 );
+            break;
         }
         return calendar.getTime();
     }
 
     @Override
-    public String sendMessage( org.hisp.dhis.api.mobile.model.Message message ) {
+    public String sendMessage( org.hisp.dhis.api.mobile.model.Message message )
+    {
         String subject = message.getSubject();
         String text = message.getText();
         String metaData = MessageService.META_USER_AGENT;
@@ -185,7 +189,8 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public Collection<org.hisp.dhis.api.mobile.model.MessageConversation> downloadMessageConversation() {
+    public Collection<org.hisp.dhis.api.mobile.model.MessageConversation> downloadMessageConversation()
+    {
         Collection<MessageConversation> conversations;
 
         Collection<org.hisp.dhis.api.mobile.model.MessageConversation> mobileConversationList = new HashSet<>();
@@ -208,7 +213,8 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public Collection<org.hisp.dhis.api.mobile.model.Message> getMessage( String conversationId ) {
+    public Collection<org.hisp.dhis.api.mobile.model.Message> getMessage( String conversationId )
+    {
 
         MessageConversation conversation = messageService.getMessageConversation( Integer.parseInt( conversationId ) );
         List<Message> messageList = new ArrayList<>( conversation.getMessages() );
@@ -233,7 +239,8 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public String replyMessage( org.hisp.dhis.api.mobile.model.Message message ) {
+    public String replyMessage( org.hisp.dhis.api.mobile.model.Message message )
+    {
         String metaData = MessageService.META_USER_AGENT;
 
         MessageConversation conversation = messageService
@@ -245,7 +252,8 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public Interpretation getInterpretation( String uid ) {
+    public Interpretation getInterpretation( String uid )
+    {
         Visualization visualization = visualizationService.loadVisualization( uid );
         org.hisp.dhis.interpretation.Interpretation interpretationCore = interpretationService
             .getInterpretationByVisualization( visualization.getId() );
@@ -266,13 +274,14 @@ public class ActivityReportingServiceImpl
 
     private org.hisp.dhis.interpretation.Interpretation interpretation;
 
-    private void setInterpretation(org.hisp.dhis.interpretation.Interpretation interpretation)
+    private void setInterpretation( org.hisp.dhis.interpretation.Interpretation interpretation )
     {
         this.interpretation = interpretation;
     }
 
     @Override
-    public String postInterpretation( String data ) {
+    public String postInterpretation( String data )
+    {
 
         String uid = data.substring( 0, 11 );
 
@@ -280,7 +289,8 @@ public class ActivityReportingServiceImpl
 
         Visualization visualization = visualizationService.loadVisualization( uid );
 
-        org.hisp.dhis.interpretation.Interpretation i = new org.hisp.dhis.interpretation.Interpretation( visualization, null,
+        org.hisp.dhis.interpretation.Interpretation i = new org.hisp.dhis.interpretation.Interpretation( visualization,
+            null,
             interpretation );
 
         i.setUser( currentUserService.getCurrentUser() );
@@ -291,7 +301,8 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public String postInterpretationComment( String data ) {
+    public String postInterpretationComment( String data )
+    {
         int interpretationId = Integer.parseInt( data.substring( 0, 7 ) );
         String comment = data.substring( 7 );
 

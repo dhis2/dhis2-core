@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataanalysis;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,15 @@ package org.hisp.dhis.dataanalysis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataanalysis;
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -42,12 +47,7 @@ import org.hisp.dhis.period.Period;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -71,6 +71,7 @@ public class DataAnalysisStoreTest
     private DataValueService dataValueService;
 
     private DataElement dataElementA;
+
     private DataElement dataElementB;
 
     private CategoryCombo categoryCombo;
@@ -78,23 +79,33 @@ public class DataAnalysisStoreTest
     private CategoryOptionCombo categoryOptionCombo;
 
     private Period periodA;
+
     private Period periodB;
-    private Period periodC;    
-    private Period periodD;    
-    private Period periodE;    
-    private Period periodF;    
+
+    private Period periodC;
+
+    private Period periodD;
+
+    private Period periodE;
+
+    private Period periodF;
+
     private Period periodG;
+
     private Period periodH;
+
     private Period periodI;
+
     private Period periodJ;
-    
+
     private Date from = getDate( 1998, 1, 1 );
 
     private OrganisationUnit organisationUnitA;
+
     private OrganisationUnit organisationUnitB;
-    
+
     private Set<OrganisationUnit> organisationUnits;
-    
+
     // ----------------------------------------------------------------------
     // Fixture
     // ----------------------------------------------------------------------
@@ -103,7 +114,7 @@ public class DataAnalysisStoreTest
     public void setUpTest()
     {
         categoryCombo = categoryService.getDefaultCategoryCombo();
-        
+
         categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         dataElementA = createDataElement( 'A', categoryCombo );
@@ -128,7 +139,7 @@ public class DataAnalysisStoreTest
 
         organisationUnitService.addOrganisationUnit( organisationUnitA );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
-        
+
         organisationUnits = new HashSet<>();
         organisationUnits.add( organisationUnitA );
         organisationUnits.add( organisationUnitB );
@@ -141,16 +152,26 @@ public class DataAnalysisStoreTest
     @Test
     public void testGetDataAnalysisMeasures()
     {
-        dataValueService.addDataValue( createDataValue( dataElementA, periodA, organisationUnitA, "5", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodB, organisationUnitA, "2", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodC, organisationUnitA, "1", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodD, organisationUnitA, "12", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodE, organisationUnitA, "10", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodF, organisationUnitA, "7", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodG, organisationUnitA, "52", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodH, organisationUnitA, "23", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodI, organisationUnitA, "3", categoryOptionCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementA, periodJ, organisationUnitA, "15", categoryOptionCombo ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementA, periodA, organisationUnitA, "5", categoryOptionCombo ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementA, periodB, organisationUnitA, "2", categoryOptionCombo ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementA, periodC, organisationUnitA, "1", categoryOptionCombo ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementA, periodD, organisationUnitA, "12", categoryOptionCombo ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementA, periodE, organisationUnitA, "10", categoryOptionCombo ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementA, periodF, organisationUnitA, "7", categoryOptionCombo ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementA, periodG, organisationUnitA, "52", categoryOptionCombo ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementA, periodH, organisationUnitA, "23", categoryOptionCombo ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementA, periodI, organisationUnitA, "3", categoryOptionCombo ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementA, periodJ, organisationUnitA, "15", categoryOptionCombo ) );
 
         List<DataAnalysisMeasures> measures = dataAnalysisStore.getDataAnalysisMeasures( dataElementA,
             Lists.newArrayList( categoryOptionCombo ), Lists.newArrayList( organisationUnitA.getPath() ), from );

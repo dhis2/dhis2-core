@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,21 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UncheckedIOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UncheckedIOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -66,7 +66,7 @@ public class JacksonUtils
             throw new UncheckedIOException( ex );
         }
     }
-    
+
     public static <T> T fromJson( String string, Class<T> clazz )
     {
         try
@@ -94,12 +94,14 @@ public class JacksonUtils
     public static <T, U> Map<T, U> fromJsonToMap( String object )
         throws IOException
     {
-        TypeReference<HashMap<T, U>> typeRef = new TypeReference<HashMap<T, U>>() {};
+        TypeReference<HashMap<T, U>> typeRef = new TypeReference<HashMap<T, U>>()
+        {
+        };
 
         return jsonMapper.readValue( object, typeRef );
     }
 
-    public static void fromObjectToReponse( HttpServletResponse response, Object clazz)
+    public static void fromObjectToReponse( HttpServletResponse response, Object clazz )
     {
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
         response.setContentType( "application/json" );

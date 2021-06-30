@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.audit.listener;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.artemis.audit.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.audit.listener;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -35,7 +34,6 @@ import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.junit.Test;
-
 
 /**
  * @author Luciano Fiandesio
@@ -56,7 +54,8 @@ public class AnnotationUtilsTest
     public void testGetAnnotatedFields()
     {
         NestedTestImplementation testImplementation = new NestedTestImplementation();
-        assertEquals( 3, AnnotationUtils.getAnnotatedFields( testImplementation.getClass(), AuditAttribute.class ).size() );
+        assertEquals( 3,
+            AnnotationUtils.getAnnotatedFields( testImplementation.getClass(), AuditAttribute.class ).size() );
     }
 
 }

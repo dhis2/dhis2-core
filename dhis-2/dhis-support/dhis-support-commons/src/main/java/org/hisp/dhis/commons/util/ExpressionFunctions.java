@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.commons.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.util;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -73,7 +72,7 @@ public class ExpressionFunctions
             return null;
         }
 
-        return ( value.doubleValue() >= 0d ) ? 1d : 0d;
+        return (value.doubleValue() >= 0d) ? 1d : 0d;
     }
 
     /**
@@ -104,8 +103,8 @@ public class ExpressionFunctions
     }
 
     /**
-     * Functions which will return the true value if the condition is true, false
-     * value if not.
+     * Functions which will return the true value if the condition is true,
+     * false value if not.
      *
      * @param condititon the condition.
      * @param trueValue the true value.
@@ -118,7 +117,8 @@ public class ExpressionFunctions
     }
 
     /**
-     * Function which will return the number of days between the two given dates.
+     * Function which will return the number of days between the two given
+     * dates.
      *
      * @param start the start date.
      * @param end the end date.
@@ -134,7 +134,8 @@ public class ExpressionFunctions
     }
 
     /**
-     * Function which will return the number of months between the two given dates.
+     * Function which will return the number of months between the two given
+     * dates.
      *
      * @param start the start date.
      * @param end the end date.
@@ -150,7 +151,8 @@ public class ExpressionFunctions
     }
 
     /**
-     * Function which will return the number of days between the two given dates.
+     * Function which will return the number of days between the two given
+     * dates.
      *
      * @param start the start date.
      * @param end the end date.

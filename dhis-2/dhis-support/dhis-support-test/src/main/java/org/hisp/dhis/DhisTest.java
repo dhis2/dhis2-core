@@ -1,7 +1,5 @@
-package org.hisp.dhis;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis;
+
+import java.lang.reflect.Method;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -43,8 +44,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-
-import java.lang.reflect.Method;
 
 /**
  * TODO remove this class and its usage, too slow.
@@ -172,7 +171,8 @@ public abstract class DhisTest
     {
         SessionFactory sessionFactory = (SessionFactory) getBean( "sessionFactory" );
 
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.unbindResource( sessionFactory );
+        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
+            .unbindResource( sessionFactory );
 
         SessionFactoryUtils.closeSession( sessionHolder.getSession() );
     }

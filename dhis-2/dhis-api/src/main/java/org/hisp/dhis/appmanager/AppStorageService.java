@@ -1,6 +1,5 @@
-package org.hisp.dhis.appmanager;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,13 +25,14 @@ package org.hisp.dhis.appmanager;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.cache.Cache;
-import org.springframework.core.io.Resource;
+package org.hisp.dhis.appmanager;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+
+import org.hisp.dhis.cache.Cache;
+import org.springframework.core.io.Resource;
 
 /**
  * @author Stian Sandvold
@@ -41,6 +41,7 @@ public interface AppStorageService
 {
 
     String MANIFEST_FILENAME = "manifest.webapp";
+
     String APPS_DIR = "apps";
 
     /**
@@ -53,14 +54,14 @@ public interface AppStorageService
 
     /**
      * Returns a map of namespaces and the apps resesrving them.
-     * 
+     *
      * @return a map of namespaces and the apps reserving them
      */
-    Map<String,App> getReservedNamespaces();
+    Map<String, App> getReservedNamespaces();
 
     /**
      * Installs an app using the AppServiceStore.
-     * 
+     *
      * @param file the zip file containing the app
      * @param filename The name of the file
      * @param appCache The app cache
@@ -70,16 +71,16 @@ public interface AppStorageService
 
     /**
      * Deletes an app from the AppHubService.
-     * 
+     *
      * @param app the app to delete
      * @return true if app is deleted, false if something fails
      */
     boolean deleteApp( App app );
 
     /**
-     * Looks up and returns a resource representing the page for the app requested. If
-     * the resource is not found, return null.
-     * 
+     * Looks up and returns a resource representing the page for the app
+     * requested. If the resource is not found, return null.
+     *
      * @param app the app to look up
      * @param pageName the name of the page to look up
      * @return The resource representing the page, or null if not found

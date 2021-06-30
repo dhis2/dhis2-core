@@ -1,7 +1,5 @@
-package org.hisp.dhis.dashboard;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
@@ -73,14 +72,19 @@ public class DashboardServiceTest
     private IdentifiableObjectManager objectManager;
 
     private Dashboard dA;
+
     private Dashboard dB;
 
     private DashboardItem diA;
+
     private DashboardItem diB;
+
     private DashboardItem diC;
+
     private DashboardItem diD;
 
     private Visualization visualizationA;
+
     private Visualization visualizationB;
 
     private Document docA;
@@ -220,13 +224,14 @@ public class DashboardServiceTest
         dashboardService.saveDashboard( dA );
         dashboardService.saveDashboard( dB );
 
-        DashboardItem itemA = dashboardService.addItemContent( dA.getUid(), DashboardItemType.VISUALIZATION, visualizationA.getUid() );
+        DashboardItem itemA = dashboardService.addItemContent( dA.getUid(), DashboardItemType.VISUALIZATION,
+            visualizationA.getUid() );
 
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );
     }
 
-    @Test( expected = DeleteNotAllowedException.class)
+    @Test( expected = DeleteNotAllowedException.class )
     public void testDeleteWithDashboardItem()
     {
         Program prA = createProgram( 'A', null, null );
@@ -245,7 +250,8 @@ public class DashboardServiceTest
 
         dashboardService.saveDashboard( dashboard );
 
-        DashboardItem itemA = dashboardService.addItemContent( dashboard.getUid(), DashboardItemType.EVENT_CHART, eventChart.getUid() );
+        DashboardItem itemA = dashboardService.addItemContent( dashboard.getUid(), DashboardItemType.EVENT_CHART,
+            eventChart.getUid() );
 
         assertNotNull( itemA );
 
@@ -259,16 +265,16 @@ public class DashboardServiceTest
         dashboardService.saveDashboard( dB );
 
         DashboardSearchResult result = dashboardService.search( "A" );
-        assertEquals(1, result.getVisualizationCount() );
-        assertEquals(1, result.getResourceCount() );
+        assertEquals( 1, result.getVisualizationCount() );
+        assertEquals( 1, result.getResourceCount() );
 
         result = dashboardService.search( "B" );
-        assertEquals(1, result.getVisualizationCount() );
-        assertEquals(1, result.getResourceCount() );
+        assertEquals( 1, result.getVisualizationCount() );
+        assertEquals( 1, result.getResourceCount() );
 
         result = dashboardService.search( "Z" );
-        assertEquals(0, result.getVisualizationCount() );
-        assertEquals(0, result.getResourceCount() );
+        assertEquals( 0, result.getVisualizationCount() );
+        assertEquals( 0, result.getResourceCount() );
     }
 
     @Test
@@ -277,14 +283,14 @@ public class DashboardServiceTest
         Program prA = createProgram( 'A', null, null );
         objectManager.save( prA );
 
-        IntStream.range(1, 30).forEach( i -> {
+        IntStream.range( 1, 30 ).forEach( i -> {
             Visualization visualization = createVisualization( "A" );
             visualization.setName( RandomStringUtils.randomAlphabetic( 5 ) );
             visualizationService.save( visualization );
 
-        });
+        } );
 
-        IntStream.range(1, 30 ).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ) );
+        IntStream.range( 1, 30 ).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ) );
 
         DashboardSearchResult result = dashboardService.search( Sets.newHashSet( DashboardItemType.VISUALIZATION ) );
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.keyjsonvalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.keyjsonvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.keyjsonvalue;
 
 import java.util.Date;
 import java.util.List;
@@ -44,7 +43,8 @@ public interface KeyJsonValueService
     List<String> getNamespaces( boolean isAdmin );
 
     /**
-     * Retrieves list of KeyJsonValue objects belonging to the specified namespace.
+     * Retrieves list of KeyJsonValue objects belonging to the specified
+     * namespace.
      *
      * @param namespace the namespace where the key is associated
      * @return list of matching KeyJsonValues
@@ -52,9 +52,10 @@ public interface KeyJsonValueService
     List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace, boolean isAdmin );
 
     /**
-     * Retrieves a list of keys from a namespace which are updated after lastUpdated time.
+     * Retrieves a list of keys from a namespace which are updated after
+     * lastUpdated time.
      *
-     * @param namespace   the namespace to retrieve keys from.
+     * @param namespace the namespace to retrieve keys from.
      * @param lastUpdated the lastUpdated time to retrieve keys from.
      * @return a list of strings representing the keys from the namespace.
      */
@@ -64,7 +65,7 @@ public interface KeyJsonValueService
      * Retrieves a KeyJsonValue based on a namespace and key.
      *
      * @param namespace the namespace where the key is associated.
-     * @param key       the key referencing the value.
+     * @param key the key referencing the value.
      * @return the KeyJsonValue matching the key and namespace.
      */
     KeyJsonValue getKeyJsonValue( String namespace, String key, boolean isAdmin );
@@ -102,8 +103,8 @@ public interface KeyJsonValueService
      * Retrieves a value object.
      *
      * @param namespace the namespace where the key is associated.
-     * @param key       the key referencing the value.
-     * @param clazz     the class of the object to retrievev.
+     * @param key the key referencing the value.
+     * @param clazz the class of the object to retrievev.
      * @return a value object.
      */
     <T> T getValue( String namespace, String key, Class<T> clazz );
@@ -112,8 +113,8 @@ public interface KeyJsonValueService
      * Adds a value object.
      *
      * @param namespace the namespace where the key is associated.
-     * @param key       the key referencing the value.
-     * @param value     the value object to add.
+     * @param key the key referencing the value.
+     * @param value the value object to add.
      */
     <T> void addValue( String namespace, String key, T value );
 
@@ -121,8 +122,8 @@ public interface KeyJsonValueService
      * Updates a value object.
      *
      * @param namespace the namespace where the key is associated.
-     * @param key       the key referencing the value.
-     * @param value     the value object to update.
+     * @param key the key referencing the value.
+     * @param value the value object to update.
      */
     <T> void updateValue( String namespace, String key, T value );
 }

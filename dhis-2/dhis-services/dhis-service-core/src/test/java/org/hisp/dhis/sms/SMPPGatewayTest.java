@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,13 @@ package org.hisp.dhis.sms;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms;
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -42,10 +45,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * To run this test, make sure that the SMSC is running on:
@@ -63,11 +63,17 @@ import static org.junit.Assert.*;
 public class SMPPGatewayTest extends DhisSpringTest
 {
     private static final String SYSTEM_ID = "smppclient1";
+
     private static final String SYSTEM_TYPE = "cp";
+
     private static final String HOST = "localhost";
+
     private static final String PASSWORD = "password";
+
     private static final String RECIPIENT = "47XXXXXX";
+
     private static final String TEXT = "text through smpp";
+
     private static final String SUBJECT = "subject";
 
     private static final int PORT = 2775;

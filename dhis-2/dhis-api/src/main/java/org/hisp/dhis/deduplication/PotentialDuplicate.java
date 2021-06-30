@@ -1,7 +1,5 @@
-package org.hisp.dhis.deduplication;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,37 +25,36 @@ package org.hisp.dhis.deduplication;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.deduplication;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 public class PotentialDuplicate
     extends BaseIdentifiableObject
 {
     /**
-     * teiA represents the UID of a TrackedEntityInstance.
-     * teiA is required.
-     * teiA is a potential duplicate of teiB.
-     * if teiB is null, it indicates a user has flagged teiA as
-     * a potential duplicate, without knowing which TrackedEntityInstance
-     * it is a duplicate of.
+     * teiA represents the UID of a TrackedEntityInstance. teiA is required.
+     * teiA is a potential duplicate of teiB. if teiB is null, it indicates a
+     * user has flagged teiA as a potential duplicate, without knowing which
+     * TrackedEntityInstance it is a duplicate of.
      */
     private String teiA;
 
     /**
-     * teiB represents the UID of a TrackedEntityInstance.
-     * teiB is optional.
+     * teiB represents the UID of a TrackedEntityInstance. teiB is optional.
      * teiB is a potential duplicate of teiA.
      */
     private String teiB;
 
     /**
-     * status represents the state of the PotentialDuplicate.
-     * all new Potential duplicates are OPEN by default.
+     * status represents the state of the PotentialDuplicate. all new Potential
+     * duplicates are OPEN by default.
      */
     private DeduplicationStatus status = DeduplicationStatus.OPEN;
 

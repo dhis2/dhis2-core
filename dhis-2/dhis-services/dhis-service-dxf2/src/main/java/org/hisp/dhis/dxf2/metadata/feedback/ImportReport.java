@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.feedback;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +25,25 @@ package org.hisp.dhis.dxf2.metadata.feedback;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.feedback;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.Stats;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.TypeReport;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.Stats;
-import org.hisp.dhis.feedback.TypeReport;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -61,13 +61,14 @@ public class ImportReport
     {
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     public TypeReport addTypeReport( TypeReport typeReport )
     {
-        if ( !typeReportMap.containsKey( typeReport.getKlass() ) ) typeReportMap.put( typeReport.getKlass(), new TypeReport( typeReport.getKlass() ) );
+        if ( !typeReportMap.containsKey( typeReport.getKlass() ) )
+            typeReportMap.put( typeReport.getKlass(), new TypeReport( typeReport.getKlass() ) );
         typeReportMap.get( typeReport.getKlass() ).merge( typeReport );
 
         return typeReport;
@@ -91,9 +92,9 @@ public class ImportReport
         return errorReports;
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Getters and Setters
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -136,7 +137,7 @@ public class ImportReport
     {
         return new ArrayList<>( typeReportMap.values() );
     }
-    
+
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "typeReports", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )

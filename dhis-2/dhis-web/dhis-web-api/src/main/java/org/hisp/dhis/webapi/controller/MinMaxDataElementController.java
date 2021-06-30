@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,18 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Objects;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -61,10 +65,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.List;
-import java.util.Objects;
+import com.google.common.collect.Lists;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -98,9 +99,9 @@ public class MinMaxDataElementController
         this.manager = manager;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // GET
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @GetMapping
     public @ResponseBody RootNode getObjectList( MinMaxDataElementQueryParams query )
@@ -125,14 +126,15 @@ public class MinMaxDataElementController
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( MinMaxDataElement.class, new FieldFilterParams( minMaxDataElements, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( MinMaxDataElement.class,
+            new FieldFilterParams( minMaxDataElements, fields ) ) );
 
         return rootNode;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // POST
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')" )
@@ -145,7 +147,8 @@ public class MinMaxDataElementController
 
         minMax = getReferences( minMax );
 
-        MinMaxDataElement persisted = minMaxService.getMinMaxDataElement( minMax.getSource(), minMax.getDataElement(), minMax.getOptionCombo() );
+        MinMaxDataElement persisted = minMaxService.getMinMaxDataElement( minMax.getSource(), minMax.getDataElement(),
+            minMax.getOptionCombo() );
 
         if ( Objects.isNull( persisted ) )
         {
@@ -164,13 +167,14 @@ public class MinMaxDataElementController
         webMessageService.send( webMessage, response, request );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // DELETE
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.DELETE, consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_DELETE')" )
-    public void deleteObject( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void deleteObject( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         MinMaxDataElement minMax = renderService.fromJson( request.getInputStream(), MinMaxDataElement.class );
 
@@ -178,7 +182,8 @@ public class MinMaxDataElementController
 
         minMax = getReferences( minMax );
 
-        MinMaxDataElement persisted = minMaxService.getMinMaxDataElement( minMax.getSource(), minMax.getDataElement(), minMax.getOptionCombo() );
+        MinMaxDataElement persisted = minMaxService.getMinMaxDataElement( minMax.getSource(), minMax.getDataElement(),
+            minMax.getOptionCombo() );
 
         if ( Objects.isNull( persisted ) )
         {
@@ -190,26 +195,31 @@ public class MinMaxDataElementController
         webMessageService.send( WebMessageUtils.ok( "MinMaxDataElement deleted." ), response, request );
     }
 
-    private void validate( MinMaxDataElement minMax ) throws WebMessageException
+    private void validate( MinMaxDataElement minMax )
+        throws WebMessageException
     {
         if ( !ObjectUtils.allNonNull( minMax.getDataElement(), minMax.getSource(), minMax.getOptionCombo() ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Missing required parameters : Source, DataElement, OptionCombo." ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "Missing required parameters : Source, DataElement, OptionCombo." ) );
         }
     }
 
-    private MinMaxDataElement getReferences( MinMaxDataElement m ) throws WebMessageException
+    private MinMaxDataElement getReferences( MinMaxDataElement m )
+        throws WebMessageException
     {
         try
         {
             m.setDataElement( Objects.requireNonNull( manager.get( DataElement.class, m.getDataElement().getUid() ) ) );
             m.setSource( Objects.requireNonNull( manager.get( OrganisationUnit.class, m.getSource().getUid() ) ) );
-            m.setOptionCombo( Objects.requireNonNull( manager.get( CategoryOptionCombo.class, m.getOptionCombo().getUid() ) ) );
+            m.setOptionCombo(
+                Objects.requireNonNull( manager.get( CategoryOptionCombo.class, m.getOptionCombo().getUid() ) ) );
             return m;
         }
         catch ( NullPointerException e )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Invalid required parameters: source, dataElement, optionCombo" ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "Invalid required parameters: source, dataElement, optionCombo" ) );
         }
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRandom;
 import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRandomBuilder;
@@ -50,7 +49,7 @@ import com.google.common.collect.Sets;
 public class BaseDimensionalObjectTest
 {
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void verifyInstanceCloneObject()
     {
         BaseDimensionalObject target = new BaseDimensionalObject( "test-dimension" );
@@ -79,11 +78,11 @@ public class BaseDimensionalObjectTest
         assertThat( cloned.getItems(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
                 allOf( hasProperty( "name", is( target.getItems().get( 0 ).getName() ) ),
-                       hasProperty( "uid",  is( target.getItems().get( 0 ).getUid() ) ),
-                       hasProperty( "code", is( target.getItems().get( 0 ).getCode() ) ) ),
+                    hasProperty( "uid", is( target.getItems().get( 0 ).getUid() ) ),
+                    hasProperty( "code", is( target.getItems().get( 0 ).getCode() ) ) ),
                 allOf( hasProperty( "name", is( target.getItems().get( 1 ).getName() ) ),
-                       hasProperty( "uid",  is( target.getItems().get( 1 ).getUid() ) ),
-                       hasProperty( "code", is( target.getItems().get( 1 ).getCode() ) ) ) ) );
+                    hasProperty( "uid", is( target.getItems().get( 1 ).getUid() ) ),
+                    hasProperty( "code", is( target.getItems().get( 1 ).getCode() ) ) ) ) );
         assertThat( cloned.getFilter(), is( target.getFilter() ) );
         assertThat( cloned.getLegendSet().getName(), is( "legend-name" ) );
         assertThat( cloned.getLegendSet().getSymbolizer(), is( "symbolizer-test" ) );

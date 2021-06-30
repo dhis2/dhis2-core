@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -53,7 +52,8 @@ public class PredictorObjectBundleHook
         Predictor predictor = (Predictor) object;
         Expression skipTest = predictor.getSampleSkipTest();
 
-        preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(), bundle.getPreheatIdentifier() );
+        preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(),
+            bundle.getPreheatIdentifier() );
 
         if ( skipTest != null )
         {

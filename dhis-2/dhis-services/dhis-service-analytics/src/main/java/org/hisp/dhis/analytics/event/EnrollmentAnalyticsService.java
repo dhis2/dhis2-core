@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event;
 
 import org.hisp.dhis.common.Grid;
 
@@ -39,14 +38,23 @@ import org.hisp.dhis.common.Grid;
 public interface EnrollmentAnalyticsService
 {
     String ITEM_TEI = "tei";
+
     String ITEM_PI = "pi";
+
     String ITEM_ENROLLMENT_DATE = "enrollmentdate";
+
     String ITEM_INCIDENT_DATE = "incidentdate";
+
     String ITEM_GEOMETRY = "geometry";
+
     String ITEM_LONGITUDE = "longitude";
+
     String ITEM_LATITUDE = "latitude";
+
     String ITEM_ORG_UNIT_NAME = "ouname";
+
     String ITEM_ORG_UNIT_CODE = "oucode";
+
     String ITEM_ORG_UNIT_ID = "ou";
 
     /**

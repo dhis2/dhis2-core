@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.gml;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,16 @@ package org.hisp.dhis.dxf2.gml;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.gml;
+
+import java.io.InputStream;
 
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 
-import java.io.InputStream;
-
 /**
- * Handles the transformation, sanitation and merging of geospatial
- * data for OrganisationUnits through processing and importing GML files.
+ * Handles the transformation, sanitation and merging of geospatial data for
+ * OrganisationUnits through processing and importing GML files.
  *
  * @author Halvdan Hoem Grelland
  */
@@ -43,10 +42,12 @@ public interface GmlImportService
 {
     /**
      * Import the geospatial data from a GML document.
-     *  @param userUid       the UID of the user performing the import.
-     * @param importOptions the ImportOptions. ImportStrategy is always overridden to UPDATE.
-     * @param taskId        the TaskId of the import process.
-     * @param inputStream   the GML document.
+     *
+     * @param userUid the UID of the user performing the import.
+     * @param importOptions the ImportOptions. ImportStrategy is always
+     *        overridden to UPDATE.
+     * @param taskId the TaskId of the import process.
+     * @param inputStream the GML document.
      */
     ImportReport importGml( InputStream inputStream, MetadataImportParams importParams );
 }

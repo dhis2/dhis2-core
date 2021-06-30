@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,22 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.dxf2.events.report.EventRow;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+package org.hisp.dhis.dxf2.events.event;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.hisp.dhis.dxf2.events.report.EventRow;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventStore
 {
-    List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits, Map<String, Set<String>> psdesWithSkipSyncTrue );
+    List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
+        Map<String, Set<String>> psdesWithSkipSyncTrue );
 
     List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
 
 import java.io.Serializable;
 import java.util.List;
@@ -57,7 +56,7 @@ public interface UserSettingService
     void saveUserSetting( UserSettingKey key, Serializable value );
 
     /**
-     * Saves the key/value pair as a user setting connected to user identified 
+     * Saves the key/value pair as a user setting connected to user identified
      * by username.
      *
      * @param key the user setting key.
@@ -132,12 +131,14 @@ public interface UserSettingService
     List<UserSetting> getAllUserSettings();
 
     /**
-     * Returns all specified user settings. If any user settings have not been set,
-     * system settings will be used as a fallback.
+     * Returns all specified user settings. If any user settings have not been
+     * set, system settings will be used as a fallback.
+     *
      * @param userSettingKeys the set of user settings to retrieve
      * @return a map of setting names and their values
      */
-    Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<UserSettingKey> userSettingKeys, boolean useFallback );
+    Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<UserSettingKey> userSettingKeys,
+        boolean useFallback );
 
     /**
      * Invalidates in-memory caches.
@@ -145,8 +146,9 @@ public interface UserSettingService
     void invalidateCache();
 
     /**
-     * Returns all user settings for currently logged in user. Setting will not be
-     * included in map if its value is null.
+     * Returns all user settings for currently logged in user. Setting will not
+     * be included in map if its value is null.
+     *
      * @return a map of setting names and their values
      */
     Map<String, Serializable> getUserSettingsAsMap();

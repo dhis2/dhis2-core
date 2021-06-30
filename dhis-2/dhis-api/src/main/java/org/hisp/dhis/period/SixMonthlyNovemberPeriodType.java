@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -65,7 +64,7 @@ public class SixMonthlyNovemberPeriodType
     {
         return BASE_MONTH;
     }
-    
+
     @Override
     public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
@@ -74,21 +73,21 @@ public class SixMonthlyNovemberPeriodType
         int baseMonth = getBaseMonth();
         int year = start.getYear();
         int month = baseMonth;
-        
+
         if ( start.getMonth() < 5 )
         {
             month = baseMonth;
             year = year - 1;
         }
-        
-        if ( start.getMonth() >= 5 && start.getMonth() <= 10 ) 
+
+        if ( start.getMonth() >= 5 && start.getMonth() <= 10 )
         {
             month = baseMonth - 6;
         }
-        
+
         start.setYear( year );
         start.setMonth( month );
-        start.setDay( 1 );        
+        start.setDay( 1 );
 
         DateTimeUnit end = new DateTimeUnit( start );
         end = calendar.plusMonths( end, 5 );
@@ -96,7 +95,6 @@ public class SixMonthlyNovemberPeriodType
 
         return toIsoPeriod( start, end, calendar );
     }
-    
 
     // -------------------------------------------------------------------------
     // CalendarPeriodType functionality
@@ -114,12 +112,12 @@ public class SixMonthlyNovemberPeriodType
 
         switch ( month )
         {
-            case 11:
-                return dateTimeUnit.getYear() + 1 + "NovS1";
-            case 5:
-                return dateTimeUnit.getYear() + "NovS2";
-            default:
-                throw new IllegalArgumentException( "Month not valid [11,5]" );
+        case 11:
+            return dateTimeUnit.getYear() + 1 + "NovS1";
+        case 5:
+            return dateTimeUnit.getYear() + "NovS2";
+        default:
+            throw new IllegalArgumentException( "Month not valid [11,5]" );
         }
     }
 

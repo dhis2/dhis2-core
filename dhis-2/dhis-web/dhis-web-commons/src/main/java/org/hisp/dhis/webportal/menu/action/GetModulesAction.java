@@ -1,7 +1,5 @@
-package org.hisp.dhis.webportal.menu.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,9 @@ package org.hisp.dhis.webportal.menu.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webportal.menu.action;
 
 import java.util.ArrayList;
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -55,9 +53,9 @@ public class GetModulesAction
 
     @Autowired
     private CurrentUserService currentUserService;
-    
+
     private List<Module> modules;
-    
+
     public List<Module> getModules()
     {
         return modules;
@@ -68,15 +66,15 @@ public class GetModulesAction
         throws Exception
     {
         String contextPath = ContextUtils.getContextPath( ServletActionContext.getRequest() );
-        
+
         modules = manager.getAccessibleMenuModulesAndApps( contextPath );
 
         User user = currentUserService.getCurrentUser();
-        
+
         if ( user != null && user.getApps() != null && !user.getApps().isEmpty() )
         {
             final List<String> userApps = new ArrayList<>( user.getApps() );
-            
+
             Collections.sort( modules, new Comparator<Module>()
             {
                 @Override
@@ -87,12 +85,12 @@ public class GetModulesAction
 
                     i1 = i1 == -1 ? 9999 : i1;
                     i2 = i2 == -1 ? 9999 : i2;
-                    
+
                     return Integer.valueOf( i1 ).compareTo( Integer.valueOf( i2 ) );
                 }
             } );
         }
-        
+
         return SUCCESS;
     }
 }

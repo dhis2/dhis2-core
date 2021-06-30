@@ -1,7 +1,5 @@
-package org.hisp.dhis.datasource;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.datasource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datasource;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_DRIVER_CLASS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
@@ -45,6 +44,7 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -62,13 +62,19 @@ public class DefaultDataSourceManager
     implements DataSourceManager, InitializingBean
 {
     private static final String FORMAT_READ_PREFIX = "read%d.";
+
     private static final String FORMAT_CONNECTION_URL = FORMAT_READ_PREFIX + CONNECTION_URL.getKey();
+
     private static final String FORMAT_CONNECTION_USERNAME = FORMAT_READ_PREFIX + CONNECTION_USERNAME.getKey();
+
     private static final String FORMAT_CONNECTION_PASSWORD = FORMAT_READ_PREFIX + CONNECTION_PASSWORD.getKey();
 
     private static final int VAL_ACQUIRE_INCREMENT = 6;
+
     private static final int VAL_MAX_IDLE_TIME = 21600;
+
     private static final int MAX_READ_REPLICAS = 5;
+
     private static final String DEFAULT_POOL_SIZE = "40";
 
     /**
@@ -195,7 +201,8 @@ public class DefaultDataSourceManager
         }
         catch ( SQLException ex )
         {
-            String message = String.format( "Connection test failed for read replica, driver class: '%s', URL: '%s', user: '%s', pw: '%s",
+            String message = String.format(
+                "Connection test failed for read replica, driver class: '%s', URL: '%s', user: '%s', pw: '%s",
                 dataSource.getDriverClass(), dataSource.getJdbcUrl(), dataSource.getUser(), dataSource.getPassword() );
 
             log.error( message );

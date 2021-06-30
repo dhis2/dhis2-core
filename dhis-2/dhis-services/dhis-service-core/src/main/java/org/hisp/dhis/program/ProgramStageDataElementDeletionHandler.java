@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,17 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -71,7 +70,8 @@ public class ProgramStageDataElementDeletionHandler
     @Override
     public void deleteProgramStage( ProgramStage programStage )
     {
-        List<ProgramStageDataElement> programStageDataElements = new ArrayList<>( programStage.getProgramStageDataElements() );
+        List<ProgramStageDataElement> programStageDataElements = new ArrayList<>(
+            programStage.getProgramStageDataElements() );
 
         for ( ProgramStageDataElement programStageDataElement : programStageDataElements )
         {
@@ -85,9 +85,11 @@ public class ProgramStageDataElementDeletionHandler
     {
         if ( DataElementDomain.TRACKER == dataElement.getDomainType() )
         {
-            for (ProgramStageDataElement element : programStageDataElementService.getAllProgramStageDataElements()) {
-                if (element.getDataElement() != null && element.getDataElement().equals(dataElement)) {
-                    programStageDataElementService.deleteProgramStageDataElement(element);
+            for ( ProgramStageDataElement element : programStageDataElementService.getAllProgramStageDataElements() )
+            {
+                if ( element.getDataElement() != null && element.getDataElement().equals( dataElement ) )
+                {
+                    programStageDataElementService.deleteProgramStageDataElement( element );
                 }
             }
         }

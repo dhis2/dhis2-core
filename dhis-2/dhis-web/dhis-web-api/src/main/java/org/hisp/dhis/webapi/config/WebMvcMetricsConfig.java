@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.config;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_API_ENABLED;
 
@@ -85,7 +84,8 @@ public class WebMvcMetricsConfig
         }
     }
 
-    // If API metrics are disabled, system still expects a filter named 'webMetricsFilter' to be available
+    // If API metrics are disabled, system still expects a filter named
+    // 'webMetricsFilter' to be available
 
     static class PassThroughWebMvcMetricsFilter
         extends OncePerRequestFilter
@@ -101,7 +101,7 @@ public class WebMvcMetricsConfig
     }
 
     static class WebMvcMetricsEnabledCondition
-            extends MetricsEnabler
+        extends MetricsEnabler
     {
         @Override
         protected ConfigurationKey getConfigKey()
@@ -120,7 +120,7 @@ public class WebMvcMetricsConfig
         }
 
         @Override
-        public boolean matches(ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata )
+        public boolean matches( ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata )
         {
             return isTestRun( conditionContext ) || !getBooleanValue( MONITORING_API_ENABLED );
         }

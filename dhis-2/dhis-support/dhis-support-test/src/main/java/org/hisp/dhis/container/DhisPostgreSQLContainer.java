@@ -1,5 +1,3 @@
-package org.hisp.dhis.container;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.container;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.container;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -77,8 +76,9 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
 
     /**
      * Append custom postgres configuration to be customized when starting the
-     * container. The configAndValue should be of the form "configName=configValue".
-     * This method can be invoked multiple times to add multiple custom commands.
+     * container. The configAndValue should be of the form
+     * "configName=configValue". This method can be invoked multiple times to
+     * add multiple custom commands.
      *
      * @param configAndValue The configuration and value of the form
      *        "configName=configValue"

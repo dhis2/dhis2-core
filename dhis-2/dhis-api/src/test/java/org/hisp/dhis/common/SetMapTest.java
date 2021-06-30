@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -35,7 +34,6 @@ import java.util.Set;
 
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
-
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
@@ -49,17 +47,17 @@ public class SetMapTest
     public void testPutValue()
     {
         SetMap<String, Integer> map = new SetMap<>();
-        
+
         map.putValue( "a", 1 );
         map.putValue( "a", 2 );
         map.putValue( "a", 3 );
         map.putValue( "b", 4 );
         map.putValue( "b", 5 );
         map.putValue( "c", 6 );
-        
+
         assertEquals( Sets.newHashSet( 1, 2, 3 ), map.get( "a" ) );
         assertEquals( Sets.newHashSet( 4, 5 ), map.get( "b" ) );
-        assertEquals( Sets.newHashSet( 6 ), map.get( "c" ) );        
+        assertEquals( Sets.newHashSet( 6 ), map.get( "c" ) );
     }
 
     @Test
@@ -70,11 +68,11 @@ public class SetMapTest
         map.putValues( "a", Sets.newHashSet( 1, 2, 3 ) );
         map.putValues( "a", Sets.newHashSet( 3, 4 ) );
         map.putValues( "b", Sets.newHashSet( 5, 6 ) );
-        
+
         assertEquals( Sets.newHashSet( 1, 2, 3, 4 ), map.get( "a" ) );
         assertEquals( Sets.newHashSet( 5, 6 ), map.get( "b" ) );
     }
-    
+
     @Test
     public void testGetListMapValueMapper()
     {
@@ -82,25 +80,26 @@ public class SetMapTest
         DataElementGroupSet groupSetB = new DataElementGroupSet( "GroupSetB" );
         DataElementGroupSet groupSetC = new DataElementGroupSet( "GroupSetC" );
         DataElementGroupSet groupSetZ = new DataElementGroupSet( "GroupSetZ" );
-        
+
         DataElementGroup groupA = new DataElementGroup( "GroupA" );
         DataElementGroup groupB = new DataElementGroup( "GroupB" );
         DataElementGroup groupC = new DataElementGroup( "GroupC" );
         DataElementGroup groupD = new DataElementGroup( "GroupD" );
         DataElementGroup groupE = new DataElementGroup( "GroupE" );
         DataElementGroup groupF = new DataElementGroup( "GroupF" );
-        
+
         groupA.getGroupSets().add( groupSetA );
         groupB.getGroupSets().add( groupSetB );
         groupC.getGroupSets().add( groupSetC );
         groupD.getGroupSets().add( groupSetA );
         groupE.getGroupSets().add( groupSetB );
         groupF.getGroupSets().add( groupSetA );
-        
+
         Set<DataElementGroup> groups = Sets.newHashSet( groupA, groupB, groupC, groupD, groupE, groupF );
-                        
-        SetMap<DataElementGroupSet, DataElementGroup> map = SetMap.getSetMap( groups, group -> group.getGroupSets().iterator().next() );
-        
+
+        SetMap<DataElementGroupSet, DataElementGroup> map = SetMap.getSetMap( groups,
+            group -> group.getGroupSets().iterator().next() );
+
         assertEquals( Sets.newHashSet( groupA, groupD, groupF ), map.get( groupSetA ) );
         assertEquals( Sets.newHashSet( groupB, groupE ), map.get( groupSetB ) );
         assertEquals( Sets.newHashSet( groupC ), map.get( groupSetC ) );

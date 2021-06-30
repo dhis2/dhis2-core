@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,16 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.user.User;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Jim Grace
@@ -45,11 +44,11 @@ public interface DataApprovalLevelService
     String ID = DataApprovalLevelService.class.getName();
 
     /**
-     * Constant that can be used in place of approval level
-     * for data that has not been approved at any level.
+     * Constant that can be used in place of approval level for data that has
+     * not been approved at any level.
      */
     int APPROVAL_LEVEL_UNAPPROVED = 999;
-    
+
     /**
      * Constant representing the highest possible level of approval.
      */
@@ -98,10 +97,10 @@ public interface DataApprovalLevelService
 
     /**
      * Gets the lowest approval level for a given organisation unit and
-     * (optionally) a set of attribute options. Returns the last
-     * approval level matching both the orgUnit's level and (optionally)
-     * having a category option group set containing one of the category
-     * option groups containing one of the options.
+     * (optionally) a set of attribute options. Returns the last approval level
+     * matching both the orgUnit's level and (optionally) having a category
+     * option group set containing one of the category option groups containing
+     * one of the options.
      *
      * @param orgUnit organisation unit to look for.
      * @param attributeOptionCombo attribute option combination.
@@ -110,24 +109,25 @@ public interface DataApprovalLevelService
     DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Gets a list of all data approval levels, ordered by level in ascending order,
-     * i.e. from 1 to n.
+     * Gets a list of all data approval levels, ordered by level in ascending
+     * order, i.e. from 1 to n.
      *
      * @return list of all data approval levels, ordered from 1 to n.
      */
     List<DataApprovalLevel> getAllDataApprovalLevels();
-    
+
     /**
-     * Gets a mapping of all data approval levels between level number and approval
-     * level.
-     * 
+     * Gets a mapping of all data approval levels between level number and
+     * approval level.
+     *
      * @return map of all data approval levels between level number and approval
-     * level.
+     *         level.
      */
     Map<Integer, DataApprovalLevel> getDataApprovalLevelMap();
 
     /**
      * Gets all approval levels to which the user has access.
+     *
      * @param user the user to test for.
      * @return all approval levels to which the user has access.
      */
@@ -135,6 +135,7 @@ public interface DataApprovalLevelService
 
     /**
      * Gets approval levels within a workflow to which the user has access.
+     *
      * @param user the user to test for.
      * @param workflow the workflow to look within.
      * @return all user-accessible approval levels within that workflow.
@@ -142,8 +143,9 @@ public interface DataApprovalLevelService
     List<DataApprovalLevel> getUserDataApprovalLevels( User user, DataApprovalWorkflow workflow );
 
     /**
-     * Gets approval levels within a workflow to which the user has access.
-     * If there are none, at least return the lowest level (if any).
+     * Gets approval levels within a workflow to which the user has access. If
+     * there are none, at least return the lowest level (if any).
+     *
      * @param user the user to test for.
      * @param workflow the workflow to look within.
      * @return all user-accessible approval levels within that workflow.
@@ -152,15 +154,15 @@ public interface DataApprovalLevelService
 
     /**
      * Gets data approval levels by org unit level.
-     * 
+     *
      * @param orgUnitLevel the org unit level.
      * @return a list of data approval levels.
      */
     List<DataApprovalLevel> getDataApprovalLevelsByOrgUnitLevel( int orgUnitLevel );
-    
+
     /**
      * Retrieves all org unit levels which have approval levels associated.
-     * 
+     *
      * @return a list of org unit levels.
      */
     Set<OrganisationUnitLevel> getOrganisationUnitApprovalLevels();
@@ -175,8 +177,8 @@ public interface DataApprovalLevelService
     boolean canDataApprovalLevelMoveDown( int level );
 
     /**
-     * Tells whether a level can move up in the list (can switch places with
-     * the level above.)
+     * Tells whether a level can move up in the list (can switch places with the
+     * level above.)
      *
      * @param level the level to test.
      * @return true if the level can move up, otherwise false.
@@ -200,40 +202,42 @@ public interface DataApprovalLevelService
     void moveDataApprovalLevelUp( int level );
 
     /**
-     * Determines whether level already exists with the same organisation
-     * unit level and category option group set (but not necessarily the
-     * same level number.)
+     * Determines whether level already exists with the same organisation unit
+     * level and category option group set (but not necessarily the same level
+     * number.)
      *
      * @param level Data approval level to test for existence.
      * @return true if it exists, otherwise false.
      */
-    boolean dataApprovalLevelExists ( DataApprovalLevel level );
+    boolean dataApprovalLevelExists( DataApprovalLevel level );
 
     /**
      * Reorders the existing approval levels to prepare insert of the given
      * approval level. Should be followed by saving of the approval level.
-     * 
+     *
      * @param level the level to add.
      * @return true if the level can be added, false if not.
      */
     boolean prepareAddDataApproval( DataApprovalLevel level );
-    
+
     /**
      * Adds a new data approval level. Adds the new level at the highest
      * position possible (to facilitate the use case where users add the
      * approval levels from low to high.)
      *
      * @param level the new level to add.
-     * @return the identifier of the added level, or -1 if not well formed or duplicate.
+     * @return the identifier of the added level, or -1 if not well formed or
+     *         duplicate.
      */
     long addDataApprovalLevel( DataApprovalLevel level );
-    
+
     /**
      * Adds a new data approval level. Sets the level explicitly.
-     * 
+     *
      * @param approvalLevel the new level to add.
      * @param level the level.
-     * @return the identifier of the added level, or -1 if not well formed or duplicate.
+     * @return the identifier of the added level, or -1 if not well formed or
+     *         duplicate.
      */
     long addDataApprovalLevel( DataApprovalLevel approvalLevel, int level );
 
@@ -245,43 +249,45 @@ public interface DataApprovalLevelService
     void deleteDataApprovalLevel( DataApprovalLevel dataApprovalLevel );
 
     /**
-     * Reorders the remaining approval levels, if necessary, after deleting
-     * an approval level. Should follow the deleting of an approval level.
+     * Reorders the remaining approval levels, if necessary, after deleting an
+     * approval level. Should follow the deleting of an approval level.
      */
     void postDeleteDataApprovalLevel();
 
     /**
-     * Gets the approval level at which this user may make approval actions
-     * (if the user is authorized for any) on this organisation unit.
+     * Gets the approval level at which this user may make approval actions (if
+     * the user is authorized for any) on this organisation unit.
      *
      * @param orgUnit org unit to test
      * @param user user to get approval level from.
      * @param approvalLevels list of data approval levels to choose from.
      * @return approval level
      */
-    DataApprovalLevel getUserApprovalLevel( User user, OrganisationUnit orgUnit, List<DataApprovalLevel> approvalLevels );
+    DataApprovalLevel getUserApprovalLevel( User user, OrganisationUnit orgUnit,
+        List<DataApprovalLevel> approvalLevels );
 
     /**
-     * By organisation unit subhierarchy, returns the lowest data approval
-     * level at which the user may see data within that subhierarchy, if
-     * data viewing is being restricted to approved data from lower levels.
+     * By organisation unit subhierarchy, returns the lowest data approval level
+     * at which the user may see data within that subhierarchy, if data viewing
+     * is being restricted to approved data from lower levels.
      * <p>
-     * Returns the value APPROVAL_LEVEL_UNAPPROVED for a subhierarchy if
-     * the user may see unapproved data.
+     * Returns the value APPROVAL_LEVEL_UNAPPROVED for a subhierarchy if the
+     * user may see unapproved data.
      * <p>
-     * (Note that the "lowest" approval level means the "highest" approval
-     * level number.)
+     * (Note that the "lowest" approval level means the "highest" approval level
+     * number.)
      *
      * @return For each organisation unit subhierarchy available to the user,
      *         the minimum data approval level within that subhierarchy.
      */
     Map<OrganisationUnit, Integer> getUserReadApprovalLevels();
-    
+
     /**
-     * Gets a map of organisation units by the given approval level. The organisation
-     * units are the data view organisation units of the current user, or if user
-     * has no data view organisation units then the hierarchy root organisation units.
-     * 
+     * Gets a map of organisation units by the given approval level. The
+     * organisation units are the data view organisation units of the current
+     * user, or if user has no data view organisation units then the hierarchy
+     * root organisation units.
+     *
      * @param approvalLevel the approval level.
      * @return a mapping of organisation units and approval levels.
      */

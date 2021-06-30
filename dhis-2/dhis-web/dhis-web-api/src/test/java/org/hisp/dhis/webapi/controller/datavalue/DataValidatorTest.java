@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.datavalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,14 @@ package org.hisp.dhis.webapi.controller.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.datavalue;
 
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.junit.Assert.*;
 import static org.mockito.junit.MockitoJUnit.rule;
+
+import java.util.Date;
 
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.calendar.CalendarService;
@@ -57,8 +58,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Date;
 
 public class DataValidatorTest
     extends DhisTest
@@ -97,7 +96,9 @@ public class DataValidatorTest
     public MockitoRule mockitoRule = rule();
 
     private Period periodJan;
+
     private Period periodFeb;
+
     private Period periodMar;
 
     private DataSet dataSetA;
@@ -109,6 +110,7 @@ public class DataValidatorTest
     private CategoryOptionCombo optionComboA;
 
     private Date jan15;
+
     private Date feb15;
 
     private I18nFormat i18nFormat;

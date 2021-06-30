@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.sms.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.hibernate;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -40,14 +43,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
-
 @Repository( "org.hisp.dhis.sms.hibernate.IncomingSmsStore" )
 public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms>
     implements IncomingSmsStore
 {
-    public HibernateIncomingSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateIncomingSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, IncomingSms.class, false );
     }
@@ -69,8 +70,9 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<IncomingSms> parameter = newJpaParameters()
-        .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) )
-        .addOrder( root -> builder.desc( root.get( "sentDate" ) ) );
+            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword,
+                JpaQueryUtils.StringSearchMode.ANYWHERE ) )
+            .addOrder( root -> builder.desc( root.get( "sentDate" ) ) );
 
         if ( status != null )
         {
@@ -125,7 +127,8 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<IncomingSms> parameters = newJpaParameters()
-        .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
+            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword,
+                JpaQueryUtils.StringSearchMode.ANYWHERE ) );
 
         if ( status != null )
         {

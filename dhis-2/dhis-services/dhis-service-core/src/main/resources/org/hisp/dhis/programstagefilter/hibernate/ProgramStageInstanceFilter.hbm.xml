@@ -27,6 +27,8 @@
     <property name="programStage" column="programstage" length="11" />
       
     <property name="eventQueryCriteria" column="eventquerycriteria" type="jbEventQueryCriteria" />
+
+    <property name="translations" type="jblTranslations"/>
     
     <!-- Access properties -->
 

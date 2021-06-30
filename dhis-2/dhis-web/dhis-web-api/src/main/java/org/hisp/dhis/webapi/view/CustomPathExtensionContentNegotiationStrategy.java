@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.view;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.webapi.view;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.view;
+
+import java.util.Locale;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
@@ -34,13 +38,9 @@ import org.springframework.web.accept.PathExtensionContentNegotiationStrategy;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.util.UrlPathHelper;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Locale;
-import java.util.Map;
-
 /**
- * Custom PathExtensionContentNegotiationStrategy that handles multiple dots in filename.
- * Based on:
+ * Custom PathExtensionContentNegotiationStrategy that handles multiple dots in
+ * filename. Based on:
  * org.springframework.web.accept.PathExtensionContentNegotiationStrategy
  * org.springframework.util.StringUtils
  *

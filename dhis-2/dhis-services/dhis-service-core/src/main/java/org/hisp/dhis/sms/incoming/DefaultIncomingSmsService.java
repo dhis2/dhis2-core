@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.incoming;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,19 @@ package org.hisp.dhis.sms.incoming;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.incoming;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.sms.MessageQueue;
 import org.hisp.dhis.user.User;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service( "org.hisp.dhis.sms.incoming.IncomingSmsService" )
 public class DefaultIncomingSmsService
@@ -52,7 +53,8 @@ public class DefaultIncomingSmsService
 
     private final MessageQueue incomingSmsQueue;
 
-    public DefaultIncomingSmsService(IncomingSmsStore incomingSmsStore, @Lazy MessageQueue incomingSmsQueue) {
+    public DefaultIncomingSmsService( IncomingSmsStore incomingSmsStore, @Lazy MessageQueue incomingSmsQueue )
+    {
 
         checkNotNull( incomingSmsQueue );
         checkNotNull( incomingSmsStore );
@@ -111,9 +113,9 @@ public class DefaultIncomingSmsService
         {
             sms.setSentDate( new Date() );
         }
-        
+
         sms.setReceivedDate( new Date() );
-        
+
         return save( sms );
     }
 
@@ -127,14 +129,14 @@ public class DefaultIncomingSmsService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public IncomingSms findBy( Integer id )
     {
         return incomingSmsStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public IncomingSms getNextUnprocessed()
     {
         return null;
@@ -148,21 +150,21 @@ public class DefaultIncomingSmsService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword )
     {
         return incomingSmsStore.getSmsByStatus( status, keyword );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max )
     {
         return incomingSmsStore.getSmsByStatus( status, keyword, min, max );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<IncomingSms> getAllUnparsedMessages()
     {
         return incomingSmsStore.getAllUnparsedMessages();

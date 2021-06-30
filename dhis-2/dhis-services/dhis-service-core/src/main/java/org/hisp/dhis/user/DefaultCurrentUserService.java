@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,17 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -42,21 +51,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
- * Service for retrieving information about the currently
- * authenticated user.
+ * Service for retrieving information about the currently authenticated user.
  * <p>
- * Note that most methods are transactional, except for
- * retrieving current UserInfo.
+ * Note that most methods are transactional, except for retrieving current
+ * UserInfo.
  *
  * @author Torgeir Lorange Ostby
  */
@@ -65,8 +64,8 @@ public class DefaultCurrentUserService
     extends AbstractSpringSecurityCurrentUserService
 {
     /**
-     * Cache for user IDs. Key is username. Disabled during test phase.
-     * Take care not to cache user info which might change during runtime.
+     * Cache for user IDs. Key is username. Disabled during test phase. Take
+     * care not to cache user info which might change during runtime.
      */
     private static Cache<Long> USERNAME_ID_CACHE;
 
@@ -113,7 +112,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public User getCurrentUser()
     {
         String username = getCurrentUsername();
@@ -134,7 +133,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public UserInfo getCurrentUserInfo()
     {
         UserDetails userDetails = getCurrentUserDetails();
@@ -166,7 +165,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean currentUserIsSuper()
     {
         User user = getCurrentUser();
@@ -175,7 +174,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
     {
         User user = getCurrentUser();
@@ -184,7 +183,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean currentUserIsAuthorized( String auth )
     {
         User user = getCurrentUser();

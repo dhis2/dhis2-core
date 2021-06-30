@@ -1,7 +1,5 @@
-package org.hisp.dhis.calendar.impl;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +25,12 @@ package org.hisp.dhis.calendar.impl;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.calendar.impl;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateInterval;
@@ -40,11 +43,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Date;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Hans Jacobson <jacobson.hans@gmail.com>
@@ -137,7 +135,6 @@ public class PersianCalendarTest
         List<Period> monthly = new MonthlyPeriodType().generatePeriods( calendar, startDate, endDate );
         assertEquals( 13, monthly.size() );
     }
-
 
     @Test
     public void testGenerateQuarterlyPeriods()

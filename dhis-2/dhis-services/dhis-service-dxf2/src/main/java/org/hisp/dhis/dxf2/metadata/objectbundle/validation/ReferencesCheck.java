@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -79,7 +78,7 @@ public class ReferencesCheck
 
             if ( errorReports.isEmpty() )
                 continue;
-            
+
             if ( object != null )
             {
                 ObjectReport objectReport = new ObjectReport( object, bundle );
@@ -108,7 +107,7 @@ public class ReferencesCheck
 
         Schema schema = ctx.getSchemaService().getDynamicSchema( object.getClass() );
         schema.getProperties().stream().filter( p -> p.isPersisted() && p.isOwner()
-            && ( PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType() ) )
+            && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
             .forEach( p -> {
                 if ( skipCheck( p.getKlass() ) || skipCheck( p.getItemKlass() ) )
                 {
@@ -191,7 +190,6 @@ public class ReferencesCheck
                     object.getClass(), ErrorCode.E5002, identifier.getIdentifiersWithName( userAccesses.getUser() ),
                     identifier.getIdentifiersWithName( object ), "userAccesses" ) ) );
         }
-
 
         return preheatErrorReports;
     }

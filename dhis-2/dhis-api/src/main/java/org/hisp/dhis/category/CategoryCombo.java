@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +25,25 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CombinationGenerator;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.SystemDefaultMetadataObject;
+package org.hisp.dhis.category;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.SystemDefaultMetadataObject;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Abyot Aselefew
@@ -60,8 +60,8 @@ public class CategoryCombo
     private List<Category> categories = new ArrayList<>();
 
     /**
-     * A set of category option combinations. Use getSortedOptionCombos() to get a
-     * sorted list of category option combinations.
+     * A set of category option combinations. Use getSortedOptionCombos() to get
+     * a sorted list of category option combinations.
      */
     private Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 
@@ -165,8 +165,8 @@ public class CategoryCombo
     {
         List<CategoryOptionCombo> list = new ArrayList<>();
 
-        CombinationGenerator<CategoryOption> generator =
-            CombinationGenerator.newInstance( getCategoryOptionsAsLists() );
+        CombinationGenerator<CategoryOption> generator = CombinationGenerator
+            .newInstance( getCategoryOptionsAsLists() );
 
         while ( generator.hasNext() )
         {
@@ -183,8 +183,8 @@ public class CategoryCombo
     {
         List<CategoryOptionCombo> list = new ArrayList<>();
 
-        CombinationGenerator<CategoryOption> generator =
-            CombinationGenerator.newInstance( getCategoryOptionsAsLists() );
+        CombinationGenerator<CategoryOption> generator = CombinationGenerator
+            .newInstance( getCategoryOptionsAsLists() );
 
         while ( generator.hasNext() )
         {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.documentation.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,17 @@ package org.hisp.dhis.webapi.documentation.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.documentation.controller;
 
-import com.google.common.io.ByteStreams;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.webapi.documentation.common.ResponseDocumentation;
 import org.hisp.dhis.webapi.documentation.common.TestUtils;
@@ -39,14 +46,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.google.common.io.ByteStreams;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -56,7 +56,8 @@ public class AttributeControllerDocumentation
 {
 
     @Override
-    public void testCreate() throws Exception
+    public void testCreate()
+        throws Exception
     {
 
         InputStream input = new ClassPathResource( "attribute/SQLViewAttribute.json" ).getInputStream();
@@ -71,12 +72,12 @@ public class AttributeControllerDocumentation
             .content( ByteStreams.toByteArray( input ) ) )
             .andExpect( status().is( createdStatus ) )
             .andDo( documentPrettyPrint( schema.getPlural() + "/create",
-                requestFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) ) )
-            );
+                requestFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) ) ) );
     }
 
     @Override
-    public void testUpdate() throws Exception
+    public void testUpdate()
+        throws Exception
     {
         InputStream input = new ClassPathResource( "attribute/SQLViewAttribute.json" ).getInputStream();
 
@@ -95,14 +96,15 @@ public class AttributeControllerDocumentation
         mvc.perform( put( schema.getRelativeApiEndpoint() + "/" + uid )
             .session( session )
             .contentType( TestUtils.APPLICATION_JSON_UTF8 )
-            .content(  ByteStreams.toByteArray( inputUpdate )  ) )
+            .content( ByteStreams.toByteArray( inputUpdate ) ) )
             .andExpect( status().is( updateStatus ) )
             .andDo( documentPrettyPrint( schema.getPlural() + "/update" ) );
 
     }
 
     @Override
-    public void testGetAll() throws Exception
+    public void testGetAll()
+        throws Exception
     {
         InputStream input = new ClassPathResource( "attribute/SQLViewAttribute.json" ).getInputStream();
 
@@ -114,23 +116,23 @@ public class AttributeControllerDocumentation
             .content( ByteStreams.toByteArray( input ) ) )
             .andExpect( status().is( createdStatus ) ).andReturn();
 
-
         List<FieldDescriptor> fieldDescriptors = new ArrayList<>();
         fieldDescriptors.addAll( ResponseDocumentation.pager() );
         fieldDescriptors.add( fieldWithPath( schema.getPlural() ).description( schema.getPlural() ) );
 
-        mvc.perform( get( schema.getRelativeApiEndpoint() ).session( session ).accept( TestUtils.APPLICATION_JSON_UTF8 ) )
+        mvc.perform(
+            get( schema.getRelativeApiEndpoint() ).session( session ).accept( TestUtils.APPLICATION_JSON_UTF8 ) )
             .andExpect( status().isOk() )
             .andExpect( content().contentTypeCompatibleWith( TestUtils.APPLICATION_JSON_UTF8 ) )
             .andExpect( jsonPath( "$." + schema.getPlural() ).isArray() )
             .andExpect( jsonPath( "$." + schema.getPlural() + ".length()" ).value( 1 ) )
             .andDo( documentPrettyPrint( schema.getPlural() + "/all",
-                responseFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) )
-            ) );
+                responseFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) ) ) );
     }
 
     @Override
-    public void testGetByIdOk() throws Exception
+    public void testGetByIdOk()
+        throws Exception
     {
         InputStream input = new ClassPathResource( "attribute/SQLViewAttribute.json" ).getInputStream();
 
@@ -146,17 +148,19 @@ public class AttributeControllerDocumentation
 
         String uid = TestUtils.getCreatedUid( postResult.getResponse().getContentAsString() );
 
-        mvc.perform( get( schema.getRelativeApiEndpoint() + "/{id}", uid ).session( session ).accept( MediaType.APPLICATION_JSON ) )
+        mvc.perform( get( schema.getRelativeApiEndpoint() + "/{id}", uid ).session( session )
+            .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() )
             .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
-            .andExpect( jsonPath( "$.name" ).value( "sqlViewAttribute") )
+            .andExpect( jsonPath( "$.name" ).value( "sqlViewAttribute" ) )
             .andDo( documentPrettyPrint( schema.getPlural() + "/id",
                 responseFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) ) ) );
 
     }
 
     @Override
-    public void testDeleteByIdOk() throws Exception
+    public void testDeleteByIdOk()
+        throws Exception
     {
         InputStream input = new ClassPathResource( "attribute/SQLViewAttribute.json" ).getInputStream();
 
@@ -170,14 +174,16 @@ public class AttributeControllerDocumentation
 
         String uid = TestUtils.getCreatedUid( postResult.getResponse().getContentAsString() );
 
-        mvc.perform( delete( schema.getRelativeApiEndpoint() + "/{id}", uid ).session( session ).accept( MediaType.APPLICATION_JSON ) )
+        mvc.perform( delete( schema.getRelativeApiEndpoint() + "/{id}", uid ).session( session )
+            .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().is( deleteStatus ) )
             .andDo( documentPrettyPrint( schema.getPlural() + "/delete" ) );
 
     }
 
     @Test
-    public void testCreateSectionAttribute() throws Exception
+    public void testCreateSectionAttribute()
+        throws Exception
     {
         InputStream input = new ClassPathResource( "attribute/SectionAttribute.json" ).getInputStream();
 
@@ -187,6 +193,6 @@ public class AttributeControllerDocumentation
             .session( session )
             .contentType( TestUtils.APPLICATION_JSON_UTF8 )
             .content( ByteStreams.toByteArray( input ) ) )
-            .andExpect( status().is( createdStatus ));
+            .andExpect( status().is( createdStatus ) );
     }
 }

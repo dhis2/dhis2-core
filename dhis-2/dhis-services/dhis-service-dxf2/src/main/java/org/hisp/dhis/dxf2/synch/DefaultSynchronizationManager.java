@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.synch;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,12 @@ package org.hisp.dhis.dxf2.synch;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.synch;
 
 import java.io.IOException;
 import java.util.Date;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -61,8 +62,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.*;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland

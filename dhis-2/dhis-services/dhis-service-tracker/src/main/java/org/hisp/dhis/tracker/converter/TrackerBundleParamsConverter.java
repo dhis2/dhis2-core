@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.converter;
 
 import java.util.ArrayList;
@@ -43,9 +42,11 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.databind.util.StdConverter;
 
 /**
- * Converts a {@see TrackerBundleParams} containing a nested Tracked Entity structure into a "flat" structure
+ * Converts a {@see TrackerBundleParams} containing a nested Tracked Entity
+ * structure into a "flat" structure
  *
  * Assuming a structure like:
+ *
  * <pre>
  *
  * TrackerBundleParams
@@ -76,7 +77,8 @@ import com.fasterxml.jackson.databind.util.StdConverter;
  *
  * </pre>
  *
- * This converter also assigns UIDs to Tracked Entities, Enrollment and Events if the payload does not contain UIDs
+ * This converter also assigns UIDs to Tracked Entities, Enrollment and Events
+ * if the payload does not contain UIDs
  *
  * @author Luciano Fiandesio
  */
@@ -98,7 +100,8 @@ public class TrackerBundleParamsConverter
         return bundle;
     }
 
-    private void flattenPayload( TrackerBundleParams bundle ) {
+    private void flattenPayload( TrackerBundleParams bundle )
+    {
 
         List<Event> events = new ArrayList<>();
 
@@ -106,9 +109,10 @@ public class TrackerBundleParamsConverter
 
         // Iterate over **all** enrollments
         for ( Enrollment enrollment : bundle.getTrackedEntities().stream()
-                .flatMap( l -> l.getEnrollments().stream() ).collect( Collectors.toList() ) )
+            .flatMap( l -> l.getEnrollments().stream() ).collect( Collectors.toList() ) )
         {
-            // collect all events from enrollemts and add them to the flattened events collection
+            // collect all events from enrollemts and add them to the flattened
+            // events collection
             events.addAll( enrollment.getEvents().stream().map( e -> addParent( e, enrollment.getEnrollment() ) )
                 .collect( Collectors.toList() ) );
 
@@ -183,8 +187,9 @@ public class TrackerBundleParamsConverter
             for ( Enrollment enrollment : enrollments )
             {
                 // Assign an UID to Enrollment if no UID is present
-                if (StringUtils.isEmpty( enrollment.getEnrollment() )) {
-                    enrollment.setEnrollment(CodeGenerator.generateUid() );
+                if ( StringUtils.isEmpty( enrollment.getEnrollment() ) )
+                {
+                    enrollment.setEnrollment( CodeGenerator.generateUid() );
                 }
                 // Assign an UID to Events if no UID is present
                 enrollment.getEvents().stream().filter( e -> StringUtils.isEmpty( e.getEvent() ) )

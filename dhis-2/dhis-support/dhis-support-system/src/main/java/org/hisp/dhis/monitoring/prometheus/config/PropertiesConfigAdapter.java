@@ -1,7 +1,5 @@
-package org.hisp.dhis.monitoring.prometheus.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.monitoring.prometheus.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.springframework.util.Assert;
+package org.hisp.dhis.monitoring.prometheus.config;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import org.springframework.util.Assert;
 
 /**
  * Base class for properties to config adapters.
@@ -61,7 +60,8 @@ public class PropertiesConfigAdapter<T>
      * {@code defaults}.
      *
      * @param getter the getter for the properties
-     * @param fallback the fallback method, usually super interface method reference
+     * @param fallback the fallback method, usually super interface method
+     *        reference
      * @param <V> the value type
      * @return the property or fallback value
      */

@@ -1,7 +1,5 @@
-package org.hisp.dhis.calendar.impl;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.calendar.impl;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.calendar.impl;
+
+import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -59,7 +58,8 @@ public class NepaliCalendarTest
     @Test
     public void testFromIso()
     {
-        Assert.assertEquals( new DateTimeUnit( 2071, 1, 1, false ), calendar.fromIso( new DateTimeUnit( 2014, 4, 14, true ) ) );
+        Assert.assertEquals( new DateTimeUnit( 2071, 1, 1, false ),
+            calendar.fromIso( new DateTimeUnit( 2014, 4, 14, true ) ) );
         Assert.assertEquals( new DateTimeUnit( 2071, 1, 1, false ), calendar.fromIso( 2014, 4, 14 ) );
     }
 
@@ -75,7 +75,7 @@ public class NepaliCalendarTest
 
         dateTimeUnit = new DateTimeUnit( 2014, 1, 1 );
 
-        testDateTimeUnit = calendar.plusDays( dateTimeUnit, - 1 );
+        testDateTimeUnit = calendar.plusDays( dateTimeUnit, -1 );
         assertEquals( 2013, testDateTimeUnit.getYear() );
         assertEquals( 12, testDateTimeUnit.getMonth() );
         assertEquals( 30, testDateTimeUnit.getDay() );

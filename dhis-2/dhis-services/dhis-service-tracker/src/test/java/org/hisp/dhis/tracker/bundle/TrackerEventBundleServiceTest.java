@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,14 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.bundle;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -46,13 +52,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -79,7 +78,8 @@ public class TrackerEventBundleServiceTest
     private ProgramStageInstanceStore programStageInstanceStore;
 
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
         renderService = _renderService;
         userService = _userService;
@@ -106,10 +106,13 @@ public class TrackerEventBundleServiceTest
     }
 
     @Test
-    public void testCreateSingleEventData() throws IOException
+    public void testCreateSingleEventData()
+        throws IOException
     {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         assertEquals( 8, trackerBundle.getEvents().size() );
 
@@ -126,10 +129,13 @@ public class TrackerEventBundleServiceTest
     }
 
     @Test
-    public void testUpdateSingleEventData() throws IOException
+    public void testUpdateSingleEventData()
+        throws IOException
     {
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         List<TrackerBundle> trackerBundles = trackerBundleService.create( TrackerBundleParams.builder()
             .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )

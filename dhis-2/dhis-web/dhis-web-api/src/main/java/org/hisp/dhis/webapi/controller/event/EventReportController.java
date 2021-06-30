@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,16 @@ package org.hisp.dhis.webapi.controller.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event;
+
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.eventreport.EventReport;
@@ -42,14 +50,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
-
 /**
  * @author Lars Helge Overland
  */
@@ -64,12 +64,13 @@ public class EventReportController
     @Autowired
     private I18nManager i18nManager;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // CRUD
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
-    protected EventReport deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
+    protected EventReport deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
     {
         EventReport eventReport = super.deserializeJsonEntity( request, response );
         mergeEventReport( eventReport );
@@ -77,9 +78,9 @@ public class EventReportController
         return eventReport;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Hooks
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     protected void postProcessResponseEntity( EventReport report, WebOptions options, Map<String, String> parameters )
@@ -110,9 +111,9 @@ public class EventReportController
         }
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private void mergeEventReport( EventReport report )
     {

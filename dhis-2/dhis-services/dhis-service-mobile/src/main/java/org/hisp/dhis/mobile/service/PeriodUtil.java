@@ -1,7 +1,5 @@
-package org.hisp.dhis.mobile.service;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.mobile.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mobile.service;
 
 import java.util.Calendar;
 import java.util.Vector;
@@ -117,8 +116,9 @@ public class PeriodUtil
 
         }
 
-        throw new InvalidIdentifierReferenceException( "Couldn't make a period of type " + periodType.getName() + " and name "
-            + periodName );
+        throw new InvalidIdentifierReferenceException(
+            "Couldn't make a period of type " + periodType.getName() + " and name "
+                + periodName );
     }
 
     public static String convertDateFormat( String standardDate )
@@ -190,7 +190,7 @@ public class PeriodUtil
 
         return years;
     }
-    
+
     public static Vector<String> generateQuaterlyPeriods()
     {
         Vector<String> quarters = new Vector<>();
@@ -221,5 +221,5 @@ public class PeriodUtil
         }
         return quarters;
     }
-    
+
 }

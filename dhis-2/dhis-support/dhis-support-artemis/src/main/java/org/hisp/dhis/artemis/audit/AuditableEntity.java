@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.audit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.artemis.audit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.audit;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
@@ -39,18 +38,20 @@ import lombok.Value;
 public class AuditableEntity
 {
     /**
-     * Class of the AuditableEntity
-     * It will be used by {@link org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory#collectAuditAttributes(Object)}
+     * Class of the AuditableEntity It will be used by
+     * {@link org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory#collectAuditAttributes(Object)}
      */
     Class entityClass;
 
     /**
-     * An object that is ready for serialized by Jackson.
-     * Means that this object should:
-     * 1. Only includes referenced properties that are owned by the current Audit Entity. Means that the property's schema has attribute "owner = true"
-     * 2. Do not include any lazy HibernateProxy or PersistentCollection that is not loaded.
-     * 3. All referenced properties that extend BaseIdentifiableObject should be mapped to only UID string
-     * This object could be a Map<String, Object>  with key is property name and value is the property value
+     * An object that is ready for serialized by Jackson. Means that this object
+     * should: 1. Only includes referenced properties that are owned by the
+     * current Audit Entity. Means that the property's schema has attribute
+     * "owner = true" 2. Do not include any lazy HibernateProxy or
+     * PersistentCollection that is not loaded. 3. All referenced properties
+     * that extend BaseIdentifiableObject should be mapped to only UID string
+     * This object could be a Map<String, Object> with key is property name and
+     * value is the property value
      */
     Object entity;
 }

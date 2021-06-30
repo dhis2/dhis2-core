@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -35,7 +34,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
@@ -54,8 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-
-import lombok.extern.slf4j.Slf4j;
+import com.google.common.collect.Lists;
 
 /**
  * Created by zubair@dhis2.org on 19.10.17.
@@ -70,42 +69,64 @@ public class DefaultProgramRuleEntityMapperService
 
     private static final String LOCATION_INDICATOR = "indicators";
 
-    private final ImmutableMap<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>> ACTION_MAPPER =
-        new ImmutableMap.Builder<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>>()
-            .put( ProgramRuleActionType.ASSIGN, pra -> RuleActionAssign.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
-            .put( ProgramRuleActionType.CREATEEVENT, pra -> RuleActionCreateEvent.create( pra.getContent(), pra.getData(), pra.getLocation() ) )
-            .put( ProgramRuleActionType.DISPLAYKEYVALUEPAIR, this::getLocationBasedDisplayRuleAction )
-            .put( ProgramRuleActionType.DISPLAYTEXT, this::getLocationBasedDisplayRuleAction )
-            .put( ProgramRuleActionType.HIDEFIELD, pra -> RuleActionHideField.create( pra.getContent(), getAssignedParameter( pra ) ) )
-            .put( ProgramRuleActionType.HIDEPROGRAMSTAGE, pra -> RuleActionHideProgramStage.create( pra.getProgramStage().getUid() ) )
-            .put( ProgramRuleActionType.HIDESECTION, pra -> RuleActionHideSection.create( pra.getProgramStageSection().getUid() ) )
-            .put( ProgramRuleActionType.SHOWERROR, pra -> RuleActionShowError.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
-            .put( ProgramRuleActionType.SHOWWARNING, pra -> RuleActionShowWarning.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
-            .put( ProgramRuleActionType.SETMANDATORYFIELD, pra -> RuleActionSetMandatoryField.create( getAssignedParameter( pra ) ) )
-            .put( ProgramRuleActionType.WARNINGONCOMPLETE, pra -> RuleActionWarningOnCompletion.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
-            .put( ProgramRuleActionType.ERRORONCOMPLETE, pra -> RuleActionErrorOnCompletion.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
-        .put( ProgramRuleActionType.SENDMESSAGE, pra -> RuleActionSendMessage.create( pra.getTemplateUid(), pra.getData() ) )
-        .put( ProgramRuleActionType.SCHEDULEMESSAGE, pra -> RuleActionScheduleMessage.create( pra.getTemplateUid(), pra.getData() ) )
-            .build();
+    private final ImmutableMap<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>> ACTION_MAPPER = new ImmutableMap.Builder<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>>()
+        .put( ProgramRuleActionType.ASSIGN,
+            pra -> RuleActionAssign.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
+        .put( ProgramRuleActionType.CREATEEVENT,
+            pra -> RuleActionCreateEvent.create( pra.getContent(), pra.getData(), pra.getLocation() ) )
+        .put( ProgramRuleActionType.DISPLAYKEYVALUEPAIR, this::getLocationBasedDisplayRuleAction )
+        .put( ProgramRuleActionType.DISPLAYTEXT, this::getLocationBasedDisplayRuleAction )
+        .put( ProgramRuleActionType.HIDEFIELD,
+            pra -> RuleActionHideField.create( pra.getContent(), getAssignedParameter( pra ) ) )
+        .put( ProgramRuleActionType.HIDEPROGRAMSTAGE,
+            pra -> RuleActionHideProgramStage.create( pra.getProgramStage().getUid() ) )
+        .put( ProgramRuleActionType.HIDESECTION,
+            pra -> RuleActionHideSection.create( pra.getProgramStageSection().getUid() ) )
+        .put( ProgramRuleActionType.SHOWERROR,
+            pra -> RuleActionShowError.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
+        .put( ProgramRuleActionType.SHOWWARNING,
+            pra -> RuleActionShowWarning.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
+        .put( ProgramRuleActionType.SETMANDATORYFIELD,
+            pra -> RuleActionSetMandatoryField.create( getAssignedParameter( pra ) ) )
+        .put( ProgramRuleActionType.WARNINGONCOMPLETE,
+            pra -> RuleActionWarningOnCompletion.create( pra.getContent(), pra.getData(),
+                getAssignedParameter( pra ) ) )
+        .put( ProgramRuleActionType.ERRORONCOMPLETE,
+            pra -> RuleActionErrorOnCompletion.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
+        .put( ProgramRuleActionType.SENDMESSAGE,
+            pra -> RuleActionSendMessage.create( pra.getTemplateUid(), pra.getData() ) )
+        .put( ProgramRuleActionType.SCHEDULEMESSAGE,
+            pra -> RuleActionScheduleMessage.create( pra.getTemplateUid(), pra.getData() ) )
+        .build();
 
-    private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>> VARIABLE_MAPPER =
-        new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>>()
-            .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, prv -> RuleVariableCalculatedValue.create( prv.getName(), "", RuleValueType.TEXT ) )
-            .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, prv -> RuleVariableAttribute.create( prv.getName(), prv.getAttribute().getUid(), toMappedValueType( prv ) ) )
-            .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, prv -> RuleVariableCurrentEvent.create( prv.getName(), prv.getDataElement().getUid(), toMappedValueType( prv ) ) )
-            .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, prv -> RuleVariablePreviousEvent.create( prv.getName(), prv.getDataElement().getUid(), toMappedValueType( prv ) ) )
-            .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, prv -> RuleVariableNewestEvent.create( prv.getName(), prv.getDataElement().getUid(), toMappedValueType( prv ) ) )
-            .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, prv -> RuleVariableNewestStageEvent.create( prv.getName(),
-                prv.getDataElement().getUid(), prv.getProgramStage().getUid() , toMappedValueType( prv ) ) )
-            .build();
+    private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>> VARIABLE_MAPPER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>>()
+        .put( ProgramRuleVariableSourceType.CALCULATED_VALUE,
+            prv -> RuleVariableCalculatedValue.create( prv.getName(), "", RuleValueType.TEXT ) )
+        .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE,
+            prv -> RuleVariableAttribute.create( prv.getName(), prv.getAttribute().getUid(),
+                toMappedValueType( prv ) ) )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT,
+            prv -> RuleVariableCurrentEvent.create( prv.getName(), prv.getDataElement().getUid(),
+                toMappedValueType( prv ) ) )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT,
+            prv -> RuleVariablePreviousEvent.create( prv.getName(), prv.getDataElement().getUid(),
+                toMappedValueType( prv ) ) )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM,
+            prv -> RuleVariableNewestEvent.create( prv.getName(), prv.getDataElement().getUid(),
+                toMappedValueType( prv ) ) )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
+            prv -> RuleVariableNewestStageEvent.create( prv.getName(),
+                prv.getDataElement().getUid(), prv.getProgramStage().getUid(), toMappedValueType( prv ) ) )
+        .build();
 
-    private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, ValueType>> VALUE_TYPE_MAPPER = new
-        ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, ValueType>>()
-        .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, prv -> prv.getAttribute().getValueType()  )
-        .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, prv -> prv.getDataElement().getValueType()  )
-        .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, prv -> prv.getDataElement().getValueType()  )
-        .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, prv -> prv.getDataElement().getValueType()  )
-        .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, prv -> prv.getDataElement().getValueType()  )
+    private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, ValueType>> VALUE_TYPE_MAPPER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, ValueType>>()
+        .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, prv -> prv.getAttribute().getValueType() )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, prv -> prv.getDataElement().getValueType() )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, prv -> prv.getDataElement().getValueType() )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM,
+            prv -> prv.getDataElement().getValueType() )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
+            prv -> prv.getDataElement().getValueType() )
         .build();
 
     private final CachingMap<String, ValueType> dataElementToValueTypeCache = new CachingMap<>();
@@ -115,7 +136,9 @@ public class DefaultProgramRuleEntityMapperService
     // -------------------------------------------------------------------------
 
     private final ProgramRuleService programRuleService;
+
     private final ProgramRuleVariableService programRuleVariableService;
+
     private final DataElementService dataElementService;
 
     public DefaultProgramRuleEntityMapperService( ProgramRuleService programRuleService,
@@ -171,7 +194,8 @@ public class DefaultProgramRuleEntityMapperService
     @Override
     public List<RuleVariable> toMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables )
     {
-        return programRuleVariables.stream().filter( Objects::nonNull ).map( this::toRuleVariable ).filter( Objects::nonNull ).collect( Collectors.toList() );
+        return programRuleVariables.stream().filter( Objects::nonNull ).map( this::toRuleVariable )
+            .filter( Objects::nonNull ).collect( Collectors.toList() );
     }
 
     @Override
@@ -183,7 +207,7 @@ public class DefaultProgramRuleEntityMapperService
     @Override
     public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment )
     {
-        if( enrollment == null )
+        if ( enrollment == null )
         {
             return null;
         }
@@ -213,20 +237,24 @@ public class DefaultProgramRuleEntityMapperService
     }
 
     @Override
-    public List<RuleEvent> toMappedRuleEvents ( Set<ProgramStageInstance> programStageInstances, ProgramStageInstance psiToEvaluate )
+    public List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances,
+        ProgramStageInstance psiToEvaluate )
     {
         return programStageInstances.stream().filter( Objects::nonNull )
             .filter( psi -> !psi.getUid().equals( psiToEvaluate.getUid() ) )
-            .map( psi ->
-            {
+            .map( psi -> {
                 String orgUnit = getOrgUnit( psi );
                 String orgUnitCode = getOrgUnitCode( psi );
 
                 return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(),
-                RuleEvent.Status.valueOf( psi.getStatus().toString() ), ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getDueDate(), orgUnit,
-                orgUnitCode,psi.getEventDataValues().stream().filter( Objects::nonNull )
-                .map( dv -> RuleDataValue.create( ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getProgramStage().getUid(), dv.getDataElement(), getEventDataValue( dv ) ) )
-                .collect( Collectors.toList() ), psi.getProgramStage().getName(), psi.getCompletedDate() );
+                    RuleEvent.Status.valueOf( psi.getStatus().toString() ),
+                    ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getDueDate(), orgUnit,
+                    orgUnitCode, psi.getEventDataValues().stream().filter( Objects::nonNull )
+                        .map( dv -> RuleDataValue.create(
+                            ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
+                            psi.getProgramStage().getUid(), dv.getDataElement(), getEventDataValue( dv ) ) )
+                        .collect( Collectors.toList() ),
+                    psi.getProgramStage().getName(), psi.getCompletedDate() );
 
             } ).collect( Collectors.toList() );
     }
@@ -242,27 +270,35 @@ public class DefaultProgramRuleEntityMapperService
         String orgUnit = getOrgUnit( psi );
         String orgUnitCode = getOrgUnitCode( psi );
 
-        return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
-            psi.getDueDate(), orgUnit,orgUnitCode, psi.getEventDataValues().stream().filter( Objects::nonNull )
-            .map( dv -> RuleDataValue.create( ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getProgramStage().getUid(), dv.getDataElement(), getEventDataValue( dv ) ) )
-            .collect( Collectors.toList() ), psi.getProgramStage().getName(), psi.getCompletedDate() );
+        return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(),
+            RuleEvent.Status.valueOf( psi.getStatus().toString() ),
+            ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
+            psi.getDueDate(), orgUnit, orgUnitCode, psi.getEventDataValues().stream().filter( Objects::nonNull )
+                .map( dv -> RuleDataValue.create( ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
+                    psi.getProgramStage().getUid(), dv.getDataElement(), getEventDataValue( dv ) ) )
+                .collect( Collectors.toList() ),
+            psi.getProgramStage().getName(), psi.getCompletedDate() );
     }
 
     @Override
     public List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances )
     {
         return programStageInstances.stream().filter( Objects::nonNull )
-            .map( psi ->
-            {
+            .map( psi -> {
                 String orgUnit = getOrgUnit( psi );
                 String orgUnitCode = getOrgUnitCode( psi );
 
                 return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(),
-            RuleEvent.Status.valueOf( psi.getStatus().toString() ), ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getDueDate(), orgUnit, orgUnitCode,psi.getEventDataValues().stream().filter( Objects::nonNull )
-            .map( dv -> RuleDataValue.create( ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getProgramStage().getUid(), dv.getDataElement(), getEventDataValue( dv ) ) )
-            .collect( Collectors.toList() ), psi.getProgramStage().getName(), psi.getCompletedDate() );
+                    RuleEvent.Status.valueOf( psi.getStatus().toString() ),
+                    ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getDueDate(), orgUnit,
+                    orgUnitCode, psi.getEventDataValues().stream().filter( Objects::nonNull )
+                        .map( dv -> RuleDataValue.create(
+                            ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
+                            psi.getProgramStage().getUid(), dv.getDataElement(), getEventDataValue( dv ) ) )
+                        .collect( Collectors.toList() ),
+                    psi.getProgramStage().getName(), psi.getCompletedDate() );
 
-            }).collect( Collectors.toList() );
+            } ).collect( Collectors.toList() );
     }
 
     // ---------------------------------------------------------------------
@@ -291,7 +327,7 @@ public class DefaultProgramRuleEntityMapperService
 
     private Rule toRule( ProgramRule programRule )
     {
-        if ( programRule ==  null )
+        if ( programRule == null )
         {
             return null;
         }
@@ -305,7 +341,9 @@ public class DefaultProgramRuleEntityMapperService
         {
             ruleActions = programRuleActions.stream().map( this::toRuleAction ).collect( Collectors.toList() );
 
-            rule = Rule.create( programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY, programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName() );
+            rule = Rule.create(
+                programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY,
+                programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName() );
         }
         catch ( Exception e )
         {
@@ -319,8 +357,10 @@ public class DefaultProgramRuleEntityMapperService
 
     private RuleAction toRuleAction( ProgramRuleAction programRuleAction )
     {
-        return ACTION_MAPPER.getOrDefault( programRuleAction.getProgramRuleActionType(), pra ->
-            RuleActionAssign.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) ).apply( programRuleAction );
+        return ACTION_MAPPER
+            .getOrDefault( programRuleAction.getProgramRuleActionType(),
+                pra -> RuleActionAssign.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
+            .apply( programRuleAction );
     }
 
     private RuleVariable toRuleVariable( ProgramRuleVariable programRuleVariable )
@@ -344,7 +384,8 @@ public class DefaultProgramRuleEntityMapperService
 
     private RuleValueType toMappedValueType( ProgramRuleVariable programRuleVariable )
     {
-        ValueType valueType = VALUE_TYPE_MAPPER.getOrDefault( programRuleVariable.getSourceType(), prv -> ValueType.TEXT ).apply( programRuleVariable );
+        ValueType valueType = VALUE_TYPE_MAPPER
+            .getOrDefault( programRuleVariable.getSourceType(), prv -> ValueType.TEXT ).apply( programRuleVariable );
 
         if ( valueType.isBoolean() )
         {
@@ -393,29 +434,35 @@ public class DefaultProgramRuleEntityMapperService
         {
             if ( LOCATION_FEEDBACK.equals( programRuleAction.getLocation() ) )
             {
-                return RuleActionDisplayText.createForFeedback( programRuleAction.getContent(), programRuleAction.getData() );
+                return RuleActionDisplayText.createForFeedback( programRuleAction.getContent(),
+                    programRuleAction.getData() );
             }
 
             if ( LOCATION_INDICATOR.equals( programRuleAction.getLocation() ) )
             {
-                return RuleActionDisplayText.createForIndicators( programRuleAction.getContent(), programRuleAction.getData() );
+                return RuleActionDisplayText.createForIndicators( programRuleAction.getContent(),
+                    programRuleAction.getData() );
             }
 
-            return RuleActionDisplayText.createForFeedback( programRuleAction.getContent(), programRuleAction.getData() );
+            return RuleActionDisplayText.createForFeedback( programRuleAction.getContent(),
+                programRuleAction.getData() );
         }
         else
         {
             if ( LOCATION_FEEDBACK.equals( programRuleAction.getLocation() ) )
             {
-                return RuleActionDisplayKeyValuePair.createForFeedback( programRuleAction.getContent(), programRuleAction.getData() );
+                return RuleActionDisplayKeyValuePair.createForFeedback( programRuleAction.getContent(),
+                    programRuleAction.getData() );
             }
 
             if ( LOCATION_INDICATOR.equals( programRuleAction.getLocation() ) )
             {
-                return RuleActionDisplayKeyValuePair.createForIndicators( programRuleAction.getContent(), programRuleAction.getData() );
+                return RuleActionDisplayKeyValuePair.createForIndicators( programRuleAction.getContent(),
+                    programRuleAction.getData() );
             }
 
-            return RuleActionDisplayKeyValuePair.createForFeedback( programRuleAction.getContent(), programRuleAction.getData() );
+            return RuleActionDisplayKeyValuePair.createForFeedback( programRuleAction.getContent(),
+                programRuleAction.getData() );
         }
     }
 
@@ -455,8 +502,7 @@ public class DefaultProgramRuleEntityMapperService
 
     private ValueType getValueTypeForDataElement( String dataElementUid )
     {
-        return dataElementToValueTypeCache.get( dataElementUid, () ->
-        {
+        return dataElementToValueTypeCache.get( dataElementUid, () -> {
             DataElement dataElement = dataElementService.getDataElement( dataElementUid );
 
             if ( dataElement == null )

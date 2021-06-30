@@ -1,7 +1,5 @@
-package org.hisp.dhis.deletedobject.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,14 @@ package org.hisp.dhis.deletedobject.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.deletedobject.hibernate;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -36,12 +42,6 @@ import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -100,7 +100,8 @@ public class HibernateDeletedObjectStore
 
         criteriaQuery.select( builder.countDistinct( root ) );
 
-        if ( !predicate.getExpressions().isEmpty() ) criteriaQuery.where( predicate );
+        if ( !predicate.getExpressions().isEmpty() )
+            criteriaQuery.where( predicate );
 
         Query<Long> typedQuery = getCurrentSession().createQuery( criteriaQuery );
 
@@ -120,7 +121,8 @@ public class HibernateDeletedObjectStore
 
         criteriaQuery.select( root );
 
-        if ( !predicate.getExpressions().isEmpty() ) criteriaQuery.where( predicate );
+        if ( !predicate.getExpressions().isEmpty() )
+            criteriaQuery.where( predicate );
 
         Query<DeletedObject> typedQuery = getCurrentSession().createQuery( criteriaQuery );
 
@@ -152,7 +154,8 @@ public class HibernateDeletedObjectStore
                 disjunction.getExpressions().add( root.get( "code" ).in( query.getCode() ) );
             }
 
-            if ( !disjunction.getExpressions().isEmpty() ) predicate.getExpressions().add( disjunction );
+            if ( !disjunction.getExpressions().isEmpty() )
+                predicate.getExpressions().add( disjunction );
         }
         else if ( query.getUid().isEmpty() && query.getCode().isEmpty() )
         {
@@ -179,12 +182,14 @@ public class HibernateDeletedObjectStore
                 disjunction.getExpressions().add( conjunction );
             }
 
-            if ( !disjunction.getExpressions().isEmpty() ) predicate.getExpressions().add( disjunction );
+            if ( !disjunction.getExpressions().isEmpty() )
+                predicate.getExpressions().add( disjunction );
         }
 
         if ( query.getDeletedAt() != null )
         {
-            predicate.getExpressions().add( builder.greaterThanOrEqualTo( root.get( "deletedAt" ), query.getDeletedAt() ) );
+            predicate.getExpressions()
+                .add( builder.greaterThanOrEqualTo( root.get( "deletedAt" ), query.getDeletedAt() ) );
         }
 
         return predicate;

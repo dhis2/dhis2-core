@@ -1,7 +1,5 @@
-package org.hisp.dhis.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,12 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-
+package org.hisp.dhis.security;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.struts2.dispatcher.Dispatcher;
 import org.hisp.dhis.security.authority.RequiredAuthoritiesProvider;
-
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.SecurityMetadataSource;
@@ -48,7 +45,8 @@ import com.opensymphony.xwork2.config.entities.PackageConfig;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: SpringSecurityActionAccessResolver.java 3160 2007-03-24 20:15:06Z torgeilo $
+ * @version $Id: SpringSecurityActionAccessResolver.java 3160 2007-03-24
+ *          20:15:06Z torgeilo $
  */
 @Slf4j
 public class SpringSecurityActionAccessResolver

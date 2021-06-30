@@ -1,7 +1,5 @@
-package org.hisp.dhis;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,11 @@ package org.hisp.dhis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis;
 
 import java.util.Properties;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.container.DhisPostgisContainerProvider;
 import org.hisp.dhis.container.DhisPostgreSQLContainer;
@@ -38,8 +39,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.JdbcDatabaseContainer;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -67,12 +66,12 @@ public class IntegrationTestConfig
         properties.setProperty( "connection.username", postgreSQLContainer.getUsername() );
         properties.setProperty( "connection.password", postgreSQLContainer.getPassword() );
         properties.setProperty( ConfigurationKey.AUDIT_USE_INMEMORY_QUEUE_ENABLED.getKey(), "off" );
-        properties.setProperty( "metadata.audit.persist", "on");
-        properties.setProperty( "tracker.audit.persist", "on");
-        properties.setProperty( "aggregate.audit.persist", "on");
-        properties.setProperty( "audit.metadata", "CREATE;UPDATE;DELETE");
-        properties.setProperty( "audit.tracker", "CREATE;UPDATE;DELETE");
-        properties.setProperty( "audit.aggregate", "CREATE;UPDATE;DELETE");
+        properties.setProperty( "metadata.audit.persist", "on" );
+        properties.setProperty( "tracker.audit.persist", "on" );
+        properties.setProperty( "aggregate.audit.persist", "on" );
+        properties.setProperty( "audit.metadata", "CREATE;UPDATE;DELETE" );
+        properties.setProperty( "audit.tracker", "CREATE;UPDATE;DELETE" );
+        properties.setProperty( "audit.aggregate", "CREATE;UPDATE;DELETE" );
 
         dhisConfigurationProvider.addProperties( properties );
 
@@ -81,11 +80,12 @@ public class IntegrationTestConfig
 
     private JdbcDatabaseContainer<?> initContainer()
     {
-        DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider().newInstance())
-            .appendCustomPostgresConfig( "max_locks_per_transaction=100" )
-            .withDatabaseName( POSTGRES_DATABASE_NAME )
-            .withUsername( POSTGRES_CREDENTIALS )
-            .withPassword( POSTGRES_CREDENTIALS );
+        DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider()
+            .newInstance())
+                .appendCustomPostgresConfig( "max_locks_per_transaction=100" )
+                .withDatabaseName( POSTGRES_DATABASE_NAME )
+                .withUsername( POSTGRES_CREDENTIALS )
+                .withPassword( POSTGRES_CREDENTIALS );
 
         postgisContainer.start();
 

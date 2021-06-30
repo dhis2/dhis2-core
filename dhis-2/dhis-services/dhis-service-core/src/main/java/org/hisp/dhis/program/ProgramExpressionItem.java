@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,18 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.program.dataitem.ProgramItemAttribute;
 import org.hisp.dhis.program.dataitem.ProgramItemPsEventdate;
 import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
 import org.hisp.dhis.program.variable.ProgramVariableItem;
-
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator expression item
@@ -45,9 +44,9 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * The only two methods that are used by program indicator-only items are
  * {@link ExpressionItem#getDescription} and {@link ExpressionItem#getSql}.
  * <p/>
- * getDescription checks the expression item syntax, and returns the
- * expected return data type. For data items, it also registers the
- * translation of any UIDs into human-readable object names.
+ * getDescription checks the expression item syntax, and returns the expected
+ * return data type. For data items, it also registers the translation of any
+ * UIDs into human-readable object names.
  *
  * @author Jim Grace
  */
@@ -57,19 +56,22 @@ public abstract class ProgramExpressionItem
     @Override
     public final Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        throw new ParserExceptionWithoutContext( "Internal parsing error: getItemId called for program indicator item " + ctx.getText() );
+        throw new ParserExceptionWithoutContext(
+            "Internal parsing error: getItemId called for program indicator item " + ctx.getText() );
     }
 
     @Override
     public final Object getOrgUnitGroup( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        throw new ParserExceptionWithoutContext( "Internal parsing error: getOrgUnitGroup called for program indicator item " + ctx.getText() );
+        throw new ParserExceptionWithoutContext(
+            "Internal parsing error: getOrgUnitGroup called for program indicator item " + ctx.getText() );
     }
 
     @Override
     public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        throw new ParserExceptionWithoutContext( "Internal parsing error: evaluate called for program indicator item " + ctx.getText() );
+        throw new ParserExceptionWithoutContext(
+            "Internal parsing error: evaluate called for program indicator item " + ctx.getText() );
     }
 
     /**

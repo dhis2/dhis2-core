@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.resourcetable.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.resourcetable.table;
 
 import static org.apache.commons.lang.StringUtils.countMatches;
 import static org.junit.Assert.assertEquals;
@@ -48,7 +47,8 @@ public class UniqueNameVerifierTest
     @Test
     public void verifyResourceTableColumnNameAreUniqueWhenComputingShortName()
     {
-        // Category short name will be shorten to 49 chars, and create 3 identical
+        // Category short name will be shorten to 49 chars, and create 3
+        // identical
         // short-names
         String categoryName = RandomStringUtils.randomAlphabetic( 50 );
 
@@ -79,7 +79,8 @@ public class UniqueNameVerifierTest
     @Test
     public void verifyResourceTableColumnNameAreUniqueWhenComputingShortName2()
     {
-        // Category short name will be shorten to 49 chars, and create 3 identical
+        // Category short name will be shorten to 49 chars, and create 3
+        // identical
         // short-names
         String indicatorGroupSetName = RandomStringUtils.randomAlphabetic( 50 );
 

@@ -66,6 +66,8 @@
     <property name="programRuleActionEvaluationEnvironments" column="environments"
               type="jsbProgramRuleEvaluationEnvironments"/>
 
+    <property name="translations" type="jblTranslations"/>
+
   </class>
 
 </hibernate-mapping>

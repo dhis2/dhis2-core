@@ -1,37 +1,5 @@
-package org.hisp.dhis.dxf2.events.enrollment;
-
-import com.bedatadriven.jackson.datatype.jts.JtsModule;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StreamUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +25,38 @@ import java.util.stream.Collectors;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.enrollment;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StreamUtils;
+
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -75,25 +75,29 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     private final static ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromXml( InputStream inputStream, Class<?> clazz ) throws IOException
+    private static <T> T fromXml( InputStream inputStream, Class<?> clazz )
+        throws IOException
     {
         return (T) XML_MAPPER.readValue( inputStream, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromXml( String input, Class<?> clazz ) throws IOException
+    private static <T> T fromXml( String input, Class<?> clazz )
+        throws IOException
     {
         return (T) XML_MAPPER.readValue( input, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromJson( InputStream inputStream, Class<?> clazz ) throws IOException
+    private static <T> T fromJson( InputStream inputStream, Class<?> clazz )
+        throws IOException
     {
         return (T) JSON_MAPPER.readValue( inputStream, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromJson( String input, Class<?> clazz ) throws IOException
+    private static <T> T fromJson( String input, Class<?> clazz )
+        throws IOException
     {
         return (T) JSON_MAPPER.readValue( input, clazz );
     }
@@ -136,7 +140,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
-    public List<Enrollment> getEnrollmentsJson( InputStream inputStream ) throws IOException
+    public List<Enrollment> getEnrollmentsJson( InputStream inputStream )
+        throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
 
@@ -144,7 +149,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     }
 
     @Override
-    public List<Enrollment> getEnrollmentsXml( InputStream inputStream ) throws IOException
+    public List<Enrollment> getEnrollmentsXml( InputStream inputStream )
+        throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
 
@@ -152,7 +158,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions )
+        throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Enrollment> enrollments = parseJsonEnrollments( input );
@@ -161,7 +168,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions )
+        throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Enrollment> enrollments = parseXmlEnrollments( input );
@@ -169,7 +177,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         return addEnrollmentList( enrollments, updateImportOptions( importOptions ) );
     }
 
-    private List<Enrollment> parseJsonEnrollments( String input ) throws IOException
+    private List<Enrollment> parseJsonEnrollments( String input )
+        throws IOException
     {
         List<Enrollment> enrollments = new ArrayList<>();
 
@@ -189,7 +198,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         return enrollments;
     }
 
-    private List<Enrollment> parseXmlEnrollments( String input ) throws IOException
+    private List<Enrollment> parseXmlEnrollments( String input )
+        throws IOException
     {
         List<Enrollment> enrollments = new ArrayList<>();
 
@@ -267,7 +277,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
 
         for ( Enrollment enrollment : enrollments )
         {
-            if ( StringUtils.isEmpty( enrollment.getEnrollment() ) || !existingUids.contains( enrollment.getEnrollment() ) )
+            if ( StringUtils.isEmpty( enrollment.getEnrollment() )
+                || !existingUids.contains( enrollment.getEnrollment() ) )
             {
                 create.add( enrollment );
             }
@@ -302,7 +313,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
-    public ImportSummary updateEnrollmentJson( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummary updateEnrollmentJson( String id, InputStream inputStream, ImportOptions importOptions )
+        throws IOException
     {
         Enrollment enrollment = fromJson( inputStream, Enrollment.class );
         enrollment.setEnrollment( id );
@@ -311,7 +323,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummary updateEnrollmentForNoteJson( String id, InputStream inputStream ) throws IOException
+    public ImportSummary updateEnrollmentForNoteJson( String id, InputStream inputStream )
+        throws IOException
     {
         Enrollment enrollment = fromJson( inputStream, Enrollment.class );
         enrollment.setEnrollment( id );
@@ -320,7 +333,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummary updateEnrollmentXml( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummary updateEnrollmentXml( String id, InputStream inputStream, ImportOptions importOptions )
+        throws IOException
     {
         Enrollment enrollment = fromXml( inputStream, Enrollment.class );
         enrollment.setEnrollment( id );

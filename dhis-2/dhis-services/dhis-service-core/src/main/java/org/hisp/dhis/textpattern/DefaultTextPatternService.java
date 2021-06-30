@@ -1,7 +1,5 @@
-package org.hisp.dhis.textpattern;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,17 @@ package org.hisp.dhis.textpattern;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.ImmutableMap;
-import org.springframework.stereotype.Service;
+package org.hisp.dhis.textpattern;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Stian Sandvold
@@ -72,7 +72,7 @@ public class DefaultTextPatternService
     @Override
     public Map<String, List<String>> getRequiredValues( TextPattern pattern )
     {
-        return ImmutableMap.<String, List<String>>builder()
+        return ImmutableMap.<String, List<String>> builder()
             .put( "REQUIRED", pattern.getSegments()
                 .stream()
                 .filter( this::isRequired )
@@ -133,7 +133,8 @@ public class DefaultTextPatternService
 
         if ( res == null || !TextPatternValidationUtils.validateSegmentValue( segment, res ) )
         {
-            throw new TextPatternGenerationException( "Value is invalid: " + segment.getMethod().name() + " -> " + value );
+            throw new TextPatternGenerationException(
+                "Value is invalid: " + segment.getMethod().name() + " -> " + value );
         }
 
         return res;

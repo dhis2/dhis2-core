@@ -1,7 +1,5 @@
-package org.hisp.dhis.eventchart;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.eventchart;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.eventchart;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,8 +41,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -71,7 +70,7 @@ public class EventChartDeletionHandler
     {
         return eventChartService;
     }
-    
+
     @Override
     protected String getClassName()
     {
@@ -88,7 +87,7 @@ public class EventChartDeletionHandler
     public void deleteDataElement( DataElement dataElement )
     {
         List<EventChart> eventCharts = getAnalyticalObjectService().getAnalyticalObjectsByDataDimension( dataElement );
-        
+
         for ( EventChart chart : eventCharts )
         {
             chart.getDataElementDimensions()
@@ -108,17 +107,17 @@ public class EventChartDeletionHandler
     @Override
     public void deleteProgramIndicator( ProgramIndicator programIndicator )
     {
-     // Ignore default implementation
+        // Ignore default implementation
     }
-    
+
     @Override
     public void deleteProgramStage( ProgramStage programStage )
     {
         Collection<EventChart> charts = eventChartService.getAllEventCharts();
-        
+
         for ( EventChart chart : charts )
         {
-            if( chart.getProgramStage().equals( programStage ))
+            if ( chart.getProgramStage().equals( programStage ) )
             {
                 eventChartService.deleteEventChart( chart );
             }
@@ -129,10 +128,10 @@ public class EventChartDeletionHandler
     public void deleteProgram( Program program )
     {
         Collection<EventChart> charts = eventChartService.getAllEventCharts();
-        
+
         for ( EventChart chart : charts )
         {
-            if ( chart.getProgram().equals( program ))
+            if ( chart.getProgram().equals( program ) )
             {
                 eventChartService.deleteEventChart( chart );
             }

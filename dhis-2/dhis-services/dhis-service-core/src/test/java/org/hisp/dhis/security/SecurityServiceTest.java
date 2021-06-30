@@ -1,7 +1,5 @@
-package org.hisp.dhis.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security;
 
 import static org.junit.Assert.*;
 
@@ -50,20 +49,20 @@ public class SecurityServiceTest
     private UserCredentials otherCredentials;
 
     @Autowired
-    private UserService userService; 
-    
+    private UserService userService;
+
     @Autowired
     private PasswordManager passwordManager;
-    
+
     @Autowired
     private SecurityService securityService;
 
     @Autowired
     private SystemSettingManager systemSettingManager;
-    
+
     @Override
     public void setUpTest()
-    {        
+    {
         credentials = new UserCredentials();
         credentials.setUsername( "johndoe" );
         credentials.setPassword( "" );
@@ -86,40 +85,40 @@ public class SecurityServiceTest
         otherCredentials.setUserInfo( userB );
         userService.addUserCredentials( otherCredentials );
     }
-    
+
     @Test
     public void testUserAuthenticationLockout()
     {
-        systemSettingManager.saveSystemSetting( 
+        systemSettingManager.saveSystemSetting(
             SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.TRUE );
-        
+
         String username = "dr_evil";
-                
+
         securityService.registerFailedLogin( username );
         assertFalse( securityService.isLocked( username ) );
-        
+
         securityService.registerFailedLogin( username );
         assertFalse( securityService.isLocked( username ) );
-        
+
         securityService.registerFailedLogin( username );
         assertFalse( securityService.isLocked( username ) );
-        
+
         securityService.registerFailedLogin( username );
         assertFalse( securityService.isLocked( username ) );
-        
+
         securityService.registerFailedLogin( username );
         assertFalse( securityService.isLocked( username ) );
-        
+
         securityService.registerFailedLogin( username );
         assertTrue( securityService.isLocked( username ) );
 
         securityService.registerFailedLogin( username );
         assertTrue( securityService.isLocked( username ) );
-        
+
         securityService.registerSuccessfulLogin( username );
         assertFalse( securityService.isLocked( username ) );
-        
-        systemSettingManager.saveSystemSetting( 
+
+        systemSettingManager.saveSystemSetting(
             SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.FALSE );
     }
 
@@ -176,8 +175,6 @@ public class SecurityServiceTest
         assertFalse( securityService.restore( credentials, token, password, RestoreType.INVITE ) );
 
         assertTrue( securityService.restore( credentials, token, password, RestoreType.RECOVER_PASSWORD ) );
-
-
 
         //
         // check password
@@ -262,7 +259,7 @@ public class SecurityServiceTest
         assertEquals( RestoreType.INVITE, restoreOptions.getRestoreType() );
         assertEquals( true, restoreOptions.isUsernameChoice() );
     }
-    
+
     @Test
     public void testIsInviteUsername()
     {
@@ -272,5 +269,5 @@ public class SecurityServiceTest
         assertFalse( securityService.isInviteUsername( "inv1te-mark@gmail.com-OsTci1JyHRU" ) );
         assertFalse( securityService.isInviteUsername( "invite-tomjohnson@yahoo.com-OsTci1JyHRUC" ) );
         assertFalse( securityService.isInviteUsername( "invite-johnthomson@gmail.com-OsTci1yHRU" ) );
-    }    
+    }
 }

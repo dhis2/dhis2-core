@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.filter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.security.filter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.filter;
+
+import java.io.IOException;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -34,7 +35,6 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,19 +43,23 @@ public class CustomAuthenticationFilter
     implements Filter
 {
     public static final String PARAM_MOBILE_VERSION = "mobileVersion";
+
     public static final String PARAM_AUTH_ONLY = "authOnly";
-    
+
     @Override
-    public void init( FilterConfig filterConfig ) throws ServletException
+    public void init( FilterConfig filterConfig )
+        throws ServletException
     {
     }
 
     @Override
-    public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain ) throws IOException, ServletException
+    public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain )
+        throws IOException,
+        ServletException
     {
         String mobileVersion = request.getParameter( PARAM_MOBILE_VERSION );
         String authOnly = request.getParameter( PARAM_AUTH_ONLY );
-        
+
         if ( mobileVersion != null )
         {
             request.setAttribute( PARAM_MOBILE_VERSION, mobileVersion );
@@ -65,7 +69,7 @@ public class CustomAuthenticationFilter
         {
             request.setAttribute( PARAM_AUTH_ONLY, authOnly );
         }
-        
+
         filterChain.doFilter( request, response );
     }
 

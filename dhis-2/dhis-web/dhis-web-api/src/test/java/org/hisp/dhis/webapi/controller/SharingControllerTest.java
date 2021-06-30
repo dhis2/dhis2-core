@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
+
+import static org.hamcrest.core.StringContains.containsString;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -52,8 +53,6 @@ import org.mockito.junit.MockitoRule;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.access.AccessDeniedException;
-
-import static org.hamcrest.core.StringContains.containsString;
 
 /**
  * Unit tests for {@link SharingController}.
@@ -103,19 +102,22 @@ public class SharingControllerTest
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Test( expected = AccessDeniedException.class )
-    public void notSystemDefaultMetadataNoAccess() throws Exception
+    public void notSystemDefaultMetadataNoAccess()
+        throws Exception
     {
         final OrganisationUnit organisationUnit = new OrganisationUnit();
 
         Mockito.doReturn( OrganisationUnit.class ).when( aclService ).classForType( Mockito.eq( "organisationUnit" ) );
         Mockito.when( aclService.isShareable( Mockito.eq( OrganisationUnit.class ) ) ).thenReturn( true );
-        Mockito.doReturn( organisationUnit ).when( manager ).get( Mockito.eq( OrganisationUnit.class ), Mockito.eq( "kkSjhdhks" ) );
+        Mockito.doReturn( organisationUnit ).when( manager ).get( Mockito.eq( OrganisationUnit.class ),
+            Mockito.eq( "kkSjhdhks" ) );
 
         sharingController.setSharing( "organisationUnit", "kkSjhdhks", response, request );
     }
 
     @Test( expected = AccessDeniedException.class )
-    public void systemDefaultMetadataNoAccess() throws Exception
+    public void systemDefaultMetadataNoAccess()
+        throws Exception
     {
         final Category category = new Category();
         category.setName( Category.DEFAULT_NAME + "x" );
@@ -128,7 +130,8 @@ public class SharingControllerTest
     }
 
     @Test( expected = WebMessageException.class )
-    public void systemDefaultMetadata() throws Exception
+    public void systemDefaultMetadata()
+        throws Exception
     {
         final Category category = new Category();
         category.setName( Category.DEFAULT_NAME );
@@ -143,7 +146,8 @@ public class SharingControllerTest
         }
         catch ( WebMessageException e )
         {
-            Assert.assertThat( e.getWebMessage().getMessage(), containsString( "Sharing settings of system default metadata object" ) );
+            Assert.assertThat( e.getWebMessage().getMessage(),
+                containsString( "Sharing settings of system default metadata object" ) );
             throw e;
         }
     }

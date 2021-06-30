@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -35,8 +34,8 @@ import org.joda.time.DateTimeConstants;
 /**
  * PeriodType for six-monthly Periods aligned to a financial year starting in
  * April or October. A valid April six-monthly Period has startDate set to
- * either April 1st or October 1st, and endDate set to the last day of the
- * fifth month after the startDate.
+ * either April 1st or October 1st, and endDate set to the last day of the fifth
+ * month after the startDate.
  *
  * @author Torgeir Lorange Ostby
  * @author Jim Grace
@@ -90,12 +89,12 @@ public class SixMonthlyAprilPeriodType
 
         switch ( month )
         {
-            case 4:
-                return dateTimeUnit.getYear() + "AprilS1";
-            case 10:
-                return dateTimeUnit.getYear() + "AprilS2";
-            default:
-                throw new IllegalArgumentException( "Month not valid [4,10]" );
+        case 4:
+            return dateTimeUnit.getYear() + "AprilS1";
+        case 10:
+            return dateTimeUnit.getYear() + "AprilS2";
+        default:
+            throw new IllegalArgumentException( "Month not valid [4,10]" );
         }
     }
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
@@ -57,19 +56,28 @@ import com.google.common.collect.Sets;
 public class PartitionUtilsTest
 {
     private PeriodType quarterly = new QuarterlyPeriodType();
+
     private Period q1 = quarterly.createPeriod( new DateTime( 2018, 7, 1, 0, 0 ).toDate() );
+
     private Period q2 = quarterly.createPeriod( new DateTime( 2018, 10, 1, 0, 0 ).toDate() );
+
     private Period q3 = quarterly.createPeriod( new DateTime( 2019, 1, 1, 0, 0 ).toDate() );
 
     @Test
     public void testGetPartitions()
     {
-        assertEquals( new Partitions( Sets.newHashSet( 2000 ) ), PartitionUtils.getPartitions( createPeriod( "200001" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2001 ) ), PartitionUtils.getPartitions( createPeriod( "200110" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2002 ) ), PartitionUtils.getPartitions( createPeriod( "2002Q2" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2003 ) ), PartitionUtils.getPartitions( createPeriod( "2003S2" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2000, 2001 ) ), PartitionUtils.getPartitions( createPeriod( "2000July" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2001, 2002 ) ), PartitionUtils.getPartitions( createPeriod( "2001April" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 2000 ) ),
+            PartitionUtils.getPartitions( createPeriod( "200001" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 2001 ) ),
+            PartitionUtils.getPartitions( createPeriod( "200110" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 2002 ) ),
+            PartitionUtils.getPartitions( createPeriod( "2002Q2" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 2003 ) ),
+            PartitionUtils.getPartitions( createPeriod( "2003S2" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 2000, 2001 ) ),
+            PartitionUtils.getPartitions( createPeriod( "2000July" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 2001, 2002 ) ),
+            PartitionUtils.getPartitions( createPeriod( "2001April" ) ) );
     }
 
     @Test
@@ -99,8 +107,10 @@ public class PartitionUtilsTest
         List<AnalyticsTableColumn> values = Lists.newArrayList( new AnalyticsTableColumn( "value", DOUBLE, "value" ) );
 
         AnalyticsTable tA = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, dimensions, values );
-        tA.addPartitionTable( 2010, new DateTime( 2010, 1, 1, 0, 0 ).toDate(), new DateTime( 2010, 12, 31, 0, 0 ).toDate() );
-        tA.addPartitionTable( 2011, new DateTime( 2011, 1, 1, 0, 0 ).toDate(), new DateTime( 2011, 12, 31, 0, 0 ).toDate() );
+        tA.addPartitionTable( 2010, new DateTime( 2010, 1, 1, 0, 0 ).toDate(),
+            new DateTime( 2010, 12, 31, 0, 0 ).toDate() );
+        tA.addPartitionTable( 2011, new DateTime( 2011, 1, 1, 0, 0 ).toDate(),
+            new DateTime( 2011, 12, 31, 0, 0 ).toDate() );
 
         AnalyticsTable tB = new AnalyticsTable( AnalyticsTableType.ORG_UNIT_TARGET, dimensions, values );
 

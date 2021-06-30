@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.program.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.hibernate;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -42,8 +45,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -56,9 +57,11 @@ public class HibernateProgramMessageStore
     private static final String TABLE_NAME = "ProgramMessage";
 
     public HibernateProgramMessageStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramMessage.class, currentUserService, deletedObjectService, aclService,
+        super( sessionFactory, jdbcTemplate, publisher, ProgramMessage.class, currentUserService, deletedObjectService,
+            aclService,
             true );
     }
 
@@ -87,8 +90,8 @@ public class HibernateProgramMessageStore
 
         JpaQueryParameters<ProgramMessage> parameters = newJpaParameters()
             .addPredicate( root -> builder.and(
-                    builder.equal( root.get( "messageStatus" ), "OUTBOUND" ),
-                    builder.equal( root.get( "messageCatagory" ), "OUTGOING" ) ) );
+                builder.equal( root.get( "messageStatus" ), "OUTBOUND" ),
+                builder.equal( root.get( "messageCatagory" ), "OUTGOING" ) ) );
 
         return getList( builder, parameters );
     }
@@ -122,12 +125,14 @@ public class HibernateProgramMessageStore
         }
 
         hql += params.getMessageStatus() != null
-            ? helper.whereAnd() + "pm.messageStatus = :messageStatus" : "";
+            ? helper.whereAnd() + "pm.messageStatus = :messageStatus"
+            : "";
 
-        hql += params.getAfterDate() != null ? helper.whereAnd() + "pm.processeddate > :processeddate" : "" ;
+        hql += params.getAfterDate() != null ? helper.whereAnd() + "pm.processeddate > :processeddate" : "";
 
         hql += params.getBeforeDate() != null
-            ? helper.whereAnd() + "pm.processeddate < :processeddate" : "";
+            ? helper.whereAnd() + "pm.processeddate < :processeddate"
+            : "";
 
         Query<ProgramMessage> query = getQuery( hql );
 
@@ -141,7 +146,7 @@ public class HibernateProgramMessageStore
             query.setParameter( "programStageInstance", params.getProgramStageInstance() );
         }
 
-        if ( params.getMessageStatus() != null)
+        if ( params.getMessageStatus() != null )
         {
             query.setParameter( "messageStatus", params.getMessageStatus() );
         }

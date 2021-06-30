@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model.LWUITmodel;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model.LWUITmodel;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model.LWUITmodel;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -34,39 +33,39 @@ import java.io.IOException;
 
 import org.hisp.dhis.api.mobile.model.Model;
 
- /**
+/**
  * @author Nguyen Kim Lai
  */
 public class Relationship extends Model
 {
     private String clientVersion;
-    
+
     private String personAName;
-    
+
     private String personBName;
-    
+
     private long personAId;
-    
+
     private long personBId;
-    
+
     private String chosenRelationship;
-    
+
     private String aIsToB;
 
     private String bIsToA;
-    
+
     @Override
     public String getClientVersion()
     {
         return clientVersion;
     }
-    
+
     @Override
     public void setClientVersion( String clientVersion )
     {
         this.clientVersion = clientVersion;
     }
-    
+
     public String getPersonAName()
     {
         return personAName;
@@ -86,7 +85,7 @@ public class Relationship extends Model
     {
         this.personBName = personBName;
     }
-    
+
     public long getPersonAId()
     {
         return personAId;
@@ -142,8 +141,8 @@ public class Relationship extends Model
         throws IOException
     {
         dout.writeUTF( this.getName() );
-         
-        if( this.getPersonAName() != null )
+
+        if ( this.getPersonAName() != null )
         {
             dout.writeBoolean( true );
             dout.writeUTF( this.getPersonAName() );
@@ -152,8 +151,8 @@ public class Relationship extends Model
         {
             dout.writeBoolean( false );
         }
-        
-        if( this.getPersonBName() != null )
+
+        if ( this.getPersonBName() != null )
         {
             dout.writeBoolean( true );
             dout.writeUTF( this.getPersonBName() );
@@ -162,9 +161,10 @@ public class Relationship extends Model
         {
             dout.writeBoolean( false );
         }
-        
-        // for enrollment relationship, attributes below belong to relationship type
-        if( this.getId() != 0 )
+
+        // for enrollment relationship, attributes below belong to relationship
+        // type
+        if ( this.getId() != 0 )
         {
             dout.writeBoolean( true );
             dout.writeLong( this.getId() );
@@ -173,9 +173,9 @@ public class Relationship extends Model
         {
             dout.writeBoolean( false );
         }
-        
+
         // relationship between A and B
-        if( this.getaIsToB() != null )
+        if ( this.getaIsToB() != null )
         {
             dout.writeBoolean( true );
             dout.writeUTF( this.getaIsToB() );
@@ -184,8 +184,8 @@ public class Relationship extends Model
         {
             dout.writeBoolean( false );
         }
-        
-        if( this.getbIsToA() != null )
+
+        if ( this.getbIsToA() != null )
         {
             dout.writeBoolean( true );
             dout.writeUTF( this.getbIsToA() );
@@ -194,9 +194,9 @@ public class Relationship extends Model
         {
             dout.writeBoolean( false );
         }
-        
+
         // A and B id
-        if( this.getPersonAId() != 0 )
+        if ( this.getPersonAId() != 0 )
         {
             dout.writeBoolean( true );
             dout.writeLong( this.getPersonAId() );
@@ -205,8 +205,8 @@ public class Relationship extends Model
         {
             dout.writeBoolean( false );
         }
-        
-        if( this.getPersonBId() != 0 )
+
+        if ( this.getPersonBId() != 0 )
         {
             dout.writeBoolean( true );
             dout.writeLong( this.getPersonBId() );
@@ -215,8 +215,8 @@ public class Relationship extends Model
         {
             dout.writeBoolean( false );
         }
-        
-        if( this.getChosenRelationship() != null )
+
+        if ( this.getChosenRelationship() != null )
         {
             dout.writeBoolean( true );
             dout.writeUTF( this.getChosenRelationship() );
@@ -226,7 +226,7 @@ public class Relationship extends Model
             dout.writeBoolean( false );
         }
     }
-    
+
     @Override
     public void deSerialize( DataInputStream dint )
         throws IOException
@@ -240,7 +240,7 @@ public class Relationship extends Model
         {
             this.setPersonAName( null );
         }
-        
+
         if ( dint.readBoolean() == true )
         {
             this.setPersonBName( dint.readUTF() );
@@ -249,7 +249,7 @@ public class Relationship extends Model
         {
             this.setPersonBName( null );
         }
-        
+
         if ( dint.readBoolean() == true )
         {
             this.setId( dint.readLong() );
@@ -258,7 +258,7 @@ public class Relationship extends Model
         {
             this.setId( 0 );
         }
-        
+
         if ( dint.readBoolean() == true )
         {
             this.setaIsToB( dint.readUTF() );
@@ -267,7 +267,7 @@ public class Relationship extends Model
         {
             this.setaIsToB( null );
         }
-        
+
         if ( dint.readBoolean() == true )
         {
             this.setbIsToA( dint.readUTF() );
@@ -276,7 +276,7 @@ public class Relationship extends Model
         {
             this.setbIsToA( null );
         }
-        
+
         if ( dint.readBoolean() == true )
         {
             this.setPersonAId( dint.readLong() );
@@ -285,7 +285,7 @@ public class Relationship extends Model
         {
             this.setPersonAId( 0 );
         }
-        
+
         if ( dint.readBoolean() == true )
         {
             this.setPersonBId( dint.readLong() );
@@ -294,7 +294,7 @@ public class Relationship extends Model
         {
             this.setPersonBId( 0 );
         }
-        
+
         if ( dint.readBoolean() == true )
         {
             this.setChosenRelationship( dint.readUTF() );

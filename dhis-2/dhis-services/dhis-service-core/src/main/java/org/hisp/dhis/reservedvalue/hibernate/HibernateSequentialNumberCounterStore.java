@@ -1,7 +1,5 @@
-package org.hisp.dhis.reservedvalue.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,17 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.reservedvalue.SequentialNumberCounter;
-import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+package org.hisp.dhis.reservedvalue.hibernate;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Sandvold

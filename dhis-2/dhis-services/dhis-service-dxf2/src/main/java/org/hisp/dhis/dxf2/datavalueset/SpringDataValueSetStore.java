@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.datavalueset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.datavalueset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
@@ -38,6 +37,8 @@ import java.io.Writer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdScheme;
@@ -55,8 +56,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Lars Helge Overland
  */
@@ -68,9 +67,9 @@ public class SpringDataValueSetStore
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // DataValueSetStore implementation
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public void writeDataValueSetXml( DataExportParams params, Date completeDate, OutputStream out )
@@ -131,23 +130,24 @@ public class SpringDataValueSetStore
         String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
         String ocScheme = idSchemes.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
 
-        final String sql =
-            "select de." + deScheme + " as deid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, " +
-                "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
-                "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
-                "from datavalue dv " +
-                "join dataelement de on (dv.dataelementid=de.dataelementid) " +
-                "join period pe on (dv.periodid=pe.periodid) " +
-                "join periodtype pt on (pe.periodtypeid=pt.periodtypeid) " +
-                "join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
-                "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
-                "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
-                "where dv.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' ";
+        final String sql = "select de." + deScheme + " as deid, pe.startdate as pestart, pt.name as ptname, ou."
+            + ouScheme + " as ouid, " +
+            "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
+            "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
+            "from datavalue dv " +
+            "join dataelement de on (dv.dataelementid=de.dataelementid) " +
+            "join period pe on (dv.periodid=pe.periodid) " +
+            "join periodtype pt on (pe.periodtypeid=pt.periodtypeid) " +
+            "join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
+            "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
+            "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
+            "where dv.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' ";
 
         return sql;
     }
 
-    private void writeDataValueSet( String sql, DataExportParams params, Date completeDate, final DataValueSet dataValueSet )
+    private void writeDataValueSet( String sql, DataExportParams params, Date completeDate,
+        final DataValueSet dataValueSet )
     {
         if ( params.isSingleDataValueSet() )
         {
@@ -166,7 +166,8 @@ public class SpringDataValueSetStore
         jdbcTemplate.query( sql, new RowCallbackHandler()
         {
             @Override
-            public void processRow( ResultSet rs ) throws SQLException
+            public void processRow( ResultSet rs )
+                throws SQLException
             {
                 DataValue dataValue = dataValueSet.getDataValueInstance();
                 PeriodType pt = PeriodType.getPeriodTypeByName( rs.getString( "ptname" ) );
@@ -196,9 +197,9 @@ public class SpringDataValueSetStore
         dataValueSet.close();
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private String getDataValueSql( DataExportParams params )
     {
@@ -212,32 +213,35 @@ public class SpringDataValueSetStore
         String orgUnits = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
         String orgUnitGroups = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnitGroups() ) );
 
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Identifier schemes
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
-        String deSql = idScheme.getDataElementIdScheme().isAttribute() ?
-            "de.attributevalues #>> '{\"" + idScheme.getDataElementIdScheme().getAttribute() + "\", \"value\" }'  as deid" :
-            "de." + deScheme + " as deid";
+        String deSql = idScheme.getDataElementIdScheme().isAttribute()
+            ? "de.attributevalues #>> '{\"" + idScheme.getDataElementIdScheme().getAttribute()
+                + "\", \"value\" }'  as deid"
+            : "de." + deScheme + " as deid";
 
-        String ouSql = idScheme.getOrgUnitIdScheme().isAttribute() ?
-            "ou.attributevalues #>> '{\"" + idScheme.getOrgUnitIdScheme().getAttribute() + "\", \"value\" }'  as ouid" :
-            "ou." + ouScheme + " as ouid";
+        String ouSql = idScheme.getOrgUnitIdScheme().isAttribute()
+            ? "ou.attributevalues #>> '{\"" + idScheme.getOrgUnitIdScheme().getAttribute() + "\", \"value\" }'  as ouid"
+            : "ou." + ouScheme + " as ouid";
 
-        String cocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
-            "coc.attributevalues #>> '{\"" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "\", \"value\" }'  as cocid" :
-            "coc." + cocScheme + " as cocid";
+        String cocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute()
+            ? "coc.attributevalues #>> '{\"" + idScheme.getCategoryOptionComboIdScheme().getAttribute()
+                + "\", \"value\" }'  as cocid"
+            : "coc." + cocScheme + " as cocid";
 
-        String aocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
-            "aoc.attributevalues #>> '{\"" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "\", \"value\" }'  as aocid" :
-            "aoc." + cocScheme + " as aocid";
+        String aocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute()
+            ? "aoc.attributevalues #>> '{\"" + idScheme.getCategoryOptionComboIdScheme().getAttribute()
+                + "\", \"value\" }'  as aocid"
+            : "aoc." + cocScheme + " as aocid";
 
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Data values
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
-        String sql =
-            "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " + ouSql + ", " + cocSql + ", " + aocSql + ", " +
+        String sql = "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " + ouSql + ", " + cocSql + ", "
+            + aocSql + ", " +
             "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
             "from datavalue dv " +
             "inner join dataelement de on (dv.dataelementid=de.dataelementid) " +
@@ -247,9 +251,9 @@ public class SpringDataValueSetStore
             "inner join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
             "inner join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) ";
 
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Filters
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
         if ( params.hasOrganisationUnitGroups() )
         {
@@ -298,7 +302,8 @@ public class SpringDataValueSetStore
 
         if ( params.hasStartEndDate() )
         {
-            sql += "and (pe.startdate >= '" + getMediumDateString( params.getStartDate() ) + "' and pe.enddate <= '" + getMediumDateString( params.getEndDate() ) + "') ";
+            sql += "and (pe.startdate >= '" + getMediumDateString( params.getStartDate() ) + "' and pe.enddate <= '"
+                + getMediumDateString( params.getEndDate() ) + "') ";
         }
         else if ( params.hasPeriods() )
         {
@@ -307,7 +312,8 @@ public class SpringDataValueSetStore
 
         if ( params.hasAttributeOptionCombos() )
         {
-            sql += "and dv.attributeoptioncomboid in (" + getCommaDelimitedString( getIdentifiers( params.getAttributeOptionCombos() ) ) + ") ";
+            sql += "and dv.attributeoptioncomboid in ("
+                + getCommaDelimitedString( getIdentifiers( params.getAttributeOptionCombos() ) ) + ") ";
         }
 
         if ( params.hasLastUpdated() )
@@ -316,7 +322,8 @@ public class SpringDataValueSetStore
         }
         else if ( params.hasLastUpdatedDuration() )
         {
-            sql += "and dv.lastupdated >= '" + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "' ";
+            sql += "and dv.lastupdated >= '"
+                + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "' ";
         }
 
         if ( params.hasLimit() )

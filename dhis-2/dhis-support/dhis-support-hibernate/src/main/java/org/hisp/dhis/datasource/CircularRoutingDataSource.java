@@ -1,7 +1,5 @@
-package org.hisp.dhis.datasource;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.datasource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datasource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -43,7 +42,7 @@ import com.google.common.collect.Iterators;
 /**
  * Data source implementation which routes to the configured target data sources
  * in a circular fashion.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class CircularRoutingDataSource
@@ -54,12 +53,12 @@ public class CircularRoutingDataSource
     public CircularRoutingDataSource()
     {
     }
-    
+
     public CircularRoutingDataSource( List<DataSource> targetDataSources )
     {
         this.dataSourceIterator = Iterators.cycle( Collections.synchronizedList( targetDataSources ) );
     }
-        
+
     // -------------------------------------------------------------------------
     // AbstractDataSource implementation
     // -------------------------------------------------------------------------

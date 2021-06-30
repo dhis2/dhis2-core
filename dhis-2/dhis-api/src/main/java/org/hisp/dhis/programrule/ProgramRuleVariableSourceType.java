@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,14 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule;
+
+import java.util.Set;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.Set;
 
 /**
  * @author markusbekken
@@ -49,11 +49,13 @@ public enum ProgramRuleVariableSourceType
 
     private final String value;
 
-    private static final Set<ProgramRuleVariableSourceType> DATA_TYPES = new ImmutableSet.Builder<ProgramRuleVariableSourceType>().add( DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
-        DATAELEMENT_NEWEST_EVENT_PROGRAM, DATAELEMENT_CURRENT_EVENT, DATAELEMENT_PREVIOUS_EVENT ).build();
+    private static final Set<ProgramRuleVariableSourceType> DATA_TYPES = new ImmutableSet.Builder<ProgramRuleVariableSourceType>()
+        .add( DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
+            DATAELEMENT_NEWEST_EVENT_PROGRAM, DATAELEMENT_CURRENT_EVENT, DATAELEMENT_PREVIOUS_EVENT )
+        .build();
 
-    private static final Set<ProgramRuleVariableSourceType> ATTRIBUTE_TYPES =
-        new ImmutableSet.Builder<ProgramRuleVariableSourceType>().add( TEI_ATTRIBUTE ).build();
+    private static final Set<ProgramRuleVariableSourceType> ATTRIBUTE_TYPES = new ImmutableSet.Builder<ProgramRuleVariableSourceType>()
+        .add( TEI_ATTRIBUTE ).build();
 
     ProgramRuleVariableSourceType( String value )
     {

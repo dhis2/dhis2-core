@@ -1,7 +1,5 @@
-package org.hisp.dhis.minmax;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.minmax;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.minmax;
+
+import java.util.Collection;
+import java.util.List;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -48,21 +47,22 @@ public interface MinMaxDataElementService
 
     MinMaxDataElement getMinMaxDataElement( long id );
 
-    MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo );
-    
+    MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement,
+        CategoryOptionCombo optionCombo );
+
     List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, DataElement dataElement );
 
     List<MinMaxDataElement> getMinMaxDataElements( OrganisationUnit source, Collection<DataElement> dataElements );
-    
+
     List<MinMaxDataElement> getMinMaxDataElements( MinMaxDataElementQueryParams query );
 
     int countMinMaxDataElements( MinMaxDataElementQueryParams query );
 
     void removeMinMaxDataElements( OrganisationUnit organisationUnit );
-    
+
     void removeMinMaxDataElements( DataElement dataElement );
-    
+
     void removeMinMaxDataElements( CategoryOptionCombo optionCombo );
-    
+
     void removeMinMaxDataElements( Collection<DataElement> dataElements, OrganisationUnit parent );
 }

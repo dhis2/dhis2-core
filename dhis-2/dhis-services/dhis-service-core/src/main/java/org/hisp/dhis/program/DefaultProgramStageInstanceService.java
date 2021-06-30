@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
@@ -34,7 +33,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -287,7 +285,8 @@ public class DefaultProgramStageInstanceService
     @Transactional
     public void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
         Set<EventDataValue> updatedDataValues, Set<EventDataValue> removedDataValues,
-        Map<String, DataElement> dataElementsCache, Set<String> nonAccessibleDataElements, ProgramStageInstance programStageInstance, boolean singleValue )
+        Map<String, DataElement> dataElementsCache, Set<String> nonAccessibleDataElements,
+        ProgramStageInstance programStageInstance, boolean singleValue )
     {
         Set<EventDataValue> updatedOrNewDataValues = Sets.union( newDataValues, updatedDataValues );
 
@@ -304,7 +303,9 @@ public class DefaultProgramStageInstanceService
         }
         else
         {
-            Set<EventDataValue> nonAccessibleDataValues = programStageInstance.getEventDataValues().stream().filter( dv -> nonAccessibleDataElements.contains( dv.getDataElement() ) ).collect(  Collectors.toSet() );
+            Set<EventDataValue> nonAccessibleDataValues = programStageInstance.getEventDataValues().stream()
+                .filter( dv -> nonAccessibleDataElements.contains( dv.getDataElement() ) )
+                .collect( Collectors.toSet() );
             programStageInstance.setEventDataValues( Sets.union( nonAccessibleDataValues, updatedOrNewDataValues ) );
         }
 
@@ -460,7 +461,8 @@ public class DefaultProgramStageInstanceService
     /**
      * Delete associated FileResource if it exists.
      */
-    private void handleFileDataValueDelete( EventDataValue dataValue, DataElement dataElement ) {
+    private void handleFileDataValueDelete( EventDataValue dataValue, DataElement dataElement )
+    {
         if ( dataElement == null )
         {
             return;

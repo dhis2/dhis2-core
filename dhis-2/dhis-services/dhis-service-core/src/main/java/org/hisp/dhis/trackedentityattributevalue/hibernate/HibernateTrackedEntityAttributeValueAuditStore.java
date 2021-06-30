@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentityattributevalue.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentityattributevalue.hibernate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -37,13 +44,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -71,16 +71,19 @@ public class HibernateTrackedEntityAttributeValueAuditStore
     }
 
     @Override
-    public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
+    public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
+        List<TrackedEntityAttribute> trackedEntityAttributes,
         List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType )
     {
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
 
-        CriteriaQuery<TrackedEntityAttributeValueAudit>  query = builder.createQuery( TrackedEntityAttributeValueAudit.class );
+        CriteriaQuery<TrackedEntityAttributeValueAudit> query = builder
+            .createQuery( TrackedEntityAttributeValueAudit.class );
 
         Root<TrackedEntityAttributeValueAudit> root = query.from( TrackedEntityAttributeValueAudit.class );
 
-        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root, trackedEntityAttributes, trackedEntityInstances, auditType );
+        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root,
+            trackedEntityAttributes, trackedEntityInstances, auditType );
 
         query.where( predicates.toArray( new Predicate[0] ) )
             .orderBy( builder.desc( root.get( "created" ) ) );
@@ -91,16 +94,19 @@ public class HibernateTrackedEntityAttributeValueAuditStore
     }
 
     @Override
-    public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
+    public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
+        List<TrackedEntityAttribute> trackedEntityAttributes,
         List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType, int first, int max )
     {
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
 
-        CriteriaQuery<TrackedEntityAttributeValueAudit>  query = builder.createQuery( TrackedEntityAttributeValueAudit.class );
+        CriteriaQuery<TrackedEntityAttributeValueAudit> query = builder
+            .createQuery( TrackedEntityAttributeValueAudit.class );
 
         Root<TrackedEntityAttributeValueAudit> root = query.from( TrackedEntityAttributeValueAudit.class );
 
-        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root, trackedEntityAttributes, trackedEntityInstances, auditType );
+        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root,
+            trackedEntityAttributes, trackedEntityInstances, auditType );
 
         query.where( predicates.toArray( new Predicate[0] ) )
             .orderBy( builder.desc( root.get( "created" ) ) );
@@ -117,31 +123,35 @@ public class HibernateTrackedEntityAttributeValueAuditStore
     {
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
 
-        CriteriaQuery<Long>  query = builder.createQuery( Long.class );
+        CriteriaQuery<Long> query = builder.createQuery( Long.class );
 
         Root<TrackedEntityAttributeValueAudit> root = query.from( TrackedEntityAttributeValueAudit.class );
 
-        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root, trackedEntityAttributes, trackedEntityInstances, auditType );
+        List<Predicate> predicates = getTrackedEntityAttributeValueAuditCriteria( builder, root,
+            trackedEntityAttributes, trackedEntityInstances, auditType );
 
         query.select( builder.countDistinct( root.get( "id" ) ) )
-             .where( predicates.toArray( new Predicate[0] ) )
-             .orderBy( builder.desc( root.get( "created" ) ) );
+            .where( predicates.toArray( new Predicate[0] ) )
+            .orderBy( builder.desc( root.get( "created" ) ) );
 
-        return ( sessionFactory.getCurrentSession()
+        return (sessionFactory.getCurrentSession()
             .createQuery( query )
-            .uniqueResult() ).intValue();
+            .uniqueResult()).intValue();
     }
 
     @Override
     public void deleteTrackedEntityAttributeValueAudits( TrackedEntityInstance entityInstance )
     {
         Session session = sessionFactory.getCurrentSession();
-        Query query = session.createQuery( "delete TrackedEntityAttributeValueAudit where entityInstance = :entityInstance" );
+        Query query = session
+            .createQuery( "delete TrackedEntityAttributeValueAudit where entityInstance = :entityInstance" );
         query.setParameter( "entityInstance", entityInstance );
         query.executeUpdate();
     }
 
-    private List<Predicate> getTrackedEntityAttributeValueAuditCriteria( CriteriaBuilder builder, Root<TrackedEntityAttributeValueAudit> root, List<TrackedEntityAttribute> trackedEntityAttributes, List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType )
+    private List<Predicate> getTrackedEntityAttributeValueAuditCriteria( CriteriaBuilder builder,
+        Root<TrackedEntityAttributeValueAudit> root, List<TrackedEntityAttribute> trackedEntityAttributes,
+        List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType )
     {
         List<Predicate> predicates = new ArrayList<>();
 
@@ -152,12 +162,12 @@ public class HibernateTrackedEntityAttributeValueAuditStore
 
         if ( trackedEntityInstances != null && !trackedEntityInstances.isEmpty() )
         {
-            predicates.add(  root.get( "entityInstance" ).in( trackedEntityInstances ) );
+            predicates.add( root.get( "entityInstance" ).in( trackedEntityInstances ) );
         }
 
         if ( auditType != null )
         {
-            predicates.add(  builder.equal( root.get( "auditType" ), auditType ) );
+            predicates.add( builder.equal( root.get( "auditType" ), auditType ) );
         }
 
         return predicates;

@@ -1,7 +1,5 @@
-package org.hisp.dhis.translation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +25,30 @@ package org.hisp.dhis.translation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.translation;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UserContext;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramSection;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.*;
 
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
+import org.hisp.dhis.*;
+import org.hisp.dhis.chart.*;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.eventchart.*;
+import org.hisp.dhis.mapping.*;
+import org.hisp.dhis.option.*;
+import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.relationship.*;
+import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.user.*;
+import org.hisp.dhis.visualization.*;
+import org.junit.*;
+import org.springframework.beans.factory.annotation.*;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -73,9 +66,8 @@ public class TranslationServiceTest
 
     private Locale locale;
 
-
     @Override
-    public void setUpTest() 
+    public void setUpTest()
     {
         this.userService = injectUserService;
         user = createUserAndInjectSecurityContext( true );
@@ -115,7 +107,8 @@ public class TranslationServiceTest
 
         String translatedValue = "Option FormName Translated";
 
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation
+            .add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
         manager.updateTranslations( option, listObjectTranslation );
 
@@ -150,7 +143,8 @@ public class TranslationServiceTest
 
         Set<Translation> listObjectTranslation = new HashSet<>( relationship.getTranslations() );
 
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation
+            .add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
         manager.updateTranslations( relationship, listObjectTranslation );
 
@@ -160,14 +154,15 @@ public class TranslationServiceTest
     @Test
     public void testFormNameTranslationForProgramStageSection()
     {
-        ProgramStageSection programStageSection = createProgramStageSection( 'A' , 0 );
+        ProgramStageSection programStageSection = createProgramStageSection( 'A', 0 );
         manager.save( programStageSection );
 
         String translatedValue = "ProgramStageSection FormName Translated";
 
         Set<Translation> listObjectTranslation = new HashSet<>( programStageSection.getTranslations() );
 
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation
+            .add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
         manager.updateTranslations( programStageSection, listObjectTranslation );
 
@@ -184,7 +179,8 @@ public class TranslationServiceTest
 
         Set<Translation> listObjectTranslation = new HashSet<>( programStage.getTranslations() );
 
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation
+            .add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
         manager.updateTranslations( programStage, listObjectTranslation );
 
@@ -205,7 +201,8 @@ public class TranslationServiceTest
 
         Set<Translation> listObjectTranslation = new HashSet<>( programSection.getTranslations() );
 
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation
+            .add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
         manager.updateTranslations( programSection, listObjectTranslation );
 
@@ -227,12 +224,148 @@ public class TranslationServiceTest
         String toFromNameTranslated = "To from name translated";
 
         Set<Translation> translations = new HashSet<>();
-        translations.add(  new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_TO_FROM_NAME, toFromNameTranslated ) );
-        translations.add(  new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_FROM_TO_NAME, fromToNameTranslated ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_TO_FROM_NAME,
+            toFromNameTranslated ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_FROM_TO_NAME,
+            fromToNameTranslated ) );
 
         manager.updateTranslations( relationshipType, translations );
 
         assertEquals( fromToNameTranslated, relationshipType.getDisplayFromToName() );
         assertEquals( toFromNameTranslated, relationshipType.getDisplayToFromName() );
+    }
+
+    @Test
+    public void testChartTranslations()
+    {
+        Program prA = createProgram( 'A', null, null );
+        manager.save( prA );
+
+        EventChart ecA = new EventChart( "ecA" );
+        ecA.setProgram( prA );
+        ecA.setType( ChartType.COLUMN );
+        ecA.setBaseLineLabel( "BaseLineLabel" );
+        ecA.setDomainAxisLabel( "DomainAxisLabel" );
+        ecA.setRangeAxisLabel( "RangeAxisLabel" );
+        ecA.setTargetLineLabel( "TargetLineLabel" );
+        ecA.setTitle( "Title" );
+        ecA.setSubtitle( "SubTitle" );
+
+        manager.save( ecA );
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.baseLineLabel,
+            "translated BaseLineLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.domainAxisLabel,
+            "translated DomainAxisLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.rangeAxisLabel,
+            "translated RangeAxisLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.targetLineLabel,
+            "translated TargetLineLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.title,
+            "translated Title" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.subtitle,
+            "translated SubTitle" ) );
+
+        manager.updateTranslations( ecA, translations );
+
+        EventChart updated = manager.get( EventChart.class, ecA.getUid() );
+
+        assertEquals( "translated BaseLineLabel", updated.getDisplayBaseLineLabel() );
+        assertEquals( "translated DomainAxisLabel", updated.getDisplayDomainAxisLabel() );
+        assertEquals( "translated RangeAxisLabel", updated.getDisplayRangeAxisLabel() );
+        assertEquals( "translated TargetLineLabel", updated.getDisplayTargetLineLabel() );
+        assertEquals( "translated Title", updated.getDisplayTitle() );
+        assertEquals( "translated SubTitle", updated.getDisplaySubtitle() );
+    }
+
+    @Test
+    public void testVisualizationTranslations()
+    {
+        Visualization visualization = createVisualization( "A" );
+        visualization.setBaseLineLabel( "BaseLineLabel" );
+        visualization.setDomainAxisLabel( "DomainAxisLabel" );
+        visualization.setRangeAxisLabel( "RangeAxisLabel" );
+        visualization.setTargetLineLabel( "TargetLineLabel" );
+        visualization.setTitle( "Title" );
+        visualization.setSubtitle( "SubTitle" );
+
+        manager.save( visualization );
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.baseLineLabel,
+            "translated BaseLineLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.domainAxisLabel,
+            "translated DomainAxisLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.rangeAxisLabel,
+            "translated RangeAxisLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.targetLineLabel,
+            "translated TargetLineLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.title,
+            "translated Title" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.subtitle,
+            "translated SubTitle" ) );
+
+        manager.updateTranslations( visualization, translations );
+
+        Visualization updated = manager.get( Visualization.class, visualization.getUid() );
+        assertNotNull( updated );
+
+        assertEquals( "translated BaseLineLabel", updated.getDisplayBaseLineLabel() );
+        assertEquals( "translated DomainAxisLabel", updated.getDisplayDomainAxisLabel() );
+        assertEquals( "translated RangeAxisLabel", updated.getDisplayRangeAxisLabel() );
+        assertEquals( "translated TargetLineLabel", updated.getDisplayTargetLineLabel() );
+        assertEquals( "translated Title", updated.getDisplayTitle() );
+        assertEquals( "translated SubTitle", updated.getDisplaySubtitle() );
+    }
+
+    @Test
+    public void testExternalMapLayerTranslations()
+    {
+        ExternalMapLayer map = new ExternalMapLayer();
+        map.setName( "Name" );
+        map.setUrl( "URL" );
+        map.setMapLayerPosition( MapLayerPosition.BASEMAP );
+        map.setImageFormat( ImageFormat.JPG );
+        map.setMapService( MapService.TMS );
+        manager.save( map );
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.NAME,
+            "translated Name" ) );
+
+        manager.updateTranslations( map, translations );
+
+        ExternalMapLayer updatedMap = manager.get( ExternalMapLayer.class, map.getUid() );
+        assertEquals( "translated Name", updatedMap.getDisplayName() );
+
+    }
+
+    @Test
+    public void testNotificationTemplateTranslations()
+    {
+        ProgramNotificationTemplate template = createProgramNotificationTemplate( "", 0,
+            NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            Calendar.getInstance().getTime() );
+
+        manager.save( template );
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.NAME,
+            "translated Name" ) );
+
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.SUBJECT_TEMPLATE,
+            "translated SUBJECT TEMPLATE" ) );
+
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.MESSAGE_TEMPLATE,
+            "translated MESSAGE TEMPLATE" ) );
+
+        manager.updateTranslations( template, translations );
+
+        template = manager.get( ProgramNotificationTemplate.class, template.getUid() );
+        assertEquals( "translated Name", template.getDisplayName() );
+        assertEquals( "translated SUBJECT TEMPLATE", template.getDisplaySubjectTemplate() );
+        assertEquals( "translated MESSAGE TEMPLATE", template.getDisplayMessageTemplate() );
+
     }
 }

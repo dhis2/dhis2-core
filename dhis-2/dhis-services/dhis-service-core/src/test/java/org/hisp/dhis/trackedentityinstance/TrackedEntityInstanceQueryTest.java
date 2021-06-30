@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentityinstance;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.trackedentityinstance;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentityinstance;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -44,13 +43,13 @@ public class TrackedEntityInstanceQueryTest
 {
     @Autowired
     private TrackedEntityInstanceService instanceService;
-    
+
     @Test
     public void testValidateNoOrgUnitsModeAll()
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        TrackedEntityType trackedEntityTypeA = createTrackedEntityType(  'A' );
-        params.setTrackedEntityType( trackedEntityTypeA );        
+        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+        params.setTrackedEntityType( trackedEntityTypeA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         instanceService.validate( params );
     }

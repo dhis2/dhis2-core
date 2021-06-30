@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -133,7 +132,7 @@ public class DefaultDataQueryServiceTest
         rb = new RequestBuilder();
 
         Mockito.lenient().when( i18nManager.getI18n() ).thenReturn( i18n );
-        Mockito.lenient().when( i18n.getString( "LAST_12_MONTHS") ).thenReturn( "Last 12 months" );
+        Mockito.lenient().when( i18n.getString( "LAST_12_MONTHS" ) ).thenReturn( "Last 12 months" );
 
         rootOu = new OrganisationUnit( "Sierra Leone" );
         rootOu.setUid( CodeGenerator.generateUid() );
@@ -324,9 +323,9 @@ public class DefaultDataQueryServiceTest
         assertThat( filter.getDimensionalKeywords().getGroupBy(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
                 allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
-                        hasProperty( "code", is( nullValue() ) ) ),
+                    hasProperty( "code", is( nullValue() ) ) ),
                 allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
-                        hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+                    hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
 
     }
 
@@ -339,8 +338,7 @@ public class DefaultDataQueryServiceTest
         OrganisationUnit ou1Group = new OrganisationUnit( "ou1-group" );
         OrganisationUnit ou2Group = new OrganisationUnit( "ou2-group" );
 
-        OrganisationUnitGroup groupOu = beanRandomizer.randomObject(OrganisationUnitGroup.class, "geometry");
-
+        OrganisationUnitGroup groupOu = beanRandomizer.randomObject( OrganisationUnitGroup.class, "geometry" );
 
         mockDimensionService();
 
@@ -350,20 +348,21 @@ public class DefaultDataQueryServiceTest
         when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, "tDZVQ1WtwpA" ) ).thenReturn( groupOu );
 
         when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(),
-                Mockito.anyList() ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
+            Mockito.anyList() ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
 
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
-                .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
+            .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
 
-        when( organisationUnitService.getOrganisationUnits( Lists.newArrayList( groupOu ), Lists.newArrayList( rootOu ) ) )
-            .thenReturn( Lists.newArrayList( ou1Group, ou2Group ) );
+        when( organisationUnitService.getOrganisationUnits( Lists.newArrayList( groupOu ),
+            Lists.newArrayList( rootOu ) ) )
+                .thenReturn( Lists.newArrayList( ou1Group, ou2Group ) );
 
         rb.addOuFilter( "LEVEL-wjP19dkFeIk;OU_GROUP-tDZVQ1WtwpA;ImspTQPwCqd" );
         rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
         rb.addPeDimension( PERIOD_DIMENSION );
 
         DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
-                .dimension( rb.getDimensionParams() ).build();
+            .dimension( rb.getDimensionParams() ).build();
 
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject filter = params.getFilters().get( 0 );
@@ -384,7 +383,7 @@ public class DefaultDataQueryServiceTest
     public void convertAnalyticsRequestWithDataElementGroup()
     {
         when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_2.getUid() ) )
-                .thenReturn( DATA_ELEMENT_2 );
+            .thenReturn( DATA_ELEMENT_2 );
         final String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
         when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) ).thenReturn( new DataElement() );
 
@@ -418,7 +417,7 @@ public class DefaultDataQueryServiceTest
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void convertAnalyticsRequestWithDataElementGroupAndIndicatorGroup()
     {
         final String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
@@ -468,21 +467,21 @@ public class DefaultDataQueryServiceTest
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void convertAnalyticsRequestWithRelativePeriod()
     {
         mockDimensionService();
-        when (i18n.getString( "LAST_YEAR")).thenReturn("Last year");
+        when( i18n.getString( "LAST_YEAR" ) ).thenReturn( "Last year" );
 
         rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
         rb.addPeDimension( PERIOD_DIMENSION );
 
         DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
-                .dimension( rb.getDimensionParams() ).build();
+            .dimension( rb.getDimensionParams() ).build();
 
         DataQueryParams params = target.getFromRequest( request );
 
-        DimensionalObject dimension = params.getDimension(PERIOD_DIM_ID);
+        DimensionalObject dimension = params.getDimension( PERIOD_DIM_ID );
         assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
         assertThat( dimension.getDimensionalKeywords().getGroupBy(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
@@ -497,22 +496,22 @@ public class DefaultDataQueryServiceTest
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void convertAnalyticsRequestWithRelativePeriodAsFilter()
     {
         mockDimensionService();
-        when (i18n.getString( "LAST_YEAR")).thenReturn("Last year");
+        when( i18n.getString( "LAST_YEAR" ) ).thenReturn( "Last year" );
 
         rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
         rb.addPeDimension( PERIOD_DIMENSION );
-        rb.addFilter("pe", "QUARTERS_THIS_YEAR");
+        rb.addFilter( "pe", "QUARTERS_THIS_YEAR" );
 
         DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
-                .dimension( rb.getDimensionParams() ).build();
+            .dimension( rb.getDimensionParams() ).build();
 
         DataQueryParams params = target.getFromRequest( request );
 
-        DimensionalObject dimension = params.getDimension(PERIOD_DIM_ID);
+        DimensionalObject dimension = params.getDimension( PERIOD_DIM_ID );
         assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
         assertThat( dimension.getDimensionalKeywords().getGroupBy(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
@@ -540,7 +539,8 @@ public class DefaultDataQueryServiceTest
         User user = new User();
 
         Set<OrganisationUnit> orgUnits = new HashSet<>(
-            beanRandomizer.randomObjects( OrganisationUnit.class, orgUnitSize, "geometry", "parent", "groups", "children" ) );
+            beanRandomizer.randomObjects( OrganisationUnit.class, orgUnitSize, "geometry", "parent", "groups",
+                "children" ) );
 
         switch ( userOrgUnitType )
         {
@@ -585,9 +585,9 @@ public class DefaultDataQueryServiceTest
         assertThat( dimension.getDimensionalKeywords().getGroupBy(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
                 allOf( hasProperty( "name", is( "Chiefdom" ) ), hasProperty( "uid", is( ouGroupUID ) ),
-                        hasProperty( "code", is( "CODE_001" ) ) ),
+                    hasProperty( "code", is( "CODE_001" ) ) ),
                 allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
-                        hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+                    hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
     }
 
     private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )
@@ -629,6 +629,7 @@ public class DefaultDataQueryServiceTest
     class RequestBuilder
     {
         private Set<String> dimensionParams = new HashSet<>();
+
         private Set<String> filterParams = new HashSet<>();
 
         void addDimension( String key, String value )

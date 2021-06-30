@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.sync;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,15 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.sync;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -49,11 +53,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author aamerm
@@ -92,26 +93,29 @@ public class MetadataSyncDelegateTest
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         SystemInfo systemInfo = new SystemInfo();
-        when ( systemService.getSystemInfo() ).thenReturn( systemInfo );
+        when( systemService.getSystemInfo() ).thenReturn( systemInfo );
         boolean shouldStopSync = metadataSyncDelegate.shouldStopSync( versionSnapshot );
-        assertFalse(shouldStopSync);
+        assertFalse( shouldStopSync );
     }
 
     @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInRemote() throws IOException
+    public void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInRemote()
+        throws IOException
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         SystemInfo systemInfo = new SystemInfo();
         systemInfo.setVersion( "2.26" );
-        when ( systemService.getSystemInfo() ).thenReturn( systemInfo );
+        when( systemService.getSystemInfo() ).thenReturn( systemInfo );
         boolean shouldStopSync = metadataSyncDelegate.shouldStopSync( versionSnapshot );
-        assertFalse(shouldStopSync);
+        assertFalse( shouldStopSync );
     }
 
     @Test
-    public void testShouldVerifyIfStopSyncReturnTrueIfDHISVersionMismatch() throws IOException
+    public void testShouldVerifyIfStopSyncReturnTrueIfDHISVersionMismatch()
+        throws IOException
     {
-        String versionSnapshot = "{\"system:\": {\"date\":\"2016-06-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\"," +
+        String versionSnapshot = "{\"system:\": {\"date\":\"2016-06-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\","
+            +
             "\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         String systemNodeString = "{\"date\":\"2016-06-24T05:27:25.128+0000\", \"version\": \"2.26\"}";
         SystemInfo systemInfo = new SystemInfo();
@@ -120,14 +124,16 @@ public class MetadataSyncDelegateTest
         when( metadataSystemSettingService.getStopMetadataSyncSetting() ).thenReturn( true );
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree( systemNodeString );
-        when( renderService.getSystemObject( any( ByteArrayInputStream.class), eq( RenderFormat.JSON ) ) ).thenReturn( jsonNode);
+        when( renderService.getSystemObject( any( ByteArrayInputStream.class ), eq( RenderFormat.JSON ) ) )
+            .thenReturn( jsonNode );
 
         boolean shouldStopSync = metadataSyncDelegate.shouldStopSync( versionSnapshot );
-        assertTrue(shouldStopSync);
+        assertTrue( shouldStopSync );
     }
 
     @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfDHISVersionSame() throws IOException
+    public void testShouldVerifyIfStopSyncReturnFalseIfDHISVersionSame()
+        throws IOException
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         String systemNodeString = "{\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}";
@@ -137,10 +143,11 @@ public class MetadataSyncDelegateTest
         when( metadataSystemSettingService.getStopMetadataSyncSetting() ).thenReturn( true );
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree( systemNodeString );
-        when( renderService.getSystemObject(any( ByteArrayInputStream.class), eq( RenderFormat.JSON ) ) ).thenReturn( jsonNode);
+        when( renderService.getSystemObject( any( ByteArrayInputStream.class ), eq( RenderFormat.JSON ) ) )
+            .thenReturn( jsonNode );
 
         boolean shouldStopSync = metadataSyncDelegate.shouldStopSync( versionSnapshot );
-        assertFalse(shouldStopSync);
+        assertFalse( shouldStopSync );
     }
 
     @Test
@@ -153,6 +160,6 @@ public class MetadataSyncDelegateTest
         when( systemService.getSystemInfo() ).thenReturn( systemInfo );
         when( metadataSystemSettingService.getStopMetadataSyncSetting() ).thenReturn( false );
         boolean shouldStopSync = metadataSyncDelegate.shouldStopSync( versionSnapshot );
-        assertFalse(shouldStopSync);
+        assertFalse( shouldStopSync );
     }
 }

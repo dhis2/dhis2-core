@@ -1,7 +1,5 @@
-package org.hisp.dhis.reservedvalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +25,35 @@ package org.hisp.dhis.reservedvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
 
-import org.hisp.dhis.scheduling.AbstractJob;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
-/**
- * @author Henning Håkonsen
- */
-@Component( "removeExpiredReservedValuesJob" )
-public class RemoveExpiredReservedValuesJob
-    extends AbstractJob
+public class TrackedEntityProgramOwnerIds
 {
-    private final ReservedValueService reservedValueService;
+    private final String trackedEntityInstanceId;
 
-    public RemoveExpiredReservedValuesJob( ReservedValueService reservedValueService )
+    private final String programId;
+
+    private final String orgUnitUid;
+
+    public TrackedEntityProgramOwnerIds( String trackedEntityInstanceId, String programId, String orgUnitUid )
     {
-        checkNotNull( reservedValueService );
-
-        this.reservedValueService = reservedValueService;
+        this.trackedEntityInstanceId = trackedEntityInstanceId;
+        this.programId = programId;
+        this.orgUnitUid = orgUnitUid;
     }
 
-    @Override
-    public JobType getJobType()
+    public String getTrackedEntityInstanceId()
     {
-        return JobType.REMOVE_EXPIRED_RESERVED_VALUES;
+        return trackedEntityInstanceId;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public String getProgramId()
     {
-        reservedValueService.removeExpiredReservations();
+        return programId;
+    }
+
+    public String getOrgUnitUid()
+    {
+        return orgUnitUid;
     }
 }

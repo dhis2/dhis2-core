@@ -1,7 +1,5 @@
-package org.hisp.dhis.appcache;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.appcache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.appcache;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -54,7 +53,7 @@ public class CacheManifestAction
 {
     @Autowired
     private SystemService systemService;
-    
+
     @Autowired
     private LocaleManager localeManager;
 
@@ -96,9 +95,9 @@ public class CacheManifestAction
         File cacheManifest = null;
         File i18nFolder = null;
         StringBuilder builder = null;
-        
+
         String locale = localeManager.getCurrentLocale().toString();
-        
+
         SystemInfo info = systemService.getSystemInfo();
         String revisionTag = "#Revision:" + info.getRevision();
 
@@ -130,7 +129,7 @@ public class CacheManifestAction
                     {
                         cacheManifest = new File( files[i].getAbsolutePath() );
                     }
-    
+
                     if ( i18nPath != null && files[i].isDirectory() && files[i].getName().equalsIgnoreCase( i18nPath ) )
                     {
                         i18nFolder = new File( files[i].getAbsolutePath() );
@@ -145,22 +144,22 @@ public class CacheManifestAction
             {
                 builder = new StringBuilder();
                 String line;
-                
+
                 while ( (line = bufferedReader.readLine()) != null )
                 {
                     builder.append( line );
                     builder.append( "\n" );
                 }
-                
+
                 builder.append( revisionTag );
                 builder.append( "\n" );
 
                 if ( i18nFolder != null )
                 {
                     Boolean fileExists = false;
-                    
+
                     File[] files = i18nFolder.listFiles();
-                    
+
                     if ( files != null )
                     {
                         for ( int i = 0; i < files.length; i++ )

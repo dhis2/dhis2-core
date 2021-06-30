@@ -1,7 +1,5 @@
-package org.hisp.dhis.node.serializers;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.node.serializers;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.node.serializers;
 
 import java.io.OutputStream;
 import java.util.Date;
@@ -71,7 +70,8 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void startSerialize( RootNode rootNode, OutputStream outputStream ) throws Exception
+    protected void startSerialize( RootNode rootNode, OutputStream outputStream )
+        throws Exception
     {
         csvGenerator = CSV_FACTORY.createGenerator( outputStream );
 
@@ -102,13 +102,15 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void flushStream() throws Exception
+    protected void flushStream()
+        throws Exception
     {
         csvGenerator.flush();
     }
 
     @Override
-    protected void startWriteRootNode( RootNode rootNode ) throws Exception
+    protected void startWriteRootNode( RootNode rootNode )
+        throws Exception
     {
         for ( Node child : rootNode.getChildren() )
         {
@@ -133,13 +135,15 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteRootNode( RootNode rootNode ) throws Exception
+    protected void endWriteRootNode( RootNode rootNode )
+        throws Exception
     {
 
     }
 
     @Override
-    protected void startWriteSimpleNode( SimpleNode simpleNode ) throws Exception
+    protected void startWriteSimpleNode( SimpleNode simpleNode )
+        throws Exception
     {
         String value = String.format( "%s", simpleNode.getValue() );
 
@@ -152,37 +156,43 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteSimpleNode( SimpleNode simpleNode ) throws Exception
+    protected void endWriteSimpleNode( SimpleNode simpleNode )
+        throws Exception
     {
 
     }
 
     @Override
-    protected void startWriteComplexNode( ComplexNode complexNode ) throws Exception
+    protected void startWriteComplexNode( ComplexNode complexNode )
+        throws Exception
     {
 
     }
 
     @Override
-    protected void endWriteComplexNode( ComplexNode complexNode ) throws Exception
+    protected void endWriteComplexNode( ComplexNode complexNode )
+        throws Exception
     {
 
     }
 
     @Override
-    protected void startWriteCollectionNode( CollectionNode collectionNode ) throws Exception
+    protected void startWriteCollectionNode( CollectionNode collectionNode )
+        throws Exception
     {
 
     }
 
     @Override
-    protected void endWriteCollectionNode( CollectionNode collectionNode ) throws Exception
+    protected void endWriteCollectionNode( CollectionNode collectionNode )
+        throws Exception
     {
 
     }
 
     @Override
-    protected void dispatcher( Node node ) throws Exception
+    protected void dispatcher( Node node )
+        throws Exception
     {
 
     }

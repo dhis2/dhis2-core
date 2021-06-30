@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,10 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.fileresource;
 
 import org.apache.commons.io.FilenameUtils;
+
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -53,8 +53,7 @@ public class FileResourceBlocklist
         "application/vnd.mozilla.xul+xml",
         "application/x-httpd-php",
         "application/x-sh",
-        "application/x-csh"
-    );
+        "application/x-csh" );
 
     private static final ImmutableSet<String> FILE_EXTENSIONS = ImmutableSet.of(
         // Web
@@ -78,12 +77,11 @@ public class FileResourceBlocklist
         "bin",
         "sh",
         "csh",
-        "bat"
-    );
+        "bat" );
 
     /**
-     * Indicates whether the given file resource has a valid file extension and content type
-     * according to the blacklist.
+     * Indicates whether the given file resource has a valid file extension and
+     * content type according to the blacklist.
      *
      * @param fileResource the {@link FileResource}.
      * @return true if valid, false if invalid.

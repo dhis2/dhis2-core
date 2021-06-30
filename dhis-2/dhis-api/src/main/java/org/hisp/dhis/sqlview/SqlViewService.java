@@ -1,7 +1,5 @@
-package org.hisp.dhis.sqlview;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.sqlview;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.user.CurrentUserService;
+package org.hisp.dhis.sqlview;
 
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.user.CurrentUserService;
 
 /**
  * @author Dang Duy Hieu
@@ -43,7 +42,9 @@ import java.util.regex.Pattern;
 public interface SqlViewService
 {
     String ID = SqlViewService.class.getName();
+
     String SELECT_EXPRESSION = "^(?i)\\s*(select|with)\\s+.+";
+
     Pattern SELECT_PATTERN = Pattern.compile( SELECT_EXPRESSION, Pattern.DOTALL );
 
     void setCurrentUserService( CurrentUserService currentUserService );
@@ -80,26 +81,27 @@ public interface SqlViewService
      * Creates the SQL view in the database. Checks if the SQL query is valid.
      *
      * @param sqlView the SQL view.
-     * @return null if the view was created successfully, a non-null error message
-     *         if the operation failed.
-    * @throws {@link IllegalQueryException} if the SQL query is invalid.
+     * @return null if the view was created successfully, a non-null error
+     *         message if the operation failed.
+     * @throws {@link IllegalQueryException} if the SQL query is invalid.
      */
     String createViewTable( SqlView sqlView );
 
     void dropViewTable( SqlView sqlView );
 
     /**
-    * Returns the SQL view as a grid. Checks if the SQL query is valid.
-    *
-    * @param sqlView the SQL view to render.
-    * @param criteria the criteria on the format key:value, will be applied as
-    *        criteria on the SQL result set.
-    * @param variables the variables on the format key:value, will be substituted
-    *        with variables inside the SQL view.
-    * @return a grid.
-    * @throws {@link IllegalQueryException} if the SQL query is invalid.
-    */
-    Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields );
+     * Returns the SQL view as a grid. Checks if the SQL query is valid.
+     *
+     * @param sqlView the SQL view to render.
+     * @param criteria the criteria on the format key:value, will be applied as
+     *        criteria on the SQL result set.
+     * @param variables the variables on the format key:value, will be
+     *        substituted with variables inside the SQL view.
+     * @return a grid.
+     * @throws {@link IllegalQueryException} if the SQL query is invalid.
+     */
+    Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables,
+        List<String> filters, List<String> fields );
 
     /**
      * Validates the given SQL view. Checks include:

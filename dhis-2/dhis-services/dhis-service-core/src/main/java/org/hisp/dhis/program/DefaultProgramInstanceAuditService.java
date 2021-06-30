@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
@@ -62,28 +61,28 @@ public class DefaultProgramInstanceAuditService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional( propagation = Propagation.REQUIRES_NEW )
     public void addProgramInstanceAudit( ProgramInstanceAudit programInstanceAudit )
     {
         programInstanceAuditStore.addProgramInstanceAudit( programInstanceAudit );
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional( propagation = Propagation.REQUIRES_NEW )
     public void deleteProgramInstanceAudit( ProgramInstance programInstance )
     {
         programInstanceAuditStore.deleteProgramInstanceAudit( programInstance );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<ProgramInstanceAudit> getProgramInstanceAudits( ProgramInstanceAuditQueryParams params )
     {
         return programInstanceAuditStore.getProgramInstanceAudits( params );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getProgramInstanceAuditsCount( ProgramInstanceAuditQueryParams params )
     {
         return programInstanceAuditStore.getProgramInstanceAuditsCount( params );

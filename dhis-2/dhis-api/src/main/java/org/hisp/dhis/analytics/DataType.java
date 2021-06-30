@@ -1,9 +1,5 @@
-package org.hisp.dhis.analytics;
-
-import org.hisp.dhis.common.ValueType;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +25,19 @@ import org.hisp.dhis.common.ValueType;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
+
+import org.hisp.dhis.common.ValueType;
 
 /**
  * @author Lars Helge Overland
  */
 public enum DataType
 {
-    NUMERIC, BOOLEAN, TEXT;
-    
+    NUMERIC,
+    BOOLEAN,
+    TEXT;
+
     public static DataType fromValueType( ValueType valueType )
     {
         if ( ValueType.NUMERIC_TYPES.contains( valueType ) )
@@ -48,7 +49,7 @@ public enum DataType
             return DataType.BOOLEAN;
         }
         else
-        {        
+        {
             return DataType.TEXT;
         }
     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.dataset.streaming;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,14 @@ package org.hisp.dhis.dxf2.dataset.streaming;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.dataset.streaming;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import java.io.IOException;
+
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 import org.jfree.util.Log;
 
-import java.io.IOException;
+import com.fasterxml.jackson.core.JsonGenerator;
 
 /**
  * @author Halvdan Hoem Grelland

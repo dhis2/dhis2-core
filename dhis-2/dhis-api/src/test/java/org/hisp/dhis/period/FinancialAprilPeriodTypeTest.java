@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
 import static org.junit.Assert.assertEquals;
 
@@ -43,16 +42,19 @@ import org.junit.Test;
 public class FinancialAprilPeriodTypeTest
 {
     private LocalDateTime startDate;
+
     private LocalDateTime endDate;
+
     private LocalDateTime testDate;
+
     private CalendarPeriodType periodType;
-    
+
     @Before
     public void before()
     {
         periodType = new FinancialAprilPeriodType();
     }
-    
+
     @Test
     public void testCreatePeriod()
     {
@@ -60,19 +62,19 @@ public class FinancialAprilPeriodTypeTest
 
         startDate = new LocalDateTime( 2008, 4, 1, 0, 0 );
         endDate = new LocalDateTime( 2009, 3, 31, 0, 0 );
-        
+
         Period period = periodType.createPeriod( testDate.toDate() );
-        
+
         assertEquals( startDate.toDate(), period.getStartDate() );
         assertEquals( endDate.toDate(), period.getEndDate() );
-        
+
         testDate = new LocalDateTime( 2009, 9, 12, 0, 0 );
 
         period = periodType.createPeriod( testDate.toDate() );
 
         startDate = new LocalDateTime( 2009, 4, 1, 0, 0 );
         endDate = new LocalDateTime( 2010, 3, 31, 0, 0 );
-        
+
         assertEquals( startDate.toDate(), period.getStartDate() );
         assertEquals( endDate.toDate(), period.getEndDate() );
     }
@@ -83,12 +85,12 @@ public class FinancialAprilPeriodTypeTest
         testDate = new LocalDateTime( 2009, 2, 15, 0, 0 );
 
         Period period = periodType.createPeriod( testDate.toDate() );
-        
+
         period = periodType.getNextPeriod( period );
 
         startDate = new LocalDateTime( 2009, 4, 1, 0, 0 );
         endDate = new LocalDateTime( 2010, 3, 31, 0, 0 );
-        
+
         assertEquals( startDate.toDate(), period.getStartDate() );
         assertEquals( endDate.toDate(), period.getEndDate() );
     }
@@ -99,12 +101,12 @@ public class FinancialAprilPeriodTypeTest
         testDate = new LocalDateTime( 2009, 2, 15, 0, 0 );
 
         Period period = periodType.createPeriod( testDate.toDate() );
-        
+
         period = periodType.getPreviousPeriod( period );
 
         startDate = new LocalDateTime( 2007, 4, 1, 0, 0 );
         endDate = new LocalDateTime( 2008, 3, 31, 0, 0 );
-        
+
         assertEquals( startDate.toDate(), period.getStartDate() );
         assertEquals( endDate.toDate(), period.getEndDate() );
     }
@@ -113,9 +115,9 @@ public class FinancialAprilPeriodTypeTest
     public void testGeneratePeriods()
     {
         testDate = new LocalDateTime( 2009, 2, 15, 0, 0 );
-        
+
         List<Period> periods = periodType.generatePeriods( testDate.toDate() );
-        
+
         assertEquals( 11, periods.size() );
         assertEquals( periodType.createPeriod( new LocalDateTime( 2003, 4, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
         assertEquals( periodType.createPeriod( new LocalDateTime( 2004, 4, 1, 0, 0 ).toDate() ), periods.get( 1 ) );
@@ -128,11 +130,11 @@ public class FinancialAprilPeriodTypeTest
         assertEquals( periodType.createPeriod( new LocalDateTime( 2011, 4, 1, 0, 0 ).toDate() ), periods.get( 8 ) );
         assertEquals( periodType.createPeriod( new LocalDateTime( 2012, 4, 1, 0, 0 ).toDate() ), periods.get( 9 ) );
         assertEquals( periodType.createPeriod( new LocalDateTime( 2013, 4, 1, 0, 0 ).toDate() ), periods.get( 10 ) );
-        
+
         testDate = new LocalDateTime( 2009, 9, 12, 0, 0 );
-        
+
         periods = periodType.generatePeriods( testDate.toDate() );
-        
+
         assertEquals( 11, periods.size() );
         assertEquals( periodType.createPeriod( new LocalDateTime( 2004, 4, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
     }

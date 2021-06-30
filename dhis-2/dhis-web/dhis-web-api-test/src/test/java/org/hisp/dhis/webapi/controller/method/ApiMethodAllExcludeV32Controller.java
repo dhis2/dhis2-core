@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.method;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.method;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.method;
 
 import java.io.IOException;
 
@@ -46,14 +45,16 @@ public class ApiMethodAllExcludeV32Controller
 {
     @RequestMapping( "a" )
     @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V32 )
-    public void testAllA( HttpServletResponse response ) throws IOException
+    public void testAllA( HttpServletResponse response )
+        throws IOException
     {
         response.getWriter().println( "TEST" );
     }
 
     @RequestMapping( "b" )
     @ApiVersion( value = DhisApiVersion.ALL, exclude = DhisApiVersion.V32 )
-    public void testAllB( HttpServletResponse response ) throws IOException
+    public void testAllB( HttpServletResponse response )
+        throws IOException
     {
         response.getWriter().println( "TEST" );
     }

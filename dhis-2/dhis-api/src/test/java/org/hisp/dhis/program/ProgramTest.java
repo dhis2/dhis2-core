@@ -1,15 +1,5 @@
-package org.hisp.dhis.program;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.junit.Test;
-
-import com.google.common.collect.Sets;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +25,15 @@ import com.google.common.collect.Sets;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -45,22 +44,22 @@ public class ProgramTest
     public void testUpdateOrganisationUnits()
     {
         Program prA = new Program();
-        
+
         OrganisationUnit ouA = new OrganisationUnit( "ouA" );
         OrganisationUnit ouB = new OrganisationUnit( "ouB" );
         OrganisationUnit ouC = new OrganisationUnit( "ouC" );
         OrganisationUnit ouD = new OrganisationUnit( "ouD" );
-        
+
         prA.addOrganisationUnit( ouA );
         prA.addOrganisationUnit( ouB );
-        
+
         assertEquals( 2, prA.getOrganisationUnits().size() );
         assertTrue( prA.getOrganisationUnits().containsAll( Sets.newHashSet( ouA, ouB ) ) );
         assertTrue( ouA.getPrograms().contains( prA ) );
         assertTrue( ouB.getPrograms().contains( prA ) );
         assertTrue( ouC.getPrograms().isEmpty() );
         assertTrue( ouD.getPrograms().isEmpty() );
-        
+
         prA.updateOrganisationUnits( Sets.newHashSet( ouB, ouC ) );
 
         assertEquals( 2, prA.getOrganisationUnits().size() );

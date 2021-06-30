@@ -1,7 +1,5 @@
-package org.hisp.dhis.datavalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,19 @@ package org.hisp.dhis.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datavalue;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Quang Nguyen
@@ -71,7 +70,7 @@ public class DefaultDataValueAuditService
     {
         dataValueAuditStore.addDataValueAudit( dataValueAudit );
     }
-    
+
     @Override
     @Transactional
     public void deleteDataValueAudits( OrganisationUnit organisationUnit )
@@ -87,33 +86,40 @@ public class DefaultDataValueAuditService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataValueAudit> getDataValueAudits( DataValue dataValue )
     {
         return dataValueAuditStore.getDataValueAudits( dataValue );
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
+    @Transactional( readOnly = true )
+    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
+        List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
-        return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
+        return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo,
+            attributeOptionCombo, auditType );
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max )
+    @Transactional( readOnly = true )
+    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
+        List<OrganisationUnit> organisationUnits,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType,
+        int first, int max )
     {
-        return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType, first, max );
+        return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo,
+            attributeOptionCombo, auditType, first, max );
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public int countDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
+    @Transactional( readOnly = true )
+    public int countDataValueAudits( List<DataElement> dataElements, List<Period> periods,
+        List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
-        return dataValueAuditStore.countDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
+        return dataValueAuditStore.countDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo,
+            attributeOptionCombo, auditType );
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.mock;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.mock;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mock;
 
 import java.util.Date;
 
@@ -43,15 +42,15 @@ public class MockI18nFormat
     {
         super( null );
     }
-    
+
     @Override
     public String formatPeriod( Period period )
     {
         String name = period.getStartDate() + "-" + period.getEndDate();
-        
+
         return name.toLowerCase().trim();
     }
-    
+
     @Override
     public String formatDate( Date date )
     {

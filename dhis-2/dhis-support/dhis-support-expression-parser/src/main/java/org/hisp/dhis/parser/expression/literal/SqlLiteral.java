@@ -1,7 +1,5 @@
-package org.hisp.dhis.parser.expression.literal;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,7 @@ package org.hisp.dhis.parser.expression.literal;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.antlr.AntlrExprLiteral;
+package org.hisp.dhis.parser.expression.literal;
 
 import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
@@ -36,6 +33,8 @@ import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NumericLiteralContext;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
+
+import org.hisp.dhis.antlr.AntlrExprLiteral;
 
 /**
  * Gets literal value Strings from an ANTLR parse tree for use in SQL queries.

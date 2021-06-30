@@ -1,7 +1,5 @@
-package org.hisp.dhis.deletedobject.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,14 @@ package org.hisp.dhis.deletedobject.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.deletedobject.hibernate;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
@@ -40,10 +44,6 @@ import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component
 @Slf4j

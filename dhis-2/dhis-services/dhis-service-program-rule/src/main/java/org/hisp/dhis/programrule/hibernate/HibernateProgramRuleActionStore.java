@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,13 @@ package org.hisp.dhis.programrule.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.hibernate;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
@@ -42,9 +45,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author markusbekken
@@ -81,17 +82,19 @@ public class HibernateProgramRuleActionStore
     @Override
     public List<ProgramRuleAction> getProgramActionsWithNoDataObject()
     {
-        return getQuery( "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN (:dataTypes ) AND pra.dataElement IS NULL AND pra.attribute IS NULL" )
-            .setParameter( "dataTypes", ProgramRuleActionType.getDataLinkedTypes() )
-            .getResultList();
+        return getQuery(
+            "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN (:dataTypes ) AND pra.dataElement IS NULL AND pra.attribute IS NULL" )
+                .setParameter( "dataTypes", ProgramRuleActionType.getDataLinkedTypes() )
+                .getResultList();
     }
 
     @Override
     public List<ProgramRuleAction> getProgramActionsWithNoNotification()
     {
-        return getQuery( "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.templateUid IS NULL" )
-            .setParameter( "notificationTypes", ProgramRuleActionType.getNotificationLinkedTypes() )
-            .getResultList();
+        return getQuery(
+            "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.templateUid IS NULL" )
+                .setParameter( "notificationTypes", ProgramRuleActionType.getNotificationLinkedTypes() )
+                .getResultList();
     }
 
     @Override

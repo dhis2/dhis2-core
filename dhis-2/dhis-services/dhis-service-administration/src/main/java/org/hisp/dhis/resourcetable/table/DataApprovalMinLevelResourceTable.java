@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.resourcetable.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.resourcetable.table;
 
 import java.util.List;
 import java.util.Optional;
@@ -72,21 +71,23 @@ public class DataApprovalMinLevelResourceTable
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql =
-            "insert into " + getTempTableName() +
+        String sql = "insert into " + getTempTableName() +
             " (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) " +
-            "select da.workflowid, da.periodid, da.organisationunitid, da.attributeoptioncomboid, dal.level as minlevel " +
+            "select da.workflowid, da.periodid, da.organisationunitid, da.attributeoptioncomboid, dal.level as minlevel "
+            +
             "from dataapproval da " +
-            "inner join _dataapprovalremaplevel dal on dal.workflowid=da.workflowid and dal.dataapprovallevelid=da.dataapprovallevelid " +
+            "inner join _dataapprovalremaplevel dal on dal.workflowid=da.workflowid and dal.dataapprovallevelid=da.dataapprovallevelid "
+            +
             "inner join _orgunitstructure ous on da.organisationunitid=ous.organisationunitid " +
             "where not exists ( " +
-                "select 1 from dataapproval da2 " +
-                "inner join _dataapprovalremaplevel dal2 on da2.workflowid = dal2.workflowid and da2.dataapprovallevelid=dal2.dataapprovallevelid " +
-                "where da.workflowid=da2.workflowid " +
-                    "and da.periodid=da2.periodid " +
-                    "and da.attributeoptioncomboid=da2.attributeoptioncomboid " +
-                    "and dal.level > dal2.level " +
-                    "and ( ";
+            "select 1 from dataapproval da2 " +
+            "inner join _dataapprovalremaplevel dal2 on da2.workflowid = dal2.workflowid and da2.dataapprovallevelid=dal2.dataapprovallevelid "
+            +
+            "where da.workflowid=da2.workflowid " +
+            "and da.periodid=da2.periodid " +
+            "and da.attributeoptioncomboid=da2.attributeoptioncomboid " +
+            "and dal.level > dal2.level " +
+            "and ( ";
 
         for ( OrganisationUnitLevel level : objects )
         {

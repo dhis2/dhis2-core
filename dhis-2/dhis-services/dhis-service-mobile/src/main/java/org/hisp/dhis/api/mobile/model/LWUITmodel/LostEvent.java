@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model.LWUITmodel;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model.LWUITmodel;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model.LWUITmodel;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -34,7 +33,7 @@ import java.io.IOException;
 
 import org.hisp.dhis.api.mobile.model.Model;
 
- /**
+/**
  * @author Nguyen Kim Lai
  *
  * @version LostEvent.java 4:11:08 PM Oct 8, 2013 $
@@ -42,13 +41,13 @@ import org.hisp.dhis.api.mobile.model.Model;
 public class LostEvent extends Model
 {
     private String dueDate;
-    
+
     private int status;
-    
+
     private boolean isRiskCase;
-    
+
     private String comment;
-    
+
     private String SMS;
 
     @Override
@@ -79,7 +78,7 @@ public class LostEvent extends Model
         {
             comment = null;
         }
-        
+
         if ( dint.readBoolean() == true )
         {
             SMS = dint.readUTF();
@@ -95,7 +94,7 @@ public class LostEvent extends Model
         throws IOException
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -103,7 +102,7 @@ public class LostEvent extends Model
         throws IOException
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -111,7 +110,7 @@ public class LostEvent extends Model
         throws IOException
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     public String getDueDate()

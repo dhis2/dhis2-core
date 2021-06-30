@@ -1,7 +1,5 @@
-package org.hisp.dhis.datasource;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.datasource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datasource;
 
 import javax.sql.DataSource;
 
@@ -38,17 +37,17 @@ public interface DataSourceManager
     /**
      * Returns a data source which should be used for read only queries only. If
      * read only replicas have been explicitly defined in the configuration, the
-     * data source implementation will be routing to potentially multiple 
-     * underlying data sources. If not, the data source will point to the main 
+     * data source implementation will be routing to potentially multiple
+     * underlying data sources. If not, the data source will point to the main
      * data source.
-     * 
+     *
      * @return a DataSource instance.
      */
     DataSource getReadOnlyDataSource();
-    
+
     /**
      * Returns the number of explicitly defined read only database instances.
-     * 
+     *
      * @return the number of explicitly defined read only database instances.
      */
     int getReadReplicaCount();

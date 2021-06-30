@@ -1,6 +1,5 @@
-package org.hisp.dhis.dxf2.sync;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +25,14 @@ package org.hisp.dhis.dxf2.sync;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.sync;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Date;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.setting.SettingKey;
@@ -35,10 +40,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Date;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author David Katuscak

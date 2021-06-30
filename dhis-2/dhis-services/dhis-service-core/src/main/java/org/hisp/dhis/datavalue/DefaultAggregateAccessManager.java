@@ -1,7 +1,5 @@
-package org.hisp.dhis.datavalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datavalue;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -48,8 +49,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
@@ -58,7 +57,7 @@ public class DefaultAggregateAccessManager
     implements AggregateAccessManager
 {
     private static Cache<List<String>> CAN_DATA_WRITE_COC_CACHE;
-    
+
     private final AclService aclService;
 
     private final Environment env;

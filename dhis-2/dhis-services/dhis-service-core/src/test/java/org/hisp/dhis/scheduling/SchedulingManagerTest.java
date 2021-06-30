@@ -1,7 +1,5 @@
-package org.hisp.dhis.scheduling;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.scheduling;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.scheduling;
+
+import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Henning Håkonsen
@@ -81,8 +80,11 @@ public class SchedulingManagerTest
     }
 
     /**
-     * No assertions in this test. Tester has to verify by looking at the output in the terminal. JobA should fire at the first minute and every minute after that.
-     * jobB should fire every second. (Unless sleep in actual job - or the job uses longer time than the expected delay to next execution time)
+     * No assertions in this test. Tester has to verify by looking at the output
+     * in the terminal. JobA should fire at the first minute and every minute
+     * after that. jobB should fire every second. (Unless sleep in actual job -
+     * or the job uses longer time than the expected delay to next execution
+     * time)
      */
     @Test
     @Ignore

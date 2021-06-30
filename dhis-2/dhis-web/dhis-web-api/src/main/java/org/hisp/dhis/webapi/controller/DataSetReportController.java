@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +25,27 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datasetreport.DataSetReportService;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import java.util.*;
 
-import javax.servlet.http.HttpServletResponse;
-import java.util.List;
-import java.util.Set;
+import javax.servlet.http.*;
+
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.cache.*;
+import org.hisp.dhis.dataset.*;
+import org.hisp.dhis.datasetreport.*;
+import org.hisp.dhis.dxf2.webmessage.*;
+import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.period.*;
+import org.hisp.dhis.system.grid.*;
+import org.hisp.dhis.util.*;
+import org.hisp.dhis.webapi.mvc.annotation.*;
+import org.hisp.dhis.webapi.service.*;
+import org.hisp.dhis.webapi.utils.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.*;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author Stian Sandvold
@@ -88,13 +78,15 @@ public class DataSetReportController
     @Autowired
     IdentifiableObjectManager idObjectManager;
 
-    @RequestMapping( value = RESOURCE_PATH + "/custom", method = RequestMethod.GET, produces = "text/html" )
+    @RequestMapping( value = RESOURCE_PATH
+        + "/custom", method = RequestMethod.GET, produces = "text/html;charset=UTF-8" )
     public @ResponseBody String getCustomDataSetReport( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,
         @RequestParam String ou,
         @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) boolean selectedUnitOnly ) throws Exception
+        @RequestParam( required = false ) boolean selectedUnitOnly )
+        throws Exception
     {
         OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
         DataSet dataSet = getAndValidateDataSet( ds );
@@ -102,10 +94,12 @@ public class DataSetReportController
 
         if ( !dataSet.getFormType().isCustom() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set form type must be 'custom': " + dataSet.getFormType() ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Data set form type must be 'custom': " + dataSet.getFormType() ) );
         }
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML,
+            CacheStrategy.RESPECT_SYSTEM_SETTING );
 
         return dataSetReportService.getCustomDataSetReport( dataSet, period, orgUnit, filter, selectedUnitOnly );
     }
@@ -116,15 +110,19 @@ public class DataSetReportController
         @RequestParam String pe,
         @RequestParam String ou,
         @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) Set<String> dimension, //TODO remove, deprecated in 2.31
-        @RequestParam( required = false ) boolean selectedUnitOnly ) throws Exception
+        @RequestParam( required = false ) Set<String> dimension, // TODO remove,
+                                                                 // deprecated
+                                                                 // in 2.31
+        @RequestParam( required = false ) boolean selectedUnitOnly )
+        throws Exception
     {
         OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
         DataSet dataSet = getAndValidateDataSet( ds );
         Period period = getAndValidatePeriod( pe );
         filter = ObjectUtils.firstNonNull( filter, dimension );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
+            CacheStrategy.RESPECT_SYSTEM_SETTING );
         return dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
     }
 
@@ -134,14 +132,17 @@ public class DataSetReportController
         @RequestParam String pe,
         @RequestParam String ou,
         @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) boolean selectedUnitOnly ) throws Exception
+        @RequestParam( required = false ) boolean selectedUnitOnly )
+        throws Exception
     {
         OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
         DataSet dataSet = getAndValidateDataSet( ds );
         Period period = getAndValidatePeriod( pe );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING );
-        List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL,
+            CacheStrategy.RESPECT_SYSTEM_SETTING );
+        List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter,
+            selectedUnitOnly );
         GridUtils.toXls( grids, response.getOutputStream() );
     }
 
@@ -151,14 +152,16 @@ public class DataSetReportController
         @RequestParam String pe,
         @RequestParam String ou,
         @RequestParam( required = false ) Set<String> filter,
-        @RequestParam( required = false ) boolean selectedUnitOnly ) throws Exception
+        @RequestParam( required = false ) boolean selectedUnitOnly )
+        throws Exception
     {
         OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
         DataSet dataSet = getAndValidateDataSet( ds );
         Period period = getAndValidatePeriod( pe );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING );
-        List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
+        List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter,
+            selectedUnitOnly );
         GridUtils.toPdf( grids, response.getOutputStream() );
     }
 
@@ -166,7 +169,8 @@ public class DataSetReportController
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private OrganisationUnit getAndValidateOrgUnit( String ou ) throws WebMessageException
+    private OrganisationUnit getAndValidateOrgUnit( String ou )
+        throws WebMessageException
     {
         OrganisationUnit orgUnit = idObjectManager.get( OrganisationUnit.class, ou );
 
@@ -178,7 +182,8 @@ public class DataSetReportController
         return orgUnit;
     }
 
-    private DataSet getAndValidateDataSet( String ds ) throws WebMessageException
+    private DataSet getAndValidateDataSet( String ds )
+        throws WebMessageException
     {
         DataSet dataSet = dataSetService.getDataSet( ds );
 
@@ -190,7 +195,8 @@ public class DataSetReportController
         return dataSet;
     }
 
-    private Period getAndValidatePeriod( String pe ) throws WebMessageException
+    private Period getAndValidatePeriod( String pe )
+        throws WebMessageException
     {
         Period period = PeriodType.getPeriodFromIsoString( pe );
 

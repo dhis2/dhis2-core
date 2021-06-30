@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.feedback;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.dxf2.metadata.feedback;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.feedback;
+
+import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -41,8 +42,6 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -92,8 +91,10 @@ public class ObjectBundleReportTest
         objectBundleValidationReport.addTypeReport( typeReport1 );
 
         assertEquals( 6, objectBundleValidationReport.getErrorReports().size() );
-        assertEquals( 3, objectBundleValidationReport.getErrorReportsByCode( DataElement.class, ErrorCode.E3000 ).size() );
-        assertEquals( 3, objectBundleValidationReport.getErrorReportsByCode( Indicator.class, ErrorCode.E3000 ).size() );
+        assertEquals( 3,
+            objectBundleValidationReport.getErrorReportsByCode( DataElement.class, ErrorCode.E3000 ).size() );
+        assertEquals( 3,
+            objectBundleValidationReport.getErrorReportsByCode( Indicator.class, ErrorCode.E3000 ).size() );
 
         ObjectBundleCommitReport objectBundleCommitReport = new ObjectBundleCommitReport();
         objectBundleCommitReport.addTypeReport( typeReport2 );
@@ -101,7 +102,8 @@ public class ObjectBundleReportTest
 
         assertEquals( 6, objectBundleCommitReport.getErrorReports().size() );
         assertEquals( 3, objectBundleCommitReport.getErrorReportsByCode( Indicator.class, ErrorCode.E3000 ).size() );
-        assertEquals( 3, objectBundleCommitReport.getErrorReportsByCode( OrganisationUnit.class, ErrorCode.E3000 ).size() );
+        assertEquals( 3,
+            objectBundleCommitReport.getErrorReportsByCode( OrganisationUnit.class, ErrorCode.E3000 ).size() );
 
         ImportReport importReport = new ImportReport();
         importReport.addTypeReports( objectBundleValidationReport.getTypeReportMap() );
@@ -124,9 +126,12 @@ public class ObjectBundleReportTest
         ObjectReport objectReport1 = new ObjectReport( mainKlass, 1 );
         ObjectReport objectReport2 = new ObjectReport( mainKlass, 2 );
 
-        objectReport0.addErrorReport( new ErrorReport( errorKlass, ErrorCode.E3000, "admin", errorKlass.getSimpleName() ) );
-        objectReport1.addErrorReport( new ErrorReport( errorKlass, ErrorCode.E3000, "admin", errorKlass.getSimpleName() ) );
-        objectReport2.addErrorReport( new ErrorReport( errorKlass, ErrorCode.E3000, "admin", errorKlass.getSimpleName() ) );
+        objectReport0
+            .addErrorReport( new ErrorReport( errorKlass, ErrorCode.E3000, "admin", errorKlass.getSimpleName() ) );
+        objectReport1
+            .addErrorReport( new ErrorReport( errorKlass, ErrorCode.E3000, "admin", errorKlass.getSimpleName() ) );
+        objectReport2
+            .addErrorReport( new ErrorReport( errorKlass, ErrorCode.E3000, "admin", errorKlass.getSimpleName() ) );
 
         TypeReport typeReport = new TypeReport( mainKlass );
         typeReport.addObjectReport( objectReport0 );

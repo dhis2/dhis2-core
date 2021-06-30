@@ -1,7 +1,5 @@
-package org.hisp.dhis.outboundmessage;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.outboundmessage;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outboundmessage;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -34,5 +33,8 @@ package org.hisp.dhis.outboundmessage;
 
 public enum OutboundMessageBatchStatus
 {
-    COMPLETED, FAILED, PENDING, ABORTED
+    COMPLETED,
+    FAILED,
+    PENDING,
+    ABORTED
 }

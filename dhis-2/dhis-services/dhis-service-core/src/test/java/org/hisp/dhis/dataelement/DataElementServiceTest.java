@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataelement;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dataelement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataelement;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -368,29 +367,29 @@ public class DataElementServiceTest
         DataElementGroup dataElementGroupC = dataElementService.getDataElementGroupByName( "DataElementGroupC" );
         assertNull( dataElementGroupC );
     }
-    
+
     @Test
     public void testAndAndGetDataElementGroupSet()
     {
         DataElementGroup degA = createDataElementGroup( 'A' );
         DataElementGroup degB = createDataElementGroup( 'B' );
         DataElementGroup degC = createDataElementGroup( 'C' );
-        
+
         dataElementService.addDataElementGroup( degA );
         dataElementService.addDataElementGroup( degB );
         dataElementService.addDataElementGroup( degC );
-        
+
         DataElementGroupSet degsA = createDataElementGroupSet( 'A' );
         degsA.addDataElementGroup( degA );
         degsA.addDataElementGroup( degB );
-        
+
         DataElementGroupSet degsB = createDataElementGroupSet( 'B' );
         degsB.addDataElementGroup( degB );
         degsB.addDataElementGroup( degC );
-        
+
         dataElementService.addDataElementGroupSet( degsA );
         dataElementService.addDataElementGroupSet( degsB );
-        
+
         assertTrue( degsA.getMembers().contains( degA ) );
         assertTrue( degsA.getMembers().contains( degB ) );
         assertTrue( degA.getGroupSets().contains( degsA ) );
@@ -399,7 +398,7 @@ public class DataElementServiceTest
         assertTrue( degsB.getMembers().contains( degB ) );
         assertTrue( degsB.getMembers().contains( degC ) );
         assertTrue( degB.getGroupSets().contains( degsB ) );
-        assertTrue( degC.getGroupSets().contains( degsB ) );        
+        assertTrue( degC.getGroupSets().contains( degsB ) );
     }
 
     @Test
@@ -413,7 +412,8 @@ public class DataElementServiceTest
 
     }
 
-    @Override public boolean emptyDatabaseAfterTest()
+    @Override
+    public boolean emptyDatabaseAfterTest()
     {
         return true;
     }

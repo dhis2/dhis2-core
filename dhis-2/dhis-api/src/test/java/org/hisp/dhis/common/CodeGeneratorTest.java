@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,14 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
+
+import static org.junit.Assert.*;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.Test;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author bobj
@@ -48,28 +48,28 @@ public class CodeGeneratorTest
         for ( int n = 0; n < numberOfCodes; ++n )
         {
             String code = CodeGenerator.generateUid();
-                        
+
             // Test syntax
             assertTrue( code.substring( 0, 1 ).matches( "[a-zA-Z]" ) );
             assertTrue( code.matches( "[0-9a-zA-Z]{11}" ) );
-            
+
             // Test uniqueness
             assertTrue( codes.add( code ) );
         }
     }
-    
+
     @Test
     public void testUidIsValid()
     {
         assertTrue( CodeGenerator.isValidUid( "mq4jAnN6fg3" ) );
         assertTrue( CodeGenerator.isValidUid( "QX4LpiTZmUH" ) );
         assertTrue( CodeGenerator.isValidUid( "rT1hdSWjfDC" ) );
-        
+
         assertFalse( CodeGenerator.isValidUid( "1T1hdSWjfDC" ) );
         assertFalse( CodeGenerator.isValidUid( "QX4LpiTZmUHg" ) );
         assertFalse( CodeGenerator.isValidUid( "1T1hdS_WjfD" ) );
     }
-    
+
     @Test
     public void testGetRandomUrlToken()
     {

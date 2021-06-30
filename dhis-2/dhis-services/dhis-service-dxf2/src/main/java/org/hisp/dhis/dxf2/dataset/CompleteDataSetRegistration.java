@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.dataset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,15 @@ package org.hisp.dhis.dxf2.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.dataset;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -41,9 +41,9 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement( localName = ":", namespace = DxfNamespaces.DXF_2_0 )
 public class CompleteDataSetRegistration
 {
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Field names
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     protected static final String FIELD_COMPLETE_DATA_SET_REGISTRATION = "completeDataSetRegistration";
 
@@ -65,9 +65,9 @@ public class CompleteDataSetRegistration
 
     protected static final String FIELD_IS_COMPLETED = "completed";
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Properties
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     protected String dataSet;
 
@@ -91,18 +91,17 @@ public class CompleteDataSetRegistration
 
     protected Boolean completed;
 
-
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Constructors
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public CompleteDataSetRegistration()
     {
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Logic
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public boolean hasDate()
     {
@@ -113,21 +112,21 @@ public class CompleteDataSetRegistration
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-                .add( FIELD_DATASET, dataSet )
-                .add( FIELD_PERIOD, period )
-                .add( FIELD_ORGUNIT, organisationUnit )
-                .add( FIELD_ATTR_OPTION_COMBO, attributeOptionCombo )
-                .add( FIELD_DATE, date )
-                .add( FIELD_STORED_BY, storedBy )
-                .add( FIELD_LAST_UPDATED_BY, lastUpdatedBy )
-                .add( FIELD_LAST_UPDATED, lastUpdated )
-                .add( FIELD_IS_COMPLETED,completed )
-                .toString();
+            .add( FIELD_DATASET, dataSet )
+            .add( FIELD_PERIOD, period )
+            .add( FIELD_ORGUNIT, organisationUnit )
+            .add( FIELD_ATTR_OPTION_COMBO, attributeOptionCombo )
+            .add( FIELD_DATE, date )
+            .add( FIELD_STORED_BY, storedBy )
+            .add( FIELD_LAST_UPDATED_BY, lastUpdatedBy )
+            .add( FIELD_LAST_UPDATED, lastUpdated )
+            .add( FIELD_IS_COMPLETED, completed )
+            .toString();
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Streaming logic stubs
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     protected void open()
     {
@@ -141,9 +140,9 @@ public class CompleteDataSetRegistration
     {
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters and setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
@@ -264,7 +263,6 @@ public class CompleteDataSetRegistration
     {
         this.lastUpdatedBy = lastUpdatedBy;
     }
-
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )

@@ -1,7 +1,5 @@
-package org.hisp.dhis.schema;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.schema;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema;
+
+import static org.junit.Assert.assertFalse;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,7 +41,8 @@ public class SchemaServiceTest
     private SchemaService schemaService;
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         schemaService = (SchemaService) getBean( SchemaService.class.getName() );
     }

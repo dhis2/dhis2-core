@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentityfilter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.trackedentityfilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
+package org.hisp.dhis.trackedentityfilter;
 
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.event.EventStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -46,7 +45,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 public class EventFilter implements Serializable
 {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 
@@ -55,9 +54,9 @@ public class EventFilter implements Serializable
     private EventStatus eventStatus;
 
     private FilterPeriod eventCreatedPeriod;
-    
+
     private AssignedUserSelectionMode assignedUserMode;
-    
+
     private Set<String> assignedUsers = new HashSet<>();
 
     // -------------------------------------------------------------------------
@@ -132,7 +131,5 @@ public class EventFilter implements Serializable
     {
         this.assignedUsers = assignedUsers;
     }
-    
-    
 
 }

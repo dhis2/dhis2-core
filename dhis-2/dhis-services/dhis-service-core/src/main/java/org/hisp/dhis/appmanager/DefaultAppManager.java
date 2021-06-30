@@ -1,7 +1,5 @@
-package org.hisp.dhis.appmanager;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.appmanager;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -37,22 +36,20 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Saptarshi Purkayastha
@@ -74,7 +71,8 @@ public class DefaultAppManager
 
     private final CacheProvider cacheProvider;
 
-    public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider, CurrentUserService currentUserService,
+    public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
+        CurrentUserService currentUserService,
         LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
         KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
     {
@@ -109,7 +107,8 @@ public class DefaultAppManager
     @Override
     public List<App> getApps( String contextPath )
     {
-        List<App> apps = appCache.getAll().stream().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS ).collect( Collectors.toList() );
+        List<App> apps = appCache.getAll().stream().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
+            .collect( Collectors.toList() );
 
         apps.forEach( a -> a.init( contextPath ) );
 
@@ -159,10 +158,11 @@ public class DefaultAppManager
     @Override
     public List<App> getAppsByName( final String name, Collection<App> apps, final String operator )
     {
-        return apps.stream().filter( app -> (
-            ("ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() )) ||
-                ("eq".equalsIgnoreCase( operator ) && app.getName().equals( name ))) ).
-            collect( Collectors.toList() );
+        return apps.stream().filter(
+            app -> (("ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() ))
+                ||
+                ("eq".equalsIgnoreCase( operator ) && app.getName().equals( name ))) )
+            .collect( Collectors.toList() );
     }
 
     @Override
@@ -277,13 +277,15 @@ public class DefaultAppManager
     @Override
     public String getAppHubUrl()
     {
-        String baseUrl = StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_BASE_URL ) );
-        String apiUrl = StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL ) );
+        String baseUrl = StringUtils
+            .trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_BASE_URL ) );
+        String apiUrl = StringUtils
+            .trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL ) );
 
         return "{" +
-                "\"baseUrl\": \"" + baseUrl + "\", " +
-                "\"apiUrl\": \"" + apiUrl + "\"" +
-                "}";
+            "\"baseUrl\": \"" + baseUrl + "\", " +
+            "\"apiUrl\": \"" + apiUrl + "\"" +
+            "}";
     }
 
     /**

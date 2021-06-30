@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,16 @@ package org.hisp.dhis.commons.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.config;
+
+import java.util.Date;
+
+import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -40,14 +48,6 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.PrecisionModel;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-
-import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,6 +56,7 @@ import java.util.Date;
 public class CommonsConfig
 {
     public static final ObjectMapper jsonMapper = new ObjectMapper();
+
     public static final ObjectMapper xmlMapper = new XmlMapper();
 
     @Primary
@@ -78,15 +79,14 @@ public class CommonsConfig
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
 
-        ObjectMapper[] objectMappers = new ObjectMapper[]{ jsonMapper, xmlMapper };
+        ObjectMapper[] objectMappers = new ObjectMapper[] { jsonMapper, xmlMapper };
 
         for ( ObjectMapper objectMapper : objectMappers )
         {
             objectMapper.registerModules( module,
                 new JtsModule( new GeometryFactory( new PrecisionModel(), 4326 ) ),
                 new JavaTimeModule(),
-                new Jdk8Module()
-            );
+                new Jdk8Module() );
 
             objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
             objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );

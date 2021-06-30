@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.commons.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.action;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.dataset.DataSet;
@@ -36,10 +39,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ContextUtils;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -122,18 +121,19 @@ public class GetDataSetsAction
         else
         {
             dataSets = new ArrayList<>( dataSetService.getAllDataSets() );
-            
-            ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), dataSets );
+
+            ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(),
+                dataSets );
         }
 
         if ( !currentUserService.currentUserIsSuper() )
         {
             User user = currentUserService.getCurrentUser();
-            
+
             if ( user != null && user.getUserCredentials() != null )
             {
                 dataSets.retainAll( dataSetService.getUserDataWrite( user ) );
-            }            
+            }
         }
 
         Collections.sort( dataSets );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.program.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.notification;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Calendar;
 
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.AbstractJob;
@@ -36,10 +39,6 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Component;
-
-import java.util.Calendar;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -87,13 +86,15 @@ public class ProgramNotificationJob extends AbstractJob
         {
             runInternal();
 
-            notifier.notify( jobConfiguration, NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
+            notifier.notify( jobConfiguration, NotificationLevel.INFO,
+                "Generated and sent scheduled program notifications: " + clock.time(), true );
         }
         catch ( RuntimeException ex )
         {
             notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
-            messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed", ex );
+            messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed",
+                ex );
 
             throw ex;
         }

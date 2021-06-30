@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule;
 
 import java.util.List;
 
@@ -72,8 +71,8 @@ public interface ProgramRuleVariableService
     /**
      * Returns all {@link ProgramRuleVariable}.
      *
-     * @return a List of all ProgramRuleVariable, or an empty List if
-     * there are no ProgramRuleVariables.
+     * @return a List of all ProgramRuleVariable, or an empty List if there are
+     *         no ProgramRuleVariables.
      */
     List<ProgramRuleVariable> getAllProgramRuleVariable();
 
@@ -86,12 +85,12 @@ public interface ProgramRuleVariableService
     List<ProgramRuleVariable> getProgramRuleVariable( Program program );
 
     /**
-     *
      * @param program program.
      * @param dataElement to find association with.
-     * @return true if dataElement is associated with any ProgramRuleVariable, false otherwise.
+     * @return true if dataElement is associated with any ProgramRuleVariable,
+     *         false otherwise.
      */
-    boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement );
+    boolean isLinkedToProgramRuleVariableCached( Program program, DataElement dataElement );
 
     /**
      *
@@ -101,7 +100,8 @@ public interface ProgramRuleVariableService
 
     /**
      *
-     * @return all ProgramRuleVariables which are linked to {@link org.hisp.dhis.trackedentity.TrackedEntityAttribute}
+     * @return all ProgramRuleVariables which are linked to
+     *         {@link org.hisp.dhis.trackedentity.TrackedEntityAttribute}
      */
     List<ProgramRuleVariable> getVariablesWithNoAttribute();
 }

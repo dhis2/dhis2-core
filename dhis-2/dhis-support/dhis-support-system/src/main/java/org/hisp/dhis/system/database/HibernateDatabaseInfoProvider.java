@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.database;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +25,25 @@ package org.hisp.dhis.system.database;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.database;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcOperations;
-
-import javax.annotation.Nonnull;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -54,7 +54,9 @@ public class HibernateDatabaseInfoProvider
     implements DatabaseInfoProvider
 {
     private static final String POSTGIS_MISSING_ERROR = "Postgis extension is not installed. Execute \"CREATE EXTENSION postgis;\" as a superuser and start the application again.";
+
     private static final String POSTGRES_VERSION_REGEX = "^([a-zA-Z_-]+ \\d+\\.+\\d+)?[ ,].*$";
+
     private static final Pattern POSTGRES_VERSION_PATTERN = Pattern.compile( POSTGRES_VERSION_REGEX );
 
     private DatabaseInfo info;
@@ -64,7 +66,9 @@ public class HibernateDatabaseInfoProvider
     // -------------------------------------------------------------------------
 
     private final DhisConfigurationProvider config;
+
     private final JdbcOperations jdbcTemplate;
+
     private final Environment environment;
 
     public HibernateDatabaseInfoProvider( DhisConfigurationProvider config, JdbcOperations jdbcTemplate,
@@ -78,7 +82,7 @@ public class HibernateDatabaseInfoProvider
         this.jdbcTemplate = jdbcTemplate;
         this.environment = environment;
     }
-    
+
     @PostConstruct
     public void init()
     {
@@ -88,7 +92,7 @@ public class HibernateDatabaseInfoProvider
 
         // Check if postgis is installed, fail startup if not
 
-        if ( !SystemUtils.isTestRun(environment.getActiveProfiles()) )
+        if ( !SystemUtils.isTestRun( environment.getActiveProfiles() ) )
         {
             spatialSupport = isSpatialSupport();
 
@@ -176,8 +180,8 @@ public class HibernateDatabaseInfoProvider
     }
 
     /**
-     * Attempts to create a spatial database extension. Checks if spatial operations
-     * are supported.
+     * Attempts to create a spatial database extension. Checks if spatial
+     * operations are supported.
      */
     private boolean isSpatialSupport()
     {

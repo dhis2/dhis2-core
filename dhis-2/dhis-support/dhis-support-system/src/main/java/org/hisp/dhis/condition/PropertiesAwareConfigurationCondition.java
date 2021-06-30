@@ -1,7 +1,5 @@
-package org.hisp.dhis.condition;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.condition;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.condition;
 
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -52,8 +51,8 @@ public abstract class PropertiesAwareConfigurationCondition
     {
         DefaultLocationManager locationManager = (DefaultLocationManager) new ServiceConfig().locationManager();
         locationManager.init();
-        DefaultDhisConfigurationProvider dhisConfigurationProvider =
-            new DefaultDhisConfigurationProvider( locationManager );
+        DefaultDhisConfigurationProvider dhisConfigurationProvider = new DefaultDhisConfigurationProvider(
+            locationManager );
         dhisConfigurationProvider.init();
 
         return dhisConfigurationProvider;
@@ -71,6 +70,6 @@ public abstract class PropertiesAwareConfigurationCondition
 
     protected boolean getBooleanValue( ConfigurationKey key )
     {
-        return getConfiguration().isEnabled(key);
+        return getConfiguration().isEnabled( key );
     }
 }

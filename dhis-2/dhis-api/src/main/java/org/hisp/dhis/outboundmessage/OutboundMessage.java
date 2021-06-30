@@ -1,7 +1,5 @@
-package org.hisp.dhis.outboundmessage;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,21 @@ package org.hisp.dhis.outboundmessage;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outboundmessage;
 
 import java.util.Set;
 
 /**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
+ * @author Zubair <rajazubair.asghar@gmail.com>
+ */
 public class OutboundMessage
 {
     private String subject;
 
     private String text;
-    
+
     private Set<String> recipients;
-   
+
     public OutboundMessage( String subject, String text, Set<String> recipients )
     {
         this.subject = subject;

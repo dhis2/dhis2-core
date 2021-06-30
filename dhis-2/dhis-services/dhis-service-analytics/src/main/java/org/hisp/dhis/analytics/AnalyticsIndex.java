@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,17 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
+
+import static org.hisp.dhis.analytics.AnalyticsTableManager.TABLE_TEMP_SUFFIX;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
-
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
-import static org.hisp.dhis.analytics.AnalyticsTableManager.TABLE_TEMP_SUFFIX;
 
 /**
  * Class representing an index on a database table column.
@@ -79,8 +78,8 @@ public class AnalyticsIndex
     // -------------------------------------------------------------------------
 
     /**
-     * Returns index name for column. Purpose of code suffix is to avoid uniqueness
-     * collision between indexes for temporary and real tables.
+     * Returns index name for column. Purpose of code suffix is to avoid
+     * uniqueness collision between indexes for temporary and real tables.
      *
      * @param tableType the {@link AnalyticsTableType}.
      */
@@ -88,7 +87,8 @@ public class AnalyticsIndex
     {
         String columnName = StringUtils.join( this.getColumns(), "_" );
 
-        return quote( PREFIX_INDEX + removeQuote( columnName ) + "_" + shortenTableName( this.getTable(), tableType ) + "_" + CodeGenerator.generateCode( 5 ) );
+        return quote( PREFIX_INDEX + removeQuote( columnName ) + "_" + shortenTableName( this.getTable(), tableType )
+            + "_" + CodeGenerator.generateCode( 5 ) );
     }
 
     /**

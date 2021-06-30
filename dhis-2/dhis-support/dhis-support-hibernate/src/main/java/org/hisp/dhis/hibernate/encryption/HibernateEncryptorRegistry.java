@@ -1,7 +1,5 @@
-package org.hisp.dhis.hibernate.encryption;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,19 @@ package org.hisp.dhis.hibernate.encryption;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.Maps;
-import org.jasypt.encryption.pbe.PBEStringEncryptor;
+package org.hisp.dhis.hibernate.encryption;
 
 import java.util.Map;
 
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+
+import com.google.common.collect.Maps;
+
 /**
  * Singleton registry for all (named) Hibernate Encryptors.
- * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType EncryptedStringUserType}
- * depends on this singleton to access the appropriate encryptor(s).
+ * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType
+ * EncryptedStringUserType} depends on this singleton to access the appropriate
+ * encryptor(s).
  *
  * @author Halvdan Hoem Grelland
  */
@@ -47,7 +48,7 @@ public final class HibernateEncryptorRegistry
     private final Map<String, PBEStringEncryptor> encryptors = Maps.newHashMap();
 
     private HibernateEncryptorRegistry()
-    {   
+    {
     }
 
     /**
@@ -61,7 +62,8 @@ public final class HibernateEncryptorRegistry
     }
 
     /**
-     * Registers the given {@link PBEStringEncryptor PBEStringEncryptors} by name.
+     * Registers the given {@link PBEStringEncryptor PBEStringEncryptors} by
+     * name.
      *
      * @param encryptors a map of names and encryptors.
      */

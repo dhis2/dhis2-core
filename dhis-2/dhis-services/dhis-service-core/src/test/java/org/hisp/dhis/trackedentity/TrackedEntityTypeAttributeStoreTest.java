@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,15 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Lists;
 
 public class TrackedEntityTypeAttributeStoreTest
     extends DhisSpringTest
@@ -79,7 +79,6 @@ public class TrackedEntityTypeAttributeStoreTest
         assertEquals( 1, entityTypeAttributeStore.getAttributes( Lists.newArrayList( entityTypeA ) ).size() );
         assertEquals( 1, entityTypeAttributeStore.getAttributes( Lists.newArrayList( entityTypeB ) ).size() );
         assertEquals( 0, entityTypeAttributeStore.getAttributes( Lists.newArrayList( entityTypeC ) ).size() );
-
 
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.intercept;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,10 @@ package org.hisp.dhis.security.intercept;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-
+package org.hisp.dhis.security.intercept;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.struts2.ServletActionContext;
 
 import com.opensymphony.xwork2.ActionInvocation;
@@ -49,9 +47,9 @@ public class HttpMethodInterceptor
     private static final long serialVersionUID = -7882464040475459114L;
 
     private static final String DEFAULT_METHOD = "POST";
-    
+
     protected String allowedMethod = DEFAULT_METHOD;
-    
+
     public void setAllowedMethod( String allowedMethod )
     {
         this.allowedMethod = allowedMethod;
@@ -62,16 +60,16 @@ public class HttpMethodInterceptor
         throws Exception
     {
         String method = ServletActionContext.getRequest().getMethod();
-        
+
         log.info( "Method: " + method );
-        
+
         if ( method == null || !method.trim().toLowerCase().equals( allowedMethod.trim().toLowerCase() ) )
         {
             log.warn( "HTTP method ' " + allowedMethod + "' only allowed for this request" );
-            
+
             return null;
         }
-        
+
         return invocation.invoke();
     }
 
@@ -82,6 +80,6 @@ public class HttpMethodInterceptor
 
     @Override
     public void destroy()
-    {        
+    {
     }
 }

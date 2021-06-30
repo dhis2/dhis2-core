@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -51,7 +50,7 @@ public class OrganisationUnitGroup
     implements MetadataObject, CoordinateObject
 {
     private String symbol;
-    
+
     private String color;
 
     private Set<OrganisationUnit> members = new HashSet<>();
@@ -198,7 +197,6 @@ public class OrganisationUnitGroup
         this.geometry = geometry;
     }
 
-
     public boolean hasDescendantsWithCoordinates()
     {
         return CoordinateUtils.hasDescendantsWithCoordinates( members );
@@ -209,7 +207,7 @@ public class OrganisationUnitGroup
     public FeatureType getFeatureType()
     {
 
-        return geometry != null ? FeatureType.getTypeFromName(this.geometry.getGeometryType()) : null;
+        return geometry != null ? FeatureType.getTypeFromName( this.geometry.getGeometryType() ) : null;
     }
 
     @Override

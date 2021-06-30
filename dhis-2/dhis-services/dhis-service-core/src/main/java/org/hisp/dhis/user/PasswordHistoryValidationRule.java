@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
+
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * Created by zubair on 08.03.17.
@@ -44,6 +43,7 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
     private static final int HISTORY_LIMIT = 24;
 
     public static final String ERROR = "Password must not be one of the previous %d passwords";
+
     public static final String I18_ERROR = "password_history_validation";
 
     private final PasswordEncoder passwordEncoder;
@@ -53,7 +53,8 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
     private final CurrentUserService currentUserService;
 
     @Autowired
-    public PasswordHistoryValidationRule( PasswordEncoder passwordEncoder, UserService userService, CurrentUserService currentUserService )
+    public PasswordHistoryValidationRule( PasswordEncoder passwordEncoder, UserService userService,
+        CurrentUserService currentUserService )
     {
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
@@ -78,7 +79,7 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
 
             if ( match )
             {
-                return new PasswordValidationResult( String.format( ERROR , HISTORY_LIMIT ), I18_ERROR, false );
+                return new PasswordValidationResult( String.format( ERROR, HISTORY_LIMIT ), I18_ERROR, false );
             }
         }
 

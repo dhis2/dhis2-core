@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +25,22 @@ package org.hisp.dhis.resourcetable.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.Lists;
-import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.resourcetable.ResourceTable;
-import org.hisp.dhis.resourcetable.ResourceTableType;
+package org.hisp.dhis.resourcetable.table;
 
 import java.util.List;
 import java.util.Optional;
 
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
+import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
+
+import com.google.common.collect.Lists;
+
 /**
- * Remaps approval levels within a workflow for analytics tables approved
- * data visibility. This handles the case where a workflow does not include
- * all data approval levels. Where approval levels are skipped by the workflow,
- * they are remapped upwords so that higher-level users can see the approved
- * data.
+ * Remaps approval levels within a workflow for analytics tables approved data
+ * visibility. This handles the case where a workflow does not include all data
+ * approval levels. Where approval levels are skipped by the workflow, they are
+ * remapped upwords so that higher-level users can see the approved data.
  * <p/>
  * For example, if a workfow includes approval levels 1,2,4, and 5, the approved
  * data will be tagged at levels 1,2,3, and 5. This allows level 2 users to see
@@ -82,15 +81,14 @@ public class DataApprovalRemapLevelResourceTable
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql =
-            "insert into " + getTempTableName() +
+        String sql = "insert into " + getTempTableName() +
             " (workflowid,dataapprovallevelid,level) " +
             "select w.workflowid, w.dataapprovallevelid, " +
-                "1 + coalesce((select max(l2.level) " +
-                "from dataapprovalworkflowlevels w2 " +
-                "join dataapprovallevel l2 on l2.dataapprovallevelid = w2.dataapprovallevelid " +
-                "where w2.workflowid = w.workflowid " +
-                "and l2.level < l.level), 0) as level " +
+            "1 + coalesce((select max(l2.level) " +
+            "from dataapprovalworkflowlevels w2 " +
+            "join dataapprovallevel l2 on l2.dataapprovallevelid = w2.dataapprovallevelid " +
+            "where w2.workflowid = w.workflowid " +
+            "and l2.level < l.level), 0) as level " +
             "from dataapprovalworkflowlevels w " +
             "join dataapprovallevel l on l.dataapprovallevelid = w.dataapprovallevelid";
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.dataitem;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.program.dataitem;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.dataitem;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator expression data item ProgramAttribute
@@ -74,7 +73,8 @@ public class ProgramItemAttribute
 
             if ( attribute == null )
             {
-                throw new ParserExceptionWithoutContext( "Tracked entity attribute " + attributeId + " not found during SQL generation." );
+                throw new ParserExceptionWithoutContext(
+                    "Tracked entity attribute " + attributeId + " not found during SQL generation." );
             }
 
             column = replaceNullSqlValues( column, attribute.getValueType() );
@@ -88,8 +88,8 @@ public class ProgramItemAttribute
     // -------------------------------------------------------------------------
 
     /**
-     * Makes sure that the parsed A{...} has a syntax that could be used
-     * be used in an program expression for A{attributeUid}
+     * Makes sure that the parsed A{...} has a syntax that could be used be used
+     * in an program expression for A{attributeUid}
      *
      * @param ctx the item context
      * @return the attribute UID.

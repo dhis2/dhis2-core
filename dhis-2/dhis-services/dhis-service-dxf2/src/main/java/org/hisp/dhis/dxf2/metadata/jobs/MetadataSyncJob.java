@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.jobs;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,14 @@ package org.hisp.dhis.dxf2.metadata.jobs;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.jobs;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.sync.*;
@@ -51,12 +52,10 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * This is the runnable that takes care of the Metadata Synchronization.
- * Leverages Spring RetryTemplate to exhibit retries. The retries are configurable
- * through the dhis.conf.
+ * Leverages Spring RetryTemplate to exhibit retries. The retries are
+ * configurable through the dhis.conf.
  *
  * @author anilkumk
  */
@@ -66,14 +65,23 @@ public class MetadataSyncJob
     extends AbstractJob
 {
     public static final String VERSION_KEY = "version";
+
     public static final String DATA_PUSH_SUMMARY = "dataPushSummary";
+
     public static final String EVENT_PUSH_SUMMARY = "eventPushSummary";
+
     public static final String TRACKER_PUSH_SUMMARY = "trackerPushSummary";
+
     public static final String GET_METADATAVERSION = "getMetadataVersion";
+
     public static final String GET_METADATAVERSIONSLIST = "getMetadataVersionsList";
+
     public static final String METADATA_SYNC = "metadataSync";
+
     public static final String METADATA_SYNC_REPORT = "metadataSyncReport";
-    public static final String[] keys = { DATA_PUSH_SUMMARY, EVENT_PUSH_SUMMARY, GET_METADATAVERSION, GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY };
+
+    public static final String[] keys = { DATA_PUSH_SUMMARY, EVENT_PUSH_SUMMARY, GET_METADATAVERSION,
+        GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY };
 
     private final SystemSettingManager systemSettingManager;
 
@@ -130,20 +138,17 @@ public class MetadataSyncJob
         try
         {
             MetadataSyncJobParameters jobParameters = (MetadataSyncJobParameters) jobConfiguration.getJobParameters();
-            retryTemplate.execute( retryContext ->
-                {
-                    metadataRetryContext.setRetryContext( retryContext );
-                    clearFailedVersionSettings();
-                    runSyncTask( metadataRetryContext, jobParameters );
-                    return null;
-                }
-                , retryContext ->
-                {
-                    log.info( "Metadata Sync failed! Sending mail to Admin" );
-                    updateMetadataVersionFailureDetails( metadataRetryContext );
-                    metadataSyncPostProcessor.sendFailureMailToAdmin( metadataRetryContext );
-                    return null;
-                } );
+            retryTemplate.execute( retryContext -> {
+                metadataRetryContext.setRetryContext( retryContext );
+                clearFailedVersionSettings();
+                runSyncTask( metadataRetryContext, jobParameters );
+                return null;
+            }, retryContext -> {
+                log.info( "Metadata Sync failed! Sending mail to Admin" );
+                updateMetadataVersionFailureDetails( metadataRetryContext );
+                metadataSyncPostProcessor.sendFailureMailToAdmin( metadataRetryContext );
+                return null;
+            } );
         }
         catch ( Exception e )
         {
@@ -166,7 +171,8 @@ public class MetadataSyncJob
     }
 
     synchronized void runSyncTask( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
-        throws MetadataSyncServiceException, DhisVersionMismatchException
+        throws MetadataSyncServiceException,
+        DhisVersionMismatchException
     {
         metadataSyncPreProcessor.setUp( context );
 
@@ -178,7 +184,8 @@ public class MetadataSyncJob
 
         MetadataVersion metadataVersion = metadataSyncPreProcessor.handleCurrentMetadataVersion( context );
 
-        List<MetadataVersion> metadataVersionList = metadataSyncPreProcessor.handleMetadataVersionsList( context, metadataVersion );
+        List<MetadataVersion> metadataVersionList = metadataSyncPreProcessor.handleMetadataVersionsList( context,
+            metadataVersion );
 
         if ( metadataVersionList != null )
         {
@@ -198,7 +205,8 @@ public class MetadataSyncJob
                     break;
                 }
 
-                boolean abortStatus = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary, context, dataVersion );
+                boolean abortStatus = metadataSyncPostProcessor
+                    .handleSyncNotificationsAndAbortStatus( metadataSyncSummary, context, dataVersion );
 
                 if ( abortStatus )
                 {
@@ -212,11 +220,12 @@ public class MetadataSyncJob
         log.info( "Metadata sync cron job ended " );
     }
 
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
     // Private Methods
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
 
-    private MetadataSyncSummary handleMetadataSync( MetadataRetryContext context, MetadataVersion dataVersion ) throws DhisVersionMismatchException
+    private MetadataSyncSummary handleMetadataSync( MetadataRetryContext context, MetadataVersion dataVersion )
+        throws DhisVersionMismatchException
     {
 
         MetadataSyncParams syncParams = new MetadataSyncParams( new MetadataImportParams(), dataVersion );

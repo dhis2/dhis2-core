@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,20 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.*;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -44,16 +48,13 @@ import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
-import java.util.List;
-
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.*;
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import com.google.common.collect.Lists;
 
 @RestController
 @RequestMapping( value = "/potentialDuplicates" )
@@ -90,8 +91,7 @@ public class DeduplicationController
     @GetMapping
     public Node getAll(
         PotentialDuplicateQuery query,
-        HttpServletResponse response
-    )
+        HttpServletResponse response )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -119,8 +119,7 @@ public class DeduplicationController
 
     @GetMapping( value = "/{id}" )
     public PotentialDuplicate getPotentialDuplicate(
-        @PathVariable String id
-    )
+        @PathVariable String id )
         throws WebMessageException
     {
         PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid( id );
@@ -135,21 +134,19 @@ public class DeduplicationController
 
     @PostMapping
     public PotentialDuplicate postPotentialDuplicate(
-        @RequestBody PotentialDuplicate potentialDuplicate
-    )
+        @RequestBody PotentialDuplicate potentialDuplicate )
         throws WebMessageException
     {
 
         validatePotentialDuplicate( potentialDuplicate );
 
-        deduplicationService.addPotentialDuplicate( potentialDuplicate);
+        deduplicationService.addPotentialDuplicate( potentialDuplicate );
         return potentialDuplicate;
     }
 
     @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST }, value = "/{id}/invalidation" )
     public void markPotentialDuplicateInvalid(
-        @PathVariable String id
-    )
+        @PathVariable String id )
         throws WebMessageException
     {
         PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid( id );
@@ -165,8 +162,7 @@ public class DeduplicationController
 
     @DeleteMapping( value = "/{id}" )
     public void deletePotentialDuplicate(
-        @PathVariable String id
-    )
+        @PathVariable String id )
         throws WebMessageException
     {
         PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid( id );
@@ -180,7 +176,6 @@ public class DeduplicationController
         deduplicationService.deletePotentialDuplicate( potentialDuplicate );
 
     }
-
 
     private void validatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
         throws WebMessageException

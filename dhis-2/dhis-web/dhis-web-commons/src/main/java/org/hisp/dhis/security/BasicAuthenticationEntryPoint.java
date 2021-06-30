@@ -1,7 +1,5 @@
-package org.hisp.dhis.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security;
+
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -36,10 +40,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -51,13 +51,15 @@ public class BasicAuthenticationEntryPoint
     private RenderService renderService;
 
     @Override
-    public void commence( HttpServletRequest request, HttpServletResponse response, AuthenticationException authException ) throws IOException
+    public void commence( HttpServletRequest request, HttpServletResponse response,
+        AuthenticationException authException )
+        throws IOException
     {
         String message;
 
         if ( ExceptionUtils.indexOfThrowable( authException, LockedException.class ) != -1 )
         {
-            message = "Account locked" ;
+            message = "Account locked";
         }
         else
         {

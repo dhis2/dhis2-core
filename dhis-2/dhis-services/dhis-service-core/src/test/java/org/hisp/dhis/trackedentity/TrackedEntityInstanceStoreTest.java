@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,18 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.*;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
@@ -36,6 +46,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -44,15 +55,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -83,21 +85,31 @@ public class TrackedEntityInstanceStoreTest
     private ProgramInstanceService programInstanceService;
 
     private TrackedEntityInstance teiA;
+
     private TrackedEntityInstance teiB;
+
     private TrackedEntityInstance teiC;
+
     private TrackedEntityInstance teiD;
+
     private TrackedEntityInstance teiE;
+
     private TrackedEntityInstance teiF;
 
     private TrackedEntityAttribute atA;
+
     private TrackedEntityAttribute atB;
+
     private TrackedEntityAttribute atC;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
 
     private Program prA;
+
     private Program prB;
 
     @Override
@@ -228,7 +240,7 @@ public class TrackedEntityInstanceStoreTest
         List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
 
         assertEquals( 6, teis.size() );
-        
+
         // Filter by attribute
 
         params = new TrackedEntityInstanceQueryParams()
@@ -287,7 +299,7 @@ public class TrackedEntityInstanceStoreTest
         assertEquals( 2, teis.size() );
         assertTrue( teis.contains( teiB ) );
         assertTrue( teis.contains( teiE ) );
-        
+
         // Filter explicitly by uids
         params = new TrackedEntityInstanceQueryParams();
         params.getTrackedEntityInstanceUids().add( teiC.getUid() );
@@ -297,12 +309,13 @@ public class TrackedEntityInstanceStoreTest
         teis = teiStore.getTrackedEntityInstances( params );
 
         assertEquals( 3, teis.size() );
-        
+
         assertTrue( teis.contains( teiC ) );
         assertTrue( teis.contains( teiB ) );
         assertTrue( teis.contains( teiD ) );
-        
-        // Filter explicitly by uids and an additional filter (program in this case)
+
+        // Filter explicitly by uids and an additional filter (program in this
+        // case)
         params = new TrackedEntityInstanceQueryParams();
         params.getTrackedEntityInstanceUids().add( teiC.getUid() );
         params.getTrackedEntityInstanceUids().add( teiB.getUid() );
@@ -343,6 +356,63 @@ public class TrackedEntityInstanceStoreTest
         assertThat( grid, hasSize( 1 ) );
         assertThat( grid.get( 0 ).keySet(), hasSize( 8 ) );
         assertThat( grid.get( 0 ).get( atC.getUid() ), is( "OrganisationUnitC" ) );
+
+    }
+
+    @Test
+    public void testGridQueryWithEventFilters()
+    {
+        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+        teiA.setTrackedEntityType( trackedEntityTypeA );
+        teiStore.save( teiA );
+        attributeValueService
+            .addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atC, teiA, ouC.getUid() ) );
+        programInstanceService.enrollTrackedEntityInstance( teiA, prA, new Date(), new Date(), ouA );
+
+        dbmsManager.flushSession();
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+        params.setProgram( prA );
+        params.setEventStatus( EventStatus.ACTIVE );
+        params.setEventStartDate( Date.from( Instant.now().minus( 10, ChronoUnit.DAYS ) ) );
+        params.setEventEndDate( Date.from( Instant.now().plus( 10, ChronoUnit.DAYS ) ) );
+
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
+
+        List<Map<String, String>> grid = teiStore.getTrackedEntityInstancesGrid( params );
+
+        assertThat( grid, hasSize( 0 ) );
+
+    }
+
+    @Test
+    public void testGridQueryWithSingleQuoteInAttributeSearchInput()
+    {
+        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+        teiA.setTrackedEntityType( trackedEntityTypeA );
+        teiStore.save( teiA );
+        attributeValueService
+            .addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atC, teiA, ouC.getUid() ) );
+        programInstanceService.enrollTrackedEntityInstance( teiA, prA, new Date(), new Date(), ouA );
+
+        dbmsManager.flushSession();
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+        params.setProgram( prA );
+        params.addFilter( new QueryItem( atC, QueryOperator.EQ, "M'M",
+            ValueType.TEXT, AggregationType.NONE, null ) );
+
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
+
+        List<Map<String, String>> grid = teiStore.getTrackedEntityInstancesGrid( params );
+
+        assertThat( grid, hasSize( 0 ) );
 
     }
 }

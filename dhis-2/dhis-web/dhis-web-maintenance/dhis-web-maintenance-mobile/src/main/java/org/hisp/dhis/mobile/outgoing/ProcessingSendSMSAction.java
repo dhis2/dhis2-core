@@ -1,7 +1,5 @@
-package org.hisp.dhis.mobile.outgoing;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,15 @@ package org.hisp.dhis.mobile.outgoing;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mobile.outgoing;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
@@ -48,12 +49,11 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Dang Duy Hieu
@@ -237,10 +237,11 @@ public class ProcessingSendSMSAction
             }
         }
 
+        SmsJobParameters jobParameters = new SmsJobParameters( "", text,
+            recipientsList.stream().map( User::getPhoneNumber ).collect( Collectors.toList() ) );
 
-        SmsJobParameters jobParameters = new SmsJobParameters( "", text, recipientsList.stream().map( User::getPhoneNumber ).collect( Collectors.toList() ) );
-
-        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction", JobType.SMS_SEND,
+        JobConfiguration processingSendSmsJobConfiguration = new JobConfiguration( "processingSendSmsAction",
+            JobType.SMS_SEND,
             null, jobParameters, true, true );
         notifier.clear( processingSendSmsJobConfiguration );
 
@@ -252,7 +253,8 @@ public class ProcessingSendSMSAction
             return ERROR;
         }
 
-        if ( message == null ) {
+        if ( message == null )
+        {
             message = "An inter error occurs, please contact your administration";
             return ERROR;
         }

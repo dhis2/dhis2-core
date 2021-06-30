@@ -1,7 +1,5 @@
-package org.hisp.dhis.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -38,11 +37,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
- * Abstract automatic access provider class. Delegates methods initialise() and 
+ * Abstract automatic access provider class. Delegates methods initialise() and
  * access() to implementing classes.
- * 
+ *
  * @author Torgeir Lorange Ostby
- * @version $Id: AbstractAutomaticAccessProvider.java 6352 2008-11-20 15:49:52Z larshelg $
+ * @version $Id: AbstractAutomaticAccessProvider.java 6352 2008-11-20 15:49:52Z
+ *          larshelg $
  */
 public abstract class AbstractAutomaticAccessProvider
     implements AutomaticAccessProvider
@@ -70,7 +70,7 @@ public abstract class AbstractAutomaticAccessProvider
     // -------------------------------------------------------------------------
 
     protected abstract void initialise();
-    
+
     @Override
     public final void init()
     {

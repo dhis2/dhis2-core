@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,10 @@ package org.hisp.dhis.sms;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms;
 
 import static org.junit.Assert.*;
 
-import com.google.common.collect.Sets;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.SMPPClient;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
@@ -41,6 +39,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import com.google.common.collect.Sets;
 
 /**
  * To run this test, make sure that the SMSC is running on:
@@ -58,10 +58,15 @@ import org.mockito.junit.MockitoRule;
 public class SMPPClientTest
 {
     private static final String SYSTEM_ID = "smppclient1";
+
     private static final String SYSTEM_TYPE = "cp";
+
     private static final String HOST = "localhost";
+
     private static final String PASSWORD = "password";
+
     private static final String RECIPIENT = "47XXXXXX";
+
     private static final String TEXT = "text through smpp";
 
     private static final int PORT = 2775;

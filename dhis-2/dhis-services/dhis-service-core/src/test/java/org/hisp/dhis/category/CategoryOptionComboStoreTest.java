@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +25,20 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
 
-import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionComboStore;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DataDimensionType;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.*;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.DataDimensionType;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -54,28 +48,35 @@ public class CategoryOptionComboStoreTest
 {
     @Autowired
     private CategoryOptionComboStore categoryOptionComboStore;
-    
+
     @Autowired
     private CategoryService categoryService;
-    
+
     @Autowired
     private CategoryOptionGroupStore categoryOptionGroupStore;
-    
+
     private Category categoryA;
+
     private Category categoryB;
-        
+
     private CategoryCombo categoryComboA;
+
     private CategoryCombo categoryComboB;
-    
+
     private CategoryOption categoryOptionA;
+
     private CategoryOption categoryOptionB;
+
     private CategoryOption categoryOptionC;
+
     private CategoryOption categoryOptionD;
-    
+
     private CategoryOptionCombo categoryOptionComboA;
+
     private CategoryOptionCombo categoryOptionComboB;
+
     private CategoryOptionCombo categoryOptionComboC;
-    
+
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
@@ -83,7 +84,7 @@ public class CategoryOptionComboStoreTest
     @Override
     public void setUpTest()
         throws Exception
-    {  
+    {
         categoryOptionA = new CategoryOption( "Male" );
         categoryOptionB = new CategoryOption( "Female" );
         categoryOptionC = new CategoryOption( "0-20" );
@@ -93,27 +94,27 @@ public class CategoryOptionComboStoreTest
         categoryService.addCategoryOption( categoryOptionB );
         categoryService.addCategoryOption( categoryOptionC );
         categoryService.addCategoryOption( categoryOptionD );
-                
+
         categoryA = new Category( "Gender", DataDimensionType.DISAGGREGATION );
         categoryB = new Category( "Agegroup", DataDimensionType.DISAGGREGATION );
-        
+
         categoryA.addCategoryOption( categoryOptionA );
         categoryA.addCategoryOption( categoryOptionB );
         categoryB.addCategoryOption( categoryOptionC );
         categoryB.addCategoryOption( categoryOptionD );
-        
+
         categoryService.addCategory( categoryA );
         categoryService.addCategory( categoryB );
-        
+
         categoryComboA = new CategoryCombo( "GenderAgegroup", DataDimensionType.DISAGGREGATION );
         categoryComboB = new CategoryCombo( "Gender", DataDimensionType.DISAGGREGATION );
-        
+
         categoryComboA.addCategory( categoryA );
         categoryComboA.addCategory( categoryB );
         categoryComboB.addCategory( categoryA );
-        
+
         categoryService.addCategoryCombo( categoryComboA );
-        categoryService.addCategoryCombo( categoryComboB ); 
+        categoryService.addCategoryCombo( categoryComboB );
     }
 
     // -------------------------------------------------------------------------
@@ -125,16 +126,16 @@ public class CategoryOptionComboStoreTest
     {
         categoryOptionComboA = new CategoryOptionCombo();
 
-        Set<CategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionC );        
-        
+        Set<CategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionC );
+
         categoryOptionComboA.setCategoryCombo( categoryComboA );
-        categoryOptionComboA.setCategoryOptions( categoryOptions );        
-        
+        categoryOptionComboA.setCategoryOptions( categoryOptions );
+
         categoryOptionComboStore.save( categoryOptionComboA );
         long id = categoryOptionComboA.getId();
 
         categoryOptionComboA = categoryOptionComboStore.get( id );
-        
+
         assertNotNull( categoryOptionComboA );
         assertEquals( categoryComboA, categoryOptionComboA.getCategoryCombo() );
         assertEquals( categoryOptions, categoryOptionComboA.getCategoryOptions() );
@@ -145,24 +146,24 @@ public class CategoryOptionComboStoreTest
     {
         categoryOptionComboA = new CategoryOptionCombo();
 
-        Set<CategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionC );        
-        
+        Set<CategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionC );
+
         categoryOptionComboA.setCategoryCombo( categoryComboA );
-        categoryOptionComboA.setCategoryOptions( categoryOptions );        
-        
+        categoryOptionComboA.setCategoryOptions( categoryOptions );
+
         categoryOptionComboStore.save( categoryOptionComboA );
         long id = categoryOptionComboA.getId();
 
         assertNotNull( categoryOptionComboStore.get( id ) );
         assertEquals( categoryComboA, categoryOptionComboA.getCategoryCombo() );
         assertEquals( categoryOptions, categoryOptionComboA.getCategoryOptions() );
-        
+
         categoryOptionComboA.setCategoryCombo( categoryComboB );
-        
+
         categoryOptionComboStore.update( categoryOptionComboA );
-        
+
         categoryOptionComboA = categoryOptionComboStore.get( id );
-        
+
         assertNotNull( categoryOptionComboA );
         assertEquals( categoryComboB, categoryOptionComboA.getCategoryCombo() );
         assertEquals( categoryOptions, categoryOptionComboA.getCategoryOptions() );
@@ -175,12 +176,12 @@ public class CategoryOptionComboStoreTest
         categoryOptionComboB = new CategoryOptionCombo();
         categoryOptionComboC = new CategoryOptionCombo();
 
-        Set<CategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionC );     
-        
+        Set<CategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionC );
+
         categoryOptionComboA.setCategoryCombo( categoryComboA );
         categoryOptionComboB.setCategoryCombo( categoryComboA );
         categoryOptionComboC.setCategoryCombo( categoryComboA );
-        
+
         categoryOptionComboA.setCategoryOptions( categoryOptions );
         categoryOptionComboB.setCategoryOptions( categoryOptions );
         categoryOptionComboC.setCategoryOptions( categoryOptions );
@@ -195,7 +196,7 @@ public class CategoryOptionComboStoreTest
         assertNotNull( categoryOptionComboStore.get( idA ) );
         assertNotNull( categoryOptionComboStore.get( idB ) );
         assertNotNull( categoryOptionComboStore.get( idC ) );
-        
+
         categoryOptionComboStore.delete( categoryOptionComboStore.get( idA ) );
 
         assertNull( categoryOptionComboStore.get( idA ) );
@@ -222,12 +223,12 @@ public class CategoryOptionComboStoreTest
         categoryOptionComboB = new CategoryOptionCombo();
         categoryOptionComboC = new CategoryOptionCombo();
 
-        Set<CategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionC );     
-        
+        Set<CategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionC );
+
         categoryOptionComboA.setCategoryCombo( categoryComboA );
         categoryOptionComboB.setCategoryCombo( categoryComboA );
         categoryOptionComboC.setCategoryCombo( categoryComboA );
-        
+
         categoryOptionComboA.setCategoryOptions( categoryOptions );
         categoryOptionComboB.setCategoryOptions( categoryOptions );
         categoryOptionComboC.setCategoryOptions( categoryOptions );
@@ -235,31 +236,30 @@ public class CategoryOptionComboStoreTest
         categoryOptionComboStore.save( categoryOptionComboA );
         categoryOptionComboStore.save( categoryOptionComboB );
         categoryOptionComboStore.save( categoryOptionComboC );
-        
-        List<CategoryOptionCombo> categoryOptionCombos = 
-            categoryOptionComboStore.getAll();
-        
+
+        List<CategoryOptionCombo> categoryOptionCombos = categoryOptionComboStore.getAll();
+
         assertNotNull( categoryOptionCombos );
         assertEquals( 4, categoryOptionCombos.size() ); // Including default
     }
-    
+
     @Test
     public void testGenerateCategoryOptionCombos()
     {
         categoryService.generateOptionCombos( categoryComboA );
         categoryService.generateOptionCombos( categoryComboB );
-        
+
         List<CategoryOptionCombo> optionCombos = categoryService.getAllCategoryOptionCombos();
-        
+
         assertEquals( 7, optionCombos.size() ); // Including default
     }
-    
+
     @Test
     public void testGetCategoryOptionCombo()
     {
         categoryService.generateOptionCombos( categoryComboA );
         categoryService.generateOptionCombos( categoryComboB );
-        
+
         Set<CategoryOption> categoryOptions1 = new HashSet<>();
         categoryOptions1.add( categoryOptionA );
         categoryOptions1.add( categoryOptionC );
@@ -275,22 +275,22 @@ public class CategoryOptionComboStoreTest
         Set<CategoryOption> categoryOptions4 = new HashSet<>();
         categoryOptions4.add( categoryOptionB );
         categoryOptions4.add( categoryOptionC );
-        
+
         CategoryOptionCombo coc1 = categoryOptionComboStore.getCategoryOptionCombo( categoryComboA, categoryOptions1 );
         CategoryOptionCombo coc2 = categoryOptionComboStore.getCategoryOptionCombo( categoryComboA, categoryOptions2 );
         CategoryOptionCombo coc3 = categoryOptionComboStore.getCategoryOptionCombo( categoryComboA, categoryOptions3 );
         CategoryOptionCombo coc4 = categoryOptionComboStore.getCategoryOptionCombo( categoryComboA, categoryOptions4 );
-        
+
         assertNotNull( coc1 );
         assertNotNull( coc2 );
         assertNotNull( coc3 );
         assertNotNull( coc4 );
-        
+
         assertEquals( categoryComboA, coc1.getCategoryCombo() );
         assertEquals( categoryComboA, coc2.getCategoryCombo() );
         assertEquals( categoryComboA, coc3.getCategoryCombo() );
         assertEquals( categoryComboA, coc4.getCategoryCombo() );
-        
+
         assertEquals( categoryOptions1, coc1.getCategoryOptions() );
         assertEquals( categoryOptions2, coc2.getCategoryOptions() );
         assertEquals( categoryOptions3, coc3.getCategoryOptions() );

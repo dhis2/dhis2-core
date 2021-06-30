@@ -1,7 +1,5 @@
-package org.hisp.dhis.datasummary;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,13 @@ package org.hisp.dhis.datasummary;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+package org.hisp.dhis.datasummary;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * DataSummary object to transfer System Statistics
@@ -42,7 +41,7 @@ import java.util.Map;
 @JacksonXmlRootElement
 public class DataSummary
 {
-    private Map<String, Integer> objectCounts = new HashMap<>();
+    private Map<String, Long> objectCounts = new HashMap<>();
 
     private Map<Integer, Integer> activeUsers = new HashMap<>();
 
@@ -56,7 +55,7 @@ public class DataSummary
     {
     }
 
-    public DataSummary( Map<String, Integer> objectCounts,
+    public DataSummary( Map<String, Long> objectCounts,
         Map<Integer, Integer> activeUsers, Map<String, Integer> userInvitations,
         Map<Integer, Integer> dataValueCount, Map<Integer, Long> eventCount )
     {
@@ -68,12 +67,12 @@ public class DataSummary
     }
 
     @JsonProperty
-    public Map<String, Integer> getObjectCounts()
+    public Map<String, Long> getObjectCounts()
     {
         return objectCounts;
     }
 
-    public void setObjectCounts( Map<String, Integer> objectCounts )
+    public void setObjectCounts( Map<String, Long> objectCounts )
     {
         this.objectCounts = objectCounts;
     }

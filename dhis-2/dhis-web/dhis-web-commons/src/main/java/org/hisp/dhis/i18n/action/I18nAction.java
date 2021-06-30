@@ -1,7 +1,5 @@
-package org.hisp.dhis.i18n.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,16 @@ package org.hisp.dhis.i18n.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.i18n.action;
 
-import com.opensymphony.xwork2.Action;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.i18n.I18nLocaleService;
@@ -37,13 +43,7 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.TranslationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Oyvind Brucker
@@ -63,13 +63,13 @@ public class I18nAction
     private String message;
 
     private Locale currentLocale;
-    
+
     private List<Locale> availableLocales = new ArrayList<>();
-    
+
     private Map<String, String> translations = new Hashtable<>();
 
     private Map<String, String> referenceTranslations = new Hashtable<>();
-    
+
     private List<String> propertyNames = new ArrayList<>();
 
     // -------------------------------------------------------------------------
@@ -174,10 +174,11 @@ public class I18nAction
     public String execute()
         throws Exception
     {
-        className = className != null && CLASS_ALIAS.containsKey( className ) ? CLASS_ALIAS.get( className ) : className;
-        
+        className = className != null && CLASS_ALIAS.containsKey( className ) ? CLASS_ALIAS.get( className )
+            : className;
+
         currentLocale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
-        
+
         availableLocales = i18nLocaleService.getAllLocales();
 
         IdentifiableObject object = identifiableObjectManager.getObject( uid, className );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.pdfform;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.pdfform;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.pdfform;
 
 import java.awt.*;
 import java.io.InputStream;
@@ -82,7 +81,7 @@ public class PdfDataEntryFormUtil
 
     // Cell Related
 
-    private static final Color COLOR_CELLBORDER = Color.getHSBColor( 0.0f, 0.0f, 0.863f);
+    private static final Color COLOR_CELLBORDER = Color.getHSBColor( 0.0f, 0.0f, 0.863f );
 
     public static final float CELL_MIN_HEIGHT_DEFAULT = 14;
 
@@ -149,39 +148,39 @@ public class PdfDataEntryFormUtil
     {
         PdfPCell cell = new PdfPCell();
         cell.setMinimumHeight( minHeight );
-        
-        if( hasBorder )
+
+        if ( hasBorder )
         {
             cell.setBorderWidth( 0.1f );
-            cell.setBorderColor( COLOR_CELLBORDER );            
+            cell.setBorderColor( COLOR_CELLBORDER );
         }
         else
         {
             cell.setBorder( Rectangle.NO_BORDER );
         }
-        
+
         cell.setPadding( 2.0f );
 
         switch ( cellContentType )
         {
-            case CELL_COLUMN_TYPE_ENTRYFIELD:
-                cell.setHorizontalAlignment( Element.ALIGN_CENTER );
-                cell.setVerticalAlignment( Element.ALIGN_MIDDLE );
-    
-                break;
-    
-            case CELL_COLUMN_TYPE_HEADER:
-                cell.setHorizontalAlignment( Element.ALIGN_CENTER );
-                cell.setVerticalAlignment( Element.ALIGN_MIDDLE );
-    
-                break;
-    
-            case CELL_COLUMN_TYPE_LABEL:
-                cell.setHorizontalAlignment( Element.ALIGN_RIGHT );
-                cell.setVerticalAlignment( Element.ALIGN_TOP );
-    
-            default:
-                break;
+        case CELL_COLUMN_TYPE_ENTRYFIELD:
+            cell.setHorizontalAlignment( Element.ALIGN_CENTER );
+            cell.setVerticalAlignment( Element.ALIGN_MIDDLE );
+
+            break;
+
+        case CELL_COLUMN_TYPE_HEADER:
+            cell.setHorizontalAlignment( Element.ALIGN_CENTER );
+            cell.setVerticalAlignment( Element.ALIGN_MIDDLE );
+
+            break;
+
+        case CELL_COLUMN_TYPE_LABEL:
+            cell.setHorizontalAlignment( Element.ALIGN_RIGHT );
+            cell.setVerticalAlignment( Element.ALIGN_TOP );
+
+        default:
+            break;
         }
 
         return cell;
@@ -222,12 +221,12 @@ public class PdfDataEntryFormUtil
                 }
 
                 Period period = PeriodType.getPeriodFromIsoString( periodId );
-                
+
                 if ( period == null )
                 {
                     throw new InvalidIdentifierReferenceException( ERROR_INVALID_PERIOD + periodId );
                 }
-                
+
                 // Loop Through the Fields and get data.
 
                 @SuppressWarnings( "unchecked" )
@@ -235,7 +234,7 @@ public class PdfDataEntryFormUtil
 
                 for ( String fldName : fldNames )
                 {
-                    
+
                     if ( fldName.startsWith( PdfDataEntryFormUtil.LABELCODE_DATAENTRYTEXTFIELD ) )
                     {
                         String[] strArrFldName = fldName.split( "_" );
@@ -246,9 +245,9 @@ public class PdfDataEntryFormUtil
                         dataValue.setCategoryOptionCombo( strArrFldName[2] );
                         dataValue.setOrgUnit( orgUnitUid );
                         dataValue.setPeriod( period.getIsoDate() );
-                        
-                        dataValue.setValue( fieldValueFormat( strArrFldName, form.getField( fldName ) ) );     
-                        
+
+                        dataValue.setValue( fieldValueFormat( strArrFldName, form.getField( fldName ) ) );
+
                         dataValue.setStoredBy( DATAVALUE_IMPORT_STOREBY );
                         dataValue.setComment( DATAVALUE_IMPORT_COMMENT );
                         dataValue.setFollowup( false );
@@ -279,28 +278,28 @@ public class PdfDataEntryFormUtil
 
         return dataValueSet;
     }
-    
+
     private static String fieldValueFormat( String[] strArrFldName, String fldValue )
-    {                
+    {
         // For checkbox, we need to change value from Off/On --> false/true
-        if( strArrFldName.length == 4 
+        if ( strArrFldName.length == 4
             && strArrFldName[3].substring( 0, 1 ).compareTo( PdfFieldCell.TPYEDEFINE_NAME ) == 0 )
-        {            
+        {
             int fieldType = Integer.parseInt( strArrFldName[3].substring( 1 ) );
-                                        
-            if( fieldType == PdfFieldCell.TYPE_CHECKBOX )
-            {       
-                if( fldValue.compareTo( "On" ) == 0 )
+
+            if ( fieldType == PdfFieldCell.TYPE_CHECKBOX )
+            {
+                if ( fldValue.compareTo( "On" ) == 0 )
                 {
                     fldValue = "true";
                 }
-                else if( fldValue.compareTo( "Off" ) == 0 )
+                else if ( fldValue.compareTo( "Off" ) == 0 )
                 {
-                    fldValue = null;                                    
-                }                                
-            }            
+                    fldValue = null;
+                }
+            }
         }
-                
+
         return fldValue;
     }
 

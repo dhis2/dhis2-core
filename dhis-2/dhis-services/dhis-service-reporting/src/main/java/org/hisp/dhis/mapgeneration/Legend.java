@@ -1,7 +1,5 @@
-package org.hisp.dhis.mapgeneration;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.mapgeneration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapgeneration;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -41,13 +40,14 @@ import org.hisp.dhis.i18n.I18nFormat;
  * class works as helper for LegendSet when it comes to drawing the actual
  * legend using java graphics. A legend has a height, but the actual width is
  * not defined.
- * 
+ *
  * @author Kristin Simonsen <krissimo@ifi.uio.no>
  * @author Kjetil Andresen <kjetil.andrese@gmail.com>
  */
 public class Legend
 {
     public static final Font TITLE_FONT = new Font( "title", Font.BOLD, 12 );
+
     public static final Font PLAIN_FONT = new Font( "plain", Font.PLAIN, 11 );
 
     private InternalMapLayer mapLayer;
@@ -82,7 +82,7 @@ public class Legend
             g.translate( 0, legendItem.getHeight() );
         }
     }
-    
+
     public int getHeight()
     {
         int height = 0;

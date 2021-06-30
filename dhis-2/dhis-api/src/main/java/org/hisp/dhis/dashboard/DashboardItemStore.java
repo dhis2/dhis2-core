@@ -1,7 +1,5 @@
-package org.hisp.dhis.dashboard;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
 
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -57,7 +56,7 @@ public interface DashboardItemStore
     int countReportDashboardItems( Report report );
 
     int countDocumentDashboardItems( Document document );
-    
+
     int countUserDashboardItems( User user );
 
     Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem );

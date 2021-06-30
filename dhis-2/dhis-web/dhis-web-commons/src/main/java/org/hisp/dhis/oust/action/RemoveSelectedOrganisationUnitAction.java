@@ -1,7 +1,5 @@
-package org.hisp.dhis.oust.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,18 @@ package org.hisp.dhis.oust.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.oust.action;
 
-import com.opensymphony.xwork2.Action;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -136,7 +136,8 @@ public class RemoveSelectedOrganisationUnitAction
 
         if ( organisationUnitGroupId != null )
         {
-            selectedUnits.removeAll( organisationUnitGroupService.getOrganisationUnitGroup( organisationUnitGroupId ).getMembers() );
+            selectedUnits.removeAll(
+                organisationUnitGroupService.getOrganisationUnitGroup( organisationUnitGroupId ).getMembers() );
         }
 
         if ( children != null && children == true )

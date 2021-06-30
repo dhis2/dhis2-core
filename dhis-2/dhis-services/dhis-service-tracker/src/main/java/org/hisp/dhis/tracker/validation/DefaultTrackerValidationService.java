@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,18 @@ package org.hisp.dhis.tracker.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -59,9 +58,11 @@ public class DefaultTrackerValidationService implements TrackerValidationService
     {
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
-        if ( (bundle.getUser() == null || bundle.getUser().isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
+        if ( (bundle.getUser() == null || bundle.getUser().isSuper())
+            && ValidationMode.SKIP == bundle.getValidationMode() )
         {
-            log.warn( "Skipping validation for metadata import by user '" + bundle.getUsername() + "'. Not recommended." );
+            log.warn(
+                "Skipping validation for metadata import by user '" + bundle.getUsername() + "'. Not recommended." );
             return validationReport;
         }
 

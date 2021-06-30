@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -37,10 +40,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComparator;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -66,7 +65,8 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public void postCommit( ObjectBundle bundle )
     {
-        if ( !bundle.getObjectMap().containsKey( OrganisationUnit.class ) ) return;
+        if ( !bundle.getObjectMap().containsKey( OrganisationUnit.class ) )
+            return;
 
         List<IdentifiableObject> objects = bundle.getObjectMap().get( OrganisationUnit.class );
         Map<String, Map<String, Object>> objectReferences = bundle.getObjectReferences( OrganisationUnit.class );
@@ -78,7 +78,8 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
             identifiableObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), identifiableObject );
             Map<String, Object> objectReferenceMap = objectReferences.get( identifiableObject.getUid() );
 
-            if ( objectReferenceMap == null || objectReferenceMap.isEmpty() || !objectReferenceMap.containsKey( "parent" ) )
+            if ( objectReferenceMap == null || objectReferenceMap.isEmpty()
+                || !objectReferenceMap.containsKey( "parent" ) )
             {
                 continue;
             }
@@ -112,14 +113,16 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
             return new ArrayList<>();
         }
 
-        OrganisationUnit organisationUnit = ( OrganisationUnit ) object;
+        OrganisationUnit organisationUnit = (OrganisationUnit) object;
 
         List<ErrorReport> errors = new ArrayList<>();
 
-        if ( organisationUnit.getClosedDate() != null && organisationUnit.getClosedDate().before( organisationUnit.getOpeningDate() ) )
+        if ( organisationUnit.getClosedDate() != null
+            && organisationUnit.getClosedDate().before( organisationUnit.getOpeningDate() ) )
         {
-            errors.add( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013 , organisationUnit.getClosedDate(), organisationUnit
-                .getOpeningDate()) );
+            errors.add( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013, organisationUnit.getClosedDate(),
+                organisationUnit
+                    .getOpeningDate() ) );
         }
 
         return errors;
@@ -127,9 +130,10 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
 
     private void setSRID( IdentifiableObject object )
     {
-        if ( !OrganisationUnit.class.isInstance( object ) ) return;
+        if ( !OrganisationUnit.class.isInstance( object ) )
+            return;
 
-        OrganisationUnit organisationUnit = ( OrganisationUnit ) object;
+        OrganisationUnit organisationUnit = (OrganisationUnit) object;
 
         if ( organisationUnit.getGeometry() != null )
         {

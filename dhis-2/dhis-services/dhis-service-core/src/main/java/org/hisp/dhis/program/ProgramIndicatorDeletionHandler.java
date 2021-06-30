@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.HashSet;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -70,8 +69,9 @@ public class ProgramIndicatorDeletionHandler
     {
         Collection<ProgramIndicator> indicators = new HashSet<>( program.getProgramIndicators() );
 
-        for (ProgramIndicator indicator : indicators) {
-            programIndicatorService.deleteProgramIndicator(indicator);
+        for ( ProgramIndicator indicator : indicators )
+        {
+            programIndicatorService.deleteProgramIndicator( indicator );
         }
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,13 @@ package org.hisp.dhis.commons.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.util;
+
+import static org.junit.Assert.*;
 
 import java.util.List;
 
-import org.hisp.dhis.commons.util.PageRange;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -44,19 +42,19 @@ public class PageRangeTest
     public void testPageSize()
     {
         PageRange range = new PageRange( 12 ).setPageSize( 5 );
-        
-        assertTrue( range.nextPage() );        
+
+        assertTrue( range.nextPage() );
         assertEquals( 0, range.getFromIndex() );
         assertEquals( 5, range.getToIndex() );
 
-        assertTrue( range.nextPage() );        
+        assertTrue( range.nextPage() );
         assertEquals( 5, range.getFromIndex() );
         assertEquals( 10, range.getToIndex() );
-        
-        assertTrue( range.nextPage() );        
+
+        assertTrue( range.nextPage() );
         assertEquals( 10, range.getFromIndex() );
         assertEquals( 12, range.getToIndex() );
-        
+
         assertFalse( range.nextPage() );
     }
 
@@ -64,29 +62,29 @@ public class PageRangeTest
     public void testPages()
     {
         PageRange range = new PageRange( 11 ).setPages( 3 );
-        
-        assertTrue( range.nextPage() );        
+
+        assertTrue( range.nextPage() );
         assertEquals( 0, range.getFromIndex() );
         assertEquals( 4, range.getToIndex() );
 
-        assertTrue( range.nextPage() );        
+        assertTrue( range.nextPage() );
         assertEquals( 4, range.getFromIndex() );
         assertEquals( 8, range.getToIndex() );
-        
-        assertTrue( range.nextPage() );        
+
+        assertTrue( range.nextPage() );
         assertEquals( 8, range.getFromIndex() );
         assertEquals( 11, range.getToIndex() );
-        
+
         assertFalse( range.nextPage() );
     }
-    
+
     @Test
     public void testGetPages()
     {
         PageRange range = new PageRange( 12 ).setPageSize( 5 );
-        
+
         List<int[]> pages = range.getPages();
-        
+
         assertEquals( 3, pages.size() );
         assertEquals( 0, pages.get( 0 )[0] );
         assertEquals( 5, pages.get( 0 )[1] );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,23 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -47,17 +57,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 /**
  * @author Chau Thu Tran
@@ -82,7 +82,7 @@ public class ProgramStageInstanceStoreTest
 
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
-    
+
     @Autowired
     private DbmsManager dbmsManager;
 
@@ -92,7 +92,8 @@ public class ProgramStageInstanceStoreTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
+    @Autowired
+    @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
     private IdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
 
     private OrganisationUnit organisationUnitA;
@@ -261,7 +262,7 @@ public class ProgramStageInstanceStoreTest
         programStageInstanceStore.save( programStageInstanceB );
 
         dbmsManager.flushSession();
-        
+
         assertTrue( programStageInstanceStore.exists( programStageInstanceA.getUid() ) );
         assertTrue( programStageInstanceStore.exists( programStageInstanceB.getUid() ) );
         assertFalse( programStageInstanceStore.exists( "aaaabbbbccc" ) );
@@ -298,7 +299,8 @@ public class ProgramStageInstanceStoreTest
         programInstances.add( programInstanceA );
         programInstances.add( programInstanceB );
 
-        List<ProgramStageInstance> stageInstances = programStageInstanceStore.get( programInstances, EventStatus.COMPLETED );
+        List<ProgramStageInstance> stageInstances = programStageInstanceStore.get( programInstances,
+            EventStatus.COMPLETED );
         assertEquals( 2, stageInstances.size() );
         assertTrue( stageInstances.contains( programStageInstanceA ) );
         assertTrue( stageInstances.contains( programStageInstanceC ) );
@@ -313,16 +315,24 @@ public class ProgramStageInstanceStoreTest
     public void testGetWithScheduledNotifications()
     {
 
-        ProgramNotificationTemplate
-            a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE),
-            a2 = createProgramNotificationTemplate( "a2", -2, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
-            a3 = createProgramNotificationTemplate( "a3", 1, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
-            b1 = createProgramNotificationTemplate( "b1", -1, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
-            b2 = createProgramNotificationTemplate( "b2", -2, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
-            b3 = createProgramNotificationTemplate( "b3", 1, SCHEDULED_DAYS_DUE_DATE,  ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
-            c1 = createProgramNotificationTemplate( "c1", -1, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
-            c2 = createProgramNotificationTemplate( "c2", -2, SCHEDULED_DAYS_DUE_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
-            c3 = createProgramNotificationTemplate( "c3", 1, SCHEDULED_DAYS_DUE_DATE,  ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE );
+        ProgramNotificationTemplate a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_DUE_DATE,
+            ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            a2 = createProgramNotificationTemplate( "a2", -2, SCHEDULED_DAYS_DUE_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            a3 = createProgramNotificationTemplate( "a3", 1, SCHEDULED_DAYS_DUE_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            b1 = createProgramNotificationTemplate( "b1", -1, SCHEDULED_DAYS_DUE_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            b2 = createProgramNotificationTemplate( "b2", -2, SCHEDULED_DAYS_DUE_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            b3 = createProgramNotificationTemplate( "b3", 1, SCHEDULED_DAYS_DUE_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            c1 = createProgramNotificationTemplate( "c1", -1, SCHEDULED_DAYS_DUE_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            c2 = createProgramNotificationTemplate( "c2", -2, SCHEDULED_DAYS_DUE_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            c3 = createProgramNotificationTemplate( "c3", 1, SCHEDULED_DAYS_DUE_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE );
 
         programNotificationStore.save( a1 );
         programNotificationStore.save( a2 );
@@ -350,9 +360,9 @@ public class ProgramStageInstanceStoreTest
         Calendar cal = Calendar.getInstance();
         PeriodType.clearTimeOfDay( cal );
 
-        Date today = cal.getTime();     // 2016-01-10 -> "today"
+        Date today = cal.getTime(); // 2016-01-10 -> "today"
 
-        cal.add( Calendar.DATE, 1 );    // 2016-01-11
+        cal.add( Calendar.DATE, 1 ); // 2016-01-11
         Date tomorrow = cal.getTime();
 
         cal.add( Calendar.DATE, -2 ); // 2016-01-09

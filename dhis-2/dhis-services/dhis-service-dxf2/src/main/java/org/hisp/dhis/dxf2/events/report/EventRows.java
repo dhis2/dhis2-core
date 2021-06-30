@@ -1,18 +1,5 @@
-package org.hisp.dhis.dxf2.events.report;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.Pager;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +25,18 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.report;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Pager;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
@@ -48,7 +47,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class EventRows
 {
     private List<EventRow> eventRows = new ArrayList<>();
-    
+
     private Pager pager;
 
     public EventRows()
@@ -67,7 +66,7 @@ public class EventRows
     {
         this.eventRows = eventRows;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Pager getPager()
@@ -83,12 +82,15 @@ public class EventRows
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
 
         EventRows that = (EventRows) o;
 
-        if ( eventRows != null ? !eventRows.equals( that.eventRows ) : that.eventRows != null ) return false;
+        if ( eventRows != null ? !eventRows.equals( that.eventRows ) : that.eventRows != null )
+            return false;
 
         return true;
     }

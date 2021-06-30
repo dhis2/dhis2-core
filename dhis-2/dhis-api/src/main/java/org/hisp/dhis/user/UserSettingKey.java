@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,7 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.apache.commons.lang3.LocaleUtils;
-import org.hisp.dhis.common.DisplayProperty;
+package org.hisp.dhis.user;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -40,6 +36,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.common.DisplayProperty;
 
 /**
  * @author Lars Helge Overland
@@ -60,7 +59,8 @@ public enum UserSettingKey
 
     private final Class<?> clazz;
 
-    private static Map<String, Serializable> DEFAULT_USER_SETTINGS_MAP = Stream.of( UserSettingKey.values() ).filter( k -> k.getDefaultValue() != null )
+    private static Map<String, Serializable> DEFAULT_USER_SETTINGS_MAP = Stream.of( UserSettingKey.values() )
+        .filter( k -> k.getDefaultValue() != null )
         .collect( Collectors.toMap( UserSettingKey::getName, UserSettingKey::getDefaultValue ) );
 
     // -------------------------------------------------------------------------
@@ -115,7 +115,7 @@ public enum UserSettingKey
         return Optional.empty();
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
     public static Serializable getAsRealClass( String name, String value )
     {
         Optional<UserSettingKey> setting = getByName( name );
@@ -145,7 +145,7 @@ public enum UserSettingKey
                 return Enum.valueOf( (Class<? extends Enum>) settingClazz, value.toUpperCase() );
             }
 
-            //TODO handle Dates
+            // TODO handle Dates
         }
 
         return value;

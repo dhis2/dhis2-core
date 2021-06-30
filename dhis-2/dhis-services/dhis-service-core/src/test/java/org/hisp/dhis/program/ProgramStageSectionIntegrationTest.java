@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,14 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashSet;
+
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -38,11 +42,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashSet;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 /**
  * @author Chau Thu Tran
@@ -101,7 +101,7 @@ public class ProgramStageSectionIntegrationTest
         stageA = new ProgramStage( "A", program );
         stageA.setUid( "UID-A" );
         stageA.setProgramStageSections( Sets.newHashSet( sectionA ) );
-        stageA.setProgramStageDataElements(Sets.newHashSet( programStageDataElementA ));
+        stageA.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
 
     }
 

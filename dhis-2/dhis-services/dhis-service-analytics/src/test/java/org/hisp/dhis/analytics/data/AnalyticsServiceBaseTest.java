@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
@@ -44,10 +47,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Luciano Fiandesio
@@ -106,7 +105,8 @@ public abstract class AnalyticsServiceBaseTest
     @Before
     public void baseSetUp()
     {
-        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager, nestedIndicatorCyclicDependencyInspector );
+        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager,
+            nestedIndicatorCyclicDependencyInspector );
 
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
             queryValidator, constantService, expressionService, organisationUnitService, systemSettingManager,
@@ -119,9 +119,9 @@ public abstract class AnalyticsServiceBaseTest
     void initMock( DataQueryParams params )
     {
         when( securityManager.withDataApprovalConstraints( Mockito.any( DataQueryParams.class ) ) )
-                .thenReturn( params );
+            .thenReturn( params );
         when( securityManager.withUserConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
-                DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
+            DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
     }
 }

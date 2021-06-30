@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,16 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserInfo;
+package org.hisp.dhis.common;
 
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInfo;
 
 /**
  * @author Lars Helge Overland
@@ -46,7 +45,7 @@ public interface IdentifiableObjectStore<T>
     /**
      * Saves the given object instance.
      *
-     * @param object       the object instance.
+     * @param object the object instance.
      * @param clearSharing Should we clear all sharing related properties?
      */
     void save( T object, boolean clearSharing );
@@ -55,7 +54,7 @@ public interface IdentifiableObjectStore<T>
      * Updates the given object instance.
      *
      * @param object the object instance.
-     * @param user   User
+     * @param user User
      */
     void update( T object, User user );
 
@@ -70,7 +69,7 @@ public interface IdentifiableObjectStore<T>
      * Removes the given object instance.
      *
      * @param object the object instance to delete.
-     * @param user   User
+     * @param user User
      */
     void delete( T object, User user );
 
@@ -111,7 +110,7 @@ public interface IdentifiableObjectStore<T>
      * the given value.
      *
      * @param attribute the attribute.
-     * @param value     the value.
+     * @param value the value.
      * @return the attribute value.
      */
     T getByUniqueAttributeValue( Attribute attribute, String value );
@@ -126,10 +125,11 @@ public interface IdentifiableObjectStore<T>
     List<T> getAllOrderedName();
 
     /**
-     * Retrieves the objects determined by the given first result and max result.
+     * Retrieves the objects determined by the given first result and max
+     * result.
      *
      * @param first the first result object to return.
-     * @param max   the max number of result objects to return.
+     * @param max the max number of result objects to return.
      * @return list of objects.
      */
     List<T> getAllOrderedName( int first, int max );
@@ -161,9 +161,9 @@ public interface IdentifiableObjectStore<T>
     /**
      * Retrieves a List of objects where the name is like the given name.
      *
-     * @param name  the name.
+     * @param name the name.
      * @param first the first result object to return.
-     * @param max   the max number of result objects to return.
+     * @param max the max number of result objects to return.
      * @return a List of objects.
      */
     List<T> getAllLikeName( String name, int first, int max );
@@ -171,9 +171,9 @@ public interface IdentifiableObjectStore<T>
     /**
      * Retrieves a List of objects where the name is like the given name.
      *
-     * @param name          the name.
-     * @param first         the first result object to return.
-     * @param max           the max number of result objects to return.
+     * @param name the name.
+     * @param first the first result object to return.
+     * @param max the max number of result objects to return.
      * @param caseSensitive Case sensitive matches or not
      * @return a List of objects.
      */
@@ -185,17 +185,18 @@ public interface IdentifiableObjectStore<T>
      *
      * @param words the set of words.
      * @param first the first result object to return.
-     * @param max   the max number of result objects to return.
+     * @param max the max number of result objects to return.
      * @return a List of objects.
      */
     List<T> getAllLikeName( Set<String> words, int first, int max );
 
     /**
-     * Retrieves the objects determined by the given first result and max result.
-     * The returned list is ordered by the last updated property descending.
+     * Retrieves the objects determined by the given first result and max
+     * result. The returned list is ordered by the last updated property
+     * descending.
      *
      * @param first the first result object to return.
-     * @param max   the max number of result objects to return.
+     * @param max the max number of result objects to return.
      * @return List of objects.
      */
     List<T> getAllOrderedLastUpdated( int first, int max );
@@ -304,7 +305,8 @@ public interface IdentifiableObjectStore<T>
     Date getLastUpdated();
 
     /**
-     * Returns the number of objects that are equal to or newer than given last updated date.
+     * Returns the number of objects that are equal to or newer than given last
+     * updated date.
      *
      * @param lastUpdated Date to compare to.
      * @return the number of objects equal or newer than given date.
@@ -312,7 +314,8 @@ public interface IdentifiableObjectStore<T>
     int getCountGeLastUpdated( Date lastUpdated );
 
     /**
-     * Returns the number of objects that are equal to or newer than given created date.
+     * Returns the number of objects that are equal to or newer than given
+     * created date.
      *
      * @param created Date to compare to.
      * @return the number of objects equal or newer than given date.

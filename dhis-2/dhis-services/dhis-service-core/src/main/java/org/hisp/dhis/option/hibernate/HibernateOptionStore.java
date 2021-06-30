@@ -1,7 +1,5 @@
-package org.hisp.dhis.option.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.option.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.option.hibernate;
+
+import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -40,8 +41,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 /**
  * @author Chau Thu Tran
  */
@@ -51,9 +50,11 @@ public class HibernateOptionStore
     implements OptionStore
 {
     public HibernateOptionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, Option.class, currentUserService, deletedObjectService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, Option.class, currentUserService, deletedObjectService,
+            aclService, true );
     }
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -62,8 +63,7 @@ public class HibernateOptionStore
     @Override
     public List<Option> getOptions( long optionSetId, String key, Integer max )
     {
-        String hql =
-            "select option from OptionSet as optionset " +
+        String hql = "select option from OptionSet as optionset " +
             "join optionset.options as option where optionset.id = :optionSetId ";
 
         if ( key != null )

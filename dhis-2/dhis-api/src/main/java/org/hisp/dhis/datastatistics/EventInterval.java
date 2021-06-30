@@ -1,7 +1,5 @@
-package org.hisp.dhis.datastatistics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,18 @@ package org.hisp.dhis.datastatistics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datastatistics;
 
 /**
  * Enum of EventInterval to be used as identifiers for aggregation of reportdata
- * 
+ *
  * @author Yrjan A. F. Fraschetti
- * @author Julie Hill Roa        
+ * @author Julie Hill Roa
  */
 public enum EventInterval
 {
-    DAY, 
-    WEEK, 
-    MONTH, 
+    DAY,
+    WEEK,
+    MONTH,
     YEAR
 }

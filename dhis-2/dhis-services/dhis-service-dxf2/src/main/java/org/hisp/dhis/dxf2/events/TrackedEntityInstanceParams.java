@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -37,9 +36,11 @@ public class TrackedEntityInstanceParams
 {
     public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, true, true, true );
 
-    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false, false );
+    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false,
+        false );
 
-    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true, true, true, true, true, true );
+    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true, true,
+        true, true, true, true );
 
     private boolean includeRelationships;
 
@@ -143,7 +144,8 @@ public class TrackedEntityInstanceParams
         this.dataSynchronizationQuery = dataSynchronizationQuery;
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "TrackedEntityInstanceParams{" +
             "includeRelationships=" + includeRelationships +

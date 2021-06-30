@@ -1,7 +1,5 @@
-package org.hisp.dhis.query.operators;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,13 @@ package org.hisp.dhis.query.operators;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hibernate.criterion.MatchMode;
-import org.hisp.dhis.query.Type;
+package org.hisp.dhis.query.operators;
 
 import java.util.Arrays;
 import java.util.List;
+
+import org.hibernate.criterion.MatchMode;
+import org.hisp.dhis.query.Type;
 
 /**
  * @author Henning Håkonsen
@@ -47,16 +46,16 @@ public class TokenUtils
     public static StringBuilder createRegex( String value )
     {
         StringBuilder regex = new StringBuilder();
-        
+
         List<String> tokens = TokenUtils.getTokens( value );
-        
+
         if ( tokens == null || tokens.isEmpty() )
         {
             return regex;
         }
-        
+
         TokenUtils.getTokens( value ).forEach( token -> regex.append( "(?=.*" ).append( token ).append( ")" ) );
-                
+
         return regex;
     }
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,15 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import java.io.Serializable;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.io.Serializable;
 
 /**
  * @author Chau Thu Tran
@@ -43,12 +43,19 @@ public class ProgramExpression
     implements Serializable
 {
     public static final String SEPARATOR_ID = "\\.";
+
     public static final String SEPARATOR_OBJECT = ":";
+
     public static final String DUE_DATE = "DUE_DATE";
+
     public static final String REPORT_DATE = "REPORT_DATE";
+
     public static final String RANGE_IN_DUE_DATE = "RANGE_IN_DUE_DATE";
+
     public static final String NOT_NULL_VALUE_IN_EXPRESSION = "NOT-NULL-VALUE";
+
     public static final String OBJECT_PROGRAM_STAGE_DATAELEMENT = "DE";
+
     public static final String OBJECT_PROGRAM_STAGE = "PS";
 
     private long id;

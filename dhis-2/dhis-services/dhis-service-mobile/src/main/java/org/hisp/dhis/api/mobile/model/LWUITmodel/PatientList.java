@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model.LWUITmodel;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model.LWUITmodel;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model.LWUITmodel;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -42,17 +41,17 @@ public class PatientList
     private String clientVersion;
 
     private List<Patient> patientList = new ArrayList<>();
-    
+
     public PatientList()
     {
-        
+
     }
-    
+
     public List<Patient> getPatientList()
     {
         return patientList;
     }
-    
+
     public void setPatientList( List<Patient> patients )
     {
         this.patientList = patients;
@@ -67,7 +66,7 @@ public class PatientList
     {
         this.clientVersion = clientVersion;
     }
-    
+
     @Override
     public void serialize( DataOutputStream dataOutputStream )
         throws IOException
@@ -77,7 +76,7 @@ public class PatientList
             dataOutputStream.writeInt( patientList.size() );
             for ( Patient patient : patientList )
             {
-                
+
                 patient.serialize( dataOutputStream );
             }
         }
@@ -110,7 +109,7 @@ public class PatientList
         throws IOException
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -118,7 +117,7 @@ public class PatientList
         throws IOException
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -126,7 +125,7 @@ public class PatientList
         throws IOException
     {
         // TODO Auto-generated method stub
-        
+
     }
 
 }

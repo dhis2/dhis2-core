@@ -1,7 +1,5 @@
-package org.hisp.dhis.apphub;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,16 @@ package org.hisp.dhis.apphub;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.appmanager.AppType;
+package org.hisp.dhis.apphub;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.appmanager.AppType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Created by zubair@dhis2.org on 07.09.17.
@@ -84,7 +84,8 @@ public class WebApp
     }
 
     @JsonProperty
-    public String getDescription() {
+    public String getDescription()
+    {
         return description;
     }
 
@@ -94,7 +95,8 @@ public class WebApp
     }
 
     @JsonProperty
-    public Developer getDeveloper() {
+    public Developer getDeveloper()
+    {
         return developer;
     }
 

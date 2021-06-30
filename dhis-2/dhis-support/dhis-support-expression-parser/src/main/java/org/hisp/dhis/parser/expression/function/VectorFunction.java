@@ -1,7 +1,5 @@
-package org.hisp.dhis.parser.expression.function;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.parser.expression.function;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.parser.expression.function;
 
-import org.hisp.dhis.common.DimensionalItemId;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
-import org.hisp.dhis.period.Period;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,10 +38,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
-import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
-import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.period.Period;
 
 /**
  * Aggregates a vector of samples (base class).
@@ -96,12 +95,12 @@ public abstract class VectorFunction
     }
 
     /**
-     * By default, if there is a null value, count it as a value found for
-     * the purpose of missingValueStrategy. This can be overridden by a
-     * vector function (like count) that returns a non-null value (0) if
-     * no actual values are found.
+     * By default, if there is a null value, count it as a value found for the
+     * purpose of missingValueStrategy. This can be overridden by a vector
+     * function (like count) that returns a non-null value (0) if no actual
+     * values are found.
      *
-     * @param value   the value to count (might be null)
+     * @param value the value to count (might be null)
      * @param visitor the tree visitor
      * @return the value to return (null might be replaced)
      */
@@ -126,17 +125,18 @@ public abstract class VectorFunction
      * @param visitor the tree visitor
      * @return the list of sample values
      *
-     * The missingValueStrategy is handled as follows: for each sample expression
-     * inside the aggregation function, if there are any sample values missing
-     * and the strategy is SKIP_IF_ANY_VALUE_MISSING, then that sample is skipped.
-     * Also if all the values are missing and the strategy is
-     * SKIP_IF_ALL_VALUES_MISSING, then that sample is skipped.
+     *         The missingValueStrategy is handled as follows: for each sample
+     *         expression inside the aggregation function, if there are any
+     *         sample values missing and the strategy is
+     *         SKIP_IF_ANY_VALUE_MISSING, then that sample is skipped. Also if
+     *         all the values are missing and the strategy is
+     *         SKIP_IF_ALL_VALUES_MISSING, then that sample is skipped.
      *
-     * Finally, if there were any items in the sample expression, the count of
-     * items in the main expression is incremented. And if there was at least
-     * one sample value, the count of item values in the main expression is
-     * incremented. This means that if the vector is empty, it counts as a
-     * missing value in the main expression.
+     *         Finally, if there were any items in the sample expression, the
+     *         count of items in the main expression is incremented. And if
+     *         there was at least one sample value, the count of item values in
+     *         the main expression is incremented. This means that if the vector
+     *         is empty, it counts as a missing value in the main expression.
      */
     private List<Double> getSampleValues( ExprContext ctx, CommonExpressionVisitor visitor )
     {
@@ -163,8 +163,10 @@ public abstract class VectorFunction
 
             Double value = castDouble( visitor.visit( ctx ) );
 
-            if ( ( visitor.getMissingValueStrategy() == SKIP_IF_ANY_VALUE_MISSING && visitor.getItemValuesFound() < visitor.getItemsFound() )
-                || ( visitor.getMissingValueStrategy() == SKIP_IF_ALL_VALUES_MISSING && visitor.getItemsFound() != 0 && visitor.getItemValuesFound() == 0 ) )
+            if ( (visitor.getMissingValueStrategy() == SKIP_IF_ANY_VALUE_MISSING
+                && visitor.getItemValuesFound() < visitor.getItemsFound())
+                || (visitor.getMissingValueStrategy() == SKIP_IF_ALL_VALUES_MISSING && visitor.getItemsFound() != 0
+                    && visitor.getItemValuesFound() == 0) )
             {
                 value = null;
             }

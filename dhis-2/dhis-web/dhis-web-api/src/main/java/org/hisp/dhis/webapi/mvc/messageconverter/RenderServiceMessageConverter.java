@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.mvc.messageconverter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,10 @@ package org.hisp.dhis.webapi.mvc.messageconverter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.mvc.messageconverter;
 
-import com.google.common.collect.ImmutableList;
+import java.io.IOException;
+
 import org.hisp.dhis.render.RenderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpInputMessage;
@@ -38,14 +38,14 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
-import java.io.IOException;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class RenderServiceMessageConverter extends AbstractHttpMessageConverter<Object>
 {
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
+    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
         .add( new MediaType( "application", "json" ) )
         .add( new MediaType( "application", "xml" ) )
         .build();
@@ -65,7 +65,9 @@ public class RenderServiceMessageConverter extends AbstractHttpMessageConverter<
     }
 
     @Override
-    protected Object readInternal( Class<?> clazz, HttpInputMessage inputMessage ) throws IOException, HttpMessageNotReadableException
+    protected Object readInternal( Class<?> clazz, HttpInputMessage inputMessage )
+        throws IOException,
+        HttpMessageNotReadableException
     {
         MediaType mediaType = inputMessage.getHeaders().getContentType();
 
@@ -82,7 +84,9 @@ public class RenderServiceMessageConverter extends AbstractHttpMessageConverter<
     }
 
     @Override
-    protected void writeInternal( Object object, HttpOutputMessage outputMessage ) throws IOException, HttpMessageNotWritableException
+    protected void writeInternal( Object object, HttpOutputMessage outputMessage )
+        throws IOException,
+        HttpMessageNotWritableException
     {
         MediaType mediaType = outputMessage.getHeaders().getContentType();
 

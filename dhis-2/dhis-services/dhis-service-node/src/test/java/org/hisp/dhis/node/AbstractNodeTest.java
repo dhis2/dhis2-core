@@ -1,7 +1,5 @@
-package org.hisp.dhis.node;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.node;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.node;
 
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
@@ -44,7 +43,8 @@ public class AbstractNodeTest
     public void createSingleChild()
     {
         final SimpleNode simpleNode = new SimpleNode( "id", "My Test" );
-        final TestNode testNode = new TestNode( "tests", NodeType.COMPLEX, new Property( TestClass.class ), simpleNode );
+        final TestNode testNode = new TestNode( "tests", NodeType.COMPLEX, new Property( TestClass.class ),
+            simpleNode );
         Assert.assertEquals( "tests", testNode.getName() );
         Assert.assertEquals( NodeType.COMPLEX, testNode.nodeType );
         Assert.assertEquals( TestClass.class, testNode.getProperty().getKlass() );

@@ -1,6 +1,5 @@
-package org.hisp.dhis.mobile.action.incoming;
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +25,7 @@ package org.hisp.dhis.mobile.action.incoming;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mobile.action.incoming;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -56,14 +56,14 @@ public class ReceivingSMSAction
     {
         this.incomingSmsService = incomingSmsService;
     }
-    
+
     private UserService userService;
 
     public void setUserService( UserService userService )
     {
         this.userService = userService;
     }
-    
+
     private CurrentUserService currentUserService;
 
     public void setCurrentUserService( CurrentUserService currentUserService )
@@ -105,7 +105,7 @@ public class ReceivingSMSAction
     {
         this.keyword = keyword;
     }
-    
+
     private List<String> senderNames;
 
     public List<String> getSenderNames()
@@ -119,9 +119,9 @@ public class ReceivingSMSAction
     {
         return total;
     }
-    
+
     private User user;
-    
+
     public User getUser()
     {
         return user;
@@ -169,8 +169,8 @@ public class ReceivingSMSAction
                 }
             }
         }
-        
-        // Get the name of senders      
+
+        // Get the name of senders
         senderNames = new ArrayList<>();
         senderNames.add( "" );
         String tempString;
@@ -181,9 +181,9 @@ public class ReceivingSMSAction
             if ( !phoneNumber.isEmpty() )
             {
                 UserQueryParams params = new UserQueryParams();
-                params.setPhoneNumber( phoneNumber );                
+                params.setPhoneNumber( phoneNumber );
                 List<User> users = userService.getUsers( params );
-                
+
                 if ( users == null || users.size() == 0 )
                 {
                     tempString += "[unknown]";
@@ -205,7 +205,7 @@ public class ReceivingSMSAction
             }
             senderNames.add( tempString );
         }
-        
+
         return SUCCESS;
     }
 }

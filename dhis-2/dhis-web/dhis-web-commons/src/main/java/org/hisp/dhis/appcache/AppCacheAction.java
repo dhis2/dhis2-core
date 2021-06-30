@@ -1,7 +1,5 @@
-package org.hisp.dhis.appcache;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,14 @@ package org.hisp.dhis.appcache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.appcache;
 
-import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -70,7 +70,8 @@ public class AppCacheAction implements Action
     }
 
     @Override
-    public String execute() throws Exception
+    public String execute()
+        throws Exception
     {
         username = currentUserService.getCurrentUsername();
 

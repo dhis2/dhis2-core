@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
+
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Jim Grace
@@ -145,8 +144,8 @@ public interface DataApprovalService
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Returns a map showing each data approval status for a list of
-     * data approval objects.
+     * Returns a map showing each data approval status for a list of data
+     * approval objects.
      *
      * @param dataApprovalList the data approvals to check.
      * @return the data approvals with status.
@@ -155,9 +154,9 @@ public interface DataApprovalService
 
     /**
      * Returns the data approval status and permissions for a given data set,
-     * period, organisation unit and attribute category combination.
-     * If attributeOptionCombo is null, the default option combo will be used.
-     * If data is approved at multiple levels, the lowest level is returned.
+     * period, organisation unit and attribute category combination. If
+     * attributeOptionCombo is null, the default option combo will be used. If
+     * data is approved at multiple levels, the lowest level is returned.
      *
      * @param workflow workflow to check for approval.
      * @param period Period to check for approval.
@@ -169,8 +168,8 @@ public interface DataApprovalService
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Returns a list of approval status and permissions for all of the
-     * category option combos that the user is allowed to see.
+     * Returns a list of approval status and permissions for all of the category
+     * option combos that the user is allowed to see.
      *
      * @param workflow workflow to check for approval.
      * @param period Period we are getting the status for
@@ -180,10 +179,10 @@ public interface DataApprovalService
      */
     List<DataApprovalStatus> getUserDataApprovalsAndPermissions( DataApprovalWorkflow workflow,
         Period period, OrganisationUnit orgUnit, CategoryCombo attributeCombo );
-    
+
     /**
      * Deletes DataApprovals for the given organisation unit.
-     * 
+     *
      * @param organisationUnit the organisation unit.
      */
     void deleteDataApprovals( OrganisationUnit organisationUnit );

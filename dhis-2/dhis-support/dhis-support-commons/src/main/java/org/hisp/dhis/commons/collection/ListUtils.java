@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.collection;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,11 @@ package org.hisp.dhis.commons.collection;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.apache.commons.lang3.StringUtils;
+package org.hisp.dhis.commons.collection;
 
 import java.util.*;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Utility methods for list operations.
@@ -104,8 +103,8 @@ public class ListUtils
     }
 
     /**
-     * Checks whether the given list contains duplicates. List entries are compared
-     * using the given comparator.
+     * Checks whether the given list contains duplicates. List entries are
+     * compared using the given comparator.
      *
      * @param <T> type.
      * @param list the list.
@@ -132,8 +131,8 @@ public class ListUtils
     }
 
     /**
-     * Returns the duplicates in the given list. List entries are compared
-     * using the given comparator.
+     * Returns the duplicates in the given list. List entries are compared using
+     * the given comparator.
      *
      * @param <T> type.
      * @param list the list.
@@ -199,7 +198,8 @@ public class ListUtils
 
     /**
      * Returns the sub list of the given list avoiding exceptions, starting on
-     * the given start index and returning at maximum the given max number of items.
+     * the given start index and returning at maximum the given max number of
+     * items.
      *
      * @param <T> type.
      * @param list the list.

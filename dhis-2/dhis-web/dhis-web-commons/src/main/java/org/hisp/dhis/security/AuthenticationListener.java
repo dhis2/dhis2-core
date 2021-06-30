@@ -1,7 +1,5 @@
-package org.hisp.dhis.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,11 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security;
 
 import java.util.Objects;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
@@ -42,8 +43,6 @@ import org.springframework.security.authentication.event.AuthenticationSuccessEv
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen
@@ -68,8 +67,7 @@ public class AuthenticationListener
 
         if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
         {
-            TwoFactorWebAuthenticationDetails authDetails =
-                ( TwoFactorWebAuthenticationDetails ) auth.getDetails();
+            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
             log.info( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
         }
@@ -77,15 +75,14 @@ public class AuthenticationListener
         securityService.registerFailedLogin( auth.getName() );
     }
 
-    @EventListener({ InteractiveAuthenticationSuccessEvent.class, AuthenticationSuccessEvent.class })
+    @EventListener( { InteractiveAuthenticationSuccessEvent.class, AuthenticationSuccessEvent.class } )
     public void handleAuthenticationSuccess( AbstractAuthenticationEvent event )
     {
         Authentication auth = event.getAuthentication();
 
         if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
         {
-            TwoFactorWebAuthenticationDetails authDetails =
-                ( TwoFactorWebAuthenticationDetails ) auth.getDetails();
+            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
             log.debug( String.format( "Login attempt succeeded for remote IP: %s", authDetails.getIp() ) );
         }

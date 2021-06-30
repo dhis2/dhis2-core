@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 import static org.hisp.dhis.organisationunit.FeatureType.MULTI_POLYGON;
 import static org.junit.Assert.assertEquals;
@@ -49,20 +48,27 @@ import com.vividsolutions.jts.geom.Geometry;
 public class OrganisationUnitTest
 {
     private List<CoordinatesTuple> multiPolygonCoordinatesList = new ArrayList<>();
+
     private List<CoordinatesTuple> pointCoordinatesList = new ArrayList<>();
-    
+
     private String multiPolygonCoordinates = "[[[[11.11,22.22],[33.33,44.44],[55.55,66.66],[11.11,22.22]]]," +
-                                             "[[[77.77,88.88],[99.99,11.11],[22.22,33.33],[77.77,88.88]]]," +
-                                             "[[[44.44,55.55],[66.66,77.77],[88.88,99.99],[44.44,55.55]]]]";
+        "[[[77.77,88.88],[99.99,11.11],[22.22,33.33],[77.77,88.88]]]," +
+        "[[[44.44,55.55],[66.66,77.77],[88.88,99.99],[44.44,55.55]]]]";
 
     private CoordinatesTuple tupleA;
+
     private CoordinatesTuple tupleB;
+
     private CoordinatesTuple tupleC;
+
     private CoordinatesTuple tupleD;
-    
+
     private OrganisationUnit unitA;
+
     private OrganisationUnit unitB;
+
     private OrganisationUnit unitC;
+
     private OrganisationUnit unitD;
 
     private GeometryJSON geometryJSON = new GeometryJSON();
@@ -74,7 +80,7 @@ public class OrganisationUnitTest
         tupleA.addCoordinates( "11.11,22.22" );
         tupleA.addCoordinates( "33.33,44.44" );
         tupleA.addCoordinates( "55.55,66.66" );
-        
+
         tupleB = new CoordinatesTuple();
         tupleB.addCoordinates( "77.77,88.88" );
         tupleB.addCoordinates( "99.99,11.11" );
@@ -84,20 +90,20 @@ public class OrganisationUnitTest
         tupleC.addCoordinates( "44.44,55.55" );
         tupleC.addCoordinates( "66.66,77.77" );
         tupleC.addCoordinates( "88.88,99.99" );
-        
+
         tupleD = new CoordinatesTuple();
         tupleD.addCoordinates( "11.11,22.22" );
-        
+
         multiPolygonCoordinatesList.add( tupleA );
         multiPolygonCoordinatesList.add( tupleB );
         multiPolygonCoordinatesList.add( tupleC );
         pointCoordinatesList.add( tupleD );
-        
+
         unitA = new OrganisationUnit( "OrgUnitA" );
         unitB = new OrganisationUnit( "OrgUnitB" );
         unitC = new OrganisationUnit( "OrgUnitC" );
         unitD = new OrganisationUnit( "OrgUnitD" );
-        
+
         unitA.setUid( "uidA" );
         unitB.setUid( "uidB" );
         unitC.setUid( "uidC" );
@@ -110,9 +116,9 @@ public class OrganisationUnitTest
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-        
+
         List<OrganisationUnit> expected = new ArrayList<>( Arrays.asList( unitA, unitB, unitC ) );
-        
+
         assertEquals( expected, unitD.getAncestors() );
     }
 
@@ -122,13 +128,15 @@ public class OrganisationUnitTest
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-        
-        List<String> expected = new ArrayList<>( Arrays.asList( unitA.getDisplayName(), unitB.getDisplayName(), unitC.getDisplayName() ) );
-        
+
+        List<String> expected = new ArrayList<>(
+            Arrays.asList( unitA.getDisplayName(), unitB.getDisplayName(), unitC.getDisplayName() ) );
+
         assertEquals( expected, unitD.getAncestorNames( null, false ) );
-        
-        expected = new ArrayList<>( Arrays.asList( unitA.getDisplayName(), unitB.getDisplayName(), unitC.getDisplayName(), unitD.getDisplayName() ) );
-        
+
+        expected = new ArrayList<>( Arrays.asList( unitA.getDisplayName(), unitB.getDisplayName(),
+            unitC.getDisplayName(), unitD.getDisplayName() ) );
+
         assertEquals( expected, unitD.getAncestorNames( null, true ) );
     }
 
@@ -138,23 +146,23 @@ public class OrganisationUnitTest
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-        
+
         List<OrganisationUnit> roots = new ArrayList<>( Arrays.asList( unitB ) );
-        
+
         List<OrganisationUnit> expected = new ArrayList<>( Arrays.asList( unitB, unitC ) );
-        
+
         assertEquals( expected, unitD.getAncestors( roots ) );
     }
-    
+
     @Test
     public void testGetPath()
     {
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-        
+
         String expected = "/uidA/uidB/uidC/uidD";
-        
+
         assertEquals( expected, unitD.getPath() );
     }
 
@@ -164,20 +172,21 @@ public class OrganisationUnitTest
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-        
+
         List<OrganisationUnit> roots = new ArrayList<>( Arrays.asList( unitB ) );
-        
+
         String expected = "/OrgUnitB/OrgUnitC";
-        
+
         assertEquals( expected, unitD.getParentNameGraph( roots, false ) );
-        
+
         expected = "/OrgUnitA/OrgUnitB/OrgUnitC";
 
-        assertEquals( expected, unitD.getParentNameGraph( null, false ) );        
+        assertEquals( expected, unitD.getParentNameGraph( null, false ) );
     }
 
     @Test
-    public void testGetCoordinatesAsCollection() throws IOException
+    public void testGetCoordinatesAsCollection()
+        throws IOException
     {
 
         OrganisationUnit unit = new OrganisationUnit();
@@ -186,7 +195,7 @@ public class OrganisationUnitTest
         unit.setGeometry( geometry );
 
         assertEquals( 3, CoordinateUtils
-            .getCoordinatesAsList(  unit.getCoordinates() , MULTI_POLYGON ).size() );
+            .getCoordinatesAsList( unit.getCoordinates(), MULTI_POLYGON ).size() );
 
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,17 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+package org.hisp.dhis.dataapproval;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
  * Defines the functionality for persisting DataApproval objects.
@@ -44,7 +43,7 @@ import java.util.Set;
  * @author Jim Grace
  */
 public interface DataApprovalStore
-//        extends GenericStore<DataApproval>
+// extends GenericStore<DataApproval>
 {
     String ID = DataApprovalStore.class.getName();
 
@@ -75,14 +74,14 @@ public interface DataApprovalStore
 
     /**
      * Deletes DataApprovals for the given organisation unit.
-     * 
+     *
      * @param organisationUnit the organisation unit.
      */
     void deleteDataApprovals( OrganisationUnit organisationUnit );
 
     /**
-     * Returns the DataApproval object (if any) matching the properties
-     * of a (non-Hibernate) DataApproval object.
+     * Returns the DataApproval object (if any) matching the properties of a
+     * (non-Hibernate) DataApproval object.
      *
      * @param dataApproval the DataApproval object properties to look for
      */
@@ -101,11 +100,11 @@ public interface DataApprovalStore
      */
     DataApproval getDataApproval( DataApprovalLevel dataApprovalLevel, DataApprovalWorkflow workflow,
         Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
-    
+
     /**
      * Indicates whether a persisted instance of the given data approval object
      * exists.
-     * 
+     *
      * @param dataApproval the data approval to check.
      * @return true if persisted data approval exists.
      */
@@ -122,14 +121,16 @@ public interface DataApprovalStore
      * @param attributeOptionCombos attribute option combos for approval
      * @return matching DataApproval object, if any
      */
-     List<DataApproval> getDataApprovals( Collection<DataApprovalLevel> dataApprovalLevels, Collection<DataApprovalWorkflow> workflows,
-        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits, Collection<CategoryOptionCombo> attributeOptionCombos );
+    List<DataApproval> getDataApprovals( Collection<DataApprovalLevel> dataApprovalLevels,
+        Collection<DataApprovalWorkflow> workflows,
+        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits,
+        Collection<CategoryOptionCombo> attributeOptionCombos );
 
     /**
-     * Returns a list of data approval results and corresponding states for
-     * a collection of workflows and a given period. The list may be constrained
-     * to a given organisation unit, or it may be all the organisation units
-     * the user is allowed to see. The list may also be constrained to a given
+     * Returns a list of data approval results and corresponding states for a
+     * collection of workflows and a given period. The list may be constrained
+     * to a given organisation unit, or it may be all the organisation units the
+     * user is allowed to see. The list may also be constrained to a given
      * attribute category combination, or it may be all the attribute category
      * combos the user is allowed to see. If the list is constrained to a given
      * attribute category combination, then only a single value is returned.
@@ -153,5 +154,6 @@ public interface DataApprovalStore
     List<DataApprovalStatus> getDataApprovalStatuses( DataApprovalWorkflow workflow,
         Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel,
         CategoryCombo attributeCombo,
-        Set<CategoryOptionCombo> attributeOptionCombos, List<DataApprovalLevel> userApprovalLevels, Map<Integer, DataApprovalLevel> levelMap );
+        Set<CategoryOptionCombo> attributeOptionCombos, List<DataApprovalLevel> userApprovalLevels,
+        Map<Integer, DataApprovalLevel> levelMap );
 }

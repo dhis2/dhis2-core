@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.listener;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.sms.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.listener;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -56,11 +60,6 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
 
 @Component( "org.hisp.dhis.sms.listener.SimpleEventSMSListener" )
 @Transactional
@@ -98,14 +97,14 @@ public class SimpleEventSMSListener
         User user = userService.getUser( subm.getUserId().getUid() );
 
         Program program = programService.getProgram( subm.getEventProgram().getUid() );
-        
+
         if ( program == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_PROGRAM.set( progid ) );
         }
 
         CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
-        
+
         if ( aoc == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
@@ -150,7 +149,7 @@ public class SimpleEventSMSListener
         List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUid(), orgUnit, programStage, programInstance, sms,
             aoc, user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
             subm.getCoordinates() );
-            
+
         if ( !errorUIDs.isEmpty() )
         {
             return SmsResponse.WARN_DVERR.setList( errorUIDs );
@@ -167,6 +166,6 @@ public class SimpleEventSMSListener
     @Override
     protected boolean handlesType( SubmissionType type )
     {
-        return ( type == SubmissionType.SIMPLE_EVENT );
+        return (type == SubmissionType.SIMPLE_EVENT);
     }
 }

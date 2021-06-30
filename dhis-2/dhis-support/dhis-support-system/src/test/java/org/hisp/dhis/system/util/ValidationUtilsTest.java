@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
+
+import static org.hisp.dhis.system.util.ValidationUtils.*;
+import static org.junit.Assert.*;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
-
-import static org.hisp.dhis.system.util.ValidationUtils.*;
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -67,7 +66,7 @@ public class ValidationUtilsTest
         assertFalse( coordinateIsValid( "000.34,-94.23323" ) );
         assertFalse( coordinateIsValid( "123.34,-00.23323" ) );
     }
-    
+
     @Test
     public void testBboxIsValid()
     {
@@ -76,7 +75,7 @@ public class ValidationUtilsTest
         assertTrue( bboxIsValid( "4,-23.37,5,-24.904" ) );
         assertTrue( bboxIsValid( "2.23, -23.37, 5.22, -24.90" ) );
         assertTrue( bboxIsValid( "-179.234,-89.342,178.323,88.135" ) );
-        
+
         assertFalse( bboxIsValid( "[12.23,14.41,34.12,12.45]" ) );
         assertFalse( bboxIsValid( "22,23,14,41,34,11,11,41" ) );
         assertFalse( bboxIsValid( "22,23.14,41.34,11.11,41" ) );

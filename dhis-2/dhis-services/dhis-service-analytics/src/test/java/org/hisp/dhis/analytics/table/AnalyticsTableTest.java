@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.table;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -56,7 +55,8 @@ public class AnalyticsTableTest
         Program program = new Program( "ProgramA", "DescriptionA" );
         program.setUid( "UIDA" );
 
-        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.EVENT, Lists.newArrayList(), Lists.newArrayList(), program );
+        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.EVENT, Lists.newArrayList(),
+            Lists.newArrayList(), program );
 
         assertEquals( "analytics_event_uida", tableA.getTableName() );
     }
@@ -70,7 +70,8 @@ public class AnalyticsTableTest
         Period periodA = new YearlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() );
         Period periodB = new YearlyPeriodType().createPeriod( new DateTime( 2015, 1, 1, 0, 0 ).toDate() );
 
-        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.EVENT, Lists.newArrayList(), Lists.newArrayList(), program );
+        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.EVENT, Lists.newArrayList(),
+            Lists.newArrayList(), program );
 
         tableA.addPartitionTable( 2014, periodA.getStartDate(), periodA.getEndDate() );
         tableA.addPartitionTable( 2015, periodB.getStartDate(), periodB.getEndDate() );
@@ -91,8 +92,10 @@ public class AnalyticsTableTest
     @Test
     public void testEquals()
     {
-        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, Lists.newArrayList(), Lists.newArrayList() );
-        AnalyticsTable tableB = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, Lists.newArrayList(), Lists.newArrayList() );
+        AnalyticsTable tableA = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, Lists.newArrayList(),
+            Lists.newArrayList() );
+        AnalyticsTable tableB = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, Lists.newArrayList(),
+            Lists.newArrayList() );
 
         List<AnalyticsTable> uniqueList = new UniqueArrayList<>();
         uniqueList.add( tableA );

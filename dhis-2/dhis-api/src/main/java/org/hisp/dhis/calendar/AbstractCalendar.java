@@ -1,7 +1,5 @@
-package org.hisp.dhis.calendar;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,24 @@ package org.hisp.dhis.calendar;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.calendar;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.chrono.ISOChronology;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public abstract class AbstractCalendar implements Calendar
 {
-    protected static final String[] DEFAULT_I18N_MONTH_NAMES = new String[]{
+    protected static final String[] DEFAULT_I18N_MONTH_NAMES = new String[] {
         "month.january",
         "month.february",
         "month.march",
@@ -57,7 +57,7 @@ public abstract class AbstractCalendar implements Calendar
         "month.december"
     };
 
-    protected static final String[] DEFAULT_I18N_MONTH_SHORT_NAMES = new String[]{
+    protected static final String[] DEFAULT_I18N_MONTH_SHORT_NAMES = new String[] {
         "month.short.january",
         "month.short.february",
         "month.short.march",
@@ -72,7 +72,7 @@ public abstract class AbstractCalendar implements Calendar
         "month.short.december"
     };
 
-    protected static final String[] DEFAULT_I18N_DAY_NAMES = new String[]{
+    protected static final String[] DEFAULT_I18N_DAY_NAMES = new String[] {
         "weekday.monday",
         "weekday.tuesday",
         "weekday.wednesday",
@@ -82,7 +82,7 @@ public abstract class AbstractCalendar implements Calendar
         "weekday.sunday"
     };
 
-    protected static final String[] DEFAULT_I18N_DAY_SHORT_NAMES = new String[]{
+    protected static final String[] DEFAULT_I18N_DAY_SHORT_NAMES = new String[] {
         "weekday.short.monday",
         "weekday.short.tuesday",
         "weekday.short.wednesday",
@@ -176,7 +176,8 @@ public abstract class AbstractCalendar implements Calendar
     }
 
     @Override
-    public List<DateInterval> toIntervals( DateTimeUnit dateTimeUnit, DateIntervalType type, int offset, int length, int periods )
+    public List<DateInterval> toIntervals( DateTimeUnit dateTimeUnit, DateIntervalType type, int offset, int length,
+        int periods )
     {
         List<DateInterval> dateIntervals = Lists.newArrayList();
 
@@ -192,7 +193,8 @@ public abstract class AbstractCalendar implements Calendar
     public DateTimeUnit today()
     {
         DateTime dateTime = DateTime.now( ISOChronology.getInstance( DateTimeZone.getDefault() ) );
-        DateTimeUnit dateTimeUnit = new DateTimeUnit( dateTime.getYear(), dateTime.getMonthOfYear(), dateTime.getDayOfMonth(), true );
+        DateTimeUnit dateTimeUnit = new DateTimeUnit( dateTime.getYear(), dateTime.getMonthOfYear(),
+            dateTime.getDayOfMonth(), true );
         return fromIso( dateTimeUnit );
     }
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.mapping;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,14 @@ package org.hisp.dhis.webapi.controller.mapping;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.mapping;
 
-import com.google.common.collect.Lists;
+import java.awt.image.BufferedImage;
+import java.util.List;
+
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -54,10 +58,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletResponse;
-import java.awt.image.BufferedImage;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -79,12 +80,13 @@ public class MapViewController
     @Autowired
     private ContextUtils contextUtils;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Get data
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = { "/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
-    public void getMapViewData( @PathVariable String uid, HttpServletResponse response ) throws Exception
+    public void getMapViewData( @PathVariable String uid, HttpServletResponse response )
+        throws Exception
     {
         MapView mapView = mappingService.getMapView( uid );
 
@@ -101,7 +103,8 @@ public class MapViewController
         @RequestParam( value = "in" ) String indicatorUid,
         @RequestParam( value = "ou" ) String organisationUnitUid,
         @RequestParam( value = "level", required = false ) Integer level,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         if ( level == null )
         {
@@ -115,17 +118,19 @@ public class MapViewController
         renderMapViewPng( mapView, response );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Hooks
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     @SuppressWarnings( "unchecked" )
-    protected List<MapView> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    protected List<MapView> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
+        List<Order> orders )
         throws QueryParserException
     {
         List<MapView> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
+            options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -141,9 +146,9 @@ public class MapViewController
         return entityList;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private void renderMapViewPng( MapView mapView, HttpServletResponse response )
         throws Exception
@@ -152,7 +157,8 @@ public class MapViewController
 
         if ( image != null )
         {
-            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, "mapview.png", false );
+            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG,
+                CacheStrategy.RESPECT_SYSTEM_SETTING, "mapview.png", false );
 
             ImageIO.write( image, "PNG", response.getOutputStream() );
         }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.databrowser;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.databrowser;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.databrowser;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.i18n.I18n;
@@ -48,12 +47,11 @@ public interface DataBrowserGridService
     /**
      * Method that retrieves - all DataSets with DataElement quantity - in a
      * given period and type (DataSet | Count)
-     * 
+     *
      * @param startDate the start date
      * @param endDate the end date
      * @param periodType the period type
-     * @return Grid the Grid with structure for
-     *         presentation
+     * @return Grid the Grid with structure for presentation
      */
     Grid getDataSetsInPeriod( String startDate, String endDate, PeriodType periodType, I18nFormat format,
         boolean isZeroAdded );
@@ -61,12 +59,11 @@ public interface DataBrowserGridService
     /**
      * Method that retrieves - all DataElementGroups with DataElement quantity -
      * in a given period and type (DataElementGroup | Count)
-     * 
+     *
      * @param startDate the start date
      * @param endDate the end date
      * @param periodType the period type
-     * @return Grid the Grid with structure for
-     *         presentation
+     * @return Grid the Grid with structure for presentation
      */
     Grid getDataElementGroupsInPeriod( String startDate, String endDate, PeriodType periodType,
         I18nFormat format, boolean isZeroAdded );
@@ -74,12 +71,11 @@ public interface DataBrowserGridService
     /**
      * Method that retrieves - all OrganisationUnitGroups with DataElement
      * quantity - in a given period and type (OrgUnitGroup | Count)
-     * 
+     *
      * @param startDate the start date
      * @param endDate the end date
      * @param periodType the period type
-     * @return Grid the Grid with structure for
-     *         presentation
+     * @return Grid the Grid with structure for presentation
      */
     Grid getOrgUnitGroupsInPeriod( String startDate, String endDate, PeriodType periodType,
         I18nFormat format, boolean isZeroAdded );
@@ -87,14 +83,13 @@ public interface DataBrowserGridService
     /**
      * Method that retrieves - all OrganisationUnits with DataElement quantity -
      * in a given period - that is child of a given OrganisationUnit parent.
-     * 
+     *
      * @param orgUnitParent the OrganisationUnit parent
      * @param startDate the start date
      * @param endDate the end date
      * @param periodType the period type
      * @param maxLevel is the max level of the hierarchy
-     * @return Grid the Grid with structure for
-     *         presentation
+     * @return Grid the Grid with structure for presentation
      */
     Grid getOrgUnitsInPeriod( Integer orgUnitParent, String startDate, String endDate,
         PeriodType periodType, Integer maxLevel, I18nFormat format, boolean isZeroAdded );
@@ -102,58 +97,51 @@ public interface DataBrowserGridService
     /**
      * Method that retrieves - all the DataElements count - in a given period -
      * for a given DataSet and returns a Grid with the data.
-     * 
+     *
      * @param dataSetId the DataSet id
      * @param startDate the start date
      * @param endDate the end date
      * @param periodType the period type
-     * @return Grid the Grid with structure for
-     *         presentation
+     * @return Grid the Grid with structure for presentation
      */
     Grid getCountDataElementsForDataSetInPeriod( Integer dataSetId, String startDate, String endDate,
         PeriodType periodType, I18nFormat format, boolean isZeroAdded );
 
     /**
      * Method that retrieves - all the DataElements count - in a given period -
-     * for a given DataElementGroup and returns a Grid with the
-     * data.
-     * 
+     * for a given DataElementGroup and returns a Grid with the data.
+     *
      * @param dataElementGroupId the DataElementGroup id
      * @param startDate the start date
      * @param endDate the end date
      * @param periodType the period type
-     * @return Grid the Grid with structure for
-     *         presentation
+     * @return Grid the Grid with structure for presentation
      */
     Grid getCountDataElementsForDataElementGroupInPeriod( Integer dataElementGroupId, String startDate,
         String endDate, PeriodType periodType, I18nFormat format, boolean isZeroAdded );
 
     /**
      * Method retrieves - all the DataElementGroups count - in a given period -
-     * for a given OrganisationUnitGroup and returns a Grid with the
-     * data.
-     * 
+     * for a given OrganisationUnitGroup and returns a Grid with the data.
+     *
      * @param orgUnitGroupId the OrganisationUnitGroup id
      * @param startDate the start date
      * @param endDate the end date
      * @param periodType the period type
-     * @return Grid the Grid with structure for
-     *         presentation
+     * @return Grid the Grid with structure for presentation
      */
     Grid getCountDataElementGroupsForOrgUnitGroupInPeriod( Integer orgUnitGroupId, String startDate,
         String endDate, PeriodType periodType, I18nFormat format, boolean isZeroAdded );
 
     /**
      * Method that retrieves - all the DataElements count - in a given period -
-     * for a given OrganisationUnit and returns a Grid with the
-     * data.
-     * 
+     * for a given OrganisationUnit and returns a Grid with the data.
+     *
      * @param orgUnitId the OrganisationUnit id
      * @param startDate the start date
      * @param endDate the end date
      * @param periodType the period type
-     * @return Grid the Grid with structure for
-     *         presentation
+     * @return Grid the Grid with structure for presentation
      */
     Grid getRawDataElementsForOrgUnitInPeriod( Integer orgUnitId, String startDate, String endDate,
         PeriodType periodType, I18nFormat format, boolean isZeroAdded );
@@ -161,7 +149,7 @@ public interface DataBrowserGridService
     /**
      * This method converts a string from the date format "yyyy-MM-dd" to "MMMM
      * yyyy", for instance.
-     * 
+     *
      * @param periodType the period type.
      * @param dateString the date string.
      * @param i18n the i18n object.
@@ -174,7 +162,7 @@ public interface DataBrowserGridService
     /**
      * This method returns the string of name of periods in the list which
      * between fromDate and toDate input params
-     * 
+     *
      * @param periodType is the type of period
      * @param fromDate the beginning date
      * @param toDate the end date

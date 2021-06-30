@@ -1,7 +1,5 @@
-package org.hisp.dhis.external.configuration;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.external.configuration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.external.configuration;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,20 +35,20 @@ import java.io.OutputStream;
  * @version $Id$
  */
 public interface ConfigurationManager<T>
-{    
+{
     /**
-     * Writes a configuration object to an XML file. The outputstream will
-     * be closed after use.
-     * 
+     * Writes a configuration object to an XML file. The outputstream will be
+     * closed after use.
+     *
      * @param configuration the configuration object.
      * @param out the outputstream to write to.
      */
     void setConfiguration( T configuration, OutputStream out, Class<?>... clazzes );
-    
+
     /**
-     * Reads a configuration object from an XML file. The inputstream will
-     * be closed after use.
-     * 
+     * Reads a configuration object from an XML file. The inputstream will be
+     * closed after use.
+     *
      * @param in the inputstream to read from.
      * @param clazz the Class of the configuration object.
      * @return a configuration object.

@@ -1,7 +1,5 @@
-package org.hisp.dhis.chart;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,14 @@ package org.hisp.dhis.chart;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.chart;
 
+import java.util.Date;
+import java.util.Map;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -39,9 +41,6 @@ import org.hisp.dhis.user.User;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.plot.PlotOrientation;
-
-import java.util.Date;
-import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -64,24 +63,28 @@ public interface ChartService
      *
      * @param chart the chart to use as basis for the JFreeChart generation.
      * @param date the date to use as basis for relative periods, can be null.
-     * @param organisationUnit the org unit to use as basis for relative units, will
-     *        override the current user org unit if set, can be null.
+     * @param organisationUnit the org unit to use as basis for relative units,
+     *        will override the current user org unit if set, can be null.
      * @param format the i18n format.
      * @return a JFreeChart object.
      */
     JFreeChart getJFreeChart( BaseChart chart, Date date, OrganisationUnit organisationUnit, I18nFormat format );
 
-    JFreeChart getJFreeChart( BaseChart chart, Date date, OrganisationUnit organisationUnit, I18nFormat format, User currentUser );
+    JFreeChart getJFreeChart( BaseChart chart, Date date, OrganisationUnit organisationUnit, I18nFormat format,
+        User currentUser );
 
-    JFreeChart getJFreePeriodChart( Indicator indicator, OrganisationUnit organisationUnit, boolean title, I18nFormat format );
+    JFreeChart getJFreePeriodChart( Indicator indicator, OrganisationUnit organisationUnit, boolean title,
+        I18nFormat format );
 
-    JFreeChart getJFreeOrganisationUnitChart( Indicator indicator, OrganisationUnit parent, boolean title, I18nFormat format );
+    JFreeChart getJFreeOrganisationUnitChart( Indicator indicator, OrganisationUnit parent, boolean title,
+        I18nFormat format );
 
     JFreeChart getJFreeChart( String name, PlotOrientation orientation, CategoryLabelPositions labelPositions,
-                              Map<String, Double> categoryValues );
+        Map<String, Double> categoryValues );
 
     JFreeChart getJFreeChartHistory( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
-    		CategoryOptionCombo attributeOptionCombo, Period lastPeriod, OrganisationUnit organisationUnit, int historyLength, I18nFormat format );
+        CategoryOptionCombo attributeOptionCombo, Period lastPeriod, OrganisationUnit organisationUnit,
+        int historyLength, I18nFormat format );
 
     // -------------------------------------------------------------------------
     // Chart CRUD

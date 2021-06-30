@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.authority;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,21 @@ package org.hisp.dhis.security.authority;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.opensymphony.xwork2.config.Configuration;
-import com.opensymphony.xwork2.config.entities.ActionConfig;
-import com.opensymphony.xwork2.config.entities.PackageConfig;
-import org.apache.struts2.dispatcher.Dispatcher;
+package org.hisp.dhis.security.authority;
 
 import java.util.Collection;
 import java.util.HashSet;
 
+import org.apache.struts2.dispatcher.Dispatcher;
+
+import com.opensymphony.xwork2.config.Configuration;
+import com.opensymphony.xwork2.config.entities.ActionConfig;
+import com.opensymphony.xwork2.config.entities.PackageConfig;
+
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: DetectingSystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z torgeilo $
+ * @version $Id: DetectingSystemAuthoritiesProvider.java 3160 2007-03-24
+ *          20:15:06Z torgeilo $
  */
 public class DetectingSystemAuthoritiesProvider
     implements SystemAuthoritiesProvider

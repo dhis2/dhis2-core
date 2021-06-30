@@ -1,7 +1,5 @@
-package org.hisp.dhis.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,13 @@ package org.hisp.dhis.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.config;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import java.beans.PropertyVetoException;
+import java.util.List;
+
+import javax.sql.DataSource;
+
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.datasource.DataSourceManager;
 import org.hisp.dhis.datasource.DefaultDataSourceManager;
@@ -52,9 +55,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.sql.DataSource;
-import java.beans.PropertyVetoException;
-import java.util.List;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
  * @author Luciano Fiandesio
@@ -82,7 +83,7 @@ public class HibernateConfig
     }
 
     @Bean
-    @DependsOn("flyway")
+    @DependsOn( "flyway" )
     public LocalSessionFactoryBean sessionFactory()
         throws Exception
     {
@@ -116,7 +117,7 @@ public class HibernateConfig
         dataSource.setUser( (String) getConnectionProperty( "hibernate.connection.username" ) );
         dataSource.setPassword( (String) getConnectionProperty( "hibernate.connection.password" ) );
         dataSource.setMinPoolSize( 5 );
-        dataSource.setMaxPoolSize( Integer.parseInt((String)getConnectionProperty( "hibernate.c3p0.max_size" )) );
+        dataSource.setMaxPoolSize( Integer.parseInt( (String) getConnectionProperty( "hibernate.c3p0.max_size" ) ) );
         dataSource.setInitialPoolSize( 5 );
         dataSource.setAcquireIncrement( 5 );
         dataSource.setMaxIdleTime( 7200 );
@@ -125,7 +126,8 @@ public class HibernateConfig
     }
 
     @Bean
-    public DataSourceManager dataSourceManager() throws PropertyVetoException
+    public DataSourceManager dataSourceManager()
+        throws PropertyVetoException
     {
         DefaultDataSourceManager defaultDataSourceManager = new DefaultDataSourceManager();
         defaultDataSourceManager.setConfig( dhisConfigurationProvider );
@@ -135,9 +137,11 @@ public class HibernateConfig
     }
 
     @Bean
-    public DataSource readOnlyDataSource() throws PropertyVetoException
+    public DataSource readOnlyDataSource()
+        throws PropertyVetoException
     {
-        // FIXME Luciano why do we need this? Can't we use @Transactional readonly?
+        // FIXME Luciano why do we need this? Can't we use @Transactional
+        // readonly?
 
         return dataSourceManager().getReadOnlyDataSource();
     }
@@ -164,7 +168,7 @@ public class HibernateConfig
         throws Exception
     {
         DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
-        cacheManager.setSessionFactory(sessionFactory().getObject());
+        cacheManager.setSessionFactory( sessionFactory().getObject() );
         return cacheManager;
     }
 
@@ -174,7 +178,7 @@ public class HibernateConfig
     {
         HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
         hibernateDbmsManager.setCacheManager( cacheManager() );
-        hibernateDbmsManager.setSessionFactory(sessionFactory().getObject());
+        hibernateDbmsManager.setSessionFactory( sessionFactory().getObject() );
         hibernateDbmsManager.setJdbcTemplate( jdbcTemplate() );
         return hibernateDbmsManager;
     }

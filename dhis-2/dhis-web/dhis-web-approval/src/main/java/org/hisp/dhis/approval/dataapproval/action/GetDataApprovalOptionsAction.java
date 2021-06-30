@@ -1,7 +1,5 @@
-package org.hisp.dhis.approval.dataapproval.action;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.approval.dataapproval.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.approval.dataapproval.action;
 
 import static org.hisp.dhis.period.PeriodType.getAvailablePeriodTypes;
 
@@ -48,7 +47,7 @@ public class GetDataApprovalOptionsAction
 {
     @Autowired
     private DataSetService dataSetService;
-    
+
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
@@ -79,9 +78,9 @@ public class GetDataApprovalOptionsAction
         periodTypes = getAvailablePeriodTypes();
 
         FilterUtils.filter( dataSets, new DataSetApproveDataFilter() );
-        
+
         Collections.sort( dataSets );
-        
+
         return SUCCESS;
     }
 
@@ -92,6 +91,6 @@ public class GetDataApprovalOptionsAction
         public boolean retain( DataSet dataSet )
         {
             return dataSet != null && dataSet.isApproveData();
-        }        
+        }
     }
 }

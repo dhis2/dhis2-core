@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.startup;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,20 @@ package org.hisp.dhis.system.startup;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.startup;
 
-
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
  * Default implementation of StartupRoutineExecutor. The execute method will
- * execute the added StartupRoutines ordered by their run levels. Startup routines
- * can be ignored from the command line by appending the below.
+ * execute the added StartupRoutines ordered by their run levels. Startup
+ * routines can be ignored from the command line by appending the below.
  *
  * <code>-Ddhis.skip.startup=true</code>
  *
@@ -52,6 +50,7 @@ public class DefaultStartupRoutineExecutor
     implements StartupRoutineExecutor
 {
     private static final String TRUE = "true";
+
     private static final String SKIP_PROP = "dhis.skip.startup";
 
     @Autowired
@@ -99,14 +98,14 @@ public class DefaultStartupRoutineExecutor
             return;
         }
 
-        startupRoutines.sort(new StartupRoutineComparator());
+        startupRoutines.sort( new StartupRoutineComparator() );
 
         int total = startupRoutines.size();
         int index = 1;
 
         for ( StartupRoutine routine : startupRoutines )
         {
-            if ( !( testing && routine.skipInTests() ) )
+            if ( !(testing && routine.skipInTests()) )
             {
                 log.info( "Executing startup routine [" + index + " of " + total + ", runlevel " + routine.getRunlevel()
                     + "]: " + routine.getName() );

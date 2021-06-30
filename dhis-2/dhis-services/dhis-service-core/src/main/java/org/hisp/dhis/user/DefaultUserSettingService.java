@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.Serializable;
 import java.util.*;
@@ -49,12 +50,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Declare transactions on individual methods. The get-methods do not have
  * transactions declared, instead a programmatic transaction is initiated on
- * cache miss in order to reduce the number of transactions to improve performance.
+ * cache miss in order to reduce the number of transactions to improve
+ * performance.
  *
  * @author Torgeir Lorange Ostby
  */
@@ -63,7 +63,8 @@ public class DefaultUserSettingService
     implements UserSettingService
 {
     /**
-     * Cache for user settings. Does not accept nulls. Disabled during test phase.
+     * Cache for user settings. Does not accept nulls. Disabled during test
+     * phase.
      */
     private Cache<SerializableOptional> userSettingCache;
 
@@ -86,7 +87,8 @@ public class DefaultUserSettingService
 
     private final SystemSettingManager systemSettingManager;
 
-    public DefaultUserSettingService( Environment env, CacheProvider cacheProvider, CurrentUserService currentUserService,
+    public DefaultUserSettingService( Environment env, CacheProvider cacheProvider,
+        CurrentUserService currentUserService,
         UserSettingStore userSettingStore, UserService userService, SystemSettingManager systemSettingManager )
     {
         checkNotNull( env );
@@ -208,8 +210,9 @@ public class DefaultUserSettingService
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the
-     * store level behind the cache to avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at
+     * the store level behind the cache to avoid the transaction overhead for
+     * cache hits.
      */
     @Override
     public Serializable getUserSetting( UserSettingKey key )
@@ -218,8 +221,9 @@ public class DefaultUserSettingService
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the
-     * store level behind the cache to avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at
+     * the store level behind the cache to avoid the transaction overhead for
+     * cache hits.
      */
     @Override
     public Serializable getUserSetting( UserSettingKey key, User user )
@@ -237,11 +241,13 @@ public class DefaultUserSettingService
     }
 
     @Override
-    public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<UserSettingKey> userSettingKeys,
+    public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user,
+        Set<UserSettingKey> userSettingKeys,
         boolean useFallback )
     {
         Map<String, Serializable> result = Sets.newHashSet( getUserSettings( user ) ).stream()
-            .filter( userSetting -> userSetting != null && userSetting.getName() != null && userSetting.getValue() != null )
+            .filter(
+                userSetting -> userSetting != null && userSetting.getName() != null && userSetting.getValue() != null )
             .collect( Collectors.toMap( UserSetting::getName, UserSetting::getValue ) );
 
         userSettingKeys.forEach( userSettingKey -> {
@@ -251,7 +257,8 @@ public class DefaultUserSettingService
 
                 if ( useFallback && systemSettingKey.isPresent() )
                 {
-                    result.put( userSettingKey.getName(), systemSettingManager.getSystemSetting( systemSettingKey.get() ) );
+                    result.put( userSettingKey.getName(),
+                        systemSettingManager.getSystemSetting( systemSettingKey.get() ) );
                 }
                 else
                 {
@@ -275,7 +282,8 @@ public class DefaultUserSettingService
         List<UserSetting> userSettings = userSettingStore.getAllUserSettings( user );
         Set<UserSetting> defaultUserSettings = UserSettingKey.getDefaultUserSettings( user );
 
-        userSettings.addAll( defaultUserSettings.stream().filter( x -> !userSettings.contains( x ) ).collect( Collectors.toList() ) );
+        userSettings.addAll(
+            defaultUserSettings.stream().filter( x -> !userSettings.contains( x ) ).collect( Collectors.toList() ) );
 
         return userSettings;
     }
@@ -299,8 +307,8 @@ public class DefaultUserSettingService
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a user setting optional. If the user settings does not have
-     * a value or default value, a corresponding system setting will be looked up.
+     * Returns a user setting optional. If the user settings does not have a
+     * value or default value, a corresponding system setting will be looked up.
      *
      * @param key the user setting key.
      * @param user an optional {@link User}.
@@ -332,10 +340,11 @@ public class DefaultUserSettingService
     }
 
     /**
-     * Get user setting optional. If the user setting exists and has a value, the
-     * value is returned. If not, the default value for the key is returned, if not
-     * present, an empty optional is returned. The return object is never null in
-     * order to cache requests for system settings which have no value or default value.
+     * Get user setting optional. If the user setting exists and has a value,
+     * the value is returned. If not, the default value for the key is returned,
+     * if not present, an empty optional is returned. The return object is never
+     * null in order to cache requests for system settings which have no value
+     * or default value.
      *
      * @param key the user setting key.
      * @param username the username of the user.

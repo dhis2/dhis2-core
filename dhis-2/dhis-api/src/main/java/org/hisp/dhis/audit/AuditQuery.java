@@ -1,7 +1,5 @@
-package org.hisp.dhis.audit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,17 @@ package org.hisp.dhis.audit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.audit;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.Value;
-
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -58,29 +57,32 @@ public class AuditQuery
     private Set<AuditScope> auditScope = new HashSet<>();
 
     /**
-     * This narrows the search scope for audits, the class name should be fully qualified.
+     * This narrows the search scope for audits, the class name should be fully
+     * qualified.
      * <p>
-     * TODO should it be fully qualified? what about refactors? what about duplicate class names if we don't do it?
+     * TODO should it be fully qualified? what about refactors? what about
+     * duplicate class names if we don't do it?
      */
     @Builder.Default
     private Set<String> klass = new HashSet<>();
 
     /**
-     * This narrows the search scope by search by a list of UIDs. This binds an AND relationship with klass,
-     * and a OR relationship with code.
+     * This narrows the search scope by search by a list of UIDs. This binds an
+     * AND relationship with klass, and a OR relationship with code.
      */
     @Builder.Default
     private Set<String> uid = new HashSet<>();
 
     /**
-     * This narrows the search scope by search by a list of codes. This binds an AND relationship with klass,
-     * and a OR relationship with uid.
+     * This narrows the search scope by search by a list of codes. This binds an
+     * AND relationship with klass, and a OR relationship with uid.
      */
     @Builder.Default
     private Set<String> code = new HashSet<>();
 
     /**
-     * This narrows the search by filtering records base on the values of {@link AuditAttributes}
+     * This narrows the search by filtering records base on the values of
+     * {@link AuditAttributes}
      */
     @Builder.Default
     private AuditAttributes auditAttributes = new AuditAttributes();

@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -43,7 +42,7 @@ public interface DataStreamSerializable
     public static final String TWO_POINT_EIGHT = "2.8";
 
     public static final String TWO_POINT_NINE = "2.9";
-    
+
     public static final String TWO_POINT_TEN = "2.10";
 
     public void serialize( DataOutputStream dataOutputStream )
@@ -51,14 +50,14 @@ public interface DataStreamSerializable
 
     public void deSerialize( DataInputStream dataInputStream )
         throws IOException;
-    
+
     public void serializeVersion2_8( DataOutputStream dataOutputStream )
         throws IOException;
 
     public void serializeVersion2_9( DataOutputStream dataOutputStream )
         throws IOException;
-    
+
     public void serializeVersion2_10( DataOutputStream dataOutputStream )
-    throws IOException;
+        throws IOException;
 
 }

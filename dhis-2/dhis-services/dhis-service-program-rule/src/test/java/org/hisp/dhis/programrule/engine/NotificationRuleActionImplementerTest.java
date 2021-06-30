@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -133,17 +132,15 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
-        doAnswer( invocationOnMock ->
-        {
+        doAnswer( invocationOnMock -> {
             eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
             return eventType;
-        }).when( publisher ).publishEvent( any() );
+        } ).when( publisher ).publishEvent( any() );
 
-        doAnswer( invocationOnMock ->
-        {
-            logEntry = ( ExternalNotificationLogEntry ) invocationOnMock.getArguments()[0];
+        doAnswer( invocationOnMock -> {
+            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
             return logEntry;
-        }).when( loggingService ).save( any() );
+        } ).when( loggingService ).save( any() );
 
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
@@ -169,11 +166,10 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
             return eventType;
         } ).when( publisher ).publishEvent( any() );
 
-        doAnswer( invocationOnMock ->
-        {
-            logEntry = ( ExternalNotificationLogEntry ) invocationOnMock.getArguments()[0];
+        doAnswer( invocationOnMock -> {
+            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
             return logEntry;
-        }).when( loggingService ).save( any() );
+        } ).when( loggingService ).save( any() );
 
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
@@ -195,17 +191,15 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
-
         doAnswer( invocationOnMock -> {
             eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
             return eventType;
         } ).when( publisher ).publishEvent( any() );
 
-        doAnswer( invocationOnMock ->
-        {
-            logEntry = ( ExternalNotificationLogEntry ) invocationOnMock.getArguments()[0];
+        doAnswer( invocationOnMock -> {
+            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
             return logEntry;
-        }).when( loggingService ).save( any() );
+        } ).when( loggingService ).save( any() );
 
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 

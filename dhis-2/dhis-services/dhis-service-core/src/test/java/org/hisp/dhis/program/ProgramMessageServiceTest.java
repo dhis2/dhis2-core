@@ -1,8 +1,5 @@
-package org.hisp.dhis.program;
-
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +25,20 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
+import static org.junit.Assert.*;
+
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Date;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
@@ -50,12 +50,8 @@ import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-
 import org.junit.Test;
 import org.mockito.internal.util.collections.Sets;
-
-import static org.junit.Assert.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -241,7 +237,7 @@ public class ProgramMessageServiceTest
         bulkSmsConfig.setPassword( "5cKMMQTGNMkD" );
 
         SmsConfiguration smsConfig = new SmsConfiguration();
-        smsConfig.getGateways().add( bulkSmsConfig);
+        smsConfig.getGateways().add( bulkSmsConfig );
 
         smsConfigurationManager.updateSmsConfiguration( smsConfig );
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,15 @@ package org.hisp.dhis.resourcetable;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.resourcetable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -58,8 +59,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Lars Helge Overland
  */
@@ -78,7 +77,6 @@ public class DefaultResourceTableService
 
     private OrganisationUnitService organisationUnitService;
 
-
     private PeriodService periodService;
 
     private SqlViewService sqlViewService;
@@ -86,9 +84,9 @@ public class DefaultResourceTableService
     private DataApprovalLevelService dataApprovalLevelService;
 
     private CategoryService categoryService;
-    
+
     private StatementBuilder statementBuilder;
-    
+
     public DefaultResourceTableService( ResourceTableStore resourceTableStore,
         IdentifiableObjectManager idObjectManager, OrganisationUnitService organisationUnitService,
         PeriodService periodService, SqlViewService sqlViewService, DataApprovalLevelService dataApprovalLevelService,
@@ -121,23 +119,23 @@ public class DefaultResourceTableService
     @Transactional
     public void generateOrganisationUnitStructures()
     {
-        resourceTableStore.generateResourceTable( new OrganisationUnitStructureResourceTable( 
+        resourceTableStore.generateResourceTable( new OrganisationUnitStructureResourceTable(
             null, organisationUnitService, organisationUnitService.getNumberOfOrganisationalLevels() ) );
     }
-    
+
     @Override
     @Transactional
     public void generateDataSetOrganisationUnitCategoryTable()
     {
-        resourceTableStore.generateResourceTable( new DataSetOrganisationUnitCategoryResourceTable( 
+        resourceTableStore.generateResourceTable( new DataSetOrganisationUnitCategoryResourceTable(
             idObjectManager.getAllNoAcl( DataSet.class ), categoryService.getDefaultCategoryOptionCombo() ) );
     }
-    
+
     @Override
     @Transactional
     public void generateCategoryOptionComboNames()
     {
-        resourceTableStore.generateResourceTable( new CategoryOptionComboNameResourceTable( 
+        resourceTableStore.generateResourceTable( new CategoryOptionComboNameResourceTable(
             idObjectManager.getAllNoAcl( CategoryCombo.class ) ) );
     }
 
@@ -170,7 +168,7 @@ public class DefaultResourceTableService
     @Transactional
     public void generateCategoryTable()
     {
-        resourceTableStore.generateResourceTable( new CategoryResourceTable( 
+        resourceTableStore.generateResourceTable( new CategoryResourceTable(
             idObjectManager.getDataDimensionsNoAcl( Category.class ),
             idObjectManager.getDataDimensionsNoAcl( CategoryOptionGroupSet.class ) ) );
     }
@@ -179,7 +177,7 @@ public class DefaultResourceTableService
     @Transactional
     public void generateDataElementTable()
     {
-        resourceTableStore.generateResourceTable( new DataElementResourceTable( 
+        resourceTableStore.generateResourceTable( new DataElementResourceTable(
             idObjectManager.getAllNoAcl( DataElement.class ) ) );
     }
 
@@ -200,7 +198,7 @@ public class DefaultResourceTableService
     @Transactional
     public void generateCategoryOptionComboTable()
     {
-        resourceTableStore.generateResourceTable( new CategoryOptionComboResourceTable( null ) );            
+        resourceTableStore.generateResourceTable( new CategoryOptionComboResourceTable( null ) );
     }
 
     @Override
@@ -231,7 +229,7 @@ public class DefaultResourceTableService
     {
         List<SqlView> views = new ArrayList<>( sqlViewService.getAllSqlViewsNoAcl() );
         Collections.sort( views );
-        
+
         for ( SqlView view : views )
         {
             if ( !view.isQuery() )
@@ -242,7 +240,7 @@ public class DefaultResourceTableService
                 }
                 catch ( IllegalQueryException ex )
                 {
-                    log.warn( String.format( "Ignoring SQL view which failed validation: %s, %s, message: %s", 
+                    log.warn( String.format( "Ignoring SQL view which failed validation: %s, %s, message: %s",
                         view.getUid(), view.getName(), ex.getMessage() ) );
                 }
             }

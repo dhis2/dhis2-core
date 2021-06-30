@@ -1,7 +1,5 @@
-package org.hisp.dhis.mapgeneration;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,10 @@ package org.hisp.dhis.mapgeneration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapgeneration;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
+import java.awt.*;
+
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
 import org.geotools.styling.SLD;
@@ -39,7 +36,10 @@ import org.geotools.styling.Style;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.opengis.feature.simple.SimpleFeatureType;
 
-import java.awt.*;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 
 /**
  * An internal representation of a map object (feature) in a map layer.
@@ -61,12 +61,17 @@ public class InternalMapObject
     private static final float LINE_STROKE_WIDTH = 0.1f;
 
     private static final String CIRCLE = "Circle";
+
     private static final String POINT = "Point";
+
     private static final String POLYGON = "Polygon";
+
     private static final String MULTI_POLYGON = "MultiPolygon";
+
     private static final String GEOMETRIES = "geometries";
 
     public static final String TYPE_THEMATIC = "thematic";
+
     public static final String TYPE_BOUNDARY = "boundary";
 
     protected String name;
@@ -205,7 +210,6 @@ public class InternalMapObject
         }
     }
 
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -315,7 +319,7 @@ public class InternalMapObject
     public String toString()
     {
         return String.format( "InternalMapObject {" + " name: \"%s\"," + " value: %.2f," + " radius: %d,"
-                + " fillColor: %s," + " fillOpacity: %.2f" + " strokeColor: %s" + " }", name, value,
+            + " fillColor: %s," + " fillOpacity: %.2f" + " strokeColor: %s" + " }", name, value,
             radius, fillColor, fillOpacity, strokeColor );
     }
 }

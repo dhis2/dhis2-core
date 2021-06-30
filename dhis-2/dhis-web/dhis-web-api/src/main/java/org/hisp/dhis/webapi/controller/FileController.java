@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,21 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
+
+import java.io.IOException;
+import java.io.Writer;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +50,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.Writer;
 
 /**
  * @author Lars Helge Overland
@@ -82,12 +82,16 @@ public class FileController
 
         String content = (String) systemSettingManager.getSystemSetting( SettingKey.CUSTOM_JS, StringUtils.EMPTY );
 
-        writer.write( content );
+        if ( content != null )
+        {
+            writer.write( content );
+        }
     }
 
     @RequestMapping( value = "/script", method = RequestMethod.POST, consumes = "application/javascript" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')" )
-    public void postCustomScript( @RequestBody String content, HttpServletResponse response, HttpServletRequest request )
+    public void postCustomScript( @RequestBody String content, HttpServletResponse response,
+        HttpServletRequest request )
     {
         if ( content != null )
         {
@@ -109,7 +113,8 @@ public class FileController
     // -------------------------------------------------------------------------
 
     /**
-     * The style/external mapping enables style to be reached from login page / before authentication.
+     * The style/external mapping enables style to be reached from login page /
+     * before authentication.
      */
     @RequestMapping( value = { "/style", "/style/external" }, method = RequestMethod.GET )
     public void getCustomStyle( HttpServletResponse response, Writer writer )
@@ -119,7 +124,10 @@ public class FileController
 
         String content = (String) systemSettingManager.getSystemSetting( SettingKey.CUSTOM_CSS, StringUtils.EMPTY );
 
-        writer.write( content );
+        if ( content != null )
+        {
+            writer.write( content );
+        }
     }
 
     @RequestMapping( value = "/style", method = RequestMethod.POST, consumes = "text/css" )

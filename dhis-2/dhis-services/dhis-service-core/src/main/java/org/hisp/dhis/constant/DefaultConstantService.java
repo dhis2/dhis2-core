@@ -1,7 +1,5 @@
-package org.hisp.dhis.constant;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,9 @@ package org.hisp.dhis.constant;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.constant;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +35,10 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Dang Duy Hieu
@@ -56,7 +54,8 @@ public class DefaultConstantService
 
     private IdentifiableObjectStore<Constant> constantStore;
 
-    public DefaultConstantService( @Qualifier( "org.hisp.dhis.constant.ConstantStore" ) IdentifiableObjectStore<Constant> constantStore )
+    public DefaultConstantService(
+        @Qualifier( "org.hisp.dhis.constant.ConstantStore" ) IdentifiableObjectStore<Constant> constantStore )
     {
         checkNotNull( constantStore );
 
@@ -90,21 +89,21 @@ public class DefaultConstantService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Constant getConstant( int constantId )
     {
         return constantStore.get( constantId );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Constant getConstant( String uid )
     {
         return constantStore.getByUid( uid );
     }
-    
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Constant> getAllConstants()
     {
         return constantStore.getAll();
@@ -129,37 +128,37 @@ public class DefaultConstantService
         {
             map.put( constant.getName(), constant.getValue() );
         }
-        
+
         return map;
     }
 
     // -------------------------------------------------------------------------
     // Constant expanding
     // -------------------------------------------------------------------------
-    
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getConstantCount()
     {
         return constantStore.getCount();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getConstantCountByName( String name )
     {
         return constantStore.getCountLikeName( name );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Constant> getConstantsBetween( int first, int max )
     {
         return constantStore.getAllOrderedName( first, max );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Constant> getConstantsBetweenByName( String name, int first, int max )
     {
         return constantStore.getAllLikeName( name, first, max );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.webmessage;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,18 @@ package org.hisp.dhis.dxf2.webmessage;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.webmessage;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.Status;
+import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.Status;
-import org.springframework.http.HttpStatus;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,8 +56,9 @@ public class WebMessage
     protected Status status = Status.OK;
 
     /**
-     * Internal code for this message. Should be used to help with third party clients which
-     * should not have to resort to string parsing of message to know what is happening.
+     * Internal code for this message. Should be used to help with third party
+     * clients which should not have to resort to string parsing of message to
+     * know what is happening.
      */
     protected Integer code;
 
@@ -67,25 +68,26 @@ public class WebMessage
     protected HttpStatus httpStatus = HttpStatus.OK;
 
     /**
-     * The {@link ErrorCode} which describes a potential error. Only relevant for {@link Status#ERROR}.
+     * The {@link ErrorCode} which describes a potential error. Only relevant
+     * for {@link Status#ERROR}.
      */
     protected ErrorCode errorCode;
 
     /**
-     * Non-technical message, should be simple and could possibly be used to display message
-     * to an end-user.
+     * Non-technical message, should be simple and could possibly be used to
+     * display message to an end-user.
      */
     protected String message;
 
     /**
-     * Technical message that should explain as much details as possible, mainly to be used
-     * for debugging.
+     * Technical message that should explain as much details as possible, mainly
+     * to be used for debugging.
      */
     protected String devMessage;
 
     /**
-     * When a simple text feedback is not enough, you can use this interface to implement your
-     * own message responses.
+     * When a simple text feedback is not enough, you can use this interface to
+     * implement your own message responses.
      *
      * @see WebMessageResponse
      */

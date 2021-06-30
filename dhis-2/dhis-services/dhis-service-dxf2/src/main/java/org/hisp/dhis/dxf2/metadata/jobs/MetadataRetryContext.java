@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.jobs;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,11 @@ package org.hisp.dhis.dxf2.metadata.jobs;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.jobs;
 
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
@@ -38,8 +39,6 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.springframework.context.annotation.Scope;
 import org.springframework.retry.RetryContext;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Defines retry mechanism for metadata sync scheduling
@@ -75,7 +74,8 @@ public class MetadataRetryContext
         }
     }
 
-    public void updateRetryContext( String stepKey, String message, MetadataVersion version, MetadataSyncSummary summary )
+    public void updateRetryContext( String stepKey, String message, MetadataVersion version,
+        MetadataSyncSummary summary )
     {
         updateRetryContext( stepKey, message, version );
 
@@ -85,9 +85,9 @@ public class MetadataRetryContext
         }
     }
 
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
     // Private Methods
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
 
     private void setupImportReport( ImportReport importReport )
     {

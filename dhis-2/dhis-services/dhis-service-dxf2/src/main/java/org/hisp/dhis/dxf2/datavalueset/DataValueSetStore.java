@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.datavalueset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.dxf2.datavalueset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.datavalue.DataExportParams;
+package org.hisp.dhis.dxf2.datavalueset;
 
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Date;
+
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.datavalue.DataExportParams;
 
 /**
  * @author Lars Helge Overland
@@ -49,7 +48,8 @@ public interface DataValueSetStore
     /**
      * Query for {@link DataValueSet DataValueSets} and write result as JSON.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last updated after
+     * @param lastUpdated specifies the date to filter complete data sets last
+     *        updated after
      * @param outputStream the stream to write to
      * @param idSchemes idSchemes
      */
@@ -58,7 +58,8 @@ public interface DataValueSetStore
     /**
      * Query for {@link DataValueSet DataValueSets} and write result as JSON.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last updated after
+     * @param lastUpdated specifies the date to filter complete data sets last
+     *        updated after
      * @param outputStream the stream to write to
      * @param idSchemes idSchemes
      * @param pageSize pageSize

@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,18 @@ package org.hisp.dhis.commons.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.action;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.system.filter.IndicatorGroupWithoutGroupSetFilter;
-import org.hisp.dhis.commons.filter.FilterUtils;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 
 /**
  * @author mortenoh

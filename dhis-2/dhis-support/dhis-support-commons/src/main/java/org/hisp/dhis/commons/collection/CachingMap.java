@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.collection;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,17 @@ package org.hisp.dhis.commons.collection;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.collection;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
-import java.util.Collection;
 
 /**
  * Map which allows storing a {@link Callable} and caches its return value on
- * the first call to get(Object, Callable). Subsequent calls returns the cached value.
+ * the first call to get(Object, Callable). Subsequent calls returns the cached
+ * value.
  *
  * @author Lars Helge Overland
  */
@@ -57,14 +57,15 @@ public class CachingMap<K, V>
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the cached value if available or executes the {@link Callable} and returns
-     * the value, which is also cached. Will not attempt to fetch values for null
-     * keys, to avoid potentially expensive and pointless operations. Will cache
-     * entries with null values.
+     * Returns the cached value if available or executes the {@link Callable}
+     * and returns the value, which is also cached. Will not attempt to fetch
+     * values for null keys, to avoid potentially expensive and pointless
+     * operations. Will cache entries with null values.
      *
      * @param key the key.
      * @param callable the {@link Callable}.
-     * @return the return value of the {@link Callable}, either from cache or immediate execution.
+     * @return the return value of the {@link Callable}, either from cache or
+     *         immediate execution.
      */
     public V get( K key, Callable<V> callable )
     {
@@ -101,15 +102,16 @@ public class CachingMap<K, V>
     }
 
     /**
-     * Returns the cached value if available or executes the {@link Callable} and returns
-     * the value, which is also cached. If the value produced, the default value
-     * will be returned. Will not attempt to fetch values for null keys, to
-     * avoid potentially expensive and pointless operations.
+     * Returns the cached value if available or executes the {@link Callable}
+     * and returns the value, which is also cached. If the value produced, the
+     * default value will be returned. Will not attempt to fetch values for null
+     * keys, to avoid potentially expensive and pointless operations.
      *
      * @param key the key.
      * @param callable the {@link Callable}.
      * @param defaultValue the default value.
-     * @return the return value of the {@link Callable}, either from cache or immediate execution.
+     * @return the return value of the {@link Callable}, either from cache or
+     *         immediate execution.
      */
     public V get( K key, Callable<V> callable, V defaultValue )
     {
@@ -123,7 +125,8 @@ public class CachingMap<K, V>
      * null reference are ignored.
      *
      * @param collection the content collection.
-     * @param keyMapper the function to produce the cache key for a content item.
+     * @param keyMapper the function to produce the cache key for a content
+     *        item.
      * @return a reference to this caching map.
      */
     public CachingMap<K, V> load( Collection<V> collection, Function<V, K> keyMapper )

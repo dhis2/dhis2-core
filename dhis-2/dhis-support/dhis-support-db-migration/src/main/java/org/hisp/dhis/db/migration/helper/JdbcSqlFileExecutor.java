@@ -1,7 +1,5 @@
-package org.hisp.dhis.db.migration.helper;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.db.migration.helper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.db.migration.helper;
 
 import java.io.*;
 import java.sql.*;
@@ -34,6 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.flywaydb.core.api.FlywayException;
 
 /**
@@ -54,7 +54,8 @@ public class JdbcSqlFileExecutor
      * regex to detect delimiter. ignores spaces, allows delimiter in comment,
      * allows an equals-sign
      */
-    public static final Pattern delimP = Pattern.compile( "^\\s*(--)?\\s*delimiter\\s*=?\\s*([^\\s]+)+\\s*.*$", Pattern.CASE_INSENSITIVE );
+    public static final Pattern delimP = Pattern.compile( "^\\s*(--)?\\s*delimiter\\s*=?\\s*([^\\s]+)+\\s*.*$",
+        Pattern.CASE_INSENSITIVE );
 
     private final Connection connection;
 
@@ -135,7 +136,7 @@ public class JdbcSqlFileExecutor
         {
             LineNumberReader lineReader = new LineNumberReader( reader );
             String line;
-            while ( ( line = lineReader.readLine() ) != null )
+            while ( (line = lineReader.readLine()) != null )
             {
                 if ( command == null )
                 {
@@ -159,7 +160,8 @@ public class JdbcSqlFileExecutor
                 {
                     // Do nothing
                 }
-                else if ( !fullLineDelimiter && trimmedLine.endsWith( this.delimiter ) || fullLineDelimiter && trimmedLine.equals( this.delimiter ) )
+                else if ( !fullLineDelimiter && trimmedLine.endsWith( this.delimiter )
+                    || fullLineDelimiter && trimmedLine.equals( this.delimiter ) )
                 {
                     command.append( line.substring( 0, line.lastIndexOf( this.delimiter ) ) );
                     command.append( " " );
@@ -205,7 +207,8 @@ public class JdbcSqlFileExecutor
         }
         catch ( SQLException e )
         {
-            final String errText = String.format( "Error executing '%s' (line %d): %s", command, lineReader.getLineNumber(), e.getMessage() );
+            final String errText = String.format( "Error executing '%s' (line %d): %s", command,
+                lineReader.getLineNumber(), e.getMessage() );
             log.error( errText );
             if ( stopOnError )
             {

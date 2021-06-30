@@ -1,7 +1,5 @@
-package org.hisp.dhis.message;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.message;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.User;
+package org.hisp.dhis.message;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Stian Sandvold
@@ -63,7 +62,7 @@ public class MessageConversationParams
     private MessageConversationStatus status = MessageConversationStatus.NONE;
 
     private boolean forceNotification;
-    
+
     private MessageConversationParams()
     {
     }
@@ -134,7 +133,10 @@ public class MessageConversationParams
         return forceNotification;
     }
 
-    public Set<FileResource> getAttachments() { return attachments; }
+    public Set<FileResource> getAttachments()
+    {
+        return attachments;
+    }
 
     public MessageConversation createMessageConversation()
     {
@@ -155,36 +157,36 @@ public class MessageConversationParams
         {
             this.params = new MessageConversationParams();
         }
-        
+
         public Builder( Collection<User> recipients, User sender, String subject, String text, MessageType messageType )
         {
             this.params = new MessageConversationParams( recipients, sender, subject, text, messageType );
         }
-        
+
         public Builder withRecipients( Set<User> recipients )
         {
             this.params.recipients = new HashSet<>( recipients );
             return this;
         }
-        
+
         public Builder withSender( User sender )
         {
             this.params.sender = sender;
             return this;
         }
-        
+
         public Builder withSubject( String subject )
         {
             this.params.subject = subject;
             return this;
         }
-        
+
         public Builder withText( String text )
         {
             this.params.text = text;
             return this;
         }
-        
+
         public Builder withMessageType( MessageType messageType )
         {
             this.params.messageType = messageType;

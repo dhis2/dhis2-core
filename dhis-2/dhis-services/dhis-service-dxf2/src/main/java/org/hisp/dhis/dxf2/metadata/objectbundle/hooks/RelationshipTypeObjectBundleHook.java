@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
+import static org.hisp.dhis.relationship.RelationshipEntity.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -41,14 +45,9 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-
-import com.google.common.collect.Lists;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.hisp.dhis.relationship.RelationshipEntity.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Stian Sandvold
@@ -107,8 +106,8 @@ public class RelationshipTypeObjectBundleHook
     }
 
     /**
-     * Handles the references for RelationshipType, persisting any objects that might
-     * end up in a transient state.
+     * Handles the references for RelationshipType, persisting any objects that
+     * might end up in a transient state.
      *
      * @param relationshipType
      */
@@ -119,8 +118,8 @@ public class RelationshipTypeObjectBundleHook
     }
 
     /**
-     * Handles the references for RelationshipConstraint, persisting any bject that might
-     * end up in a transient state.
+     * Handles the references for RelationshipConstraint, persisting any bject
+     * that might end up in a transient state.
      *
      * @param relationshipConstraint
      */
@@ -152,7 +151,9 @@ public class RelationshipTypeObjectBundleHook
     }
 
     /**
-     * Validates the RelationshipType. A type should have constraints for both left and right side.
+     * Validates the RelationshipType. A type should have constraints for both
+     * left and right side.
+     *
      * @param relationshipType
      * @return
      */
@@ -183,8 +184,10 @@ public class RelationshipTypeObjectBundleHook
     }
 
     /**
-     * Validates RelationshipConstraint. Each constraint requires different properties set or not set depending on the
-     * RelationshipEntity set for this constraint.
+     * Validates RelationshipConstraint. Each constraint requires different
+     * properties set or not set depending on the RelationshipEntity set for
+     * this constraint.
+     *
      * @param constraint
      * @return
      */
@@ -199,13 +202,15 @@ public class RelationshipTypeObjectBundleHook
             // Should be not be null
             if ( constraint.getTrackedEntityType() == null )
             {
-                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, "trackedEntityType", "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
+                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, "trackedEntityType",
+                    "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
             }
 
             // Should be null
             if ( constraint.getProgramStage() != null )
             {
-                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage", "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
+                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage",
+                    "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
             }
 
         }
@@ -215,19 +220,22 @@ public class RelationshipTypeObjectBundleHook
             // Should be null
             if ( constraint.getTrackedEntityType() != null )
             {
-                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "trackedEntityType", "relationshipEntity", PROGRAM_INSTANCE ) );
+                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "trackedEntityType",
+                    "relationshipEntity", PROGRAM_INSTANCE ) );
             }
 
             // Should be not be null
             if ( constraint.getProgram() == null )
             {
-                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, "program", "relationshipEntity", PROGRAM_INSTANCE ) );
+                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, "program",
+                    "relationshipEntity", PROGRAM_INSTANCE ) );
             }
 
             // Should be null
             if ( constraint.getProgramStage() != null )
             {
-                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage", "relationshipEntity", PROGRAM_INSTANCE ) );
+                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage",
+                    "relationshipEntity", PROGRAM_INSTANCE ) );
             }
 
         }
@@ -237,19 +245,22 @@ public class RelationshipTypeObjectBundleHook
             // Should be null
             if ( constraint.getTrackedEntityType() != null )
             {
-                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "trackedEntityType", "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
+                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "trackedEntityType",
+                    "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
             }
 
             // Should be null
             if ( constraint.getProgram() != null && constraint.getProgramStage() != null )
             {
-                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4025, "program", "programStage" ) );
+                result
+                    .add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4025, "program", "programStage" ) );
             }
 
             // Should be null
             if ( constraint.getProgram() == null && constraint.getProgramStage() == null )
             {
-                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4026, "program", "programStage", "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
+                result.add( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4026, "program", "programStage",
+                    "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
             }
 
         }

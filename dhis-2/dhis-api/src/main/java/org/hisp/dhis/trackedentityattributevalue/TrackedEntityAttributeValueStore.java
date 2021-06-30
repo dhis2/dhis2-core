@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentityattributevalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.trackedentityattributevalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentityattributevalue;
+
+import java.util.Collection;
+import java.util.List;
 
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -63,7 +62,7 @@ public interface TrackedEntityAttributeValueStore
      * Retrieve a {@link TrackedEntityAttributeValue} on a
      * {@link TrackedEntityInstance} and {@link TrackedEntityAttribute}
      *
-     * @param instance  the {@link TrackedEntityInstance}
+     * @param instance the {@link TrackedEntityInstance}
      * @param attribute the {@link TrackedEntityAttribute}
      * @return TrackedEntityAttributeValue
      */
@@ -99,33 +98,35 @@ public interface TrackedEntityAttributeValueStore
      * Search TrackedEntityAttributeValue objects by a TrackedEntityAttribute
      * and a attribute value (performs partial search )
      *
-     * @param attribute  TrackedEntityAttribute
+     * @param attribute TrackedEntityAttribute
      * @param searchText A string for searching by attribute values
      * @return TrackedEntityAttributeValue list
      */
     List<TrackedEntityAttributeValue> searchByValue( TrackedEntityAttribute attribute, String searchText );
 
     /**
-     * Gets a list of {@link TrackedEntityAttributeValue} that matches the parameters
+     * Gets a list of {@link TrackedEntityAttributeValue} that matches the
+     * parameters
      *
      * @param attribute {@link TrackedEntityAttribute} to get value for
-     * @param value     literal value to find within the specified {@link TrackedEntityAttribute}
+     * @param value literal value to find within the specified
+     *        {@link TrackedEntityAttribute}
      * @return list of {@link TrackedEntityAttributeValue}
      */
     List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute, String value );
-
 
     /**
      * Retrieve attribute values of an instance by a program.
      *
      * @param instance the TrackedEntityInstance
-     * @param program  the Program.
+     * @param program the Program.
      * @return TrackedEntityAttributeValue list
      */
     List<TrackedEntityAttributeValue> get( TrackedEntityInstance instance, Program program );
 
     /**
-     * Return the number of assigned {@link TrackedEntityAttributeValue}s to the {@link TrackedEntityAttribute}
+     * Return the number of assigned {@link TrackedEntityAttributeValue}s to the
+     * {@link TrackedEntityAttribute}
      *
      * @param attribute {@link TrackedEntityAttribute}
      * @return Number of assigned TrackedEntityAttributeValues

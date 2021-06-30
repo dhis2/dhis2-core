@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,16 @@ package org.hisp.dhis.sms;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.program.message.MessageBatchCreatorService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.program.message.MessageBatchCreatorService;
+import org.hisp.dhis.program.message.ProgramMessage;
 import org.springframework.stereotype.Service;
 
 /**
@@ -50,7 +49,7 @@ public class SmsMessageBatchCreatorService
     {
         List<OutboundMessage> messages = programMessages.parallelStream()
             .filter( pm -> pm.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
-            .map(this::createSmsMessage)
+            .map( this::createSmsMessage )
             .collect( Collectors.toList() );
 
         return new OutboundMessageBatch( messages, DeliveryChannel.SMS );
@@ -59,6 +58,6 @@ public class SmsMessageBatchCreatorService
     private OutboundMessage createSmsMessage( ProgramMessage programMessage )
     {
         return new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
-                programMessage.getRecipients().getPhoneNumbers() );
+            programMessage.getRecipients().getPhoneNumbers() );
     }
 }

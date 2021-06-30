@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
 /**
  * PeriodType for weekly Periods. A valid weekly Period has startDate set to
- * Thursday and endDate set to Wednesday the same week, assuming Thursday is the first
- * day and Wednesday is the last day of the week.
+ * Thursday and endDate set to Wednesday the same week, assuming Thursday is the
+ * first day and Wednesday is the last day of the week.
  *
  * @author Torgeir Lorange Ostby
  */

@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import java.io.Serializable;
 
@@ -34,7 +33,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 
@@ -44,8 +42,8 @@ import com.google.common.collect.ImmutableSet;
 public class GridHeader
     implements Serializable
 {
-    private static final ImmutableSet<String> NUMERIC_TYPES =
-        ImmutableSet.of( Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
+    private static final ImmutableSet<String> NUMERIC_TYPES = ImmutableSet.of( Float.class.getName(),
+        Double.class.getName(), Long.class.getName(), Integer.class.getName() );
 
     /**
      * Format header key name.
@@ -141,7 +139,8 @@ public class GridHeader
      * @param optionSet option set.
      * @param legendSet legend set.
      */
-    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta, OptionSet optionSet, LegendSet legendSet )
+    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta,
+        OptionSet optionSet, LegendSet legendSet )
     {
         this( name, column, valueType, type, hidden, meta );
         this.optionSet = optionSet;

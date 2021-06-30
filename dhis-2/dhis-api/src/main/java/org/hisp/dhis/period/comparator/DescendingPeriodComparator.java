@@ -1,7 +1,5 @@
-package org.hisp.dhis.period.comparator;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +25,29 @@ package org.hisp.dhis.period.comparator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period.comparator;
 
 import java.util.Comparator;
 
 import org.hisp.dhis.period.Period;
 
 /**
- * Sorts periods descending based on the end date, then the start date, i.e. the latest period
- * comes first. The start date and end date properties cannot be null.
- * 
+ * Sorts periods descending based on the end date, then the start date, i.e. the
+ * latest period comes first. The start date and end date properties cannot be
+ * null.
+ *
  * @author Lars Helge Overland
  */
 public class DescendingPeriodComparator
     implements Comparator<Period>
 {
     public static final DescendingPeriodComparator INSTANCE = new DescendingPeriodComparator();
-    
+
     @Override
     public int compare( Period period1, Period period2 )
     {
         int endDateCompared = period2.getEndDate().compareTo( period1.getEndDate() );
-        
+
         if ( endDateCompared != 0 )
         {
             return endDateCompared;

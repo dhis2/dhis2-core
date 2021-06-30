@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.collection;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.system.collection;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.scheduling.JobConfiguration;
+package org.hisp.dhis.system.collection;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
  * @author Lars Helge Overland
@@ -39,7 +38,7 @@ import java.util.Map;
 public class JobLocalMap<T, V>
 {
     private final Map<JobConfiguration, Map<T, V>> internalMap;
-    
+
     public JobLocalMap()
     {
         this.internalMap = new HashMap<>();

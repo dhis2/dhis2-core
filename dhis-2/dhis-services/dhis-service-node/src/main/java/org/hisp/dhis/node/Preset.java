@@ -1,7 +1,5 @@
-package org.hisp.dhis.node;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,11 @@ package org.hisp.dhis.node;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.Lists;
+package org.hisp.dhis.node;
 
 import java.util.List;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,7 +41,8 @@ public enum Preset
     ID_NAME( "idName", Lists.newArrayList( "id", "displayName" ) ),
     ALL( "all", Lists.newArrayList( "*" ) ),
     IDENTIFIABLE( "identifiable", Lists.newArrayList( "id", "name", "code", "created", "lastUpdated", "href" ) ),
-    NAMEABLE( "nameable", Lists.newArrayList( "id", "name", "shortName", "description", "code", "created", "lastUpdated", "href" ) );
+    NAMEABLE( "nameable",
+        Lists.newArrayList( "id", "name", "shortName", "description", "code", "created", "lastUpdated", "href" ) );
 
     private String name;
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.resourcetable;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.resourcetable;
 
 import java.util.List;
 
@@ -38,22 +37,27 @@ public interface ResourceTableStore
     String ID = ResourceTableStore.class.getName();
 
     String TABLE_NAME_CATEGORY_OPTION_COMBO_NAME = "_categoryoptioncomboname";
+
     String TABLE_NAME_DATA_ELEMENT_STRUCTURE = "_dataelementstructure";
+
     String TABLE_NAME_PERIOD_STRUCTURE = "_periodstructure";
+
     String TABLE_NAME_DATE_PERIOD_STRUCTURE = "_dateperiodstructure";
+
     String TABLE_NAME_DATA_ELEMENT_CATEGORY_OPTION_COMBO = "_dataelementcategoryoptioncombo";
+
     String TABLE_NAME_DATA_APPROVAL_MIN_LEVEL = "_dataapprovalminlevel";
-    
+
     /**
      * Generates the given resource table.
-     * 
+     *
      * @param resourceTable the resource table.
      */
     void generateResourceTable( ResourceTable<?> resourceTable );
-    
+
     /**
      * Performs a batch update.
-     * 
+     *
      * @param columns the number of columns in the table to update.
      * @param tableName the name of the table to update.
      * @param batchArgs the arguments to use for the update statement.

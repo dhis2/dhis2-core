@@ -1,7 +1,5 @@
-package org.hisp.dhis.minmax;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.minmax;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.minmax;
 
-import org.hisp.dhis.dataelement.DataElement;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -52,7 +51,7 @@ public class MinMaxDataElementDeletionHandler
 
     public MinMaxDataElementDeletionHandler( MinMaxDataElementService minMaxDataElementService )
     {
-        checkNotNull(minMaxDataElementService);
+        checkNotNull( minMaxDataElementService );
 
         this.minMaxDataElementService = minMaxDataElementService;
     }
@@ -66,19 +65,19 @@ public class MinMaxDataElementDeletionHandler
     {
         return MinMaxDataElement.class.getSimpleName();
     }
-    
+
     @Override
     public void deleteDataElement( DataElement dataElement )
     {
         minMaxDataElementService.removeMinMaxDataElements( dataElement );
     }
-    
+
     @Override
     public void deleteOrganisationUnit( OrganisationUnit source )
     {
         minMaxDataElementService.removeMinMaxDataElements( source );
     }
-    
+
     @Override
     public void deleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {

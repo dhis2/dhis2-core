@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +25,19 @@ package org.hisp.dhis.webapi.controller.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.organisationunit;
 
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
 
 import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.TranslateParams;
@@ -65,6 +59,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -81,7 +80,8 @@ public class OrganisationUnitController
 
     @Override
     @SuppressWarnings( "unchecked" )
-    protected List<OrganisationUnit> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    protected List<OrganisationUnit> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
+        List<Order> orders )
         throws QueryParserException
     {
         List<OrganisationUnit> objects = Lists.newArrayList();
@@ -89,9 +89,11 @@ public class OrganisationUnitController
         User currentUser = currentUserService.getCurrentUser();
 
         boolean anySpecialPropertySet = ObjectUtils.anyIsTrue( options.isTrue( "userOnly" ),
-            options.isTrue( "userDataViewOnly" ), options.isTrue( "userDataViewFallback" ), options.isTrue( "levelSorted" ) );
+            options.isTrue( "userDataViewOnly" ), options.isTrue( "userDataViewFallback" ),
+            options.isTrue( "levelSorted" ) );
         boolean anyQueryPropertySet = ObjectUtils.firstNonNull( options.get( "query" ), options.getInt( "level" ),
-            options.getInt( "maxLevel" ) ) != null || options.isTrue( "withinUserHierarchy" ) || options.isTrue( "withinUserSearchHierarchy" );
+            options.getInt( "maxLevel" ) ) != null || options.isTrue( "withinUserHierarchy" )
+            || options.isTrue( "withinUserSearchHierarchy" );
         String memberObject = options.get( "memberObject" );
         String memberCollection = options.get( "memberCollection" );
 
@@ -134,9 +136,11 @@ public class OrganisationUnitController
             params.setQuery( options.get( "query" ) );
             params.setLevel( options.getInt( "level" ) );
             params.setMaxLevels( options.getInt( "maxLevel" ) );
-            
+
             params.setParents( options.isTrue( "withinUserHierarchy" ) ? currentUser.getOrganisationUnits()
-                : options.isTrue( "withinUserSearchHierarchy" ) ? currentUser.getTeiSearchOrganisationUnitsWithFallback() : Sets.newHashSet() );
+                : options.isTrue( "withinUserSearchHierarchy" )
+                    ? currentUser.getTeiSearchOrganisationUnitsWithFallback()
+                    : Sets.newHashSet() );
 
             objects = organisationUnitService.getOrganisationUnitsByQuery( params );
         }
@@ -145,7 +149,8 @@ public class OrganisationUnitController
         // Standard Query handling
         // ---------------------------------------------------------------------
 
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
+            options.getRootJunction() );
         query.setUser( currentUser );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
@@ -167,7 +172,8 @@ public class OrganisationUnitController
         {
             for ( OrganisationUnit unit : list )
             {
-                Long count = organisationUnitService.getOrganisationUnitHierarchyMemberCount( unit, member, memberCollection );
+                Long count = organisationUnitService.getOrganisationUnitHierarchyMemberCount( unit, member,
+                    memberCollection );
 
                 unit.setMemberCount( (count != null ? count.intValue() : 0) );
             }
@@ -213,7 +219,8 @@ public class OrganisationUnitController
             int level = options.getInt( "level" );
             int ouLevel = organisationUnit.getLevel();
             int targetLevel = ouLevel + level;
-            organisationUnits.addAll( organisationUnitService.getOrganisationUnitsAtLevel( targetLevel, organisationUnit ) );
+            organisationUnits
+                .addAll( organisationUnitService.getOrganisationUnitsAtLevel( targetLevel, organisationUnit ) );
         }
         else
         {
@@ -226,7 +233,8 @@ public class OrganisationUnitController
     @RequestMapping( value = "/{uid}/parents", method = RequestMethod.GET )
     public @ResponseBody List<OrganisationUnit> getEntityList( @PathVariable( "uid" ) String uid,
         @RequestParam Map<String, String> parameters, Model model, TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         setUserContext( translateParams );
         OrganisationUnit organisationUnit = manager.get( getEntityClass(), uid );
@@ -249,12 +257,14 @@ public class OrganisationUnitController
         return organisationUnits;
     }
 
-    @RequestMapping( value = "", method = RequestMethod.GET, produces = { "application/json+geo", "application/json+geojson" } )
+    @RequestMapping( value = "", method = RequestMethod.GET, produces = { "application/json+geo",
+        "application/json+geojson" } )
     public void getGeoJson(
         @RequestParam( value = "level", required = false ) List<Integer> rpLevels,
         @RequestParam( value = "parent", required = false ) List<String> rpParents,
         @RequestParam( value = "properties", required = false, defaultValue = "true" ) boolean rpProperties,
-        User currentUser, HttpServletResponse response ) throws IOException
+        User currentUser, HttpServletResponse response )
+        throws IOException
     {
         rpLevels = rpLevels != null ? rpLevels : new ArrayList<>();
         rpParents = rpParents != null ? rpParents : new ArrayList<>();
@@ -271,7 +281,8 @@ public class OrganisationUnitController
             parents.addAll( organisationUnitService.getRootOrganisationUnits() );
         }
 
-        List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitsAtLevels( rpLevels, parents );
+        List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitsAtLevels( rpLevels,
+            parents );
 
         response.setContentType( "application/json" );
 
@@ -293,8 +304,9 @@ public class OrganisationUnitController
         generator.close();
     }
 
-    private void writeFeature(JsonGenerator generator, OrganisationUnit organisationUnit,
-                              boolean includeProperties, User user) throws IOException
+    private void writeFeature( JsonGenerator generator, OrganisationUnit organisationUnit,
+        boolean includeProperties, User user )
+        throws IOException
     {
         if ( organisationUnit.getGeometry() == null )
         {

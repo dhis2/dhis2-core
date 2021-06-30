@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,14 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.junit.Assert.*;
+
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -58,11 +61,8 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -73,26 +73,37 @@ public class EventQueryPlannerTest
     private Program prA;
 
     private DataElement deA;
+
     private DataElement deB;
+
     private DataElement deC;
+
     private DataElement deD;
 
     private ProgramDataElementDimensionItem pdeA;
+
     private ProgramDataElementDimensionItem pdeB;
+
     private ProgramDataElementDimensionItem pdeC;
+
     private ProgramDataElementDimensionItem pdeD;
 
     private TrackedEntityAttribute atA;
+
     private TrackedEntityAttribute atB;
 
     private ProgramTrackedEntityAttributeDimensionItem patA;
+
     private ProgramTrackedEntityAttributeDimensionItem patB;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
 
     private LegendSet lsA;
+
     private OptionSet osA;
 
     @Autowired
@@ -114,8 +125,10 @@ public class EventQueryPlannerTest
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
-        deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, DataElementDomain.TRACKER );
-        deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, DataElementDomain.TRACKER );
+        deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
+            DataElementDomain.TRACKER );
+        deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
+            DataElementDomain.TRACKER );
 
         idObjectManager.save( deA );
         idObjectManager.save( deB );
@@ -176,7 +189,8 @@ public class EventQueryPlannerTest
 
         assertEquals( 3, partitions.getPartitions().size() );
         assertEquals( expected, partitions );
-        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ), query.getTableName() );
+        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ),
+            query.getTableName() );
     }
 
     @Test
@@ -202,7 +216,8 @@ public class EventQueryPlannerTest
 
         assertEquals( 1, partitions.getPartitions().size() );
         assertEquals( expected, partitions );
-        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ), query.getTableName() );
+        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ),
+            query.getTableName() );
     }
 
     @Test
@@ -227,7 +242,8 @@ public class EventQueryPlannerTest
 
         assertEquals( 3, partitions.getPartitions().size() );
         assertEquals( expected, partitions );
-        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ), query.getTableName() );
+        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ),
+            query.getTableName() );
     }
 
     @Test
@@ -249,7 +265,8 @@ public class EventQueryPlannerTest
 
         assertEquals( 3, partitions.getPartitions().size() );
         assertEquals( expected, partitions );
-        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ), params.getTableName() );
+        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ),
+            params.getTableName() );
     }
 
     @Test
@@ -271,7 +288,8 @@ public class EventQueryPlannerTest
 
         assertEquals( 1, partitions.getPartitions().size() );
         assertEquals( expected, partitions );
-        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ), params.getTableName() );
+        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ),
+            params.getTableName() );
     }
 
     @Test
@@ -281,7 +299,9 @@ public class EventQueryPlannerTest
             .withProgramDataElements( getList( pdeA, pdeB, pdeC, pdeD ) )
             .withProgramAttributes( getList( patA, patB ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC ) )
-            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ), createPeriod( "200107" ) ) ).build();
+            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ),
+                createPeriod( "200107" ) ) )
+            .build();
 
         EventQueryParams params = EventQueryParams.fromDataQueryParams( dataQueryParams );
 
@@ -302,7 +322,9 @@ public class EventQueryPlannerTest
             .withProgramDataElements( getList( pdeA, pdeB, pdeC, pdeD ) )
             .withProgramAttributes( getList( patA, patB ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC ) )
-            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ), createPeriod( "200107" ) ) ).build();
+            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ),
+                createPeriod( "200107" ) ) )
+            .build();
 
         EventQueryParams params = EventQueryParams.fromDataQueryParams( dataQueryParams );
 
@@ -323,7 +345,9 @@ public class EventQueryPlannerTest
             .withProgramDataElements( getList( pdeA, pdeB, pdeC, pdeD ) )
             .withProgramAttributes( getList( patA, patB ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC ) )
-            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ), createPeriod( "200107" ) ) ).build();
+            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ),
+                createPeriod( "200107" ) ) )
+            .build();
 
         EventQueryParams params = new EventQueryParams.Builder( dataQueryParams )
             .withCollapseDataDimensions( true )
@@ -352,13 +376,14 @@ public class EventQueryPlannerTest
         testPlanAggregateDataQueryFirstOrLastValue( AnalyticsAggregationType.LAST );
     }
 
-    private void testPlanAggregateDataQueryFirstOrLastValue(AnalyticsAggregationType analyticsAggregationType)
+    private void testPlanAggregateDataQueryFirstOrLastValue( AnalyticsAggregationType analyticsAggregationType )
     {
         DataQueryParams dataQueryParams = DataQueryParams.newBuilder()
-                .withProgramDataElements( getList( pdeA ) )
-                .withOrganisationUnits( getList( ouA ) )
-                .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ), createPeriod( "200107" ) ) )
-                .withAggregationType( analyticsAggregationType ).build();
+            .withProgramDataElements( getList( pdeA ) )
+            .withOrganisationUnits( getList( ouA ) )
+            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ),
+                createPeriod( "200107" ) ) )
+            .withAggregationType( analyticsAggregationType ).build();
 
         EventQueryParams params = EventQueryParams.fromDataQueryParams( dataQueryParams );
 
@@ -370,7 +395,8 @@ public class EventQueryPlannerTest
         {
             assertEquals( 1, query.getPeriods().size() );
             assertNotNull( query.getDimension( PERIOD_DIM_ID ) );
-            assertEquals( MonthlyPeriodType.NAME.toLowerCase(), query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
+            assertEquals( MonthlyPeriodType.NAME.toLowerCase(),
+                query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
             assertTrue( query.hasValueDimension() );
         }
     }

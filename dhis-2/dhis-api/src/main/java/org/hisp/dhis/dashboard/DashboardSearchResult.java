@@ -1,7 +1,5 @@
-package org.hisp.dhis.dashboard;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
@@ -42,15 +41,15 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.SimpleVisualizationView;
+import org.hisp.dhis.visualization.Visualization;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.visualization.Visualization;
 
-@JacksonXmlRootElement( localName = "dashboardSearchResult", namespace = DXF_2_0)
+@JacksonXmlRootElement( localName = "dashboardSearchResult", namespace = DXF_2_0 )
 public class DashboardSearchResult
 {
     private List<User> users = new ArrayList<>();
@@ -178,8 +177,8 @@ public class DashboardSearchResult
 
     @JsonProperty( value = "users" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "users", namespace = DXF_2_0)
-    @JacksonXmlProperty( localName = "user", namespace = DXF_2_0)
+    @JacksonXmlElementWrapper( localName = "users", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "user", namespace = DXF_2_0 )
     public List<User> getUsers()
     {
         return users;
@@ -248,8 +247,8 @@ public class DashboardSearchResult
 
     @JsonProperty( value = "maps" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "maps", namespace = DXF_2_0)
-    @JacksonXmlProperty( localName = "map", namespace = DXF_2_0)
+    @JacksonXmlElementWrapper( localName = "maps", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "map", namespace = DXF_2_0 )
     public List<Map> getMaps()
     {
         return maps;
@@ -262,8 +261,8 @@ public class DashboardSearchResult
 
     @JsonProperty( value = "eventReports" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "eventReports", namespace = DXF_2_0)
-    @JacksonXmlProperty( localName = "eventReport", namespace = DXF_2_0)
+    @JacksonXmlElementWrapper( localName = "eventReports", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "eventReport", namespace = DXF_2_0 )
     public List<EventReport> getEventReports()
     {
         return eventReports;
@@ -276,8 +275,8 @@ public class DashboardSearchResult
 
     @JsonProperty( value = "reports" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "reports", namespace = DXF_2_0)
-    @JacksonXmlProperty( localName = "report", namespace = DXF_2_0)
+    @JacksonXmlElementWrapper( localName = "reports", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "report", namespace = DXF_2_0 )
     public List<Report> getReports()
     {
         return reports;
@@ -290,8 +289,8 @@ public class DashboardSearchResult
 
     @JsonProperty( value = "resources" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "resources", namespace = DXF_2_0)
-    @JacksonXmlProperty( localName = "resource", namespace = DXF_2_0)
+    @JacksonXmlElementWrapper( localName = "resources", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "resource", namespace = DXF_2_0 )
     public List<Document> getResources()
     {
         return resources;

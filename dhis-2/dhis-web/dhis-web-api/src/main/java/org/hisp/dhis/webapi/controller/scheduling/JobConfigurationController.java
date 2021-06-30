@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.scheduling;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.webapi.controller.scheduling;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.scheduling;
+
+import java.util.Map;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -45,8 +46,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 /**
  * Simple controller for API endpoints
@@ -69,7 +68,8 @@ public class JobConfigurationController
         this.schedulingManager = schedulingManager;
     }
 
-    @RequestMapping( value = "/jobTypesExtended", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    @RequestMapping( value = "/jobTypesExtended", method = RequestMethod.GET, produces = { "application/json",
+        "application/javascript" } )
     public @ResponseBody Map<String, Map<String, Property>> getJobTypesExtended()
     {
         return jobConfigurationService.getJobParametersSchema();
@@ -81,7 +81,8 @@ public class JobConfigurationController
         return new JobTypes( jobConfigurationService.getJobTypeInfo() );
     }
 
-    @RequestMapping( value = "{uid}/execute", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    @RequestMapping( value = "{uid}/execute", method = RequestMethod.GET, produces = { "application/json",
+        "application/javascript" } )
     public ObjectReport executeJobConfiguration( @PathVariable( "uid" ) String uid )
     {
         JobConfiguration jobConfiguration = jobConfigurationService.getJobConfigurationByUid( uid );
@@ -92,7 +93,8 @@ public class JobConfigurationController
 
         if ( !success )
         {
-            objectReport.addErrorReport( new ErrorReport( JobConfiguration.class, new ErrorMessage( ErrorCode.E7006, jobConfiguration.getName() ) ) );
+            objectReport.addErrorReport( new ErrorReport( JobConfiguration.class,
+                new ErrorMessage( ErrorCode.E7006, jobConfiguration.getName() ) ) );
         }
 
         return objectReport;

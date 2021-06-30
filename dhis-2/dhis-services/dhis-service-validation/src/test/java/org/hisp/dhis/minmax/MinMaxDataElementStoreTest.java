@@ -1,7 +1,5 @@
-package org.hisp.dhis.minmax;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,24 @@ package org.hisp.dhis.minmax;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.minmax;
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Kristian Nordal
@@ -52,7 +52,7 @@ public class MinMaxDataElementStoreTest
 {
     @Autowired
     private DataElementService dataElementService;
-    
+
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
@@ -82,18 +82,22 @@ public class MinMaxDataElementStoreTest
         dataElementService.addDataElement( dataElement4 );
 
         CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
-        
-        MinMaxDataElement minMaxDataElement1 = new MinMaxDataElement( source1, dataElement1, optionCombo, 0, 100, false );
-        MinMaxDataElement minMaxDataElement2 = new MinMaxDataElement( source2, dataElement2, optionCombo, 0, 100, false );
-        MinMaxDataElement minMaxDataElement3 = new MinMaxDataElement( source2, dataElement3, optionCombo, 0, 100, false );
-        MinMaxDataElement minMaxDataElement4 = new MinMaxDataElement( source2, dataElement4, optionCombo, 0, 100, false );
+
+        MinMaxDataElement minMaxDataElement1 = new MinMaxDataElement( source1, dataElement1, optionCombo, 0, 100,
+            false );
+        MinMaxDataElement minMaxDataElement2 = new MinMaxDataElement( source2, dataElement2, optionCombo, 0, 100,
+            false );
+        MinMaxDataElement minMaxDataElement3 = new MinMaxDataElement( source2, dataElement3, optionCombo, 0, 100,
+            false );
+        MinMaxDataElement minMaxDataElement4 = new MinMaxDataElement( source2, dataElement4, optionCombo, 0, 100,
+            false );
 
         minMaxDataElementStore.save( minMaxDataElement1 );
         long mmdeid1 = minMaxDataElement1.getId();
         minMaxDataElementStore.save( minMaxDataElement2 );
         minMaxDataElementStore.save( minMaxDataElement3 );
         minMaxDataElementStore.save( minMaxDataElement4 );
-        
+
         // ----------------------------------------------------------------------
         // Assertions
         // ----------------------------------------------------------------------
@@ -142,10 +146,14 @@ public class MinMaxDataElementStoreTest
 
         CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        MinMaxDataElement minMaxDataElement1 = new MinMaxDataElement( source1, dataElement1, optionCombo, 0, 100, false );
-        MinMaxDataElement minMaxDataElement2 = new MinMaxDataElement( source2, dataElement2, optionCombo, 0, 100, false );
-        MinMaxDataElement minMaxDataElement3 = new MinMaxDataElement( source2, dataElement3, optionCombo, 0, 100, false );
-        MinMaxDataElement minMaxDataElement4 = new MinMaxDataElement( source2, dataElement4, optionCombo, 0, 100, false );
+        MinMaxDataElement minMaxDataElement1 = new MinMaxDataElement( source1, dataElement1, optionCombo, 0, 100,
+            false );
+        MinMaxDataElement minMaxDataElement2 = new MinMaxDataElement( source2, dataElement2, optionCombo, 0, 100,
+            false );
+        MinMaxDataElement minMaxDataElement3 = new MinMaxDataElement( source2, dataElement3, optionCombo, 0, 100,
+            false );
+        MinMaxDataElement minMaxDataElement4 = new MinMaxDataElement( source2, dataElement4, optionCombo, 0, 100,
+            false );
 
         minMaxDataElementStore.save( minMaxDataElement1 );
         minMaxDataElementStore.save( minMaxDataElement2 );

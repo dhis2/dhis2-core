@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.systemsettings;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.systemsettings;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.systemsettings;
 
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -40,7 +39,7 @@ import org.springframework.stereotype.Service;
  * @author anilkumk.
  */
 @Service( "org.hisp.dhis.dxf2.metadata.sync.MetadataSystemSettingService" )
-@Scope("prototype")
+@Scope( "prototype" )
 public class DefaultMetadataSystemSettingService
     implements MetadataSystemSettingService
 {
@@ -48,6 +47,7 @@ public class DefaultMetadataSystemSettingService
     private SystemSettingManager systemSettingManager;
 
     private final String API_URL = "/api/metadata/version";
+
     private final String BASELINE_URL = API_URL + "/history?baseline=";
 
     public String getRemoteInstanceUserName()
@@ -62,12 +62,14 @@ public class DefaultMetadataSystemSettingService
 
     public String getVersionDetailsUrl( String versionName )
     {
-        return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "?versionName=" + versionName;
+        return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "?versionName="
+            + versionName;
     }
 
     public String getDownloadVersionSnapshotURL( String versionName )
     {
-        return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "/" + versionName + "/data.gz";
+        return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "/" + versionName
+            + "/data.gz";
     }
 
     public String getMetaDataDifferenceURL( String versionName )

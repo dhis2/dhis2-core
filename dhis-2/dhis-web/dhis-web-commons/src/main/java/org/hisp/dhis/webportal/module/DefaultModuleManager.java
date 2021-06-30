@@ -1,7 +1,5 @@
-package org.hisp.dhis.webportal.module;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,30 +25,22 @@ package org.hisp.dhis.webportal.module;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webportal.module;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.stream.*;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.struts2.dispatcher.Dispatcher;
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.appmanager.AppType;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.security.ActionAccessResolver;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.*;
 
-import com.opensymphony.xwork2.config.Configuration;
-import com.opensymphony.xwork2.config.entities.PackageConfig;
+import org.apache.struts2.dispatcher.*;
+import org.hisp.dhis.appmanager.*;
+import org.hisp.dhis.i18n.*;
+import org.hisp.dhis.i18n.locale.*;
+import org.hisp.dhis.security.*;
+import org.springframework.beans.factory.annotation.*;
+
+import com.opensymphony.xwork2.config.*;
+import com.opensymphony.xwork2.config.entities.*;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -61,6 +51,8 @@ public class DefaultModuleManager
     implements ModuleManager
 {
     private boolean modulesDetected = false;
+
+    private Locale currentLocale;
 
     private Map<String, Module> modulesByName = new HashMap<>();
 
@@ -79,6 +71,9 @@ public class DefaultModuleManager
 
     @Autowired
     private I18nManager i18nManager;
+
+    @Autowired
+    private LocaleManager localeManager;
 
     private ActionAccessResolver actionAccessResolver;
 
@@ -116,6 +111,7 @@ public class DefaultModuleManager
     public Module getModuleByName( String name )
     {
         detectModules();
+        detectLocaleChange();
 
         return modulesByName.get( name );
     }
@@ -124,6 +120,7 @@ public class DefaultModuleManager
     public Module getModuleByNamespace( String namespace )
     {
         detectModules();
+        detectLocaleChange();
 
         return modulesByNamespace.get( namespace );
     }
@@ -138,6 +135,7 @@ public class DefaultModuleManager
     public List<Module> getMenuModules()
     {
         detectModules();
+        detectLocaleChange();
 
         return new ArrayList<>( menuModules );
     }
@@ -146,6 +144,7 @@ public class DefaultModuleManager
     public List<Module> getAccessibleMenuModules()
     {
         detectModules();
+        detectLocaleChange();
 
         return getAccessibleModules( menuModules );
     }
@@ -169,6 +168,7 @@ public class DefaultModuleManager
     public Collection<Module> getAllModules()
     {
         detectModules();
+        detectLocaleChange();
 
         return new ArrayList<>( modulesByName.values() );
     }
@@ -188,6 +188,21 @@ public class DefaultModuleManager
     // -------------------------------------------------------------------------
     // Module detection
     // -------------------------------------------------------------------------
+
+    private synchronized void detectLocaleChange()
+    {
+        if ( localeManager.getCurrentLocale().equals( currentLocale ) )
+        {
+            return;
+        }
+
+        currentLocale = localeManager.getCurrentLocale();
+
+        I18n i18n = i18nManager.getI18n();
+
+        modulesByNamespace.values().forEach( m -> m.setDisplayName( i18n.getString( m.getName() ) ) );
+        modulesByName.values().forEach( m -> m.setDisplayName( i18n.getString( m.getName() ) ) );
+    }
 
     private synchronized void detectModules()
     {
@@ -257,6 +272,7 @@ public class DefaultModuleManager
         log.debug( "Menu modules detected: " + menuModules );
 
         modulesDetected = true;
+        currentLocale = localeManager.getCurrentLocale();
     }
 
     // -------------------------------------------------------------------------

@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
-
-import java.util.List;
 
 /**
  * @author Chau Thu Tran
@@ -43,16 +42,17 @@ public interface ProgramStageStore
     /**
      * Retrieve a program stage by name and a program
      *
-     * @param name    Name of program stage
+     * @param name Name of program stage
      * @param program Specify a {@link Program} for retrieving a program stage.
-     *                The system allows the name of program stages are duplicated on
-     *                different programs
+     *        The system allows the name of program stages are duplicated on
+     *        different programs
      * @return ProgramStage
      */
     ProgramStage getByNameAndProgram( String name, Program program );
 
     /**
      * Get all ProgramStages associated with the given DataEntryForm.
+     *
      * @param dataEntryForm the DataEntryForm.
      * @return a list of ProgramStages.
      */

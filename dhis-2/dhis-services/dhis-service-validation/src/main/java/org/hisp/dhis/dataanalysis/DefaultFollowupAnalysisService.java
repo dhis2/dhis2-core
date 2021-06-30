@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataanalysis;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,14 @@ package org.hisp.dhis.dataanalysis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataanalysis;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.ValueType;
@@ -40,8 +41,6 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -87,7 +86,8 @@ public class DefaultFollowupAnalysisService
             categoryOptionCombos.addAll( dataElement.getCategoryOptionCombos() );
         }
 
-        log.debug( "Starting min-max analysis, no of data elements: " + elements.size() + ", no of parent org units: " + parents.size() );
+        log.debug( "Starting min-max analysis, no of data elements: " + elements.size() + ", no of parent org units: "
+            + parents.size() );
 
         return dataAnalysisStore.getFollowupDataValues( elements, categoryOptionCombos, periods, parents, limit );
     }

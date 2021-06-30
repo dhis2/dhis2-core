@@ -1,7 +1,5 @@
-package org.hisp.dhis.fileresource;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.fileresource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fileresource;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -181,15 +180,22 @@ public class DefaultFileResourceService
     @Transactional
     public void deleteFileResource( FileResource fileResource )
     {
-        if ( fileResource == null || fileResourceStore.get( fileResource.getId() ) == null )
+        if ( fileResource == null )
         {
             return;
         }
 
-        FileDeletedEvent deleteFileEvent = new FileDeletedEvent( fileResource.getStorageKey(),
-            fileResource.getContentType(), fileResource.getDomain() );
+        FileResource existingResource = fileResourceStore.get( fileResource.getId() );
 
-        fileResourceStore.delete( fileResource );
+        if ( existingResource == null )
+        {
+            return;
+        }
+
+        FileDeletedEvent deleteFileEvent = new FileDeletedEvent( existingResource.getStorageKey(),
+            existingResource.getContentType(), existingResource.getDomain() );
+
+        fileResourceStore.delete( existingResource );
 
         fileEventPublisher.publishEvent( deleteFileEvent );
     }
@@ -211,7 +217,8 @@ public class DefaultFileResourceService
     @Override
     @Transactional( readOnly = true )
     public void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
-        throws IOException, NoSuchElementException
+        throws IOException,
+        NoSuchElementException
     {
         fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );
     }

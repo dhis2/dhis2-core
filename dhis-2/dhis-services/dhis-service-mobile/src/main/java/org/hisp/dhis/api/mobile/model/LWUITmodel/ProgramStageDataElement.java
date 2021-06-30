@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model.LWUITmodel;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model.LWUITmodel;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model.LWUITmodel;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -38,25 +37,25 @@ import org.hisp.dhis.api.mobile.model.ModelList;
 import org.hisp.dhis.api.mobile.model.OptionSet;
 import org.hisp.dhis.common.ValueType;
 
- /**
+/**
  * @author Nguyen Kim Lai
  */
 public class ProgramStageDataElement extends Model
 {
     private String clientVersion;
-    
+
     private String type;
-    
+
     private String numberType;
-    
+
     private boolean compulsory;
 
     private ModelList categoryOptionCombos;
 
     private OptionSet optionSet;
-    
+
     private String value;
-    
+
     public static final String TYPE_STRING = "string";
 
     public static final String TYPE_PHONE_NUMBER = "phoneNumber";
@@ -76,7 +75,7 @@ public class ProgramStageDataElement extends Model
     public static final String TYPE_TRACKER_ASSOCIATE = "trackerAssociate";
 
     public static final String TYPE_USERS = "users";
-    
+
     @Override
     public void serialize( DataOutputStream dout )
         throws IOException
@@ -84,7 +83,7 @@ public class ProgramStageDataElement extends Model
         super.serialize( dout );
         dout.writeUTF( this.getType() );
         if ( this.getNumberType() != null )
-        {    
+        {
             dout.writeBoolean( true );
             dout.writeUTF( this.getNumberType() );
         }
@@ -93,7 +92,7 @@ public class ProgramStageDataElement extends Model
             dout.writeBoolean( false );
         }
         dout.writeBoolean( this.isCompulsory() );
-        
+
         List<Model> cateOptCombos = this.getCategoryOptionCombos().getModels();
         if ( cateOptCombos == null || cateOptCombos.size() <= 0 )
         {
@@ -108,7 +107,7 @@ public class ProgramStageDataElement extends Model
                 each.serialize( dout );
             }
         }
-        
+
         if ( optionSet == null || optionSet.getOptions().size() <= 0 )
         {
             dout.writeBoolean( false );
@@ -119,7 +118,7 @@ public class ProgramStageDataElement extends Model
             optionSet.setClientVersion( TWO_POINT_TEN );
             optionSet.serialize( dout );
         }
-        
+
         if ( this.getValue() == null )
         {
             dout.writeBoolean( false );
@@ -130,14 +129,14 @@ public class ProgramStageDataElement extends Model
             dout.writeUTF( this.getValue() );
         }
     }
-    
+
     @Override
     public void deSerialize( DataInputStream dint )
         throws IOException
     {
         super.deSerialize( dint );
         this.setType( dint.readUTF() );
-        if( dint.readBoolean() )
+        if ( dint.readBoolean() )
         {
             this.setNumberType( dint.readUTF() );
         }
@@ -148,8 +147,8 @@ public class ProgramStageDataElement extends Model
         this.setCompulsory( dint.readBoolean() );
         this.categoryOptionCombos = new ModelList();
         this.categoryOptionCombos.deSerialize( dint );
-        
-        if( dint.readBoolean() == false )
+
+        if ( dint.readBoolean() == false )
         {
             this.optionSet = null;
         }
@@ -168,7 +167,7 @@ public class ProgramStageDataElement extends Model
             this.setValue( dint.readUTF() );
         }
     }
-    
+
     @Override
     public String getClientVersion()
     {
@@ -190,7 +189,7 @@ public class ProgramStageDataElement extends Model
     {
         this.value = value;
     }
-    
+
     public String getType()
     {
         return type;
@@ -200,8 +199,9 @@ public class ProgramStageDataElement extends Model
     {
         this.type = type;
     }
-    
-    public void setType (ValueType type) {
+
+    public void setType( ValueType type )
+    {
         if ( type == ValueType.BOOLEAN )
         {
             this.setType( TYPE_BOOL );
@@ -287,5 +287,5 @@ public class ProgramStageDataElement extends Model
     {
         this.numberType = numberType;
     }
-    
+
 }

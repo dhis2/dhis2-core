@@ -1,7 +1,5 @@
-package org.hisp.dhis.datastatistics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,17 @@ package org.hisp.dhis.datastatistics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datastatistics;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -49,24 +48,34 @@ public class DataStatisticsStoreTest
     private DataStatisticsStore dataStatisticsStore;
 
     private DataStatistics ds1;
+
     private DataStatistics ds2;
+
     private DataStatistics ds3;
+
     private DataStatistics ds4;
+
     private DataStatistics ds5;
 
     private long ds1Id;
+
     private long ds2Id;
 
     private Date date;
 
     @Override
-    public void setUpTest() throws Exception
+    public void setUpTest()
+        throws Exception
     {
         ds1 = new DataStatistics();
-        ds2 = new DataStatistics( 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 10.0, 8.0, 11.0, 12.0, 13.0, 14.0, 11.0, 15.0, 16.0, 17.0, 11.0, 10, 18 );
-        ds3 = new DataStatistics( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 11.0, 12.0, 13.0, 14.0, 15.0, 12.0, 16.0, 17.0, 18.0, 11.0, 10, 19 );
-        ds4 = new DataStatistics( 1.0, 1.5, 2.0, 1.0, 6.0, 5.0, 4.0, 8.0, 10.0, 4.0, 4.0, 5.0, 9.0, 7.0, 14.0, 6.0, 4.0, 11.9, 3, 2 );
-        ds5 = new DataStatistics( 3.0, 3.5, 6.0, 4.0, 3.0, 5.0, 7.0, 8.0, 10.0, 1.6, 5.5, 6.4, 8.3, 8.2, 16.0, 9.4, 9.6, 11.0, 5, 9 );
+        ds2 = new DataStatistics( 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 10.0, 8.0, 11.0, 12.0, 13.0, 14.0, 11.0, 15.0,
+            16.0, 17.0, 11.0, 10, 18 );
+        ds3 = new DataStatistics( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 11.0, 12.0, 13.0, 14.0, 15.0, 12.0, 16.0,
+            17.0, 18.0, 11.0, 10, 19 );
+        ds4 = new DataStatistics( 1.0, 1.5, 2.0, 1.0, 6.0, 5.0, 4.0, 8.0, 10.0, 4.0, 4.0, 5.0, 9.0, 7.0, 14.0, 6.0, 4.0,
+            11.9, 3, 2 );
+        ds5 = new DataStatistics( 3.0, 3.5, 6.0, 4.0, 3.0, 5.0, 7.0, 8.0, 10.0, 1.6, 5.5, 6.4, 8.3, 8.2, 16.0, 9.4, 9.6,
+            11.0, 5, 9 );
 
         ds1Id = 0;
         ds2Id = 0;
@@ -81,7 +90,8 @@ public class DataStatisticsStoreTest
     }
 
     @Test
-    public void saveSnapshotTest() throws Exception
+    public void saveSnapshotTest()
+        throws Exception
     {
         dataStatisticsStore.save( ds1 );
         ds1Id = ds1.getId();
@@ -100,12 +110,14 @@ public class DataStatisticsStoreTest
         dataStatisticsStore.save( ds4 );
         dataStatisticsStore.save( ds5 );
 
-        List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.DAY, getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
+        List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.DAY,
+            getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
         assertEquals( 1, asList.size() );
     }
 
     @Test
-    public void getSnapshotsInIntervalGetInDAY_DifferenDayesSavedTest() throws Exception
+    public void getSnapshotsInIntervalGetInDAY_DifferenDayesSavedTest()
+        throws Exception
     {
         date = getDate( 2016, 3, 20 );
         ds2.setCreated( date );
@@ -115,7 +127,8 @@ public class DataStatisticsStoreTest
         dataStatisticsStore.save( ds4 );
         dataStatisticsStore.save( ds5 );
 
-        List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.DAY, getDate( 2015, 3, 19 ), getDate( 2016, 3, 21 ) );
+        List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.DAY,
+            getDate( 2015, 3, 19 ), getDate( 2016, 3, 21 ) );
         assertEquals( 2, asList.size() );
     }
 
@@ -127,7 +140,8 @@ public class DataStatisticsStoreTest
         dataStatisticsStore.save( ds4 );
         dataStatisticsStore.save( ds5 );
 
-        List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.DAY, getDate( 2017, 3, 21 ), getDate( 2017, 3, 22 ) );
+        List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.DAY,
+            getDate( 2017, 3, 21 ), getDate( 2017, 3, 22 ) );
         assertEquals( 0, asList.size() );
     }
 
@@ -139,7 +153,8 @@ public class DataStatisticsStoreTest
         dataStatisticsStore.save( ds4 );
         dataStatisticsStore.save( ds5 );
 
-        List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.WEEK, getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
+        List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.WEEK,
+            getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
         assertEquals( 1, asList.size() );
     }
 
@@ -151,7 +166,8 @@ public class DataStatisticsStoreTest
         dataStatisticsStore.save( ds4 );
         dataStatisticsStore.save( ds5 );
 
-        List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.MONTH, getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
+        List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.MONTH,
+            getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
         assertEquals( 1, asList.size() );
     }
 
@@ -163,7 +179,8 @@ public class DataStatisticsStoreTest
         dataStatisticsStore.save( ds4 );
         dataStatisticsStore.save( ds5 );
 
-        List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.YEAR, getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
+        List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.YEAR,
+            getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
         assertEquals( 1, asList.size() );
     }
 }

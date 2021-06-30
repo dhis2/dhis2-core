@@ -1,7 +1,5 @@
-package org.hisp.dhis.node.serializers;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.node.serializers;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.node.serializers;
 
 import java.io.OutputStream;
 import java.util.Date;
@@ -75,7 +74,8 @@ public class ExcelNodeSerializer extends AbstractNodeSerializer
     private XSSFSheet sheet;
 
     @Override
-    protected void startSerialize( RootNode rootNode, OutputStream outputStream ) throws Exception
+    protected void startSerialize( RootNode rootNode, OutputStream outputStream )
+        throws Exception
     {
         workbook = new XSSFWorkbook();
         sheet = workbook.createSheet( "Sheet1" );
@@ -114,7 +114,8 @@ public class ExcelNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endSerialize( RootNode rootNode, OutputStream outputStream ) throws Exception
+    protected void endSerialize( RootNode rootNode, OutputStream outputStream )
+        throws Exception
     {
         int columns = sheet.getRow( 0 ).getPhysicalNumberOfCells();
 
@@ -127,13 +128,15 @@ public class ExcelNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void flushStream() throws Exception
+    protected void flushStream()
+        throws Exception
     {
 
     }
 
     @Override
-    protected void startWriteRootNode( RootNode rootNode ) throws Exception
+    protected void startWriteRootNode( RootNode rootNode )
+        throws Exception
     {
         XSSFCreationHelper creationHelper = workbook.getCreationHelper();
 
@@ -155,7 +158,8 @@ public class ExcelNodeSerializer extends AbstractNodeSerializer
                             XSSFCell cell = row.createCell( cellIdx++ );
                             cell.setCellValue( getValue( (SimpleNode) node ) );
 
-                            if ( node.haveProperty() && PropertyType.URL.equals( node.getProperty().getPropertyType() ) )
+                            if ( node.haveProperty()
+                                && PropertyType.URL.equals( node.getProperty().getPropertyType() ) )
                             {
                                 XSSFHyperlink hyperlink = creationHelper.createHyperlink( HyperlinkType.URL );
                                 hyperlink.setAddress( getValue( (SimpleNode) node ) );
@@ -163,7 +167,8 @@ public class ExcelNodeSerializer extends AbstractNodeSerializer
 
                                 cell.setHyperlink( hyperlink );
                             }
-                            else if ( node.haveProperty() && PropertyType.EMAIL.equals( node.getProperty().getPropertyType() ) )
+                            else if ( node.haveProperty()
+                                && PropertyType.EMAIL.equals( node.getProperty().getPropertyType() ) )
                             {
                                 XSSFHyperlink hyperlink = creationHelper.createHyperlink( HyperlinkType.EMAIL );
                                 hyperlink.setAddress( getValue( (SimpleNode) node ) );
@@ -196,42 +201,49 @@ public class ExcelNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteRootNode( RootNode rootNode ) throws Exception
+    protected void endWriteRootNode( RootNode rootNode )
+        throws Exception
     {
 
     }
 
     @Override
-    protected void startWriteSimpleNode( SimpleNode simpleNode ) throws Exception
+    protected void startWriteSimpleNode( SimpleNode simpleNode )
+        throws Exception
     {
     }
 
     @Override
-    protected void endWriteSimpleNode( SimpleNode simpleNode ) throws Exception
-    {
-
-    }
-
-    @Override
-    protected void startWriteComplexNode( ComplexNode complexNode ) throws Exception
+    protected void endWriteSimpleNode( SimpleNode simpleNode )
+        throws Exception
     {
 
     }
 
     @Override
-    protected void endWriteComplexNode( ComplexNode complexNode ) throws Exception
+    protected void startWriteComplexNode( ComplexNode complexNode )
+        throws Exception
     {
 
     }
 
     @Override
-    protected void startWriteCollectionNode( CollectionNode collectionNode ) throws Exception
+    protected void endWriteComplexNode( ComplexNode complexNode )
+        throws Exception
     {
 
     }
 
     @Override
-    protected void endWriteCollectionNode( CollectionNode collectionNode ) throws Exception
+    protected void startWriteCollectionNode( CollectionNode collectionNode )
+        throws Exception
+    {
+
+    }
+
+    @Override
+    protected void endWriteCollectionNode( CollectionNode collectionNode )
+        throws Exception
     {
 
     }

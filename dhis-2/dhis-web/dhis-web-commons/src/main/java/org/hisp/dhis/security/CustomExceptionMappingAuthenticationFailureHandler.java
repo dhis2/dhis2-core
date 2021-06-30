@@ -1,7 +1,5 @@
-package org.hisp.dhis.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,13 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security;
+
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hisp.dhis.i18n.I18n;
@@ -35,11 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -51,7 +51,10 @@ public class CustomExceptionMappingAuthenticationFailureHandler
     private I18nManager i18nManager;
 
     @Override
-    public void onAuthenticationFailure( HttpServletRequest request, HttpServletResponse response, AuthenticationException exception ) throws IOException, ServletException
+    public void onAuthenticationFailure( HttpServletRequest request, HttpServletResponse response,
+        AuthenticationException exception )
+        throws IOException,
+        ServletException
     {
         final String username = request.getParameter( "j_username" );
 
@@ -59,15 +62,16 @@ public class CustomExceptionMappingAuthenticationFailureHandler
 
         I18n i18n = i18nManager.getI18n();
 
-        if ( ExceptionUtils.indexOfThrowable( exception, LockedException.class ) != -1)
+        if ( ExceptionUtils.indexOfThrowable( exception, LockedException.class ) != -1 )
         {
-            request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.locked" ) );
+            request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE",
+                i18n.getString( "authentication.message.account.locked" ) );
         }
         else
         {
-            request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.invalid" ) );
+            request.getSession().setAttribute( "LOGIN_FAILED_MESSAGE",
+                i18n.getString( "authentication.message.account.invalid" ) );
         }
-
 
         super.onAuthenticationFailure( request, response, exception );
     }

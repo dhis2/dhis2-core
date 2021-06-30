@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.listener;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.sms.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.listener;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -64,14 +71,6 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component( "org.hisp.dhis.sms.listener.EnrollmentSMSListener" )
@@ -127,14 +126,14 @@ public class EnrollmentSMSListener
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUid() );
 
         Program program = programService.getProgram( progid.getUid() );
-        
+
         if ( program == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_PROGRAM.set( progid ) );
         }
 
         TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType( tetid.getUid() );
-        
+
         if ( entityType == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_TETYPE.set( tetid ) );
@@ -195,7 +194,7 @@ public class EnrollmentSMSListener
         {
             enrollment = programInstanceService.enrollTrackedEntityInstance( tei, program, enrollmentDate, incidentDate,
 
-            orgUnit, enrollmentid.getUid() );
+                orgUnit, enrollmentid.getUid() );
         }
         if ( enrollment == null )
         {
@@ -207,7 +206,7 @@ public class EnrollmentSMSListener
 
         // We now check if the enrollment has events to process
         User user = userService.getUser( subm.getUserId().getUid() );
-        
+
         List<Object> errorUIDs = new ArrayList<>();
         if ( subm.getEvents() != null )
         {
@@ -290,8 +289,9 @@ public class EnrollmentSMSListener
         Uid attribUid = SMSAttributeValue.getAttribute();
         String val = SMSAttributeValue.getValue();
 
-        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( attribUid.getUid() );
-        
+        TrackedEntityAttribute attribute = trackedEntityAttributeService
+            .getTrackedEntityAttribute( attribUid.getUid() );
+
         if ( attribute == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_ATTRIB.set( attribUid ) );
@@ -315,21 +315,21 @@ public class EnrollmentSMSListener
         Uid orgunitid = event.getOrgUnit();
 
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgunitid.getUid() );
-        
+
         if ( orgUnit == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_ORGUNIT.set( orgunitid ) );
         }
 
         ProgramStage programStage = programStageService.getProgramStage( stageid.getUid() );
-        
+
         if ( programStage == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_STAGE.set( stageid ) );
         }
 
         CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
-        
+
         if ( aoc == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );

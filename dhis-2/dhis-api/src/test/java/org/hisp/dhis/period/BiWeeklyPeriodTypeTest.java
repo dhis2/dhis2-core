@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
+
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
 
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Kristian Wærstad
@@ -42,8 +41,11 @@ import static org.junit.Assert.assertEquals;
 public class BiWeeklyPeriodTypeTest
 {
     private DateTime startDate;
+
     private DateTime endDate;
+
     private DateTime testDate;
+
     private BiWeeklyPeriodType periodType;
 
     @Before
@@ -58,7 +60,6 @@ public class BiWeeklyPeriodTypeTest
         startDate = new DateTime( 2018, 1, 1, 0, 0 );
         endDate = new DateTime( 2018, 1, 14, 0, 0 );
         testDate = new DateTime( 2018, 1, 8, 0, 0 );
-
 
         Period period = periodType.createPeriod( testDate.toDate() );
 

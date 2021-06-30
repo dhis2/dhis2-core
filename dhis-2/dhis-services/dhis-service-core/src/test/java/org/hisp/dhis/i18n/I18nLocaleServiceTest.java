@@ -1,7 +1,5 @@
-package org.hisp.dhis.i18n;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,30 +25,31 @@ package org.hisp.dhis.i18n;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.i18n;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Locale;
 import java.util.Map;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class I18nLocaleServiceTest
     extends DhisSpringTest
 {
     @Autowired
     private I18nLocaleService localeService;
-    
+
     @Test
     public void testAvailable()
     {
         Map<String, String> languages = localeService.getAvailableLanguages();
-        
+
         Map<String, String> countries = localeService.getAvailableCountries();
-        
+
         assertNotNull( languages );
         assertNotNull( countries );
         assertFalse( languages.isEmpty() );

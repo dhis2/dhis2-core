@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.sms;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,16 @@ package org.hisp.dhis.webapi.controller.sms;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.sms;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -58,14 +66,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
@@ -75,26 +75,33 @@ import java.util.stream.Collectors;
 public class SmsController
 {
     private final MessageSender smsSender;
+
     private final WebMessageService webMessageService;
+
     private final IncomingSmsService incomingSMSService;
+
     private final RenderService renderService;
+
     private final SMSCommandService smsCommandService;
+
     private final UserService userService;
+
     private final IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
+
     private final ProgramMessageService programMessageService;
+
     private final CurrentUserService currentUserService;
 
     public SmsController(
-            @Qualifier( "smsMessageSender" ) MessageSender smsSender,
-            WebMessageService webMessageService,
-            IncomingSmsService incomingSMSService,
-            RenderService renderService,
-            SMSCommandService smsCommandService,
-            UserService userService,
-            @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
-            IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore,
-            ProgramMessageService programMessageService,
-            CurrentUserService currentUserService )
+        @Qualifier( "smsMessageSender" ) MessageSender smsSender,
+        WebMessageService webMessageService,
+        IncomingSmsService incomingSMSService,
+        RenderService renderService,
+        SMSCommandService smsCommandService,
+        UserService userService,
+        @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" ) IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore,
+        ProgramMessageService programMessageService,
+        CurrentUserService currentUserService )
     {
         this.smsSender = smsSender;
         this.webMessageService = webMessageService;
@@ -113,7 +120,8 @@ public class SmsController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/scheduled", method = RequestMethod.GET )
-    public void getScheduledMessage( @RequestParam( required = false ) Date scheduledAt, HttpServletResponse response ) throws IOException
+    public void getScheduledMessage( @RequestParam( required = false ) Date scheduledAt, HttpServletResponse response )
+        throws IOException
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceStore.getAll();
 
@@ -134,16 +142,17 @@ public class SmsController
         @RequestParam( required = false ) String programStageInstance,
         @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
-        HttpServletResponse response ) throws IOException
+        HttpServletResponse response )
+        throws IOException
     {
-        ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance, programStageInstance,
+        ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance,
+            programStageInstance,
             null, page, pageSize, afterDate, null );
 
         List<ProgramMessage> programMessages = programMessageService.getProgramMessages( params );
 
         renderService.toJson( response.getOutputStream(), programMessages );
     }
-
 
     // -------------------------------------------------------------------------
     // POST
@@ -180,7 +189,8 @@ public class SmsController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/outbound", method = RequestMethod.POST, consumes = "application/json" )
     public void sendSMSMessage( HttpServletResponse response, HttpServletRequest request )
-        throws WebMessageException, IOException
+        throws WebMessageException,
+        IOException
     {
         OutboundSms sms = renderService.fromJson( request.getInputStream(), OutboundSms.class );
 
@@ -213,7 +223,8 @@ public class SmsController
             throw new WebMessageException( WebMessageUtils.conflict( "Message must be specified" ) );
         }
 
-        int smsId = incomingSMSService.save( message, originator, gateway, receivedTime, getUserByPhoneNumber( originator, message ) );
+        int smsId = incomingSMSService.save( message, originator, gateway, receivedTime,
+            getUserByPhoneNumber( originator, message ) );
 
         webMessageService.send( WebMessageUtils.ok( "Received SMS: " + smsId ), response, request );
     }
@@ -221,7 +232,8 @@ public class SmsController
     @RequestMapping( value = "/inbound", method = RequestMethod.POST, consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     public void receiveSMSMessage( HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, IOException
+        throws WebMessageException,
+        IOException
     {
         IncomingSms sms = renderService.fromJson( request.getInputStream(), IncomingSms.class );
         sms.setUser( getUserByPhoneNumber( sms.getOriginator(), sms.getText() ) );
@@ -249,9 +261,11 @@ public class SmsController
     // SUPPORTIVE METHOD
     // -------------------------------------------------------------------------
 
-    private User getUserByPhoneNumber( String phoneNumber, String text ) throws WebMessageException
+    private User getUserByPhoneNumber( String phoneNumber, String text )
+        throws WebMessageException
     {
-        SMSCommand unregisteredParser = smsCommandService.getSMSCommand( SmsUtils.getCommandString( text ), ParserType.UNREGISTERED_PARSER );
+        SMSCommand unregisteredParser = smsCommandService.getSMSCommand( SmsUtils.getCommandString( text ),
+            ParserType.UNREGISTERED_PARSER );
 
         List<User> users = userService.getUsersByPhoneNumber( phoneNumber );
 
@@ -270,18 +284,21 @@ public class SmsController
             }
 
             // No user belong to this phone number
-            throw new WebMessageException( WebMessageUtils.conflict( "User's phone number is not registered in the system" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "User's phone number is not registered in the system" ) );
         }
 
         return users.iterator().next();
     }
 
-    private User handleCompressedCommands( User currentUser, String phoneNumber ) throws WebMessageException
+    private User handleCompressedCommands( User currentUser, String phoneNumber )
+        throws WebMessageException
     {
         if ( currentUser != null && !phoneNumber.equals( currentUser.getPhoneNumber() ) )
         {
             // current user does not belong to this number
-            throw new WebMessageException( WebMessageUtils.conflict( "Originator's number does not match user's Phone number" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Originator's number does not match user's Phone number" ) );
         }
 
         return currentUser;

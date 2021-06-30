@@ -1,7 +1,5 @@
-package org.hisp.dhis.maintenance.jdbc;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,19 @@ package org.hisp.dhis.maintenance.jdbc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.maintenance.jdbc;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.maintenance.MaintenanceStore;
@@ -40,12 +45,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -99,11 +98,18 @@ public class JdbcMaintenanceStore
     {
         String psiSelect = "(select programstageinstanceid from programstageinstance where deleted is true)";
 
+        String pmSelect = "(select id from programmessage where programstageinstanceid in "
+            + psiSelect + " )";
+
         /*
          * Delete event values, event value audits, event comments, events
          *
          */
         String[] sqlStmts = new String[] {
+            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + pmSelect,
+            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
+            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
+            "delete from programmessage where programstageinstanceid in " + psiSelect,
             "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
@@ -134,6 +140,7 @@ public class JdbcMaintenanceStore
             "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
             "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
             "delete from programmessage where programinstanceid in " + piSelect,
+            "delete from programmessage where programstageinstanceid in " + psiSelect,
             "delete from trackedentitycomment where trackedentitycommentid in (select trackedentitycommentid from programstageinstancecomments where programstageinstanceid in "
                 + psiSelect + ")",
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
@@ -149,7 +156,7 @@ public class JdbcMaintenanceStore
     public int deleteSoftDeletedTrackedEntityInstances()
     {
         /*
-         *  Get all soft deleted TEIs before they are hard deleted from database
+         * Get all soft deleted TEIs before they are hard deleted from database
          */
         List<String> deletedTeiUids = new ArrayList<>();
 
@@ -173,8 +180,9 @@ public class JdbcMaintenanceStore
         String psiSelect = "(select programstageinstanceid from programstageinstance where programinstanceid in "
             + piSelect + " )";
 
-        String pmSelect = "(select id from programmessage where programinstanceid in "
-            + piSelect + " )";
+        String teiPmSelect = "(select id from programmessage where trackedentityinstanceid in " + teiSelect + " )";
+        String piPmSelect = "(select id from programmessage where programinstanceid in " + piSelect + " )";
+        String psiPmSelect = "(select id from programmessage where programstageinstanceid in " + psiSelect + " )";
 
         /*
          * Delete event values, event audits, event comments, events, enrollment
@@ -187,10 +195,17 @@ public class JdbcMaintenanceStore
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
             "delete from programstageinstance where programinstanceid in " + piSelect,
-            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + pmSelect,
-            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
-            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
+            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + teiPmSelect,
+            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + teiPmSelect,
+            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + teiPmSelect,
+            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + piPmSelect,
+            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + piPmSelect,
+            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + piPmSelect,
+            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + psiPmSelect,
+            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + psiPmSelect,
+            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + psiPmSelect,
             "delete from programmessage where programinstanceid in " + piSelect,
+            "delete from programmessage where trackedentityinstanceid in " + teiSelect,
             "delete from programinstancecomments where programinstanceid in " + piSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
             "delete from programinstance where programinstanceid in " + piSelect,
@@ -222,8 +237,8 @@ public class JdbcMaintenanceStore
                 .createdAt( LocalDateTime.now() )
                 .object( tei )
                 .uid( teiUid )
-                .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, tei  ) )
+                .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, tei ) )
                 .build() );
-        });
+        } );
     }
 }

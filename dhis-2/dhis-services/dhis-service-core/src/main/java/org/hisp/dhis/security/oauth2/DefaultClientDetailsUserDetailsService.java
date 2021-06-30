@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.oauth2;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.security.oauth2;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.oauth2;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -47,7 +46,8 @@ public class DefaultClientDetailsUserDetailsService extends ClientDetailsUserDet
     }
 
     @Override
-    public UserDetails loadUserByUsername( String username ) throws UsernameNotFoundException
+    public UserDetails loadUserByUsername( String username )
+        throws UsernameNotFoundException
     {
         try
         {

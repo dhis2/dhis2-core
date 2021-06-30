@@ -1,7 +1,5 @@
-package org.hisp.dhis.dashboard;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -47,29 +46,29 @@ public class DashboardTest
     public void testMoveItem()
     {
         Dashboard dashboard = new Dashboard();
-        
+
         DashboardItem diA = new DashboardItem();
         DashboardItem diB = new DashboardItem();
         DashboardItem diC = new DashboardItem();
         DashboardItem diD = new DashboardItem();
-        
+
         diA.setUid( "A" );
         diB.setUid( "B" );
         diC.setUid( "C" );
         diD.setUid( "D" );
-        
+
         dashboard.getItems().add( diA );
         dashboard.getItems().add( diB );
         dashboard.getItems().add( diC );
         dashboard.getItems().add( diD );
-        
+
         assertEquals( 4, dashboard.getItems().size() );
         assertEquals( 2, dashboard.getItems().indexOf( diC ) );
-        
+
         assertTrue( dashboard.moveItem( "B", 3 ) ); // Move B up
 
         assertEquals( 4, dashboard.getItems().size() );
-        
+
         assertEquals( 0, dashboard.getItems().indexOf( diA ) );
         assertEquals( 1, dashboard.getItems().indexOf( diC ) );
         assertEquals( 2, dashboard.getItems().indexOf( diB ) );
@@ -98,47 +97,47 @@ public class DashboardTest
 
         assertFalse( dashboard.moveItem( "C", 5 ) ); // Out of bounds
         assertFalse( dashboard.moveItem( "A", 1 ) ); // Already at position
-        assertFalse( dashboard.moveItem( "A", 2 ) ); // Pointless move        
+        assertFalse( dashboard.moveItem( "A", 2 ) ); // Pointless move
     }
 
     @Test
     public void testGetAvailableItemByType()
     {
         Dashboard dashboard = new Dashboard();
-        
+
         DashboardItem diA = new DashboardItem();
         DashboardItem diB = new DashboardItem();
         DashboardItem diC = new DashboardItem();
-        
+
         diA.setUid( "A" );
         diB.setUid( "B" );
         diC.setUid( "C" );
-        
-        diA.setVisualization( new Visualization ( "A" ) );
+
+        diA.setVisualization( new Visualization( "A" ) );
         diB.getReports().add( new Report( "A", null, null, new Visualization() ) );
         diB.getReports().add( new Report( "B", null, null, new Visualization() ) );
         diC.getResources().add( new Document( "A", null, false, null ) );
         diC.getResources().add( new Document( "B", null, false, null ) );
         diC.getResources().add( new Document( "C", null, false, null ) );
-        
+
         dashboard.getItems().add( diA );
         dashboard.getItems().add( diB );
         dashboard.getItems().add( diC );
-        
+
         assertEquals( diB, dashboard.getAvailableItemByType( DashboardItemType.REPORTS ) );
         assertEquals( diC, dashboard.getAvailableItemByType( DashboardItemType.RESOURCES ) );
         assertNull( dashboard.getAvailableItemByType( DashboardItemType.MAP ) );
     }
-    
+
     @Test
     public void testGetItem()
     {
         Dashboard dashboard = new Dashboard();
-        
+
         DashboardItem diA = new DashboardItem();
         DashboardItem diB = new DashboardItem();
         DashboardItem diC = new DashboardItem();
-        
+
         diA.setUid( "A" );
         diB.setUid( "B" );
         diC.setUid( "C" );
@@ -146,7 +145,7 @@ public class DashboardTest
         dashboard.getItems().add( diA );
         dashboard.getItems().add( diB );
         dashboard.getItems().add( diC );
-        
+
         assertEquals( diB, dashboard.getItemByUid( "B" ) );
         assertNull( dashboard.getItemByUid( "X" ) );
     }

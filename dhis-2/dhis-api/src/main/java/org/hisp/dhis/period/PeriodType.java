@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,17 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.io.Serializable;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
@@ -45,15 +49,10 @@ import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 
-import java.io.Serializable;
-import java.time.DayOfWeek;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * The superclass of all PeriodTypes.
@@ -64,7 +63,8 @@ import java.util.concurrent.TimeUnit;
 public abstract class PeriodType
     implements Serializable
 {
-    // Cache for period lookup, uses calendar.name() + periodType.getName() + date.getTime() as key
+    // Cache for period lookup, uses calendar.name() + periodType.getName() +
+    // date.getTime() as key
 
     private static Cache<Period> PERIOD_CACHE = new SimpleCacheBuilder<Period>()
         .forRegion( "periodCache" )
@@ -86,8 +86,8 @@ public abstract class PeriodType
     /**
      * Invalidates the period cache.
      * <p/>
-     * Used in testing when there are multiple database loads
-     * and the same periods may be assigned different database ids.
+     * Used in testing when there are multiple database loads and the same
+     * periods may be assigned different database ids.
      */
     public static void invalidatePeriodCache()
     {
@@ -160,7 +160,8 @@ public abstract class PeriodType
     private static final Map<String, PeriodType> PERIOD_TYPE_MAP = Maps.uniqueIndex( PERIOD_TYPES, pt -> pt.getName() );
 
     /**
-     * Returns an immutable list of all available PeriodTypes in their natural order.
+     * Returns an immutable list of all available PeriodTypes in their natural
+     * order.
      *
      * @return all available PeriodTypes in their natural order.
      */
@@ -174,7 +175,7 @@ public abstract class PeriodType
      *
      * @param name the name of the PeriodType to return.
      * @return the PeriodType with the given name or null if no such PeriodType
-     * exists.
+     *         exists.
      */
     public static PeriodType getPeriodTypeByName( String name )
     {
@@ -198,8 +199,9 @@ public abstract class PeriodType
      * Get period type according to natural order order.
      *
      * @param index the index of the period type with base 1
-     * @return period type according to index order or null if no match
-     * TODO: Consider manual ordering, since relying on natural order might create problems if new periods are introduced.
+     * @return period type according to index order or null if no match TODO:
+     *         Consider manual ordering, since relying on natural order might
+     *         create problems if new periods are introduced.
      */
     public static PeriodType getByIndex( int index )
     {
@@ -214,8 +216,9 @@ public abstract class PeriodType
     }
 
     /**
-     * Returns a list of periods for each of the available period types defined by
-     * {@link PeriodType#PERIOD_TYPES} in matching order relative to the given period.
+     * Returns a list of periods for each of the available period types defined
+     * by {@link PeriodType#PERIOD_TYPES} in matching order relative to the
+     * given period.
      *
      * @param period the period.
      * @param calendar the calendar.
@@ -289,7 +292,8 @@ public abstract class PeriodType
      */
     public Period createPeriod( final Date date )
     {
-        return PERIOD_CACHE.get( getCacheKey( date ), s -> createPeriod( createCalendarInstance( date ) ) ).orElse( null );
+        return PERIOD_CACHE.get( getCacheKey( date ), s -> createPeriod( createCalendarInstance( date ) ) )
+            .orElse( null );
     }
 
     public Period createPeriod( Calendar cal )
@@ -302,16 +306,17 @@ public abstract class PeriodType
     /**
      * Creates a valid Period based on the given date. E.g. the given date is
      * February 10. 2007, a monthly PeriodType should return February 2007. This
-     * method is intended for use in situations where a huge number of of periods
-     * will be generated and its desirable to re-use the calendar.
+     * method is intended for use in situations where a huge number of of
+     * periods will be generated and its desirable to re-use the calendar.
      *
-     * @param date     the date which is contained by the created period.
+     * @param date the date which is contained by the created period.
      * @param calendar the calendar implementation to use.
      * @return the valid Period based on the given date
      */
     public Period createPeriod( final Date date, final org.hisp.dhis.calendar.Calendar calendar )
     {
-        return PERIOD_CACHE.get( getCacheKey( calendar, date ), p -> createPeriod( calendar.fromIso( DateTimeUnit.fromJdkDate( date ) ), calendar ) ).orElse( null );
+        return PERIOD_CACHE.get( getCacheKey( calendar, date ),
+            p -> createPeriod( calendar.fromIso( DateTimeUnit.fromJdkDate( date ) ), calendar ) ).orElse( null );
     }
 
     public Period toIsoPeriod( DateTimeUnit start, DateTimeUnit end )
@@ -433,7 +438,7 @@ public abstract class PeriodType
      * Currently only recognizes the basic subset of common period types.
      *
      * @param isoPeriod String formatted period (2011, 201101, 2011W34, 2011Q1
-     *                  etc
+     *        etc
      * @return the PeriodType or null if unrecognized
      */
     public static PeriodType getPeriodTypeFromIsoString( String isoPeriod )
@@ -497,7 +502,7 @@ public abstract class PeriodType
      *
      * @param type the period type.
      * @return the potential number of periods of the given period type spanned
-     * by this period.
+     *         by this period.
      */
     public int getPeriodSpan( PeriodType type )
     {
@@ -598,7 +603,7 @@ public abstract class PeriodType
     /**
      * Returns the next period determined by the given number of periods.
      *
-     * @param period  the Period to base the next Period on.
+     * @param period the Period to base the next Period on.
      * @param periods the number of periods into the future.
      * @return the next period.
      */
@@ -625,7 +630,7 @@ public abstract class PeriodType
      * the executing PeriodType, or the given Period is invalid, the returned
      * Period might overlap the given Period.
      *
-     * @param period   the Period to base the next Period on.
+     * @param period the Period to base the next Period on.
      * @param calendar the Calendar to use.
      * @return a Period which is the next of the given Period.
      */
@@ -654,7 +659,7 @@ public abstract class PeriodType
     /**
      * Returns the previous period determined by the given number of periods.
      *
-     * @param period  the Period to base the previous Period on.
+     * @param period the Period to base the previous Period on.
      * @param periods the number of periods into the past.
      * @return the previous period.
      */
@@ -695,7 +700,7 @@ public abstract class PeriodType
     /**
      * Returns the period at the same time of year going back a number of years.
      *
-     * @param period    the Period to base the previous Period on.
+     * @param period the Period to base the previous Period on.
      * @param yearCount how many years to go back.
      * @return the past year period.
      */
@@ -709,25 +714,33 @@ public abstract class PeriodType
     }
 
     /**
-     * Offsets the input date with the provided number of periods within the current period type.
-     * If the offset number is positive, the date is offset into later periods. When the offset is
-     * negative, the date is offset into earlier periods.
+     * Offsets the input date with the provided number of periods within the
+     * current period type. If the offset number is positive, the date is offset
+     * into later periods. When the offset is negative, the date is offset into
+     * earlier periods.
      *
      * @param dateTimeUnit for where to start the offset.
-     * @param offset how many periods to go back(if negative) or forward(if positive). A value of 0 will
-     *         result in the original date to be returned.
-     * @return a new date object that has been offset from the original date passed into the function.
+     * @param offset how many periods to go back(if negative) or forward(if
+     *        positive). A value of 0 will result in the original date to be
+     *        returned.
+     * @return a new date object that has been offset from the original date
+     *         passed into the function.
      */
-    protected abstract DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, org.hisp.dhis.calendar.Calendar calendar );
+    protected abstract DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset,
+        org.hisp.dhis.calendar.Calendar calendar );
 
     /**
-     * Offsets the input date with the provided number of periods within the current period type.
-     * If the offset number is positive, the date is offset into later periods. When the offset is
-     * negative, the date is offset into earlier periods.
+     * Offsets the input date with the provided number of periods within the
+     * current period type. If the offset number is positive, the date is offset
+     * into later periods. When the offset is negative, the date is offset into
+     * earlier periods.
+     *
      * @param date for where to start the offset.
-     * @param offset how many periods to go back(if negative) or forward(if positive). A value of 0 will
-     *         result in the original date to be returned.
-     * @return a new date object that has been offset from the original date passed into the function.
+     * @param offset how many periods to go back(if negative) or forward(if
+     *        positive). A value of 0 will result in the original date to be
+     *        returned.
+     * @return a new date object that has been offset from the original date
+     *         passed into the function.
      */
     public Date getDateWithOffset( Date date, int offset )
     {
@@ -738,6 +751,7 @@ public abstract class PeriodType
 
     /**
      * Returns true if the period spans more than one calendar year.
+     *
      * @return true if the period spans more than one calendar year.
      */
     public boolean spansMultipleCalendarYears()
@@ -747,6 +761,7 @@ public abstract class PeriodType
 
     /**
      * Returns true if the supplied name equals the name of this period type.
+     *
      * @param periodTypeName the period type name.
      *
      * @return true if the supplied name equals the name of the period type.

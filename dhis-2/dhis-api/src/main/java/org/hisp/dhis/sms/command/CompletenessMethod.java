@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.command;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.sms.command;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.command;
 
 /**
  * Created by zubair@dhis2.org on 17.08.17.
  */
-public enum  CompletenessMethod
+public enum CompletenessMethod
 {
     ALL_DATAVALUE( "Receive all data values" ),
     AT_LEAST_ONE_DATAVALUE( "Receive at least one data value" ),

@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.resourcetable;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.CodeGenerator;
+package org.hisp.dhis.resourcetable;
 
 import java.util.List;
 import java.util.Optional;
+
+import org.hisp.dhis.common.CodeGenerator;
 
 /**
  * @author Lars Helge Overland
@@ -130,15 +129,17 @@ public abstract class ResourceTable<T>
     public abstract Optional<String> getPopulateTempTableStatement();
 
     /**
-     * Provides content for the temporary resource table as a list of object arrays.
+     * Provides content for the temporary resource table as a list of object
+     * arrays.
      *
      * @return content for the temporary resource table.
      */
     public abstract Optional<List<Object[]>> getPopulateTempTableContent();
 
     /**
-     * Returns SQL create index statements for the temporary table. Note that the
-     * indexes name must have a random component to avoid uniqueness conflicts.
+     * Returns SQL create index statements for the temporary table. Note that
+     * the indexes name must have a random component to avoid uniqueness
+     * conflicts.
      *
      * @return a list of SQL create index statements.
      */

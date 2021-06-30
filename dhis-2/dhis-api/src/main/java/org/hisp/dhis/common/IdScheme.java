@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,12 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -38,19 +38,21 @@ import org.apache.commons.lang3.StringUtils;
 public class IdScheme
 {
     public static final IdScheme NULL = new IdScheme( null );
+
     public static final IdScheme ID = new IdScheme( IdentifiableProperty.ID );
+
     public static final IdScheme UID = new IdScheme( IdentifiableProperty.UID );
+
     public static final IdScheme UUID = new IdScheme( IdentifiableProperty.UUID );
+
     public static final IdScheme CODE = new IdScheme( IdentifiableProperty.CODE );
+
     public static final IdScheme NAME = new IdScheme( IdentifiableProperty.NAME );
 
-    public static final ImmutableMap<IdentifiableProperty, IdScheme> IDPROPERTY_IDSCHEME_MAP =
-        ImmutableMap.<IdentifiableProperty, IdScheme>builder().
-            put( IdentifiableProperty.ID, IdScheme.ID ).
-            put( IdentifiableProperty.UID, IdScheme.UID ).
-            put( IdentifiableProperty.UUID, IdScheme.UUID ).
-            put( IdentifiableProperty.CODE, IdScheme.CODE ).
-            put( IdentifiableProperty.NAME, IdScheme.NAME ).build();
+    public static final ImmutableMap<IdentifiableProperty, IdScheme> IDPROPERTY_IDSCHEME_MAP = ImmutableMap
+        .<IdentifiableProperty, IdScheme> builder().put( IdentifiableProperty.ID, IdScheme.ID )
+        .put( IdentifiableProperty.UID, IdScheme.UID ).put( IdentifiableProperty.UUID, IdScheme.UUID )
+        .put( IdentifiableProperty.CODE, IdScheme.CODE ).put( IdentifiableProperty.NAME, IdScheme.NAME ).build();
 
     public static final String ATTR_ID_SCHEME_PREFIX = "ATTRIBUTE:";
 
@@ -90,8 +92,8 @@ public class IdScheme
             return IdScheme.NULL;
         }
 
-        return IDPROPERTY_IDSCHEME_MAP.containsKey( property ) ?
-            IDPROPERTY_IDSCHEME_MAP.get( property ) : new IdScheme( property );
+        return IDPROPERTY_IDSCHEME_MAP.containsKey( property ) ? IDPROPERTY_IDSCHEME_MAP.get( property )
+            : new IdScheme( property );
     }
 
     private IdScheme( IdentifiableProperty identifiableProperty )
@@ -169,7 +171,8 @@ public class IdScheme
 
     public static boolean isAttribute( String str )
     {
-        return !StringUtils.isEmpty( str ) && str.toUpperCase().startsWith( ATTR_ID_SCHEME_PREFIX ) && str.length() == 21;
+        return !StringUtils.isEmpty( str ) && str.toUpperCase().startsWith( ATTR_ID_SCHEME_PREFIX )
+            && str.length() == 21;
     }
 
     @Override

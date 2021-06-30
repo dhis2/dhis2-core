@@ -1,6 +1,5 @@
-package org.hisp.dhis.dxf2.events.eventdatavalue;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +25,9 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.eventdatavalue;
+
+import java.util.Map;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -33,24 +35,25 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
 
-import java.util.Map;
-
-
 /**
  * @author David Katuscak
  */
 public interface EventDataValueService
 {
     /**
-     * Process the data values: validates and then saves/updates/deletes data values.
+     * Process the data values: validates and then saves/updates/deletes data
+     * values.
      *
-     * @param programStageInstance The ProgramStageInstance the EventDataValues are related to
+     * @param programStageInstance The ProgramStageInstance the EventDataValues
+     *        are related to
      * @param event Event that holds the data values to process
-     * @param singleValue Specifies whether request updates only a single value or not
+     * @param singleValue Specifies whether request updates only a single value
+     *        or not
      * @param importOptions ImportOptions
      * @param importSummary ImportSummary
-     * @param dataElementsCache Cache with DataElements related to EventDataValues that are being updated
+     * @param dataElementsCache Cache with DataElements related to
+     *        EventDataValues that are being updated
      */
     void processDataValues( ProgramStageInstance programStageInstance, Event event, boolean singleValue,
-        ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache  );
+        ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache );
 }

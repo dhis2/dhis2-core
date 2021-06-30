@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -56,13 +63,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping( value = "/locales" )
@@ -120,8 +120,9 @@ public class LocaleController
         return localeService.getAllI18nLocales();
     }
 
-    @GetMapping( value = "/dbLocales/{uid}", produces = "application/json")
-    public @ResponseBody I18nLocale getObject( @PathVariable( "uid" ) String uid, HttpServletResponse response ) throws Exception
+    @GetMapping( value = "/dbLocales/{uid}", produces = "application/json" )
+    public @ResponseBody I18nLocale getObject( @PathVariable( "uid" ) String uid, HttpServletResponse response )
+        throws Exception
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         I18nLocale locale = localeService.getI18nLocaleByUid( uid );
@@ -135,10 +136,11 @@ public class LocaleController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_ADD')" )
-    @PostMapping( value="/dbLocales" )
+    @PostMapping( value = "/dbLocales" )
     @ResponseStatus( value = HttpStatus.OK )
     public void addLocale( @RequestParam String country, @RequestParam String language,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         if ( StringUtils.isEmpty( country ) || StringUtils.isEmpty( language ) )
         {
@@ -163,7 +165,8 @@ public class LocaleController
 
         WebMessage webMessage = WebMessageUtils.created( "Locale created successfully" );
 
-        response.setHeader( ContextUtils.HEADER_LOCATION, contextService.getApiPath() + "/locales/" + i18nLocale.getUid() );
+        response.setHeader( ContextUtils.HEADER_LOCATION,
+            contextService.getApiPath() + "/locales/" + i18nLocale.getUid() );
 
         webMessageService.send( webMessage, response, request );
     }
@@ -171,7 +174,8 @@ public class LocaleController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_DELETE')" )
     @DeleteMapping( path = "/dbLocales/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void delete( @PathVariable String uid ) throws Exception
+    public void delete( @PathVariable String uid )
+        throws Exception
     {
         I18nLocale i18nLocale = localeService.getI18nLocaleByUid( uid );
 

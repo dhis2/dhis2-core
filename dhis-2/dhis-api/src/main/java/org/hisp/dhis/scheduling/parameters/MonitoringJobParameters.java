@@ -1,7 +1,5 @@
-package org.hisp.dhis.scheduling.parameters;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,13 @@ package org.hisp.dhis.scheduling.parameters;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.scheduling.parameters;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -41,10 +39,12 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.parameters.jackson.MonitoringJobParametersDeserializer;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Lists;
 
 /**
  * @author Henning Håkonsen
@@ -145,18 +145,21 @@ public class MonitoringJobParameters
     @Override
     public Optional<ErrorReport> validate()
     {
-        // No need to validate relatePeriods, since it will fail in the controller if invalid.
+        // No need to validate relatePeriods, since it will fail in the
+        // controller if invalid.
 
-        // Validating validationRuleGroup. Since it's too late to check if the input was an array of strings or
-        // something else, this is a best effort to avoid invalid data in the object.
+        // Validating validationRuleGroup. Since it's too late to check if the
+        // input was an array of strings or
+        // something else, this is a best effort to avoid invalid data in the
+        // object.
         List<String> invalidUIDs = validationRuleGroups.stream()
             .filter( ( group ) -> !CodeGenerator.isValidUid( group ) )
             .collect( Collectors.toList() );
 
         if ( invalidUIDs.size() > 0 )
         {
-            return Optional.of(  new ErrorReport( this.getClass(), ErrorCode.E4014, invalidUIDs.get( 0 ),
-                "validationRuleGroups" ));
+            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4014, invalidUIDs.get( 0 ),
+                "validationRuleGroups" ) );
         }
 
         return Optional.empty();

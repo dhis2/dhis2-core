@@ -1,18 +1,5 @@
-package org.hisp.dhis.scheduling;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.hamcrest.Matchers;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.io.IOException;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +25,19 @@ import java.io.IOException;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.scheduling;
+
+import java.io.IOException;
+
+import org.hamcrest.Matchers;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 /**
  * Unit tests for {JobConfiguration}.
@@ -47,42 +47,46 @@ import java.io.IOException;
 public class JobConfigurationSerializationTest
 {
     @Test
-    public void xmlWithArray() throws IOException
+    public void xmlWithArray()
+        throws IOException
     {
         final XmlMapper xmlMapper = new XmlMapper();
         xmlMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         xmlMapper.configure( DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false );
 
-        JobConfiguration jc = xmlMapper.readValue( "<jobConfiguration lastUpdated=\"2019-03-26T22:57:44.649\" id=\"uB9oC4R2nTn\" created=\"2019-03-26T22:57:44.649\" name=\"Test Analytic\">\n" +
-            "      <jobStatus>NONE</jobStatus>\n" +
-            "      <displayName>Test Analytic</displayName>\n" +
-            "      <enabled>true</enabled>\n" +
-            "      <leaderOnlyJob>true</leaderOnlyJob>\n" +
-            "      <externalAccess>false</externalAccess>\n" +
-            "      <jobType>ANALYTICS_TABLE</jobType>\n" +
-            "      <nextExecutionTime>2019-03-27T12:00:00.000</nextExecutionTime>\n" +
-            "      <favorite>false</favorite>\n" +
-            "      <configurable>true</configurable>\n" +
-            "      <access>\n" +
-            "        <read>true</read>\n" +
-            "        <update>true</update>\n" +
-            "        <externalize>false</externalize>\n" +
-            "        <delete>true</delete>\n" +
-            "        <write>true</write>\n" +
-            "        <manage>true</manage>\n" +
-            "      </access>\n" +
-            "      <lastUpdatedBy id=\"xE7jOejl9FI\"/>\n" +
-            "      <jobParameters>\n" +
-            "        <lastYears>2</lastYears>\n" +
-            "        <skipResourceTables>true</skipResourceTables>\n" +
-            "        <skipTableTypes>\n" +
-            "          <skipTableType>ENROLLMENT</skipTableType>\n" +
-            "          <skipTableType>ORG_UNIT_TARGET</skipTableType>\n" +
-            "          <skipTableType>VALIDATION_RESULT</skipTableType>\n" +
-            "        </skipTableTypes>" +
-            "      </jobParameters>\n" +
-            "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
-            "    </jobConfiguration>", JobConfiguration.class );
+        JobConfiguration jc = xmlMapper.readValue(
+            "<jobConfiguration lastUpdated=\"2019-03-26T22:57:44.649\" id=\"uB9oC4R2nTn\" created=\"2019-03-26T22:57:44.649\" name=\"Test Analytic\">\n"
+                +
+                "      <jobStatus>NONE</jobStatus>\n" +
+                "      <displayName>Test Analytic</displayName>\n" +
+                "      <enabled>true</enabled>\n" +
+                "      <leaderOnlyJob>true</leaderOnlyJob>\n" +
+                "      <externalAccess>false</externalAccess>\n" +
+                "      <jobType>ANALYTICS_TABLE</jobType>\n" +
+                "      <nextExecutionTime>2019-03-27T12:00:00.000</nextExecutionTime>\n" +
+                "      <favorite>false</favorite>\n" +
+                "      <configurable>true</configurable>\n" +
+                "      <access>\n" +
+                "        <read>true</read>\n" +
+                "        <update>true</update>\n" +
+                "        <externalize>false</externalize>\n" +
+                "        <delete>true</delete>\n" +
+                "        <write>true</write>\n" +
+                "        <manage>true</manage>\n" +
+                "      </access>\n" +
+                "      <lastUpdatedBy id=\"xE7jOejl9FI\"/>\n" +
+                "      <jobParameters>\n" +
+                "        <lastYears>2</lastYears>\n" +
+                "        <skipResourceTables>true</skipResourceTables>\n" +
+                "        <skipTableTypes>\n" +
+                "          <skipTableType>ENROLLMENT</skipTableType>\n" +
+                "          <skipTableType>ORG_UNIT_TARGET</skipTableType>\n" +
+                "          <skipTableType>VALIDATION_RESULT</skipTableType>\n" +
+                "        </skipTableTypes>" +
+                "      </jobParameters>\n" +
+                "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
+                "    </jobConfiguration>",
+            JobConfiguration.class );
 
         Assert.assertEquals( JobStatus.SCHEDULED, jc.getJobStatus() );
         Assert.assertEquals( "Test Analytic", jc.getDisplayName() );
@@ -93,47 +97,52 @@ public class JobConfigurationSerializationTest
         Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
         Assert.assertNotNull( jc.getJobParameters() );
-        Assert.assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
-        Assert.assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
-        Assert.assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
-        Assert.assertEquals( 3, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
-        Assert.assertThat( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes(), Matchers.hasItems( AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
+        Assert.assertEquals( (Integer) 2, ((AnalyticsJobParameters) jc.getJobParameters()).getLastYears() );
+        Assert.assertTrue( ((AnalyticsJobParameters) jc.getJobParameters()).isSkipResourceTables() );
+        Assert.assertNotNull( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes() );
+        Assert.assertEquals( 3, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size() );
+        Assert.assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
+            AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
     }
 
     @Test
-    public void xmlWithEmptyArray() throws IOException
+    public void xmlWithEmptyArray()
+        throws IOException
     {
         final XmlMapper xmlMapper = new XmlMapper();
         xmlMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         xmlMapper.configure( DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false );
 
-        JobConfiguration jc = xmlMapper.readValue( "<jobConfiguration lastUpdated=\"2019-03-26T22:57:44.649\" id=\"uB9oC4R2nTn\" created=\"2019-03-26T22:57:44.649\" name=\"Test Analytic\">\n" +
-            "      <jobStatus>SCHEDULED</jobStatus>\n" +
-            "      <displayName>Test Analytic</displayName>\n" +
-            "      <enabled>true</enabled>\n" +
-            "      <leaderOnlyJob>true</leaderOnlyJob>\n" +
-            "      <externalAccess>false</externalAccess>\n" +
-            "      <jobType>ANALYTICS_TABLE</jobType>\n" +
-            "      <nextExecutionTime>2019-03-27T12:00:00.000</nextExecutionTime>\n" +
-            "      <favorite>false</favorite>\n" +
-            "      <configurable>true</configurable>\n" +
-            "      <access>\n" +
-            "        <read>true</read>\n" +
-            "        <update>true</update>\n" +
-            "        <externalize>false</externalize>\n" +
-            "        <delete>true</delete>\n" +
-            "        <write>true</write>\n" +
-            "        <manage>true</manage>\n" +
-            "      </access>\n" +
-            "      <lastUpdatedBy id=\"xE7jOejl9FI\"/>\n" +
-            "      <jobParameters>\n" +
-            "        <lastYears>2</lastYears>\n" +
-            "        <skipResourceTables>true</skipResourceTables>\n" +
-            "        <skipTableTypes>\n" +
-            "        </skipTableTypes>" +
-            "      </jobParameters>\n" +
-            "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
-            "    </jobConfiguration>", JobConfiguration.class );
+        JobConfiguration jc = xmlMapper.readValue(
+            "<jobConfiguration lastUpdated=\"2019-03-26T22:57:44.649\" id=\"uB9oC4R2nTn\" created=\"2019-03-26T22:57:44.649\" name=\"Test Analytic\">\n"
+                +
+                "      <jobStatus>SCHEDULED</jobStatus>\n" +
+                "      <displayName>Test Analytic</displayName>\n" +
+                "      <enabled>true</enabled>\n" +
+                "      <leaderOnlyJob>true</leaderOnlyJob>\n" +
+                "      <externalAccess>false</externalAccess>\n" +
+                "      <jobType>ANALYTICS_TABLE</jobType>\n" +
+                "      <nextExecutionTime>2019-03-27T12:00:00.000</nextExecutionTime>\n" +
+                "      <favorite>false</favorite>\n" +
+                "      <configurable>true</configurable>\n" +
+                "      <access>\n" +
+                "        <read>true</read>\n" +
+                "        <update>true</update>\n" +
+                "        <externalize>false</externalize>\n" +
+                "        <delete>true</delete>\n" +
+                "        <write>true</write>\n" +
+                "        <manage>true</manage>\n" +
+                "      </access>\n" +
+                "      <lastUpdatedBy id=\"xE7jOejl9FI\"/>\n" +
+                "      <jobParameters>\n" +
+                "        <lastYears>2</lastYears>\n" +
+                "        <skipResourceTables>true</skipResourceTables>\n" +
+                "        <skipTableTypes>\n" +
+                "        </skipTableTypes>" +
+                "      </jobParameters>\n" +
+                "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
+                "    </jobConfiguration>",
+            JobConfiguration.class );
 
         Assert.assertEquals( "uB9oC4R2nTn", jc.getUid() );
         Assert.assertEquals( JobStatus.SCHEDULED, jc.getJobStatus() );
@@ -146,49 +155,53 @@ public class JobConfigurationSerializationTest
         Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
         Assert.assertNotNull( jc.getJobParameters() );
-        Assert.assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
-        Assert.assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
-        Assert.assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
-        Assert.assertEquals( 0, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
+        Assert.assertEquals( (Integer) 2, ((AnalyticsJobParameters) jc.getJobParameters()).getLastYears() );
+        Assert.assertTrue( ((AnalyticsJobParameters) jc.getJobParameters()).isSkipResourceTables() );
+        Assert.assertNotNull( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes() );
+        Assert.assertEquals( 0, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size() );
     }
 
     @Test
-    public void xmlWithJson() throws IOException
+    public void xmlWithJson()
+        throws IOException
     {
         final XmlMapper xmlMapper = new XmlMapper();
         xmlMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         xmlMapper.configure( DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false );
 
-        JobConfiguration jc = xmlMapper.readValue( "<jobConfiguration lastUpdated=\"2019-03-26T22:57:44.649\" id=\"uB9oC4R2nTn\" created=\"2019-03-26T22:57:44.649\" name=\"Test Analytic\">\n" +
-            "      <jobStatus>SCHEDULED</jobStatus>\n" +
-            "      <displayName>Test Analytic</displayName>\n" +
-            "      <enabled>true</enabled>\n" +
-            "      <leaderOnlyJob>true</leaderOnlyJob>\n" +
-            "      <externalAccess>false</externalAccess>\n" +
-            "      <jobType>ANALYTICS_TABLE</jobType>\n" +
-            "      <nextExecutionTime>2019-03-27T12:00:00.000</nextExecutionTime>\n" +
-            "      <favorite>false</favorite>\n" +
-            "      <configurable>true</configurable>\n" +
-            "      <access>\n" +
-            "        <read>true</read>\n" +
-            "        <update>true</update>\n" +
-            "        <externalize>false</externalize>\n" +
-            "        <delete>true</delete>\n" +
-            "        <write>true</write>\n" +
-            "        <manage>true</manage>\n" +
-            "      </access>\n" +
-            "      <lastUpdatedBy id=\"xE7jOejl9FI\"/>\n" +
-            "      <jobParameters>\n" +
-            "        <lastYears>2</lastYears>\n" +
-            "        <skipResourceTables>true</skipResourceTables>\n" +
-            "        <skipTableTypes>\n" +
-            "          <skipTableType>ENROLLMENT</skipTableType>\n" +
-            "          <skipTableType>ORG_UNIT_TARGET</skipTableType>\n" +
-            "          <skipTableType>VALIDATION_RESULT</skipTableType>\n" +
-            "        </skipTableTypes>" +
-            "      </jobParameters>\n" +
-            "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
-            "    </jobConfiguration>", JobConfiguration.class );
+        JobConfiguration jc = xmlMapper.readValue(
+            "<jobConfiguration lastUpdated=\"2019-03-26T22:57:44.649\" id=\"uB9oC4R2nTn\" created=\"2019-03-26T22:57:44.649\" name=\"Test Analytic\">\n"
+                +
+                "      <jobStatus>SCHEDULED</jobStatus>\n" +
+                "      <displayName>Test Analytic</displayName>\n" +
+                "      <enabled>true</enabled>\n" +
+                "      <leaderOnlyJob>true</leaderOnlyJob>\n" +
+                "      <externalAccess>false</externalAccess>\n" +
+                "      <jobType>ANALYTICS_TABLE</jobType>\n" +
+                "      <nextExecutionTime>2019-03-27T12:00:00.000</nextExecutionTime>\n" +
+                "      <favorite>false</favorite>\n" +
+                "      <configurable>true</configurable>\n" +
+                "      <access>\n" +
+                "        <read>true</read>\n" +
+                "        <update>true</update>\n" +
+                "        <externalize>false</externalize>\n" +
+                "        <delete>true</delete>\n" +
+                "        <write>true</write>\n" +
+                "        <manage>true</manage>\n" +
+                "      </access>\n" +
+                "      <lastUpdatedBy id=\"xE7jOejl9FI\"/>\n" +
+                "      <jobParameters>\n" +
+                "        <lastYears>2</lastYears>\n" +
+                "        <skipResourceTables>true</skipResourceTables>\n" +
+                "        <skipTableTypes>\n" +
+                "          <skipTableType>ENROLLMENT</skipTableType>\n" +
+                "          <skipTableType>ORG_UNIT_TARGET</skipTableType>\n" +
+                "          <skipTableType>VALIDATION_RESULT</skipTableType>\n" +
+                "        </skipTableTypes>" +
+                "      </jobParameters>\n" +
+                "      <cronExpression>0 0 12 ? * MON-FRI</cronExpression>\n" +
+                "    </jobConfiguration>",
+            JobConfiguration.class );
 
         Assert.assertEquals( JobStatus.SCHEDULED, jc.getJobStatus() );
         Assert.assertEquals( "Test Analytic", jc.getName() );
@@ -200,15 +213,17 @@ public class JobConfigurationSerializationTest
         Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
         Assert.assertNotNull( jc.getJobParameters() );
-        Assert.assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
-        Assert.assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
-        Assert.assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
-        Assert.assertEquals( 3, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
-        Assert.assertThat( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes(), Matchers.hasItems( AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
+        Assert.assertEquals( (Integer) 2, ((AnalyticsJobParameters) jc.getJobParameters()).getLastYears() );
+        Assert.assertTrue( ((AnalyticsJobParameters) jc.getJobParameters()).isSkipResourceTables() );
+        Assert.assertNotNull( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes() );
+        Assert.assertEquals( 3, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size() );
+        Assert.assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
+            AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
     }
 
     @Test
-    public void json() throws IOException
+    public void json()
+        throws IOException
     {
         final ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
@@ -240,7 +255,8 @@ public class JobConfigurationSerializationTest
             "        \"write\": true,\n" +
             "        \"manage\": true\n" +
             "      },\n" +
-            "      \"jobParameters\":{\"lastYears\":2,\"skipResourceTables\":true,\"skipTableTypes\":[\"ENROLLMENT\",\"ORG_UNIT_TARGET\",\"VALIDATION_RESULT\"]}," +
+            "      \"jobParameters\":{\"lastYears\":2,\"skipResourceTables\":true,\"skipTableTypes\":[\"ENROLLMENT\",\"ORG_UNIT_TARGET\",\"VALIDATION_RESULT\"]},"
+            +
             "      \"favorites\": [],\n" +
             "      \"translations\": [],\n" +
             "      \"userGroupAccesses\": [],\n" +
@@ -258,15 +274,17 @@ public class JobConfigurationSerializationTest
         Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
         Assert.assertNotNull( jc.getJobParameters() );
-        Assert.assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
-        Assert.assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
-        Assert.assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
-        Assert.assertEquals( 3, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
-        Assert.assertThat( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes(), Matchers.hasItems( AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
+        Assert.assertEquals( (Integer) 2, ((AnalyticsJobParameters) jc.getJobParameters()).getLastYears() );
+        Assert.assertTrue( ((AnalyticsJobParameters) jc.getJobParameters()).isSkipResourceTables() );
+        Assert.assertNotNull( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes() );
+        Assert.assertEquals( 3, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size() );
+        Assert.assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
+            AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
     }
 
     @Test
-    public void disabled() throws IOException
+    public void disabled()
+        throws IOException
     {
         final ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
@@ -298,7 +316,8 @@ public class JobConfigurationSerializationTest
             "        \"write\": true,\n" +
             "        \"manage\": true\n" +
             "      },\n" +
-            "      \"jobParameters\":{\"lastYears\":2,\"skipResourceTables\":true,\"skipTableTypes\":[\"ENROLLMENT\",\"ORG_UNIT_TARGET\",\"VALIDATION_RESULT\"]}," +
+            "      \"jobParameters\":{\"lastYears\":2,\"skipResourceTables\":true,\"skipTableTypes\":[\"ENROLLMENT\",\"ORG_UNIT_TARGET\",\"VALIDATION_RESULT\"]},"
+            +
             "      \"favorites\": [],\n" +
             "      \"translations\": [],\n" +
             "      \"userGroupAccesses\": [],\n" +
@@ -316,10 +335,11 @@ public class JobConfigurationSerializationTest
         Assert.assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
 
         Assert.assertNotNull( jc.getJobParameters() );
-        Assert.assertEquals( (Integer) 2, ( (AnalyticsJobParameters) jc.getJobParameters() ).getLastYears() );
-        Assert.assertTrue( ( (AnalyticsJobParameters) jc.getJobParameters() ).isSkipResourceTables() );
-        Assert.assertNotNull( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes() );
-        Assert.assertEquals( 3, ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes().size() );
-        Assert.assertThat( ( (AnalyticsJobParameters) jc.getJobParameters() ).getSkipTableTypes(), Matchers.hasItems( AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
+        Assert.assertEquals( (Integer) 2, ((AnalyticsJobParameters) jc.getJobParameters()).getLastYears() );
+        Assert.assertTrue( ((AnalyticsJobParameters) jc.getJobParameters()).isSkipResourceTables() );
+        Assert.assertNotNull( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes() );
+        Assert.assertEquals( 3, ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes().size() );
+        Assert.assertThat( ((AnalyticsJobParameters) jc.getJobParameters()).getSkipTableTypes(), Matchers.hasItems(
+            AnalyticsTableType.ENROLLMENT, AnalyticsTableType.ORG_UNIT_TARGET, AnalyticsTableType.VALIDATION_RESULT ) );
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.job;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.sms.job;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.job;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashSet;
 
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -40,10 +43,6 @@ import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import java.util.HashSet;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component( "sendSmsJob" )
 public class SendSmsJob
@@ -88,7 +87,8 @@ public class SendSmsJob
 
         notifier.notify( jobConfiguration, "Sending SMS" );
 
-        OutboundMessageResponse status = smsSender.sendMessage( sms.getSubject(), sms.getMessage(), sms.getRecipients() );
+        OutboundMessageResponse status = smsSender.sendMessage( sms.getSubject(), sms.getMessage(),
+            sms.getRecipients() );
 
         if ( status.isOk() )
         {

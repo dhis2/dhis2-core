@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
 
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -62,7 +61,8 @@ public class DataApprovalLevelDeletionHandler
     @Override
     public String allowDeleteCategoryOptionGroupSet( CategoryOptionGroupSet categoryOptionGroupSet )
     {
-        String sql = "select count(*) from dataapprovallevel where categoryoptiongroupsetid=" + categoryOptionGroupSet.getId();
+        String sql = "select count(*) from dataapprovallevel where categoryoptiongroupsetid="
+            + categoryOptionGroupSet.getId();
 
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
@@ -71,7 +71,7 @@ public class DataApprovalLevelDeletionHandler
     public String allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
     {
         String sql = "select count(*) from dataapprovalworkflowmembers where workflowid=" + workflow.getId();
-        
+
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
 }

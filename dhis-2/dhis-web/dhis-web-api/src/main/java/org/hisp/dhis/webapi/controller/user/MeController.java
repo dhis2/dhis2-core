@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.user;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
@@ -148,10 +147,12 @@ public class MeController
     @Autowired
     private DataApprovalLevelService approvalLevelService;
 
-    private static final Set<UserSettingKey> USER_SETTING_KEYS = new HashSet<>( Sets.newHashSet( UserSettingKey.values() ) );
+    private static final Set<UserSettingKey> USER_SETTING_KEYS = new HashSet<>(
+        Sets.newHashSet( UserSettingKey.values() ) );
 
     @RequestMapping( value = "", method = RequestMethod.GET )
-    public void getCurrentUser( HttpServletResponse response ) throws Exception
+    public void getCurrentUser( HttpServletResponse response )
+        throws Exception
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -178,7 +179,8 @@ public class MeController
         if ( fieldsContains( "settings", fields ) )
         {
             rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
-                NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ) ) );
+                NodeUtils.createSimples(
+                    userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ) ) );
         }
 
         if ( fieldsContains( "authorities", fields ) )
@@ -192,8 +194,7 @@ public class MeController
             rootNode.addChild( new CollectionNode( "programs" ) ).addChildren(
                 NodeUtils.createSimples( programService.getUserPrograms().stream()
                     .map( BaseIdentifiableObject::getUid )
-                    .collect( Collectors.toList() ) )
-            );
+                    .collect( Collectors.toList() ) ) );
         }
 
         if ( fieldsContains( "dataSets", fields ) )
@@ -201,8 +202,7 @@ public class MeController
             rootNode.addChild( new CollectionNode( "dataSets" ) ).addChildren(
                 NodeUtils.createSimples( dataSetService.getUserDataRead( user ).stream()
                     .map( BaseIdentifiableObject::getUid )
-                    .collect( Collectors.toList() ) )
-            );
+                    .collect( Collectors.toList() ) ) );
         }
 
         nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
@@ -222,7 +222,8 @@ public class MeController
     }
 
     @RequestMapping( value = "", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -238,7 +239,8 @@ public class MeController
 
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
         }
 
         manager.update( currentUser );
@@ -252,11 +254,14 @@ public class MeController
             new FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ), "application/json", response.getOutputStream() );
+        nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ), "application/json",
+            response.getOutputStream() );
     }
 
     @RequestMapping( value = { "/authorization", "/authorities" } )
-    public void getAuthorities( HttpServletResponse response ) throws IOException, NotAuthenticatedException
+    public void getAuthorities( HttpServletResponse response )
+        throws IOException,
+        NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -271,7 +276,9 @@ public class MeController
     }
 
     @RequestMapping( value = { "/authorization/{authority}", "/authorities/{authority}" } )
-    public void hasAuthority( HttpServletResponse response, @PathVariable String authority ) throws IOException, NotAuthenticatedException
+    public void hasAuthority( HttpServletResponse response, @PathVariable String authority )
+        throws IOException,
+        NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -288,7 +295,9 @@ public class MeController
     }
 
     @RequestMapping( value = "/settings" )
-    public void getSettings( HttpServletResponse response ) throws IOException, NotAuthenticatedException
+    public void getSettings( HttpServletResponse response )
+        throws IOException,
+        NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -306,7 +315,10 @@ public class MeController
     }
 
     @RequestMapping( value = "/settings/{key}" )
-    public void getSetting( HttpServletResponse response, @PathVariable String key ) throws IOException, WebMessageException, NotAuthenticatedException
+    public void getSetting( HttpServletResponse response, @PathVariable String key )
+        throws IOException,
+        WebMessageException,
+        NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -337,7 +349,9 @@ public class MeController
     @RequestMapping( value = "/changePassword", method = RequestMethod.PUT, consumes = { "text/*", "application/*" } )
     @ResponseStatus( HttpStatus.ACCEPTED )
     public void changePassword( @RequestBody Map<String, String> body, HttpServletResponse response )
-        throws WebMessageException, NotAuthenticatedException, IOException
+        throws WebMessageException,
+        NotAuthenticatedException,
+        IOException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -382,14 +396,16 @@ public class MeController
     }
 
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
-    public @ResponseBody RootNode verifyPasswordJson( @RequestBody Map<String, String> body, HttpServletResponse response )
+    public @ResponseBody RootNode verifyPasswordJson( @RequestBody Map<String, String> body,
+        HttpServletResponse response )
         throws WebMessageException
     {
         return verifyPasswordInternal( body.get( "password" ), getCurrentUserOrThrow() );
     }
 
     @RequestMapping( value = "/dashboard" )
-    public @ResponseBody Dashboard getDashboard( HttpServletResponse response ) throws Exception
+    public @ResponseBody Dashboard getDashboard( HttpServletResponse response )
+        throws Exception
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -415,24 +431,27 @@ public class MeController
     }
 
     @RequestMapping( value = "/dataApprovalLevels", produces = { "application/json", "text/*" } )
-    public void getApprovalLevels( HttpServletResponse response ) throws IOException
+    public void getApprovalLevels( HttpServletResponse response )
+        throws IOException
     {
-        List<DataApprovalLevel> approvalLevels = approvalLevelService.getUserDataApprovalLevels( currentUserService.getCurrentUser() );
+        List<DataApprovalLevel> approvalLevels = approvalLevelService
+            .getUserDataApprovalLevels( currentUserService.getCurrentUser() );
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), approvalLevels );
     }
 
-    //------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------
     // Supportive methods
-    //------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------
 
     private RootNode verifyPasswordInternal( String password, User currentUser )
         throws WebMessageException
     {
         if ( password == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
         }
 
         boolean valid = passwordManager.matches( password, currentUser.getUserCredentials().getPassword() );
@@ -448,10 +467,12 @@ public class MeController
     {
         if ( password == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
         }
 
-        CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUsername(), password, currentUser.getEmail(), false );
+        CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUsername(), password,
+            currentUser.getEmail(), false );
 
         PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
 
@@ -466,7 +487,8 @@ public class MeController
         return rootNode;
     }
 
-    private User getCurrentUserOrThrow() throws WebMessageException
+    private User getCurrentUserOrThrow()
+        throws WebMessageException
     {
         User user = currentUserService.getCurrentUser();
 
@@ -491,7 +513,8 @@ public class MeController
         currentUser.setAvatar( user.getAvatar() != null ? user.getAvatar() : currentUser.getAvatar() );
 
         currentUser.setSkype( stringWithDefault( user.getSkype(), currentUser.getSkype() ) );
-        currentUser.setFacebookMessenger( stringWithDefault( user.getFacebookMessenger(), currentUser.getFacebookMessenger() ) );
+        currentUser.setFacebookMessenger(
+            stringWithDefault( user.getFacebookMessenger(), currentUser.getFacebookMessenger() ) );
         currentUser.setTelegram( stringWithDefault( user.getTelegram(), currentUser.getTelegram() ) );
         currentUser.setWhatsApp( stringWithDefault( user.getWhatsApp(), currentUser.getWhatsApp() ) );
         currentUser.setTwitter( stringWithDefault( user.getTwitter(), currentUser.getTwitter() ) );
@@ -514,11 +537,13 @@ public class MeController
         }
     }
 
-    private void updatePassword( User currentUser, String password ) throws WebMessageException
+    private void updatePassword( User currentUser, String password )
+        throws WebMessageException
     {
         if ( !StringUtils.isEmpty( password ) )
         {
-            CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUsername(), password, currentUser.getEmail(), false );
+            CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUsername(), password,
+                currentUser.getEmail(), false );
 
             PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
 

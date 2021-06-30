@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -40,22 +39,22 @@ import org.hisp.dhis.common.AuditType;
  */
 public class ProgramInstanceAuditQueryParams
 {
-    
+
     /**
      * Program instances to fetch audits for
      */
     private Set<ProgramInstance> programInstances = new HashSet<>();
-    
+
     /**
      * Programs to fetch audits for
      */
     private Set<Program> programs = new HashSet<>();
-    
+
     /**
      * Users to fetch audits for
      */
     private Set<String> users = new HashSet<>();
-    
+
     /**
      * AuditType to fetch for
      */
@@ -70,16 +69,16 @@ public class ProgramInstanceAuditQueryParams
      * Ending date.
      */
     private Date endDate = null;
-    
+
     /**
      * Program instance audit count start
      */
     private int first;
-    
+
     /**
      * Program instance audit count end
      */
-    private int max;    
+    private int max;
 
     /**
      * Program instance audit skip paging or not
@@ -102,17 +101,17 @@ public class ProgramInstanceAuditQueryParams
     {
         return programInstances != null && !programInstances.isEmpty();
     }
-    
+
     public boolean hasPrograms()
     {
         return programs != null && !programs.isEmpty();
     }
-    
+
     public boolean hasUsers()
     {
         return users != null && !users.isEmpty();
     }
-    
+
     public boolean hasAuditType()
     {
         return auditType != null;
@@ -141,12 +140,12 @@ public class ProgramInstanceAuditQueryParams
     {
         this.programInstances = programInstances;
     }
-    
+
     public Set<Program> getPrograms()
     {
         return programs;
     }
-    
+
     public void setPrograms( Set<Program> programs )
     {
         this.programs = programs;
@@ -160,7 +159,7 @@ public class ProgramInstanceAuditQueryParams
     public void setUsers( Set<String> users )
     {
         this.users = users;
-    }    
+    }
 
     public AuditType getAuditType()
     {
@@ -210,7 +209,7 @@ public class ProgramInstanceAuditQueryParams
     public void setMax( int max )
     {
         this.max = max;
-    }    
+    }
 
     public boolean isSkipPaging()
     {

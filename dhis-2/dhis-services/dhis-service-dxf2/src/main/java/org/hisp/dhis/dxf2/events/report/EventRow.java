@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.report;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,10 @@ package org.hisp.dhis.dxf2.events.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.report;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -39,8 +36,10 @@ import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
@@ -52,41 +51,41 @@ public class EventRow
     extends BaseLinkableObject
 {
     private String trackedEntityInstance;
-    
+
     private String trackedEntityInstanceOrgUnit;
-    
+
     private String trackedEntityInstanceOrgUnitName;
-    
+
     private String trackedEntityInstanceCreated;
-    
+
     private boolean trackedEntityInstanceInactive;
-    
+
     private String uid;
 
     private String event;
-    
+
     private String program;
-    
+
     private String programStage;
 
     private String enrollment;
-    
+
     private String orgUnit;
-    
+
     private String orgUnitName;
-    
+
     private String eventDate;
-    
+
     private String dueDate;
-    
+
     private Boolean followup;
-    
-    private List<Attribute> attributes = new ArrayList<>();    
-    
+
+    private List<Attribute> attributes = new ArrayList<>();
+
     private List<DataValue> dataValues = new ArrayList<>();
-    
+
     private List<Note> notes = new ArrayList<>();
-    
+
     private String attributeCategoryOptions;
 
     private boolean deleted;
@@ -115,8 +114,8 @@ public class EventRow
     public void setTrackedEntityInstance( String trackedEntityInstance )
     {
         this.trackedEntityInstance = trackedEntityInstance;
-    }   
-    
+    }
+
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getTrackedEntityInstanceOrgUnit()
@@ -127,8 +126,8 @@ public class EventRow
     public void setTrackedEntityInstanceOrgUnit( String trackedEntityInstanceOrgUnit )
     {
         this.trackedEntityInstanceOrgUnit = trackedEntityInstanceOrgUnit;
-    }   
-    
+    }
+
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getTrackedEntityInstanceOrgUnitName()
@@ -140,7 +139,7 @@ public class EventRow
     {
         this.trackedEntityInstanceOrgUnitName = trackedEntityInstanceOrgUnitName;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getTrackedEntityInstanceCreated()
@@ -152,7 +151,7 @@ public class EventRow
     {
         this.trackedEntityInstanceCreated = trackedEntityInstanceCreated;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public boolean getTrackedEntityInstanceInactive()
@@ -164,7 +163,7 @@ public class EventRow
     {
         this.trackedEntityInstanceInactive = trackedEntityInstanceInactive;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public List<Attribute> getAttributes()
@@ -175,8 +174,8 @@ public class EventRow
     public void setAttributes( List<Attribute> attributes )
     {
         this.attributes = attributes;
-    }    
-    
+    }
+
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public List<DataValue> getDataValues()
@@ -199,8 +198,8 @@ public class EventRow
     public void setEvent( String event )
     {
         this.event = event;
-    }  
-    
+    }
+
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getProgram()
@@ -247,7 +246,7 @@ public class EventRow
     public void setOrgUnit( String orgUnit )
     {
         this.orgUnit = orgUnit;
-    }    
+    }
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
@@ -259,7 +258,7 @@ public class EventRow
     public void setOrgUnitName( String orgUnitName )
     {
         this.orgUnitName = orgUnitName;
-    }    
+    }
 
     @JsonProperty( required = true )
     @JacksonXmlProperty( isAttribute = true )
@@ -285,7 +284,6 @@ public class EventRow
         this.dueDate = dueDate;
     }
 
-    
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "notes", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "note", namespace = DxfNamespaces.DXF_2_0 )
@@ -310,7 +308,7 @@ public class EventRow
     {
         this.followup = followup;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getAttributeCategoryOptions()
@@ -331,7 +329,7 @@ public class EventRow
         return this.deleted;
     }
 
-    public void setDeleted(boolean deleted)
+    public void setDeleted( boolean deleted )
     {
         this.deleted = deleted;
     }
@@ -343,7 +341,7 @@ public class EventRow
         {
             return true;
         }
-        
+
         if ( o == null || getClass() != o.getClass() )
         {
             return false;
@@ -355,48 +353,48 @@ public class EventRow
         {
             return false;
         }
-        
+
         if ( attributes != null ? !attributes.equals( eventRow1.attributes ) : eventRow1.attributes != null )
         {
             return false;
         }
-        
+
         if ( dataValues != null ? !dataValues.equals( eventRow1.dataValues ) : eventRow1.dataValues != null )
         {
             return false;
         }
-        
+
         if ( eventDate != null ? !eventDate.equals( eventRow1.eventDate ) : eventRow1.eventDate != null )
         {
             return false;
         }
-        
+
         if ( dueDate != null ? !dueDate.equals( eventRow1.dueDate ) : eventRow1.dueDate != null )
         {
             return false;
         }
-        
+
         if ( orgUnitName != null ? !orgUnitName.equals( eventRow1.orgUnitName ) : eventRow1.orgUnitName != null )
         {
             return false;
         }
-        
+
         if ( orgUnit != null ? !orgUnit.equals( eventRow1.orgUnit ) : eventRow1.orgUnit != null )
         {
             return false;
         }
-        
+
         if ( trackedEntityInstance != null ? !trackedEntityInstance.equals( eventRow1.trackedEntityInstance )
             : eventRow1.trackedEntityInstance != null )
         {
             return false;
         }
-        
+
         if ( program != null ? !program.equals( eventRow1.program ) : eventRow1.program != null )
         {
             return false;
         }
-        
+
         if ( programStage != null ? !programStage.equals( eventRow1.programStage ) : eventRow1.programStage != null )
         {
             return false;
@@ -424,17 +422,17 @@ public class EventRow
     @Override
     public String toString()
     {
-        return "Event{" + 
+        return "Event{" +
             "event='" + event + '\'' +
             ", attributes=" + attributes +
             ", dataValues=" + dataValues +
-            ", program='" + program + '\'' + 
-            ", programStage='" + programStage + '\'' + 
-            ", eventOrgUnitName='" + orgUnitName + '\'' + 
+            ", program='" + program + '\'' +
+            ", programStage='" + programStage + '\'' +
+            ", eventOrgUnitName='" + orgUnitName + '\'' +
             ", registrationOrgUnit='" + orgUnit + '\'' +
-            ", trackedEntityInstance='" + trackedEntityInstance + '\'' + 
-            ", eventDate='" + eventDate + '\'' + 
-            ", dueDate='" + dueDate + '\'' +        
+            ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
+            ", eventDate='" + eventDate + '\'' +
+            ", dueDate='" + dueDate + '\'' +
             ", attributeCategoryOptions=" + attributeCategoryOptions +
             '}';
     }

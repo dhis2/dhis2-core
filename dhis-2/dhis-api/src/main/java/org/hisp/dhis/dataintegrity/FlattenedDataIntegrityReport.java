@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataintegrity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,7 @@ package org.hisp.dhis.dataintegrity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.IdentifiableObject;
+package org.hisp.dhis.dataintegrity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,9 +36,15 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IdentifiableObject;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
- * Flattened, easily serializable object derivable from the more complex DataIntegrityReport.
- * Use an instance of this object to serialize and deliver a DataIntegrityReport.
+ * Flattened, easily serializable object derivable from the more complex
+ * DataIntegrityReport. Use an instance of this object to serialize and deliver
+ * a DataIntegrityReport.
  *
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
@@ -154,17 +155,21 @@ public class FlattenedDataIntegrityReport
 
         dataElementsWithoutGroups = transformCollection( report.getDataElementsWithoutGroups() );
 
-        dataElementsAssignedToDataSetsWithDifferentPeriodTypes = transformMapOfCollections( report.getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() );
+        dataElementsAssignedToDataSetsWithDifferentPeriodTypes = transformMapOfCollections(
+            report.getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() );
 
-        dataElementsViolatingExclusiveGroupSets = transformSortedMap( report.getDataElementsViolatingExclusiveGroupSets() );
+        dataElementsViolatingExclusiveGroupSets = transformSortedMap(
+            report.getDataElementsViolatingExclusiveGroupSets() );
 
         dataElementsInDataSetNotInForm = transformSortedMap( report.getDataElementsInDataSetNotInForm() );
 
         invalidCategoryCombos = transformCollection( report.getInvalidCategoryCombos() );
 
-        dataSetsNotAssignedToOrganisationUnits = transformCollection( report.getDataSetsNotAssignedToOrganisationUnits() );
+        dataSetsNotAssignedToOrganisationUnits = transformCollection(
+            report.getDataSetsNotAssignedToOrganisationUnits() );
 
-        indicatorsWithIdenticalFormulas = transformCollectionOfCollections( report.getIndicatorsWithIdenticalFormulas() );
+        indicatorsWithIdenticalFormulas = transformCollectionOfCollections(
+            report.getIndicatorsWithIdenticalFormulas() );
 
         indicatorsWithoutGroups = transformCollection( report.getIndicatorsWithoutGroups() );
 
@@ -176,21 +181,26 @@ public class FlattenedDataIntegrityReport
 
         duplicatePeriods = transformCollection( report.getDuplicatePeriods() );
 
-        organisationUnitsWithCyclicReferences = transformCollection( report.getOrganisationUnitsWithCyclicReferences() );
+        organisationUnitsWithCyclicReferences = transformCollection(
+            report.getOrganisationUnitsWithCyclicReferences() );
 
         orphanedOrganisationUnits = transformCollection( report.getOrphanedOrganisationUnits() );
 
         organisationUnitsWithoutGroups = transformCollection( report.getOrganisationUnitsWithoutGroups() );
 
-        organisationUnitsViolatingExclusiveGroupSets = transformSortedMap( report.getOrganisationUnitsViolatingExclusiveGroupSets() );
+        organisationUnitsViolatingExclusiveGroupSets = transformSortedMap(
+            report.getOrganisationUnitsViolatingExclusiveGroupSets() );
 
-        organisationUnitGroupsWithoutGroupSets = transformCollection( report.getOrganisationUnitGroupsWithoutGroupSets() );
+        organisationUnitGroupsWithoutGroupSets = transformCollection(
+            report.getOrganisationUnitGroupsWithoutGroupSets() );
 
         validationRulesWithoutGroups = transformCollection( report.getValidationRulesWithoutGroups() );
 
-        invalidValidationRuleLeftSideExpressions = transformMapOfStrings( report.getInvalidValidationRuleLeftSideExpressions() );
+        invalidValidationRuleLeftSideExpressions = transformMapOfStrings(
+            report.getInvalidValidationRuleLeftSideExpressions() );
 
-        invalidValidationRuleRightSideExpressions = transformMapOfStrings( report.getInvalidValidationRuleRightSideExpressions() );
+        invalidValidationRuleRightSideExpressions = transformMapOfStrings(
+            report.getInvalidValidationRuleRightSideExpressions() );
 
         programIndicatorsWithNoExpression = transformCollection( report.getGetProgramIndicatorWithNoExpression() );
 
@@ -204,13 +214,17 @@ public class FlattenedDataIntegrityReport
 
         programRulesWithNoAction = transformMapOfCollections( report.getProgramRulesWithNoAction() );
 
-        programRuleVariablesWithNoDataElement = transformMapOfCollections( report.getProgramRuleVariablesWithNoDataElement() );
+        programRuleVariablesWithNoDataElement = transformMapOfCollections(
+            report.getProgramRuleVariablesWithNoDataElement() );
 
-        programRuleVariablesWithNoAttribute = transformMapOfCollections( report.getProgramRuleVariablesWithNoAttribute() );
+        programRuleVariablesWithNoAttribute = transformMapOfCollections(
+            report.getProgramRuleVariablesWithNoAttribute() );
 
-        programRuleActionsWithNoDataObject = transformMapOfCollections( report.getProgramRuleActionsWithNoDataObject() );
+        programRuleActionsWithNoDataObject = transformMapOfCollections(
+            report.getProgramRuleActionsWithNoDataObject() );
 
-        programRuleActionsWithNoNotification = transformMapOfCollections( report.getProgramRuleActionsWithNoNotification() );
+        programRuleActionsWithNoNotification = transformMapOfCollections(
+            report.getProgramRuleActionsWithNoNotification() );
 
         programRuleActionsWithNoSectionId = transformMapOfCollections( report.getProgramRuleActionsWithNoSectionId() );
 
@@ -221,7 +235,8 @@ public class FlattenedDataIntegrityReport
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Collection<Collection<String>> transformCollectionOfCollections( Collection<? extends Collection<? extends IdentifiableObject>> collection )
+    private Collection<Collection<String>> transformCollectionOfCollections(
+        Collection<? extends Collection<? extends IdentifiableObject>> collection )
     {
         Collection<Collection<String>> newCollection = new HashSet<>();
 
@@ -245,11 +260,13 @@ public class FlattenedDataIntegrityReport
         return newMap;
     }
 
-    private Map<String, Collection<String>> transformMapOfCollections( Map<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> map )
+    private Map<String, Collection<String>> transformMapOfCollections(
+        Map<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> map )
     {
         HashMap<String, Collection<String>> newMap = new HashMap<>();
 
-        for ( Map.Entry<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> entry : map.entrySet() )
+        for ( Map.Entry<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> entry : map
+            .entrySet() )
         {
             Collection<String> value = new HashSet<>();
             value.addAll( transformCollection( entry.getValue() ) );
@@ -272,11 +289,13 @@ public class FlattenedDataIntegrityReport
         return newCollection;
     }
 
-    private SortedMap<String, Collection<String>> transformSortedMap( SortedMap<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> map )
+    private SortedMap<String, Collection<String>> transformSortedMap(
+        SortedMap<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> map )
     {
         SortedMap<String, Collection<String>> newMap = new TreeMap<>();
 
-        for ( SortedMap.Entry<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> entry : map.entrySet() )
+        for ( SortedMap.Entry<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> entry : map
+            .entrySet() )
         {
             newMap.put( defaultIfNull( entry.getKey() ), transformCollection( entry.getValue() ) );
         }

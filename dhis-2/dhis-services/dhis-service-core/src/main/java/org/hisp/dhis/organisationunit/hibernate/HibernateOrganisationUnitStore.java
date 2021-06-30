@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,14 @@ package org.hisp.dhis.organisationunit.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.sql.Timestamp;
 import java.util.*;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
@@ -57,8 +58,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Kristian Nordal
  */
@@ -71,10 +70,12 @@ public class HibernateOrganisationUnitStore
     private final DbmsManager dbmsManager;
 
     public HibernateOrganisationUnitStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService,
         AclService aclService, DbmsManager dbmsManager )
     {
-        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnit.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnit.class, currentUserService,
+            deletedObjectService,
             aclService, true );
 
         checkNotNull( dbmsManager );
@@ -107,16 +108,15 @@ public class HibernateOrganisationUnitStore
     @Override
     public Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName )
     {
-        final String hql =
-            "select count(*) from OrganisationUnit o " +
+        final String hql = "select count(*) from OrganisationUnit o " +
             "where o.path like :path " +
             "and :object in elements(o." + collectionName + ")";
 
         Query<Long> query = getTypedQuery( hql );
-            query.setParameter( "path", parent.getPath() + "%" )
+        query.setParameter( "path", parent.getPath() + "%" )
             .setParameter( "object", member );
 
-            return query.getSingleResult();
+        return query.getSingleResult();
     }
 
     @Override
@@ -168,7 +168,7 @@ public class HibernateOrganisationUnitStore
             hql += hlp.whereAnd() + " o.hierarchyLevel <= :maxLevels ";
         }
 
-        hql += "order by o." +  params.getOrderBy().getName();
+        hql += "order by o." + params.getOrderBy().getName();
 
         Query<OrganisationUnit> query = getQuery( hql );
 
@@ -215,7 +215,8 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    public Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap( Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets )
+    public Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap(
+        Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets )
     {
         SqlHelper hlp = new SqlHelper();
 
@@ -242,7 +243,8 @@ public class HibernateOrganisationUnitStore
         {
             Assert.notEmpty( dataSets, "Data sets cannot be empty" );
 
-            sql += hlp.whereAnd() + " ds.datasetid in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( dataSets ), "," ) + ") ";
+            sql += hlp.whereAnd() + " ds.datasetid in ("
+                + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( dataSets ), "," ) + ") ";
         }
 
         sql += "group by ou_uid";
@@ -256,7 +258,7 @@ public class HibernateOrganisationUnitStore
             Set<String> dataSetIds = SqlUtils.getArrayAsSet( rs, "ds_uid" );
 
             map.put( organisationUnitId, dataSetIds );
-        });
+        } );
 
         return map;
     }
@@ -264,22 +266,24 @@ public class HibernateOrganisationUnitStore
     @Override
     public List<OrganisationUnit> getWithinCoordinateArea( double[] box )
     {
-        // can't use hibernate-spatial 'makeenvelope' function, because not available in
+        // can't use hibernate-spatial 'makeenvelope' function, because not
+        // available in
         // current hibernate version
         // see: https://hibernate.atlassian.net/browse/HHH-13083
 
         if ( box != null && box.length == 4 )
         {
             return getSession().createQuery(
-                    "from OrganisationUnit ou " + "where within(ou.geometry, " + doMakeEnvelopeSql( box ) + ") = true",
-                    OrganisationUnit.class ).getResultList();
+                "from OrganisationUnit ou " + "where within(ou.geometry, " + doMakeEnvelopeSql( box ) + ") = true",
+                OrganisationUnit.class ).getResultList();
         }
         return new ArrayList<>();
     }
 
     private String doMakeEnvelopeSql( double[] box )
     {
-        // equivalent to: postgis 'ST_MakeEnvelope' (https://postgis.net/docs/ST_MakeEnvelope.html)
+        // equivalent to: postgis 'ST_MakeEnvelope'
+        // (https://postgis.net/docs/ST_MakeEnvelope.html)
         return "ST_MakeEnvelope(" + box[1] + "," + box[0] + "," + box[3] + "," + box[2] + ", 4326)";
     }
 
@@ -324,12 +328,12 @@ public class HibernateOrganisationUnitStore
     {
         String hql = "select max(ou.hierarchyLevel) from OrganisationUnit ou";
 
-        Query<Integer> query =  getTypedQuery( hql );
-        Integer maxLength =  query.getSingleResult();
+        Query<Integer> query = getTypedQuery( hql );
+        Integer maxLength = query.getSingleResult();
 
         return maxLength != null ? maxLength : 0;
     }
-    
+
     @Override
     public boolean isOrgUnitCountAboveThreshold( OrganisationUnitQueryParams params, int threshold )
     {

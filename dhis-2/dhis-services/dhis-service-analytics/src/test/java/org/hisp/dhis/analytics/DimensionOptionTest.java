@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
+
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryCombo;
@@ -36,14 +43,6 @@ import org.hisp.dhis.period.Period;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author Lars Helge Overland
  */
@@ -51,42 +50,44 @@ public class DimensionOptionTest
     extends DhisConvenienceTest
 {
     private DataElement deA;
+
     private Period peA;
+
     private OrganisationUnit ouA;
-    
+
     private List<DimensionItem> options;
-    
+
     @Before
     public void before()
     {
         deA = createDataElement( 'A', new CategoryCombo() );
         peA = createPeriod( "2000Q1" );
         ouA = createOrganisationUnit( 'A' );
-        
+
         options = new ArrayList<>();
         options.add( new DimensionItem( DATA_X_DIM_ID, deA ) );
         options.add( new DimensionItem( PERIOD_DIM_ID, peA ) );
         options.add( new DimensionItem( ORGUNIT_DIM_ID, ouA ) );
     }
-    
+
     @Test
     public void testAsOptionKey()
     {
         String expected = deA.getUid() + DIMENSION_SEP + peA.getUid() + DIMENSION_SEP + ouA.getUid();
-        
+
         assertEquals( expected, DimensionItem.asItemKey( options ) );
         assertEquals( EMPTY, DimensionItem.asItemKey( null ) );
     }
-    
+
     @Test
     public void testGetOptions()
     {
         String[] expected = { deA.getUid(), peA.getUid(), ouA.getUid() };
-        
+
         assertArrayEquals( expected, DimensionItem.getItemIdentifiers( options ) );
         assertArrayEquals( new String[0], DimensionItem.getItemIdentifiers( null ) );
     }
-    
+
     @Test
     public void testGetPeriodOption()
     {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,19 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
+import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
+import static org.junit.Assert.*;
+
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -45,16 +54,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
-import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Chau Thu Tran
@@ -73,7 +73,7 @@ public class ProgramInstanceStoreTest
 
     @Autowired
     private ProgramService programService;
-    
+
     @Autowired
     private DbmsManager dbmsManager;
 
@@ -83,7 +83,8 @@ public class ProgramInstanceStoreTest
     @Autowired
     private ProgramInstanceAuditStore auditStore;
 
-    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
+    @Autowired
+    @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
     private IdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
 
     private Date incidentDate;
@@ -184,9 +185,9 @@ public class ProgramInstanceStoreTest
     {
         programInstanceStore.save( programInstanceA );
         programInstanceStore.save( programInstanceB );
-        
+
         dbmsManager.flushSession();
-        
+
         assertTrue( programInstanceStore.exists( programInstanceA.getUid() ) );
         assertTrue( programInstanceStore.exists( programInstanceB.getUid() ) );
         assertFalse( programInstanceStore.exists( "aaaabbbbccc" ) );
@@ -218,7 +219,8 @@ public class ProgramInstanceStoreTest
         programInstanceStore.save( programInstanceC );
         programInstanceStore.save( programInstanceD );
 
-        List<ProgramInstance> programInstances = programInstanceStore.get( entityInstanceA, programC, ProgramStatus.COMPLETED );
+        List<ProgramInstance> programInstances = programInstanceStore.get( entityInstanceA, programC,
+            ProgramStatus.COMPLETED );
         assertEquals( 1, programInstances.size() );
         assertTrue( programInstances.contains( programInstanceC ) );
 
@@ -230,10 +232,12 @@ public class ProgramInstanceStoreTest
     @Test
     public void testGetWithScheduledNotifications()
     {
-        ProgramNotificationTemplate
-            a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_INCIDENT_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
-            a2 = createProgramNotificationTemplate( "a2", 1, SCHEDULED_DAYS_INCIDENT_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
-            a3 = createProgramNotificationTemplate( "a3", 7, SCHEDULED_DAYS_ENROLLMENT_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE );
+        ProgramNotificationTemplate a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_INCIDENT_DATE,
+            ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            a2 = createProgramNotificationTemplate( "a2", 1, SCHEDULED_DAYS_INCIDENT_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            a3 = createProgramNotificationTemplate( "a3", 7, SCHEDULED_DAYS_ENROLLMENT_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE );
 
         programNotificationStore.save( a1 );
         programNotificationStore.save( a2 );
@@ -265,7 +269,7 @@ public class ProgramInstanceStoreTest
         cal.add( Calendar.DATE, -2 );
         Date yesterday = cal.getTime();
 
-        cal.add( Calendar.DATE, -6);
+        cal.add( Calendar.DATE, -6 );
         Date aWeekAgo = cal.getTime();
 
         // Enrollments

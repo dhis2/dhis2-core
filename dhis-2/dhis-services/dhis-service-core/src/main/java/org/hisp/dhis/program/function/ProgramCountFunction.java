@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.function;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.program.function;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.function;
+
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import java.util.Date;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -34,10 +37,6 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
-
-import java.util.Date;
-
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator count functions
@@ -71,11 +70,15 @@ public abstract class ProgramCountFunction
             columnName + " is not null and " + columnName + conditionSql + " " +
             (pi.getEndEventBoundary() != null ? ("and " +
                 sb.getBoundaryCondition( pi.getEndEventBoundary(), pi,
-                    startDate, endDate ) +
-                " ") : "") + (pi.getStartEventBoundary() != null ? ("and " +
-            sb.getBoundaryCondition( pi.getStartEventBoundary(), pi,
-                startDate, endDate ) +
-            " ") : "") + "and ps = '" + programStage + "')";
+                    startDate, endDate )
+                +
+                " ") : "")
+            + (pi.getStartEventBoundary() != null ? ("and " +
+                sb.getBoundaryCondition( pi.getStartEventBoundary(), pi,
+                    startDate, endDate )
+                +
+                " ") : "")
+            + "and ps = '" + programStage + "')";
     }
 
     /**
@@ -90,7 +93,7 @@ public abstract class ProgramCountFunction
     {
         validateCountFunctionArgs( ctx );
 
-        return ( new ProgramItemStageElement() ).getDescription( ctx, visitor );
+        return (new ProgramItemStageElement()).getDescription( ctx, visitor );
     }
 
     /**
@@ -108,9 +111,10 @@ public abstract class ProgramCountFunction
 
     private void validateCountFunctionArgs( ExprContext ctx )
     {
-        if ( ! ( getProgramArgType( ctx ) instanceof ProgramItemStageElement ) )
+        if ( !(getProgramArgType( ctx ) instanceof ProgramItemStageElement) )
         {
-            throw new ParserExceptionWithoutContext( "First argument not supported for d2:count... functions: " + ctx.getText() );
+            throw new ParserExceptionWithoutContext(
+                "First argument not supported for d2:count... functions: " + ctx.getText() );
         }
     }
 }

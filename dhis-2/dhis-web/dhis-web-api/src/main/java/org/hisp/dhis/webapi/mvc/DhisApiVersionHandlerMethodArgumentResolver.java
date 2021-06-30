@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.mvc;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.webapi.mvc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.mvc;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.core.MethodParameter;
@@ -35,10 +39,6 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,7 +55,9 @@ public class DhisApiVersionHandlerMethodArgumentResolver implements HandlerMetho
     }
 
     @Override
-    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory ) throws Exception
+    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer,
+        NativeWebRequest webRequest, WebDataBinderFactory binderFactory )
+        throws Exception
     {
         String requestURI = ((HttpServletRequest) webRequest.getNativeRequest()).getRequestURI();
         Matcher matcher = API_VERSION_PATTERN.matcher( requestURI );

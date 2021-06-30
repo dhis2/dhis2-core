@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,17 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSetting;
-import org.hisp.dhis.user.UserSettingKey;
-import org.springframework.util.StringUtils;
+package org.hisp.dhis.common;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSetting;
+import org.hisp.dhis.user.UserSettingKey;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -62,11 +61,11 @@ public final class UserContext
     {
         return threadUser.get();
     }
-    
+
     public static String getUsername()
     {
         User user = getUser();
-        
+
         return user != null ? user.getUsername() : "system-process";
     }
 
@@ -76,7 +75,7 @@ public final class UserContext
     }
 
     // TODO Needs synchronized?
-    
+
     public static void setUserSetting( UserSettingKey key, Serializable value )
     {
         UserContext.setUserSetting( key.getName(), value );

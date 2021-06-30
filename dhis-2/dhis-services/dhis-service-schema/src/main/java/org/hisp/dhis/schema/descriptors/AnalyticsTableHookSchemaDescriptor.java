@@ -1,7 +1,5 @@
-package org.hisp.dhis.schema.descriptors;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.schema.descriptors;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema.descriptors;
 
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.schema.Schema;
@@ -54,8 +53,10 @@ public class AnalyticsTableHookSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1240 );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_ANALYTICSTABLEHOOK_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ANALYTICSTABLEHOOK_DELETE" ) ) );
+        schema.getAuthorities()
+            .add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_ANALYTICSTABLEHOOK_ADD" ) ) );
+        schema.getAuthorities()
+            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ANALYTICSTABLEHOOK_DELETE" ) ) );
 
         return schema;
     }

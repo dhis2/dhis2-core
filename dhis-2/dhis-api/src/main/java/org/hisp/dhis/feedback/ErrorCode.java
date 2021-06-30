@@ -1,7 +1,5 @@
-package org.hisp.dhis.feedback;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,14 @@ package org.hisp.dhis.feedback;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.feedback;
 
 /**
  * Error series:
  *
- * E3000 - E3999: Security
- * E4000 - E4999: Metadata validation
- * E5000 - E5999: Preheat
- * E6000 - E6999: Metadata import
- * E7000 - E7099: Scheduling
- * E7100 - E7199: Aggregate analytics
- * E7200 - E7299: Event analytics
+ * E3000 - E3999: Security E4000 - E4999: Metadata validation E5000 - E5999:
+ * Preheat E6000 - E6999: Metadata import E7000 - E7099: Scheduling E7100 -
+ * E7199: Aggregate analytics E7200 - E7299: Event analytics
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -54,7 +49,8 @@ public enum ErrorCode
     E3008( "User `{0}` is not allowed to make public objects of type `{1}`." ),
     E3009( "User `{0}` is not allowed to make private objects of type `{1}`." ),
     E3010( "Invalid access string `{0}`." ),
-    E3011( "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
+    E3011(
+        "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
     E3012( "User `{0}` does not have read access for object {1}." ),
 
     /* Metadata Validation */
@@ -96,29 +92,55 @@ public enum ErrorCode
     E4028( "Option set `{0}` already contains option `{1}`" ),
     E4029( "Job parameters cannot be null for job type: {0}" ),
 
+    E4030( "Object could not be deleted because it is associated with another object: {0}" ),
+
+    E4032( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
+    E4033( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
+
+    /* SQL views */
+    E4300( "SQL query is null" ),
+    E4301( "SQL query must be a select query" ),
+    E4302( "SQL query can only contain a single semi-colon at the end of the query" ),
+    E4303( "Variables contain null key" ),
+    E4304( "Variables contain null value" ),
+    E4305( "Variable params are invalid: `{0}`" ),
+    E4306( "Variables are invalid: `{0}`" ),
+    E4307( "SQL query contains variables not provided in request: `{0}`" ),
+    E4308( "Criteria params are invalid: `{0}`" ),
+    E4309( "Criteria values are invalid: `{0}`" ),
+    E4310( "SQL query contains references to protected tables" ),
+    E4311( "SQL query contains illegal keywords" ),
+    E4312( "Current user is not authorised to read data from SQL view: `{0}`" ),
+
     /* Preheat */
-    E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
+    E5000(
+        "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
     E5001( "No matching object for given reference. Identifier was {0}, and object was {1}." ),
     E5002( "Invalid reference {0} on object {1} for association `{2}`." ),
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." ),
 
     /* Metadata import */
-    E6000( "Program `{0}` has more than one Program Instances"),
-    E6001( "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage."),
+    E6000( "Program `{0}` has more than one Program Instances" ),
+    E6001(
+        "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage." ),
 
     /* File resource */
     E6100( "Filename not present" ),
     E6101( "File type not allowed" ),
 
     /* Scheduling */
-    E7000( "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
+    E7000(
+        "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
     E7002( "Failed to add/update job configuration, UID does not exist" ),
-    E7003( "Failed to add/update job configuration, only interval can be configured for non configurable job type: `{0}`" ),
-    E7004( "Failed to add/update job configuration, cron expression must be not null for job with scheduling type CRON: `{0}`" ),
+    E7003(
+        "Failed to add/update job configuration, only interval can be configured for non configurable job type: `{0}`" ),
+    E7004(
+        "Failed to add/update job configuration, cron expression must be not null for job with scheduling type CRON: `{0}`" ),
     E7005( "Failed to add/update job configuration, cron expression is invalid: `{0}` " ),
     E7006( "Failed to execute job `{0}`." ),
-    E7007( "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
+    E7007(
+        "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
     E7010( "Failed to validate job runtime - `{0}`" ),
 
     /* Aggregete analytics */
@@ -143,7 +165,7 @@ public enum ErrorCode
     E7118( "A period dimension 'pe' must be specified when output format is DATA_VALUE_SET" ),
     E7119( "An organisation unit dimension 'ou' must be specified when output format is DATA_VALUE_SET" ),
     E7120( "User: `{0}` is not allowed to view org unit: `{1}`" ),
-    E7121( "User: `{0}` is not allowed to read data for `{1}`: `{2}`"),
+    E7121( "User: `{0}` is not allowed to read data for `{1}`: `{2}`" ),
     E7122( "Data approval level does not exist: `{0}`" ),
     E7123( "Current user is constrained by a dimension but has access to no dimension items: `{0}`" ),
     E7124( "Dimension is present in query without any valid dimension options: `{0}`" ),

@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.audit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,13 @@ package org.hisp.dhis.artemis.audit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.audit;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
@@ -40,12 +45,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class AuditManagerTest
 {
@@ -72,7 +71,8 @@ public class AuditManagerTest
     @Before
     public void setUp()
     {
-        auditManager = new AuditManager( auditProducerSupplier, auditScheduler, AuditProducerConfiguration.builder().build(),
+        auditManager = new AuditManager( auditProducerSupplier, auditScheduler,
+            AuditProducerConfiguration.builder().build(),
             auditMatrix, auditObjectFactory, usernameSupplier );
     }
 
@@ -89,7 +89,7 @@ public class AuditManagerTest
 
         Map<String, Object> map = new HashMap<>();
         map.put( "name", dataElement.getName() );
-        map.put( "uid" , dataElement.getUid() );
+        map.put( "uid", dataElement.getUid() );
         map.put( "code", "CODEA" );
 
         attributes = auditManager.collectAuditAttributes( map, DataElement.class );

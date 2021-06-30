@@ -1,6 +1,5 @@
-package org.hisp.dhis.webapi.controller.validation;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +25,14 @@ package org.hisp.dhis.webapi.controller.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.validation;
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -48,11 +53,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
-
-import java.util.List;
-
-import javax.servlet.http.HttpServletResponse;
+import com.google.common.collect.Lists;
 
 /**
  * @author Stian Sandvold
@@ -78,9 +79,7 @@ public class ValidationResultController
     }
 
     @GetMapping
-    public
-    @ResponseBody
-    RootNode getObjectList( ValidationResultQuery query, HttpServletResponse response )
+    public @ResponseBody RootNode getObjectList( ValidationResultQuery query, HttpServletResponse response )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -99,7 +98,8 @@ public class ValidationResultController
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( ValidationResult.class, new FieldFilterParams( validationResults, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( ValidationResult.class,
+            new FieldFilterParams( validationResults, fields ) ) );
 
         setNoStore( response );
         return rootNode;
@@ -113,7 +113,8 @@ public class ValidationResultController
 
         if ( result == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Validation result with id " + id + " was not found" ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "Validation result with id " + id + " was not found" ) );
         }
         else
         {

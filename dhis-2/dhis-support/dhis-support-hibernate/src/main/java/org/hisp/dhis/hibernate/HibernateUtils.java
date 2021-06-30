@@ -1,7 +1,5 @@
-package org.hisp.dhis.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,7 @@ package org.hisp.dhis.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hibernate.Hibernate;
-import org.hibernate.collection.internal.PersistentSet;
-import org.hibernate.collection.spi.PersistentCollection;
-import org.hibernate.proxy.HibernateProxy;
-import org.hibernate.proxy.pojo.javassist.SerializableProxy;
-import org.hisp.dhis.commons.util.DebugUtils;
+package org.hisp.dhis.hibernate;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
@@ -44,6 +36,13 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
 
+import org.hibernate.Hibernate;
+import org.hibernate.collection.internal.PersistentSet;
+import org.hibernate.collection.spi.PersistentCollection;
+import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.proxy.pojo.javassist.SerializableProxy;
+import org.hisp.dhis.commons.util.DebugUtils;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -51,7 +50,7 @@ public class HibernateUtils
 {
     public static boolean isProxy( Object object )
     {
-        return ( ( object instanceof HibernateProxy ) || ( object instanceof PersistentCollection ) );
+        return ((object instanceof HibernateProxy) || (object instanceof PersistentCollection));
     }
 
     /**
@@ -113,15 +112,15 @@ public class HibernateUtils
 
         Arrays.stream( fields )
             .filter( f -> Collection.class.isAssignableFrom( f.getType() ) )
-            .forEach( f ->
-            {
+            .forEach( f -> {
                 try
                 {
                     PropertyDescriptor pd = new PropertyDescriptor( f.getName(), proxy.getClass() );
 
                     Object persistentObject = pd.getReadMethod().invoke( proxy );
 
-                    if ( persistentObject != null && PersistentCollection.class.isAssignableFrom( persistentObject.getClass() ) )
+                    if ( persistentObject != null
+                        && PersistentCollection.class.isAssignableFrom( persistentObject.getClass() ) )
                     {
                         Hibernate.initialize( persistentObject );
                     }
@@ -130,7 +129,7 @@ public class HibernateUtils
                 {
                     DebugUtils.getStackTrace( e );
                 }
-            });
+            } );
 
         return proxy;
     }

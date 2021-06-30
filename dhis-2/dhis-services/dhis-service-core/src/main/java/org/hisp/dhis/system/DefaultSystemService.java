@@ -1,7 +1,5 @@
-package org.hisp.dhis.system;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.system;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -37,6 +36,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.calendar.CalendarService;
@@ -61,8 +62,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableList;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -143,9 +142,12 @@ public class DefaultSystemService
             return null;
         }
 
-        Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
-        String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
-        Date lastSystemMonitoringSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
+        Date lastAnalyticsTableSuccess = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        String lastAnalyticsTableRuntime = (String) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
+        Date lastSystemMonitoringSuccess = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
         String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         String instanceBaseUrl = dhisConfig.getServerBaseUrl();
 
@@ -245,8 +247,7 @@ public class DefaultSystemService
         // ---------------------------------------------------------------------
 
         info.setMetadataAudit( new MetadataAudit(
-            Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" )
-        ) );
+            Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" ) ) );
 
         // ---------------------------------------------------------------------
         // System env variables and properties
@@ -278,18 +279,24 @@ public class DefaultSystemService
 
     private void setSystemMetadataVersionInfo( SystemInfo info )
     {
-        Boolean isMetadataVersionEnabled = (boolean) systemSettingManager.getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
-        Date lastSuccessfulMetadataSync = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
-        Date metadataLastFailedTime = (Date) systemSettingManager.getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
-        String systemMetadataVersion = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
-        Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync, metadataLastFailedTime );
+        Boolean isMetadataVersionEnabled = (boolean) systemSettingManager
+            .getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
+        Date lastSuccessfulMetadataSync = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
+        Date metadataLastFailedTime = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
+        String systemMetadataVersion = (String) systemSettingManager
+            .getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
+        Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync,
+            metadataLastFailedTime );
 
         info.setIsMetadataVersionEnabled( isMetadataVersionEnabled );
         info.setSystemMetadataVersion( systemMetadataVersion );
         info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
     }
 
-    private Date getLastMetadataVersionSyncAttempt( Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime )
+    private Date getLastMetadataVersionSyncAttempt( Date lastSuccessfulMetadataSyncTime,
+        Date lastFailedMetadataSyncTime )
     {
         if ( lastSuccessfulMetadataSyncTime == null && lastFailedMetadataSyncTime == null )
         {
@@ -300,6 +307,7 @@ public class DefaultSystemService
             return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
         }
 
-        return (lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0) ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime;
+        return (lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0) ? lastFailedMetadataSyncTime
+            : lastSuccessfulMetadataSyncTime;
     }
 }

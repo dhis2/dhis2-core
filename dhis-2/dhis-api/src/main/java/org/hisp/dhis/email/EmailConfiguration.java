@@ -1,11 +1,5 @@
-package org.hisp.dhis.email;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.base.MoreObjects;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +25,11 @@ import com.google.common.base.MoreObjects;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.email;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * Created by zubair on 30.03.17.
@@ -69,7 +68,7 @@ public class EmailConfiguration
             .add( "Port", port )
             .add( "TLS", tls ).toString();
     }
-    
+
     public boolean isOk()
     {
         return hostName != null && username != null && password != null;

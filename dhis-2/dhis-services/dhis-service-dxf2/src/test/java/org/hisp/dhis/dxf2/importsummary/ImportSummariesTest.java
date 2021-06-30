@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.importsummary;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,11 @@ package org.hisp.dhis.dxf2.importsummary;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.junit.Test;
+package org.hisp.dhis.dxf2.importsummary;
 
 import static org.junit.Assert.*;
+
+import org.junit.Test;
 
 /**
  * @author Lars Helge Overland
@@ -41,54 +40,54 @@ public class ImportSummariesTest
     public void testAddImportSummary()
     {
         ImportSummaries summaries = new ImportSummaries();
-        
-        summaries.addImportSummary( 
+
+        summaries.addImportSummary(
             new ImportSummary( ImportStatus.SUCCESS, "Great success",
                 new ImportCount( 4, 2, 1, 2 ) ) );
-        summaries.addImportSummary( 
+        summaries.addImportSummary(
             new ImportSummary( ImportStatus.WARNING, "Ouch warning",
                 new ImportCount( 1, 2, 3, 0 ) ) );
-        summaries.addImportSummary( 
+        summaries.addImportSummary(
             new ImportSummary( ImportStatus.SUCCESS, "Great failure",
                 new ImportCount( 0, 0, 4, 3 ) ) );
-        
+
         assertEquals( 5, summaries.getImported() );
         assertEquals( 4, summaries.getUpdated() );
         assertEquals( 8, summaries.getIgnored() );
-        assertEquals( 5, summaries.getDeleted() );        
+        assertEquals( 5, summaries.getDeleted() );
     }
-    
+
     @Test
     public void testGetImportStatus()
     {
         ImportSummaries summaries = new ImportSummaries();
-        
-        summaries.addImportSummary( 
+
+        summaries.addImportSummary(
             new ImportSummary( ImportStatus.SUCCESS, "Great success",
                 new ImportCount( 4, 2, 1, 2 ) ) );
-        summaries.addImportSummary( 
+        summaries.addImportSummary(
             new ImportSummary( ImportStatus.WARNING, "Ouch warning",
                 new ImportCount( 1, 2, 3, 0 ) ) );
-        summaries.addImportSummary( 
+        summaries.addImportSummary(
             new ImportSummary( ImportStatus.ERROR, "Great failure",
                 new ImportCount( 0, 0, 4, 3 ) ) );
-        
+
         assertEquals( ImportStatus.ERROR, summaries.getStatus() );
-        
+
         summaries = new ImportSummaries();
-        
-        summaries.addImportSummary( 
+
+        summaries.addImportSummary(
             new ImportSummary( ImportStatus.SUCCESS, "Great success",
                 new ImportCount( 4, 2, 1, 2 ) ) );
-        summaries.addImportSummary( 
+        summaries.addImportSummary(
             new ImportSummary( ImportStatus.WARNING, "Ouch warning",
                 new ImportCount( 1, 2, 3, 0 ) ) );
-        
+
         assertEquals( ImportStatus.WARNING, summaries.getStatus() );
 
         summaries = new ImportSummaries();
-        
-        summaries.addImportSummary( 
+
+        summaries.addImportSummary(
             new ImportSummary( ImportStatus.SUCCESS, "Great success",
                 new ImportCount( 4, 2, 1, 2 ) ) );
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.common.coordinate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,21 @@ package org.hisp.dhis.common.coordinate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.geojson.GeoJsonWriter;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.organisationunit.CoordinatesTuple;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+package org.hisp.dhis.common.coordinate;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.organisationunit.CoordinatesTuple;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.geojson.GeoJsonWriter;
 
 /**
  * @author Henning Håkonsen
@@ -73,8 +73,8 @@ public class CoordinateUtils
 
         if ( coordinates != null && !coordinates.trim().isEmpty() )
         {
-            Matcher jsonMatcher = isPoint( featureType ) ?
-                JSON_POINT_PATTERN.matcher( coordinates ) : JSON_COORDINATE_PATTERN.matcher( coordinates );
+            Matcher jsonMatcher = isPoint( featureType ) ? JSON_POINT_PATTERN.matcher( coordinates )
+                : JSON_COORDINATE_PATTERN.matcher( coordinates );
 
             while ( jsonMatcher.find() )
             {
@@ -148,9 +148,10 @@ public class CoordinateUtils
         String coordinatesKey = "\"coordinates\":";
         String crsKey = ",\"crs\":";
 
-        GeoJsonWriter gjw = new GeoJsonWriter(  );
+        GeoJsonWriter gjw = new GeoJsonWriter();
         String geojson = gjw.write( geometry ).trim();
 
-        return geojson.substring( geojson.indexOf( coordinatesKey ) + coordinatesKey.length(), geojson.indexOf( crsKey ) );
+        return geojson.substring( geojson.indexOf( coordinatesKey ) + coordinatesKey.length(),
+            geojson.indexOf( crsKey ) );
     }
 }

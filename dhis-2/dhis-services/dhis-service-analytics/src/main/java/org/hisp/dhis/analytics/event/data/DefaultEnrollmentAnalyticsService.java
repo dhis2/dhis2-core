@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -52,13 +51,21 @@ public class DefaultEnrollmentAnalyticsService
     EnrollmentAnalyticsService
 {
     private static final String NAME_TEI = "Tracked entity instance";
-    private static final String NAME_PI  = "Enrollment";
+
+    private static final String NAME_PI = "Enrollment";
+
     private static final String NAME_GEOMETRY = "Geometry";
+
     private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
+
     private static final String NAME_INCIDENT_DATE = "Incident date";
+
     private static final String NAME_LONGITUDE = "Longitude";
+
     private static final String NAME_LATITUDE = "Latitude";
+
     private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
+
     private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";
 
     private final EnrollmentAnalyticsManager enrollmentAnalyticsManager;
@@ -84,28 +91,35 @@ public class DefaultEnrollmentAnalyticsService
     @Override
     public Grid getEnrollments( EventQueryParams params )
     {
-        return getGrid(params);
+        return getGrid( params );
     }
 
     @Override
     protected Grid createGridWithHeaders( EventQueryParams params )
     {
         Grid grid = new ListGrid();
-     
+
         grid.addHeader( new GridHeader( ITEM_PI, NAME_PI, ValueType.TEXT, String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_TEI, NAME_TEI, ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_GEOMETRY, NAME_GEOMETRY, ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, ValueType.TEXT, String.class.getName(), false, true ) );
+            .addHeader( new GridHeader( ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, ValueType.DATE,
+                Date.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE, Date.class.getName(),
+                false, true ) )
+            .addHeader(
+                new GridHeader( ITEM_GEOMETRY, NAME_GEOMETRY, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, ValueType.NUMBER, Double.class.getName(), false,
+                true ) )
+            .addHeader(
+                new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, String.class.getName(),
+                false, true ) )
+            .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, ValueType.TEXT, String.class.getName(),
+                false, true ) );
         return grid;
     }
 
     @Override
-    protected long addEventData(Grid grid, EventQueryParams params )
+    protected long addEventData( Grid grid, EventQueryParams params )
     {
         Timer timer = new Timer().start().disablePrint();
 

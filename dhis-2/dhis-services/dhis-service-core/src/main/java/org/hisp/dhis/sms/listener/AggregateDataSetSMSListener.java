@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.listener;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,13 @@ package org.hisp.dhis.sms.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.listener;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -62,12 +67,6 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component( "org.hisp.dhis.sms.listener.AggregateDatasetSmsListener" )
@@ -114,7 +113,7 @@ public class AggregateDataSetSMSListener
         User user = userService.getUser( subm.getUserId().getUid() );
 
         DataSet dataSet = dataSetService.getDataSet( dsid.getUid() );
-        
+
         if ( dataSet == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_DATASET.set( dsid ) );
@@ -127,7 +126,7 @@ public class AggregateDataSetSMSListener
         }
 
         CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
-        
+
         if ( aoc == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
@@ -190,7 +189,7 @@ public class AggregateDataSetSMSListener
             String combid = deid + "-" + cocid;
 
             DataElement de = dataElementService.getDataElement( deid.getUid() );
-            
+
             if ( de == null )
             {
                 log.warn( String.format( "Data element [%s] does not exist. Continuing with submission...", deid ) );
@@ -199,7 +198,7 @@ public class AggregateDataSetSMSListener
             }
 
             CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( cocid.getUid() );
-            
+
             if ( coc == null )
             {
                 log.warn( String.format( "Category Option Combo [%s] does not exist. Continuing with submission...",

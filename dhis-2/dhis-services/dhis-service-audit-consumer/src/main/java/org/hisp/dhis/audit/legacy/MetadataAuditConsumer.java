@@ -1,7 +1,5 @@
-package org.hisp.dhis.audit.legacy;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,14 @@ package org.hisp.dhis.audit.legacy;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.audit.legacy;
 
 import java.io.IOException;
 import java.util.Objects;
 
 import javax.jms.TextMessage;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.artemis.audit.Audit;
@@ -44,8 +45,6 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * A MetadataAudit object consumer.
  *
@@ -56,7 +55,9 @@ import lombok.extern.slf4j.Slf4j;
 public class MetadataAuditConsumer implements AuditConsumer
 {
     private final AuditService auditService;
+
     private final ObjectMapper objectMapper;
+
     private final boolean metadataAuditLog;
 
     public MetadataAuditConsumer(
@@ -75,7 +76,7 @@ public class MetadataAuditConsumer implements AuditConsumer
     {
         try
         {
-            log.debug( "[MetadataAuditConsumer] Receiving message: "+ message  );
+            log.debug( "[MetadataAuditConsumer] Receiving message: " + message );
             String payload = message.getText();
 
             Audit auditMessage = objectMapper.readValue( payload, Audit.class );

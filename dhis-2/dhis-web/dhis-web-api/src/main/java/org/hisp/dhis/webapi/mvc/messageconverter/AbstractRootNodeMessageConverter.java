@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.mvc.messageconverter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,18 @@ package org.hisp.dhis.webapi.mvc.messageconverter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.mvc.messageconverter;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
@@ -39,16 +49,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
 /**
  * Abstract base class for HTTP message converters that convert root nodes.
  *
@@ -57,9 +57,11 @@ import java.util.zip.ZipOutputStream;
 public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessageConverter<RootNode>
 {
     /**
-     * File name that will get a media type related suffix when included as an attachment file name.
+     * File name that will get a media type related suffix when included as an
+     * attachment file name.
      */
-    private static final Set<String> EXTENSIBLE_ATTACHMENT_FILENAMES = Collections.unmodifiableSet( new HashSet<>( Collections.singleton( "metadata" ) ) );
+    private static final Set<String> EXTENSIBLE_ATTACHMENT_FILENAMES = Collections
+        .unmodifiableSet( new HashSet<>( Collections.singleton( "metadata" ) ) );
 
     private final NodeService nodeService;
 
@@ -69,7 +71,8 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
 
     private final Compression compression;
 
-    protected AbstractRootNodeMessageConverter( @Nonnull NodeService nodeService, @Nonnull String contentType, @Nonnull String fileExtension, Compression compression )
+    protected AbstractRootNodeMessageConverter( @Nonnull NodeService nodeService, @Nonnull String contentType,
+        @Nonnull String fileExtension, Compression compression )
     {
         this.nodeService = nodeService;
         this.contentType = contentType;
@@ -101,16 +104,20 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
     }
 
     @Override
-    protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage ) throws IOException, HttpMessageNotWritableException
+    protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage )
+        throws IOException,
+        HttpMessageNotWritableException
     {
-        final String contentDisposition = outputMessage.getHeaders().getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION );
+        final String contentDisposition = outputMessage.getHeaders()
+            .getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION );
         final boolean attachment = isAttachment( contentDisposition );
         final String extensibleAttachmentFilename = getExtensibleAttachmentFilename( contentDisposition );
         if ( Compression.GZIP == compression )
         {
             if ( !attachment || (extensibleAttachmentFilename != null) )
             {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue( extensibleAttachmentFilename, "gz" ) );
+                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
+                    getContentDispositionHeaderValue( extensibleAttachmentFilename, "gz" ) );
                 outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             }
 
@@ -122,7 +129,8 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
         {
             if ( !attachment || (extensibleAttachmentFilename != null) )
             {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue( extensibleAttachmentFilename, "zip" ) );
+                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
+                    getContentDispositionHeaderValue( extensibleAttachmentFilename, "zip" ) );
                 outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             }
 
@@ -135,7 +143,8 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
         {
             if ( extensibleAttachmentFilename != null )
             {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue( extensibleAttachmentFilename, null ) );
+                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
+                    getContentDispositionHeaderValue( extensibleAttachmentFilename, null ) );
             }
 
             nodeService.serialize( rootNode, contentType, outputMessage.getBody() );
@@ -144,10 +153,12 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
     }
 
     @Nonnull
-    protected String getContentDispositionHeaderValue( @Nullable String extensibleFilename, @Nullable String compressionExtension )
+    protected String getContentDispositionHeaderValue( @Nullable String extensibleFilename,
+        @Nullable String compressionExtension )
     {
         final String suffix = (compressionExtension == null) ? "" : "." + compressionExtension;
-        return "attachment; filename=" + StringUtils.defaultString( extensibleFilename, "metadata" ) + "." + fileExtension + suffix;
+        return "attachment; filename=" + StringUtils.defaultString( extensibleFilename, "metadata" ) + "."
+            + fileExtension + suffix;
     }
 
     protected boolean isAttachment( @Nullable String contentDispositionHeaderValue )
@@ -162,4 +173,3 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
         return (filename != null) && EXTENSIBLE_ATTACHMENT_FILENAMES.contains( filename ) ? filename : null;
     }
 }
-

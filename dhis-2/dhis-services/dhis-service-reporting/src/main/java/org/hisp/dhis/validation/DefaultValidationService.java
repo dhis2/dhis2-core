@@ -1,7 +1,5 @@
-package org.hisp.dhis.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,22 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+
+import java.util.*;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
@@ -59,10 +61,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
@@ -159,16 +160,20 @@ public class DefaultValidationService
     // -------------------------------------------------------------------------
 
     @Override
-    public Collection<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters)
+    public Collection<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters )
     {
         Clock clock = new Clock( log ).startClock().logTime( "Starting validation analysis"
-            + ( parameters.getOrgUnit() == null ? "" : " for orgUnit " + parameters.getOrgUnit().getUid()
-                + ( parameters.isIncludeOrgUnitDescendants() ? " with descendants" : "" ) ) + ", "
-            + ( parameters.getPeriods().size() == 1 ? "period " + Iterables.getOnlyElement( parameters.getPeriods() ).getIsoDate()
-                : parameters.getPeriods().size() + " periods" ) + ", "
+            + (parameters.getOrgUnit() == null ? ""
+                : " for orgUnit " + parameters.getOrgUnit().getUid()
+                    + (parameters.isIncludeOrgUnitDescendants() ? " with descendants" : ""))
+            + ", "
+            + (parameters.getPeriods().size() == 1
+                ? "period " + Iterables.getOnlyElement( parameters.getPeriods() ).getIsoDate()
+                : parameters.getPeriods().size() + " periods")
+            + ", "
             + parameters.getRules().size() + " rules"
-            + ( parameters.isPersistResults() ? ", persisting results" : "" )
-            + ( parameters.isSendNotifications() ? ", sending notifications" : "" ) );
+            + (parameters.isPersistResults() ? ", persisting results" : "")
+            + (parameters.isSendNotifications() ? ", sending notifications" : "") );
 
         ValidationRunContext context = getValidationContext( parameters );
 
@@ -181,7 +186,7 @@ public class DefaultValidationService
             validationResultService.saveValidationResults( context.getValidationResults() );
         }
 
-        clock.logTime( "Finished validation analysis, " +  context.getValidationResults().size() + " results").stop();
+        clock.logTime( "Finished validation analysis, " + context.getValidationResults().size() + " results" ).stop();
 
         if ( context.isSendNotifications() )
         {
@@ -228,17 +233,18 @@ public class DefaultValidationService
     public ValidationAnalysisParams.Builder newParamsBuilder( Collection<ValidationRule> validationRules,
         OrganisationUnit organisationUnit, Collection<Period> periods )
     {
-        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods);
+        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods );
     }
 
     @Override
     public ValidationAnalysisParams.Builder newParamsBuilder( ValidationRuleGroup validationRuleGroup,
         OrganisationUnit organisationUnit, Date startDate, Date endDate )
     {
-        Collection<ValidationRule> validationRules = validationRuleGroup != null ? validationRuleGroup.getMembers() : validationRuleService.getAllValidationRules();
+        Collection<ValidationRule> validationRules = validationRuleGroup != null ? validationRuleGroup.getMembers()
+            : validationRuleService.getAllValidationRules();
         Collection<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
 
-        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods);
+        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods );
     }
 
     @Override
@@ -247,9 +253,9 @@ public class DefaultValidationService
         Period period )
     {
         Collection<ValidationRule> validationRules = validationRuleService.getValidationRulesForDataSet( dataSet );
-        Collection<Period> periods = Sets.newHashSet(period);
+        Collection<Period> periods = Sets.newHashSet( period );
 
-        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods);
+        return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods );
     }
 
     // -------------------------------------------------------------------------
@@ -257,9 +263,11 @@ public class DefaultValidationService
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a new Builder with basic configuration based on the input parameters.
+     * Returns a new Builder with basic configuration based on the input
+     * parameters.
      *
-     * @param parameters        ValidationRuleParameters for creating ValidationRuleContext
+     * @param parameters ValidationRuleParameters for creating
+     *        ValidationRuleContext
      * @return Builder with basic configuration based on input.
      */
     private ValidationRunContext getValidationContext( ValidationAnalysisParams parameters )
@@ -293,7 +301,7 @@ public class DefaultValidationService
             .withConstantMap( constantService.getConstantMap() )
             .withInitialResults( validationResultService
                 .getValidationResults( parameterOrgUnit,
-                    parameters.isIncludeOrgUnitDescendants(), parameters.getRules(), parameters.getPeriods()) )
+                    parameters.isIncludeOrgUnitDescendants(), parameters.getRules(), parameters.getPeriods() ) )
             .withSendNotifications( parameters.isSendNotifications() )
             .withPersistResults( parameters.isPersistResults() )
             .withAttributeCombo( parameters.getAttributeOptionCombo() )
@@ -316,7 +324,7 @@ public class DefaultValidationService
      * Adds Periods to the context, grouped by period type.
      *
      * @param periodTypeXMap period type map to extended period types.
-     * @param periods               periods to group and add.
+     * @param periods periods to group and add.
      */
     private void addPeriodsToContext( Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
         Collection<Period> periods )
@@ -355,12 +363,13 @@ public class DefaultValidationService
      * Adds validation rules to the context.
      *
      * @param periodTypeXMap period type map to extended period types.
-     * @param rules                 validation rules to add.
+     * @param rules validation rules to add.
      */
     private void addRulesToContext( Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
         Collection<ValidationRule> rules )
     {
-        // 1. Find all dimensional object IDs in the expressions of the validation rules.
+        // 1. Find all dimensional object IDs in the expressions of the
+        // validation rules.
 
         Set<DimensionalItemId> allItemIds = new HashSet<>();
 
@@ -383,17 +392,21 @@ public class DefaultValidationService
             periodX.setSlidingWindows( ruleX.getRightSlidingWindow() );
 
             Set<DimensionalItemId> itemIds = Sets.union(
-                expressionService.getExpressionDimensionalItemIds( rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION ),
-                expressionService.getExpressionDimensionalItemIds( rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION ) );
+                expressionService.getExpressionDimensionalItemIds( rule.getLeftSide().getExpression(),
+                    VALIDATION_RULE_EXPRESSION ),
+                expressionService.getExpressionDimensionalItemIds( rule.getRightSide().getExpression(),
+                    VALIDATION_RULE_EXPRESSION ) );
 
             periodItemIds.putValues( periodX, itemIds );
 
             allItemIds.addAll( itemIds );
         }
 
-        // 2. Get the dimensional objects from the IDs. (Get them all at once for best performance.)
+        // 2. Get the dimensional objects from the IDs. (Get them all at once
+        // for best performance.)
 
-        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap = dimensionService.getNoAclDataDimensionalItemObjectMap( allItemIds );
+        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap = dimensionService
+            .getNoAclDataDimensionalItemObjectMap( allItemIds );
 
         // 3. Save the dimensional objects in the extended period types.
 
@@ -433,8 +446,8 @@ public class DefaultValidationService
     }
 
     /**
-     * Checks to see if a dimensional item object has values
-     * stored in the database by attribute option combo.
+     * Checks to see if a dimensional item object has values stored in the
+     * database by attribute option combo.
      *
      * @param object dimensional item object
      * @return true if values are stored by attribuete option combo.
@@ -442,7 +455,7 @@ public class DefaultValidationService
     private boolean hasAttributeOptions( DimensionalItemObject object )
     {
         return object.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
-            || ( (ProgramIndicator)object ).getAnalyticsType() != AnalyticsType.ENROLLMENT;
+            || ((ProgramIndicator) object).getAnalyticsType() != AnalyticsType.ENROLLMENT;
     }
 
     /**
@@ -469,7 +482,7 @@ public class DefaultValidationService
      * and returns it.
      *
      * @param periodTypeXMap period type map to extended period types.
-     * @param periodType            period type to search for
+     * @param periodType period type to search for
      * @return period type extended from the context object
      */
     private PeriodTypeExtended getOrCreatePeriodTypeExtended( Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
@@ -479,7 +492,7 @@ public class DefaultValidationService
 
         if ( periodTypeX == null )
         {
-            periodTypeX = new PeriodTypeExtended(  periodService.reloadPeriodType( periodType ) );
+            periodTypeX = new PeriodTypeExtended( periodService.reloadPeriodType( periodType ) );
             periodTypeXMap.put( periodType, periodTypeX );
         }
 

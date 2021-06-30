@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,27 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
-import com.google.api.client.util.Lists;
-import com.google.common.collect.ImmutableMap;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -56,25 +71,13 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
+import com.google.api.client.util.Lists;
+import com.google.common.collect.ImmutableMap;
 
 /**
- * Note that it is required for nameable object stores to have concrete implementation
- * classes, not rely on the HibernateIdentifiableObjectStore class, in order to
- * be injected as nameable object stores.
+ * Note that it is required for nameable object stores to have concrete
+ * implementation classes, not rely on the HibernateIdentifiableObjectStore
+ * class, in order to be injected as nameable object stores.
  *
  * @author Lars Helge Overland
  */
@@ -105,7 +108,6 @@ public class DefaultIdentifiableObjectManager
     private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
     private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
-
 
     public DefaultIdentifiableObjectManager(
         Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
@@ -142,9 +144,9 @@ public class DefaultIdentifiableObjectManager
             .build();
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // IdentifiableObjectManager implementation
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     @Transactional
@@ -218,18 +220,14 @@ public class DefaultIdentifiableObjectManager
     public void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations )
     {
         Session session = sessionFactory.getCurrentSession();
-        persistedObject.getTranslations().clear();
-        session.flush();
-
-        translations.forEach( translation ->
-        {
-            if ( StringUtils.isNotEmpty( translation.getValue() ) )
-            {
-                persistedObject.getTranslations().add( translation );
-            }
-        } );
 
         BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
+
+        translatedObject.setTranslations(
+            translations.stream()
+                .filter( t -> !StringUtils.isEmpty( t.getValue() ) )
+                .collect( Collectors.toSet() ) );
+
         translatedObject.setLastUpdated( new Date() );
         translatedObject.setLastUpdatedBy( currentUserService.getCurrentUser() );
 
@@ -412,10 +410,10 @@ public class DefaultIdentifiableObjectManager
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
         String value )
     {
-       return getByUniqueAttributeValue( clazz, attribute, value, currentUserService.getCurrentUserInfo() );
+        return getByUniqueAttributeValue( clazz, attribute, value, currentUserService.getCurrentUserInfo() );
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
@@ -561,8 +559,9 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    @Transactional( readOnly = true)
-    public <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
+    @Transactional( readOnly = true )
+    public <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass,
+        List<Attribute> attributes )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -578,11 +577,11 @@ public class DefaultIdentifiableObjectManager
             return new ArrayList<>();
         }
 
-        return  store.getAllValuesByAttributes( attributes );
+        return store.getAllValuesByAttributes( attributes );
     }
 
     @Override
-    public <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes)
+    public <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -598,7 +597,7 @@ public class DefaultIdentifiableObjectManager
             return 0;
         }
 
-        return  store.countAllValuesByAttributes( attributes );
+        return store.countAllValuesByAttributes( attributes );
     }
 
     @Override
@@ -648,7 +647,8 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> List<T> getOrdered( Class<T> clazz, IdScheme idScheme, Collection<String> values )
+    public <T extends IdentifiableObject> List<T> getOrdered( Class<T> clazz, IdScheme idScheme,
+        Collection<String> values )
     {
         if ( values == null )
         {
@@ -787,7 +787,8 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getBetweenLikeName( Class<T> clazz, Set<String> words, int first, int max )
+    public <T extends IdentifiableObject> List<T> getBetweenLikeName( Class<T> clazz, Set<String> words, int first,
+        int max )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
@@ -868,7 +869,8 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, IdentifiableProperty property, Collection<String> identifiers )
+    public <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, IdentifiableProperty property,
+        Collection<String> identifiers )
     {
         IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
 
@@ -892,7 +894,8 @@ public class DefaultIdentifiableObjectManager
                 return store.getByName( identifiers );
             }
 
-            throw new InvalidIdentifierReferenceException( "Invalid identifiable property / class combination: " + property );
+            throw new InvalidIdentifierReferenceException(
+                "Invalid identifiable property / class combination: " + property );
         }
 
         return new ArrayList<>();
@@ -959,7 +962,8 @@ public class DefaultIdentifiableObjectManager
                 }
             }
 
-            throw new InvalidIdentifierReferenceException( "Invalid identifiable property / class combination: " + idScheme );
+            throw new InvalidIdentifierReferenceException(
+                "Invalid identifiable property / class combination: " + idScheme );
         }
 
         return null;
@@ -1091,7 +1095,8 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> klass, Attribute attribute, String value )
+    public <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> klass, Attribute attribute,
+        String value )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -1112,7 +1117,8 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, AttributeValue attributeValue )
+    public <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass,
+        T object, AttributeValue attributeValue )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
         return store != null && store.isAttributeValueUnique( object, attributeValue );
@@ -1120,7 +1126,8 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, Attribute attribute, String value )
+    public <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass,
+        T object, Attribute attribute, String value )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
         return store != null && store.isAttributeValueUnique( object, attribute, value );
@@ -1139,10 +1146,26 @@ public class DefaultIdentifiableObjectManager
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(), key -> HibernateUtils.initializeProxy( getByName( Category.class, "default" ) ) ).orElse( null ) )
-            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(), key -> HibernateUtils.initializeProxy( getByName( CategoryCombo.class, "default" ) ) ).orElse( null ) )
-            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(), key -> HibernateUtils.initializeProxy( getByName( CategoryOption.class, "default" ) ) ).orElse( null ) )
-            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(), key -> HibernateUtils.initializeProxy( getByName( CategoryOptionCombo.class, "default" ) ) ).orElse( null ) )
+            .put( Category.class,
+                DEFAULT_OBJECT_CACHE
+                    .get( Category.class.getName(),
+                        key -> HibernateUtils.initializeProxy( getByName( Category.class, "default" ) ) )
+                    .orElse( null ) )
+            .put( CategoryCombo.class,
+                DEFAULT_OBJECT_CACHE
+                    .get( CategoryCombo.class.getName(),
+                        key -> HibernateUtils.initializeProxy( getByName( CategoryCombo.class, "default" ) ) )
+                    .orElse( null ) )
+            .put( CategoryOption.class,
+                DEFAULT_OBJECT_CACHE
+                    .get( CategoryOption.class.getName(),
+                        key -> HibernateUtils.initializeProxy( getByName( CategoryOption.class, "default" ) ) )
+                    .orElse( null ) )
+            .put( CategoryOptionCombo.class,
+                DEFAULT_OBJECT_CACHE
+                    .get( CategoryOptionCombo.class.getName(),
+                        key -> HibernateUtils.initializeProxy( getByName( CategoryOptionCombo.class, "default" ) ) )
+                    .orElse( null ) )
             .build();
     }
 
@@ -1160,9 +1183,9 @@ public class DefaultIdentifiableObjectManager
         return store.getUidsCreatedBefore( date );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     @Transactional( readOnly = true )
@@ -1187,7 +1210,8 @@ public class DefaultIdentifiableObjectManager
     }
 
     @SuppressWarnings( "unchecked" )
-    private <T extends IdentifiableObject> IdentifiableObjectStore<IdentifiableObject> getIdentifiableObjectStore( Class<T> clazz )
+    private <T extends IdentifiableObject> IdentifiableObjectStore<IdentifiableObject> getIdentifiableObjectStore(
+        Class<T> clazz )
     {
         initMaps();
 
@@ -1207,7 +1231,8 @@ public class DefaultIdentifiableObjectManager
     }
 
     @SuppressWarnings( "unchecked" )
-    private <T extends DimensionalObject> GenericDimensionalObjectStore<DimensionalObject> getDimensionalObjectStore( Class<T> clazz )
+    private <T extends DimensionalObject> GenericDimensionalObjectStore<DimensionalObject> getDimensionalObjectStore(
+        Class<T> clazz )
     {
         initMaps();
 

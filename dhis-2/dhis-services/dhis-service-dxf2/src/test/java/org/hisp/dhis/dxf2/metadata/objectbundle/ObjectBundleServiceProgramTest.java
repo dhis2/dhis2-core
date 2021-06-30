@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,13 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
+
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -49,12 +54,6 @@ import org.hisp.dhis.validation.ValidationRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -81,14 +80,16 @@ public class ObjectBundleServiceProgramTest
     private UserAccessService userAccessService;
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         renderService = _renderService;
         userService = _userService;
     }
 
     @Test
-    public void testCreateSimpleProgramNoReg() throws IOException
+    public void testCreateSimpleProgramNoReg()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_noreg.json" ).getInputStream(), RenderFormat.JSON );
@@ -132,7 +133,8 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    public void testCreateSimpleProgramWithSectionsNoReg() throws IOException
+    public void testCreateSimpleProgramWithSectionsNoReg()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_noreg_sections.json" ).getInputStream(), RenderFormat.JSON );
@@ -176,7 +178,8 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    public void testCreateSimpleProgramReg() throws IOException
+    public void testCreateSimpleProgramReg()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_reg1.json" ).getInputStream(), RenderFormat.JSON );
@@ -203,7 +206,8 @@ public class ObjectBundleServiceProgramTest
         List<Program> programs = manager.getAll( Program.class );
         List<ProgramStage> programStages = manager.getAll( ProgramStage.class );
         List<ProgramStageDataElement> programStageDataElements = manager.getAll( ProgramStageDataElement.class );
-        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = manager.getAll( ProgramTrackedEntityAttribute.class );
+        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = manager
+            .getAll( ProgramTrackedEntityAttribute.class );
 
         assertFalse( organisationUnits.isEmpty() );
         assertFalse( dataElements.isEmpty() );
@@ -216,7 +220,8 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    public void testCreateSimpleProgramRegNextScheduleDate() throws IOException
+    public void testCreateSimpleProgramRegNextScheduleDate()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_reg1_valid_nextschedule.json" ).getInputStream(), RenderFormat.JSON );
@@ -234,7 +239,8 @@ public class ObjectBundleServiceProgramTest
         objectBundleService.commit( bundle );
 
         metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/program_reg1_invalid_nextschedule.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/program_reg1_invalid_nextschedule.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );

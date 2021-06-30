@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.function.Consumer;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -38,7 +38,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.function.Consumer;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Created by zubair@dhis2.org on 18.08.17.
@@ -47,10 +47,23 @@ import java.util.function.Consumer;
 public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook
 {
     private ImmutableMap<ParserType, Consumer<SMSCommand>> VALUE_POPULATOR = new ImmutableMap.Builder<ParserType, Consumer<SMSCommand>>()
-        .put( ParserType.TRACKED_ENTITY_REGISTRATION_PARSER, sc -> { sc.setProgramStage( null ); sc.setUserGroup( null ); sc.setDataset( null ); } )
-        .put( ParserType.PROGRAM_STAGE_DATAENTRY_PARSER, sc -> { sc.setDataset( null ); sc.setUserGroup( null ); } )
-        .put( ParserType.KEY_VALUE_PARSER, sc -> { sc.setProgram( null ); sc.setProgramStage( null ); } )
-        .put( ParserType.ALERT_PARSER, sc -> { sc.setProgram( null ); sc.setProgramStage( null ); } )
+        .put( ParserType.TRACKED_ENTITY_REGISTRATION_PARSER, sc -> {
+            sc.setProgramStage( null );
+            sc.setUserGroup( null );
+            sc.setDataset( null );
+        } )
+        .put( ParserType.PROGRAM_STAGE_DATAENTRY_PARSER, sc -> {
+            sc.setDataset( null );
+            sc.setUserGroup( null );
+        } )
+        .put( ParserType.KEY_VALUE_PARSER, sc -> {
+            sc.setProgram( null );
+            sc.setProgramStage( null );
+        } )
+        .put( ParserType.ALERT_PARSER, sc -> {
+            sc.setProgram( null );
+            sc.setProgramStage( null );
+        } )
         .build();
 
     @Autowired
@@ -58,7 +71,6 @@ public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook
 
     @Autowired
     private TrackedEntityAttributeService trackedEntityAttributeService;
-
 
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
@@ -88,9 +100,10 @@ public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook
         getReferences( command );
     }
 
-    private void process(SMSCommand command )
+    private void process( SMSCommand command )
     {
-        VALUE_POPULATOR.getOrDefault( command.getParserType(), sc -> {} ).accept( command );
+        VALUE_POPULATOR.getOrDefault( command.getParserType(), sc -> {
+        } ).accept( command );
     }
 
     private void getReferences( SMSCommand command )
@@ -101,6 +114,7 @@ public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook
 
         command.getCodes().stream()
             .filter( c -> c.hasTrackedEntityAttribute() )
-            .forEach( c -> c.setTrackedEntityAttribute( trackedEntityAttributeService.getTrackedEntityAttribute( c.getTrackedEntityAttribute().getUid() ) ) );
+            .forEach( c -> c.setTrackedEntityAttribute(
+                trackedEntityAttributeService.getTrackedEntityAttribute( c.getTrackedEntityAttribute().getUid() ) ) );
     }
 }

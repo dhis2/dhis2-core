@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.objectmapper;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,18 @@ package org.hisp.dhis.system.objectmapper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.objectmapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 
-import org.hisp.quick.mapper.RowMapper;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.quick.mapper.RowMapper;
 
 /**
  * RowMapper which expects a result set with the following columns:
- * 
+ *
  * <ul>
  * <li>1: dataelementid - int</li>
  * <li>2: periodid - int</li>
@@ -58,31 +57,32 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
  * <li>17: sourcename - String</li>
  * <li>18: categoryoptioncomboname - String</li>
  * </ul>
- * 
+ *
  * @author Lars Helge Overland
  */
 public class DeflatedDataValueNameMinMaxRowMapper
     implements RowMapper<DeflatedDataValue>, org.springframework.jdbc.core.RowMapper<DeflatedDataValue>
 {
     private Map<Long, Integer> minMap;
+
     private Map<Long, Integer> maxMap;
-    
+
     public DeflatedDataValueNameMinMaxRowMapper()
     {
     }
-    
+
     public DeflatedDataValueNameMinMaxRowMapper( Map<Long, Integer> minMap, Map<Long, Integer> maxMap )
     {
         this.minMap = minMap;
         this.maxMap = maxMap;
     }
-    
+
     @Override
     public DeflatedDataValue mapRow( ResultSet resultSet )
         throws SQLException
     {
         final DeflatedDataValue value = new DeflatedDataValue();
-        
+
         value.setDataElementId( resultSet.getLong( "dataelementid" ) );
         value.setPeriodId( resultSet.getLong( "periodid" ) );
         value.setSourceId( resultSet.getLong( "sourceid" ) );
@@ -97,13 +97,13 @@ public class DeflatedDataValueNameMinMaxRowMapper
         value.setMin( minMap != null ? minMap.get( value.getSourceId() ) : resultSet.getInt( "minimumvalue" ) );
         value.setMax( maxMap != null ? maxMap.get( value.getSourceId() ) : resultSet.getInt( "maximumvalue" ) );
         value.setDataElementName( resultSet.getString( "dataelementname" ) );
-        value.setPeriod( 
-            resultSet.getString( "periodtypename" ), 
+        value.setPeriod(
+            resultSet.getString( "periodtypename" ),
             resultSet.getDate( "startdate" ),
             resultSet.getDate( "enddate" ) );
         value.setSourceName( resultSet.getString( "sourcename" ) );
         value.setCategoryOptionComboName( resultSet.getString( "categoryoptioncomboname" ) );
-        
+
         return value;
     }
 

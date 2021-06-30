@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.orgunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.analytics.orgunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.orgunit;
 
 import java.util.Map;
 
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;;
+import org.hisp.dhis.common.IllegalQueryException;
 
 public interface OrgUnitAnalyticsService
 {
@@ -41,7 +40,7 @@ public interface OrgUnitAnalyticsService
      * @param orgUnits the organisation unit string.
      * @param orgUnitGroupSets the organisation unit group set string.
      * @param columns the organisation unit group set to place as columns,
-     *         implies rendering in table layout, can be null.
+     *        implies rendering in table layout, can be null.
      * @return a {@link OrgUnitQueryParams}.
      */
     OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets, String columns );
@@ -55,8 +54,8 @@ public interface OrgUnitAnalyticsService
     Grid getOrgUnitData( OrgUnitQueryParams params );
 
     /**
-     * Returns the org unit data as a map with the metadata as key and
-     * org unit count as value for the given parameters.
+     * Returns the org unit data as a map with the metadata as key and org unit
+     * count as value for the given parameters.
      *
      * @param params the {@link OrgUnitQueryParams}.
      * @return a {@link Map}.

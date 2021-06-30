@@ -1,7 +1,5 @@
-package org.hisp.dhis.datastatistics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +25,74 @@ package org.hisp.dhis.datastatistics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datastatistics;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Aggregated DataStatistics object
- * 
+ *
  * @author Julie Hill Roa
  * @author Yrjan Fraschetti
  */
 public class AggregatedStatistics
 {
     private Integer year;
+
     private Integer month;
+
     private Integer week;
+
     private Integer day;
+
     private Integer mapViews;
+
     private Integer chartViews;
+
     private Integer pivotTableViews;
+
     private Integer eventReportViews;
+
     private Integer eventChartViews;
+
     private Integer dashboardViews;
+
     private Integer dataSetReportViews;
+
     private Integer totalViews;
+
     private Integer averageViews;
+
     private Integer averageMapViews;
+
     private Integer averageChartViews;
+
     private Integer averagePivotTableViews;
+
     private Integer averageEventReportViews;
+
     private Integer averageEventChartViews;
+
     private Integer averageDashboardViews;
+
     private Integer savedMaps;
+
     private Integer savedCharts;
+
     private Integer savedPivotTables;
+
     private Integer savedEventReports;
+
     private Integer savedEventCharts;
+
     private Integer savedDashboards;
+
     private Integer savedIndicators;
+
     private Integer savedDataValues;
+
     private Integer activeUsers;
+
     private Integer users;
 
     public AggregatedStatistics()
@@ -391,7 +418,8 @@ public class AggregatedStatistics
         this.users = users;
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "AggregatedStatistics{" +
             "year=" + year +

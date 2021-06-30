@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.datasummary;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.webapi.controller.datasummary;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.datasummary;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
@@ -54,7 +55,7 @@ public class DataSummaryController
     @Autowired
     private DataStatisticsService dataStatisticsService;
 
-    @GetMapping
+    @GetMapping( produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public @ResponseBody DataSummary getStatistics()
     {

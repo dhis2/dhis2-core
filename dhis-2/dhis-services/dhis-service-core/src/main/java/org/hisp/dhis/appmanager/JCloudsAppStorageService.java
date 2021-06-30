@@ -1,6 +1,5 @@
-package org.hisp.dhis.appmanager;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +25,7 @@ package org.hisp.dhis.appmanager;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
@@ -43,6 +43,8 @@ import java.util.zip.ZipFile;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.cache.Cache;
@@ -77,8 +79,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Stian Sandvold
  */
@@ -87,7 +87,8 @@ import lombok.extern.slf4j.Slf4j;
 public class JCloudsAppStorageService
     implements AppStorageService
 {
-    private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
+    private static final Pattern CONTAINER_NAME_PATTERN = Pattern
+        .compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
 
     private static final long FIVE_MINUTES_IN_SECONDS = Minutes.minutes( 5 ).toStandardDuration().getStandardSeconds();
 
@@ -98,7 +99,7 @@ public class JCloudsAppStorageService
     private BlobStoreContext blobStoreContext;
 
     private BlobStoreProperties config;
-    
+
     private ObjectMapper mapper;
 
     // -------------------------------------------------------------------------
@@ -111,15 +112,15 @@ public class JCloudsAppStorageService
 
     private static final String JCLOUDS_PROVIDER_KEY_TRANSIENT = "transient";
 
-    private static final List<String> SUPPORTED_PROVIDERS =
-        Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM, JCLOUDS_PROVIDER_KEY_AWS_S3, JCLOUDS_PROVIDER_KEY_TRANSIENT );
+    private static final List<String> SUPPORTED_PROVIDERS = Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM,
+        JCLOUDS_PROVIDER_KEY_AWS_S3, JCLOUDS_PROVIDER_KEY_TRANSIENT );
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     private final LocationManager locationManager;
-    
+
     private final DhisConfigurationProvider configurationProvider;
 
     public JCloudsAppStorageService( LocationManager locationManager, DhisConfigurationProvider configurationProvider )
@@ -141,14 +142,12 @@ public class JCloudsAppStorageService
         config = new BlobStoreProperties(
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_PROVIDER ),
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_LOCATION ),
-            configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER )
-        );
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER ) );
 
         Pair<Credentials, Properties> providerConfig = configureForProvider(
             config.provider,
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_IDENTITY ),
-            configurationProvider.getProperty( ConfigurationKey.FILESTORE_SECRET )
-        );
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_SECRET ) );
 
         // ---------------------------------------------------------------------
         // Set up JClouds context
@@ -169,7 +168,7 @@ public class JCloudsAppStorageService
 
         mapper = new ObjectMapper();
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        
+
         try
         {
             blobStore.createContainerInLocation( createRegionLocation( config, provider ), config.container );
@@ -248,8 +247,7 @@ public class JCloudsAppStorageService
                 appMap.put( app.getUrlFriendlyName(), app );
 
                 log.info( "Discovered app '" + app.getName() + "' from JClouds storage " );
-            }
-        );
+            } );
 
         if ( appList.isEmpty() )
         {
@@ -270,7 +268,7 @@ public class JCloudsAppStorageService
         App app = new App();
         log.info( "Installing new app: " + filename );
 
-        try( ZipFile zip = new ZipFile( file ) )
+        try ( ZipFile zip = new ZipFile( file ) )
         {
             // -----------------------------------------------------------------
             // Parse ZIP file and it's manifest.webapp file.
@@ -293,9 +291,10 @@ public class JCloudsAppStorageService
 
             app.setFolderName( APPS_DIR + File.separator + filename.substring( 0, filename.lastIndexOf( '.' ) ) );
             app.setAppStorageSource( AppStorageSource.JCLOUDS );
-            
+
             // -----------------------------------------------------------------
-            // Check if app with same key is currently being deleted (deletion_in_progress)
+            // Check if app with same key is currently being deleted
+            // (deletion_in_progress)
             // -----------------------------------------------------------------
             Optional<App> existingApp = appCache.getIfPresent( app.getKey() );
             if ( existingApp.isPresent() && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS )
@@ -354,9 +353,9 @@ public class JCloudsAppStorageService
             } );
 
             log.info( String.format( ""
-                    + "New app '%s' installed"
-                    + "\n\tInstall path: %s"
-                    + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
+                + "New app '%s' installed"
+                + "\n\tInstall path: %s"
+                + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
                 app.getName(), dest, namespace ) );
 
             // -----------------------------------------------------------------
@@ -416,7 +415,7 @@ public class JCloudsAppStorageService
             return null;
         }
 
-        String key = ( app.getFolderName() + ("/" + pageName) ).replaceAll( "//", "/" );
+        String key = (app.getFolderName() + ("/" + pageName)).replaceAll( "//", "/" );
         URI uri = getSignedGetContentUri( key );
 
         if ( uri == null )
@@ -441,13 +440,12 @@ public class JCloudsAppStorageService
 
     private static Location createRegionLocation( BlobStoreProperties config, Location provider )
     {
-        return config.location != null ?
-            new LocationBuilder()
-                .scope( LocationScope.REGION )
-                .id( config.location )
-                .description( config.location )
-                .parent( provider )
-                .build() : null;
+        return config.location != null ? new LocationBuilder()
+            .scope( LocationScope.REGION )
+            .id( config.location )
+            .description( config.location )
+            .parent( provider )
+            .build() : null;
     }
 
     private Pair<Credentials, Properties> configureForProvider( String provider, String identity, String secret )
@@ -502,8 +500,8 @@ public class JCloudsAppStorageService
                 if ( container != null )
                 {
                     log.warn( String.format( "Container name '%s' is illegal. " +
-                            "Standard domain name naming conventions apply (no underscores allowed). " +
-                            "Using default container name ' %s'", container,
+                        "Standard domain name naming conventions apply (no underscores allowed). " +
+                        "Using default container name ' %s'", container,
                         ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue() ) );
                 }
 

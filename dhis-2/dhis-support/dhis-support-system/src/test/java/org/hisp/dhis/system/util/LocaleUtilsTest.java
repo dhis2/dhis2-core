@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
+
+import static org.junit.Assert.*;
 
 import java.util.List;
 import java.util.Locale;
 
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -46,15 +45,15 @@ public class LocaleUtilsTest
         Locale l1 = new Locale( "en", "UK", "en" );
         Locale l2 = new Locale( "en", "UK" );
         Locale l3 = new Locale( "en" );
-        
+
         List<String> locales = LocaleUtils.getLocaleFallbacks( l1 );
-        
+
         assertEquals( 3, locales.size() );
         assertTrue( locales.contains( "en_UK_en" ) );
         assertTrue( locales.contains( "en_UK" ) );
         assertTrue( locales.contains( "en_UK" ) );
-        
+
         assertEquals( 2, LocaleUtils.getLocaleFallbacks( l2 ).size() );
-        assertEquals( 1, LocaleUtils.getLocaleFallbacks( l3 ).size() );        
+        assertEquals( 1, LocaleUtils.getLocaleFallbacks( l3 ).size() );
     }
 }

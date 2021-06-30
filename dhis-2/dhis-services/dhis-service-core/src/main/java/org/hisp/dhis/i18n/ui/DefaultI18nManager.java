@@ -1,7 +1,5 @@
-package org.hisp.dhis.i18n.ui;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.i18n.ui;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.i18n.ui;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -38,8 +39,6 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Pham Thi Thuy
@@ -74,7 +73,7 @@ public class DefaultI18nManager
     public I18n getI18n()
     {
         Locale locale = getCurrentLocale();
-        
+
         return new I18n( getGlobalResourceBundle( locale ), null );
     }
 
@@ -101,7 +100,7 @@ public class DefaultI18nManager
     {
         return new I18n( getGlobalResourceBundle(), getSpecificResourceBundle( clazzName ) );
     }
-    
+
     @Override
     public I18nFormat getI18nFormat()
     {
@@ -120,7 +119,7 @@ public class DefaultI18nManager
     {
         return getGlobalResourceBundle( getCurrentLocale() );
     }
-    
+
     private ResourceBundle getGlobalResourceBundle( Locale locale )
     {
         try
@@ -137,7 +136,7 @@ public class DefaultI18nManager
     {
         return resourceBundleManager.getSpecificResourceBundle( clazzName, getCurrentLocale() );
     }
-    
+
     private ResourceBundle getSpecificResourceBundle( String clazzName, Locale locale )
     {
         return resourceBundleManager.getSpecificResourceBundle( clazzName, locale );

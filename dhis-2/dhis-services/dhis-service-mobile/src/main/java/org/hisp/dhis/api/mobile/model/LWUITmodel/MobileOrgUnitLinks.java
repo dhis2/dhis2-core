@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model.LWUITmodel;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model.LWUITmodel;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model.LWUITmodel;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -118,7 +117,7 @@ public class MobileOrgUnitLinks
     private String uploadSingleEventWithoutRegistration;
 
     private String completeProgramInstanceUrl;
-    
+
     private String registerRelativeUrl;
 
     @XmlAttribute
@@ -322,8 +321,6 @@ public class MobileOrgUnitLinks
     {
         this.postInterpretationUrl = postInterpretationUrl;
     }
-
-  
 
     public String getPostCommentUrl()
     {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,16 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
 import org.hisp.dhis.common.DataQueryRequest;
@@ -62,13 +68,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -99,11 +99,13 @@ public class DimensionController
 
     @Override
     @SuppressWarnings( "unchecked" )
-    protected @ResponseBody List<DimensionalObject> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    protected @ResponseBody List<DimensionalObject> getEntityList( WebMetadata metadata, WebOptions options,
+        List<String> filters, List<Order> orders )
         throws QueryParserException
     {
         List<DimensionalObject> dimensionalObjects;
-        Query query = queryService.getQueryFromUrl( DimensionalObject.class, filters, orders, getPaginationData(options), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( DimensionalObject.class, filters, orders,
+            getPaginationData( options ), options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( dimensionService.getAllDimensions() );
@@ -120,8 +122,10 @@ public class DimensionController
 
     @SuppressWarnings( "unchecked" )
     @RequestMapping( value = "/{uid}/items", method = RequestMethod.GET )
-    public @ResponseBody RootNode getItems( @PathVariable String uid, @RequestParam Map<String, String> parameters, Model model,
-        OrderParams orderParams, HttpServletRequest request, HttpServletResponse response ) throws QueryParserException
+    public @ResponseBody RootNode getItems( @PathVariable String uid, @RequestParam Map<String, String> parameters,
+        Model model,
+        OrderParams orderParams, HttpServletRequest request, HttpServletResponse response )
+        throws QueryParserException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
@@ -141,8 +145,9 @@ public class DimensionController
 
         RootNode rootNode = NodeUtils.createMetadata();
 
-        CollectionNode collectionNode = rootNode.addChild( fieldFilterService.toCollectionNode( DimensionalItemObject.class,
-            new FieldFilterParams( items, fields ) ) );
+        CollectionNode collectionNode = rootNode
+            .addChild( fieldFilterService.toCollectionNode( DimensionalItemObject.class,
+                new FieldFilterParams( items, fields ) ) );
         collectionNode.setName( "items" );
 
         for ( Node node : collectionNode.getChildren() )
@@ -154,7 +159,8 @@ public class DimensionController
     }
 
     @RequestMapping( value = "/constraints", method = RequestMethod.GET )
-    public @ResponseBody RootNode getDimensionConstraints( @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links )
+    public @ResponseBody RootNode getDimensionConstraints(
+        @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<DimensionalObject> dimensionConstraints = dimensionService.getDimensionConstraints();
@@ -165,7 +171,8 @@ public class DimensionController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensionConstraints, fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
+            new FieldFilterParams( dimensionConstraints, fields ) ) );
 
         return rootNode;
     }
@@ -184,7 +191,8 @@ public class DimensionController
         List<DimensionalObject> dimensions = analyticsDimensionService.getRecommendedDimensions( request );
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensions, fields ) ) );
+        rootNode.addChild(
+            fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensions, fields ) ) );
 
         return rootNode;
     }
@@ -192,7 +200,8 @@ public class DimensionController
     @RequestMapping( value = "/dataSet/{uid}", method = RequestMethod.GET )
     public @ResponseBody RootNode getDimensionsForDataSet( @PathVariable String uid,
         @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links,
-        Model model, HttpServletResponse response ) throws WebMessageException
+        Model model, HttpServletResponse response )
+        throws WebMessageException
     {
         WebMetadata metadata = new WebMetadata();
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -223,7 +232,8 @@ public class DimensionController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( metadata.getDimensions(), fields ) ) );
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
+            new FieldFilterParams( metadata.getDimensions(), fields ) ) );
 
         return rootNode;
     }
