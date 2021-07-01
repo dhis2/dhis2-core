@@ -585,9 +585,11 @@ public class DefaultDimensionService
                         ? (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId1() )
                         : null;
 
-                CategoryOption categoryOption = categoryOptionCombo == null
-                    ? (CategoryOption) atomicObjects.getValue( CategoryOption.class, id.getId1().replace( "co:", "" ) )
-                    : null;
+                CategoryOption categoryOption = id.getId1() == null ? null
+                    : id.getId1Type() == CategoryOption.class
+                        ? (CategoryOption) atomicObjects.getValue( CategoryOption.class,
+                            id.getId1().replace( "co:", "" ) )
+                        : null;
 
                 CategoryOptionCombo attributeOptionCombo = id.getId2() == null ? null
                     : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId2() );
