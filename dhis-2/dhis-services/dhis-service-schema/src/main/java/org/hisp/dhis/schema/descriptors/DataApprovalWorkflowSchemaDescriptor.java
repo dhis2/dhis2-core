@@ -51,10 +51,13 @@ public class DataApprovalWorkflowSchemaDescriptor implements SchemaDescriptor
         schema.setOrder( 1380 );
 
         schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_SYSTEM_SETTING" ) ) );
+            .add( new Authority( AuthorityType.CREATE_PUBLIC,
+                Lists.newArrayList( "F_DATA_APPROVAL_WORKFLOW" ) ) );
         schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_SYSTEM_SETTING" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_SYSTEM_SETTING" ) ) );
+            .add( new Authority( AuthorityType.CREATE_PRIVATE,
+                Lists.newArrayList( "F_DATA_APPROVAL_WORKFLOW" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE,
+            Lists.newArrayList( "F_DATA_APPROVAL_WORKFLOW" ) ) );
 
         return schema;
     }
