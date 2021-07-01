@@ -435,7 +435,7 @@ public class DefaultOrgUnitProfileService
         OrganisationUnitLevel orgUnitLevel = organisationUnitService
             .getOrganisationUnitLevelByLevel( level );
 
-        return level != null ? orgUnitLevel.getDisplayName() : null;
+        return orgUnitLevel != null ? orgUnitLevel.getDisplayName() : null;
     }
 
     /**
