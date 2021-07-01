@@ -215,7 +215,7 @@ public class DefaultOrgUnitProfileService
         info.setName( orgUnit.getDisplayName() );
         info.setShortName( orgUnit.getDisplayShortName() );
         info.setDescription( orgUnit.getDisplayDescription() );
-        info.setParent( orgUnit.isRoot() ? null : orgUnit.getParent().getDisplayName() );
+        info.setParentName( orgUnit.isRoot() ? null : orgUnit.getParent().getDisplayName() );
         info.setLevel( orgUnit.getLevel() );
         info.setLevelName( getOrgUnitLevelName( orgUnit.getLevel() ) );
         info.setOpeningDate( orgUnit.getOpeningDate() );

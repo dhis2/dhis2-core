@@ -59,7 +59,7 @@ public class OrgUnitInfo
     private String description;
 
     @JsonProperty
-    private String parent;
+    private String parentName;
 
     @JsonProperty
     private Integer level;
