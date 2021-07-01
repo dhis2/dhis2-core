@@ -61,6 +61,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.orgunitprofile.OrgUnitInfo;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
@@ -103,17 +105,24 @@ public class DefaultOrgUnitProfileService
 
     private OrganisationUnitGroupService groupService;
 
+    private OrganisationUnitService organisationUnitService;
+
     private ObjectMapper jsonMapper;
 
-    public DefaultOrgUnitProfileService( KeyJsonValueService dataStore,
-        IdentifiableObjectManager idObjectManager, AnalyticsService analyticsService,
-        OrganisationUnitGroupService groupService, ObjectMapper jsonMapper )
+    public DefaultOrgUnitProfileService(
+        KeyJsonValueService dataStore,
+        IdentifiableObjectManager idObjectManager,
+        AnalyticsService analyticsService,
+        OrganisationUnitGroupService groupService,
+        OrganisationUnitService organisationUnitService,
+        ObjectMapper jsonMapper )
     {
         this.dataStore = dataStore;
         this.idObjectManager = idObjectManager;
         this.analyticsService = analyticsService;
-        this.jsonMapper = jsonMapper;
         this.groupService = groupService;
+        this.organisationUnitService = organisationUnitService;
+        this.jsonMapper = jsonMapper;
 
         this.dataStore.addProtection(
             new KeyJsonNamespaceProtection( ORG_UNIT_PROFILE_NAMESPACE, KeyJsonNamespaceProtection.ProtectionType.NONE,
@@ -206,8 +215,9 @@ public class DefaultOrgUnitProfileService
         info.setName( orgUnit.getDisplayName() );
         info.setShortName( orgUnit.getDisplayShortName() );
         info.setDescription( orgUnit.getDisplayDescription() );
-        info.setParent( orgUnit.isRoot() ? null : orgUnit.getParent().getDisplayName() );
-        info.setHierarchyLevel( orgUnit.getHierarchyLevel() );
+        info.setParentName( orgUnit.isRoot() ? null : orgUnit.getParent().getDisplayName() );
+        info.setLevel( orgUnit.getLevel() );
+        info.setLevelName( getOrgUnitLevelName( orgUnit.getLevel() ) );
         info.setOpeningDate( orgUnit.getOpeningDate() );
         info.setClosedDate( orgUnit.getClosedDate() );
         info.setComment( orgUnit.getComment() );
@@ -411,6 +421,21 @@ public class DefaultOrgUnitProfileService
                     RelativePeriodEnum.THIS_YEAR, new Date() )
                 .get( 0 );
         }
+    }
+
+    /**
+     * Returns the name of the org unit level corresponding to the numeric
+     * level.
+     *
+     * @param level the numeric org unit level.
+     * @return the org unit level name, or null if not exists.
+     */
+    private String getOrgUnitLevelName( Integer level )
+    {
+        OrganisationUnitLevel orgUnitLevel = organisationUnitService
+            .getOrganisationUnitLevelByLevel( level );
+
+        return orgUnitLevel != null ? orgUnitLevel.getDisplayName() : null;
     }
 
     /**
