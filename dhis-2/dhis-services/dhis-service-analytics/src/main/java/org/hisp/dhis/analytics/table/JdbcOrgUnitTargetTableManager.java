@@ -129,6 +129,12 @@ public class JdbcOrgUnitTargetTableManager
     }
 
     @Override
+    protected String getPartitionColumn()
+    {
+        return null;
+    }
+
+    @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final String tableName = partition.getTempTableName();
