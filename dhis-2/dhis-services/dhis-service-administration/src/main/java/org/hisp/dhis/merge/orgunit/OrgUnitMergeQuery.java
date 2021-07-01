@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.Data;
 
@@ -43,7 +43,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class OrgUnitMergeQuery
 {
     @JsonProperty
-    private Set<String> sources = new HashSet<>();
+    private List<String> sources = new ArrayList<>();
 
     @JsonProperty
     private String target;
