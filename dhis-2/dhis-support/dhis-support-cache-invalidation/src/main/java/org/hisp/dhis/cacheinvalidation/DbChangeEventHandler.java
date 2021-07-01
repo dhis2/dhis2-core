@@ -118,6 +118,13 @@ public class DbChangeEventHandler
             return;
         }
 
+        Envelope.Operation operation = Envelope.Operation.forCode( payload.getString( "op" ) );
+        if ( operation == Envelope.Operation.READ )
+        {
+            log.debug( "Operation is READ, skipping event..." );
+            return;
+        }
+
         Long txId;
         try
         {
@@ -134,13 +141,6 @@ public class DbChangeEventHandler
         if ( knownTransactionsService.isKnown( txId ) )
         {
             log.debug( "Incoming event txId is registered on this instance, skipping this event..." );
-            return;
-        }
-
-        Envelope.Operation operation = Envelope.Operation.forCode( payload.getString( "op" ) );
-        if ( operation == Envelope.Operation.READ )
-        {
-            log.debug( "Operation is READ, skipping event..." );
             return;
         }
 
@@ -163,6 +163,7 @@ public class DbChangeEventHandler
             log.warn( String.format( "No key schema for tablename=%s, key=%s", tableName, key ) );
             return;
         }
+
         Serializable entityId = getEntityId( sourceRecord );
         Objects.requireNonNull( entityId, "Failed to extract entity id!" );
 
