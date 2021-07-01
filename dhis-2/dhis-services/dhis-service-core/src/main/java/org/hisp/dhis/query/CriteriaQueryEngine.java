@@ -40,12 +40,14 @@ import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -102,6 +104,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
             QueryPlan queryPlan = queryPlanner.planQuery( query, true );
             query = queryPlan.getPersistedQuery();
         }
+
 
         DetachedCriteria detachedCriteria = buildCriteria( store.getSharingDetachedCriteria( query.getUser() ), query );
         Criteria criteria = store.getCriteria();
@@ -322,4 +325,14 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
         initStoreMap();
         return stores.get( klass );
     }
+
+//    private DetachedCriteria getSharingDetachedCriteria( InternalHibernateGenericStore<?> store, User user, QueryPlan queryPlan )
+//    {
+//        query.getCriterions().forEach( criterion -> {
+//            if ( query.getSchema().getKlass().isAssignableFrom( CategoryOption.class ) && ((Restriction)criterion).getPath().contains( "categories" ) )
+//            {
+//
+//            }
+//        } );
+//    }
 }

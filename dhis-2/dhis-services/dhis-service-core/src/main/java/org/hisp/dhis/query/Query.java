@@ -34,6 +34,7 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;
 
@@ -63,6 +64,8 @@ public class Query extends Criteria
     private Defaults defaults = Defaults.EXCLUDE;
 
     private List<? extends IdentifiableObject> objects;
+
+    private String accessFilter;
 
     public static Query from( Schema schema )
     {
@@ -298,6 +301,16 @@ public class Query extends Criteria
         }
 
         return this;
+    }
+
+    public void setAccessFilter( String accessFilter )
+    {
+        this.accessFilter = accessFilter;
+    }
+
+    public String getAccessFilter()
+    {
+        return this.accessFilter;
     }
 
     @Override

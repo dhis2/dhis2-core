@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +39,8 @@ import java.util.Set;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
 import org.hisp.dhis.query.Disjunction;
@@ -251,6 +254,14 @@ public class DefaultQueryPlanner implements QueryPlanner
                     pQuery.getCriterions().add( criterion );
                     iterator.remove();
                 }
+                else if ( restriction.getQueryPath().getPath().contains( "categories" ) && query.getSchema().getKlass().isAssignableFrom(
+                    CategoryOption.class ) )
+                {
+                    pQuery.getAliases().addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() )  );
+                    pQuery.getCriterions().add( criterion );
+                    iterator.remove();
+                    query.getCriterions().remove( restriction );
+                }
             }
         }
 
@@ -300,6 +311,15 @@ public class DefaultQueryPlanner implements QueryPlanner
                     criteriaJunction.getCriterions().add( criterion );
                     iterator.remove();
                 }
+                else if ( restriction.getQueryPath().getPath().contains( "categories" ) && query.getSchema().getKlass().isAssignableFrom(
+                    CategoryOption.class ) )
+                {
+                    criteriaJunction.getAliases()
+                        .addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
+                    criteriaJunction.getCriterions().add( criterion );
+                    iterator.remove();
+                    query.getCriterions().remove( restriction );
+                }
                 else if ( persistedOnly )
                 {
                     throw new RuntimeException( "Path " + restriction.getQueryPath().getPath() +
@@ -312,6 +332,18 @@ public class DefaultQueryPlanner implements QueryPlanner
     }
 
     /**
+     * Fix performance issue DHIS2-11032
+     * For {@code api/categoryOptions?filter=categories}
+     * we will enforce categories filter query to be in persistedQuery
+     * @param restriction Restriction contains query path
+     * @return TRUE if query path equal to "categories"
+     */
+    private boolean isFilterCategoryOptionByCategory( Restriction restriction )
+    {
+         return restriction.getPath().equalsIgnoreCase( "categories" );
+    }
+
+    /**
      * Check if all the criteria for the given query are associated to
      * "persisted" properties
      *
@@ -320,7 +352,8 @@ public class DefaultQueryPlanner implements QueryPlanner
      */
     private boolean isFilterOnPersistedFieldOnly( Query query )
     {
-        Set<String> persistedFields = query.getSchema().getPersistedProperties().keySet();
+        Set<String> persistedFields = new HashSet<>( query.getSchema().getPersistedProperties().keySet() );
+
         if ( nonPersistedFieldExistsInCriterions( persistedFields, query.getCriterions() ) )
         {
             return false;
@@ -353,6 +386,12 @@ public class DefaultQueryPlanner implements QueryPlanner
             if ( criterion instanceof Restriction )
             {
                 Restriction restriction = (Restriction) criterion;
+
+                if ( isFilterCategoryOptionByCategory( restriction ) )
+                {
+                    continue;
+                }
+
                 if ( !persistedFields.contains( restriction.getPath() ) )
                 {
                     return true;

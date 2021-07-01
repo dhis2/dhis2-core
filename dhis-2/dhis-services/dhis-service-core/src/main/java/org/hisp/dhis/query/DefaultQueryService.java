@@ -39,6 +39,7 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StopWatch;
 
 /**
  * Default implementation of QueryService which works with IdObjects.
@@ -185,8 +186,11 @@ public class DefaultQueryService
         Query pQuery = queryPlan.getPersistedQuery();
         Query npQuery = queryPlan.getNonPersistedQuery();
 
+        StopWatch watch = new StopWatch();
+        watch.start();
         objects = criteriaQueryEngine.query( pQuery );
-
+        watch.stop();
+        System.out.println( "criteriaQueryEngine.query( pQuery ) = " + watch.getTotalTimeSeconds() );
         if ( !npQuery.isEmpty() )
         {
             if ( log.isDebugEnabled() )
@@ -197,7 +201,11 @@ public class DefaultQueryService
 
             npQuery.setObjects( objects );
 
+            StopWatch inMemoryQueryEngineWatch = new StopWatch();
+            inMemoryQueryEngineWatch.start();
             objects = inMemoryQueryEngine.query( npQuery );
+            inMemoryQueryEngineWatch.stop();
+            System.out.println( "inMemoryQueryEngine.query( npQuery ) = " + inMemoryQueryEngineWatch.getTotalTimeSeconds() );
         }
 
         clearDefaults( query.getSchema().getKlass(), objects, query.getDefaults() );
