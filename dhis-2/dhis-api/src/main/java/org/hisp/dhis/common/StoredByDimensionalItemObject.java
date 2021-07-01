@@ -27,46 +27,25 @@
  */
 package org.hisp.dhis.common;
 
-/**
- * @author Lars Helge Overland
- */
-public enum DimensionType
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
+@Data
+@RequiredArgsConstructor
+public class StoredByDimensionalItemObject extends BaseDimensionalItemObject
 {
-    DATA_X( 0 ),
-    PROGRAM_DATA_ELEMENT,
-    PROGRAM_ATTRIBUTE,
-    PROGRAM_INDICATOR,
-    DATA_COLLAPSED,
-    CATEGORY_OPTION_COMBO( 1 ),
-    ATTRIBUTE_OPTION_COMBO( 2 ),
-    PERIOD,
-    ORGANISATION_UNIT,
-    STORED_BY,
-    CATEGORY_OPTION_GROUP_SET,
-    DATA_ELEMENT_GROUP_SET,
-    ORGANISATION_UNIT_GROUP_SET,
-    ORGANISATION_UNIT_GROUP,
-    CATEGORY,
-    OPTION_GROUP_SET,
-    VALIDATION_RULE,
-    STATIC,
-    ORGANISATION_UNIT_LEVEL;
 
-    private static final int LAST_ORDER = 999;
+    private final String storedBy;
 
-    private int order = LAST_ORDER;
-
-    DimensionType()
+    @Override
+    public String getDimensionItem()
     {
+        return storedBy;
     }
 
-    DimensionType( int order )
+    @Override
+    public String getUid()
     {
-        this.order = order;
-    }
-
-    public int getOrder()
-    {
-        return order;
+        return storedBy;
     }
 }

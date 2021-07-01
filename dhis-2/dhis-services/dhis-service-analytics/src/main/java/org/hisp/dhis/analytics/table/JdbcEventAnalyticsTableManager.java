@@ -103,6 +103,8 @@ public class JdbcEventAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
+    public static final String STORED_BY_COL_NAME = "storedby";
+
     private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
@@ -115,6 +117,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP, "psi.completeddate" ),
         new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ),
         new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ),
+        new AnalyticsTableColumn( quote( STORED_BY_COL_NAME ), CHARACTER_50, "psi.storedby" ),
         new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
         new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" )

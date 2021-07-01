@@ -459,7 +459,8 @@ public class JdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
-            Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
+            Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY,
+                DimensionType.STORED_BY ) );
 
         // Apply pre-authorized dimensions filtering
 

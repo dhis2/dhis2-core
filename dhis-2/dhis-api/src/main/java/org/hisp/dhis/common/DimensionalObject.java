@@ -64,6 +64,8 @@ public interface DimensionalObject
 
     String ORGUNIT_DIM_ID = "ou";
 
+    String STOREDBY_DIM_ID = "sb";
+
     String ORGUNIT_GROUP_DIM_ID = "oug"; // Used for org unit target
 
     String ITEM_DIM_ID = "item";

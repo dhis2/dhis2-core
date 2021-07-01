@@ -170,6 +170,8 @@ public class DataQueryParams
 
     public static final String DISPLAY_NAME_PERIOD = "Period";
 
+    public static final String DISPLAY_NAME_STORED_BY = "Stored by";
+
     public static final String DISPLAY_NAME_ORGUNIT = "Organisation unit";
 
     public static final String DISPLAY_NAME_ORGUNIT_GROUP = "Organisation unit group";
