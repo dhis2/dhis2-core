@@ -610,7 +610,7 @@ public class DefaultCsvImportService
     {
         ListMap<String, Option> nameOptionMap = new ListMap<>();
         Map<String, OptionSet> nameOptionSetMap = new HashMap<>();
-
+        List<Option> options = new ArrayList<>();
         // Read option sets and options and put in maps
 
         while ( reader.readRecord() )
@@ -639,7 +639,7 @@ public class DefaultCsvImportService
 
                 nameOptionMap.putValue( optionSet.getName(), option );
 
-                metadata.getOptions().add( option );
+                options.add( option );
             }
         }
 
@@ -647,12 +647,10 @@ public class DefaultCsvImportService
 
         for ( Entry<String, OptionSet> optionSetEntry : nameOptionSetMap.entrySet() )
         {
-            OptionSet optionSet = optionSetEntry.getValue();
-
-            optionSet.setOptions( new ArrayList<>( nameOptionMap.get( optionSetEntry.getKey() ) ) );
-
-            metadata.getOptionSets().add( optionSet );
+            optionSetEntry.getValue().setOptions( new ArrayList<>( nameOptionMap.get( optionSetEntry.getKey() ) ) );
         }
+        metadata.setOptions( options );
+        metadata.setOptionSets( new ArrayList<>( nameOptionSetMap.values() ) );
     }
 
     /**
@@ -744,12 +742,9 @@ public class DefaultCsvImportService
         // Read option groups from map and set in meta data
         for ( Entry<String, OptionGroup> optionGroupEntry : nameOptionGroupMap.entrySet() )
         {
-            OptionGroup optionGroup = optionGroupEntry.getValue();
-
-            optionGroup.setMembers( new HashSet<>( nameOptionMap.get( optionGroupEntry.getKey() ) ) );
-
-            metadata.getOptionGroups().add( optionGroup );
+            optionGroupEntry.getValue().setMembers( new HashSet<>( nameOptionMap.get( optionGroupEntry.getKey() ) ) );
         }
+        metadata.setOptionGroups( new ArrayList<>( nameOptionGroupMap.values() ) );
     }
 
     /**
