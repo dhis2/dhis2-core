@@ -148,6 +148,15 @@ public class DefaultCacheProvider
         allCaches.values().forEach( Cache::invalidateAll );
     }
 
+    @Override
+    public <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime )
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.analyticsResponse.name() )
+            .expireAfterWrite( initialExpirationTime.toMillis(), MILLISECONDS )
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
+    }
+
     /**
      * Cache for default objects such as default category combination and
      * default category option combination which are permanent and will never
@@ -162,15 +171,6 @@ public class DefaultCacheProvider
             .withInitialCapacity( (int) getActualSize( 4 ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_100 ) ) ) );
-    }
-
-    @Override
-    public <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime )
-    {
-        return registerCache( this.<V> newBuilder()
-            .forRegion( Region.analyticsResponse.name() )
-            .expireAfterWrite( initialExpirationTime.toMillis(), MILLISECONDS )
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
