@@ -82,13 +82,7 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
-import static org.hisp.dhis.common.DimensionalObjectUtils.convertToDimItemValueMap;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getAttributeOptionCombos;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getCategoryOptionCombos;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElements;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItem;
-import static org.hisp.dhis.common.DimensionalObjectUtils.replaceOperandTotalsWithDataElements;
+import static org.hisp.dhis.common.DimensionalObjectUtils.*;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
@@ -309,8 +303,15 @@ public class DataHandler
             ? permutationOrgUnitTargetMap.get( ou )
             : null;
 
-        return expressionService.getIndicatorValueObject( indicator, periods,
+        return expressionService.getIndicatorValueObject( removeCategoryOptionPrefix( indicator ), periods,
             convertToDimItemValueMap( valueMap ), constantMap, orgUnitCountMap );
+    }
+
+    private Indicator removeCategoryOptionPrefix( Indicator indicator )
+    {
+        indicator.setNumerator( indicator.getNumerator().replace( "co:", "" ) );
+        indicator.setDenominator( indicator.getDenominator().replace( "co:", "" ) );
+        return indicator;
     }
 
     /**
@@ -725,6 +726,7 @@ public class DataHandler
 
         List<DimensionalItemObject> dataElements = newArrayList( getDataElements( operands ) );
         List<DimensionalItemObject> categoryOptionCombos = newArrayList( getCategoryOptionCombos( operands ) );
+        List<DimensionalItemObject> categoryOptions = newArrayList( getCategoryOptions( operands ) );
         List<DimensionalItemObject> attributeOptionCombos = newArrayList( getAttributeOptionCombos( operands ) );
 
         // TODO Check if data was dim or filter
@@ -735,8 +737,16 @@ public class DataHandler
 
         if ( totalType.isCategoryOptionCombo() )
         {
-            builder.addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID,
-                CATEGORY_OPTION_COMBO, categoryOptionCombos ) );
+            if ( !categoryOptions.isEmpty() )
+            {
+                builder.addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID,
+                    CATEGORY_OPTION_COMBO, categoryOptions ) );
+            }
+            else
+            {
+                builder.addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID,
+                    CATEGORY_OPTION_COMBO, categoryOptionCombos ) );
+            }
         }
 
         if ( totalType.isAttributeOptionCombo() )

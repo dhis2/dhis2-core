@@ -33,20 +33,14 @@ import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
 import org.hisp.dhis.dataelement.DataElement;
@@ -535,11 +529,29 @@ public class DimensionalObjectUtils
         return operands.stream()
             .filter( o -> o.getCategoryOptionCombo() != null )
             .map( o -> {
-
                 CategoryOptionCombo coc = o.getCategoryOptionCombo();
                 coc.setPeriodOffset( o.getPeriodOffset() );
                 return coc;
 
+            } )
+            .collect( Collectors.toSet() );
+    }
+
+    /**
+     * Gets a set of unique category option combinations based on the given
+     * collection of operands.
+     *
+     * @param operands the collection of operands.
+     * @return a set of category option combinations.
+     */
+    public static Set<DimensionalItemObject> getCategoryOptions( Collection<DataElementOperand> operands )
+    {
+        return operands.stream()
+            .filter( o -> o.getCategoryOption() != null )
+            .map( o -> {
+                CategoryOption co = o.getCategoryOption();
+                co.setPeriodOffset( o.getPeriodOffset() );
+                return co;
             } )
             .collect( Collectors.toSet() );
     }
@@ -750,9 +762,12 @@ public class DimensionalObjectUtils
     public static Map<DimensionalItemObject, Double> convertToDimItemValueMap(
         List<DimensionItemObjectValue> dimensionItemObjectValues )
     {
-        return dimensionItemObjectValues.stream()
+
+        Map<DimensionalItemObject, Double> dioList = dimensionItemObjectValues.stream()
             .filter( item -> item.getValue() != null )
             .collect( Collectors
                 .toMap( DimensionItemObjectValue::getDimensionalItemObject, DimensionItemObjectValue::getValue ) );
+
+        return dioList;
     }
 }

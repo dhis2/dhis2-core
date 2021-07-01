@@ -33,6 +33,9 @@ import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
 
 import java.util.Objects;
 
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -227,5 +230,10 @@ public class DimensionalItemId
     public Integer getPeriodOffset()
     {
         return periodOffset;
+    }
+
+    public Class<? extends IdentifiableObject> getId1Type()
+    {
+        return id1 != null && id1.contains( "co:" ) ? CategoryOption.class : CategoryOptionCombo.class;
     }
 }

@@ -73,12 +73,8 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -162,11 +158,26 @@ public class JdbcAnalyticsManager
                 params = queryPlanner.assignPartitionsFromQueryPeriods( params, tableType );
             }
 
+            List<DimensionalItemObject> itemObjects = params.getAllDimensionItems().stream()
+                .filter( o -> o.getClass() == CategoryOption.class ).collect( Collectors.toList() );
+
+            HashMap<String, List<String>> categoryOptionUidMap = new HashMap<>();
+            itemObjects.forEach( io -> {
+                if ( io instanceof CategoryOption )
+                {
+                    CategoryOption co = (CategoryOption) io;
+                    List<String> coc_uidList = co.getCategoryOptionCombos().stream()
+                        .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() );
+                    categoryOptionUidMap.put( co.getUid(), coc_uidList );
+                }
+            } );
+
             String sql = getSelectClause( params );
 
             sql += getFromClause( params );
 
-            sql += getWhereClause( params, tableType );
+            sql += replaceCategoryOptionsWithCategoryOptionCombos( getWhereClause( params, tableType ), params,
+                categoryOptionUidMap );
 
             sql += getGroupByClause( params );
 
@@ -174,14 +185,13 @@ public class JdbcAnalyticsManager
             {
                 sql += getMeasureCriteriaSql( params );
             }
-
-            log.debug( sql );
+            log.info( sql );
 
             Map<String, Object> map;
 
             try
             {
-                map = getKeyValueMap( params, sql, maxLimit );
+                map = getKeyValueMap( params, sql, maxLimit, categoryOptionUidMap );
             }
             catch ( BadSqlGrammarException ex )
             {
@@ -203,6 +213,23 @@ public class JdbcAnalyticsManager
             log.error( DebugUtils.getStackTrace( ex ) );
             throw ex;
         }
+    }
+
+    private String replaceCategoryOptionsWithCategoryOptionCombos( String whereClause, DataQueryParams params,
+        HashMap<String, List<String>> uidMap )
+    {
+        if ( uidMap.isEmpty() )
+        {
+            return whereClause;
+        }
+        for ( Map.Entry<String, List<String>> entry : uidMap.entrySet() )
+        {
+            String k = entry.getKey();
+            List<String> v = entry.getValue();
+            whereClause = whereClause.replace( k, v.stream().collect( Collectors.joining( "','" ) ) );
+        }
+
+        return whereClause;
     }
 
     @Override
@@ -671,7 +698,8 @@ public class JdbcAnalyticsManager
      * Retrieves data from the database based on the given query and SQL and
      * puts into a value key and value mapping.
      */
-    private Map<String, Object> getKeyValueMap( DataQueryParams params, String sql, int maxLimit )
+    private Map<String, Object> getKeyValueMap( DataQueryParams params, String sql, int maxLimit,
+        HashMap<String, List<String>> categoryOptionUidMap )
     {
         Map<String, Object> map = new HashMap<>();
 
@@ -695,8 +723,25 @@ public class JdbcAnalyticsManager
             for ( DimensionalObject dim : params.getDimensions() )
             {
                 String value = dim.isFixed() ? dim.getDimensionName() : rowSet.getString( dim.getDimensionName() );
-
-                key.append( value ).append( DIMENSION_SEP );
+                boolean matched = false;
+                if ( !categoryOptionUidMap.isEmpty() )
+                {
+                    for ( Map.Entry<String, List<String>> entry : categoryOptionUidMap.entrySet() )
+                    {
+                        String k = entry.getKey();
+                        List<String> v = entry.getValue();
+                        if ( v.contains( value ) )
+                        {
+                            key.append( k ).append( DIMENSION_SEP );
+                            matched = true;
+                            break;
+                        }
+                    }
+                }
+                if ( !matched )
+                {
+                    key.append( value ).append( DIMENSION_SEP );
+                }
             }
 
             key.deleteCharAt( key.length() - 1 );

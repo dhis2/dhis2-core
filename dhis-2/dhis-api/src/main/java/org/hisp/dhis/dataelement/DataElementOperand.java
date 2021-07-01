@@ -33,6 +33,7 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import java.util.Objects;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -72,6 +73,8 @@ public class DataElementOperand
 
     private CategoryOptionCombo categoryOptionCombo;
 
+    private CategoryOption categoryOption;
+
     private CategoryOptionCombo attributeOptionCombo;
 
     // -------------------------------------------------------------------------
@@ -102,6 +105,14 @@ public class DataElementOperand
         this.attributeOptionCombo = attributeOptionCombo;
     }
 
+    public DataElementOperand( DataElement dataElement, CategoryOption categoryOption,
+        CategoryOptionCombo attributeOptionCombo )
+    {
+        this.dataElement = dataElement;
+        this.categoryOption = categoryOption;
+        this.attributeOptionCombo = attributeOptionCombo;
+    }
+
     // -------------------------------------------------------------------------
     // DimensionalItemObject
     // -------------------------------------------------------------------------
@@ -120,8 +131,11 @@ public class DataElementOperand
         if ( dataElement != null )
         {
             item = dataElement.getPropertyValue( idScheme );
-
-            if ( categoryOptionCombo != null )
+            if ( categoryOption != null )
+            {
+                item += SEPARATOR + categoryOption.getPropertyValue( idScheme );
+            }
+            else if ( categoryOptionCombo != null )
             {
                 item += SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme );
             }
@@ -317,7 +331,7 @@ public class DataElementOperand
      */
     public boolean isTotal()
     {
-        return categoryOptionCombo == null && attributeOptionCombo == null;
+        return categoryOptionCombo == null && attributeOptionCombo == null && categoryOption == null;
     }
 
     /**
@@ -385,6 +399,11 @@ public class DataElementOperand
     // hashCode, equals and toString
     // -------------------------------------------------------------------------
 
+    public CategoryOption getCategoryOption()
+    {
+        return this.categoryOption;
+    }
+
     @Override
     public boolean equals( Object o )
     {
@@ -397,7 +416,8 @@ public class DataElementOperand
         DataElementOperand that = (DataElementOperand) o;
         return Objects.equals( dataElement, that.dataElement ) &&
             Objects.equals( categoryOptionCombo, that.categoryOptionCombo ) &&
-            Objects.equals( attributeOptionCombo, that.attributeOptionCombo );
+            Objects.equals( attributeOptionCombo, that.attributeOptionCombo ) &&
+            Objects.equals( categoryOption, that.categoryOption );
     }
 
     @Override
@@ -465,11 +485,11 @@ public class DataElementOperand
 
     public TotalType getTotalType()
     {
-        if ( categoryOptionCombo != null && attributeOptionCombo != null )
+        if ( (categoryOptionCombo != null || categoryOption != null) && attributeOptionCombo != null )
         {
             return TotalType.COC_AND_AOC;
         }
-        else if ( categoryOptionCombo != null )
+        else if ( categoryOptionCombo != null || categoryOption != null )
         {
             return TotalType.COC_ONLY;
         }

@@ -322,8 +322,8 @@ public class ExpressionServiceTest
         dataElementOperandB = new DataElementOperand( dataElementB, categoryOptionComboA );
         dataElementOperandC = new DataElementOperand( dataElementA, categoryOptionComboA, categoryOptionComboB );
         dataElementOperandD = new DataElementOperand( dataElementB, categoryOptionComboB, categoryOptionComboA );
-        dataElementOperandE = new DataElementOperand( dataElementA, null, categoryOptionComboB );
-        dataElementOperandF = new DataElementOperand( dataElementB, null, categoryOptionComboA );
+        dataElementOperandE = new DataElementOperand( dataElementA, (CategoryOptionCombo) null, categoryOptionComboB );
+        dataElementOperandF = new DataElementOperand( dataElementB, (CategoryOptionCombo) null, categoryOptionComboA );
 
         dataElementOperandA.setName( "DeoA" );
         dataElementOperandA.setName( "DeoB" );

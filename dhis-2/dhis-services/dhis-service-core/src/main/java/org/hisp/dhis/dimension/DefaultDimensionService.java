@@ -458,7 +458,7 @@ public class DefaultDimensionService
                 atomicIds.putValue( DataElement.class, id.getId0() );
                 if ( id.getId1() != null )
                 {
-                    atomicIds.putValue( CategoryOptionCombo.class, id.getId1() );
+                    atomicIds.putValue( id.getId1Type(), id.getId1().replace( "co:", "" ) );
                 }
                 if ( id.getId2() != null )
                 {
@@ -579,8 +579,16 @@ public class DefaultDimensionService
 
             case DATA_ELEMENT_OPERAND:
                 dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
+
                 CategoryOptionCombo categoryOptionCombo = id.getId1() == null ? null
-                    : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId1() );
+                    : id.getId1Type() == CategoryOptionCombo.class
+                        ? (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId1() )
+                        : null;
+
+                CategoryOption categoryOption = categoryOptionCombo == null
+                    ? (CategoryOption) atomicObjects.getValue( CategoryOption.class, id.getId1().replace( "co:", "" ) )
+                    : null;
+
                 CategoryOptionCombo attributeOptionCombo = id.getId2() == null ? null
                     : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId2() );
                 if ( dataElement != null &&
@@ -588,6 +596,13 @@ public class DefaultDimensionService
                     (id.getId2() != null) == (attributeOptionCombo != null) )
                 {
                     dimensionalItemObject = new DataElementOperand( dataElement, categoryOptionCombo,
+                        attributeOptionCombo );
+                }
+                else if ( dataElement != null &&
+                    (id.getId1() != null) == (categoryOption != null) &&
+                    (id.getId2() != null) == (attributeOptionCombo != null) )
+                {
+                    dimensionalItemObject = new DataElementOperand( dataElement, categoryOption,
                         attributeOptionCombo );
                 }
                 break;

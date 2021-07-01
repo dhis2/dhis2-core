@@ -315,7 +315,7 @@ public class DimensionServiceTest
 
         itemObjectA = deA;
         itemObjectB = new DataElementOperand( deA, cocA );
-        itemObjectC = new DataElementOperand( deA, null, cocA );
+        itemObjectC = new DataElementOperand( deA, (CategoryOptionCombo) null, cocA );
         itemObjectD = new DataElementOperand( deA, cocA, cocA );
         itemObjectE = new ReportingRate( dsA );
         itemObjectF = new ProgramDataElementDimensionItem( prA, deA );
@@ -509,7 +509,7 @@ public class DimensionServiceTest
         DataElementOperand deoB = new DataElementOperand( deA, null );
         DataElementOperand deoC = new DataElementOperand( deA, cocA, cocA );
         DataElementOperand deoD = new DataElementOperand( deA, cocA, null );
-        DataElementOperand deoE = new DataElementOperand( deA, null, cocA );
+        DataElementOperand deoE = new DataElementOperand( deA, (CategoryOptionCombo) null, cocA );
 
         assertNotNull( dimensionService.getDataDimensionalItemObject( idA ) );
         assertEquals( deA, dimensionService.getDataDimensionalItemObject( idA ) );
