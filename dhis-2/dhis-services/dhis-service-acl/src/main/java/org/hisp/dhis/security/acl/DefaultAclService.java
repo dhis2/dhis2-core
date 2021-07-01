@@ -28,18 +28,11 @@
 package org.hisp.dhis.security.acl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.security.acl.AclUtils.AclUtils;
 import static org.springframework.util.CollectionUtils.containsAny;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -143,34 +136,6 @@ public class DefaultAclService implements AclService
         return false;
     }
 
-    private boolean canRead( User user, IdentifiableObject object, Schema schema, boolean readPermission )
-    {
-        if ( readWriteCommonCheck( user, object ) )
-        {
-            return true;
-        }
-
-        if ( canAccess( user, schema.getAuthorityByType( AuthorityType.READ ) ) )
-        {
-            if ( object instanceof CategoryOptionCombo )
-            {
-                return checkOptionComboSharingPermission( user, object, Permission.READ );
-            }
-
-            if ( !schema.isShareable() || object.getPublicAccess() == null || checkUser( user, object )
-                || readPermission )
-            {
-                return true;
-            }
-        }
-        else
-        {
-            return false;
-        }
-
-        return false;
-    }
-
     @Override
     public boolean canDataRead( User user, IdentifiableObject object )
     {
@@ -190,28 +155,6 @@ public class DefaultAclService implements AclService
             if ( schema.isDataShareable() &&
                 (checkSharingPermission( user, object, Permission.DATA_READ )
                     || checkSharingPermission( user, object, Permission.DATA_WRITE )) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean canDataRead( User user, IdentifiableObject object, Schema schema, boolean dataReadPermission, boolean dataWritePermission )
-    {
-        if ( readWriteCommonCheck( user, object ) )
-            return true;
-
-        if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
-        {
-            if ( object instanceof CategoryOptionCombo )
-            {
-                return checkOptionComboSharingPermission( user, object, Permission.DATA_READ )
-                    || checkOptionComboSharingPermission( user, object, Permission.DATA_WRITE );
-            }
-
-            if ( schema.isDataShareable() && ( dataReadPermission  || dataWritePermission ) )
             {
                 return true;
             }
@@ -285,33 +228,6 @@ public class DefaultAclService implements AclService
             }
 
             if ( schema.isDataShareable() && checkSharingPermission( user, object, Permission.DATA_WRITE ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean canDataWrite( User user, IdentifiableObject object, Schema schema, boolean dataWritePermission )
-    {
-        if ( readWriteCommonCheck( user, object ) )
-        {
-            return true;
-        }
-
-        // returned unmodifiable list does not need to be cloned since it is not
-        // modified
-        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DATA_CREATE );
-
-        if ( canAccess( user, anyAuthorities ) )
-        {
-            if ( object instanceof CategoryOptionCombo )
-            {
-                return checkOptionComboSharingPermission( user, object, Permission.DATA_WRITE );
-            }
-
-            if ( schema.isDataShareable() && dataWritePermission )
             {
                 return true;
             }
@@ -493,33 +409,17 @@ public class DefaultAclService implements AclService
             return access;
         }
 
-        Schema schema = schemaService.getSchema( object.getClass() );
-
-        Set<UserAccess> userAccesses = object.getUserAccesses();
-        Set<UserGroupAccess> userGroupAccesses = object.getUserGroupAccesses();
-
-        Set<Permission> permissions = new HashSet<>();
-        permissions.add( Permission.READ );
-        permissions.add( Permission.WRITE );
-        permissions.add( Permission.DATA_READ );
-        permissions.add( Permission.DATA_WRITE );
-
-        Map<Permission, Boolean> mapPermissions = checkSharingPermission( user, object, schema, userAccesses, userGroupAccesses,
-            permissions );
-
         Access access = new Access();
         access.setManage( canManage( user, object ) );
         access.setExternalize( canMakeExternal( user, object.getClass() ) );
         access.setWrite( canWrite( user, object ) );
-        access.setRead( canRead( user, object, schema, mapPermissions.get( Permission.READ ) ) );
-        access.setUpdate( canUpdate( user, object, schema, mapPermissions.get( Permission.WRITE ) ) );
-        access.setDelete( canDelete( user, object, schema, mapPermissions.get( Permission.WRITE ) ) );
+        access.setRead( canRead( user, object ) );
+        access.setUpdate( canUpdate( user, object ) );
+        access.setDelete( canDelete( user, object ) );
 
         if ( isDataShareable( object.getClass() ) )
         {
-            AccessData data = new AccessData(
-                canDataRead( user, object, schema, mapPermissions.get( Permission.DATA_READ ), mapPermissions.get( Permission.DATA_WRITE ) ),
-                canDataWrite( user, object, schema, mapPermissions.get( Permission.DATA_WRITE ) ) );
+            AccessData data = new AccessData( canDataRead( user, object ), canDataWrite( user, object ) );
 
             access.setData( data );
         }
@@ -835,121 +735,4 @@ public class DefaultAclService implements AclService
         return checkSharingAccess( user, object ) &&
             (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE ));
     }
-
-
-    public boolean canUpdate( User user, IdentifiableObject object, Schema schema, boolean writePermission )
-    {
-        if ( readWriteCommonCheck( user, object ) )
-        {
-            return true;
-        }
-
-        List<String> anyAuthorities = new ArrayList<>( schema.getAuthorityByType( AuthorityType.UPDATE ) );
-
-        if ( anyAuthorities.isEmpty() )
-        {
-            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE ) );
-            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
-            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
-        }
-
-        if ( canAccess( user, anyAuthorities ) )
-        {
-            return writeCommonCheck( schema, user, object );
-        }
-        else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object )
-            && (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private boolean canDelete( User user, IdentifiableObject object, Schema schema, boolean writePermission )
-    {
-        if ( readWriteCommonCheck( user, object ) )
-        {
-            return true;
-        }
-
-        List<String> anyAuthorities = new ArrayList<>( schema.getAuthorityByType( AuthorityType.DELETE ) );
-
-        if ( anyAuthorities.isEmpty() )
-        {
-            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE ) );
-            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
-            anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
-        }
-
-        if ( canAccess( user, anyAuthorities ) )
-        {
-            if ( !schema.isShareable() || object.getPublicAccess() == null )
-            {
-                return true;
-            }
-
-            if ( checkSharingAccess( user, object ) &&
-                (checkUser( user, object ) || writePermission ) )
-            {
-                return true;
-            }
-        }
-        else if ( schema.isImplicitPrivateAuthority()
-            && (checkUser( user, object ) || writePermission ) )
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private Map<Permission, Boolean> checkSharingPermission( User user, IdentifiableObject object,  Schema schema, Set<UserAccess> userAccesses, Set<UserGroupAccess> userGroupAccesses, Set<Permission> permissions )
-    {
-
-        Map<Permission, Boolean> mapPermissions = new HashMap<>();
-
-        permissions.forEach( p -> mapPermissions.put( p, AccessStringHelper.isEnabled( object.getPublicAccess(), p ) ) );
-
-        if ( !mapPermissions.values().contains( false ) )
-        {
-            return mapPermissions;
-        }
-
-
-        for ( UserGroupAccess userGroupAccess : userGroupAccesses )
-        {
-            // Check if user is allowed to read this object through group access
-            permissions.forEach( p -> {
-                if ( !mapPermissions.get( p ) )
-                {
-                    if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), p )
-                        && userGroupInfoService.isMember( userGroupAccess.getUserGroup(), user.getUid() ) )
-                    {
-                        mapPermissions.put( p, true ) ;
-                    }
-                }
-
-            } );
-        }
-
-        for ( UserAccess userAccess : userAccesses )
-        {
-            // Check if user is allowed to read to this object through user
-            // access
-            permissions.forEach( p -> {
-                if ( !mapPermissions.get( p ) )
-                {
-                    if ( AccessStringHelper.isEnabled( userAccess.getAccess(), p )
-                        && user.equals( userAccess.getUser() ) )
-                    {
-                        mapPermissions.put( p, true ) ;
-                    }
-                }
-            } );
-        }
-
-        return mapPermissions;
-    }
-
 }

@@ -39,7 +39,6 @@ import java.util.Set;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
@@ -76,6 +75,29 @@ public class DefaultQueryPlanner implements QueryPlanner
         return planQuery( query, false );
     }
 
+    /**
+     * Fix performance issue DHIS2-11032 Check if the given {@link Query}
+     * filters {@link CategoryOption} by Categories.
+     *
+     * @param query the {@link Query} for checking.
+     * @return true if query filters CategoryOptions by Categories, false
+     *         otherwise.
+     */
+    private boolean isFilterCategoryOptionsByCategories( Query query )
+    {
+        if ( !query.getSchema().getKlass().isAssignableFrom( CategoryOption.class ) )
+        {
+            return false;
+        }
+
+        if ( isFilterByCategories( query.getCriterions() ) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     @Override
     public QueryPlan planQuery( Query query, boolean persistedOnly )
     {
@@ -83,7 +105,8 @@ public class DefaultQueryPlanner implements QueryPlanner
         Junction.Type junctionType = query.getCriterions().size() <= 1 ? Junction.Type.AND
             : query.getRootJunctionType();
 
-        if ( (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
+        if ( !isFilterCategoryOptionsByCategories( query )
+            && (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
         {
             return QueryPlan.QueryPlanBuilder.newBuilder()
                 .persistedQuery( Query.from( query.getSchema() ).setPlannedQuery( true ) )
@@ -254,10 +277,10 @@ public class DefaultQueryPlanner implements QueryPlanner
                     pQuery.getCriterions().add( criterion );
                     iterator.remove();
                 }
-                else if ( restriction.getQueryPath().getPath().contains( "categories" ) && query.getSchema().getKlass().isAssignableFrom(
-                    CategoryOption.class ) )
+                else if ( query.getSchema().getKlass().isAssignableFrom( CategoryOption.class )
+                    && isFilterByCategories( Arrays.asList( restriction ) ) )
                 {
-                    pQuery.getAliases().addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() )  );
+                    pQuery.getAliases().addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
                     pQuery.getCriterions().add( criterion );
                     iterator.remove();
                     query.getCriterions().remove( restriction );
@@ -311,8 +334,8 @@ public class DefaultQueryPlanner implements QueryPlanner
                     criteriaJunction.getCriterions().add( criterion );
                     iterator.remove();
                 }
-                else if ( restriction.getQueryPath().getPath().contains( "categories" ) && query.getSchema().getKlass().isAssignableFrom(
-                    CategoryOption.class ) )
+                else if ( query.getSchema().getKlass().isAssignableFrom( CategoryOption.class )
+                    && isFilterByCategories( Arrays.asList( criterion ) ) )
                 {
                     criteriaJunction.getAliases()
                         .addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
@@ -329,18 +352,6 @@ public class DefaultQueryPlanner implements QueryPlanner
         }
 
         return criteriaJunction;
-    }
-
-    /**
-     * Fix performance issue DHIS2-11032
-     * For {@code api/categoryOptions?filter=categories}
-     * we will enforce categories filter query to be in persistedQuery
-     * @param restriction Restriction contains query path
-     * @return TRUE if query path equal to "categories"
-     */
-    private boolean isFilterCategoryOptionByCategory( Restriction restriction )
-    {
-         return restriction.getPath().equalsIgnoreCase( "categories" );
     }
 
     /**
@@ -361,7 +372,6 @@ public class DefaultQueryPlanner implements QueryPlanner
 
         for ( Order order : query.getOrders() )
         {
-
             if ( !persistedFields.contains( order.getProperty().getName() ) )
             {
                 return false;
@@ -387,11 +397,6 @@ public class DefaultQueryPlanner implements QueryPlanner
             {
                 Restriction restriction = (Restriction) criterion;
 
-                if ( isFilterCategoryOptionByCategory( restriction ) )
-                {
-                    continue;
-                }
-
                 if ( !persistedFields.contains( restriction.getPath() ) )
                 {
                     return true;
@@ -405,6 +410,38 @@ public class DefaultQueryPlanner implements QueryPlanner
                 }
             }
         }
+        return false;
+    }
+
+    /**
+     * Check if any of the criterions has Restriction path "categories" .
+     *
+     * @param criterions List of criterions.
+     * @return true if the find "categories" in any of the criterions, false
+     *         otherwise.
+     */
+    private boolean isFilterByCategories( List<Criterion> criterions )
+    {
+        for ( Criterion criterion : criterions )
+        {
+            if ( criterion instanceof Restriction )
+            {
+                Restriction restriction = (Restriction) criterion;
+
+                if ( restriction.getPath().contains( "categories" ) )
+                {
+                    return true;
+                }
+            }
+            else if ( criterion instanceof Junction )
+            {
+                if ( isFilterByCategories( ((Junction) criterion).getCriterions() ) )
+                {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 }

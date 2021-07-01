@@ -186,11 +186,7 @@ public class DefaultQueryService
         Query pQuery = queryPlan.getPersistedQuery();
         Query npQuery = queryPlan.getNonPersistedQuery();
 
-        StopWatch watch = new StopWatch();
-        watch.start();
         objects = criteriaQueryEngine.query( pQuery );
-        watch.stop();
-        System.out.println( "criteriaQueryEngine.query( pQuery ) = " + watch.getTotalTimeSeconds() );
         if ( !npQuery.isEmpty() )
         {
             if ( log.isDebugEnabled() )
@@ -205,7 +201,6 @@ public class DefaultQueryService
             inMemoryQueryEngineWatch.start();
             objects = inMemoryQueryEngine.query( npQuery );
             inMemoryQueryEngineWatch.stop();
-            System.out.println( "inMemoryQueryEngine.query( npQuery ) = " + inMemoryQueryEngineWatch.getTotalTimeSeconds() );
         }
 
         clearDefaults( query.getSchema().getKlass(), objects, query.getDefaults() );

@@ -46,9 +46,9 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StopWatch;
 
 import com.google.common.collect.Lists;
-import org.springframework.util.StopWatch;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -79,22 +79,10 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     @Override
     public List<T> query( Query query )
     {
-        StopWatch validateWatch = new StopWatch();
-        validateWatch.start();
         validateQuery( query );
-        validateWatch.stop();
-        System.out.println( "validateWatch.getTotalTimeSeconds() = " + validateWatch.getTotalTimeSeconds() );
-        StopWatch runQueryWatch = new StopWatch();
-        runQueryWatch.start();
         List<T> list = runQuery( query );
-        runQueryWatch.stop();
-        System.out.println( "runQueryWatch = " + runQueryWatch.getTotalTimeSeconds() );
 
-        StopWatch runSorterWatch = new StopWatch();
-        runQueryWatch.start();
         list = runSorter( query, list );
-        runQueryWatch.stop();
-        System.out.println( "runSorterWatch.getTotalTimeSeconds() = " + runSorterWatch.getTotalTimeSeconds() );
 
         return query.isSkipPaging() ? list
             : PagerUtils.pageCollection( list, query.getFirstResult(), query.getMaxResults() );
@@ -184,8 +172,6 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
             testResults.add( testResult );
         }
 
-        testStopWatch.stop();
-        if ( testStopWatch.getLastTaskTimeMillis() > 0 ) System.out.println( "testStopWatch = " + testStopWatch.getLastTaskTimeMillis() + " - object - " + ((BaseIdentifiableObject) object).toString() );
         if ( query.getRootJunctionType() == Junction.Type.OR )
         {
             return testResults.contains( Boolean.TRUE );
