@@ -87,10 +87,10 @@
                   <name>org.eclipse.jetty.util.log.IGNORED</name>
                   <value>true</value>
                 </property>
-<!--                <property>-->
-<!--                  <name>log4j.configurationFile</name>-->
-<!--                  <value>${project.baseUri}/../dhis-web-commons/src/main/resources/log4j2-jetty.xml</value>-->
-<!--                </property>-->
+                <property>
+                  <name>log4j.configurationFile</name>
+                  <value>${project.baseUri}/../dhis-web-commons/src/main/resources/log4j2-jetty.xml</value>
+                </property>
               </properties>
             </configuration>
           </execution>

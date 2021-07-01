@@ -49,7 +49,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
 {
-    private static final int DEFAULT_HTTP_PORT = 8080;
+    private static final int DEFAULT_HTTP_PORT = 9080;
 
     private static final String SERVER_HOSTNAME_OR_IP = "localhost";
 
