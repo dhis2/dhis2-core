@@ -431,7 +431,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     }
 
     @SuppressWarnings( "unchecked" )
-    protected final List<T> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
+    protected List<T> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
         List<Order> orders )
         throws QueryParserException
     {
@@ -546,7 +546,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return getEntity( uid, NO_WEB_OPTIONS );
     }
 
-    protected final List<T> getEntity( String uid, WebOptions options )
+    protected List<T> getEntity( String uid, WebOptions options )
     {
         ArrayList<T> list = new ArrayList<>();
         getEntity( uid, getEntityClass() ).ifPresent( list::add );
