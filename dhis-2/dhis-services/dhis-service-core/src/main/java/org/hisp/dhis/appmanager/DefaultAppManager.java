@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
@@ -86,21 +86,23 @@ public class DefaultAppManager
         CurrentUserService currentUserService,
         @Qualifier( "org.hisp.dhis.appmanager.LocalAppStorageService" ) AppStorageService localAppStorageService,
         @Qualifier( "org.hisp.dhis.appmanager.JCloudsAppStorageService" ) AppStorageService jCloudsAppStorageService,
-        KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
+        KeyJsonValueService keyJsonValueService, CacheBuilderProvider cacheBuilderProvider )
     {
         checkNotNull( dhisConfigurationProvider );
         checkNotNull( currentUserService );
         checkNotNull( localAppStorageService );
         checkNotNull( jCloudsAppStorageService );
         checkNotNull( keyJsonValueService );
-        checkNotNull( cacheProvider );
+        checkNotNull( cacheBuilderProvider );
 
         this.dhisConfigurationProvider = dhisConfigurationProvider;
         this.currentUserService = currentUserService;
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
         this.keyJsonValueService = keyJsonValueService;
-        this.appCache = cacheProvider.createAppCache();
+        this.appCache = cacheBuilderProvider.<App> newCacheBuilder()
+            .forRegion( "appCache" )
+            .build();
     }
 
     // -------------------------------------------------------------------------
@@ -336,7 +338,9 @@ public class DefaultAppManager
     }
 
     /**
-     * Triggers AppStorageServices to re-discover apps
+     * Reloads apps by triggering the process to discover apps from local
+     * filesystem and remote cloud storage and installing all detected apps.
+     * This method is invoked automatically on startup.
      */
     @Override
     @PostConstruct
