@@ -80,6 +80,10 @@ public class DefaultAppManager
 
     private final KeyJsonValueService keyJsonValueService;
 
+    /**
+     * In-memory storage of installed apps. Initially loaded on startup. Should
+     * not be cleared during runtime.
+     */
     private final Cache<App> appCache;
 
     public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
