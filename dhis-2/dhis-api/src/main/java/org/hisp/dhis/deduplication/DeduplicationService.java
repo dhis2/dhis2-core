@@ -39,7 +39,7 @@ public interface DeduplicationService
 
     List<PotentialDuplicate> getAllPotentialDuplicates();
 
-    void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate );
+    void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
 
     int countPotentialDuplicates( PotentialDuplicateQuery query );
 

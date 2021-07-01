@@ -75,9 +75,8 @@ public class DefaultDeduplicationService
 
     @Override
     @Transactional
-    public void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate )
+    public void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
-        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
         potentialDuplicateStore.update( potentialDuplicate );
     }
 

@@ -70,7 +70,7 @@ public class DeduplicationServiceTest
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( "ABCDEF12345" );
         long id = deduplicationService.addPotentialDuplicate( potentialDuplicate );
 
-        assertNotNull( id );
+        assertNotEquals( 0, id );
 
         assertEquals( potentialDuplicate, deduplicationService.getPotentialDuplicateById( id ) );
     }
@@ -81,7 +81,8 @@ public class DeduplicationServiceTest
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( "ABCDEF12345" );
         long id = deduplicationService.addPotentialDuplicate( potentialDuplicate );
 
-        assertNotNull( id );
+        assertNotEquals( 0, id );
+
         assertEquals( potentialDuplicate,
             deduplicationService.getPotentialDuplicateByUid( potentialDuplicate.getUid() ) );
     }
@@ -181,14 +182,15 @@ public class DeduplicationServiceTest
     }
 
     @Test
-    public void testMarkPotentialDuplicateInvalid()
+    public void testUpdatePotentialDuplicate()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( "ABCDEFGHIJ1", "ABCDEFGHIJ2" );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
 
         assertEquals( DeduplicationStatus.OPEN, potentialDuplicate.getStatus() );
 
-        deduplicationService.markPotentialDuplicateInvalid( potentialDuplicate );
+        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
+        deduplicationService.updatePotentialDuplicate( potentialDuplicate );
 
         assertEquals( DeduplicationStatus.INVALID, potentialDuplicate.getStatus() );
     }
