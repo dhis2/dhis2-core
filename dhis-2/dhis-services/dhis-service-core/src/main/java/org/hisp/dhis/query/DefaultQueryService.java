@@ -28,18 +28,15 @@
 package org.hisp.dhis.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StopWatch;
+
+import java.util.List;
 
 /**
  * Default implementation of QueryService which works with IdObjects.
@@ -187,6 +184,7 @@ public class DefaultQueryService
         Query npQuery = queryPlan.getNonPersistedQuery();
 
         objects = criteriaQueryEngine.query( pQuery );
+
         if ( !npQuery.isEmpty() )
         {
             if ( log.isDebugEnabled() )
@@ -196,11 +194,7 @@ public class DefaultQueryService
             }
 
             npQuery.setObjects( objects );
-
-            StopWatch inMemoryQueryEngineWatch = new StopWatch();
-            inMemoryQueryEngineWatch.start();
             objects = inMemoryQueryEngine.query( npQuery );
-            inMemoryQueryEngineWatch.stop();
         }
 
         clearDefaults( query.getSchema().getKlass(), objects, query.getDefaults() );
