@@ -120,7 +120,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -247,13 +246,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                 "You don't have the proper permissions to read objects of this type." );
         }
 
-        StopWatch watch = new StopWatch();
-        watch.start();
-
         List<T> entities = getEntityList( metadata, options, filters, orders );
 
-        watch.stop();
-        System.out.println( "getEntityList( metadata, options, filters, orders ) = " + watch.getTotalTimeSeconds() );
         Pager pager = metadata.getPager();
 
         if ( options.hasPaging() && pager == null )
@@ -292,13 +286,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         {
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
-        watch = new StopWatch();
-        watch.start();
+
         rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
             new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) ) );
 
-        watch.stop();
-        System.out.println( "fieldFilterService.toCollectionNode = " +watch.getTotalTimeSeconds() );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
         return rootNode;
@@ -1342,7 +1333,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             .ofNullable( manager.getNoAcl( getEntityClass(), uid ) );
 
         identifiableObject.ifPresent( list::add );
-
 
         return list; // TODO consider ACL
     }
