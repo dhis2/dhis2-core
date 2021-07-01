@@ -50,14 +50,9 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +69,7 @@ import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -159,25 +155,15 @@ public class JdbcAnalyticsManager
             }
 
             List<DimensionalItemObject> itemObjects = params.getAllDimensionItems().stream()
-                .filter( o -> o.getClass() == CategoryOption.class ).collect( Collectors.toList() );
-
-            HashMap<String, List<String>> categoryOptionUidMap = new HashMap<>();
-            itemObjects.forEach( io -> {
-                if ( io instanceof CategoryOption )
-                {
-                    CategoryOption co = (CategoryOption) io;
-                    List<String> coc_uidList = co.getCategoryOptionCombos().stream()
-                        .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() );
-                    categoryOptionUidMap.put( co.getUid(), coc_uidList );
-                }
-            } );
+                .filter( o -> o.getClass() == CategoryOption.class || o.getClass() == CategoryOptionCombo.class )
+                .collect( Collectors.toList() );
 
             String sql = getSelectClause( params );
 
             sql += getFromClause( params );
 
             sql += replaceCategoryOptionsWithCategoryOptionCombos( getWhereClause( params, tableType ), params,
-                categoryOptionUidMap );
+                itemObjects );
 
             sql += getGroupByClause( params );
 
@@ -191,7 +177,7 @@ public class JdbcAnalyticsManager
 
             try
             {
-                map = getKeyValueMap( params, sql, maxLimit, categoryOptionUidMap );
+                map = aggregateKeyValueMap( getKeyValueMap( params, sql, maxLimit ), itemObjects );
             }
             catch ( BadSqlGrammarException ex )
             {
@@ -215,14 +201,106 @@ public class JdbcAnalyticsManager
         }
     }
 
-    private String replaceCategoryOptionsWithCategoryOptionCombos( String whereClause, DataQueryParams params,
-        HashMap<String, List<String>> uidMap )
+    private Map<String, Object> aggregateKeyValueMap( Map<String, Object> keyValueMap,
+        List<DimensionalItemObject> itemObjects )
     {
-        if ( uidMap.isEmpty() )
+        Map<String, Object> aggregatedKeyValueMap = new HashMap<>();
+        itemObjects.forEach( io -> {
+            if ( io instanceof CategoryOption )
+            {
+                CategoryOption co = (CategoryOption) io;
+                co.getCategoryOptionCombos().stream().forEach( coc -> {
+                    Map<String, Object> aggMap = getAggregatedCategoryOptionValues( keyValueMap, coc.getUid(),
+                        co.getUid() );
+                    aggregatedKeyValueMap.putAll( aggMap );
+                } );
+            }
+            if ( io instanceof CategoryOptionCombo )
+            {
+                CategoryOptionCombo coc = (CategoryOptionCombo) io;
+                keyValueMap.keySet().stream().forEach( k -> {
+                    if ( k.contains( coc.getUid() ) )
+                    {
+                        aggregatedKeyValueMap.put( k, keyValueMap.get( k ) );
+                    }
+                } );
+            }
+        } );
+        return aggregatedKeyValueMap;
+    }
+
+    private Map<String, Object> getAggregatedCategoryOptionValues( Map<String, Object> keyValueMap, String coc_uid,
+        String co_uid )
+    {
+        final short CATEGORY_OPTION_POSITION = 1;
+        final short MIN_SIZE_TYPICAL_FOR_EXPRESSION_WITH_COC = 3;
+        AtomicReference<Double> doubleSum = new AtomicReference<>( 0.0 );
+        StringBuilder stringSum = new StringBuilder();
+        Map<String, Object> aggregatedKeyValueMap = new HashMap<>();
+
+        keyValueMap.forEach( ( k, v ) -> {
+            String[] tokens = k.split( "-" );
+            if ( tokens.length >= MIN_SIZE_TYPICAL_FOR_EXPRESSION_WITH_COC
+                && tokens[CATEGORY_OPTION_POSITION].equals( coc_uid ) )
+            {
+                tokens[CATEGORY_OPTION_POSITION] = co_uid;
+                String newKey = String.join( "-", tokens );
+                if ( v instanceof Double )
+                {
+                    if ( aggregatedKeyValueMap.containsKey( newKey ) )
+                    {
+                        doubleSum.updateAndGet( v1 -> v1 + (Double) v + (Double) aggregatedKeyValueMap.get( newKey ) );
+                    }
+                    else
+                    {
+                        doubleSum.updateAndGet( v1 -> v1 + (Double) v );
+                    }
+
+                    aggregatedKeyValueMap.put( newKey, doubleSum.get() );
+
+                }
+                else if ( v instanceof String )
+                {
+                    if ( aggregatedKeyValueMap.containsKey( newKey ) )
+                    {
+                        stringSum.append( v + "," + aggregatedKeyValueMap.get( newKey ) );
+                    }
+                    else
+                    {
+                        stringSum.append( (String) v ).append( "," );
+                    }
+
+                    aggregatedKeyValueMap.put( newKey, stringSum );
+                }
+            }
+        } );
+        return aggregatedKeyValueMap;
+    }
+
+    private String replaceCategoryOptionsWithCategoryOptionCombos( String whereClause, DataQueryParams params,
+        List<DimensionalItemObject> itemObjects )
+    {
+        HashMap<String, List<String>> categoryOptionUidMap = new HashMap<>();
+        itemObjects.forEach( io -> {
+            if ( io instanceof CategoryOption )
+            {
+                CategoryOption co = (CategoryOption) io;
+                List<String> coc_uidList = co.getCategoryOptionCombos().stream()
+                    .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() );
+                categoryOptionUidMap.put( co.getUid(), coc_uidList );
+            }
+            if ( io instanceof CategoryOptionCombo )
+            {
+                CategoryOptionCombo coc = (CategoryOptionCombo) io;
+                List<String> coc_uidList = Collections.singletonList( coc.getUid() );
+                categoryOptionUidMap.put( coc.getUid(), coc_uidList );
+            }
+        } );
+        if ( categoryOptionUidMap.isEmpty() )
         {
             return whereClause;
         }
-        for ( Map.Entry<String, List<String>> entry : uidMap.entrySet() )
+        for ( Map.Entry<String, List<String>> entry : categoryOptionUidMap.entrySet() )
         {
             String k = entry.getKey();
             List<String> v = entry.getValue();
@@ -698,8 +776,7 @@ public class JdbcAnalyticsManager
      * Retrieves data from the database based on the given query and SQL and
      * puts into a value key and value mapping.
      */
-    private Map<String, Object> getKeyValueMap( DataQueryParams params, String sql, int maxLimit,
-        HashMap<String, List<String>> categoryOptionUidMap )
+    private Map<String, Object> getKeyValueMap( DataQueryParams params, String sql, int maxLimit )
     {
         Map<String, Object> map = new HashMap<>();
 
@@ -723,25 +800,7 @@ public class JdbcAnalyticsManager
             for ( DimensionalObject dim : params.getDimensions() )
             {
                 String value = dim.isFixed() ? dim.getDimensionName() : rowSet.getString( dim.getDimensionName() );
-                boolean matched = false;
-                if ( !categoryOptionUidMap.isEmpty() )
-                {
-                    for ( Map.Entry<String, List<String>> entry : categoryOptionUidMap.entrySet() )
-                    {
-                        String k = entry.getKey();
-                        List<String> v = entry.getValue();
-                        if ( v.contains( value ) )
-                        {
-                            key.append( k ).append( DIMENSION_SEP );
-                            matched = true;
-                            break;
-                        }
-                    }
-                }
-                if ( !matched )
-                {
-                    key.append( value ).append( DIMENSION_SEP );
-                }
+                key.append( value ).append( DIMENSION_SEP );
             }
 
             key.deleteCharAt( key.length() - 1 );

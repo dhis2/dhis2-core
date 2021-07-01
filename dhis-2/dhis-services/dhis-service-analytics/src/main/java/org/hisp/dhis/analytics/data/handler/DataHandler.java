@@ -725,8 +725,9 @@ public class DataHandler
         }
 
         List<DimensionalItemObject> dataElements = newArrayList( getDataElements( operands ) );
-        List<DimensionalItemObject> categoryOptionCombos = newArrayList( getCategoryOptionCombos( operands ) );
         List<DimensionalItemObject> categoryOptions = newArrayList( getCategoryOptions( operands ) );
+        List<DimensionalItemObject> categoryOptionCombos = newArrayList( getCategoryOptionCombos( operands ) );
+        categoryOptionCombos.addAll( categoryOptions );
         List<DimensionalItemObject> attributeOptionCombos = newArrayList( getAttributeOptionCombos( operands ) );
 
         // TODO Check if data was dim or filter
@@ -737,12 +738,7 @@ public class DataHandler
 
         if ( totalType.isCategoryOptionCombo() )
         {
-            if ( !categoryOptions.isEmpty() )
-            {
-                builder.addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID,
-                    CATEGORY_OPTION_COMBO, categoryOptions ) );
-            }
-            else
+            if ( !categoryOptionCombos.isEmpty() )
             {
                 builder.addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID,
                     CATEGORY_OPTION_COMBO, categoryOptionCombos ) );
