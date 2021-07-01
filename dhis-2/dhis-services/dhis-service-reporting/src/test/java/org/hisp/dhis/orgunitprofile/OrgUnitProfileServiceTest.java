@@ -50,6 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.orgunitprofile.impl.DefaultOrgUnitProfileService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.UserService;
@@ -80,6 +81,9 @@ public class OrgUnitProfileServiceTest
     private OrganisationUnitGroupService organisationUnitGroupService;
 
     @Autowired
+    private OrganisationUnitService organisationUnitService;
+
+    @Autowired
     private KeyJsonValueService dataStore;
 
     @Mock
@@ -98,9 +102,9 @@ public class OrgUnitProfileServiceTest
     {
         userService = _userService;
         createAndInjectAdminUser();
-        mockService = new DefaultOrgUnitProfileService( dataStore, manager, mockAnalyticsService,
-            organisationUnitGroupService, jsonMapper );
-
+        mockService = new DefaultOrgUnitProfileService( dataStore, manager,
+            mockAnalyticsService, organisationUnitGroupService,
+            organisationUnitService, jsonMapper );
     }
 
     @Test
@@ -247,12 +251,12 @@ public class OrgUnitProfileServiceTest
         orgUnitProfile.getGroupSets().add( groupSet.getUid() );
         List<ErrorReport> errors = service.validateOrgUnitProfile( orgUnitProfile );
         assertEquals( 3, errors.size() );
-        assertTrue( isErrorContain( errors, ErrorCode.E4014, OrganisationUnitGroupSet.class, groupSet.getUid() ) );
-        assertTrue( isErrorContain( errors, ErrorCode.E4014, Attribute.class, attribute.getUid() ) );
-        assertTrue( isErrorContain( errors, ErrorCode.E4014, Collection.class, dataElement.getUid() ) );
+        assertTrue( errorContains( errors, ErrorCode.E4014, OrganisationUnitGroupSet.class, groupSet.getUid() ) );
+        assertTrue( errorContains( errors, ErrorCode.E4014, Attribute.class, attribute.getUid() ) );
+        assertTrue( errorContains( errors, ErrorCode.E4014, Collection.class, dataElement.getUid() ) );
     }
 
-    private boolean isErrorContain( List<ErrorReport> errors, ErrorCode errorCode, Class clazz, String uid )
+    private boolean errorContains( List<ErrorReport> errors, ErrorCode errorCode, Class<?> clazz, String uid )
     {
         return errors.stream().filter( errorReport -> errorReport.getErrorCode() == errorCode
             && errorReport.getMainKlass().isAssignableFrom( clazz )
