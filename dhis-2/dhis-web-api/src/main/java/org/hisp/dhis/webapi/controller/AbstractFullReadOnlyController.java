@@ -102,7 +102,7 @@ import com.google.common.collect.Lists;
  * @author Jan Bernitt
  */
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public abstract class AbstractReadOnlyCrudController<T extends IdentifiableObject>
+public abstract class AbstractFullReadOnlyController<T extends IdentifiableObject>
     extends AbstractGistReadOnlyController<T>
 {
     protected static final String DEFAULTS = "INCLUDE";

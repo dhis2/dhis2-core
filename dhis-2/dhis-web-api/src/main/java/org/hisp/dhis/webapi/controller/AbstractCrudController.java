@@ -100,7 +100,7 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public abstract class AbstractCrudController<T extends IdentifiableObject> extends AbstractReadOnlyCrudController<T>
+public abstract class AbstractCrudController<T extends IdentifiableObject> extends AbstractFullReadOnlyController<T>
 {
 
     // --------------------------------------------------------------------------
