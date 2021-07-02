@@ -90,7 +90,7 @@ public class DeduplicationController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        List<PotentialDuplicate> potentialDuplicates = deduplicationService.getAllPotentialDuplicates( query );
+        List<PotentialDuplicate> potentialDuplicates = deduplicationService.getAllPotentialDuplicatesBy( query );
 
         RootNode rootNode = NodeUtils.createMetadata();
 
@@ -120,9 +120,7 @@ public class DeduplicationController
         @RequestBody PotentialDuplicate potentialDuplicate )
         throws WebMessageException
     {
-
         validatePotentialDuplicate( potentialDuplicate );
-
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
         return potentialDuplicate;
     }
