@@ -29,15 +29,17 @@ package org.hisp.dhis.deduplication;
 
 import java.util.List;
 
+import lombok.Data;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 
 import com.google.common.base.MoreObjects;
 
+@Data
 public class PotentialDuplicateQuery
 {
-
     public static final PotentialDuplicateQuery EMPTY = new PotentialDuplicateQuery();
 
     private Boolean skipPaging;
@@ -52,6 +54,8 @@ public class PotentialDuplicateQuery
 
     private List<String> teis;
 
+    private DeduplicationStatus status = DeduplicationStatus.OPEN;
+
     public PotentialDuplicateQuery()
     {
     }
@@ -61,64 +65,14 @@ public class PotentialDuplicateQuery
         return PagerUtils.isSkipPaging( skipPaging, paging );
     }
 
-    public void setSkipPaging( Boolean skipPaging )
-    {
-        this.skipPaging = skipPaging;
-    }
-
     public boolean isPaging()
     {
         return BooleanUtils.toBoolean( paging );
     }
 
-    public void setPaging( Boolean paging )
-    {
-        this.paging = paging;
-    }
-
-    public int getPage()
-    {
-        return page;
-    }
-
-    public void setPage( int page )
-    {
-        this.page = page;
-    }
-
-    public int getPageSize()
-    {
-        return pageSize;
-    }
-
-    public void setPageSize( int pageSize )
-    {
-        this.pageSize = pageSize;
-    }
-
-    public int getTotal()
-    {
-        return total;
-    }
-
-    public void setTotal( int total )
-    {
-        this.total = total;
-    }
-
     public Pager getPager()
     {
         return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
-    }
-
-    public List<String> getTeis()
-    {
-        return teis;
-    }
-
-    public void setTeis( List<String> teis )
-    {
-        this.teis = teis;
     }
 
     @Override
