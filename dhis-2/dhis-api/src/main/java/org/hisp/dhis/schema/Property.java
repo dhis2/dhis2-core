@@ -287,6 +287,12 @@ public class Property implements Ordered, Klass
 
     private String translationKey;
 
+    /**
+     * The translation key use for retrieving I18n translation of this
+     * property's name. The key follows snake_case naming convention.
+     */
+    private String i18nTranslationKey;
+
     private GistPreferences gistPreferences = GistPreferences.DEFAULT;
 
     public Property()
@@ -747,6 +753,18 @@ public class Property implements Ordered, Klass
     public void setTranslationKey( String translationKey )
     {
         this.translationKey = translationKey;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getI18nTranslationKey()
+    {
+        return i18nTranslationKey;
+    }
+
+    public void setI18nTranslationKey( String i18nTranslationKey )
+    {
+        this.i18nTranslationKey = i18nTranslationKey;
     }
 
     @JsonProperty
