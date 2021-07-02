@@ -74,32 +74,6 @@ public class DefaultQueryPlanner implements QueryPlanner
         return planQuery( query, false );
     }
 
-    /**
-     * Fix performance issue DHIS2-11032.
-     * <p>
-     * Check if the given {@link Query} has filter {@link CategoryOption} by
-     * {@link Category}.
-     * </p>
-     *
-     * @param query the {@link Query} for checking.
-     * @return true if query filters CategoryOptions by Categories, false
-     *         otherwise.
-     */
-    private boolean isFilterCategoryOptionsByCategories( Query query )
-    {
-        if ( !query.getSchema().getKlass().isAssignableFrom( CategoryOption.class ) )
-        {
-            return false;
-        }
-
-        if ( isFilterByCategories( query.getCriterions() ) )
-        {
-            return true;
-        }
-
-        return false;
-    }
-
     @Override
     public QueryPlan planQuery( Query query, boolean persistedOnly )
     {
@@ -107,7 +81,7 @@ public class DefaultQueryPlanner implements QueryPlanner
         Junction.Type junctionType = query.getCriterions().size() <= 1 ? Junction.Type.AND
             : query.getRootJunctionType();
 
-        if ( !isFilterCategoryOptionsByCategories( query )
+        if ( !isFilterCategoryOptionsByCategories( query.getSchema(), query.getCriterions() )
             && (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
         {
             return QueryPlan.QueryPlanBuilder.newBuilder()
@@ -279,8 +253,7 @@ public class DefaultQueryPlanner implements QueryPlanner
                     pQuery.getCriterions().add( criterion );
                     iterator.remove();
                 }
-                else if ( query.getSchema().getKlass().isAssignableFrom( CategoryOption.class )
-                    && isFilterByCategories( Arrays.asList( restriction ) ) )
+                else if ( isFilterCategoryOptionsByCategories( query.getSchema(), Arrays.asList( restriction ) ) )
                 {
                     pQuery.getAliases().addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
                     pQuery.getCriterions().add( criterion );
@@ -336,8 +309,7 @@ public class DefaultQueryPlanner implements QueryPlanner
                     criteriaJunction.getCriterions().add( criterion );
                     iterator.remove();
                 }
-                else if ( query.getSchema().getKlass().isAssignableFrom( CategoryOption.class )
-                    && isFilterByCategories( Arrays.asList( criterion ) ) )
+                else if ( isFilterCategoryOptionsByCategories( query.getSchema(), Arrays.asList( criterion ) ) )
                 {
                     criteriaJunction.getAliases()
                         .addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
@@ -415,7 +387,46 @@ public class DefaultQueryPlanner implements QueryPlanner
     }
 
     /**
-     * Check if any of the criterions has Restriction path "categories".
+     * Fix performance issue DHIS2-11032.
+     * <p>
+     * Check if the given list of {@link Criterion} has filter
+     * {@link CategoryOption} by Category.
+     * </p>
+     *
+     * <p>
+     * This method is only applied to {@link CategoryOption},
+     * </p>
+     *
+     * @param schema the {@code Schema} of {@link Query} for checking if
+     *        schema's klass is {@link CategoryOption}
+     * @param criterionList list of {@link Criterion} for checking filters.
+     * @return
+     *         <p>
+     *         false if given schema's klass is not {@link CategoryOption}
+     *         </p>
+     *         <p>
+     *         true if query filters CategoryOptions by Categories, false
+     *         otherwise.
+     *         </p>
+     */
+    private boolean isFilterCategoryOptionsByCategories( Schema schema, List<Criterion> criterionList )
+    {
+        if ( !CategoryOption.class.isAssignableFrom( schema.getKlass() ) )
+        {
+            return false;
+        }
+
+        if ( isFilterByCategories( criterionList ) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if any of the given criterions has "categories" as the Restriction
+     * path.
      *
      * @param criterions List of criterions.
      * @return true if the find "categories" in any of the criterions, false
