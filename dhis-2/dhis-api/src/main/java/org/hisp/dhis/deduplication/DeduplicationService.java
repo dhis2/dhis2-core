@@ -31,7 +31,7 @@ import java.util.List;
 
 public interface DeduplicationService
 {
-    long addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
+    void addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
 
     PotentialDuplicate getPotentialDuplicateById( long id );
 
@@ -45,7 +45,7 @@ public interface DeduplicationService
 
     boolean exists( PotentialDuplicate potentialDuplicate );
 
-    List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query );
+    List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query );
 
     void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate );
 }

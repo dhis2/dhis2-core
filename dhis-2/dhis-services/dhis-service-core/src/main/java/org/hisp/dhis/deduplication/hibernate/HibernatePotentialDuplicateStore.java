@@ -29,6 +29,7 @@ package org.hisp.dhis.deduplication.hibernate;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
@@ -74,17 +75,22 @@ public class HibernatePotentialDuplicateStore
     @Override
     public List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query )
     {
-        if ( query.getTeis() != null && query.getTeis().size() > 0 )
-        {
+        String queryString = "from PotentialDuplicate pr where pr.status = '" + query.getStatus() + "'";
+
+        return Optional.ofNullable( query.getTeis() ).filter( teis -> teis.size() > 0 ).map( teis -> {
+
             Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
-                "from PotentialDuplicate pr where pr.teiA in (:uids)  or pr.teiB in (:uids)" );
-            hibernateQuery.setParameterList( "uids", query.getTeis() );
+                queryString + " and pr.teiA in (:uids)  or pr.teiB in (:uids)" );
+            hibernateQuery.setParameterList( "uids", teis );
+
             return hibernateQuery.getResultList();
-        }
-        else
-        {
-            return getAll();
-        }
+
+        } ).orElseGet( () -> {
+
+            Query<PotentialDuplicate> hibernateQuery = getTypedQuery( queryString );
+            return hibernateQuery.getResultList();
+
+        } );
     }
 
     @Override
