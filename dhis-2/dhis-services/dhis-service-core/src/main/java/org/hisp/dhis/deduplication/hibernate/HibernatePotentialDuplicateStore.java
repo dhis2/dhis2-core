@@ -75,19 +75,22 @@ public class HibernatePotentialDuplicateStore
     @Override
     public List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query )
     {
-        String queryString = "from PotentialDuplicate pr where pr.status = '" + query.getStatus() + "'";
+        String queryString = "from PotentialDuplicate pr where pr.status = :status";
 
-        return Optional.ofNullable( query.getTeis() ).filter( teis -> teis.size() > 0 ).map( teis -> {
+        return Optional.ofNullable( query.getTeis() ).filter( teis -> !teis.isEmpty() ).map( teis -> {
 
             Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
                 queryString + " and pr.teiA in (:uids)  or pr.teiB in (:uids)" );
             hibernateQuery.setParameterList( "uids", teis );
+            hibernateQuery.setParameter( "status", query.getStatus() );
 
             return hibernateQuery.getResultList();
 
         } ).orElseGet( () -> {
 
             Query<PotentialDuplicate> hibernateQuery = getTypedQuery( queryString );
+            hibernateQuery.setParameter( "status", query.getStatus() );
+
             return hibernateQuery.getResultList();
 
         } );
