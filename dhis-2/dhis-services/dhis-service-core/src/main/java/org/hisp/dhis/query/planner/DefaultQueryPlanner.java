@@ -75,8 +75,11 @@ public class DefaultQueryPlanner implements QueryPlanner
     }
 
     /**
-     * Fix performance issue DHIS2-11032. <p>Check if the given {@link Query}
-     * has filter {@link CategoryOption} by {@link Category}.</p>
+     * Fix performance issue DHIS2-11032.
+     * <p>
+     * Check if the given {@link Query} has filter {@link CategoryOption} by
+     * {@link Category}.
+     * </p>
      *
      * @param query the {@link Query} for checking.
      * @return true if query filters CategoryOptions by Categories, false
