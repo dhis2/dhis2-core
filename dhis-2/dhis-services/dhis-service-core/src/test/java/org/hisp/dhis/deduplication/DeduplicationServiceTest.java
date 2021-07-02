@@ -96,6 +96,9 @@ public class DeduplicationServiceTest
 
         potentialDuplicateQuery.setStatus( DeduplicationStatus.INVALID );
         assertEquals( 1, deduplicationService.getAllPotentialDuplicatesBy( potentialDuplicateQuery ).size() );
+
+        potentialDuplicateQuery.setStatus( DeduplicationStatus.ALL );
+        assertEquals( 2, deduplicationService.getAllPotentialDuplicatesBy( potentialDuplicateQuery ).size() );
     }
 
     @Test

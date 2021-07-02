@@ -28,6 +28,8 @@
 package org.hisp.dhis.deduplication.hibernate;
 
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +37,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
@@ -75,25 +78,41 @@ public class HibernatePotentialDuplicateStore
     @Override
     public List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query )
     {
-        String queryString = "from PotentialDuplicate pr where pr.status = :status";
+        String queryString = "from PotentialDuplicate pr where pr.status in (:status)";
 
         return Optional.ofNullable( query.getTeis() ).filter( teis -> !teis.isEmpty() ).map( teis -> {
 
             Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
                 queryString + " and pr.teiA in (:uids)  or pr.teiB in (:uids)" );
+
             hibernateQuery.setParameterList( "uids", teis );
-            hibernateQuery.setParameter( "status", query.getStatus() );
+
+            setStatusParameter( query, hibernateQuery );
 
             return hibernateQuery.getResultList();
 
         } ).orElseGet( () -> {
 
             Query<PotentialDuplicate> hibernateQuery = getTypedQuery( queryString );
-            hibernateQuery.setParameter( "status", query.getStatus() );
+
+            setStatusParameter( query, hibernateQuery );
 
             return hibernateQuery.getResultList();
 
         } );
+    }
+
+    private void setStatusParameter( PotentialDuplicateQuery query, Query<PotentialDuplicate> hibernateQuery )
+    {
+        if ( query.getStatus() == DeduplicationStatus.ALL )
+        {
+            hibernateQuery.setParameterList( "status",
+                Arrays.asList( DeduplicationStatus.INVALID, DeduplicationStatus.OPEN, DeduplicationStatus.MERGED ) );
+        }
+        else
+        {
+            hibernateQuery.setParameterList( "status", Collections.singletonList( query.getStatus() ) );
+        }
     }
 
     @Override
