@@ -397,7 +397,7 @@ public class DefaultQueryPlanner implements QueryPlanner
      * This method is only applied to {@link CategoryOption},
      * </p>
      *
-     * @param schema the {@code Schema} of {@link Query} for checking if
+     * @param schema the {@link Schema} of {@link Query} for checking if
      *        schema's klass is {@link CategoryOption}
      * @param criterionList list of {@link Criterion} for checking filters.
      * @return
