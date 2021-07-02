@@ -57,6 +57,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
@@ -162,8 +163,7 @@ public class JdbcAnalyticsManager
 
             sql += getFromClause( params );
 
-            sql += replaceCategoryOptionsWithCategoryOptionCombos( getWhereClause( params, tableType ), params,
-                itemObjects );
+            sql += replaceCategoryOptionsWithCategoryOptionCombos( getWhereClause( params, tableType ), itemObjects );
 
             sql += getGroupByClause( params );
 
@@ -229,55 +229,77 @@ public class JdbcAnalyticsManager
         return aggregatedKeyValueMap;
     }
 
-    private Map<String, Object> getAggregatedCategoryOptionValues( Map<String, Object> keyValueMap, String coc_uid,
+    private static Map<String, Object> getAggregatedCategoryOptionValues( Map<String, Object> keyValueMap,
+        String coc_uid,
         String co_uid )
     {
         final short CATEGORY_OPTION_POSITION = 1;
         final short MIN_SIZE_TYPICAL_FOR_EXPRESSION_WITH_COC = 3;
-        AtomicReference<Double> doubleSum = new AtomicReference<>( 0.0 );
-        StringBuilder stringSum = new StringBuilder();
         Map<String, Object> aggregatedKeyValueMap = new HashMap<>();
 
         keyValueMap.forEach( ( k, v ) -> {
             String[] tokens = k.split( "-" );
-            if ( tokens.length >= MIN_SIZE_TYPICAL_FOR_EXPRESSION_WITH_COC
-                && tokens[CATEGORY_OPTION_POSITION].equals( coc_uid ) )
+            if ( tokens.length < MIN_SIZE_TYPICAL_FOR_EXPRESSION_WITH_COC
+                || !tokens[CATEGORY_OPTION_POSITION].equals( coc_uid ) )
             {
-                tokens[CATEGORY_OPTION_POSITION] = co_uid;
-                String newKey = String.join( "-", tokens );
-                if ( v instanceof Double )
-                {
-                    if ( aggregatedKeyValueMap.containsKey( newKey ) )
-                    {
-                        doubleSum.updateAndGet( v1 -> v1 + (Double) v + (Double) aggregatedKeyValueMap.get( newKey ) );
-                    }
-                    else
-                    {
-                        doubleSum.updateAndGet( v1 -> v1 + (Double) v );
-                    }
-
-                    aggregatedKeyValueMap.put( newKey, doubleSum.get() );
-
-                }
-                else if ( v instanceof String )
-                {
-                    if ( aggregatedKeyValueMap.containsKey( newKey ) )
-                    {
-                        stringSum.append( v + "," + aggregatedKeyValueMap.get( newKey ) );
-                    }
-                    else
-                    {
-                        stringSum.append( (String) v ).append( "," );
-                    }
-
-                    aggregatedKeyValueMap.put( newKey, stringSum );
-                }
+                return;
             }
+            tokens[CATEGORY_OPTION_POSITION] = co_uid;
+            String newKey = String.join( "-", tokens );
+            putToAggregatedKeyValueMap( aggregatedKeyValueMap, v, newKey );
         } );
+        removeTrailingCommasFromAggregatedStringValues( aggregatedKeyValueMap );
         return aggregatedKeyValueMap;
     }
 
-    private String replaceCategoryOptionsWithCategoryOptionCombos( String whereClause, DataQueryParams params,
+    private static void removeTrailingCommasFromAggregatedStringValues( Map<String, Object> aggregatedKeyValueMap )
+    {
+        aggregatedKeyValueMap.forEach( ( k, v ) -> {
+            if ( v instanceof String )
+            {
+                String value = (String) v;
+                if ( value.charAt( value.length() - 1 ) == ',' )
+                {
+                    aggregatedKeyValueMap.replace( k, StringUtils.substring( value, 0, value.length() - 1 ) );
+                }
+            }
+        } );
+    }
+
+    private static void putToAggregatedKeyValueMap( final Map<String, Object> aggregatedKeyValueMap, Object value,
+        String key )
+    {
+        AtomicReference<Double> doubleSum = new AtomicReference<>( 0.0 );
+        StringBuilder stringSum = new StringBuilder();
+
+        if ( value instanceof Double )
+        {
+            if ( aggregatedKeyValueMap.containsKey( key ) )
+            {
+                doubleSum.updateAndGet( v1 -> v1 + (Double) value + (Double) aggregatedKeyValueMap.get( key ) );
+            }
+            else
+            {
+                doubleSum.updateAndGet( v1 -> v1 + (Double) value );
+            }
+            aggregatedKeyValueMap.put( key, doubleSum.get() );
+
+        }
+        else if ( value instanceof String )
+        {
+            if ( aggregatedKeyValueMap.containsKey( key ) )
+            {
+                stringSum.append( value + "," + aggregatedKeyValueMap.get( key ) + "," );
+            }
+            else
+            {
+                stringSum.append( (String) value ).append( "," );
+            }
+            aggregatedKeyValueMap.put( key, stringSum );
+        }
+    }
+
+    private static String replaceCategoryOptionsWithCategoryOptionCombos( String whereClause,
         List<DimensionalItemObject> itemObjects )
     {
         HashMap<String, List<String>> categoryOptionUidMap = new HashMap<>();
@@ -304,7 +326,7 @@ public class JdbcAnalyticsManager
         {
             String k = entry.getKey();
             List<String> v = entry.getValue();
-            whereClause = whereClause.replace( k, v.stream().collect( Collectors.joining( "','" ) ) );
+            whereClause = whereClause.replace( k, String.join( "','", v ) );
         }
 
         return whereClause;

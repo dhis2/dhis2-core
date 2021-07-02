@@ -580,16 +580,41 @@ public class DefaultDimensionService
             case DATA_ELEMENT_OPERAND:
                 dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
 
-                CategoryOptionCombo categoryOptionCombo = id.getId1() == null ? null
-                    : id.getId1Type() == CategoryOptionCombo.class
-                        ? (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId1() )
-                        : null;
+                CategoryOptionCombo categoryOptionCombo;
+                if ( id.getId1() == null )
+                {
+                    categoryOptionCombo = null;
+                }
+                else
+                {
+                    if ( id.getId1Type() == CategoryOptionCombo.class )
+                    {
+                        categoryOptionCombo = (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class,
+                            id.getId1() );
+                    }
+                    else
+                    {
+                        categoryOptionCombo = null;
+                    }
+                }
 
-                CategoryOption categoryOption = id.getId1() == null ? null
-                    : id.getId1Type() == CategoryOption.class
-                        ? (CategoryOption) atomicObjects.getValue( CategoryOption.class,
-                            id.getId1().replace( "co:", "" ) )
-                        : null;
+                CategoryOption categoryOption;
+                if ( id.getId1() == null )
+                {
+                    categoryOption = null;
+                }
+                else
+                {
+                    if ( id.getId1Type() == CategoryOption.class )
+                    {
+                        categoryOption = (CategoryOption) atomicObjects.getValue( CategoryOption.class,
+                            id.getId1().replace( "co:", "" ) );
+                    }
+                    else
+                    {
+                        categoryOption = null;
+                    }
+                }
 
                 CategoryOptionCombo attributeOptionCombo = id.getId2() == null ? null
                     : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId2() );
