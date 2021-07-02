@@ -363,8 +363,7 @@ public class DefaultQueryPlanner implements QueryPlanner
      */
     private boolean isFilterOnPersistedFieldOnly( Query query )
     {
-        Set<String> persistedFields = new HashSet<>( query.getSchema().getPersistedProperties().keySet() );
-
+        Set<String> persistedFields = query.getSchema().getPersistedProperties().keySet();
         if ( nonPersistedFieldExistsInCriterions( persistedFields, query.getCriterions() ) )
         {
             return false;
@@ -372,6 +371,7 @@ public class DefaultQueryPlanner implements QueryPlanner
 
         for ( Order order : query.getOrders() )
         {
+
             if ( !persistedFields.contains( order.getProperty().getName() ) )
             {
                 return false;
@@ -396,7 +396,6 @@ public class DefaultQueryPlanner implements QueryPlanner
             if ( criterion instanceof Restriction )
             {
                 Restriction restriction = (Restriction) criterion;
-
                 if ( !persistedFields.contains( restriction.getPath() ) )
                 {
                     return true;
