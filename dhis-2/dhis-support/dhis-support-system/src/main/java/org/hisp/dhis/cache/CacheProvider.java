@@ -44,10 +44,7 @@ import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
  */
 public interface CacheProvider
 {
-
     <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime );
-
-    <V> Cache<V> createAppCache();
 
     <V> Cache<V> createDefaultObjectCache();
 
