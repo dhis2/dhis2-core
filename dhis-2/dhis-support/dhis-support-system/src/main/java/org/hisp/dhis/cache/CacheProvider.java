@@ -42,10 +42,7 @@ import java.time.Duration;
  */
 public interface CacheProvider
 {
-
     <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime );
-
-    <V> Cache<V> createAppCache();
 
     <V> Cache<V> createDefaultObjectCache();
 
