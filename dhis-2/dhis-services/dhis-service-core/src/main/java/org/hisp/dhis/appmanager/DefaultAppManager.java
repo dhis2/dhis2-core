@@ -47,6 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
