@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.event.webrequest;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -79,6 +80,7 @@ public class OrderCriteria
     {
         return Arrays.stream( s.split( "," ) )
             .map( OrderCriteria::toOrderCriteria )
+            .filter( Objects::nonNull )
             .collect( Collectors.toList() );
     }
 
@@ -88,6 +90,10 @@ public class OrderCriteria
         if ( props.length == 2 )
         {
             return OrderCriteria.of( props[0], SortDirection.of( props[1] ) );
+        }
+        if ( props.length == 1 )
+        {
+            return OrderCriteria.of( props[0], SortDirection.ASC );
         }
         return null;
     }
