@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,51 +27,44 @@
  */
 package org.hisp.dhis.user.sharing;
 
+import java.io.Serializable;
+
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Simple class for storing sharing data.
+ * <p>
+ * Currently extended by {@link UserAccess} and {@link UserGroupAccess} object,
+ * and is used in {@link SharingObjectSerializer}
  */
+@Data
 @NoArgsConstructor
-@JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
-public class UserAccess
-    extends AccessObject
+public class AccessObject
+    implements Serializable
 {
-    public UserAccess( String access, String id )
-    {
-        super( access, id );
-    }
+    /**
+     * Access String of current AccessObject.
+     */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    protected String access;
 
-    public UserAccess( User user, String access )
-    {
-        super( access, user.getUid() );
-    }
+    /**
+     * Uid of User or UserGroup which has access to current Object.
+     */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    protected String id;
 
-    public UserAccess( org.hisp.dhis.user.UserAccess userAccess )
+    public AccessObject( String access, String id )
     {
-        super( userAccess.getAccess(), userAccess.getUid() );
-    }
-
-    public void setUser( User user )
-    {
-        this.id = user.getUid();
-    }
-
-    public org.hisp.dhis.user.UserAccess toDtoObject()
-    {
-        org.hisp.dhis.user.UserAccess userAccess = new org.hisp.dhis.user.UserAccess();
-        userAccess.setUid( this.id );
-        userAccess.setAccess( this.access );
-        User user = new User();
-        user.setUid( this.id );
-        userAccess.setUser( user );
-        userAccess.setUid( this.id );
-
-        return userAccess;
+        this.access = access;
+        this.id = id;
     }
 }

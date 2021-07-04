@@ -31,6 +31,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -38,12 +41,17 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.node.NodeSerializer;
+import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.types.RootNode;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 
 @Slf4j
 public class DataElementWithValueTypeOptionsTest extends DhisSpringTest
@@ -54,6 +62,13 @@ public class DataElementWithValueTypeOptionsTest extends DhisSpringTest
     @Autowired
     @Qualifier( value = "xmlMapper" )
     public ObjectMapper xmlMapper;
+
+    @Autowired
+    private FieldFilterService fieldFilterService;
+
+    @Autowired
+    @Qualifier( "stAXNodeSerializer" )
+    private NodeSerializer nodeSerializer;
 
     @Test
     public void testSaveGetAndDeleteDataElementWithFileValueTypeOption()
@@ -111,18 +126,24 @@ public class DataElementWithValueTypeOptionsTest extends DhisSpringTest
 
     @Test
     public void testDeserialize()
-        throws JsonProcessingException
+        throws Exception
     {
         DataElement dataElementA = createDataElementWithFileValueTypeOptions( 'A', 100L );
-        String xml = xmlMapper.writeValueAsString( dataElementA );
-        assertNotNull( xml );
-
         dataElementStore.save( dataElementA );
         long idA = dataElementA.getId();
         DataElement fetchedObject = dataElementStore.get( idA );
 
-        String xmlB = xmlMapper.writeValueAsString( fetchedObject );
-        assertNotNull( xmlB );
-        log.info( xmlB );
+        RootNode rootNode = NodeUtils.createMetadata();
+        rootNode.addChild( fieldFilterService.toComplexNode(
+            new FieldFilterParams( Lists.newArrayList( fetchedObject ), Lists.newArrayList( ":all" ) ) ) );
+
+        OutputStream outputStream = new ByteArrayOutputStream();
+
+        nodeSerializer.serialize( rootNode, outputStream );
+        String metaDataXml = outputStream.toString();
+        assertEquals( "1", xpathTest( "count(//d:valueTypeOptions)", metaDataXml ) );
+        assertEquals( String.valueOf( ((FileTypeValueOptions) dataElementA.getValueTypeOptions()).getMaxFileSize() ),
+            xpathTest( "//d:valueTypeOptions/d:org.hisp.dhis.common.FileTypeValueOptions/d:maxFileSize",
+                metaDataXml ) );
     }
 }

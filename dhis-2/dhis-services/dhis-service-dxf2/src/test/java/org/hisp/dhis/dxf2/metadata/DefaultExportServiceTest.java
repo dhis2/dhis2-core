@@ -29,7 +29,11 @@ package org.hisp.dhis.dxf2.metadata;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,10 +42,17 @@ import javax.xml.xpath.XPathExpressionException;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.node.NodeSerializer;
+import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -49,11 +60,18 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 
 /**
  * @author bobj
@@ -82,6 +100,16 @@ public class DefaultExportServiceTest
     @Autowired
     @Qualifier( "xmlMapper" )
     private ObjectMapper xmlMapper;
+
+    @Autowired
+    private FieldFilterService fieldFilterService;
+
+    @Autowired
+    @Qualifier( "stAXNodeSerializer" )
+    private NodeSerializer nodeSerializer;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     private DataElement deA;
 
@@ -160,5 +188,46 @@ public class DefaultExportServiceTest
         assertEquals( "2", xpathTest( "count(//d:organisationUnit)", metaDataXml ) );
         assertEquals( "3", xpathTest( "count(//d:dataElement)", metaDataXml ) );
         assertEquals( "DE_A", xpathTest( "//d:dataElement[@name='DataElementA']/@code", metaDataXml ) );
+    }
+
+    @Test
+    public void exportSharingXMLTest()
+        throws Exception
+    {
+        UserGroup userGroup = createUserGroup( 'A', Collections.EMPTY_SET );
+        manager.save( userGroup );
+        User user = createUser( 'A' );
+        manager.save( user );
+
+        DataSet dataSet = createDataSet( 'A' );
+
+        Map<String, UserAccess> users = new HashMap<>();
+        users.put( user.getUid(), new UserAccess( user, AccessStringHelper.DATA_READ_WRITE ) );
+
+        Map<String, UserGroupAccess> userGroups = new HashMap<>();
+        userGroups.put( userGroup.getUid(), new UserGroupAccess( userGroup, AccessStringHelper.DATA_READ ) );
+
+        dataSet.setSharing( Sharing.builder().owner( "ownerUid" )
+            .userGroups( userGroups )
+            .users( users )
+            .external( false )
+            .publicAccess( AccessStringHelper.DEFAULT )
+            .build() );
+
+        RootNode rootNode = NodeUtils.createMetadata();
+        rootNode.addChild( fieldFilterService.toCollectionNode( DataSet.class,
+            new FieldFilterParams( Lists.newArrayList( dataSet ), Lists.newArrayList( ":all" ), Defaults.EXCLUDE ) ) );
+
+        OutputStream outputStream = new ByteArrayOutputStream();
+        nodeSerializer.serialize( rootNode, outputStream );
+        String metaDataXml = outputStream.toString();
+
+        assertEquals( "1", xpathTest( "count(//d:sharing)", metaDataXml ) );
+        assertEquals( "1", xpathTest( "count(//d:userGroups)", metaDataXml ) );
+        assertEquals( "1", xpathTest( "count(//d:users)", metaDataXml ) );
+        assertEquals( AccessStringHelper.DATA_READ_WRITE,
+            xpathTest( "//d:" + user.getUid() + "/d:access", metaDataXml ) );
+        assertEquals( AccessStringHelper.DATA_READ,
+            xpathTest( "//d:" + userGroup.getUid() + "/d:access", metaDataXml ) );
     }
 }

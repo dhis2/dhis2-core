@@ -38,9 +38,7 @@ import java.util.function.UnaryOperator;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import org.apache.commons.collections.MapUtils;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -48,10 +46,11 @@ import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @Builder
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "sharing", namespace = DxfNamespaces.DXF_2_0 )
@@ -63,57 +62,95 @@ public class Sharing
     /**
      * Uid of the User who owns the object
      */
-    @JsonProperty
     private String owner;
 
-    @JsonProperty( "public" )
     private String publicAccess;
 
-    @JsonProperty
     private boolean external;
 
     /**
      * Map of UserAccess. Key is User uid
      */
-    @Setter
-    @JsonProperty
     private Map<String, UserAccess> users = new HashMap<>();
-
-    public Map<String, UserAccess> getUsers()
-    {
-        if ( users == null )
-        {
-            users = new HashMap<>();
-        }
-
-        return users;
-    }
 
     /**
      * Map of UserGroupAccess. Key is UserGroup uid
      */
-    @Setter
-    @JsonProperty
     private Map<String, UserGroupAccess> userGroups = new HashMap<>();
 
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOwner()
+    {
+        return owner;
+    }
+
+    @JsonProperty( "public" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getPublicAccess()
+    {
+        return publicAccess;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isExternal()
+    {
+        return external;
+    }
+
+    @JsonProperty( "users" )
+    @JsonSerialize( using = SharingObjectSerializer.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Map<String, UserAccess> getUsers()
+    {
+        return users;
+    }
+
+    @JsonProperty( "userGroups" )
+    @JsonSerialize( using = SharingObjectSerializer.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Map<String, UserGroupAccess> getUserGroups()
     {
-        if ( userGroups == null )
-        {
-            userGroups = new HashMap<>();
-        }
-
         return userGroups;
     }
 
-    public void setOwner( User user )
+    public void setPublicAccess( String publicAccess )
     {
-        this.owner = user != null ? user.getUid() : null;
+        this.publicAccess = publicAccess;
+    }
+
+    public void setExternal( boolean external )
+    {
+        this.external = external;
+    }
+
+    public void setUsers( Map<String, UserAccess> users )
+    {
+        this.users = users;
+    }
+
+    public void setUserGroups( Map<String, UserGroupAccess> userGroups )
+    {
+        this.userGroups = userGroups;
     }
 
     public void setOwner( String userId )
     {
         this.owner = userId;
+    }
+
+    // -------------------------------------------------------------------------
+    // Utility methods
+    // -------------------------------------------------------------------------
+
+    public void setOwner( User user )
+    {
+        this.owner = user != null ? user.getUid() : null;
     }
 
     @JsonIgnore
