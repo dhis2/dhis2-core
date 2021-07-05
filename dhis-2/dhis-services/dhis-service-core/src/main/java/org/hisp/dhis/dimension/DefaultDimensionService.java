@@ -458,7 +458,7 @@ public class DefaultDimensionService
                 atomicIds.putValue( DataElement.class, id.getId0() );
                 if ( id.getId1() != null && id.getId1Type() != null )
                 {
-                    atomicIds.putValue( id.getId1Type(), id.getId1().replace( "co:", "" ) );
+                    atomicIds.putValue( id.getId1Type(), id.getId1Uid() );
                 }
                 if ( id.getId2() != null )
                 {

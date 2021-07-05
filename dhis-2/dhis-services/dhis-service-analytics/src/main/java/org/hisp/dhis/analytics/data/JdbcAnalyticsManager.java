@@ -159,11 +159,13 @@ public class JdbcAnalyticsManager
                 .filter( o -> o.getClass() == CategoryOption.class || o.getClass() == CategoryOptionCombo.class )
                 .collect( Collectors.toList() );
 
+            HashMap<String, List<String>> categoryOptionUidMap = getCategoryOptionUidMap( itemObjects );
+
             String sql = getSelectClause( params );
 
             sql += getFromClause( params );
 
-            sql += replaceCategoryOptionsWithCategoryOptionCombos( getWhereClause( params, tableType ), itemObjects );
+            sql += getWhereClause( params, tableType, categoryOptionUidMap );
 
             sql += getGroupByClause( params );
 
@@ -299,8 +301,7 @@ public class JdbcAnalyticsManager
         }
     }
 
-    private static String replaceCategoryOptionsWithCategoryOptionCombos( String whereClause,
-        List<DimensionalItemObject> itemObjects )
+    private static HashMap<String, List<String>> getCategoryOptionUidMap( List<DimensionalItemObject> itemObjects )
     {
         HashMap<String, List<String>> categoryOptionUidMap = new HashMap<>();
         itemObjects.forEach( io -> {
@@ -318,18 +319,31 @@ public class JdbcAnalyticsManager
                 categoryOptionUidMap.put( coc.getUid(), coc_uidList );
             }
         } );
+
+        return categoryOptionUidMap;
+    }
+
+    private static List<String> replaceCategoryOptionsWithCategoryOptionCombos( List<String> uidList,
+        HashMap<String, List<String>> categoryOptionUidMap )
+    {
         if ( categoryOptionUidMap.isEmpty() )
         {
-            return whereClause;
+            return uidList;
         }
+
+        List<String> categoryOptionComboUidList = new ArrayList<>();
+
         for ( Map.Entry<String, List<String>> entry : categoryOptionUidMap.entrySet() )
         {
             String k = entry.getKey();
-            List<String> v = entry.getValue();
-            whereClause = whereClause.replace( k, String.join( "','", v ) );
+            if ( uidList.contains( k ) )
+            {
+                List<String> v = entry.getValue();
+                categoryOptionComboUidList.add( String.join( "','", v ) );
+            }
         }
 
-        return whereClause;
+        return categoryOptionComboUidList.isEmpty() ? uidList : categoryOptionComboUidList;
     }
 
     @Override
@@ -532,7 +546,8 @@ public class JdbcAnalyticsManager
     /**
      * Generates the where clause of the query SQL.
      */
-    private String getWhereClause( DataQueryParams params, AnalyticsTableType tableType )
+    private String getWhereClause( DataQueryParams params, AnalyticsTableType tableType,
+        HashMap<String, List<String>> categoryOptionUidMap )
     {
         SqlHelper sqlHelper = new SqlHelper();
 
@@ -549,7 +564,10 @@ public class JdbcAnalyticsManager
                 String col = quoteAlias( dim.getDimensionName() );
 
                 sql += sqlHelper.whereAnd() + " " + col + " in ("
-                    + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+                    + getQuotedCommaDelimitedString(
+                        replaceCategoryOptionsWithCategoryOptionCombos( getUids( dim.getItems() ),
+                            categoryOptionUidMap ) )
+                    + ") ";
             }
         }
 

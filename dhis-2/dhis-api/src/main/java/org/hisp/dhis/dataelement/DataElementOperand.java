@@ -63,6 +63,8 @@ public class DataElementOperand
 {
     public static final String SEPARATOR = COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
+    public static final String CATEGORY_OPTION_PREFIX = "co:";
+
     private static final String SPACE = " ";
 
     // -------------------------------------------------------------------------

@@ -35,6 +35,7 @@ import java.util.Objects;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementOperand;
 
 import com.google.common.base.MoreObjects;
 
@@ -46,7 +47,6 @@ import com.google.common.base.MoreObjects;
  */
 public class DimensionalItemId
 {
-    private static final String CATEGORY_OPTION_PREFIX = "co:";
     // -------------------------------------------------------------------------
     // Properties
     // -------------------------------------------------------------------------
@@ -236,11 +236,12 @@ public class DimensionalItemId
     public Class<? extends IdentifiableObject> getId1Type()
     {
         return id1 == null ? null
-            : id1.contains( CATEGORY_OPTION_PREFIX ) ? CategoryOption.class : CategoryOptionCombo.class;
+            : id1.contains( DataElementOperand.CATEGORY_OPTION_PREFIX ) ? CategoryOption.class
+                : CategoryOptionCombo.class;
     }
 
     public String getId1Uid()
     {
-        return id1 == null ? null : id1.replace( CATEGORY_OPTION_PREFIX, "" );
+        return id1 == null ? null : id1.replace( DataElementOperand.CATEGORY_OPTION_PREFIX, "" );
     }
 }
