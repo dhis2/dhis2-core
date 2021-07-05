@@ -456,7 +456,7 @@ public class DefaultDimensionService
 
             case DATA_ELEMENT_OPERAND:
                 atomicIds.putValue( DataElement.class, id.getId0() );
-                if ( id.getId1() != null )
+                if ( id.getId1() != null && id.getId1Type() != null )
                 {
                     atomicIds.putValue( id.getId1Type(), id.getId1().replace( "co:", "" ) );
                 }
@@ -581,6 +581,7 @@ public class DefaultDimensionService
                 dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
 
                 CategoryOptionCombo categoryOptionCombo;
+
                 if ( id.getId1() == null )
                 {
                     categoryOptionCombo = null;

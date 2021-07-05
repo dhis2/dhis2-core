@@ -33,7 +33,14 @@ import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -538,11 +545,11 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Gets a set of unique category option combinations based on the given
-     * collection of operands.
+     * Gets a set of unique category options based on the given collection of
+     * operands.
      *
      * @param operands the collection of operands.
-     * @return a set of category option combinations.
+     * @return a set of category options.
      */
     public static Set<DimensionalItemObject> getCategoryOptions( Collection<DataElementOperand> operands )
     {

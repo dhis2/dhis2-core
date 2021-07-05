@@ -234,6 +234,6 @@ public class DimensionalItemId
 
     public Class<? extends IdentifiableObject> getId1Type()
     {
-        return id1 != null && id1.contains( "co:" ) ? CategoryOption.class : CategoryOptionCombo.class;
+        return id1 == null ? null : id1.contains( "co:" ) ? CategoryOption.class : CategoryOptionCombo.class;
     }
 }
