@@ -309,8 +309,13 @@ public class DataHandler
 
     private Indicator removeCategoryOptionPrefix( Indicator indicator )
     {
-        indicator.setNumerator( indicator.getNumerator().replace( "co:", "" ) );
-        indicator.setDenominator( indicator.getDenominator().replace( "co:", "" ) );
+
+        String toBeReplaced = DataElementOperand.SEPARATOR + DataElementOperand.CATEGORY_OPTION_PREFIX;
+
+        indicator.setNumerator( indicator.getNumerator().replace( toBeReplaced, DataElementOperand.SEPARATOR ) );
+
+        indicator.setDenominator( indicator.getDenominator().replace( toBeReplaced, DataElementOperand.SEPARATOR ) );
+
         return indicator;
     }
 

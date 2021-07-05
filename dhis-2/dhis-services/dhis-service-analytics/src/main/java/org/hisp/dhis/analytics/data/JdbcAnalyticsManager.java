@@ -304,20 +304,28 @@ public class JdbcAnalyticsManager
     private static HashMap<String, List<String>> getCategoryOptionUidMap( List<DimensionalItemObject> itemObjects )
     {
         HashMap<String, List<String>> categoryOptionUidMap = new HashMap<>();
+
         itemObjects.forEach( io -> {
+
             if ( io instanceof CategoryOption )
             {
                 CategoryOption co = (CategoryOption) io;
+
                 List<String> coc_uidList = co.getCategoryOptionCombos().stream()
                     .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() );
+
                 categoryOptionUidMap.put( co.getUid(), coc_uidList );
             }
+
             if ( io instanceof CategoryOptionCombo )
             {
                 CategoryOptionCombo coc = (CategoryOptionCombo) io;
+
                 List<String> coc_uidList = Collections.singletonList( coc.getUid() );
+
                 categoryOptionUidMap.put( coc.getUid(), coc_uidList );
             }
+
         } );
 
         return categoryOptionUidMap;
@@ -336,9 +344,11 @@ public class JdbcAnalyticsManager
         for ( Map.Entry<String, List<String>> entry : categoryOptionUidMap.entrySet() )
         {
             String k = entry.getKey();
+
             if ( uidList.contains( k ) )
             {
                 List<String> v = entry.getValue();
+
                 categoryOptionComboUidList.add( String.join( "','", v ) );
             }
         }
