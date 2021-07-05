@@ -80,6 +80,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     {
         validateQuery( query );
         List<T> list = runQuery( query );
+
         list = runSorter( query, list );
 
         return query.isSkipPaging() ? list

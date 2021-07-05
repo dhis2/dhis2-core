@@ -196,7 +196,6 @@ public class DefaultQueryService
             }
 
             npQuery.setObjects( objects );
-
             objects = inMemoryQueryEngine.query( npQuery );
         }
 
