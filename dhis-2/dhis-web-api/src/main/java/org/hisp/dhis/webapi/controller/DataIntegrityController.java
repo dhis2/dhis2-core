@@ -77,7 +77,7 @@ public class DataIntegrityController
         jobConfiguration.setUserUid( currentUserService.getCurrentUser().getUid() );
         jobConfiguration.setAutoFields();
 
-        schedulingManager.executeJob( jobConfiguration );
+        schedulingManager.executeNow( jobConfiguration );
 
         webMessageService.send( jobConfigurationReport( jobConfiguration ), response, request );
     }

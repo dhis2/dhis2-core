@@ -53,6 +53,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
@@ -75,7 +76,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -125,7 +125,7 @@ public class CompleteDataSetRegistrationController
     private RenderService renderService;
 
     @Autowired
-    private SchedulingManager schedulingManager;
+    private AsyncTaskExecutor taskExecutor;
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -326,7 +326,7 @@ public class CompleteDataSetRegistrationController
         JobConfiguration jobId = new JobConfiguration( "inMemoryCompleteDataSetRegistrationImport",
             COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
-        schedulingManager.executeJob(
+        taskExecutor.executeTask(
             new ImportCompleteDataSetRegistrationsTask(
                 registrationExchangeService, sessionFactory, tmpFile.getLeft(), tmpFile.getRight(), importOptions,
                 format,

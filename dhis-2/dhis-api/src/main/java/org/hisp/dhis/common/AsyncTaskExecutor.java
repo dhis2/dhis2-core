@@ -25,22 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.common;
+
+import java.util.concurrent.Future;
 
 /**
- * This interface is an abstraction for the actual execution of jobs based on a
- * job configuration.
+ * A general service to run asynchronous tasks.
  *
- * @author Henning Håkonsen
+ * @author Jan Bernitt
  */
-public interface JobInstance
+public interface AsyncTaskExecutor
 {
     /**
-     * This method will try to execute the actual job. It will verify a set of
-     * parameters, such as no other jobs of the same JobType is running. If the
-     * JobConfiguration is disabled it will not run.
+     * Executes a task asynchronously
      *
-     * @param jobConfiguration the configuration of the job.
+     * @param task The task to be executed
      */
-    void execute( JobConfiguration jobConfiguration );
+    void executeTask( Runnable task );
+
+    Future<?> executeTaskWithCancelation( Runnable task );
 }

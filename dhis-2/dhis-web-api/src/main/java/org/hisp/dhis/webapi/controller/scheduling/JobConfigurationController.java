@@ -99,7 +99,7 @@ public class JobConfigurationController
 
         ObjectReport objectReport = new ObjectReport( JobConfiguration.class, 0 );
 
-        boolean success = schedulingManager.executeJob( jobConfiguration );
+        boolean success = schedulingManager.executeNow( jobConfiguration );
 
         if ( !success )
         {
@@ -154,12 +154,12 @@ public class JobConfigurationController
     {
         if ( !jobConfiguration.isEnabled() )
         {
-            schedulingManager.stopJob( jobConfiguration );
+            schedulingManager.stop( jobConfiguration );
         }
         jobConfigurationService.refreshScheduling( jobConfiguration );
         if ( jobConfiguration.getJobStatus() != DISABLED )
         {
-            schedulingManager.scheduleJob( jobConfiguration );
+            schedulingManager.schedule( jobConfiguration );
         }
     }
 

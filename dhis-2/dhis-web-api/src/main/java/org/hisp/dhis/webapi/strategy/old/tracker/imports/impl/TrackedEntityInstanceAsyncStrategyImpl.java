@@ -60,7 +60,7 @@ public class TrackedEntityInstanceAsyncStrategyImpl extends AbstractTrackedEntit
         List<TrackedEntityInstance> trackedEntityInstanceList = getTrackedEntityInstancesListByMediaType(
             trackerEntityInstanceRequest.getMediaType(), trackerEntityInstanceRequest.getInputStream() );
 
-        schedulingManager.executeJob( new ImportTrackedEntitiesTask( trackedEntityInstanceList,
+        taskExecutor.executeTask( new ImportTrackedEntitiesTask( trackedEntityInstanceList,
             trackedEntityInstanceService, trackerEntityInstanceRequest.getImportOptions(),
             trackerEntityInstanceRequest.getJobConfiguration() ) );
 

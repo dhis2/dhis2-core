@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 
 import java.util.ArrayList;
@@ -37,6 +36,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -48,6 +48,7 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
@@ -57,6 +58,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
+@AllArgsConstructor
 public class JobConfigurationObjectBundleHook
     extends AbstractObjectBundleHook
 {
@@ -64,15 +66,7 @@ public class JobConfigurationObjectBundleHook
 
     private final SchedulingManager schedulingManager;
 
-    public JobConfigurationObjectBundleHook( JobConfigurationService jobConfigurationService,
-        SchedulingManager schedulingManager )
-    {
-        checkNotNull( jobConfigurationService );
-        checkNotNull( schedulingManager );
-
-        this.jobConfigurationService = jobConfigurationService;
-        this.schedulingManager = schedulingManager;
-    }
+    private final JobService jobService;
 
     @Override
     public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
@@ -139,7 +133,7 @@ public class JobConfigurationObjectBundleHook
 
         setDefaultJobParameters( newObject );
 
-        schedulingManager.stopJob( (JobConfiguration) persistedObject );
+        schedulingManager.stop( (JobConfiguration) persistedObject );
     }
 
     @Override
@@ -150,7 +144,7 @@ public class JobConfigurationObjectBundleHook
             return;
         }
 
-        schedulingManager.stopJob( (JobConfiguration) persistedObject );
+        schedulingManager.stop( (JobConfiguration) persistedObject );
         sessionFactory.getCurrentSession().delete( persistedObject );
     }
 
@@ -166,7 +160,7 @@ public class JobConfigurationObjectBundleHook
 
         if ( jobConfiguration.getJobStatus() != DISABLED )
         {
-            schedulingManager.scheduleJob( jobConfiguration );
+            schedulingManager.schedule( jobConfiguration );
         }
     }
 
@@ -182,7 +176,7 @@ public class JobConfigurationObjectBundleHook
 
         if ( jobConfiguration.getJobStatus() != DISABLED )
         {
-            schedulingManager.scheduleJob( jobConfiguration );
+            schedulingManager.schedule( jobConfiguration );
         }
     }
 
@@ -294,7 +288,7 @@ public class JobConfigurationObjectBundleHook
     private void validateJob( Consumer<ErrorReport> addReports, JobConfiguration jobConfiguration,
         JobConfiguration persistedJobConfiguration )
     {
-        Job job = schedulingManager.getJob( jobConfiguration.getJobType() );
+        Job job = jobService.getJob( jobConfiguration.getJobType() );
         ErrorReport jobValidation = job.validate();
 
         if ( jobValidation != null && (jobValidation.getErrorCode() != ErrorCode.E7010

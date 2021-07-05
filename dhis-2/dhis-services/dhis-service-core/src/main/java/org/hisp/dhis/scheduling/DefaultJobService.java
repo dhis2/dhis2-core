@@ -25,45 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.old.tracker.imports.impl;
+package org.hisp.dhis.scheduling;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
+import java.util.EnumMap;
+import java.util.Map;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceStrategyHandler;
-import org.springframework.http.MediaType;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
-public abstract class AbstractTrackedEntityInstanceStrategy implements TrackedEntityInstanceStrategyHandler
+/**
+ * @author Jan Bernitt
+ */
+@Service
+@AllArgsConstructor
+public class DefaultJobService implements JobService
 {
-    protected final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final ApplicationContext applicationContext;
 
-    final AsyncTaskExecutor taskExecutor;
+    private final Map<JobType, Job> jobsByType = new EnumMap<>( JobType.class );
 
-    protected List<TrackedEntityInstance> getTrackedEntityInstancesListByMediaType( String mediaType,
-        InputStream inputStream )
-        throws IOException,
-        BadRequestException
+    @Override
+    public Job getJob( JobType type )
     {
-        if ( MediaType.valueOf( mediaType ).equals( MediaType.APPLICATION_JSON ) )
-        {
-            return trackedEntityInstanceService.getTrackedEntityInstancesJson( inputStream );
-        }
-        else if ( mediaType
-            .equals( MediaType.APPLICATION_XML_VALUE ) )
-        {
-            return trackedEntityInstanceService.getTrackedEntityInstancesXml( inputStream );
-        }
-        else
-        {
-            throw new BadRequestException( "Value " + mediaType + " not allowed as Media Type " );
-        }
+        return jobsByType.computeIfAbsent( type,
+            key -> applicationContext.getBeansOfType( Job.class ).values().stream()
+                .filter( job -> job.getJobType() == type ).findFirst().orElse( null ) );
     }
 }
