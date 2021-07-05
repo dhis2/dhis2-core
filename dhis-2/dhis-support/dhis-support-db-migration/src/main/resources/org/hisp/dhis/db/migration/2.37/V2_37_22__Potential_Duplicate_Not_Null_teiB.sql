@@ -1,0 +1,1 @@
+ALTER TABLE potentialduplicate ALTER COLUMN teiB SET NOT NULL;
