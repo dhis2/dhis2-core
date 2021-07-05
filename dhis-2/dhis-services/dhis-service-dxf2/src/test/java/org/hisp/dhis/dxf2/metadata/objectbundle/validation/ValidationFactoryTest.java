@@ -104,7 +104,7 @@ public class ValidationFactoryTest
         assertThat( typeReport.getStats().getUpdated(), is( 0 ) );
         assertThat( typeReport.getStats().getDeleted(), is( 0 ) );
         assertThat( typeReport.getStats().getIgnored(), is( 1 ) );
-        assertThat( typeReport.getObjectReports(), hasSize( 1 ) );
+        assertThat( typeReport.getObjectReportsCount(), is( 1 ) );
     }
 
     private ObjectBundle createObjectBundle()

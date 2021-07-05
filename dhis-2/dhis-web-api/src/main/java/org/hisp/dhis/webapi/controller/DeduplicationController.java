@@ -31,12 +31,16 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.*;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.deduplication.DeduplicationService;
+import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -59,9 +63,9 @@ import com.google.common.collect.Lists;
 @RestController
 @RequestMapping( value = "/potentialDuplicates" )
 @ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
+@RequiredArgsConstructor
 public class DeduplicationController
 {
-
     private final DeduplicationService deduplicationService;
 
     private final TrackedEntityInstanceService trackedEntityInstanceService;
@@ -73,20 +77,6 @@ public class DeduplicationController
     private final FieldFilterService fieldFilterService;
 
     private final ContextService contextService;
-
-    public DeduplicationController( DeduplicationService deduplicationService,
-        TrackedEntityInstanceService trackedEntityInstanceService,
-        TrackerAccessManager trackerAccessManager, CurrentUserService currentUserService,
-        FieldFilterService fieldFilterService,
-        ContextService contextService )
-    {
-        this.deduplicationService = deduplicationService;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.trackerAccessManager = trackerAccessManager;
-        this.currentUserService = currentUserService;
-        this.fieldFilterService = fieldFilterService;
-        this.contextService = contextService;
-    }
 
     @GetMapping
     public Node getAll(
@@ -100,7 +90,7 @@ public class DeduplicationController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        List<PotentialDuplicate> potentialDuplicates = deduplicationService.getAllPotentialDuplicates( query );
+        List<PotentialDuplicate> potentialDuplicates = deduplicationService.getAllPotentialDuplicatesBy( query );
 
         RootNode rootNode = NodeUtils.createMetadata();
 
@@ -122,14 +112,7 @@ public class DeduplicationController
         @PathVariable String id )
         throws WebMessageException
     {
-        PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid( id );
-
-        if ( potentialDuplicate == null )
-        {
-            throw new WebMessageException( notFound( "No potentialDuplicate records found with id '" + id + "'." ) );
-        }
-
-        return potentialDuplicate;
+        return getPotentialDuplicateBy( id );
     }
 
     @PostMapping
@@ -137,9 +120,7 @@ public class DeduplicationController
         @RequestBody PotentialDuplicate potentialDuplicate )
         throws WebMessageException
     {
-
         validatePotentialDuplicate( potentialDuplicate );
-
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
         return potentialDuplicate;
     }
@@ -149,15 +130,10 @@ public class DeduplicationController
         @PathVariable String id )
         throws WebMessageException
     {
-        PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid( id );
+        PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
 
-        if ( potentialDuplicate == null )
-        {
-            throw new WebMessageException(
-                notFound( "No potentialDuplicate records found with id '" + id + "'." ) );
-        }
-
-        deduplicationService.markPotentialDuplicateInvalid( potentialDuplicate );
+        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
+        deduplicationService.updatePotentialDuplicate( potentialDuplicate );
     }
 
     @DeleteMapping( value = "/{id}" )
@@ -165,72 +141,32 @@ public class DeduplicationController
         @PathVariable String id )
         throws WebMessageException
     {
-        PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid( id );
-
-        if ( potentialDuplicate == null )
-        {
-            throw new WebMessageException(
-                notFound( "No potentialDuplicate records found with id '" + id + "'." ) );
-        }
-
+        PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
         deduplicationService.deletePotentialDuplicate( potentialDuplicate );
+    }
 
+    private PotentialDuplicate getPotentialDuplicateBy( String id )
+        throws WebMessageException
+    {
+        return Optional.ofNullable( deduplicationService.getPotentialDuplicateByUid( id ) ).orElseThrow(
+            () -> new WebMessageException( notFound( "No potentialDuplicate records found with id '" + id + "'." ) ) );
     }
 
     private void validatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
         throws WebMessageException
     {
-
         // Validate that teiA is present and a valid uid of an existing TEI
         if ( potentialDuplicate.getTeiA() == null )
         {
             throw new WebMessageException( conflict( "Missing required property 'teiA'" ) );
         }
 
-        if ( !CodeGenerator.isValidUid( potentialDuplicate.getTeiA() ) )
-        {
-            throw new WebMessageException(
-                conflict( "'" + potentialDuplicate.getTeiA() + "' is not valid value for property 'teiA'" ) );
-        }
-
-        TrackedEntityInstance teiA = trackedEntityInstanceService
-            .getTrackedEntityInstance( potentialDuplicate.getTeiA() );
-
-        if ( teiA == null )
-        {
-            throw new WebMessageException(
-                conflict( "No tracked entity instance found with id '" + potentialDuplicate.getTeiA() + "'." ) );
-        }
-
-        if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), teiA ).isEmpty() )
-        {
-            throw new WebMessageException(
-                forbidden( "You don't have read access to '" + potentialDuplicate.getTeiA() + "'." ) );
-        }
+        checkValidAndCanReadTei( potentialDuplicate.getTeiA() );
 
         // Validate that teiB is a valid uid of an existing TEI if present
         if ( potentialDuplicate.getTeiB() != null )
         {
-            if ( !CodeGenerator.isValidUid( potentialDuplicate.getTeiB() ) )
-            {
-                throw new WebMessageException(
-                    conflict( "'" + potentialDuplicate.getTeiB() + "' is not valid value for property 'teiB'" ) );
-            }
-
-            TrackedEntityInstance teiB = trackedEntityInstanceService
-                .getTrackedEntityInstance( potentialDuplicate.getTeiB() );
-
-            if ( teiB == null )
-            {
-                throw new WebMessageException(
-                    notFound( "No tracked entity instance found with id '" + potentialDuplicate.getTeiB() + "'." ) );
-            }
-
-            if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), teiB ).isEmpty() )
-            {
-                throw new WebMessageException(
-                    forbidden( "You don't have read access to '" + potentialDuplicate.getTeiB() + "'." ) );
-            }
+            checkValidAndCanReadTei( potentialDuplicate.getTeiB() );
         }
 
         if ( deduplicationService.exists( potentialDuplicate ) )
@@ -241,6 +177,31 @@ public class DeduplicationController
                         (potentialDuplicate.getTeiB() != null ? "and '" + potentialDuplicate.getTeiB() + "' " : "") +
                         "is already marked as a potential duplicate" ) );
             }
+        }
+    }
+
+    private void checkValidAndCanReadTei( String tei )
+        throws WebMessageException
+    {
+        if ( !CodeGenerator.isValidUid( tei ) )
+        {
+            throw new WebMessageException(
+                conflict( "'" + tei + "' is not valid value for property 'teiA'" ) );
+        }
+
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
+            .getTrackedEntityInstance( tei );
+
+        if ( trackedEntityInstance == null )
+        {
+            throw new WebMessageException(
+                notFound( "No tracked entity instance found with id '" + tei + "'." ) );
+        }
+
+        if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), trackedEntityInstance ).isEmpty() )
+        {
+            throw new WebMessageException(
+                forbidden( "You don't have read access to '" + tei + "'." ) );
         }
     }
 }

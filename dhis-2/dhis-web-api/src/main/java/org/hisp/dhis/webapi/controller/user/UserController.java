@@ -57,7 +57,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -832,19 +831,9 @@ public class UserController
         return objectReport;
     }
 
-    private ObjectReport getObjectReport( ImportReport importReport )
+    private static ObjectReport getObjectReport( ImportReport importReport )
     {
-        if ( !importReport.getTypeReports().isEmpty() )
-        {
-            TypeReport typeReport = importReport.getTypeReports().get( 0 );
-
-            if ( !typeReport.getObjectReports().isEmpty() )
-            {
-                return typeReport.getObjectReports().get( 0 );
-            }
-        }
-
-        return null;
+        return importReport.getFirstObjectReport();
     }
 
     /**

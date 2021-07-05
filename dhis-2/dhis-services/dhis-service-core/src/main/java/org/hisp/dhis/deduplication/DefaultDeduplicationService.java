@@ -46,10 +46,9 @@ public class DefaultDeduplicationService
 
     @Override
     @Transactional
-    public long addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
+    public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
         potentialDuplicateStore.save( potentialDuplicate );
-        return potentialDuplicate.getId();
     }
 
     @Override
@@ -75,9 +74,8 @@ public class DefaultDeduplicationService
 
     @Override
     @Transactional
-    public void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate )
+    public void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
-        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
         potentialDuplicateStore.update( potentialDuplicate );
     }
 
@@ -98,7 +96,7 @@ public class DefaultDeduplicationService
 
     @Override
     @Transactional( readOnly = true )
-    public List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query )
+    public List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query )
     {
         return potentialDuplicateStore.getAllByQuery( query );
     }

@@ -268,7 +268,7 @@ public final class WebMessageUtils
         WebMessage webMessage = new WebMessage();
         webMessage.setResponse( new TypeReportWebMessageResponse( typeReport ) );
 
-        if ( typeReport.getErrorReports().isEmpty() )
+        if ( !typeReport.hasErrorReports() )
         {
             webMessage.setStatus( Status.OK );
             webMessage.setHttpStatus( HttpStatus.OK );
@@ -285,19 +285,10 @@ public final class WebMessageUtils
 
     public static WebMessage objectReport( ImportReport importReport )
     {
-        WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.OK );
-
-        if ( !importReport.getTypeReports().isEmpty() )
-        {
-            TypeReport typeReport = importReport.getTypeReports().get( 0 );
-
-            if ( !typeReport.getObjectReports().isEmpty() )
-            {
-                return objectReport( typeReport.getObjectReports().get( 0 ) );
-            }
-        }
-
-        return webMessage;
+        ObjectReport firstObjectReport = importReport.getFirstObjectReport();
+        return firstObjectReport == null
+            ? new WebMessage( Status.OK, HttpStatus.OK )
+            : objectReport( firstObjectReport );
     }
 
     public static WebMessage objectReport( ObjectReport objectReport )

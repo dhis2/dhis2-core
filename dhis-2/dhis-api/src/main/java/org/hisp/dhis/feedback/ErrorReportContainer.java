@@ -25,63 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.feedback;
 
-import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
-import lombok.Data;
-
-import org.apache.commons.lang.BooleanUtils;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
-
-import com.google.common.base.MoreObjects;
-
-@Data
-public class PotentialDuplicateQuery
+/**
+ * An ADT interface for a collection of {@link ErrorReport}s.
+ *
+ * @author Jan Bernitt
+ */
+public interface ErrorReportContainer
 {
-    public static final PotentialDuplicateQuery EMPTY = new PotentialDuplicateQuery();
+    int getErrorReportsCount();
 
-    private Boolean skipPaging;
+    int getErrorReportsCount( ErrorCode errorCode );
 
-    private Boolean paging;
+    boolean hasErrorReports();
 
-    private int page = 1;
+    boolean hasErrorReport( Predicate<ErrorReport> test );
 
-    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-
-    private int total;
-
-    private List<String> teis;
-
-    private DeduplicationStatus status = DeduplicationStatus.OPEN;
-
-    public PotentialDuplicateQuery()
-    {
-    }
-
-    public boolean isSkipPaging()
-    {
-        return PagerUtils.isSkipPaging( skipPaging, paging );
-    }
-
-    public boolean isPaging()
-    {
-        return BooleanUtils.toBoolean( paging );
-    }
-
-    public Pager getPager()
-    {
-        return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "page", page )
-            .add( "pageSize", pageSize )
-            .add( "total", total )
-            .toString();
-    }
+    void forEachErrorReport( Consumer<ErrorReport> reportConsumer );
 }

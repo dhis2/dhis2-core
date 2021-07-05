@@ -86,7 +86,6 @@ public class DefaultCacheProvider
     private enum Region
     {
         analyticsResponse,
-        appCache,
         defaultObjectCache,
         isDataApproved,
         allConstantsCache,
@@ -156,13 +155,6 @@ public class DefaultCacheProvider
             .forRegion( Region.analyticsResponse.name() )
             .expireAfterWrite( initialExpirationTime.toMillis(), MILLISECONDS )
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
-    }
-
-    @Override
-    public <V> Cache<V> createAppCache()
-    {
-        return registerCache( this.<V> newBuilder()
-            .forRegion( Region.appCache.name() ) );
     }
 
     /**

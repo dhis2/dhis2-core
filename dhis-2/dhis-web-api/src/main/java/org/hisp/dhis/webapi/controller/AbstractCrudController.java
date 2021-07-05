@@ -207,7 +207,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             }
         }
 
-        if ( !typeReport.getErrorReports().isEmpty() )
+        if ( typeReport.hasErrorReports() )
         {
             WebMessage webMessage = WebMessageUtils.typeReport( typeReport );
             webMessageService.send( webMessage, response, request );
@@ -454,17 +454,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     private ObjectReport getObjectReport( ImportReport importReport )
     {
-        if ( !importReport.getTypeReports().isEmpty() )
-        {
-            TypeReport typeReport = importReport.getTypeReports().get( 0 );
-
-            if ( !typeReport.getObjectReports().isEmpty() )
-            {
-                return typeReport.getObjectReports().get( 0 );
-            }
-        }
-
-        return null;
+        return importReport.getFirstObjectReport();
     }
 
     @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.POST )
@@ -892,7 +882,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         typeReport.addObjectReport( sharingService.saveSharing( getEntityClass(), entity, sharingObject ) );
 
-        if ( !typeReport.getErrorReports().isEmpty() )
+        if ( typeReport.hasErrorReports() )
         {
             WebMessage webMessage = WebMessageUtils.typeReport( typeReport );
             webMessageService.send( webMessage, response, request );
