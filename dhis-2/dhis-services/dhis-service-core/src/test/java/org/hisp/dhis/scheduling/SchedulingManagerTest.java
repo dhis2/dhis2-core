@@ -170,16 +170,16 @@ public class SchedulingManagerTest
 
     private static JobConfiguration createStartTimeJobConfiguration()
     {
-        JobConfiguration configuration = new JobConfiguration( "CLUSTER_LEADER_RENEWAL", JobType.LEADER_RENEWAL, null,
-            true );
-        return configuration;
+        return new JobConfiguration( "CLUSTER_LEADER_RENEWAL", JobType.LEADER_RENEWAL, null, true );
     }
 
     private void assertScheduledJob( JobConfiguration configuration, Supplier<JobConfiguration> copy, Runnable task )
     {
         assertNotNull( "job was not scheduled", task );
         assertScheduledJobCompletes( configuration, task );
+        assertScheduledJobDoesNotStartWhenAlreadyRunning( configuration, task );
         assertScheduledJobStops( configuration, task );
+        assertScheduledJobStopWhenInterrupted( configuration, task );
         assertScheduledJobFailsGraceful( configuration, task );
         assertScheduledJobStaysDisabled( configuration, copy, task );
     }
@@ -206,12 +206,29 @@ public class SchedulingManagerTest
         assertEquals( JobStatus.RUNNING, configuration.getJobStatus() );
     }
 
+    private void assertScheduledJobDoesNotStartWhenAlreadyRunning( JobConfiguration configuration, Runnable task )
+    {
+        setUpJobExecute( jobConfiguration -> assertFalse( schedulingManager.executeNow( configuration ) ) );
+
+        task.run(); // synchronously
+
+        assertTrue( schedulingManager.executeNow( configuration ) );
+    }
+
     private void assertScheduledJobStops( JobConfiguration configuration, Runnable task )
     {
         // once running the job stops itself
-        setUpJobExecute( jobConfiguration -> {
-            schedulingManager.stop( jobConfiguration );
-        } );
+        setUpJobExecute( jobConfiguration -> schedulingManager.stop( jobConfiguration ) );
+
+        task.run(); // synchronously
+
+        assertEquals( JobStatus.STOPPED, configuration.getLastExecutedStatus() );
+        assertFalse( schedulingManager.isRunning( configuration.getJobType() ) );
+    }
+
+    private void assertScheduledJobStopWhenInterrupted( JobConfiguration configuration, Runnable task )
+    {
+        setUpJobExecute( jobConfiguration -> Thread.currentThread().interrupt() );
 
         task.run(); // synchronously
 

@@ -46,7 +46,9 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.util.Clock;
 
 /**
- * A {@link SchedulingManager} that
+ * Base for synchronous or asynchronous {@link SchedulingManager} implementation
+ * that keeps track of running/executing jobs and makes sure only one per
+ * {@link JobType} can run at the same time.
  *
  * @author Jan Bernitt
  */
