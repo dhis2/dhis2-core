@@ -105,10 +105,12 @@ public class DataElementOperand
         this.attributeOptionCombo = attributeOptionCombo;
     }
 
-    public DataElementOperand( DataElement dataElement, CategoryOption categoryOption,
+    public DataElementOperand( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
+        CategoryOption categoryOption,
         CategoryOptionCombo attributeOptionCombo )
     {
         this.dataElement = dataElement;
+        this.categoryOptionCombo = categoryOptionCombo;
         this.categoryOption = categoryOption;
         this.attributeOptionCombo = attributeOptionCombo;
     }
@@ -395,14 +397,14 @@ public class DataElementOperand
         this.attributeOptionCombo = attributeOptionCombo;
     }
 
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
-
     public CategoryOption getCategoryOption()
     {
         return this.categoryOption;
     }
+
+    // -------------------------------------------------------------------------
+    // hashCode, equals and toString
+    // -------------------------------------------------------------------------
 
     @Override
     public boolean equals( Object o )

@@ -46,6 +46,7 @@ import com.google.common.base.MoreObjects;
  */
 public class DimensionalItemId
 {
+    private static final String CATEGORY_OPTION_PREFIX = "co:";
     // -------------------------------------------------------------------------
     // Properties
     // -------------------------------------------------------------------------
@@ -234,6 +235,12 @@ public class DimensionalItemId
 
     public Class<? extends IdentifiableObject> getId1Type()
     {
-        return id1 == null ? null : id1.contains( "co:" ) ? CategoryOption.class : CategoryOptionCombo.class;
+        return id1 == null ? null
+            : id1.contains( CATEGORY_OPTION_PREFIX ) ? CategoryOption.class : CategoryOptionCombo.class;
+    }
+
+    public String getId1Uid()
+    {
+        return id1 == null ? null : id1.replace( CATEGORY_OPTION_PREFIX, "" );
     }
 }
