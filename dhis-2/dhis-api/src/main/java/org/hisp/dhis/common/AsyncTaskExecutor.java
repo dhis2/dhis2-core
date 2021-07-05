@@ -43,5 +43,12 @@ public interface AsyncTaskExecutor
      */
     void executeTask( Runnable task );
 
+    /**
+     * Executes a task asynchronously returning a {@link Future} that can be
+     * used to cancel the execution.
+     *
+     * @param task The task to be executed
+     * @return a {@link Future} to cancel running execution
+     */
     Future<?> executeTaskWithCancelation( Runnable task );
 }

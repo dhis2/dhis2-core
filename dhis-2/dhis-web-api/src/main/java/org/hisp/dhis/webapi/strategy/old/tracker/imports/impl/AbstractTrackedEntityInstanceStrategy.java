@@ -45,7 +45,7 @@ public abstract class AbstractTrackedEntityInstanceStrategy implements TrackedEn
 {
     protected final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    final AsyncTaskExecutor taskExecutor;
+    protected final AsyncTaskExecutor taskExecutor;
 
     protected List<TrackedEntityInstance> getTrackedEntityInstancesListByMediaType( String mediaType,
         InputStream inputStream )
