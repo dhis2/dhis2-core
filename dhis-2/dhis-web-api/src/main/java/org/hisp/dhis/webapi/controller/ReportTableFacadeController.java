@@ -431,7 +431,7 @@ public abstract class ReportTableFacadeController
             }
         }
 
-        if ( !typeReport.getErrorReports().isEmpty() )
+        if ( typeReport.hasErrorReports() )
         {
             WebMessage webMessage = WebMessageUtils.typeReport( typeReport );
             webMessageService.send( webMessage, response, request );
@@ -1217,17 +1217,7 @@ public abstract class ReportTableFacadeController
 
     private ObjectReport getObjectReport( ImportReport importReport )
     {
-        if ( !importReport.getTypeReports().isEmpty() )
-        {
-            TypeReport typeReport = importReport.getTypeReports().get( 0 );
-
-            if ( !typeReport.getObjectReports().isEmpty() )
-            {
-                return typeReport.getObjectReports().get( 0 );
-            }
-        }
-
-        return null;
+        return importReport.getFirstObjectReport();
     }
 
     protected List<Visualization> getEntity( String uid, WebOptions options )

@@ -49,9 +49,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
@@ -67,7 +65,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Enums;
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -130,18 +127,16 @@ public class DefaultMetadataImportService implements MetadataImportService
         postCreateBundle( bundle, bundleParams );
 
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        importReport.addTypeReports( validationReport.getTypeReportMap() );
+        importReport.addTypeReports( validationReport );
 
-        List<ErrorReport> errorReports = validationReport.getErrorReports();
-
-        if ( errorReports.isEmpty() || AtomicMode.NONE == bundle.getAtomicMode() )
+        if ( !validationReport.hasErrorReports() || AtomicMode.NONE == bundle.getAtomicMode() )
         {
             Timer commitTimer = new SystemTimer().start();
 
             ObjectBundleCommitReport commitReport = objectBundleService.commit( bundle );
-            importReport.addTypeReports( commitReport.getTypeReportMap() );
+            importReport.addTypeReports( commitReport );
 
-            if ( !importReport.getErrorReports().isEmpty() )
+            if ( importReport.hasErrorReports() )
             {
                 importReport.setStatus( Status.WARNING );
             }
@@ -171,26 +166,14 @@ public class DefaultMetadataImportService implements MetadataImportService
             return importReport;
         }
 
-        Lists.newArrayList( importReport.getTypeReportMap().keySet() ).forEach( typeReportKey -> {
-            if ( importReport.getTypeReportMap().get( typeReportKey ).getStats().getTotal() == 0 )
+        importReport.clean();
+        importReport.forEachTypeReport( typeReport -> {
+            ImportReportMode mode = params.getImportReportMode();
+            if ( ImportReportMode.ERRORS == mode )
             {
-                importReport.getTypeReportMap().remove( typeReportKey );
-                return;
+                typeReport.clean();
             }
-
-            TypeReport typeReport = importReport.getTypeReportMap().get( typeReportKey );
-
-            if ( ImportReportMode.ERRORS == params.getImportReportMode() )
-            {
-                Lists.newArrayList( typeReport.getObjectReportMap().keySet() ).forEach( objectReportKey -> {
-                    if ( typeReport.getObjectReportMap().get( objectReportKey ).getErrorReportsByCode().isEmpty() )
-                    {
-                        typeReport.getObjectReportMap().remove( objectReportKey );
-                    }
-                } );
-            }
-
-            if ( ImportReportMode.DEBUG != params.getImportReportMode() )
+            if ( ImportReportMode.DEBUG != mode )
             {
                 typeReport.getObjectReports().forEach( objectReport -> objectReport.setDisplayName( null ) );
             }

@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,7 +42,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.render.RenderFormat;
@@ -102,7 +102,7 @@ public class ObjectBundleServiceUserTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertEquals( 1, validate.getErrorReportsByCode( UserAuthorityGroup.class, ErrorCode.E5003 ).size() );
+        assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5003 ) );
         objectBundleService.commit( bundle );
 
         List<User> users = manager.getAll( User.class );
@@ -131,7 +131,7 @@ public class ObjectBundleServiceUserTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertEquals( 1, validate.getErrorReportsByCode( UserAuthorityGroup.class, ErrorCode.E5003 ).size() );
+        assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5003 ) );
         objectBundleService.commit( bundle );
 
         params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.UPDATE, AtomicMode.NONE,
@@ -139,7 +139,7 @@ public class ObjectBundleServiceUserTest
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
-        assertEquals( 1, validate.getErrorReportsByCode( UserAuthorityGroup.class, ErrorCode.E5001 ).size() );
+        assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5001 ) );
         objectBundleService.commit( bundle );
 
         List<User> users = manager.getAll( User.class );
@@ -165,7 +165,7 @@ public class ObjectBundleServiceUserTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertEquals( 1, validate.getErrorReportsByCode( UserAuthorityGroup.class, ErrorCode.E5003 ).size() );
+        assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5003 ) );
         objectBundleService.commit( bundle );
 
         params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.UPDATE, AtomicMode.NONE,
@@ -173,12 +173,9 @@ public class ObjectBundleServiceUserTest
 
         bundle = objectBundleService.create( params );
         ObjectBundleValidationReport report = objectBundleValidationService.validate( bundle );
-        List<ErrorReport> userErrors = report.getErrorReportsByCode( User.class, ErrorCode.E4003 );
-        assertEquals( 1, userErrors.size() );
-        ErrorReport error = userErrors.get( 0 );
-        assertEquals( "email", error.getErrorProperty() );
-        assertEquals( "Property `email` requires a valid email address, was given `notAnEmail`.",
-            error.getMessage() );
+        assertEquals( 1, report.getErrorReportsCountByCode( User.class, ErrorCode.E4003 ) );
+        assertTrue( report.hasErrorReport( error -> "email".equals( error.getErrorProperty() ) &&
+            "Property `email` requires a valid email address, was given `notAnEmail`.".equals( error.getMessage() ) ) );
     }
 
     @Test
@@ -221,7 +218,7 @@ public class ObjectBundleServiceUserTest
             "dxf2/user_admin.json" );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertEquals( 0, objectBundleValidationService.validate( bundle ).getErrorReports().size() );
+        assertEquals( 0, objectBundleValidationService.validate( bundle ).getErrorReportsCount() );
     }
 
     @Test
@@ -235,7 +232,7 @@ public class ObjectBundleServiceUserTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertEquals( 1, validate.getErrorReportsByCode( User.class, ErrorCode.E4005 ).size() );
+        assertEquals( 1, validate.getErrorReportsCountByCode( User.class, ErrorCode.E4005 ) );
     }
 
     @Test

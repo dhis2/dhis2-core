@@ -58,9 +58,9 @@ public class ObjectBundleReportTest
         validationReport.addTypeReport( typeReport0 );
         validationReport.addTypeReport( typeReport1 );
 
-        assertEquals( 6, validationReport.getErrorReports().size() );
-        assertEquals( 3, validationReport.getErrorReportsByCode( DataElement.class, ErrorCode.E3000 ).size() );
-        assertEquals( 3, validationReport.getErrorReportsByCode( Indicator.class, ErrorCode.E3000 ).size() );
+        assertEquals( 6, validationReport.getErrorReportsCount() );
+        assertEquals( 3, validationReport.getErrorReportsCountByCode( DataElement.class, ErrorCode.E3000 ) );
+        assertEquals( 3, validationReport.getErrorReportsCountByCode( Indicator.class, ErrorCode.E3000 ) );
     }
 
     @Test
@@ -73,9 +73,9 @@ public class ObjectBundleReportTest
         validationReport.addTypeReport( typeReport0 );
         validationReport.addTypeReport( typeReport1 );
 
-        assertEquals( 6, validationReport.getErrorReports().size() );
-        assertEquals( 3, validationReport.getErrorReportsByCode( DataElement.class, ErrorCode.E3000 ).size() );
-        assertEquals( 3, validationReport.getErrorReportsByCode( Indicator.class, ErrorCode.E3000 ).size() );
+        assertEquals( 6, validationReport.getErrorReportsCount() );
+        assertEquals( 3, validationReport.getErrorReportsCountByCode( DataElement.class, ErrorCode.E3000 ) );
+        assertEquals( 3, validationReport.getErrorReportsCountByCode( Indicator.class, ErrorCode.E3000 ) );
     }
 
     @Test
@@ -90,34 +90,34 @@ public class ObjectBundleReportTest
         objectBundleValidationReport.addTypeReport( typeReport0 );
         objectBundleValidationReport.addTypeReport( typeReport1 );
 
-        assertEquals( 6, objectBundleValidationReport.getErrorReports().size() );
+        assertEquals( 6, objectBundleValidationReport.getErrorReportsCount() );
         assertEquals( 3,
-            objectBundleValidationReport.getErrorReportsByCode( DataElement.class, ErrorCode.E3000 ).size() );
+            objectBundleValidationReport.getErrorReportsCountByCode( DataElement.class, ErrorCode.E3000 ) );
         assertEquals( 3,
-            objectBundleValidationReport.getErrorReportsByCode( Indicator.class, ErrorCode.E3000 ).size() );
+            objectBundleValidationReport.getErrorReportsCountByCode( Indicator.class, ErrorCode.E3000 ) );
 
         ObjectBundleCommitReport objectBundleCommitReport = new ObjectBundleCommitReport();
         objectBundleCommitReport.addTypeReport( typeReport2 );
         objectBundleCommitReport.addTypeReport( typeReport3 );
 
-        assertEquals( 6, objectBundleCommitReport.getErrorReports().size() );
-        assertEquals( 3, objectBundleCommitReport.getErrorReportsByCode( Indicator.class, ErrorCode.E3000 ).size() );
+        assertEquals( 6, objectBundleCommitReport.getErrorReportsCount() );
+        assertEquals( 3, objectBundleCommitReport.getErrorReportsCountByCode( Indicator.class, ErrorCode.E3000 ) );
         assertEquals( 3,
-            objectBundleCommitReport.getErrorReportsByCode( OrganisationUnit.class, ErrorCode.E3000 ).size() );
+            objectBundleCommitReport.getErrorReportsCountByCode( OrganisationUnit.class, ErrorCode.E3000 ) );
 
         ImportReport importReport = new ImportReport();
-        importReport.addTypeReports( objectBundleValidationReport.getTypeReportMap() );
-        importReport.addTypeReports( objectBundleCommitReport.getTypeReportMap() );
+        importReport.addTypeReports( objectBundleValidationReport );
+        importReport.addTypeReports( objectBundleCommitReport );
 
-        assertEquals( 3, importReport.getTypeReportMap().size() );
+        assertEquals( 3, importReport.getTypeReportKeys().size() );
 
-        assertEquals( 3, importReport.getTypeReportMap().get( DataElement.class ).getErrorReports().size() );
-        assertEquals( 3, importReport.getTypeReportMap().get( OrganisationUnit.class ).getErrorReports().size() );
-        assertEquals( 6, importReport.getTypeReportMap().get( Indicator.class ).getErrorReports().size() );
+        assertEquals( 3, importReport.getTypeReport( DataElement.class ).getErrorReportsCount() );
+        assertEquals( 3, importReport.getTypeReport( OrganisationUnit.class ).getErrorReportsCount() );
+        assertEquals( 6, importReport.getTypeReport( Indicator.class ).getErrorReportsCount() );
 
-        assertEquals( 3, importReport.getTypeReportMap().get( DataElement.class ).getObjectReports().size() );
-        assertEquals( 3, importReport.getTypeReportMap().get( Indicator.class ).getObjectReports().size() );
-        assertEquals( 3, importReport.getTypeReportMap().get( OrganisationUnit.class ).getObjectReports().size() );
+        assertEquals( 3, importReport.getTypeReport( DataElement.class ).getObjectReportsCount() );
+        assertEquals( 3, importReport.getTypeReport( Indicator.class ).getObjectReportsCount() );
+        assertEquals( 3, importReport.getTypeReport( OrganisationUnit.class ).getObjectReportsCount() );
     }
 
     private TypeReport createTypeReport( Class<?> mainKlass, Class<?> errorKlass )
