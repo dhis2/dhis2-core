@@ -28,9 +28,15 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.deduplication.DeduplicationService;
+import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
+import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.Status;
@@ -39,18 +45,21 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.HttpStatus;
 
 import com.google.common.collect.Lists;
 
+@RunWith( MockitoJUnitRunner.class )
 public class DeduplicationControllerTest
 {
     @Mock
@@ -71,77 +80,101 @@ public class DeduplicationControllerTest
     @Mock
     private ContextService contextService;
 
-    @InjectMocks
-    private DeduplicationController controller;
+    @Mock
+    private User user;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Mock
+    private TrackedEntityInstance trackedEntityInstanceA;
+
+    @Mock
+    private TrackedEntityInstance trackedEntityInstanceB;
+
+    @InjectMocks
+    private DeduplicationController deduplicationController;
+
+    private static final String teiA = "trackedentA";
+
+    private static final String teiB = "trackedentB";
 
     @Before
     public void setUpTest()
     {
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
+
+        lenient().when( trackedEntityInstanceA.getUid() ).thenReturn( teiA );
+        lenient().when( trackedEntityInstanceB.getUid() ).thenReturn( teiB );
+
+        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
+            .thenReturn( trackedEntityInstanceA );
+        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) )
+            .thenReturn( trackedEntityInstanceB );
+
+        lenient().when( trackerAccessManager.canRead( any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
+            Lists.newArrayList() );
+        lenient().when( trackerAccessManager.canRead( any(), eq( trackedEntityInstanceB ) ) ).thenReturn(
+            Lists.newArrayList() );
+    }
+
+    @Test
+    public void getAllPotentialDuplicate()
+    {
+        PotentialDuplicateQuery potentialDuplicateQuery = new PotentialDuplicateQuery();
+
+        deduplicationController.getAll( potentialDuplicateQuery, mock( HttpServletResponse.class ) );
+
+        verify( deduplicationService ).getAllPotentialDuplicatesBy( potentialDuplicateQuery );
     }
 
     @Test
     public void getPotentialDuplicateNotFound()
     {
-        Mockito.when( deduplicationService.getPotentialDuplicateByUid( Mockito.eq( "0" ) ) ).thenReturn( null );
+        when( deduplicationService.getPotentialDuplicateByUid( teiA ) ).thenReturn( null );
 
         try
         {
-            controller.getPotentialDuplicate( "0" );
+            deduplicationController.getPotentialDuplicate( teiA );
         }
         catch ( WebMessageException e )
         {
-            WebMessage wm = e.getWebMessage();
-            assertEquals( "Not Found", wm.getHttpStatus() );
-            assertEquals( 404, wm.getHttpStatusCode().intValue() );
-            assertEquals( Status.ERROR, wm.getStatus() );
-            assertEquals( "No potentialDuplicate records found with id '0'.", wm.getMessage() );
+            checkWebMessageException( e.getWebMessage(), HttpStatus.NOT_FOUND.value() );
         }
 
+        verify( deduplicationService ).getPotentialDuplicateByUid( teiA );
     }
 
     @Test
     public void getPotentialDuplicate()
         throws WebMessageException
     {
-        Mockito.when( deduplicationService.getPotentialDuplicateByUid( Mockito.eq( "1" ) ) )
-            .thenReturn( new PotentialDuplicate( "teiA" ) );
+        when( deduplicationService.getPotentialDuplicateByUid( teiA ) )
+            .thenReturn( new PotentialDuplicate( teiA ) );
 
-        PotentialDuplicate pd = controller.getPotentialDuplicate( "1" );
+        PotentialDuplicate pd = deduplicationController.getPotentialDuplicate( teiA );
 
-        assertEquals( "teiA", pd.getTeiA() );
+        assertEquals( teiA, pd.getTeiA() );
+        verify( deduplicationService ).getPotentialDuplicateByUid( teiA );
     }
 
     @Test
     public void postPotentialDuplicate()
         throws WebMessageException
     {
-        PotentialDuplicate pd = new PotentialDuplicate( "ABCDEFGHIJ1", "ABCDEFGHIJ2" );
-
-        TrackedEntityInstance teiA = new TrackedEntityInstance();
-        TrackedEntityInstance teiB = new TrackedEntityInstance();
-
-        teiA.setUid( "ABCDEFGHIJ1" );
-        teiB.setUid( "ABCDEFGHIJ2" );
-
-        Mockito.when( trackedEntityInstanceService.getTrackedEntityInstance( Mockito.eq( "ABCDEFGHIJ1" ) ) )
-            .thenReturn( teiA );
-        Mockito.when( trackedEntityInstanceService.getTrackedEntityInstance( Mockito.eq( "ABCDEFGHIJ2" ) ) )
-            .thenReturn( teiB );
-
-        Mockito.when( trackerAccessManager.canRead( Mockito.any(), Mockito.eq( teiA ) ) ).thenReturn(
-            Lists.newArrayList() );
-        Mockito.when( trackerAccessManager.canRead( Mockito.any(), Mockito.eq( teiB ) ) ).thenReturn(
-            Lists.newArrayList() );
+        PotentialDuplicate pd = new PotentialDuplicate( teiA, teiB );
 
         Mockito.when( deduplicationService.exists( pd ) ).thenReturn( false );
 
-        Mockito.when( deduplicationService.addPotentialDuplicate( Mockito.any( PotentialDuplicate.class ) ) )
-            .thenReturn( 1L );
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
 
-        controller.postPotentialDuplicate( new PotentialDuplicate( "ABCDEFGHIJ1" ) );
+        deduplicationController.postPotentialDuplicate( potentialDuplicate );
+
+        verify( deduplicationService ).addPotentialDuplicate( potentialDuplicate );
+        verify( trackedEntityInstanceService, times( 2 ) ).getTrackedEntityInstance( anyString() );
+        verify( trackedEntityInstanceService ).getTrackedEntityInstance( teiA );
+        verify( trackedEntityInstanceService ).getTrackedEntityInstance( teiB );
+        verify( trackerAccessManager, times( 2 ) ).canRead( eq( user ), any( TrackedEntityInstance.class ) );
+        verify( trackerAccessManager ).canRead( user, trackedEntityInstanceA );
+        verify( trackerAccessManager ).canRead( user, trackedEntityInstanceB );
+        verify( deduplicationService ).exists( potentialDuplicate );
     }
 
     @Test
@@ -149,16 +182,14 @@ public class DeduplicationControllerTest
     {
         try
         {
-            controller.postPotentialDuplicate( new PotentialDuplicate() );
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate() );
         }
         catch ( WebMessageException e )
         {
-            WebMessage wm = e.getWebMessage();
-            assertEquals( "Conflict", wm.getHttpStatus() );
-            assertEquals( 409, wm.getHttpStatusCode().intValue() );
-            assertEquals( Status.ERROR, wm.getStatus() );
-            assertEquals( "Missing required property 'teiA'", wm.getMessage() );
+            checkWebMessageException( e.getWebMessage(), HttpStatus.CONFLICT.value() );
         }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
     }
 
     @Test
@@ -166,187 +197,159 @@ public class DeduplicationControllerTest
     {
         try
         {
-            controller.postPotentialDuplicate( new PotentialDuplicate( "invalid" ) );
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( "invalid" ) );
         }
         catch ( WebMessageException e )
         {
-            WebMessage wm = e.getWebMessage();
-            assertEquals( "Conflict", wm.getHttpStatus() );
-            assertEquals( 409, wm.getHttpStatusCode().intValue() );
-            assertEquals( Status.ERROR, wm.getStatus() );
-            assertEquals( "'invalid' is not valid value for property 'teiA'", wm.getMessage() );
+            checkWebMessageException( e.getWebMessage(), HttpStatus.CONFLICT.value() );
         }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
     }
 
     @Test
     public void postPotentialDuplicateInvalidTei()
     {
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
+            .thenReturn( null );
+
         try
         {
-            controller.postPotentialDuplicate( new PotentialDuplicate( "ABCDEFGHIJ0" ) );
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA ) );
         }
         catch ( WebMessageException e )
         {
-            WebMessage wm = e.getWebMessage();
-            assertEquals( "Conflict", wm.getHttpStatus() );
-            assertEquals( 409, wm.getHttpStatusCode().intValue() );
-            assertEquals( Status.ERROR, wm.getStatus() );
-            assertEquals( "No tracked entity instance found with id 'ABCDEFGHIJ0'.", wm.getMessage() );
+            checkWebMessageException( e.getWebMessage(), HttpStatus.NOT_FOUND.value() );
         }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
     }
 
     @Test
     public void postPotentialDuplicateNoAccessToTeiA()
     {
-        TrackedEntityInstance teiA = new TrackedEntityInstance();
-
-        teiA.setUid( "ABCDEFGHIJ1" );
-
-        Mockito.when( trackedEntityInstanceService.getTrackedEntityInstance( Mockito.eq( "ABCDEFGHIJ1" ) ) )
-            .thenReturn( teiA );
-        Mockito.when( trackerAccessManager.canRead( Mockito.any(), Mockito.eq( teiA ) ) ).thenReturn(
+        when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
             Lists.newArrayList( "Error" ) );
 
         try
         {
-            controller.postPotentialDuplicate( new PotentialDuplicate( "ABCDEFGHIJ1" ) );
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA ) );
         }
         catch ( WebMessageException e )
         {
-            WebMessage wm = e.getWebMessage();
-            assertEquals( "Forbidden", wm.getHttpStatus() );
-            assertEquals( 403, wm.getHttpStatusCode().intValue() );
-            assertEquals( Status.ERROR, wm.getStatus() );
-            assertEquals( "You don't have read access to 'ABCDEFGHIJ1'.", wm.getMessage() );
+            checkWebMessageException( e.getWebMessage(), HttpStatus.FORBIDDEN.value() );
         }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
+        verify( trackerAccessManager ).canRead( user, trackedEntityInstanceA );
     }
 
     @Test
     public void postPotentialDuplicateInvalidUidTeiB()
     {
-        TrackedEntityInstance teiA = new TrackedEntityInstance();
-
-        teiA.setUid( "ABCDEFGHIJ1" );
-
-        Mockito.when( trackedEntityInstanceService.getTrackedEntityInstance( Mockito.eq( "ABCDEFGHIJ1" ) ) )
-            .thenReturn( teiA );
-        Mockito.when( trackerAccessManager.canRead( Mockito.any(), Mockito.eq( teiA ) ) ).thenReturn(
+        when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
             Lists.newArrayList() );
 
         try
         {
-            controller.postPotentialDuplicate( new PotentialDuplicate( "ABCDEFGHIJ1", "invalid" ) );
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, "invalid" ) );
         }
         catch ( WebMessageException e )
         {
-            WebMessage wm = e.getWebMessage();
-            assertEquals( "Conflict", wm.getHttpStatus() );
-            assertEquals( 409, wm.getHttpStatusCode().intValue() );
-            assertEquals( Status.ERROR, wm.getStatus() );
-            assertEquals( "'invalid' is not valid value for property 'teiB'", wm.getMessage() );
+            checkWebMessageException( e.getWebMessage(), HttpStatus.CONFLICT.value() );
         }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
     }
 
     @Test
     public void postPotentialDuplicateNoAccessToTeiB()
     {
-        TrackedEntityInstance teiA = new TrackedEntityInstance();
-        TrackedEntityInstance teiB = new TrackedEntityInstance();
 
-        teiA.setUid( "ABCDEFGHIJ1" );
-        teiB.setUid( "ABCDEFGHIJ2" );
-
-        Mockito.when( trackedEntityInstanceService.getTrackedEntityInstance( Mockito.eq( "ABCDEFGHIJ1" ) ) )
-            .thenReturn( teiA );
-        Mockito.when( trackedEntityInstanceService.getTrackedEntityInstance( Mockito.eq( "ABCDEFGHIJ2" ) ) )
-            .thenReturn( teiB );
-
-        Mockito.when( trackerAccessManager.canRead( Mockito.any(), Mockito.eq( teiA ) ) ).thenReturn(
+        when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
             Lists.newArrayList() );
-        Mockito.when( trackerAccessManager.canRead( Mockito.any(), Mockito.eq( teiB ) ) ).thenReturn(
+        when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceB ) ) ).thenReturn(
             Lists.newArrayList( "Error" ) );
 
         try
         {
-            controller.postPotentialDuplicate( new PotentialDuplicate( "ABCDEFGHIJ1", "ABCDEFGHIJ2" ) );
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, teiB ) );
         }
         catch ( WebMessageException e )
         {
-            WebMessage wm = e.getWebMessage();
-            assertEquals( "Forbidden", wm.getHttpStatus() );
-            assertEquals( 403, wm.getHttpStatusCode().intValue() );
-            assertEquals( Status.ERROR, wm.getStatus() );
-            assertEquals( "You don't have read access to 'ABCDEFGHIJ2'.", wm.getMessage() );
+            checkWebMessageException( e.getWebMessage(), HttpStatus.FORBIDDEN.value() );
         }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
+        verify( trackerAccessManager ).canRead( user, trackedEntityInstanceA );
+        verify( trackerAccessManager ).canRead( user, trackedEntityInstanceB );
     }
 
     @Test
     public void postPotentialDuplicateAlreadyExists()
     {
-        PotentialDuplicate pd = new PotentialDuplicate( "ABCDEFGHIJ1", "ABCDEFGHIJ2" );
+        PotentialDuplicate pd = new PotentialDuplicate( teiA, teiB );
 
-        TrackedEntityInstance teiA = new TrackedEntityInstance();
-        TrackedEntityInstance teiB = new TrackedEntityInstance();
-
-        teiA.setUid( "ABCDEFGHIJ1" );
-        teiB.setUid( "ABCDEFGHIJ2" );
-
-        Mockito.when( trackedEntityInstanceService.getTrackedEntityInstance( Mockito.eq( "ABCDEFGHIJ1" ) ) )
-            .thenReturn( teiA );
-        Mockito.when( trackedEntityInstanceService.getTrackedEntityInstance( Mockito.eq( "ABCDEFGHIJ2" ) ) )
-            .thenReturn( teiB );
-
-        Mockito.when( trackerAccessManager.canRead( Mockito.any(), Mockito.eq( teiA ) ) ).thenReturn(
+        when( trackerAccessManager.canRead( any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
             Lists.newArrayList() );
-        Mockito.when( trackerAccessManager.canRead( Mockito.any(), Mockito.eq( teiB ) ) ).thenReturn(
+        when( trackerAccessManager.canRead( any(), eq( trackedEntityInstanceB ) ) ).thenReturn(
             Lists.newArrayList() );
 
-        Mockito.when( deduplicationService.exists( pd ) ).thenReturn( true );
+        when( deduplicationService.exists( pd ) ).thenReturn( true );
 
         try
         {
-            controller.postPotentialDuplicate( pd );
+            deduplicationController.postPotentialDuplicate( pd );
         }
         catch ( WebMessageException e )
         {
-            WebMessage wm = e.getWebMessage();
-            assertEquals( "Conflict", wm.getHttpStatus() );
-            assertEquals( 409, wm.getHttpStatusCode().intValue() );
-            assertEquals( Status.ERROR, wm.getStatus() );
-            assertEquals( "'ABCDEFGHIJ1' and 'ABCDEFGHIJ2' is already marked as a potential duplicate",
-                wm.getMessage() );
+            checkWebMessageException( e.getWebMessage(), HttpStatus.CONFLICT.value() );
         }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
+        verify( trackerAccessManager ).canRead( user, trackedEntityInstanceA );
+        verify( trackerAccessManager ).canRead( user, trackedEntityInstanceB );
+        verify( deduplicationService ).exists( pd );
     }
 
     @Test
     public void markPotentialDuplicateInvalid()
         throws WebMessageException
     {
-        PotentialDuplicate pd = new PotentialDuplicate( "teiA" );
-        Mockito.when( deduplicationService.getPotentialDuplicateByUid( Mockito.eq( "1" ) ) ).thenReturn( pd );
 
-        controller.markPotentialDuplicateInvalid( "1" );
+        when( deduplicationService.getPotentialDuplicateByUid( teiA ) ).thenReturn( new PotentialDuplicate( teiA ) );
 
-        Mockito.verify( deduplicationService ).markPotentialDuplicateInvalid( Mockito.eq( pd ) );
+        deduplicationController.markPotentialDuplicateInvalid( teiA );
+
+        ArgumentCaptor<PotentialDuplicate> pd = ArgumentCaptor.forClass( PotentialDuplicate.class );
+
+        verify( deduplicationService ).updatePotentialDuplicate( pd.capture() );
+
+        verify( deduplicationService ).getPotentialDuplicateByUid( teiA );
+        verify( deduplicationService ).updatePotentialDuplicate( pd.getValue() );
+        assertEquals( DeduplicationStatus.INVALID, pd.getValue().getStatus() );
     }
 
     @Test
     public void markPotentialDuplicateInvalidNotFound()
     {
-        Mockito.when( deduplicationService.getPotentialDuplicateByUid( Mockito.eq( "0" ) ) ).thenReturn( null );
+        when( deduplicationService.getPotentialDuplicateByUid( teiA ) ).thenReturn( null );
 
         try
         {
-            controller.markPotentialDuplicateInvalid( "0" );
+            deduplicationController.markPotentialDuplicateInvalid( teiA );
         }
         catch ( WebMessageException e )
         {
-            WebMessage wm = e.getWebMessage();
-            assertEquals( "Not Found", wm.getHttpStatus() );
-            assertEquals( 404, wm.getHttpStatusCode().intValue() );
-            assertEquals( Status.ERROR, wm.getStatus() );
-            assertEquals( "No potentialDuplicate records found with id '0'.", wm.getMessage() );
+            checkWebMessageException( e.getWebMessage(), HttpStatus.NOT_FOUND.value() );
         }
 
+        verify( deduplicationService, times( 0 ) ).updatePotentialDuplicate( any() );
+    }
+
+    private void checkWebMessageException( WebMessage wm, int statusCode )
+    {
+        assertEquals( statusCode, wm.getHttpStatusCode().intValue() );
+        assertEquals( Status.ERROR, wm.getStatus() );
     }
 }
