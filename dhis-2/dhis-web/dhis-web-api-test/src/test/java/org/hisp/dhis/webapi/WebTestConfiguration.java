@@ -175,41 +175,33 @@ public class WebTestConfiguration
         JobConfigurationService jobConfigurationService,
         MessageService messageService, LeaderManager leaderManager )
     {
-        return new SynchronousSchedulingManager( jobService, jobConfigurationService, messageService, leaderManager );
+        return new AbstractSchedulingManager( jobService, jobConfigurationService, messageService, leaderManager )
+        {
+            @Override
+            public void schedule( JobConfiguration configuration )
+            {
+                // we don't run it
+            }
+
+            @Override
+            public void scheduleWithStartTime( JobConfiguration configuration, Date startTime )
+            {
+                // we don't run it
+            }
+
+            @Override
+            public void stop( JobConfiguration configuration )
+            {
+                // its either never started or we don't support stop (silent)
+            }
+
+            @Override
+            public boolean executeNow( JobConfiguration configuration )
+            {
+                execute( configuration );
+                return true;
+            }
+        };
     }
 
-    private static class SynchronousSchedulingManager extends AbstractSchedulingManager
-    {
-
-        public SynchronousSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-            MessageService messageService, LeaderManager leaderManager )
-        {
-            super( jobService, jobConfigurationService, messageService, leaderManager );
-        }
-
-        @Override
-        public void schedule( JobConfiguration configuration )
-        {
-            execute( configuration );
-        }
-
-        @Override
-        public void scheduleWithStartTime( JobConfiguration configuration, Date startTime )
-        {
-            execute( configuration );
-        }
-
-        @Override
-        public void stop( JobConfiguration configuration )
-        {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean executeNow( JobConfiguration configuration )
-        {
-            execute( configuration );
-            return true;
-        }
-    }
 }

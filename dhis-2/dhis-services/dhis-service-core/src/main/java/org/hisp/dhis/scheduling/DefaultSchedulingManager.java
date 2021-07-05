@@ -74,8 +74,6 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
 
     private final Map<JobType, Future<?>> running = new ConcurrentHashMap<>();
 
-    private final JobConfigurationService jobConfigurationService;
-
     private final TaskScheduler jobScheduler;
 
     private final AsyncTaskExecutor taskExecutor;
@@ -93,7 +91,6 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
         checkNotNull( taskExecutor );
         checkNotNull( jobService );
 
-        this.jobConfigurationService = jobConfigurationService;
         this.jobScheduler = jobScheduler;
         this.taskExecutor = taskExecutor;
     }
