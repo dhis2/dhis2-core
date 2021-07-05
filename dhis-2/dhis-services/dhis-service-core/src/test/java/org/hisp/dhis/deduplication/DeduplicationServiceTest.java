@@ -195,27 +195,31 @@ public class DeduplicationServiceTest
     @Test
     public void testCountPotentialDuplicates()
     {
-        PotentialDuplicate pd1 = new PotentialDuplicate( teiA );
-        PotentialDuplicate pd2 = new PotentialDuplicate( teiA, teiB );
-        PotentialDuplicate pd3 = new PotentialDuplicate( teiC );
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
+        PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiD );
 
         PotentialDuplicateQuery query = new PotentialDuplicateQuery();
 
-        deduplicationService.addPotentialDuplicate( pd1 );
-        deduplicationService.addPotentialDuplicate( pd2 );
-        deduplicationService.addPotentialDuplicate( pd3 );
+        deduplicationService.addPotentialDuplicate( potentialDuplicate );
+        deduplicationService.addPotentialDuplicate( potentialDuplicate1 );
 
-        query.setTeis( Collections.singletonList( teiA ) );
+        query.setStatus( DeduplicationStatus.ALL );
 
-        int count = deduplicationService.countPotentialDuplicates( query );
+        assertEquals( 2, deduplicationService.countPotentialDuplicates( query ) );
 
-        assertEquals( 2, count );
+        query.setStatus( DeduplicationStatus.OPEN );
 
-        query.setTeis( Collections.singletonList( teiB ) );
+        query.setTeis( Arrays.asList( teiA, teiC ) );
 
-        count = deduplicationService.countPotentialDuplicates( query );
+        assertEquals( 2, deduplicationService.countPotentialDuplicates( query ) );
 
-        assertEquals( 1, count );
+        query.setTeis( Collections.singletonList( teiC ) );
+
+        assertEquals( 1, deduplicationService.countPotentialDuplicates( query ) );
+
+        query.setStatus( DeduplicationStatus.INVALID );
+
+        assertEquals( 0, deduplicationService.countPotentialDuplicates( query ) );
     }
 
     @Test
