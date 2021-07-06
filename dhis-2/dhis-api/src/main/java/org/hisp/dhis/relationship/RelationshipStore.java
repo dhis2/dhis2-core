@@ -80,5 +80,7 @@ public interface RelationshipStore
      */
     Relationship getByRelationship( Relationship relationship );
 
-    Relationship getByRelationshipKey( String relationshipKey );
+    List<String> getUidsByRelationshipKeys( List<String> relationshipKeyList );
+
+    List<Relationship> getByUids( List<String> uids );
 }
