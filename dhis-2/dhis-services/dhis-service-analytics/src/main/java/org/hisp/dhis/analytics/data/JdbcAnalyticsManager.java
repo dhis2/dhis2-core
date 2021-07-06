@@ -556,7 +556,7 @@ public class JdbcAnalyticsManager
     /**
      * Generates the where clause of the query SQL.
      */
-    private String getWhereClause( DataQueryParams params, AnalyticsTableType tableType,
+    private static String getWhereClause( DataQueryParams params, AnalyticsTableType tableType,
         HashMap<String, List<String>> categoryOptionUidMap )
     {
         SqlHelper sqlHelper = new SqlHelper();
@@ -567,71 +567,71 @@ public class JdbcAnalyticsManager
         // Dimensions
         // ---------------------------------------------------------------------
 
-        for ( DimensionalObject dim : params.getDimensions() )
-        {
-            if ( !dim.getItems().isEmpty() && !dim.isFixed() )
-            {
-                String col = quoteAlias( dim.getDimensionName() );
-
-                sql += sqlHelper.whereAnd() + " " + col + " in ("
-                    + getQuotedCommaDelimitedString(
-                        replaceCategoryOptionsWithCategoryOptionCombos( getUids( dim.getItems() ),
-                            categoryOptionUidMap ) )
-                    + ") ";
-            }
-        }
+        sql += getWhereSqlSectionForDimensions( params, categoryOptionUidMap, sqlHelper );
 
         // ---------------------------------------------------------------------
         // Filters
         // ---------------------------------------------------------------------
 
-        ListMap<String, DimensionalObject> filterMap = params.getDimensionFilterMap();
-
-        for ( String dimension : filterMap.keySet() )
-        {
-            List<DimensionalObject> filters = filterMap.get( dimension );
-
-            if ( DimensionalObjectUtils.anyDimensionHasItems( filters ) )
-            {
-                sql += sqlHelper.whereAnd() + " ( ";
-
-                for ( DimensionalObject filter : filters )
-                {
-                    if ( filter.hasItems() )
-                    {
-                        String col = quoteAlias( filter.getDimensionName() );
-
-                        sql += col + " in (" + getQuotedCommaDelimitedString( getUids( filter.getItems() ) ) + ") or ";
-                    }
-                }
-
-                sql = removeLastOr( sql ) + ") ";
-            }
-        }
+        sql += getWhereSqlSectionForFilters( params, sqlHelper );
 
         // ---------------------------------------------------------------------
         // Data approval
         // ---------------------------------------------------------------------
 
-        if ( params.isDataApproval() )
-        {
-            sql += sqlHelper.whereAnd() + " ( ";
-
-            for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
-            {
-                String ouCol = quoteAlias( LEVEL_PREFIX + unit.getLevel() );
-                Integer level = params.getDataApprovalLevels().get( unit );
-
-                sql += "(" + ouCol + " = '" + unit.getUid() + "' and " +
-                    quoteAlias( COL_APPROVALLEVEL ) + " <= " + level + ") or ";
-            }
-
-            sql = removeLastOr( sql ) + ") ";
-        }
+        sql += getWhereSqlSectionForDataApproval( params, sqlHelper );
 
         // ---------------------------------------------------------------------
         // Restrictions
         // ---------------------------------------------------------------------
+
+        sql += getWhereSqlSectionForDataRestrictions( params, sqlHelper, tableType );
+
+        // ---------------------------------------------------------------------
+        // Partitions restriction to allow constraint exclusion
+        // ---------------------------------------------------------------------
+
+        sql += getWhereSqlSectionForPartitionRestrictions( params, sqlHelper );
+
+        // ---------------------------------------------------------------------
+        // Period rank restriction to get last value only
+        // ---------------------------------------------------------------------
+
+        sql += getWhereSqlSectionForPeriodRankRestrictions( params, sqlHelper );
+
+        return sql;
+    }
+
+    private static String getWhereSqlSectionForPeriodRankRestrictions( DataQueryParams params, SqlHelper sqlHelper )
+    {
+        String sql = "";
+
+        if ( params.getAggregationType().isFirstOrLastOrLastInPeriodAggregationType() )
+        {
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
+        }
+
+        return sql;
+    }
+
+    private static String getWhereSqlSectionForPartitionRestrictions( DataQueryParams params, SqlHelper sqlHelper )
+    {
+        String sql = "";
+
+        if ( !params.isSkipPartitioning() && params.hasPartitions() )
+        {
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "year" ) + " in (" +
+                TextUtils.getCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
+        }
+
+        return sql;
+    }
+
+    private static String getWhereSqlSectionForDataRestrictions( DataQueryParams params, SqlHelper sqlHelper,
+        AnalyticsTableType tableType )
+    {
+
+        String sql = "";
 
         if ( params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDateRestriction() )
         {
@@ -663,26 +663,84 @@ public class JdbcAnalyticsManager
             sql += sqlHelper.whereAnd() + " " + quoteAlias( "timely" ) + " is true ";
         }
 
-        // ---------------------------------------------------------------------
-        // Partitions restriction to allow constraint exclusion
-        // ---------------------------------------------------------------------
+        return sql;
+    }
 
-        if ( !params.isSkipPartitioning() && params.hasPartitions() )
+    private static String getWhereSqlSectionForDataApproval( DataQueryParams params, SqlHelper sqlHelper )
+    {
+        String sql = "";
+
+        if ( params.isDataApproval() )
         {
-            sql += sqlHelper.whereAnd() + " " + quoteAlias( "year" ) + " in (" +
-                TextUtils.getCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
-        }
+            sql += sqlHelper.whereAnd() + " ( ";
 
-        // ---------------------------------------------------------------------
-        // Period rank restriction to get last value only
-        // ---------------------------------------------------------------------
+            for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
+            {
+                String ouCol = quoteAlias( LEVEL_PREFIX + unit.getLevel() );
+                Integer level = params.getDataApprovalLevels().get( unit );
 
-        if ( params.getAggregationType().isFirstOrLastOrLastInPeriodAggregationType() )
-        {
-            sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
+                sql += "(" + ouCol + " = '" + unit.getUid() + "' and " +
+                    quoteAlias( COL_APPROVALLEVEL ) + " <= " + level + ") or ";
+            }
+
+            sql = removeLastOr( sql ) + ") ";
         }
 
         return sql;
+    }
+
+    private static String getWhereSqlSectionForFilters( DataQueryParams params,
+        SqlHelper sqlHelper )
+    {
+        ListMap<String, DimensionalObject> filterMap = params.getDimensionFilterMap();
+
+        String sql = "";
+
+        for ( String dimension : filterMap.keySet() )
+        {
+            List<DimensionalObject> filters = filterMap.get( dimension );
+
+            if ( DimensionalObjectUtils.anyDimensionHasItems( filters ) )
+            {
+                sql += sqlHelper.whereAnd() + " ( ";
+
+                for ( DimensionalObject filter : filters )
+                {
+                    if ( filter.hasItems() )
+                    {
+                        String col = quoteAlias( filter.getDimensionName() );
+
+                        sql += col + " in (" + getQuotedCommaDelimitedString( getUids( filter.getItems() ) ) + ") or ";
+                    }
+                }
+
+                sql = removeLastOr( sql ) + ") ";
+            }
+        }
+
+        return sql;
+    }
+
+    private static String getWhereSqlSectionForDimensions( DataQueryParams params,
+        HashMap<String, List<String>> categoryOptionUidMap, SqlHelper sqlHelper )
+    {
+        String sql = "";
+
+        for ( DimensionalObject dim : params.getDimensions()
+            .stream()
+            .filter( dim -> !dim.getItems().isEmpty() && !dim.isFixed() ).collect( Collectors.toList() ) )
+        {
+            String col = quoteAlias( dim.getDimensionName() );
+
+            sql += sqlHelper.whereAnd() + " " + col + " in ("
+                + getQuotedCommaDelimitedString(
+                    replaceCategoryOptionsWithCategoryOptionCombos( getUids( dim.getItems() ),
+                        categoryOptionUidMap ) )
+                + ") ";
+        }
+
+        return sql;
+
     }
 
     /**
