@@ -28,6 +28,7 @@
 package org.hisp.dhis.relationship.hibernate;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -134,25 +135,48 @@ public class HibernateRelationshipStore
     }
 
     @Override
-    public Relationship getByRelationshipKey( String relationshipKeyAsString )
+    public List<String> getUidsByRelationshipKeys( List<String> relationshipKeyList )
     {
-        RelationshipKey relationshipKey = RelationshipKey.fromString( relationshipKeyAsString );
+        List<Object> c = getSession()
+            .createNativeQuery( new StringBuilder()
+                .append( "WITH relationshipitemuids AS ( " )
+                .append( "SELECT RI.relationshipitemid, coalesce(TE.uid, PI.uid, PSI.uid) as uid " )
+                .append( "FROM relationshipitem RI " )
+                .append(
+                    "LEFT JOIN trackedentityinstance TE ON TE.trackedentityinstanceid = RI.trackedentityinstanceid " )
+                .append( "LEFT JOIN programinstance PI ON PI.programinstanceid = RI.programinstanceid " )
+                .append(
+                    "LEFT JOIN programstageinstance PSI ON PSI.programstageinstanceid = RI.programstageinstanceid " )
+                .append( ") " )
+                .append( "SELECT R.uid " )
+                .append( "FROM relationship R " )
+                .append( "INNER JOIN relationshiptype RT ON RT.relationshiptypeid = R.relationshiptypeid " )
+                .append( "INNER JOIN relationshipitemuids F ON F.relationshipitemid = R.from_relationshipitemid " )
+                .append( "INNER JOIN relationshipitemuids T ON T.relationshipitemid = R.to_relationshipitemid " )
+                .append( "WHERE concat(RT.uid, '-', F.uid, '-', T.uid) IN (:keys) " )
+                .append( "OR (RT.bidirectional AND concat(RT.uid, '-', T.uid, '-', F.uid) IN (:keys)) " )
+                .toString() )
+            .setParameter( "keys", relationshipKeyList )
+            .getResultList();
 
+        return c.stream().map( String::valueOf ).collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<Relationship> getByUids( List<String> uids )
+    {
         CriteriaBuilder criteriaBuilder = getCriteriaBuilder();
-        CriteriaQuery<Relationship> criteriaQuery = criteriaBuilder.createQuery( Relationship.class );
 
-        Root<Relationship> root = criteriaQuery.from( Relationship.class );
+        CriteriaQuery<Relationship> query = criteriaBuilder.createQuery( Relationship.class );
 
-        Pair<String, String> fromFieldValuePair = getFieldValuePair( relationshipKey.getFrom() );
-        Pair<String, String> toFieldValuePair = getFieldValuePair( relationshipKey.getTo() );
+        Root<Relationship> root = query.from( Relationship.class );
 
-        criteriaQuery.where( criteriaBuilder.or(
-            nonBidirectionalCriteria( criteriaBuilder, root, fromFieldValuePair, toFieldValuePair ),
-            bidirectionalCriteria( criteriaBuilder, root, fromFieldValuePair, toFieldValuePair ) ) );
+        query.where(
+            criteriaBuilder.in( root.get( "uid" ) ).value( uids ) );
 
         try
         {
-            return getSession().createQuery( criteriaQuery ).setMaxResults( 1 ).getSingleResult();
+            return getSession().createQuery( query ).getResultList();
         }
         catch ( NoResultException nre )
         {
