@@ -108,6 +108,8 @@ public class JdbcAnalyticsManager
 
     private static final int LAST_VALUE_YEARS_OFFSET = -10;
 
+    private static final String SQL_IN_FRAGMENT = " in (";
+
     private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP = ImmutableMap.<MeasureFilter, String> builder()
         .put( MeasureFilter.EQ, "=" )
         .put( MeasureFilter.GT, ">" )
@@ -620,7 +622,7 @@ public class JdbcAnalyticsManager
 
         if ( !params.isSkipPartitioning() && params.hasPartitions() )
         {
-            sql += sqlHelper.whereAnd() + " " + quoteAlias( "year" ) + " in (" +
+            sql += sqlHelper.whereAnd() + " " + quoteAlias( "year" ) + SQL_IN_FRAGMENT +
                 TextUtils.getCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
 
@@ -710,7 +712,8 @@ public class JdbcAnalyticsManager
                     {
                         String col = quoteAlias( filter.getDimensionName() );
 
-                        sql += col + " in (" + getQuotedCommaDelimitedString( getUids( filter.getItems() ) ) + ") or ";
+                        sql += col + SQL_IN_FRAGMENT + getQuotedCommaDelimitedString( getUids( filter.getItems() ) )
+                            + ") or ";
                     }
                 }
 
@@ -732,7 +735,7 @@ public class JdbcAnalyticsManager
         {
             String col = quoteAlias( dim.getDimensionName() );
 
-            sql += sqlHelper.whereAnd() + " " + col + " in ("
+            sql += sqlHelper.whereAnd() + " " + col + SQL_IN_FRAGMENT
                 + getQuotedCommaDelimitedString(
                     replaceCategoryOptionsWithCategoryOptionCombos( getUids( dim.getItems() ),
                         categoryOptionUidMap ) )
