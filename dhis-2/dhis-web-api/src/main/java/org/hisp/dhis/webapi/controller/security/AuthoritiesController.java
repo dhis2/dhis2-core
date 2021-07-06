@@ -49,6 +49,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

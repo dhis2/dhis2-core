@@ -71,6 +71,7 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -115,8 +116,7 @@ public class GeoFeatureController
     // Resources
     // -------------------------------------------------------------------------
 
-    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON,
-        ContextUtils.CONTENT_TYPE_HTML } )
+    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
     @ResponseBody
     public ResponseEntity<List<GeoFeature>> getGeoFeaturesJson(
         @RequestParam( required = false ) String ou,
