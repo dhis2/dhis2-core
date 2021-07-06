@@ -141,13 +141,11 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     }
 
     @Override
-    public void preUpdate( User user, User persistedObject, ObjectBundle bundle )
+    public void preUpdate( User user, User persisted, ObjectBundle bundle )
     {
         if ( user.getUserCredentials() == null )
             return;
         bundle.putExtras( user, "uc", user.getUserCredentials() );
-
-        User persisted = (User) persistedObject;
 
         if ( persisted.getAvatar() != null
             && (user.getAvatar() == null || !persisted.getAvatar().getUid().equals( user.getAvatar().getUid() )) )

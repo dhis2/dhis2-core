@@ -43,7 +43,8 @@ import org.springframework.stereotype.Component;
  * Organises {@link ObjectBundleHook}s.
  * <p>
  * The main point is that a {@link ObjectBundleHook} most of the time is meant
- * for just one particular type of object. This is expressed by it TODO method.
+ * for just one particular type of object which is expressed by the
+ * {@link ObjectBundleHook#getTarget()} method.
  *
  * @author Jan Bernitt
  */
@@ -57,13 +58,14 @@ public class ObjectBundleHooks
      * system. We only use this to compute the list of effective
      * {@link ObjectBundleHook}s we need for a particular object type.
      */
-    private final List<ObjectBundleHook<?>> objectBundleHooks;
+    private final List<ObjectBundleHook<?>> availableHooks;
 
-    public ObjectBundleHooks( List<ObjectBundleHook<?>> objectBundleHooks )
+    public ObjectBundleHooks( List<ObjectBundleHook<?>> availableHooks )
     {
-        this.objectBundleHooks = objectBundleHooks;
+        this.availableHooks = availableHooks;
     }
 
+    @SuppressWarnings( "unchecked" )
     public <T> List<ObjectBundleHook<? super T>> getHooks( T object )
     {
         return getHooks( HibernateProxyUtils.getRealClass( object ) );
@@ -77,16 +79,16 @@ public class ObjectBundleHooks
 
     private <T> List<ObjectBundleHook<?>> computeHooks( Class<T> type )
     {
-        if ( objectBundleHooks == null || objectBundleHooks.isEmpty() )
+        if ( availableHooks == null || availableHooks.isEmpty() )
         {
             return emptyList();
         }
         if ( type == null )
         {
-            return unmodifiableList( objectBundleHooks );
+            return unmodifiableList( availableHooks );
         }
         return unmodifiableList(
-            objectBundleHooks.stream().filter( hook -> isHookForType( hook, type ) ).collect( toList() ) );
+            availableHooks.stream().filter( hook -> isHookForType( hook, type ) ).collect( toList() ) );
     }
 
     private static boolean isHookForType( ObjectBundleHook<?> hook, Class<?> type )

@@ -70,45 +70,54 @@ public class AbstractObjectBundleHook<T> implements ObjectBundleHook<T>
     @Override
     public void preCommit( ObjectBundle bundle )
     {
+        // by default nothing to do
     }
 
     @Override
     public void postCommit( ObjectBundle bundle )
     {
+        // by default nothing to do
     }
 
     @Override
     public <E extends T> void preTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle )
     {
+        // by default nothing to do
     }
 
     @Override
     public <E extends T> void postTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle )
     {
+        // by default nothing to do
     }
 
     @Override
     public void preCreate( T object, ObjectBundle bundle )
     {
+        // by default nothing to do
     }
 
     @Override
     public void postCreate( T persistedObject, ObjectBundle bundle )
     {
+        // by default nothing to do
     }
 
     @Override
     public void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
+        // by default nothing to do
     }
 
     @Override
     public void postUpdate( T persistedObject, ObjectBundle bundle )
     {
+        // by default nothing to do
     }
 
     @Override
     public void preDelete( T persistedObject, ObjectBundle bundle )
     {
+        // by default nothing to do
     }
 }
