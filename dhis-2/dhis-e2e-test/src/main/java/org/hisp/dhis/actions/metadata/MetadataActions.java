@@ -31,6 +31,7 @@ package org.hisp.dhis.actions.metadata;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.MetadataApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.io.File;
@@ -49,7 +50,7 @@ public class MetadataActions
         super( "/metadata" );
     }
 
-    public ApiResponse importMetadata( File file, String... queryParams )
+    public MetadataApiResponse importMetadata( File file, String... queryParams )
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( queryParams );
@@ -58,10 +59,10 @@ public class MetadataActions
         ApiResponse response = postFile( file, queryParamsBuilder );
         response.validate().statusCode( 200 );
 
-        return response;
+        return new MetadataApiResponse( response );
     }
 
-    public ApiResponse importMetadata( JsonObject object, String... queryParams )
+    public MetadataApiResponse importMetadata( JsonObject object, String... queryParams )
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( queryParams );
@@ -70,26 +71,26 @@ public class MetadataActions
         ApiResponse response = post( object, queryParamsBuilder );
         response.validate().statusCode( 200 );
 
-        return response;
+        return new MetadataApiResponse( response );
     }
 
-    public ApiResponse importAndValidateMetadata( JsonObject object, String... queryParams )
+    public MetadataApiResponse importAndValidateMetadata( JsonObject object, String... queryParams )
     {
         ApiResponse response = importMetadata( object, queryParams );
 
         response.validate().body( "stats.ignored", not(
             equalTo( response.extract( "stats.total" ) ) ) );
 
-        return response;
+        return new MetadataApiResponse( response );
     }
 
-    public ApiResponse importAndValidateMetadata( File file, String... queryParams )
+    public MetadataApiResponse importAndValidateMetadata( File file, String... queryParams )
     {
         ApiResponse response = importMetadata( file, queryParams );
 
         response.validate().body( "stats.ignored", not(
             equalTo( response.extract( "stats.total" ) ) ) );
 
-        return response;
+        return new MetadataApiResponse( response );
     }
 }

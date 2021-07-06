@@ -111,9 +111,22 @@ public class JsonObjectBuilder
         return this;
     }
 
+    public JsonObjectBuilder addArray( String name, JsonArray array ) {
+        jsonObject.add( name, array );
+
+        return this;
+    }
+
     public JsonObjectBuilder addObject( String property, JsonObjectBuilder obj )
     {
         jsonObject.add( property, obj.build() );
+
+        return this;
+    }
+
+    public JsonObjectBuilder addObject( String property, JsonObject obj )
+    {
+        jsonObject.add( property, obj);
 
         return this;
     }
@@ -209,6 +222,15 @@ public class JsonObjectBuilder
         newObj.add( arrayName, array );
 
         return newObj;
+    }
+
+
+    public JsonArray wrapIntoArray() {
+        JsonArray array = new JsonArray();
+
+        array.add( jsonObject );
+
+        return array;
     }
 
     public JsonObject build()

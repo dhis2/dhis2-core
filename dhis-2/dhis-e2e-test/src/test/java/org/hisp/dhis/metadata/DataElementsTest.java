@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.DataElementActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
@@ -49,7 +50,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class DataElementsTest
     extends ApiTest
 {
-    private RestApiActions dataElementActions;
+    private DataElementActions dataElementActions;
 
     private RestApiActions categoryComboActions;
 
@@ -67,7 +68,7 @@ public class DataElementsTest
     @BeforeAll
     public void beforeAll()
     {
-        dataElementActions = new RestApiActions( "/dataElements" );
+        dataElementActions = new DataElementActions();
         categoryComboActions = new RestApiActions( "/categoryCombos" );
         loginActions = new LoginActions();
 
@@ -80,10 +81,7 @@ public class DataElementsTest
         String categoryComboDimensionType )
     {
         // arrange
-        JsonObject body = generateBaseBody();
-        body.addProperty( "domainType", domainType );
-        body.addProperty( "valueType", valueType );
-        body.addProperty( "aggregationType", aggregationType );
+        JsonObject body = dataElementActions.body( aggregationType, domainType, valueType );
 
         if ( withCategoryCombo )
         {
@@ -100,15 +98,6 @@ public class DataElementsTest
 
         // assert
         ResponseValidationHelper.validateObjectCreation( response );
-    }
-
-    private JsonObject generateBaseBody()
-    {
-        JsonObject object = new JsonObject();
-        object.addProperty( "name", DataGenerator.randomEntityName() );
-        object.addProperty( "shortName", DataGenerator.randomEntityName() );
-
-        return object;
     }
 
     public String createCategoryCombo( String dimensionType )

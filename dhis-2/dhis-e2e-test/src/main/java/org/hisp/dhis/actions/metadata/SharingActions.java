@@ -45,11 +45,28 @@ public class SharingActions extends RestApiActions
 
     public void setupSharingForConfiguredUserGroup(String type, String id) {
 
-        JsonObject jsonObject = new JsonObject();
+        JsonObject jsonObject = this.get(new QueryParamsBuilder().add( "type=" + type ).add( "id=" + id ).build()).getBody();
 
-        jsonObject.add( "object", JsonObjectBuilder.jsonObject().addUserGroupAccess().build());
+        jsonObject.add( "object", JsonObjectBuilder.jsonObject()
+            .addProperty( "publicAccess", "--------" )
+            .addUserGroupAccess().build());
 
         this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type  ).add( "id=" + id ) ).validate().statusCode( 200 );
+    }
+
+    public void setupSharingForUsers( String type, String id, String... userIds ) {
+        JsonObject jsonObject = this.get(new QueryParamsBuilder().add( "type=" + type ).add( "id=" + id ).build()).getBody();
+
+        for ( String userId : userIds )
+        {
+            JsonObjectBuilder.jsonObject( jsonObject.getAsJsonObject("object") )
+                .addOrAppendToArray( "userAccesses", new JsonObjectBuilder()
+                    .addProperty( "id", userId )
+                    .addProperty( "access", "rw------" ).build());
+        }
+
+        this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type  ).add( "id=" + id ) ).validate().statusCode( 200 );
+
     }
 
 }

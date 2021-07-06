@@ -34,11 +34,14 @@ import static org.hamcrest.Matchers.oneOf;
 import java.io.File;
 import java.util.List;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.dto.ObjectReport;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import io.restassured.RestAssured;
@@ -256,6 +259,21 @@ public class RestApiActions
     public ApiResponse patch( String resourceId, Object object )
     {
         Response response = this.given().body( object, ObjectMapperType.GSON )
+            .when()
+            .contentType( "application/json-patch+json" )
+            .patch( resourceId );
+
+        return new ApiResponse( response );
+    }
+
+    public ApiResponse patch( String resourceId, String operation, String path, String value ) {
+        JsonArray body = JsonObjectBuilder.jsonObject()
+            .addProperty( "op", operation )
+            .addProperty( "path", path )
+            .addProperty( "value", value )
+            .wrapIntoArray();
+
+        Response response = this.given().body( body, ObjectMapperType.GSON )
             .when()
             .contentType( "application/json-patch+json" )
             .patch( resourceId );

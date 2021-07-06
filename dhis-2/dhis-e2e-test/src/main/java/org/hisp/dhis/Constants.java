@@ -37,6 +37,8 @@ public class Constants
 
     public static String SUPER_USER_ID = "PQD6wXJ2r5j";
 
+    public static String ADMIN_ID = "PQD6wXJ2r5k";
+
     public static String USER_GROUP_ID = "OPVIvvXzNTw";
 
     public static String USER_ROLE_ID = "yrB6vc5Ip7r";
