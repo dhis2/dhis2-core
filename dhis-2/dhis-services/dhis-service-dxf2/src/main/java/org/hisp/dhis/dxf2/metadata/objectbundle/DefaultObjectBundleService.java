@@ -27,26 +27,23 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -68,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" )
+@AllArgsConstructor
 public class DefaultObjectBundleService implements ObjectBundleService
 {
     private final CurrentUserService currentUserService;
@@ -88,36 +86,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
     private final MergeService mergeService;
 
-    private List<ObjectBundleHook> objectBundleHooks;
-
-    public DefaultObjectBundleService( CurrentUserService currentUserService, PreheatService preheatService,
-        SchemaService schemaService, SessionFactory sessionFactory, IdentifiableObjectManager manager,
-        DbmsManager dbmsManager, HibernateCacheManager cacheManager, Notifier notifier, MergeService mergeService,
-        DeletedObjectService deletedObjectService, List<ObjectBundleHook> objectBundleHooks )
-    {
-        checkNotNull( currentUserService );
-        checkNotNull( preheatService );
-        checkNotNull( schemaService );
-        checkNotNull( sessionFactory );
-        checkNotNull( manager );
-        checkNotNull( dbmsManager );
-        checkNotNull( cacheManager );
-        checkNotNull( notifier );
-        checkNotNull( mergeService );
-        checkNotNull( deletedObjectService );
-
-        this.objectBundleHooks = (objectBundleHooks != null) ? objectBundleHooks : new ArrayList<>();
-
-        this.currentUserService = currentUserService;
-        this.preheatService = preheatService;
-        this.schemaService = schemaService;
-        this.sessionFactory = sessionFactory;
-        this.manager = manager;
-        this.dbmsManager = dbmsManager;
-        this.cacheManager = cacheManager;
-        this.notifier = notifier;
-        this.mergeService = mergeService;
-    }
+    private final ObjectBundleHooks objectBundleHooks;
 
     @Override
     @Transactional( readOnly = true )
@@ -157,47 +126,18 @@ public class DefaultObjectBundleService implements ObjectBundleService
         List<Class<? extends IdentifiableObject>> klasses = getSortedClasses( bundle );
         Session session = sessionFactory.getCurrentSession();
 
-        objectBundleHooks.forEach( hook -> hook.preCommit( bundle ) );
+        klasses.forEach( klass -> objectBundleHooks.getHooks( klass )
+            .forEach( hook -> hook.preCommit( bundle ) ) );
 
         for ( Class<? extends IdentifiableObject> klass : klasses )
         {
-            List<IdentifiableObject> nonPersistedObjects = bundle.getObjects( klass, false );
-            List<IdentifiableObject> persistedObjects = bundle.getObjects( klass, true );
-
-            objectBundleHooks.forEach( hook -> hook.preTypeImport( klass, nonPersistedObjects, bundle ) );
-
-            if ( bundle.getImportMode().isCreateAndUpdate() )
-            {
-                TypeReport typeReport = new TypeReport( klass );
-                typeReport.merge( handleCreates( session, klass, nonPersistedObjects, bundle ) );
-                typeReport.merge( handleUpdates( session, klass, persistedObjects, bundle ) );
-
-                typeReports.put( klass, typeReport );
-            }
-            else if ( bundle.getImportMode().isCreate() )
-            {
-                typeReports.put( klass, handleCreates( session, klass, nonPersistedObjects, bundle ) );
-            }
-            else if ( bundle.getImportMode().isUpdate() )
-            {
-                typeReports.put( klass, handleUpdates( session, klass, persistedObjects, bundle ) );
-            }
-            else if ( bundle.getImportMode().isDelete() )
-            {
-                typeReports.put( klass, handleDeletes( session, klass, persistedObjects, bundle ) );
-            }
-
-            objectBundleHooks.forEach( hook -> hook.postTypeImport( klass, persistedObjects, bundle ) );
-
-            if ( FlushMode.AUTO == bundle.getFlushMode() )
-            {
-                session.flush();
-            }
+            commitObjectType( bundle, typeReports, session, klass );
         }
 
         if ( !bundle.getImportMode().isDelete() )
         {
-            objectBundleHooks.forEach( hook -> hook.postCommit( bundle ) );
+            klasses.forEach( klass -> objectBundleHooks.getHooks( klass )
+                .forEach( hook -> hook.postCommit( bundle ) ) );
         }
 
         dbmsManager.clearSession();
@@ -207,12 +147,51 @@ public class DefaultObjectBundleService implements ObjectBundleService
         return commitReport;
     }
 
+    private <T extends IdentifiableObject> void commitObjectType( ObjectBundle bundle,
+        Map<Class<?>, TypeReport> typeReports, Session session, Class<T> klass )
+    {
+        List<T> nonPersistedObjects = bundle.getObjects( klass, false );
+        List<T> persistedObjects = bundle.getObjects( klass, true );
+
+        objectBundleHooks.getHooks( klass )
+            .forEach( hook -> hook.preTypeImport( klass, nonPersistedObjects, bundle ) );
+
+        if ( bundle.getImportMode().isCreateAndUpdate() )
+        {
+            TypeReport typeReport = new TypeReport( klass );
+            typeReport.merge( handleCreates( session, klass, nonPersistedObjects, bundle ) );
+            typeReport.merge( handleUpdates( session, klass, persistedObjects, bundle ) );
+
+            typeReports.put( klass, typeReport );
+        }
+        else if ( bundle.getImportMode().isCreate() )
+        {
+            typeReports.put( klass, handleCreates( session, klass, nonPersistedObjects, bundle ) );
+        }
+        else if ( bundle.getImportMode().isUpdate() )
+        {
+            typeReports.put( klass, handleUpdates( session, klass, persistedObjects, bundle ) );
+        }
+        else if ( bundle.getImportMode().isDelete() )
+        {
+            typeReports.put( klass, handleDeletes( session, klass, persistedObjects, bundle ) );
+        }
+
+        objectBundleHooks.getHooks( klass )
+            .forEach( hook -> hook.postTypeImport( klass, persistedObjects, bundle ) );
+
+        if ( FlushMode.AUTO == bundle.getFlushMode() )
+        {
+            session.flush();
+        }
+    }
+
     // -----------------------------------------------------------------------------------
     // Utility Methods
     // -----------------------------------------------------------------------------------
 
-    private TypeReport handleCreates( Session session, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> objects, ObjectBundle bundle )
+    private <T extends IdentifiableObject> TypeReport handleCreates( Session session, Class<T> klass,
+        List<T> objects, ObjectBundle bundle )
     {
         TypeReport typeReport = new TypeReport( klass );
 
@@ -231,11 +210,12 @@ public class DefaultObjectBundleService implements ObjectBundleService
             notifier.notify( bundle.getJobId(), message );
         }
 
-        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.preCreate( object, bundle ) ) );
+        objects.forEach(
+            object -> objectBundleHooks.getHooks( object ).forEach( hook -> hook.preCreate( object, bundle ) ) );
 
         session.flush();
 
-        for ( IdentifiableObject object : objects )
+        for ( T object : objects )
         {
             ObjectReport objectReport = new ObjectReport( object, bundle );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
@@ -245,7 +225,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( bundle.getOverrideUser() != null )
             {
-                ((BaseIdentifiableObject) object).setCreatedBy( bundle.getOverrideUser() );
+                object.setCreatedBy( bundle.getOverrideUser() );
 
                 if ( object instanceof User )
                 {
@@ -272,13 +252,14 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         session.flush();
 
-        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.postCreate( object, bundle ) ) );
+        objects.forEach(
+            object -> objectBundleHooks.getHooks( object ).forEach( hook -> hook.postCreate( object, bundle ) ) );
 
         return typeReport;
     }
 
-    private TypeReport handleUpdates( Session session, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> objects, ObjectBundle bundle )
+    private <T extends IdentifiableObject> TypeReport handleUpdates( Session session, Class<T> klass,
+        List<T> objects, ObjectBundle bundle )
     {
         TypeReport typeReport = new TypeReport( klass );
 
@@ -298,15 +279,15 @@ public class DefaultObjectBundleService implements ObjectBundleService
         }
 
         objects.forEach( object -> {
-            IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
-            objectBundleHooks.forEach( hook -> hook.preUpdate( object, persistedObject, bundle ) );
+            T persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
+            objectBundleHooks.getHooks( object ).forEach( hook -> hook.preUpdate( object, persistedObject, bundle ) );
         } );
 
         session.flush();
 
-        for ( IdentifiableObject object : objects )
+        for ( T object : objects )
         {
-            IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
+            T persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
 
             ObjectReport objectReport = new ObjectReport( object, bundle );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
@@ -324,7 +305,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( bundle.getOverrideUser() != null )
             {
-                ((BaseIdentifiableObject) persistedObject).setCreatedBy( bundle.getOverrideUser() );
+                persistedObject.setCreatedBy( bundle.getOverrideUser() );
 
                 if ( object instanceof User )
                 {
@@ -352,15 +333,15 @@ public class DefaultObjectBundleService implements ObjectBundleService
         session.flush();
 
         objects.forEach( object -> {
-            IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
-            objectBundleHooks.forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
+            T persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
+            objectBundleHooks.getHooks( object ).forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
         } );
 
         return typeReport;
     }
 
-    private TypeReport handleDeletes( Session session, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> objects, ObjectBundle bundle )
+    private <T extends IdentifiableObject> TypeReport handleDeletes( Session session, Class<T> klass,
+        List<T> objects, ObjectBundle bundle )
     {
         TypeReport typeReport = new TypeReport( klass );
 
@@ -379,16 +360,15 @@ public class DefaultObjectBundleService implements ObjectBundleService
             notifier.notify( bundle.getJobId(), message );
         }
 
-        List<IdentifiableObject> persistedObjects = bundle.getPreheat().getAll( bundle.getPreheatIdentifier(),
-            objects );
+        List<T> persistedObjects = bundle.getPreheat().getAll( bundle.getPreheatIdentifier(), objects );
 
-        for ( IdentifiableObject object : persistedObjects )
+        for ( T object : persistedObjects )
         {
             ObjectReport objectReport = new ObjectReport( object, bundle );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
             typeReport.addObjectReport( objectReport );
 
-            objectBundleHooks.forEach( hook -> hook.preDelete( object, bundle ) );
+            objectBundleHooks.getHooks( object ).forEach( hook -> hook.preDelete( object, bundle ) );
             manager.delete( object, bundle.getUser() );
 
             bundle.getPreheat().remove( bundle.getPreheatIdentifier(), object );

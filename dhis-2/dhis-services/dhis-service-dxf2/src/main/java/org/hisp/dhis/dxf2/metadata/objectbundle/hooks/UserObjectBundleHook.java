@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -59,7 +58,7 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class UserObjectBundleHook extends AbstractObjectBundleHook
+public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 {
     private final UserService userService;
 
@@ -83,16 +82,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+    public void validate( User user, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
-        if ( !(object instanceof User) )
-        {
-            return;
-        }
-
-        User user = (User) object;
-
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
             addReports.accept( new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "Whatsapp" ) );
@@ -100,12 +92,10 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
+    public void preCreate( User user, ObjectBundle bundle )
     {
-        if ( !(object instanceof User) || ((User) object).getUserCredentials() == null )
+        if ( user.getUserCredentials() == null )
             return;
-
-        User user = (User) object;
 
         User currentUser = currentUserService.getCurrentUser();
 
@@ -123,13 +113,12 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public void postCreate( IdentifiableObject persistedObject, ObjectBundle bundle )
+    public void postCreate( User user, ObjectBundle bundle )
     {
-        if ( !(persistedObject instanceof User) || !bundle.hasExtras( persistedObject, "uc" ) )
+        if ( !bundle.hasExtras( user, "uc" ) )
             return;
 
-        User user = (User) persistedObject;
-        final UserCredentials userCredentials = (UserCredentials) bundle.getExtras( persistedObject, "uc" );
+        final UserCredentials userCredentials = (UserCredentials) bundle.getExtras( user, "uc" );
 
         if ( !StringUtils.isEmpty( userCredentials.getPassword() ) )
         {
@@ -148,15 +137,14 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         sessionFactory.getCurrentSession().save( userCredentials );
         user.setUserCredentials( userCredentials );
         sessionFactory.getCurrentSession().update( user );
-        bundle.removeExtras( persistedObject, "uc" );
+        bundle.removeExtras( user, "uc" );
     }
 
     @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
+    public void preUpdate( User user, User persistedObject, ObjectBundle bundle )
     {
-        if ( !(object instanceof User) || ((User) object).getUserCredentials() == null )
+        if ( user.getUserCredentials() == null )
             return;
-        User user = (User) object;
         bundle.putExtras( user, "uc", user.getUserCredentials() );
 
         User persisted = (User) persistedObject;
@@ -177,13 +165,12 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public void postUpdate( IdentifiableObject persistedObject, ObjectBundle bundle )
+    public void postUpdate( User user, ObjectBundle bundle )
     {
-        if ( !(persistedObject instanceof User) || !bundle.hasExtras( persistedObject, "uc" ) )
+        if ( !bundle.hasExtras( user, "uc" ) )
             return;
 
-        User user = (User) persistedObject;
-        final UserCredentials userCredentials = (UserCredentials) bundle.getExtras( persistedObject, "uc" );
+        final UserCredentials userCredentials = (UserCredentials) bundle.getExtras( user, "uc" );
         final UserCredentials persistedUserCredentials = bundle.getPreheat().get( bundle.getPreheatIdentifier(),
             UserCredentials.class, user );
 
@@ -201,7 +188,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         user.setUserCredentials( persistedUserCredentials );
 
         sessionFactory.getCurrentSession().update( user.getUserCredentials() );
-        bundle.removeExtras( persistedObject, "uc" );
+        bundle.removeExtras( user, "uc" );
     }
 
     @Override

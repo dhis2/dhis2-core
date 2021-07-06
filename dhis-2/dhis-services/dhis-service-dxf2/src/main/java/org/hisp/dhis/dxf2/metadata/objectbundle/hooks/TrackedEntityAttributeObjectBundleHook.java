@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -42,61 +41,48 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
 @Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" )
-public class TrackedEntityAttributeObjectBundleHook
-    extends AbstractObjectBundleHook
+public class TrackedEntityAttributeObjectBundleHook extends AbstractObjectBundleHook<TrackedEntityAttribute>
 {
+
+    /**
+     * Validate that the RenderType (if any) conforms to the constraints of
+     * ValueType or OptionSet.
+     */
     @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
+    public void validate( TrackedEntityAttribute attr, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
-
-        // Validate that the RenderType (if any) conforms to the constraints of
-        // ValueType or OptionSet.
-
-        if ( object != null && object.getClass().isAssignableFrom( TrackedEntityAttribute.class ) )
+        if ( attr.isGenerated() && !attr.getValueType().equals( ValueType.TEXT ) )
         {
-            TrackedEntityAttribute attr = (TrackedEntityAttribute) object;
+            addReports.accept( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4010, "generated",
+                attr.getValueType() ) );
+        }
 
-            if ( attr.isGenerated() && !attr.getValueType().equals( ValueType.TEXT ) )
+        textPatternValid( attr, addReports );
+
+        if ( attr.getFieldMask() != null )
+        {
+            try
             {
-                addReports.accept( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4010, "generated",
-                    attr.getValueType() ) );
+                TextPatternParser.parse( "\"" + attr.getFieldMask() + "\"" );
             }
-
-            textPatternValid( attr, addReports );
-
-            if ( attr.getFieldMask() != null )
+            catch ( TextPatternParser.TextPatternParsingException e )
             {
-                try
-                {
-                    TextPatternParser.parse( "\"" + attr.getFieldMask() + "\"" );
-                }
-                catch ( TextPatternParser.TextPatternParsingException e )
-                {
-                    addReports.accept( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4019,
-                        attr.getFieldMask(), "Not a valid TextPattern 'TEXT' segment." ) );
-                }
+                addReports.accept( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4019,
+                    attr.getFieldMask(), "Not a valid TextPattern 'TEXT' segment." ) );
             }
-
         }
     }
 
     @Override
-    public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
+    public void postCreate( TrackedEntityAttribute persistedObject, ObjectBundle bundle )
     {
-        if ( persistedObject != null && persistedObject.getClass().isAssignableFrom( TrackedEntityAttribute.class ) )
-        {
-            updateTextPattern( (TrackedEntityAttribute) persistedObject );
-        }
+        updateTextPattern( persistedObject );
     }
 
     @Override
-    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    public void postUpdate( TrackedEntityAttribute persistedObject, ObjectBundle bundle )
     {
-        if ( persistedObject != null && persistedObject.getClass().isAssignableFrom( TrackedEntityAttribute.class ) )
-        {
-            updateTextPattern( (TrackedEntityAttribute) persistedObject );
-        }
+        updateTextPattern( persistedObject );
     }
 
     private void updateTextPattern( TrackedEntityAttribute attr )
