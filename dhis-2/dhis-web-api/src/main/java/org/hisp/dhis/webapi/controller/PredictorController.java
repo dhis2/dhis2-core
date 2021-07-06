@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.expression.ParseType.*;
+import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
+import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 
 import java.io.IOException;
 import java.util.Date;
@@ -56,7 +57,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author Ken Haase (ken@dhis2.org)
@@ -82,7 +88,8 @@ public class PredictorController
     @Autowired
     private I18nManager i18nManager;
 
-    @RequestMapping( value = "/{uid}/run", method = { RequestMethod.POST, RequestMethod.PUT } )
+    @PutMapping( "/{uid}/run" )
+    @PostMapping( "/{uid}/run" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
     public void runPredictor(
         @PathVariable( "uid" ) String uid,
@@ -114,7 +121,8 @@ public class PredictorController
         }
     }
 
-    @RequestMapping( value = "/run", method = { RequestMethod.POST, RequestMethod.PUT } )
+    @PutMapping( "/run" )
+    @PostMapping( "/run" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
     public void runPredictors(
         @RequestParam Date startDate,
@@ -152,7 +160,7 @@ public class PredictorController
         webMessageService.send( WebMessageUtils.ok( "Generated " + count + " predictions" ), response, request );
     }
 
-    @RequestMapping( value = "/expression/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )
     public void getExpressionDescription( @RequestBody String expression, HttpServletResponse response )
         throws IOException
     {
@@ -172,7 +180,7 @@ public class PredictorController
         webMessageService.sendJson( message, response );
     }
 
-    @RequestMapping( value = "/skipTest/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/skipTest/description", produces = MediaType.APPLICATION_JSON_VALUE )
     public void getSkipTestDescription( @RequestBody String expression, HttpServletResponse response )
         throws IOException
     {

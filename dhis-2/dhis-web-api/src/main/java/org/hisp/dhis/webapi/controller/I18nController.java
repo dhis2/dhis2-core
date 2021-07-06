@@ -40,8 +40,8 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -67,7 +67,7 @@ public class I18nController
         this.jsonMapper = jsonMapper;
     }
 
-    @RequestMapping( method = RequestMethod.POST )
+    @PostMapping
     public void postI18n(
         @RequestParam( value = "package", required = false, defaultValue = "org.hisp.dhis" ) String searchPackage,
         HttpServletResponse response, InputStream inputStream )

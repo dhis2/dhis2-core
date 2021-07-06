@@ -57,9 +57,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -109,7 +111,8 @@ public class MaintenanceController
     @Autowired
     private CategoryService categoryService;
 
-    @RequestMapping( value = "/analyticsTablesClear", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/analyticsTablesClear" )
+    @PostMapping( "/analyticsTablesClear" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void clearAnalyticsTables()
@@ -117,7 +120,8 @@ public class MaintenanceController
         analyticsTableService.forEach( AnalyticsTableService::dropTables );
     }
 
-    @RequestMapping( value = "/analyticsTablesAnalyze", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/analyticsTablesAnalyze" )
+    @PostMapping( "/analyticsTablesAnalyze" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void analyzeAnalyticsTables()
@@ -125,7 +129,8 @@ public class MaintenanceController
         analyticsTableService.forEach( AnalyticsTableService::analyzeAnalyticsTables );
     }
 
-    @RequestMapping( value = "/expiredInvitationsClear", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/expiredInvitationsClear" )
+    @PostMapping( "/expiredInvitationsClear" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void clearExpiredInvitations()
@@ -133,7 +138,8 @@ public class MaintenanceController
         maintenanceService.removeExpiredInvitations();
     }
 
-    @RequestMapping( value = "/ouPathsUpdate", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/ouPathsUpdate" )
+    @PostMapping( "/ouPathsUpdate" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void forceUpdatePaths()
@@ -141,7 +147,8 @@ public class MaintenanceController
         organisationUnitService.forceUpdatePaths();
     }
 
-    @RequestMapping( value = "/periodPruning", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/periodPruning" )
+    @PostMapping( "/periodPruning" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void prunePeriods()
@@ -149,7 +156,8 @@ public class MaintenanceController
         maintenanceService.prunePeriods();
     }
 
-    @RequestMapping( value = "/zeroDataValueRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/zeroDataValueRemoval" )
+    @PostMapping( "/zeroDataValueRemoval" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteZeroDataValues()
@@ -157,7 +165,8 @@ public class MaintenanceController
         maintenanceService.deleteZeroDataValues();
     }
 
-    @RequestMapping( value = "/softDeletedDataValueRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/softDeletedDataValueRemoval" )
+    @PostMapping( "/softDeletedDataValueRemoval" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteSoftDeletedDataValues()
@@ -165,8 +174,8 @@ public class MaintenanceController
         maintenanceService.deleteSoftDeletedDataValues();
     }
 
-    @RequestMapping( value = "/softDeletedProgramStageInstanceRemoval", method = { RequestMethod.PUT,
-        RequestMethod.POST } )
+    @PutMapping( "/softDeletedProgramStageInstanceRemoval" )
+    @PostMapping( "/softDeletedProgramStageInstanceRemoval" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteSoftDeletedProgramStageInstances()
@@ -174,7 +183,8 @@ public class MaintenanceController
         maintenanceService.deleteSoftDeletedProgramStageInstances();
     }
 
-    @RequestMapping( value = "/softDeletedProgramInstanceRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/softDeletedProgramInstanceRemoval" )
+    @PostMapping( "/softDeletedProgramInstanceRemoval" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteSoftDeletedProgramInstances()
@@ -182,8 +192,8 @@ public class MaintenanceController
         maintenanceService.deleteSoftDeletedProgramInstances();
     }
 
-    @RequestMapping( value = "/softDeletedTrackedEntityInstanceRemoval", method = { RequestMethod.PUT,
-        RequestMethod.POST } )
+    @PutMapping( "/softDeletedTrackedEntityInstanceRemoval" )
+    @PostMapping( "/softDeletedTrackedEntityInstanceRemoval" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteSoftDeletedTrackedEntityInstances()
@@ -191,7 +201,8 @@ public class MaintenanceController
         maintenanceService.deleteSoftDeletedTrackedEntityInstances();
     }
 
-    @RequestMapping( value = "/sqlViewsCreate", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/sqlViewsCreate" )
+    @PostMapping( "/sqlViewsCreate" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void createSqlViews()
@@ -199,7 +210,8 @@ public class MaintenanceController
         resourceTableService.createAllSqlViews();
     }
 
-    @RequestMapping( value = "/sqlViewsDrop", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/sqlViewsDrop" )
+    @PostMapping( "/sqlViewsDrop" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void dropSqlViews()
@@ -207,7 +219,8 @@ public class MaintenanceController
         resourceTableService.dropAllSqlViews();
     }
 
-    @RequestMapping( value = "/categoryOptionComboUpdate", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/categoryOptionComboUpdate" )
+    @PostMapping( "/categoryOptionComboUpdate" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCategoryOptionCombos()
@@ -215,8 +228,8 @@ public class MaintenanceController
         categoryManager.addAndPruneAllOptionCombos();
     }
 
-    @RequestMapping( value = "/categoryOptionComboUpdate/categoryCombo/{uid}", method = { RequestMethod.PUT,
-        RequestMethod.POST } )
+    @PutMapping( "/categoryOptionComboUpdate/categoryCombo/{uid}" )
+    @PostMapping( "/categoryOptionComboUpdate/categoryCombo/{uid}" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void updateCategoryOptionCombos( @PathVariable String uid, HttpServletRequest request,
         HttpServletResponse response )
@@ -234,7 +247,8 @@ public class MaintenanceController
         webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
     }
 
-    @RequestMapping( value = { "/cacheClear", "/cache" }, method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( value = { "/cacheClear", "/cache" } )
+    @PostMapping( value = { "/cacheClear", "/cache" } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void clearCache()
@@ -242,8 +256,8 @@ public class MaintenanceController
         maintenanceService.clearApplicationCaches();
     }
 
-    @RequestMapping( value = "/dataPruning/organisationUnits/{uid}", method = { RequestMethod.PUT,
-        RequestMethod.POST } )
+    @PutMapping( "/dataPruning/organisationUnits/{uid}" )
+    @PostMapping( "/dataPruning/organisationUnits/{uid}" )
     @PreAuthorize( "hasRole('ALL')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void pruneDataByOrganisationUnit( @PathVariable String uid, HttpServletResponse response )
@@ -266,7 +280,8 @@ public class MaintenanceController
         webMessageService.sendJson( message, response );
     }
 
-    @RequestMapping( value = "/dataPruning/dataElements/{uid}", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/dataPruning/dataElements/{uid}" )
+    @PostMapping( "/dataPruning/dataElements/{uid}" )
     @PreAuthorize( "hasRole('ALL')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void pruneDataByDataElement( @PathVariable String uid, HttpServletResponse response )
@@ -289,7 +304,7 @@ public class MaintenanceController
         webMessageService.sendJson( message, response );
     }
 
-    @RequestMapping( value = "/appReload", method = RequestMethod.GET )
+    @GetMapping( "/appReload" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void appReload( HttpServletResponse response )
         throws IOException
@@ -298,7 +313,8 @@ public class MaintenanceController
         renderService.toJson( response.getOutputStream(), WebMessageUtils.ok( "Apps reloaded" ) );
     }
 
-    @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping
+    @PostMapping
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void performMaintenance(

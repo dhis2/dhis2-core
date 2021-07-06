@@ -42,9 +42,9 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * @author Lars Helge Overland
@@ -60,7 +60,7 @@ public class ProgramIndicatorController
     @Autowired
     private I18nManager i18nManager;
 
-    @RequestMapping( value = "/expression/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )
     public void getExpressionDescription( @RequestBody String expression, HttpServletResponse response )
         throws IOException
     {
@@ -88,7 +88,7 @@ public class ProgramIndicatorController
         webMessageService.sendJson( message, response );
     }
 
-    @RequestMapping( value = "/filter/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/filter/description", produces = MediaType.APPLICATION_JSON_VALUE )
     public void validateFilter( @RequestBody String expression, HttpServletResponse response )
         throws IOException
     {

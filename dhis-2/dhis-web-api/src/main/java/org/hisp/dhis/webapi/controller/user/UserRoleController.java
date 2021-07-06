@@ -47,9 +47,11 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
@@ -79,7 +81,8 @@ public class UserRoleController
         return entityList;
     }
 
-    @RequestMapping( value = "/{id}/users/{userId}", method = { RequestMethod.POST, RequestMethod.PUT } )
+    @PutMapping( "/{id}/users/{userId}" )
+    @PostMapping( "/{id}/users/{userId}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addUserToRole( @PathVariable( value = "id" ) String pvId, @PathVariable( "userId" ) String pvUserId,
         HttpServletResponse response )
@@ -111,7 +114,7 @@ public class UserRoleController
         }
     }
 
-    @RequestMapping( value = "/{id}/users/{userId}", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{id}/users/{userId}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeUserFromRole( @PathVariable( value = "id" ) String pvId,
         @PathVariable( "userId" ) String pvUserId, HttpServletResponse response )

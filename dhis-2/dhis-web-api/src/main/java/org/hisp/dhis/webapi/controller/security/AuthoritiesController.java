@@ -50,7 +50,6 @@ import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -75,7 +74,7 @@ public class AuthoritiesController
     @Autowired
     private SystemAuthoritiesProvider authoritiesProvider;
 
-    @RequestMapping( method = RequestMethod.GET )
+    @GetMapping
     public Map<String, List<Map<String, String>>> getAuthorities( HttpServletResponse response )
     {
         I18n i18n = i18nManager.getI18n();

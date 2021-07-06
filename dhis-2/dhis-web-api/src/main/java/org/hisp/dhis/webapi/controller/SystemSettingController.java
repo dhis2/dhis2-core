@@ -64,10 +64,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -112,7 +114,7 @@ public class SystemSettingController
     // Create
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{key}", method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON,
+    @PostMapping( value = "/{key}", consumes = { ContextUtils.CONTENT_TYPE_JSON,
         ContextUtils.CONTENT_TYPE_TEXT, ContextUtils.CONTENT_TYPE_HTML } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     public void setSystemSettingOrTranslation( @PathVariable( value = "key" ) String key,
@@ -186,7 +188,7 @@ public class SystemSettingController
         }
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON } )
+    @PostMapping( consumes = { ContextUtils.CONTENT_TYPE_JSON } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     public void setSystemSettingV29( @RequestBody Map<String, Object> settings, HttpServletResponse response,
         HttpServletRequest request )
@@ -214,7 +216,7 @@ public class SystemSettingController
     // Read
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_TEXT )
+    @GetMapping( value = "/{key}", produces = ContextUtils.CONTENT_TYPE_TEXT )
     public @ResponseBody Serializable getSystemSettingOrTranslationAsPlainText( @PathVariable( "key" ) String key,
         @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response )
     {
@@ -223,7 +225,7 @@ public class SystemSettingController
         return String.valueOf( getSystemSettingOrTranslation( key, locale ) );
     }
 
-    @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
+    @GetMapping( value = "/{key}", produces = { ContextUtils.CONTENT_TYPE_JSON,
         ContextUtils.CONTENT_TYPE_HTML } )
     public @ResponseBody void getSystemSettingOrTranslationAsJson( @PathVariable( "key" ) String key,
         @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response )
@@ -296,7 +298,7 @@ public class SystemSettingController
         return Optional.empty();
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
+    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON,
         ContextUtils.CONTENT_TYPE_HTML } )
     public void getSystemSettingsJson( @RequestParam( value = "key", required = false ) Set<String> keys,
         HttpServletResponse response )
@@ -309,7 +311,7 @@ public class SystemSettingController
         renderService.toJson( response.getOutputStream(), systemSettingManager.getSystemSettings( settingKeys ) );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = "application/javascript" )
+    @GetMapping( produces = "application/javascript" )
     public void getSystemSettingsJsonP( @RequestParam( value = "key", required = false ) Set<String> keys,
         @RequestParam( defaultValue = "callback" ) String callback, HttpServletResponse response )
         throws IOException
@@ -348,7 +350,7 @@ public class SystemSettingController
     // Remove
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{key}", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{key}" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void removeSystemSetting( @PathVariable( "key" ) String key,

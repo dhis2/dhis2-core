@@ -48,8 +48,9 @@ import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -71,7 +72,8 @@ public class ResourceTableController
     @Autowired
     private WebMessageService webMessageService;
 
-    @RequestMapping( value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/analytics" )
+    @PostMapping( "/analytics" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void analytics(
         @RequestParam( required = false ) boolean skipResourceTables,
@@ -114,7 +116,8 @@ public class ResourceTableController
         webMessageService.send( jobConfigurationReport( analyticsTableJob ), response, request );
     }
 
-    @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping
+    @PostMapping
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void resourceTables( HttpServletResponse response, HttpServletRequest request )
     {
@@ -126,7 +129,8 @@ public class ResourceTableController
         webMessageService.send( jobConfigurationReport( resourceTableJob ), response, request );
     }
 
-    @RequestMapping( value = "/monitoring", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PutMapping( "/monitoring" )
+    @PostMapping( "/monitoring" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void monitoring( HttpServletResponse response, HttpServletRequest request )
     {

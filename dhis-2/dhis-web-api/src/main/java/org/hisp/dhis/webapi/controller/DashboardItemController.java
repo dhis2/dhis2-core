@@ -42,8 +42,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
@@ -60,7 +60,7 @@ public class DashboardItemController
     @Autowired
     private DashboardService dashboardService;
 
-    @RequestMapping( value = "/{uid}/shape/{shape}", method = RequestMethod.PUT )
+    @PutMapping( "/{uid}/shape/{shape}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void putDashboardItemShape( @PathVariable String uid, @PathVariable DashboardItemShape shape,
         HttpServletRequest request, HttpServletResponse response )

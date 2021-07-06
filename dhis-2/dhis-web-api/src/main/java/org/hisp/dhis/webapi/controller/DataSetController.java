@@ -90,10 +90,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -143,7 +145,7 @@ public class DataSetController
     // -------------------------------------------------------------------------
 
     @SuppressWarnings( "unchecked" )
-    @RequestMapping( produces = "application/dsd+xml" )
+    @GetMapping( produces = "application/dsd+xml" )
     public void getStructureDefinition( @RequestParam Map<String, String> parameters, HttpServletResponse response )
         throws IOException,
         TransformerException
@@ -169,7 +171,7 @@ public class DataSetController
         transformer.transform( new StreamSource( input ), new StreamResult( response.getOutputStream() ) );
     }
 
-    @RequestMapping( value = "/{uid}/version", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/version" )
     public void getVersion( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
         HttpServletResponse response )
         throws Exception
@@ -187,7 +189,7 @@ public class DataSetController
         renderService.toJson( response.getOutputStream(), versionMap );
     }
 
-    @RequestMapping( value = "/{uid}/version", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/version" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void bumpVersion( @PathVariable( "uid" ) String uid )
         throws Exception
@@ -204,7 +206,7 @@ public class DataSetController
         dataSetService.updateDataSet( dataSet );
     }
 
-    @RequestMapping( value = "/{uid}/categoryCombos", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/categoryCombos" )
     public @ResponseBody RootNode getCategoryCombinations( @PathVariable( "uid" ) String uid,
         HttpServletRequest request,
         TranslateParams translateParams, HttpServletResponse response )
@@ -232,7 +234,7 @@ public class DataSetController
         return rootNode;
     }
 
-    @RequestMapping( value = "/{uid}/dataValueSet", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/dataValueSet" )
     public @ResponseBody RootNode getDvs( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "orgUnitIdScheme", defaultValue = "ID", required = false ) String orgUnitIdScheme,
         @RequestParam( value = "dataElementIdScheme", defaultValue = "ID", required = false ) String dataElementIdScheme,
@@ -257,7 +259,7 @@ public class DataSetController
             dataElementIdScheme );
     }
 
-    @RequestMapping( value = "/{uid}/form", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/{uid}/form", produces = "application/json" )
     public void getFormJson(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnit,
@@ -290,7 +292,7 @@ public class DataSetController
         renderService.toJson( response.getOutputStream(), form );
     }
 
-    @RequestMapping( value = "/{uid}/form", method = RequestMethod.GET, produces = { "application/xml", "text/xml" } )
+    @GetMapping( value = "/{uid}/form", produces = { "application/xml", "text/xml" } )
     public void getFormXml(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnit,
@@ -360,8 +362,8 @@ public class DataSetController
         return form;
     }
 
-    @RequestMapping( value = { "/{uid}/customDataEntryForm", "/{uid}/form" }, method = { RequestMethod.PUT,
-        RequestMethod.POST }, consumes = "text/html" )
+    @PutMapping( value = { "/{uid}/customDataEntryForm", "/{uid}/form" }, consumes = "text/html" )
+    @PostMapping( value = { "/{uid}/customDataEntryForm", "/{uid}/form" }, consumes = "text/html" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCustomDataEntryFormHtml( @PathVariable( "uid" ) String uid,
         @RequestBody String formContent,
@@ -393,7 +395,7 @@ public class DataSetController
         dataSetService.updateDataSet( dataSet );
     }
 
-    @RequestMapping( value = "/{uid}/form", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/{uid}/form", consumes = MediaType.APPLICATION_JSON_VALUE )
     @ApiVersion( value = DhisApiVersion.ALL )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCustomDataEntryFormJson( @PathVariable( "uid" ) String uid, HttpServletRequest request )
@@ -448,7 +450,7 @@ public class DataSetController
         dataSetService.updateDataSet( dataSet );
     }
 
-    @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/metadata" )
     public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException

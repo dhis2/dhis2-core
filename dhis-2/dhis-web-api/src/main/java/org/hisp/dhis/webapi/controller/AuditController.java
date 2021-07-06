@@ -84,9 +84,9 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -96,7 +96,7 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = "/audits", method = RequestMethod.GET )
+@RequestMapping( "/audits" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AuditController
 {
@@ -156,7 +156,7 @@ public class AuditController
      *
      * @param uid the unique id of the file resource
      */
-    @RequestMapping( value = "/files/{uid}", method = RequestMethod.GET )
+    @GetMapping( "/files/{uid}" )
     public void getFileAudit( @PathVariable String uid, HttpServletResponse response )
         throws WebMessageException
     {
@@ -195,7 +195,7 @@ public class AuditController
         }
     }
 
-    @RequestMapping( value = "dataValue", method = RequestMethod.GET )
+    @GetMapping( "dataValue" )
     public @ResponseBody RootNode getAggregateDataValueAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> ds,
         @RequestParam( required = false, defaultValue = "" ) List<String> de,
@@ -262,7 +262,7 @@ public class AuditController
         return rootNode;
     }
 
-    @RequestMapping( value = "trackedEntityDataValue", method = RequestMethod.GET )
+    @GetMapping( "trackedEntityDataValue" )
     public @ResponseBody RootNode getTrackedEntityDataValueAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> de,
         @RequestParam( required = false, defaultValue = "" ) List<String> psi,
@@ -318,7 +318,7 @@ public class AuditController
         return rootNode;
     }
 
-    @RequestMapping( value = "trackedEntityAttributeValue", method = RequestMethod.GET )
+    @GetMapping( "trackedEntityAttributeValue" )
     public @ResponseBody RootNode getTrackedEntityAttributeValueAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> tea,
         @RequestParam( required = false, defaultValue = "" ) List<String> tei,
@@ -370,7 +370,7 @@ public class AuditController
         return rootNode;
     }
 
-    @RequestMapping( value = "dataApproval", method = RequestMethod.GET )
+    @GetMapping( "dataApproval" )
     public @ResponseBody RootNode getDataApprovalAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> dal,
         @RequestParam( required = false, defaultValue = "" ) List<String> wf,
@@ -421,7 +421,7 @@ public class AuditController
         return rootNode;
     }
 
-    @RequestMapping( value = "trackedEntityInstance", method = RequestMethod.GET )
+    @GetMapping( "trackedEntityInstance" )
     public @ResponseBody RootNode getTrackedEnityInstanceAudit(
         @RequestParam( required = false, defaultValue = "" ) List<String> tei,
         @RequestParam( required = false, defaultValue = "" ) List<String> user,
