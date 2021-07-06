@@ -155,20 +155,16 @@ public class DeduplicationController
     private void validatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
         throws WebMessageException
     {
-        // Validate that teiA is present and a valid uid of an existing TEI
-        if ( potentialDuplicate.getTeiA() == null )
-        {
-            throw new WebMessageException( conflict( "Missing required property 'teiA'" ) );
-        }
+        checkValidAndCanReadTei( potentialDuplicate.getTeiA(), "teiA" );
 
-        checkValidAndCanReadTei( potentialDuplicate.getTeiA() );
+        checkValidAndCanReadTei( potentialDuplicate.getTeiB(), "teiB" );
 
-        // Validate that teiB is a valid uid of an existing TEI if present
-        if ( potentialDuplicate.getTeiB() != null )
-        {
-            checkValidAndCanReadTei( potentialDuplicate.getTeiB() );
-        }
+        checkAlreadyExistingDuplicate( potentialDuplicate );
+    }
 
+    private void checkAlreadyExistingDuplicate( PotentialDuplicate potentialDuplicate )
+        throws WebMessageException
+    {
         if ( deduplicationService.exists( potentialDuplicate ) )
         {
             {
@@ -180,23 +176,24 @@ public class DeduplicationController
         }
     }
 
-    private void checkValidAndCanReadTei( String tei )
+    private void checkValidAndCanReadTei( String tei, String teiFieldName )
         throws WebMessageException
     {
+        if ( tei == null )
+        {
+            throw new WebMessageException( conflict( "Missing required input property '" + teiFieldName + "'" ) );
+        }
+
         if ( !CodeGenerator.isValidUid( tei ) )
         {
             throw new WebMessageException(
-                conflict( "'" + tei + "' is not valid value for property 'teiA'" ) );
+                conflict( "'" + tei + "' is not valid value for property '" + teiFieldName + "'" ) );
         }
 
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
-            .getTrackedEntityInstance( tei );
-
-        if ( trackedEntityInstance == null )
-        {
-            throw new WebMessageException(
-                notFound( "No tracked entity instance found with id '" + tei + "'." ) );
-        }
+        TrackedEntityInstance trackedEntityInstance = Optional.ofNullable( trackedEntityInstanceService
+            .getTrackedEntityInstance( tei ) )
+            .orElseThrow( () -> new WebMessageException(
+                notFound( "No tracked entity instance found with id '" + tei + "'." ) ) );
 
         if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), trackedEntityInstance ).isEmpty() )
         {

@@ -38,10 +38,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deduplication.DeduplicationStatus;
-import org.hisp.dhis.deduplication.PotentialDuplicate;
-import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
-import org.hisp.dhis.deduplication.PotentialDuplicateStore;
+import org.hisp.dhis.deduplication.*;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -125,26 +122,16 @@ public class HibernatePotentialDuplicateStore
     @SuppressWarnings( "unchecked" )
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
-        NativeQuery<BigInteger> query;
-        if ( potentialDuplicate.getTeiA() == null )
-        {
-            return false;
-        }
+        if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
+            throw new PotentialDuplicateException(
+                "Can't search for pair of potential duplicates: teiA and teiB must not be null" );
 
-        if ( potentialDuplicate.getTeiB() == null )
-        {
-            query = getSession().createNativeQuery( "select count(potentialduplicateid) from potentialduplicate pd " +
-                "where pd.teiA = :teia limit 1" );
-            query.setParameter( "teia", potentialDuplicate.getTeiA() );
-        }
-        else
-        {
-            query = getSession().createNativeQuery( "select count(potentialduplicateid) from potentialduplicate pd " +
-                "where (pd.teiA = :teia and pd.teiB = :teib) or (pd.teiA = :teib and pd.teiB = :teia) limit 1" );
+        NativeQuery<BigInteger> query = getSession()
+            .createNativeQuery( "select count(potentialduplicateid) from potentialduplicate pd " +
+                "where (pd.teiA = :teia and pd.teiB = :teib) or (pd.teiA = :teib and pd.teiB = :teia)" );
 
-            query.setParameter( "teia", potentialDuplicate.getTeiA() );
-            query.setParameter( "teib", potentialDuplicate.getTeiB() );
-        }
+        query.setParameter( "teia", potentialDuplicate.getTeiA() );
+        query.setParameter( "teib", potentialDuplicate.getTeiB() );
 
         return query.getSingleResult().intValue() != 0;
     }
