@@ -98,7 +98,7 @@ public class ObjectBundleCommitReport
         }
 
         TypeReport typeReport = typeReportMap.get( report.getKlass() );
-        typeReport.merge( typeReport );
+        typeReport.merge( report );
     }
 
     // -----------------------------------------------------------------------------------
