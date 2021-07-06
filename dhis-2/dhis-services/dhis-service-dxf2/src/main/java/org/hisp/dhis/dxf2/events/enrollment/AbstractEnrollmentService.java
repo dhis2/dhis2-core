@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.enrollment;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
@@ -660,6 +661,21 @@ public abstract class AbstractEnrollmentService
             importSummary.incrementIgnored();
 
             return importSummary;
+        }
+
+        if ( program.getOrganisationUnits() != null && program.getOrganisationUnits().size() > 0 )
+        {
+            boolean programOrgUnitAccessible = program.getOrganisationUnits().stream()
+                .anyMatch( pou -> pou.getUid().equals( enrollment.getOrgUnit() ) );
+            if ( !programOrgUnitAccessible )
+            {
+                importSummary.setStatus( ImportStatus.ERROR );
+                importSummary
+                    .setDescription( "Program is not assigned to this Organisation Unit: " + enrollment.getOrgUnit() );
+                importSummary.incrementIgnored();
+
+                return importSummary;
+            }
         }
 
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
