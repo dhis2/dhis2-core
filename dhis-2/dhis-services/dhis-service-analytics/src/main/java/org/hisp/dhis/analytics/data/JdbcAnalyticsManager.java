@@ -237,22 +237,18 @@ public class JdbcAnalyticsManager
         String coc_uid,
         String co_uid )
     {
-        final short CATEGORY_OPTION_POSITION = 1;
-        final short MIN_SIZE_TYPICAL_FOR_EXPRESSION_WITH_COC = 3;
         Map<String, Object> aggregatedKeyValueMap = new HashMap<>();
 
         keyValueMap.forEach( ( k, v ) -> {
-            String[] tokens = k.split( "-" );
-            if ( tokens.length < MIN_SIZE_TYPICAL_FOR_EXPRESSION_WITH_COC
-                || !tokens[CATEGORY_OPTION_POSITION].equals( coc_uid ) )
-            {
-                return;
-            }
-            tokens[CATEGORY_OPTION_POSITION] = co_uid;
-            String newKey = String.join( "-", tokens );
+            String newKey = Arrays.stream( k.split( "-" ) )
+                .map( t -> t.equals( coc_uid ) ? co_uid : t )
+                .collect( Collectors.joining( "-" ) );
+
             putToAggregatedKeyValueMap( aggregatedKeyValueMap, v, newKey );
         } );
+
         removeTrailingCommasFromAggregatedStringValues( aggregatedKeyValueMap );
+
         return aggregatedKeyValueMap;
     }
 
