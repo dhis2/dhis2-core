@@ -48,8 +48,8 @@ public class MetadataApiResponse
             .stream().filter( p -> {
                 String[] parts = p.getKlass().split( "\\." );
 
-                return parts[ parts.length - 1].equals( metadataObject );
-            }).findFirst()
+                return parts[parts.length - 1].equals( metadataObject );
+            } ).findFirst()
 
             .map( p -> p.getObjectReports().stream().map( ObjectReport::getUid ) ).get().collect( Collectors.toList() );
     }

@@ -36,14 +36,16 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class PotentialDuplicatesActions extends RestApiActions
+public class PotentialDuplicatesActions
+    extends RestApiActions
 {
-    public PotentialDuplicatesActions(  )
+    public PotentialDuplicatesActions()
     {
         super( "/potentialDuplicates" );
     }
 
-    public ApiResponse createPotentialDuplicate(String teiA, String teiB, String status) {
+    public ApiResponse createPotentialDuplicate( String teiA, String teiB, String status )
+    {
         JsonObject object = new JsonObjectBuilder()
             .addProperty( "teiA", teiA )
             .addProperty( "teiB", teiB )

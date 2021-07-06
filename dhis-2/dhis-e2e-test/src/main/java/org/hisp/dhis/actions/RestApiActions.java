@@ -28,14 +28,13 @@ package org.hisp.dhis.actions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.oneOf;
-
-import java.io.File;
-import java.util.List;
-
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import io.restassured.RestAssured;
+import io.restassured.config.ObjectMapperConfig;
+import io.restassured.http.ContentType;
+import io.restassured.mapper.ObjectMapperType;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
@@ -44,12 +43,11 @@ import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
-import io.restassured.RestAssured;
-import io.restassured.config.ObjectMapperConfig;
-import io.restassured.http.ContentType;
-import io.restassured.mapper.ObjectMapperType;
-import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
+import java.io.File;
+import java.util.List;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -165,7 +163,7 @@ public class RestApiActions
     /**
      * Sends get request with provided path and queryParams appended to URL.
      *
-     * @param resourceId Id of resource
+     * @param resourceId         Id of resource
      * @param queryParamsBuilder Query params to append to url
      */
     public ApiResponse get( String resourceId, QueryParamsBuilder queryParamsBuilder )
@@ -181,9 +179,9 @@ public class RestApiActions
      * Sends get request with provided path, contentType, accepting content type
      * and queryParams appended to URL.
      *
-     * @param resourceId Id of resource
-     * @param contentType Content type of the request
-     * @param accept Accepted response Content type
+     * @param resourceId         Id of resource
+     * @param contentType        Content type of the request
+     * @param accept             Accepted response Content type
      * @param queryParamsBuilder Query params to append to url
      */
     public ApiResponse get( String resourceId, String contentType, String accept,
@@ -204,7 +202,7 @@ public class RestApiActions
      * Sends delete request to specified resource. If delete request successful,
      * removes entity from TestRunStorage.
      *
-     * @param resourceId Id of resource
+     * @param resourceId         Id of resource
      * @param queryParamsBuilder Query params to append to url
      */
     public ApiResponse delete( String resourceId, QueryParamsBuilder queryParamsBuilder )
@@ -238,7 +236,7 @@ public class RestApiActions
      * Sends PUT request to specified resource.
      *
      * @param resourceId Id of resource
-     * @param object Body of request
+     * @param object     Body of request
      */
     public ApiResponse update( String resourceId, Object object )
     {
@@ -251,7 +249,7 @@ public class RestApiActions
 
     /**
      * Sends PATCH request to specified resource
-     * 
+     *
      * @param resourceId
      * @param object
      * @return
@@ -266,7 +264,8 @@ public class RestApiActions
         return new ApiResponse( response );
     }
 
-    public ApiResponse patch( String resourceId, String operation, String path, String value ) {
+    public ApiResponse patch( String resourceId, String operation, String path, String value )
+    {
         JsonArray body = JsonObjectBuilder.jsonObject()
             .addProperty( "op", operation )
             .addProperty( "path", path )

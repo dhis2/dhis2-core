@@ -108,10 +108,12 @@ public class OrgUnitProfileTests
     }
 
     @Test
-    public void shouldApplyGroupSets() {
+    public void shouldApplyGroupSets()
+    {
         // arrange
 
-        MetadataApiResponse response = new MetadataActions().importAndValidateMetadata( new File( "src/test/resources/metadata/orgUnits/ou_with_group_and_set.json" ) );
+        MetadataApiResponse response = new MetadataActions()
+            .importAndValidateMetadata( new File( "src/test/resources/metadata/orgUnits/ou_with_group_and_set.json" ) );
 
         String groupSet = response.extractObjectUid( "OrganisationUnitGroupSet" ).get( 0 );
         String ou = response.extractObjectUid( "OrganisationUnit" ).get( 0 );
@@ -119,7 +121,7 @@ public class OrgUnitProfileTests
         JsonArray array = new JsonArray();
         array.add( groupSet );
 
-        JsonObject profileBody = new JsonObjectBuilder( ).addArray( "groupSets", array ).build();
+        JsonObject profileBody = new JsonObjectBuilder().addArray( "groupSets", array ).build();
 
         // act
         orgUnitProfileActions.post(
@@ -140,15 +142,18 @@ public class OrgUnitProfileTests
     }
 
     @Test
-    public void shouldApplyDataItems() {
-        List<String> datItems = new DataItemActions().get("", new QueryParamsBuilder().add( "filter=dimensionItemType:in:[DATA_ELEMENT,PROGRAM_INDICATOR]" ) ).extractList( "dataItems.id" );
+    public void shouldApplyDataItems()
+    {
+        List<String> datItems = new DataItemActions()
+            .get( "", new QueryParamsBuilder().add( "filter=dimensionItemType:in:[DATA_ELEMENT,PROGRAM_INDICATOR]" ) )
+            .extractList( "dataItems.id" );
 
         JsonArray array = new JsonArray();
 
-        datItems.forEach( p-> array.add( p ) );
+        datItems.forEach( p -> array.add( p ) );
 
         orgUnitProfileActions.post(
-            new JsonObjectBuilder( ).addArray( "dataItems", array ).build()
+            new JsonObjectBuilder().addArray( "dataItems", array ).build()
         ).validate().statusCode( 204 );
 
         orgUnitProfileActions.get().validate().body( "dataItems", hasSize( greaterThanOrEqualTo( 1 ) ) );
@@ -156,6 +161,5 @@ public class OrgUnitProfileTests
         // todo add validation for organisationUnitProfile/id/data
 
     }
-
 
 }

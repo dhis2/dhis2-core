@@ -32,13 +32,9 @@ import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.tracker.PotentialDuplicatesActions;
-import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,15 +47,18 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class PotentialDuplicatesTests extends ApiTest
+public class PotentialDuplicatesTests
+    extends ApiTest
 {
     private TrackerActions trackerActions;
+
     private PotentialDuplicatesActions potentialDuplicatesActions;
 
     private LoginActions loginActions;
 
     @BeforeEach
-    public void beforeEach() {
+    public void beforeEach()
+    {
         trackerActions = new TrackerActions();
         loginActions = new LoginActions();
         potentialDuplicatesActions = new PotentialDuplicatesActions();
@@ -68,35 +67,38 @@ public class PotentialDuplicatesTests extends ApiTest
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"OPEN", "INVALID", "MERGED", "ALL"})
-    public void shouldFilterByStatus( String status ) {
+    @ValueSource( strings = { "OPEN", "INVALID", "MERGED", "ALL" } )
+    public void shouldFilterByStatus( String status )
+    {
         String teiA = createTei();
         String teiB = createTei();
 
         potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, status ).validate().statusCode( 200 );
 
-        potentialDuplicatesActions.get("", new QueryParamsBuilder().add( "status=" + status ) )
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + status ) )
             .validate()
-            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 )) )
+            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .body( "identifiableObjects.status", everyItem( equalTo( status ) ) );
     }
 
     @Test
-    public void shouldReturnAllStatuses() {
-        Arrays.asList("OPEN", "MERGED", "INVALID").forEach( status -> {
+    public void shouldReturnAllStatuses()
+    {
+        Arrays.asList( "OPEN", "MERGED", "INVALID" ).forEach( status -> {
             String teiA = createTei();
             String teiB = createTei();
 
             potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, status ).validate().statusCode( 200 );
         } );
 
-        potentialDuplicatesActions.get("", new QueryParamsBuilder().add( "status=ALL" ) )
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=ALL" ) )
             .validate()
-            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 )) )
-            .body( "identifiableObjects.status", allOf( hasItem( "OPEN" ), hasItem( "INVALID" ), hasItem( "MERGED" )) );
+            .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "identifiableObjects.status", allOf( hasItem( "OPEN" ), hasItem( "INVALID" ), hasItem( "MERGED" ) ) );
     }
 
-    private String createTei() {
+    private String createTei()
+    {
         JsonObject object = trackerActions.buildTei( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] );
 
         return trackerActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
