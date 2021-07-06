@@ -12,6 +12,7 @@ pipeline {
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
+        timeout(time: 20, activity: true)
     }
 
     environment {
@@ -64,6 +65,16 @@ pipeline {
                 slackSend(
                     color: '#ff0000',
                     message: "${JOB_NAME} failed. Go to ${BUILD_URL} for more information.",
+                    channel: 'jenkins'
+                )
+            }
+        }
+
+        aborted {
+            script {
+                slackSend(
+                    color: '#ff0000',
+                    message: "${JOB_NAME} was aborted due to inactivity timeout (20 minutes). Go to ${BUILD_URL} for more information.",
                     channel: 'jenkins'
                 )
             }
