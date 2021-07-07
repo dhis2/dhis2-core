@@ -4,7 +4,7 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.event.ProgramStageInstanceAudit" table="programStageInstanceAudit">
+    <class name="org.hisp.dhis.program.ProgramStageInstanceAudit" table="programStageInstanceAudit">
 
         <id name="id" column="programstageinstanceauditid">
             <generator class="native" />
