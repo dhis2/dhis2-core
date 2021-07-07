@@ -43,7 +43,7 @@ import com.google.common.collect.ImmutableList;
 @Service
 public class ExpressionResolvers implements ExpressionResolverCollection
 {
-    private final List<ExpressionResolver> expressionResolvers;
+    private final List<ExpressionResolver> resolvers;
 
     public ExpressionResolvers(
         @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" ) ExpressionResolver cogExpressionResolver,
@@ -52,14 +52,14 @@ public class ExpressionResolvers implements ExpressionResolverCollection
         checkNotNull( cogExpressionResolver );
         checkNotNull( coExpressionResolver );
 
-        expressionResolvers = new ArrayList<>();
-        expressionResolvers.add( cogExpressionResolver );
-        expressionResolvers.add( coExpressionResolver );
+        resolvers = new ArrayList<>();
+        resolvers.add( cogExpressionResolver );
+        resolvers.add( coExpressionResolver );
     }
 
     @Override
     public List<ExpressionResolver> getExpressionResolvers()
     {
-        return ImmutableList.copyOf( expressionResolvers );
+        return ImmutableList.copyOf( resolvers );
     }
 }

@@ -101,10 +101,10 @@ public class CategoryOptionResolver implements ExpressionResolver
         {
             String operand = entry.getKey();
 
-            List<String> resolved_operands = entry.getValue();
+            List<String> resolved = entry.getValue();
 
             expression = expression.replace( operand,
-                LEFT_BRACKET + Joiner.on( "+" ).join( resolved_operands ) + RIGHT_BRACKET );
+                LEFT_BRACKET + Joiner.on( "+" ).join( resolved ) + RIGHT_BRACKET );
         }
 
         return expression;
