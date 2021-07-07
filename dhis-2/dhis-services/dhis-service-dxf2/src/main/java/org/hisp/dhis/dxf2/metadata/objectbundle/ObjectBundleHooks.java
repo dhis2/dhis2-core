@@ -35,7 +35,9 @@ import static java.util.stream.Collectors.toList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.stereotype.Component;
 
@@ -65,16 +67,53 @@ public class ObjectBundleHooks
         this.availableHooks = availableHooks;
     }
 
+    /**
+     * Returns {@link ObjectBundleHook}s to use on a per-object basis.
+     *
+     * @param object the processed object
+     * @param <T> type of the object
+     * @return a list of {@link ObjectBundleHook}s to use when calling
+     *         {@link ObjectBundleHook#validate(Object, ObjectBundle, Consumer)},
+     *         {@link ObjectBundleHook#preCreate(Object, ObjectBundle)} and
+     *         {@link ObjectBundleHook#postCreate(Object, ObjectBundle)},
+     *         {@link ObjectBundleHook#preUpdate(Object, Object, ObjectBundle)}
+     *         and {@link ObjectBundleHook#postUpdate(Object, ObjectBundle)} as
+     *         well as {@link ObjectBundleHook#preDelete(Object, ObjectBundle)}.
+     */
     @SuppressWarnings( "unchecked" )
-    public <T> List<ObjectBundleHook<? super T>> getHooks( T object )
+    public <T> List<ObjectBundleHook<? super T>> getObjectHooks( T object )
     {
-        return getHooks( HibernateProxyUtils.getRealClass( object ) );
+        return getTypeImportHooks( HibernateProxyUtils.getRealClass( object ) );
     }
 
+    /**
+     * Returns {@link ObjectBundleHook}s to use on a per-object-type basis.
+     *
+     * @param objectType type of the committed object(s)
+     * @param <T> type of the committed object(s)
+     * @return a list of {@link ObjectBundleHook}s to use when calling
+     *         {@link ObjectBundleHook#preTypeImport(Class, List, ObjectBundle)}
+     *         and
+     *         {@link ObjectBundleHook#postTypeImport(Class, List, ObjectBundle)}.
+     */
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    public <T> List<ObjectBundleHook<? super T>> getHooks( Class<T> type )
+    public <T> List<ObjectBundleHook<? super T>> getTypeImportHooks( Class<T> objectType )
     {
-        return (List) hooksForObjectType.computeIfAbsent( type, this::computeHooks );
+        return (List) hooksForObjectType.computeIfAbsent( objectType, this::computeHooks );
+    }
+
+    /**
+     * Returns {@link ObjectBundleHook}s to use on a per {@link ObjectBundle}
+     * basis.
+     *
+     * @param objectTypes types of objects in an {@link ObjectBundle}
+     * @return a list of {@link ObjectBundleHook}s to use when calling
+     *         {@link ObjectBundleHook#preCommit(ObjectBundle)} and
+     *         {@link ObjectBundleHook#postCommit(ObjectBundle)}
+     */
+    public List<ObjectBundleHook<?>> getCommitHooks( List<Class<? extends IdentifiableObject>> objectTypes )
+    {
+        return availableHooks.stream().filter( hook -> objectTypes.contains( hook.getTarget() ) ).collect( toList() );
     }
 
     private <T> List<ObjectBundleHook<?>> computeHooks( Class<T> type )

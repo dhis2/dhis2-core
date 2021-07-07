@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -58,6 +58,7 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
+@AllArgsConstructor
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 {
     private final UserService userService;
@@ -67,19 +68,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
-
-    public UserObjectBundleHook( UserService userService, FileResourceService fileResourceService,
-        CurrentUserService currentUserService, AclService aclService )
-    {
-        checkNotNull( userService );
-        checkNotNull( fileResourceService );
-        checkNotNull( currentUserService );
-        checkNotNull( aclService );
-        this.userService = userService;
-        this.fileResourceService = fileResourceService;
-        this.currentUserService = currentUserService;
-        this.aclService = aclService;
-    }
 
     @Override
     public void validate( User user, ObjectBundle bundle,

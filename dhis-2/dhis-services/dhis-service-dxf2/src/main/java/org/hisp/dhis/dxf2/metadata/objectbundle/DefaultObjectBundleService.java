@@ -126,11 +126,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
         List<Class<? extends IdentifiableObject>> klasses = getSortedClasses( bundle );
         Session session = sessionFactory.getCurrentSession();
 
-        klasses.stream()
-            .filter( bundle::hasObjects )
-            .map( objectBundleHooks::getHooks )
-            .forEach( hooks -> hooks
-                .forEach( hook -> hook.preCommit( bundle ) ) );
+        List<ObjectBundleHook<?>> commitHooks = objectBundleHooks.getCommitHooks( klasses );
+        commitHooks.forEach( hook -> hook.preCommit( bundle ) );
 
         for ( Class<? extends IdentifiableObject> klass : klasses )
         {
@@ -139,11 +136,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         if ( !bundle.getImportMode().isDelete() )
         {
-            klasses.stream()
-                .filter( bundle::hasObjects )
-                .map( objectBundleHooks::getHooks )
-                .forEach( klass -> objectBundleHooks.getHooks( klass )
-                    .forEach( hook -> hook.postCommit( bundle ) ) );
+            commitHooks.forEach( hook -> hook.postCommit( bundle ) );
         }
 
         dbmsManager.clearSession();
@@ -159,8 +152,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
         List<T> nonPersistedObjects = bundle.getObjects( klass, false );
         List<T> persistedObjects = bundle.getObjects( klass, true );
 
-        objectBundleHooks.getHooks( klass )
-            .forEach( hook -> hook.preTypeImport( klass, nonPersistedObjects, bundle ) );
+        List<ObjectBundleHook<? super T>> importHooks = objectBundleHooks.getTypeImportHooks( klass );
+        importHooks.forEach( hook -> hook.preTypeImport( klass, nonPersistedObjects, bundle ) );
 
         if ( bundle.getImportMode().isCreateAndUpdate() )
         {
@@ -183,8 +176,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             typeReports.put( klass, handleDeletes( session, klass, persistedObjects, bundle ) );
         }
 
-        objectBundleHooks.getHooks( klass )
-            .forEach( hook -> hook.postTypeImport( klass, persistedObjects, bundle ) );
+        importHooks.forEach( hook -> hook.postTypeImport( klass, persistedObjects, bundle ) );
 
         if ( FlushMode.AUTO == bundle.getFlushMode() )
         {
@@ -216,8 +208,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             notifier.notify( bundle.getJobId(), message );
         }
 
-        objects.forEach(
-            object -> objectBundleHooks.getHooks( object ).forEach( hook -> hook.preCreate( object, bundle ) ) );
+        objects.forEach( object -> objectBundleHooks.getObjectHooks( object )
+            .forEach( hook -> hook.preCreate( object, bundle ) ) );
 
         session.flush();
 
@@ -258,8 +250,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         session.flush();
 
-        objects.forEach(
-            object -> objectBundleHooks.getHooks( object ).forEach( hook -> hook.postCreate( object, bundle ) ) );
+        objects.forEach( object -> objectBundleHooks.getObjectHooks( object )
+            .forEach( hook -> hook.postCreate( object, bundle ) ) );
 
         return typeReport;
     }
@@ -286,7 +278,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         objects.forEach( object -> {
             T persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
-            objectBundleHooks.getHooks( object ).forEach( hook -> hook.preUpdate( object, persistedObject, bundle ) );
+            objectBundleHooks.getObjectHooks( object )
+                .forEach( hook -> hook.preUpdate( object, persistedObject, bundle ) );
         } );
 
         session.flush();
@@ -340,7 +333,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         objects.forEach( object -> {
             T persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
-            objectBundleHooks.getHooks( object ).forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
+            objectBundleHooks.getObjectHooks( object )
+                .forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
         } );
 
         return typeReport;
@@ -374,7 +368,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
             typeReport.addObjectReport( objectReport );
 
-            objectBundleHooks.getHooks( object ).forEach( hook -> hook.preDelete( object, bundle ) );
+            objectBundleHooks.getObjectHooks( object ).forEach( hook -> hook.preDelete( object, bundle ) );
             manager.delete( object, bundle.getUser() );
 
             bundle.getPreheat().remove( bundle.getPreheatIdentifier(), object );

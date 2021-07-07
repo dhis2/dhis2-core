@@ -71,7 +71,7 @@ public class ValidationHooksCheck implements ObjectValidationCheck
     {
         @SuppressWarnings( "unchecked" )
         List<ErrorReport>[] box = new List[1];
-        for ( ObjectBundleHook<? super T> hook : ctx.getObjectBundleHooks().getHooks( object ) )
+        for ( ObjectBundleHook<? super T> hook : ctx.getObjectBundleHooks().getObjectHooks( object ) )
         {
             hook.validate( object, bundle, error -> {
                 List<ErrorReport> list = box[0];
