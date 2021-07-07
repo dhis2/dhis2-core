@@ -29,7 +29,9 @@ package org.hisp.dhis.program;
 
 import java.util.List;
 
+import org.hisp.dhis.audit.AuditType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
@@ -46,6 +48,7 @@ public class DefaultProgramStageInstanceAuditService implements ProgramStageInst
     }
 
     @Override
+    @Transactional
     public void addProgramStageInstanceAudit( ProgramStageInstanceAudit stageInstanceAudit )
     {
 
@@ -53,15 +56,10 @@ public class DefaultProgramStageInstanceAuditService implements ProgramStageInst
     }
 
     @Override
-    public void deleteProgramStageInstanceAudit( ProgramStageInstance programStageInstance )
+    @Transactional( readOnly = true )
+    public List<ProgramStageInstanceAudit> getAllProgramStageInstanceAudits( ProgramStageInstance programStageInstance,
+        AuditType auditType, int first, int max )
     {
-
-        auditStore.delete( programStageInstance );
-    }
-
-    @Override
-    public List<ProgramStageInstanceAudit> getAllProgramStageInstanceAudits( ProgramStageInstance programStageInstance )
-    {
-        return auditStore.getAllAudits( programStageInstance );
+        return auditStore.getAllAudits( programStageInstance, auditType, first, max );
     }
 }

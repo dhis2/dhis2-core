@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.Builder;
 import lombok.Data;
 
 import org.hisp.dhis.common.AuditType;
@@ -43,6 +44,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "programStageInstanceAudit", namespace = DxfNamespaces.DXF_2_0 )
 @Data
+@Builder
 public class ProgramStageInstanceAudit implements Serializable
 {
     private long id;

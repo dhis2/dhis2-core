@@ -27,9 +27,19 @@
  */
 package org.hisp.dhis.program;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -49,18 +59,45 @@ public class HibernateProgramStageInstanceAuditStore implements ProgramStageInst
     @Override
     public void add( ProgramStageInstanceAudit stageInstanceAudit )
     {
+        Session session = sessionFactory.getCurrentSession();
 
+        session.save( stageInstanceAudit );
     }
 
     @Override
-    public void delete( ProgramStageInstance programStageInstance )
+    public List<ProgramStageInstanceAudit> getAllAudits( ProgramStageInstance programStageInstance, AuditType auditType,
+        int first, int max )
     {
+        CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
+        CriteriaQuery<ProgramStageInstanceAudit> query = builder.createQuery( ProgramStageInstanceAudit.class );
+        Root<ProgramStageInstanceAudit> root = query.from( ProgramStageInstanceAudit.class );
+        query.select( root );
 
+        List<Predicate> predicates = getProgramStageInstanceAuditCriteria( programStageInstance,
+            auditType, builder, root, first, max );
+        query.where( predicates.toArray( new Predicate[predicates.size()] ) );
+        query.orderBy( builder.desc( root.get( "created" ) ) );
+
+        return sessionFactory.getCurrentSession().createQuery( query )
+            .setFirstResult( first )
+            .setMaxResults( max )
+            .getResultList();
     }
 
-    @Override
-    public List<ProgramStageInstanceAudit> getAllAudits( ProgramStageInstance programStageInstance )
+    List<Predicate> getProgramStageInstanceAuditCriteria( ProgramStageInstance programStageInstance,
+        AuditType auditType,
+        CriteriaBuilder builder, Root<ProgramStageInstanceAudit> root, int first, int max )
     {
-        return null;
+        List<Predicate> predicates = new ArrayList<>();
+
+        if ( programStageInstance != null )
+        {
+            Expression<DataElement> psiExpression = root.get( "programStageInstance" );
+            Predicate psiPredicate = psiExpression.in( programStageInstance );
+            predicates.add( psiPredicate );
+        }
+
+        return predicates;
     }
+
 }
