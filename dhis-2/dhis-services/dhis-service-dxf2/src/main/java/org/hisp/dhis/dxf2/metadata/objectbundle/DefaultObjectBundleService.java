@@ -126,8 +126,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
         List<Class<? extends IdentifiableObject>> klasses = getSortedClasses( bundle );
         Session session = sessionFactory.getCurrentSession();
 
-        klasses.forEach( klass -> objectBundleHooks.getHooks( klass )
-            .forEach( hook -> hook.preCommit( bundle ) ) );
+        klasses.stream()
+            .filter( bundle::hasObjects )
+            .map( objectBundleHooks::getHooks )
+            .forEach( hooks -> hooks
+                .forEach( hook -> hook.preCommit( bundle ) ) );
 
         for ( Class<? extends IdentifiableObject> klass : klasses )
         {
@@ -136,8 +139,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         if ( !bundle.getImportMode().isDelete() )
         {
-            klasses.forEach( klass -> objectBundleHooks.getHooks( klass )
-                .forEach( hook -> hook.postCommit( bundle ) ) );
+            klasses.stream()
+                .filter( bundle::hasObjects )
+                .map( objectBundleHooks::getHooks )
+                .forEach( klass -> objectBundleHooks.getHooks( klass )
+                    .forEach( hook -> hook.postCommit( bundle ) ) );
         }
 
         dbmsManager.clearSession();

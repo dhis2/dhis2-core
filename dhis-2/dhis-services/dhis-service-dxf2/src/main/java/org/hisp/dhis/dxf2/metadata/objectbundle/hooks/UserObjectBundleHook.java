@@ -193,11 +193,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     @SuppressWarnings( "unchecked" )
     public void postCommit( ObjectBundle bundle )
     {
-        if ( !bundle.hasObjects( User.class ) )
-        {
-            return;
-        }
-
         Iterable<User> objects = bundle.getObjects( User.class );
         Map<String, Map<String, Object>> userReferences = bundle.getObjectReferences( User.class );
         Map<String, Map<String, Object>> userCredentialsReferences = bundle

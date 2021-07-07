@@ -30,7 +30,7 @@ package org.hisp.dhis.common;
 /**
  * @author Lars Helge Overland
  */
-public interface VersionedObject extends IdentifiableObject
+public interface VersionedObject
 {
     /**
      * Returns the current version.

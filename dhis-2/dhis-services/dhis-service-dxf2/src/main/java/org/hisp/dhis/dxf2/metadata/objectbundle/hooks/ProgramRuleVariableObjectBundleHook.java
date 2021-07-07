@@ -153,9 +153,11 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
     @Override
     public void preUpdate( ProgramRuleVariable variable, ProgramRuleVariable persistedObject, ObjectBundle bundle )
     {
-
-        SOURCE_TYPE_RESOLVER.getOrDefault( variable.getSourceType(), v -> {
-        } ).accept( variable );
+        Consumer<ProgramRuleVariable> mod = SOURCE_TYPE_RESOLVER.get( variable.getSourceType() );
+        if ( mod != null )
+        {
+            mod.accept( variable );
+        }
     }
 
     private void processCalculatedValue( ProgramRuleVariable variable )

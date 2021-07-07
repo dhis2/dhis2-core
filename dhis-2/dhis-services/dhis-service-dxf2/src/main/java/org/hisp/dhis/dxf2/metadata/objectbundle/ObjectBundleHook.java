@@ -40,6 +40,10 @@ import org.hisp.dhis.feedback.ErrorReport;
 /**
  * Contains hooks for object bundle commit phase.
  *
+ * A hook is bound to a target type. This is either a specific class type (an
+ * actual database object) or an abstract type. This means a hook either handles
+ * one specific type or a family of types.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface ObjectBundleHook<T>
@@ -77,6 +81,7 @@ public interface ObjectBundleHook<T>
                 return (Class<T>) ((ParameterizedType) t).getActualTypeArguments()[0];
             }
         }
+        // all objects are targets
         return null;
     }
 
@@ -124,12 +129,20 @@ public interface ObjectBundleHook<T>
     /**
      * Run before commit phase has started.
      *
+     * This is only called if the bundle contains objects of this hooks
+     * {@link #getTarget()} type. It is never called for hooks with abstract
+     * target type.
+     *
      * @param bundle Current commit phase bundle
      */
     void preCommit( ObjectBundle bundle );
 
     /**
      * Run after commit phase has finished.
+     *
+     * This is only called if the bundle contains objects of this hooks
+     * {@link #getTarget()} type.It is never called for hooks with abstract
+     * target type.
      *
      * @param bundle Current commit phase bundle
      */

@@ -49,15 +49,6 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
     @Override
     public void preCommit( ObjectBundle bundle )
     {
-        if ( !bundle.hasObjects( OrganisationUnit.class ) )
-        {
-            return;
-        }
-        sortOrganisationUnits( bundle );
-    }
-
-    private void sortOrganisationUnits( ObjectBundle bundle )
-    {
         List<OrganisationUnit> nonPersistedObjects = bundle.getObjects( OrganisationUnit.class, false );
         List<OrganisationUnit> persistedObjects = bundle.getObjects( OrganisationUnit.class, true );
 
@@ -68,11 +59,6 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
     @Override
     public void postCommit( ObjectBundle bundle )
     {
-        if ( !bundle.hasObjects( OrganisationUnit.class ) )
-        {
-            return;
-        }
-
         Iterable<OrganisationUnit> objects = bundle.getObjects( OrganisationUnit.class );
         Map<String, Map<String, Object>> objectReferences = bundle.getObjectReferences( OrganisationUnit.class );
 
