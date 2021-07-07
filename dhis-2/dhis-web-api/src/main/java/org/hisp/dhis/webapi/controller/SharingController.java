@@ -78,14 +78,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = SharingController.RESOURCE_PATH, method = RequestMethod.GET )
+@RequestMapping( value = SharingController.RESOURCE_PATH )
 @Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SharingController
@@ -229,11 +228,17 @@ public class SharingController
     }
 
     @PutMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
-    @PostMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void setSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response,
+    public void putSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response,
         HttpServletRequest request )
-        throws IOException,
-        WebMessageException
+        throws Exception
+    {
+        postSharing( type, id, response, request );
+    }
+
+    @PostMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
+    public void postSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response,
+        HttpServletRequest request )
+        throws Exception
     {
         type = getSharingType( type );
 

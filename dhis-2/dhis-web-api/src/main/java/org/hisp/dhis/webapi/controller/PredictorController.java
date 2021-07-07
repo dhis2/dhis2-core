@@ -59,9 +59,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -88,8 +88,7 @@ public class PredictorController
     @Autowired
     private I18nManager i18nManager;
 
-    @PutMapping( "/{uid}/run" )
-    @PostMapping( "/{uid}/run" )
+    @RequestMapping( value = "/{uid}/run", method = { RequestMethod.POST, RequestMethod.PUT } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
     public void runPredictor(
         @PathVariable( "uid" ) String uid,
@@ -121,8 +120,7 @@ public class PredictorController
         }
     }
 
-    @PutMapping( "/run" )
-    @PostMapping( "/run" )
+    @RequestMapping( value = "/run", method = { RequestMethod.POST, RequestMethod.PUT } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
     public void runPredictors(
         @RequestParam Date startDate,
