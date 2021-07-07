@@ -131,6 +131,7 @@ public class DefaultSchemaService
         .add( new LegendSetSchemaDescriptor() )
         .add( new ExternalMapLayerSchemaDescriptor() )
         .add( new MapSchemaDescriptor() )
+        .add( new ManagementSchemaDescriptor() )
         .add( new MapViewSchemaDescriptor() )
         .add( new MessageConversationSchemaDescriptor() )
         .add( new OAuth2ClientSchemaDescriptor() )
