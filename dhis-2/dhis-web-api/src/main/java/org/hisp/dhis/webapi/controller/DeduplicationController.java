@@ -57,6 +57,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import com.google.common.collect.Lists;
 
@@ -110,7 +111,8 @@ public class DeduplicationController
     @GetMapping( value = "/{id}" )
     public PotentialDuplicate getPotentialDuplicate(
         @PathVariable String id )
-        throws WebMessageException
+        throws WebMessageException,
+        HttpStatusCodeException
     {
         return getPotentialDuplicateBy( id );
     }
@@ -118,7 +120,8 @@ public class DeduplicationController
     @PostMapping
     public PotentialDuplicate postPotentialDuplicate(
         @RequestBody PotentialDuplicate potentialDuplicate )
-        throws WebMessageException
+        throws WebMessageException,
+        HttpStatusCodeException
     {
         validatePotentialDuplicate( potentialDuplicate );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
@@ -128,7 +131,8 @@ public class DeduplicationController
     @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST }, value = "/{id}/invalidation" )
     public void markPotentialDuplicateInvalid(
         @PathVariable String id )
-        throws WebMessageException
+        throws WebMessageException,
+        HttpStatusCodeException
     {
         PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
 
@@ -139,7 +143,8 @@ public class DeduplicationController
     @DeleteMapping( value = "/{id}" )
     public void deletePotentialDuplicate(
         @PathVariable String id )
-        throws WebMessageException
+        throws WebMessageException,
+        HttpStatusCodeException
     {
         PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
         deduplicationService.deletePotentialDuplicate( potentialDuplicate );
