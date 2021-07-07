@@ -33,6 +33,7 @@ import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
 
 import java.net.URI;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -88,7 +89,12 @@ public class DefaultGistService implements GistService
     @Override
     public GistQuery plan( GistQuery query )
     {
-        return new GistPlanner( query, createPropertyContext( query ), createGistAccessControl() ).plan();
+        GistAccessControl access = createGistAccessControl();
+        if ( query.isDescribe() && !access.isSuperuser() )
+        {
+            query = query.toBuilder().describe( false ).build();
+        }
+        return new GistPlanner( query, createPropertyContext( query ), access ).plan();
     }
 
     @Override
@@ -145,6 +151,47 @@ public class DefaultGistService implements GistService
             }
         }
         return new GistPager( page, query.getPageSize(), total, prev, next );
+    }
+
+    @Override
+    public Map<String, ?> describe( GistQuery query )
+    {
+        GistAccessControl access = createGistAccessControl();
+        RelativePropertyContext context = createPropertyContext( query );
+        Map<String, Object> description = new LinkedHashMap<>();
+
+        // describe validation
+        boolean valid = true;
+        try
+        {
+            new GistValidator( query, context, access ).validateQuery();
+        }
+        catch ( RuntimeException ex )
+        {
+            valid = false;
+            description.put( "error.type", ex.getClass().getName() );
+            description.put( "error.message", ex.getMessage() );
+        }
+
+        // describe HQL queries
+        if ( valid )
+        {
+            if ( query.isTotal() )
+            {
+                description.put( "hql.count",
+                    createCountBuilder( query, context, access, this::getUserGroupIdsByUserId ).buildCountHQL() );
+            }
+            GistBuilder fetchBuilder = createFetchBuilder( query, context, access, this::getUserGroupIdsByUserId );
+            description.put( "hql.fetch", fetchBuilder.buildFetchHQL() );
+            Map<String, Object> params = new LinkedHashMap<>();
+            fetchBuilder.addFetchParameters( params::put, this::parseFilterArgument );
+            description.put( "hql.parameters", params );
+        }
+
+        // describe query
+        description.put( "query.summary", query.getFieldNames() );
+        description.put( "query", query );
+        return description;
     }
 
     private GistAccessControl createGistAccessControl()

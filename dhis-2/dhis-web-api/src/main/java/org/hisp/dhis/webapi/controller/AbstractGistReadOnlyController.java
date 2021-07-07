@@ -162,6 +162,10 @@ public abstract class AbstractGistReadOnlyController<T extends IdentifiableObjec
         throws NotFoundException
     {
         query = gistService.plan( query );
+        if ( query.isDescribe() )
+        {
+            return gistDescribeToJsonObjectResponse( query );
+        }
         List<?> elements = gistService.gist( query );
         JsonNode body = new JsonBuilder( jsonMapper ).skipNullOrEmpty().toArray( query.getFieldNames(), elements );
         if ( body.isEmpty() )
@@ -172,18 +176,28 @@ public abstract class AbstractGistReadOnlyController<T extends IdentifiableObjec
     }
 
     private ResponseEntity<JsonNode> gistToJsonArrayResponse( HttpServletRequest request,
-        GistQuery query, Schema dynamicSchema )
+        GistQuery query, Schema schema )
     {
         query = gistService.plan( query );
+        if ( query.isDescribe() )
+        {
+            return gistDescribeToJsonObjectResponse( query );
+        }
         List<?> elements = gistService.gist( query );
         JsonBuilder responseBuilder = new JsonBuilder( jsonMapper );
         JsonNode body = responseBuilder.skipNullOrEmpty().toArray( query.getFieldNames(), elements );
         if ( !query.isHeadless() )
         {
-            body = responseBuilder.toObject( asList( "pager", dynamicSchema.getPlural() ),
+            body = responseBuilder.toObject( asList( "pager", schema.getPlural() ),
                 gistService.pager( query, elements, request.getParameterMap() ), body );
         }
         return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body );
+    }
+
+    private ResponseEntity<JsonNode> gistDescribeToJsonObjectResponse( GistQuery query )
+    {
+        return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body(
+            new JsonBuilder( jsonMapper ).skipNullMembers().toObject( gistService.describe( query ) ) );
     }
 
     // --------------------------------------------------------------------------

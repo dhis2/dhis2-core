@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -166,22 +167,46 @@ public final class JsonBuilder
         for ( String field : fields )
         {
             Object value = iter.hasNext() ? iter.next() : null;
-            if ( !skipValue( value ) )
+            addMember( obj, field, value, memberObjectsByName );
+        }
+        return obj;
+    }
+
+    private void addMember( ObjectNode obj, String name, Object value, Map<String, ObjectNode> memberObjectsByName )
+    {
+        if ( !skipValue( value ) )
+        {
+            JsonNode node = jackson.valueToTree( cleanValue( value ) );
+            if ( name.contains( "." ) )
             {
-                JsonNode node = jackson.valueToTree( cleanValue( value ) );
-                if ( field.contains( "." ) )
+                String member = name.substring( 0, name.indexOf( '.' ) );
+                ObjectNode memberNode = memberObjectsByName.computeIfAbsent( member,
+                    key -> jackson.createObjectNode() );
+                obj.set( member, memberNode );
+                memberNode.set( name.substring( name.indexOf( '.' ) + 1 ), node );
+            }
+            else
+            {
+                if ( memberObjectsByName.containsKey( name ) && node.isObject() )
                 {
-                    String member = field.substring( 0, field.indexOf( '.' ) );
-                    ObjectNode memberNode = memberObjectsByName.computeIfAbsent( member,
-                        key -> jackson.createObjectNode() );
-                    obj.set( member, memberNode );
-                    memberNode.set( field.substring( field.indexOf( '.' ) + 1 ), node );
+                    ObjectNode memberNode = memberObjectsByName.get( name );
+                    memberNode.setAll( (ObjectNode) node );
                 }
                 else
                 {
-                    obj.set( field, node );
+                    obj.set( name, node );
                 }
             }
+        }
+    }
+
+    public ObjectNode toObject( Map<String, ?> members )
+    {
+        ObjectNode obj = jackson.createObjectNode();
+        Map<String, ObjectNode> memberObjectsByName = new HashMap<>();
+        for ( Entry<String, ?> member : members.entrySet() )
+        {
+            addMember( obj, member.getKey(), member.getValue(), memberObjectsByName );
         }
         return obj;
     }

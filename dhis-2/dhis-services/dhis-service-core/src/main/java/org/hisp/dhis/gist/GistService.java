@@ -78,4 +78,6 @@ public interface GistService
      * @return the pager suitable for the provided situation
      */
     GistPager pager( GistQuery query, List<?> rows, Map<String, String[]> params );
+
+    Map<String, ?> describe( GistQuery query );
 }
