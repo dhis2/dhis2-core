@@ -29,8 +29,6 @@ package org.hisp.dhis.program;
 
 import java.util.List;
 
-import org.hisp.dhis.audit.AuditType;
-
 /**
  * @author Zubair Asghar
  */
@@ -39,6 +37,7 @@ public interface ProgramStageInstanceAuditService
 
     void addProgramStageInstanceAudit( ProgramStageInstanceAudit stageInstanceAudit );
 
-    List<ProgramStageInstanceAudit> getAllProgramStageInstanceAudits( ProgramStageInstance programStageInstance,
-        AuditType auditType, int first, int max );
+    List<ProgramStageInstanceAudit> getAllProgramStageInstanceAudits( ProgramStageInstanceAuditParam params );
+
+    int getProgramStageInstanceAuditCount( ProgramStageInstanceAuditParam params );
 }

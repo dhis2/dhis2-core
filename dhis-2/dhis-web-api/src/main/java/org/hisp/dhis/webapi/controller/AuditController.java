@@ -514,7 +514,7 @@ public class AuditController
 
         if ( !params.isSkipPaging() )
         {
-            int total = programStageInstanceAuditService.getTrackedEntityInstanceAuditsCount( params );
+            int total = programStageInstanceAuditService.getProgramStageInstanceAuditCount( params );
 
             pager = new Pager( page, total, pageSize );
 
