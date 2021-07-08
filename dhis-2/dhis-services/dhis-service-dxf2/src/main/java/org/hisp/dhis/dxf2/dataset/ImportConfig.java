@@ -127,18 +127,23 @@ final class ImportConfig
         String schemeName = primary.get();
         if ( schemeName != null )
         {
-            return IdScheme.from( schemeName );
+            return getIdSchemeIdAsUid( IdScheme.from( schemeName ) );
         }
         IdScheme scheme = secondary.get();
         if ( scheme != null && scheme != IdScheme.NULL )
         {
-            return scheme;
+            return getIdSchemeIdAsUid( scheme );
         }
         schemeName = primaryDefault.get();
         if ( schemeName != null )
         {
-            return IdScheme.from( schemeName );
+            return getIdSchemeIdAsUid( IdScheme.from( schemeName ) );
         }
-        return IdScheme.from( secondaryDefault.get() );
+        return getIdSchemeIdAsUid( IdScheme.from( secondaryDefault.get() ) );
+    }
+
+    private static IdScheme getIdSchemeIdAsUid( IdScheme scheme )
+    {
+        return scheme == IdScheme.ID ? IdScheme.UID : scheme;
     }
 }
