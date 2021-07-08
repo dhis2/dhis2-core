@@ -643,7 +643,7 @@ public abstract class AbstractEnrollmentService
     {
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
-        String error = validateProgramForEnrollment( program, enrollment, importSummary );
+        String error = validateProgramForEnrollment( program, enrollment );
         if ( !StringUtils.isEmpty( error ) )
         {
             importSummary.setStatus( ImportStatus.ERROR );
@@ -717,7 +717,7 @@ public abstract class AbstractEnrollmentService
         return importSummary;
     }
 
-    private String validateProgramForEnrollment( Program program, Enrollment enrollment, ImportSummary importSummary )
+    private String validateProgramForEnrollment( Program program, Enrollment enrollment )
     {
         if ( program == null )
         {
