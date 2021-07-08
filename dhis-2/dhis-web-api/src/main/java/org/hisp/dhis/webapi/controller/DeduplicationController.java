@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.*;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.util.List;
