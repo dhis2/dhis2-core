@@ -50,6 +50,7 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.MediaType;
@@ -84,6 +85,9 @@ public class DeduplicationControllerMvcTest
     @Mock
     private ContextService contextService;
 
+    @InjectMocks
+    private DeduplicationController deduplicationController;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String teiA = "trackedentA";
@@ -93,10 +97,6 @@ public class DeduplicationControllerMvcTest
     @Before
     public void setUp()
     {
-        final DeduplicationController deduplicationController = new DeduplicationController( deduplicationService,
-            trackedEntityInstanceService, trackerAccessManager, currentUserService, fieldFilterService,
-            contextService );
-
         mockMvc = MockMvcBuilders.standaloneSetup( deduplicationController ).build();
 
         lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
@@ -156,7 +156,6 @@ public class DeduplicationControllerMvcTest
 
         verify( deduplicationService ).updatePotentialDuplicate( potentialDuplicate );
         verify( deduplicationService ).getPotentialDuplicateByUid( uid );
-
     }
 
     @Test
