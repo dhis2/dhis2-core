@@ -118,6 +118,23 @@ public class GistDescribeControllerTest extends AbstractGistControllerTest
         assertEquals( "Jo%", parameters.getString( "f_0" ).string() );
     }
 
+    @Test
+    public void testDescribe_Authorisation_Guest()
+    {
+        switchToGuestUser();
+
+        JsonObject description = GET( "/users/{uid}/gist?describe=true", getSuperuserUid() ).content();
+        assertFalse( description.has( "hql" ) );
+    }
+
+    @Test
+    public void testDescribe_Authorisation_Admin()
+    {
+        switchToNewUser( "guest", "Test_skipSharingCheck", "F_METADATA_EXPORT" );
+
+        assertBaseDescription( GET( "/users/{uid}/gist?describe=true", getSuperuserUid() ).content() );
+    }
+
     private void assertBaseDescription( JsonObject description )
     {
         assertTrue( description.has( "status", "hql", "planned", "unplanned" ) );

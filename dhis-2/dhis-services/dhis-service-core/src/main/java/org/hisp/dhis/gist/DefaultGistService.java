@@ -89,12 +89,7 @@ public class DefaultGistService implements GistService
     @Override
     public GistQuery plan( GistQuery query )
     {
-        GistAccessControl access = createGistAccessControl();
-        if ( query.isDescribe() && !access.isDescribeUser() )
-        {
-            query = query.toBuilder().describe( false ).build();
-        }
-        return new GistPlanner( query, createPropertyContext( query ), access ).plan();
+        return new GistPlanner( query, createPropertyContext( query ), createGistAccessControl() ).plan();
     }
 
     @Override
@@ -156,6 +151,8 @@ public class DefaultGistService implements GistService
     @Override
     public Map<String, ?> describe( GistQuery unplanned )
     {
+        GistAccessControl access = createGistAccessControl();
+
         GistQuery planned = unplanned;
         Map<String, Object> description = new LinkedHashMap<>();
         description.put( "unplanned", unplanned );
@@ -171,7 +168,6 @@ public class DefaultGistService implements GistService
             return description;
         }
 
-        GistAccessControl access = createGistAccessControl();
         RelativePropertyContext context = createPropertyContext( planned );
 
         // describe query
@@ -192,16 +188,20 @@ public class DefaultGistService implements GistService
         }
 
         // describe HQL queries
-        if ( planned.isTotal() )
+        if ( access.canReadHQL() )
         {
-            description.put( "hql.count",
-                createCountBuilder( planned, context, access, this::getUserGroupIdsByUserId ).buildCountHQL() );
+            if ( planned.isTotal() )
+            {
+                description.put( "hql.count",
+                    createCountBuilder( planned, context, access, this::getUserGroupIdsByUserId ).buildCountHQL() );
+            }
+            GistBuilder fetchBuilder = createFetchBuilder( planned, context, access, this::getUserGroupIdsByUserId );
+            description.put( "hql.fetch", fetchBuilder.buildFetchHQL() );
+            Map<String, Object> params = new LinkedHashMap<>();
+            fetchBuilder.addFetchParameters( params::put, this::parseFilterArgument );
+            description.put( "hql.parameters", params );
         }
-        GistBuilder fetchBuilder = createFetchBuilder( planned, context, access, this::getUserGroupIdsByUserId );
-        description.put( "hql.fetch", fetchBuilder.buildFetchHQL() );
-        Map<String, Object> params = new LinkedHashMap<>();
-        fetchBuilder.addFetchParameters( params::put, this::parseFilterArgument );
-        description.put( "hql.parameters", params );
+
         description.put( "status", "ok" );
         return description;
     }

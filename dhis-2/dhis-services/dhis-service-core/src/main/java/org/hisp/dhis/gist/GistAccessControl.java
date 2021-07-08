@@ -56,11 +56,11 @@ public interface GistAccessControl
 
     /**
      * Whether or not the current user is allowed to use Gist API
-     * {@code describe}
+     * {@code describe} to view the HQL query.
      *
      * @return true, if the current user is allowed, otherwise false
      */
-    boolean isDescribeUser();
+    boolean canReadHQL();
 
     boolean canRead( Class<? extends IdentifiableObject> type );
 
