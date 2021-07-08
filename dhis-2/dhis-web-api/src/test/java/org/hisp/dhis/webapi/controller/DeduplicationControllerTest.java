@@ -147,7 +147,7 @@ public class DeduplicationControllerTest
         throws WebMessageException
     {
         when( deduplicationService.getPotentialDuplicateByUid( teiA ) )
-            .thenReturn( new PotentialDuplicate( teiA ) );
+            .thenReturn( new PotentialDuplicate( teiA, teiB ) );
 
         PotentialDuplicate pd = deduplicationController.getPotentialDuplicate( teiA );
 
@@ -159,9 +159,7 @@ public class DeduplicationControllerTest
     public void postPotentialDuplicate()
         throws WebMessageException
     {
-        PotentialDuplicate pd = new PotentialDuplicate( teiA, teiB );
-
-        Mockito.when( deduplicationService.exists( pd ) ).thenReturn( false );
+        Mockito.when( deduplicationService.exists( new PotentialDuplicate( teiA, teiB ) ) ).thenReturn( false );
 
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
 
@@ -178,26 +176,11 @@ public class DeduplicationControllerTest
     }
 
     @Test
-    public void postPotentialDuplicateMissingRequiredPropertyTeiA()
-    {
-        try
-        {
-            deduplicationController.postPotentialDuplicate( new PotentialDuplicate() );
-        }
-        catch ( WebMessageException e )
-        {
-            checkWebMessageException( e.getWebMessage(), HttpStatus.CONFLICT.value() );
-        }
-
-        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
-    }
-
-    @Test
     public void postPotentialDuplicateInvalidUid()
     {
         try
         {
-            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( "invalid" ) );
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( "invalid", "invalid1" ) );
         }
         catch ( WebMessageException e )
         {
@@ -205,43 +188,6 @@ public class DeduplicationControllerTest
         }
 
         verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
-    }
-
-    @Test
-    public void postPotentialDuplicateInvalidTei()
-    {
-        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
-            .thenReturn( null );
-
-        try
-        {
-            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA ) );
-        }
-        catch ( WebMessageException e )
-        {
-            checkWebMessageException( e.getWebMessage(), HttpStatus.NOT_FOUND.value() );
-        }
-
-        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
-    }
-
-    @Test
-    public void postPotentialDuplicateNoAccessToTeiA()
-    {
-        when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
-            Lists.newArrayList( "Error" ) );
-
-        try
-        {
-            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA ) );
-        }
-        catch ( WebMessageException e )
-        {
-            checkWebMessageException( e.getWebMessage(), HttpStatus.FORBIDDEN.value() );
-        }
-
-        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
-        verify( trackerAccessManager ).canRead( user, trackedEntityInstanceA );
     }
 
     @Test
@@ -260,6 +206,73 @@ public class DeduplicationControllerTest
         }
 
         verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
+    }
+
+    @Test
+    public void postPotentialDuplicateMissingRequiredTeis()
+    {
+        try
+        {
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( null, null ) );
+        }
+        catch ( WebMessageException e )
+        {
+            checkWebMessageException( e.getWebMessage(), HttpStatus.CONFLICT.value() );
+        }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
+    }
+
+    @Test
+    public void postPotentialDuplicateOnlyOneTei()
+    {
+        try
+        {
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, null ) );
+        }
+        catch ( WebMessageException e )
+        {
+            checkWebMessageException( e.getWebMessage(), HttpStatus.CONFLICT.value() );
+        }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
+    }
+
+    @Test
+    public void postPotentialDuplicateTeiNotFound()
+    {
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
+            .thenReturn( null );
+
+        try
+        {
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, teiB ) );
+        }
+        catch ( WebMessageException e )
+        {
+            checkWebMessageException( e.getWebMessage(), HttpStatus.NOT_FOUND.value() );
+        }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
+    }
+
+    @Test
+    public void postPotentialDuplicateNoAccessToTeiA()
+    {
+        when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
+            Lists.newArrayList( "Error" ) );
+
+        try
+        {
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, teiB ) );
+        }
+        catch ( WebMessageException e )
+        {
+            checkWebMessageException( e.getWebMessage(), HttpStatus.FORBIDDEN.value() );
+        }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
+        verify( trackerAccessManager ).canRead( user, trackedEntityInstanceA );
     }
 
     @Test
@@ -317,7 +330,8 @@ public class DeduplicationControllerTest
         throws WebMessageException
     {
 
-        when( deduplicationService.getPotentialDuplicateByUid( teiA ) ).thenReturn( new PotentialDuplicate( teiA ) );
+        when( deduplicationService.getPotentialDuplicateByUid( teiA ) )
+            .thenReturn( new PotentialDuplicate( teiA, teiB ) );
 
         deduplicationController.markPotentialDuplicateInvalid( teiA );
 
