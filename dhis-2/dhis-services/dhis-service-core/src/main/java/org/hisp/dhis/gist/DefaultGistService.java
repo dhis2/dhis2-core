@@ -90,7 +90,7 @@ public class DefaultGistService implements GistService
     public GistQuery plan( GistQuery query )
     {
         GistAccessControl access = createGistAccessControl();
-        if ( query.isDescribe() && !access.isSuperuser() )
+        if ( query.isDescribe() && !access.isDescribeUser() )
         {
             query = query.toBuilder().describe( false ).build();
         }
@@ -154,43 +154,55 @@ public class DefaultGistService implements GistService
     }
 
     @Override
-    public Map<String, ?> describe( GistQuery query )
+    public Map<String, ?> describe( GistQuery unplanned )
     {
-        GistAccessControl access = createGistAccessControl();
-        RelativePropertyContext context = createPropertyContext( query );
+        GistQuery planned = unplanned;
         Map<String, Object> description = new LinkedHashMap<>();
-
-        // describe validation
-        boolean valid = true;
+        description.put( "unplanned", unplanned );
         try
         {
-            new GistValidator( query, context, access ).validateQuery();
+            planned = plan( unplanned );
         }
         catch ( RuntimeException ex )
         {
-            valid = false;
             description.put( "error.type", ex.getClass().getName() );
             description.put( "error.message", ex.getMessage() );
+            description.put( "status", "planning-failed" );
+            return description;
+        }
+
+        GistAccessControl access = createGistAccessControl();
+        RelativePropertyContext context = createPropertyContext( planned );
+
+        // describe query
+        description.put( "planned.summary", planned.getFieldNames() );
+        description.put( "planned", planned );
+
+        // describe validation
+        try
+        {
+            new GistValidator( planned, context, access ).validateQuery();
+        }
+        catch ( RuntimeException ex )
+        {
+            description.put( "error.type", ex.getClass().getName() );
+            description.put( "error.message", ex.getMessage() );
+            description.put( "status", "validation-failed" );
+            return description;
         }
 
         // describe HQL queries
-        if ( valid )
+        if ( planned.isTotal() )
         {
-            if ( query.isTotal() )
-            {
-                description.put( "hql.count",
-                    createCountBuilder( query, context, access, this::getUserGroupIdsByUserId ).buildCountHQL() );
-            }
-            GistBuilder fetchBuilder = createFetchBuilder( query, context, access, this::getUserGroupIdsByUserId );
-            description.put( "hql.fetch", fetchBuilder.buildFetchHQL() );
-            Map<String, Object> params = new LinkedHashMap<>();
-            fetchBuilder.addFetchParameters( params::put, this::parseFilterArgument );
-            description.put( "hql.parameters", params );
+            description.put( "hql.count",
+                createCountBuilder( planned, context, access, this::getUserGroupIdsByUserId ).buildCountHQL() );
         }
-
-        // describe query
-        description.put( "query.summary", query.getFieldNames() );
-        description.put( "query", query );
+        GistBuilder fetchBuilder = createFetchBuilder( planned, context, access, this::getUserGroupIdsByUserId );
+        description.put( "hql.fetch", fetchBuilder.buildFetchHQL() );
+        Map<String, Object> params = new LinkedHashMap<>();
+        fetchBuilder.addFetchParameters( params::put, this::parseFilterArgument );
+        description.put( "hql.parameters", params );
+        description.put( "status", "ok" );
         return description;
     }
 

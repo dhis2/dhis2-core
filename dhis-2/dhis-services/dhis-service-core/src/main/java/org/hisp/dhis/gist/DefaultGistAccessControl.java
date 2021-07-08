@@ -94,6 +94,12 @@ public class DefaultGistAccessControl implements GistAccessControl
     }
 
     @Override
+    public boolean isDescribeUser()
+    {
+        return isSuperuser() || currentUser.isAuthorized( "F_METADATA_EXPORT" );
+    }
+
+    @Override
     public boolean canRead( Class<? extends IdentifiableObject> type )
     {
         return aclService.canRead( currentUser, type );

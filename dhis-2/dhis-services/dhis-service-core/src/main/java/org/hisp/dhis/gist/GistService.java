@@ -79,5 +79,11 @@ public interface GistService
      */
     GistPager pager( GistQuery query, List<?> rows, Map<String, String[]> params );
 
+    /**
+     * Describes the query execution without actually running the query.
+     *
+     * @param query a not yet {@link #plan(GistQuery)}ned query
+     * @return a description of the query execution
+     */
     Map<String, ?> describe( GistQuery query );
 }
