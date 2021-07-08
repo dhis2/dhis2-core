@@ -156,7 +156,7 @@ public class CategoryOptionResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenCoPrefixInUid1()
+    public void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
     {
         // arrange
 
