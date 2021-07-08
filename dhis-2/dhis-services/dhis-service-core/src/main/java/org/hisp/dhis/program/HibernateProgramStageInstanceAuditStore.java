@@ -61,9 +61,7 @@ public class HibernateProgramStageInstanceAuditStore
     @Override
     public void add( ProgramStageInstanceAudit stageInstanceAudit )
     {
-        Session session = sessionFactory.getCurrentSession();
-
-        session.save( stageInstanceAudit );
+        getSession().save( stageInstanceAudit );
     }
 
     @Override
