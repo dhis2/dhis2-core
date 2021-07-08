@@ -27,16 +27,62 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.List;
+import lombok.Builder;
+import lombok.Data;
+
+import org.hisp.dhis.common.AuditType;
 
 /**
  * @author Zubair Asghar
  */
-public interface ProgramStageInstanceAuditStore
+
+@Data
+@Builder
+public class ProgramStageInstanceAuditParam
 {
-    void add( ProgramStageInstanceAudit stageInstanceAudit );
+    /**
+     * AuditType to fetch for
+     */
+    private AuditType auditType;
 
-    List<ProgramStageInstanceAudit> getAllAudits( ProgramStageInstanceAuditParam params );
+    /**
+     * Program stage instance audit count start
+     */
+    private int first;
 
-    int getCount( ProgramStageInstanceAuditParam param );
+    /**
+     * Program stage instance audit count end
+     */
+    private int max;
+
+    /**
+     * Program stage instance audit skip paging or not
+     */
+    private boolean skipPaging;
+
+    /**
+     * Program stage instance to fetch audit for
+     */
+
+    private ProgramStage programStage;
+
+    /**
+     * Program stage to fetch audit for
+     */
+    private String programStageInstance;
+
+    public boolean hasAuditType()
+    {
+        return auditType != null;
+    }
+
+    public boolean hasProgramStageInstance()
+    {
+        return programStageInstance != null;
+    }
+
+    public boolean hasProgramStage()
+    {
+        return programStage != null;
+    }
 }

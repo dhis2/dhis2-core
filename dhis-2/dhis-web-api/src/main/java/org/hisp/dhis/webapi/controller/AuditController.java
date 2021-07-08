@@ -71,6 +71,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceAudit;
+import org.hisp.dhis.program.ProgramStageInstanceAuditParam;
+import org.hisp.dhis.program.ProgramStageInstanceAuditService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -114,6 +117,8 @@ public class AuditController
 
     private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
 
+    private final ProgramStageInstanceAuditService programStageInstanceAuditService;
+
     private final FieldFilterService fieldFilterService;
 
     private final ContextService contextService;
@@ -127,7 +132,8 @@ public class AuditController
         DataApprovalAuditService dataApprovalAuditService,
         TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
         FieldFilterService fieldFilterService,
-        ContextService contextService, FileResourceService fileResourceService )
+        ContextService contextService, FileResourceService fileResourceService,
+        ProgramStageInstanceAuditService programStageInstanceAuditService )
     {
         checkNotNull( manager );
         checkNotNull( programStageInstanceService );
@@ -138,6 +144,7 @@ public class AuditController
         checkNotNull( fieldFilterService );
         checkNotNull( contextService );
         checkNotNull( fileResourceService );
+        checkNotNull( programStageInstanceAuditService );
 
         this.manager = manager;
         this.programStageInstanceService = programStageInstanceService;
@@ -149,6 +156,7 @@ public class AuditController
         this.fieldFilterService = fieldFilterService;
         this.contextService = contextService;
         this.fileResourceService = fileResourceService;
+        this.programStageInstanceAuditService = programStageInstanceAuditService;
     }
 
     /**
@@ -475,6 +483,58 @@ public class AuditController
             .addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
         trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityInstanceAudit.class,
             new FieldFilterParams( teiAudits, fields ) ).getChildren() );
+
+        return rootNode;
+
+    }
+
+    @RequestMapping( value = "programStageInstance", method = RequestMethod.GET )
+    public @ResponseBody RootNode getProgramStageInstanceAudit(
+        @RequestParam( required = false ) AuditType auditType,
+        @RequestParam( required = false ) String event,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false, defaultValue = "50" ) int pageSize,
+        @RequestParam( required = false, defaultValue = "1" ) int page )
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        ProgramStageInstanceAuditParam params = ProgramStageInstanceAuditParam.builder().auditType( auditType )
+            .programStageInstance( event )
+            .skipPaging( PagerUtils.isSkipPaging( skipPaging, paging ) )
+            .build();
+
+        List<ProgramStageInstanceAudit> stageInstanceAudits;
+        Pager pager = null;
+
+        if ( !params.isSkipPaging() )
+        {
+            int total = programStageInstanceAuditService.getTrackedEntityInstanceAuditsCount( params );
+
+            pager = new Pager( page, total, pageSize );
+
+            params.setFirst( pager.getOffset() );
+            params.setMax( pager.getPageSize() );
+        }
+
+        stageInstanceAudits = programStageInstanceAuditService.getAllProgramStageInstanceAudits( params );
+
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( pager != null )
+        {
+            rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+
+        CollectionNode trackedEntityInstanceAudits = rootNode
+            .addChild( new CollectionNode( "programStageInstanceAudits", true ) );
+        trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( ProgramStageInstanceAudit.class,
+            new FieldFilterParams( stageInstanceAudits, fields ) ).getChildren() );
 
         return rootNode;
 
