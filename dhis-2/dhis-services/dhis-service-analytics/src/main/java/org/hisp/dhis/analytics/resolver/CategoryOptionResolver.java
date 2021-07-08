@@ -28,14 +28,9 @@
 package org.hisp.dhis.analytics.resolver;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.expression.Expression.EXP_CLOSE;
-import static org.hisp.dhis.expression.Expression.EXP_OPEN;
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -81,30 +76,23 @@ public class CategoryOptionResolver implements ExpressionResolver
         Set<DimensionalItemId> dimItemIds = expressionService.getExpressionDimensionalItemIds( expression,
             INDICATOR_EXPRESSION );
 
-        Map<String, List<String>> resolvedOperands = new HashMap<>();
-
-        dimItemIds.forEach( id -> {
+        for ( DimensionalItemId id : dimItemIds )
+        {
             if ( id.getId1().contains( CATEGORY_OPTION_PREFIX ) )
             {
                 CategoryOption co = categoryOptionStore
                     .getByUid( id.getId1().replace( CATEGORY_OPTION_PREFIX, EMPTY_STRING ) );
 
-                String operand = EXP_OPEN + id.getId0() + SEPARATOR + id.getId1() +
-                    (id.getId2() != null ? SEPARATOR + id.getId2() : EMPTY_STRING) + EXP_CLOSE;
+                if ( co != null )
+                {
+                    List<String> resolved = co.getCategoryOptionCombos().stream()
+                        .map( coc -> id.getItem().replace( id.getId1(), coc.getUid() ) )
+                        .collect( Collectors.toList() );
 
-                resolvedOperands.put( operand, co.getCategoryOptionCombos().stream()
-                    .map( c -> operand.replace( id.getId1(), c.getUid() ) ).collect( Collectors.toList() ) );
+                    expression = expression.replace( id.getItem(),
+                        LEFT_BRACKET + Joiner.on( "+" ).join( resolved ) + RIGHT_BRACKET );
+                }
             }
-        } );
-
-        for ( Map.Entry<String, List<String>> entry : resolvedOperands.entrySet() )
-        {
-            String operand = entry.getKey();
-
-            List<String> resolved_operands = entry.getValue();
-
-            expression = expression.replace( operand,
-                LEFT_BRACKET + Joiner.on( "+" ).join( resolved_operands ) + RIGHT_BRACKET );
         }
 
         return expression;
