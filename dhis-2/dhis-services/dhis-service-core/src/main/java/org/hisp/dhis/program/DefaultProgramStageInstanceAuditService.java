@@ -51,7 +51,6 @@ public class DefaultProgramStageInstanceAuditService implements ProgramStageInst
     @Transactional
     public void addProgramStageInstanceAudit( ProgramStageInstanceAudit stageInstanceAudit )
     {
-
         auditStore.add( stageInstanceAudit );
     }
 

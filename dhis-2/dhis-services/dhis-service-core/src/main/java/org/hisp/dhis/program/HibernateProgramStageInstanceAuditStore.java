@@ -73,8 +73,7 @@ public class HibernateProgramStageInstanceAuditStore implements ProgramStageInst
         Root<ProgramStageInstanceAudit> root = query.from( ProgramStageInstanceAudit.class );
         query.select( root );
 
-        List<Predicate> predicates = getProgramStageInstanceAuditCriteria( programStageInstance,
-            auditType, builder, root, first, max );
+        List<Predicate> predicates = getProgramStageInstanceAuditCriteria( programStageInstance, root );
         query.where( predicates.toArray( new Predicate[predicates.size()] ) );
         query.orderBy( builder.desc( root.get( "created" ) ) );
 
@@ -84,9 +83,7 @@ public class HibernateProgramStageInstanceAuditStore implements ProgramStageInst
             .getResultList();
     }
 
-    List<Predicate> getProgramStageInstanceAuditCriteria( ProgramStageInstance programStageInstance,
-        AuditType auditType,
-        CriteriaBuilder builder, Root<ProgramStageInstanceAudit> root, int first, int max )
+    List<Predicate> getProgramStageInstanceAuditCriteria( ProgramStageInstance programStageInstance, Root<ProgramStageInstanceAudit> root )
     {
         List<Predicate> predicates = new ArrayList<>();
 
@@ -99,5 +96,4 @@ public class HibernateProgramStageInstanceAuditStore implements ProgramStageInst
 
         return predicates;
     }
-
 }
