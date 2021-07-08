@@ -643,38 +643,13 @@ public abstract class AbstractEnrollmentService
     {
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
-        if ( program == null )
+        String error = validateProgramForEnrollment( program, enrollment, importSummary );
+        if ( !StringUtils.isEmpty( error ) )
         {
             importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setDescription( "Program can not be null" );
+            importSummary.setDescription( error );
             importSummary.incrementIgnored();
-
             return importSummary;
-        }
-
-        if ( !program.isRegistration() )
-        {
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setDescription( "Provided program " + program.getUid() +
-                " is a program without registration. An enrollment cannot be created into program without registration." );
-            importSummary.incrementIgnored();
-
-            return importSummary;
-        }
-
-        if ( program.getOrganisationUnits() != null && program.getOrganisationUnits().size() > 0 )
-        {
-            boolean programOrgUnitAccessible = program.getOrganisationUnits().stream()
-                .anyMatch( pou -> pou.getUid().equals( enrollment.getOrgUnit() ) );
-            if ( !programOrgUnitAccessible )
-            {
-                importSummary.setStatus( ImportStatus.ERROR );
-                importSummary
-                    .setDescription( "Program is not assigned to this Organisation Unit: " + enrollment.getOrgUnit() );
-                importSummary.incrementIgnored();
-
-                return importSummary;
-            }
         }
 
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
@@ -740,6 +715,31 @@ public abstract class AbstractEnrollmentService
         }
 
         return importSummary;
+    }
+
+    private String validateProgramForEnrollment( Program program, Enrollment enrollment, ImportSummary importSummary )
+    {
+        if ( program == null )
+        {
+            return "Program can not be null";
+        }
+
+        if ( !program.isRegistration() )
+        {
+            return "Provided program " + program.getUid() +
+                " is a program without registration. An enrollment cannot be created into program without registration.";
+        }
+
+        if ( program.getOrganisationUnits() != null && program.getOrganisationUnits().size() > 0 )
+        {
+            boolean programOrgUnitAccessible = program.getOrganisationUnits().stream()
+                .anyMatch( pou -> pou.getUid().equals( enrollment.getOrgUnit() ) );
+            if ( !programOrgUnitAccessible )
+            {
+                return "Program is not assigned to this Organisation Unit: " + enrollment.getOrgUnit();
+            }
+        }
+        return null;
     }
 
     // -------------------------------------------------------------------------
