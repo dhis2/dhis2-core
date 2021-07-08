@@ -114,6 +114,7 @@ public class CategoryOptionResolverTest
     public void verifyExpressionIsResolvedProperly()
     {
         // arrange
+
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
             CATEGORY_OPTION_PREFIX + uid2, uid3, 0, createIndicatorExpression() );
 
@@ -136,6 +137,7 @@ public class CategoryOptionResolverTest
     public void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
     {
         // arrange
+
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
             CATEGORY_OPTION_PREFIX + uid2, uid3, 0 );
 
@@ -157,6 +159,7 @@ public class CategoryOptionResolverTest
     public void verifyExpressionIsNotResolvedWhenCoPrefixInUid1()
     {
         // arrange
+
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
             uid2, uid3, 0, createIndicatorExpression() );
 
@@ -178,6 +181,7 @@ public class CategoryOptionResolverTest
     public void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
     {
         // arrange
+
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
             uid2, uid3, 0, createIndicatorExpression() );
 
