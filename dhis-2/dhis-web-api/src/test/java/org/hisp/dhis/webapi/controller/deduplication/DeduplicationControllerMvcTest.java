@@ -38,13 +38,14 @@ import java.util.Collections;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.DeduplicationController;
+import org.hisp.dhis.webapi.controller.exception.ConflictException;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.Before;
 import org.junit.Test;
@@ -119,6 +120,20 @@ public class DeduplicationControllerMvcTest
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() )
             .andExpect( content().contentType( "application/json" ) );
+    }
+
+    @Test
+    public void shouldThrowPostPotentialDuplicateMissingTei()
+        throws Exception
+    {
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, null );
+
+        mockMvc.perform( post( ENDPOINT )
+            .content( objectMapper.writeValueAsString( potentialDuplicate ) )
+            .contentType( MediaType.APPLICATION_JSON )
+            .accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isConflict() )
+            .andExpect( result -> assertTrue( result.getResolvedException() instanceof ConflictException ) );
     }
 
     @Test
@@ -217,6 +232,6 @@ public class DeduplicationControllerMvcTest
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isNotFound() )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof WebMessageException ) );
+            .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
     }
 }

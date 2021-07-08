@@ -31,26 +31,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Created by sultanm. This exception could be used in all operation forbidden
- * cases
+ * @author Luca Cambi luca@dhis2.org
  */
-@ResponseStatus( HttpStatus.FORBIDDEN )
-public class OperationNotAllowedException
-    extends Exception
+@ResponseStatus( HttpStatus.CONFLICT )
+public class ConflictException extends Exception
 {
 
-    public OperationNotAllowedException( String message )
+    public ConflictException( String message )
     {
         super( message );
     }
 
-    public OperationNotAllowedException( Throwable cause )
-    {
-        super( cause );
-    }
-
-    public OperationNotAllowedException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
 }
