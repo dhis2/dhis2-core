@@ -32,6 +32,9 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Collections;
+import java.util.List;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.deduplication.DeduplicationService;
@@ -45,6 +48,7 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.DeduplicationController;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
@@ -118,10 +122,11 @@ public class DeduplicationControllerTest
 
     @Test
     public void getAllPotentialDuplicate()
+        throws BadRequestException
     {
         PotentialDuplicateQuery potentialDuplicateQuery = new PotentialDuplicateQuery();
 
-        deduplicationController.getAll( potentialDuplicateQuery, mock( HttpServletResponse.class ) );
+        deduplicationController.getAllByQuery( potentialDuplicateQuery, mock( HttpServletResponse.class ) );
 
         verify( deduplicationService ).getAllPotentialDuplicatesBy( potentialDuplicateQuery );
     }
@@ -131,20 +136,47 @@ public class DeduplicationControllerTest
         throws NotFoundException
     {
         when( deduplicationService.getPotentialDuplicateByUid( teiA ) ).thenReturn( null );
-        deduplicationController.getPotentialDuplicate( teiA );
+        deduplicationController.getPotentialDuplicateById( teiA );
     }
 
     @Test
-    public void getPotentialDuplicate()
+    public void getPotentialDuplicateByUid()
         throws NotFoundException
     {
         when( deduplicationService.getPotentialDuplicateByUid( teiA ) )
             .thenReturn( new PotentialDuplicate( teiA, teiB ) );
 
-        PotentialDuplicate pd = deduplicationController.getPotentialDuplicate( teiA );
+        PotentialDuplicate pd = deduplicationController.getPotentialDuplicateById( teiA );
 
         assertEquals( teiA, pd.getTeiA() );
         verify( deduplicationService ).getPotentialDuplicateByUid( teiA );
+    }
+
+    @Test
+    public void getPotentialDuplicateByTei()
+        throws NotFoundException,
+        BadRequestException,
+        OperationNotAllowedException
+    {
+        when( deduplicationService.getPotentialDuplicateByTei( eq( teiA ), any() ) )
+            .thenReturn( Collections.singletonList( new PotentialDuplicate( teiA, teiB ) ) );
+
+        List<PotentialDuplicate> pd = deduplicationController.getPotentialDuplicateByTei( teiA,
+            DeduplicationStatus.INVALID.name() );
+
+        assertEquals( 1, pd.size() );
+        verify( deduplicationService ).getPotentialDuplicateByTei( teiA, DeduplicationStatus.INVALID );
+    }
+
+    @Test( expected = BadRequestException.class )
+    public void shouldThrowGetPotentialDuplicateByTeiMissingStatus()
+        throws NotFoundException,
+        BadRequestException,
+        OperationNotAllowedException
+    {
+        when( deduplicationService.getPotentialDuplicateByTei( eq( teiA ), any() ) )
+            .thenReturn( Collections.singletonList( new PotentialDuplicate( teiA, teiB ) ) );
+        deduplicationController.getPotentialDuplicateByTei( teiA, null );
     }
 
     @Test
