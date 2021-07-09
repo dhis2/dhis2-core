@@ -25,32 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+package org.hisp.dhis.deduplication;
 
 /**
- * Created by sultanm. This exception could be used in all operation forbidden
- * cases
+ * @author Luca Cambi <luca@dhis2.org>
  */
-@ResponseStatus( HttpStatus.FORBIDDEN )
-public class OperationNotAllowedException
-    extends Exception
+public class PotentialDuplicateException extends RuntimeException
 {
-
-    public OperationNotAllowedException( String message )
+    public PotentialDuplicateException( String message )
     {
         super( message );
-    }
-
-    public OperationNotAllowedException( Throwable cause )
-    {
-        super( cause );
-    }
-
-    public OperationNotAllowedException( String message, Throwable cause )
-    {
-        super( message, cause );
     }
 }
