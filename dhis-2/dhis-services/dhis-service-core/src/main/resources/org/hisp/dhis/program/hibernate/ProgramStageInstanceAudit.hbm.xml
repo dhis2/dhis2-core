@@ -4,7 +4,7 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.program.ProgramStageInstanceAudit" table="programStageInstanceAudit">
+    <class name="org.hisp.dhis.program.ProgramStageInstanceAudit" table="programstageinstanceaudit">
 
         <id name="id" column="programstageinstanceauditid">
             <generator class="native" />
@@ -12,9 +12,9 @@
 
         <property name="created" type="timestamp" />
 
-        <property name="programStageInstance" />
+        <property name="programStageInstance" column="programstageinstance" />
 
-        <property name="modifiedBy" />
+        <property name="modifiedBy" column="modifiedby" />
 
         <property name="auditType" column="audittype" length="100" not-null="true">
             <type name="org.hibernate.type.EnumType">
