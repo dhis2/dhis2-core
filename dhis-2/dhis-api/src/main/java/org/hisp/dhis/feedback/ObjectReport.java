@@ -185,6 +185,7 @@ public class ObjectReport
     @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
     public void setErrorReports( List<ErrorReport> errorReports )
     {
+        errorReportsByCode.clear();
         if ( errorReports != null )
         {
             errorReports.forEach( er -> {
