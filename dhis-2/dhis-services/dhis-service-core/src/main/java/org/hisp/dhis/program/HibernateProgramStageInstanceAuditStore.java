@@ -106,12 +106,6 @@ public class HibernateProgramStageInstanceAuditStore
                 params.getProgramStageInstance() ) );
         }
 
-        if ( params.hasProgramStage() )
-        {
-            predicates
-                .add( root -> builder.greaterThanOrEqualTo( root.get( "programStage" ), params.getProgramStage() ) );
-        }
-
         return predicates;
     }
 }

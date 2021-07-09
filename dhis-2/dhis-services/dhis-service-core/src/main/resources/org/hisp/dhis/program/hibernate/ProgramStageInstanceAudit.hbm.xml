@@ -10,10 +10,9 @@
             <generator class="native" />
         </id>
 
-        <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
-                     column="programstageid" foreign-key="fk_programstageinstanceaudit_programstageid" />
-
         <property name="created" type="timestamp" />
+
+        <property name="programStageInstance" />
 
         <property name="modifiedBy" />
 

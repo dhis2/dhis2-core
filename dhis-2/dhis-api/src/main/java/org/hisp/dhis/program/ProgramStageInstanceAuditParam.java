@@ -61,12 +61,6 @@ public class ProgramStageInstanceAuditParam
     private boolean skipPaging;
 
     /**
-     * Program stage instance to fetch audit for
-     */
-
-    private ProgramStage programStage;
-
-    /**
      * Program stage to fetch audit for
      */
     private String programStageInstance;
@@ -79,10 +73,5 @@ public class ProgramStageInstanceAuditParam
     public boolean hasProgramStageInstance()
     {
         return programStageInstance != null;
-    }
-
-    public boolean hasProgramStage()
-    {
-        return programStage != null;
     }
 }

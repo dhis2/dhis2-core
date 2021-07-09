@@ -49,8 +49,6 @@ public class ProgramStageInstanceAudit implements Serializable
 {
     private long id;
 
-    private ProgramStage programStage;
-
     private String programStageInstance;
 
     private String modifiedBy;
