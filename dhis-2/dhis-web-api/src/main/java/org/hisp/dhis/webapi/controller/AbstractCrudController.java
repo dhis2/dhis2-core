@@ -84,8 +84,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -147,7 +149,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @Autowired
     protected SharingService sharingService;
 
-    @RequestMapping( value = "/{uid}/translations", method = RequestMethod.PUT )
+    @PutMapping( value = "/{uid}/translations" )
     public void replaceTranslations(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request, HttpServletResponse response )
@@ -224,7 +226,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // OLD PATCH
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )
+    @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
@@ -394,14 +396,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // POST
     // --------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
+    @PostMapping( consumes = "application/json" )
     public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         postObject( request, response, deserializeJsonEntity( request, response ) );
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
+    @PostMapping( consumes = { "application/xml", "text/xml" } )
     public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -457,7 +459,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return importReport.getFirstObjectReport();
     }
 
-    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.POST )
+    @PostMapping( value = "/{uid}/favorite" )
     @ResponseStatus( HttpStatus.OK )
     public void setAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -486,7 +488,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
-    @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.POST )
+    @PostMapping( value = "/{uid}/subscriber" )
     @ResponseStatus( HttpStatus.OK )
     @SuppressWarnings( "unchecked" )
     public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
@@ -520,7 +522,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // PUT
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{uid}", consumes = MediaType.APPLICATION_JSON_VALUE )
     public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
@@ -566,8 +568,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         webMessageService.send( webMessage, response, request );
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { MediaType.APPLICATION_XML_VALUE,
-        MediaType.TEXT_XML_VALUE } )
+    @PutMapping( value = "/{uid}", consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE } )
     public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
@@ -617,7 +618,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // DELETE
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
+    @DeleteMapping( value = "/{uid}" )
     @ResponseStatus( HttpStatus.OK )
     public void deleteObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -652,7 +653,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         webMessageService.send( WebMessageUtils.objectReport( importReport ), response, request );
     }
 
-    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.DELETE )
+    @DeleteMapping( value = "/{uid}/favorite" )
     @ResponseStatus( HttpStatus.OK )
     public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -681,7 +682,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
-    @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.DELETE )
+    @DeleteMapping( value = "/{uid}/subscriber" )
     @ResponseStatus( HttpStatus.OK )
     @SuppressWarnings( "unchecked" )
     public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
@@ -715,7 +716,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // Identifiable object collections add, delete
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -727,7 +728,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
+    @PostMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -748,7 +749,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         postUpdateItems( object, items );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -760,7 +761,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
+    @PutMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -780,7 +781,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         postUpdateItems( object, items );
     }
 
-    @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
+    @PostMapping( value = "/{uid}/{property}/{itemId}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItem(
         @PathVariable( "uid" ) String pvUid,
@@ -804,7 +805,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         postUpdateItems( object, items );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @DeleteMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -816,7 +817,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_XML_VALUE )
+    @DeleteMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -836,7 +837,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         postUpdateItems( object, items );
     }
 
-    @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
+    @DeleteMapping( value = "/{uid}/{property}/{itemId}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItem(
         @PathVariable( "uid" ) String pvUid,
