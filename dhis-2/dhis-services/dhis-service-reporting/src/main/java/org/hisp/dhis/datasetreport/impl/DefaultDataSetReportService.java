@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.datasetreport.impl;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dataentryform.DataEntryFormService.DATAELEMENT_TOTAL_PATTERN;
 import static org.hisp.dhis.dataentryform.DataEntryFormService.IDENTIFIER_PATTERN;
@@ -35,11 +36,13 @@ import static org.hisp.dhis.dataentryform.DataEntryFormService.INPUT_PATTERN;
 import static org.hisp.dhis.datasetreport.DataSetReportStore.SEPARATOR;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -69,6 +72,8 @@ import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Component;
+
+import com.google.common.base.Joiner;
 
 /**
  * @author Abyot Asalefew
@@ -116,21 +121,21 @@ public class DefaultDataSetReportService
     // -------------------------------------------------------------------------
 
     @Override
-    public String getCustomDataSetReport( DataSet dataSet, Period period, OrganisationUnit orgUnit, Set<String> filters,
-        boolean selectedUnitOnly )
+    public String getCustomDataSetReport( DataSet dataSet, List<Period> periods, OrganisationUnit orgUnit,
+        Set<String> filters, boolean selectedUnitOnly )
     {
-        Map<String, Object> valueMap = dataSetReportStore.getAggregatedValues( dataSet, period, orgUnit, filters );
+        Map<String, Object> valueMap = dataSetReportStore.getAggregatedValues( dataSet, periods, orgUnit, filters );
 
-        valueMap.putAll( dataSetReportStore.getAggregatedTotals( dataSet, period, orgUnit, filters ) );
+        valueMap.putAll( dataSetReportStore.getAggregatedTotals( dataSet, periods, orgUnit, filters ) );
 
-        Map<String, Object> indicatorValueMap = dataSetReportStore.getAggregatedIndicatorValues( dataSet, period,
+        Map<String, Object> indicatorValueMap = dataSetReportStore.getAggregatedIndicatorValues( dataSet, periods,
             orgUnit, filters );
 
         return prepareReportContent( dataSet.getDataEntryForm(), valueMap, indicatorValueMap );
     }
 
     @Override
-    public List<Grid> getDataSetReportAsGrid( DataSet dataSet, Period period, OrganisationUnit orgUnit,
+    public List<Grid> getDataSetReportAsGrid( DataSet dataSet, List<Period> periods, OrganisationUnit orgUnit,
         Set<String> filters, boolean selectedUnitOnly )
     {
         List<Grid> grids;
@@ -139,15 +144,15 @@ public class DefaultDataSetReportService
 
         if ( formType.isCustom() )
         {
-            grids = getCustomDataSetReportAsGrid( dataSet, period, orgUnit, filters, selectedUnitOnly );
+            grids = getCustomDataSetReportAsGrid( dataSet, periods, orgUnit, filters, selectedUnitOnly );
         }
         else if ( formType.isSection() )
         {
-            grids = getSectionDataSetReport( dataSet, period, orgUnit, filters, selectedUnitOnly );
+            grids = getSectionDataSetReport( dataSet, periods, orgUnit, filters, selectedUnitOnly );
         }
         else
         {
-            grids = getDefaultDataSetReport( dataSet, period, orgUnit, filters, selectedUnitOnly );
+            grids = getDefaultDataSetReport( dataSet, periods, orgUnit, filters, selectedUnitOnly );
         }
 
         return grids;
@@ -157,10 +162,10 @@ public class DefaultDataSetReportService
     // Data set report as grid for the various form types
     // -------------------------------------------------------------------------
 
-    private List<Grid> getCustomDataSetReportAsGrid( DataSet dataSet, Period period, OrganisationUnit unit,
+    private List<Grid> getCustomDataSetReportAsGrid( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
         Set<String> filters, boolean selectedUnitOnly )
     {
-        String html = getCustomDataSetReport( dataSet, period, unit, filters, selectedUnitOnly );
+        String html = getCustomDataSetReport( dataSet, periods, unit, filters, selectedUnitOnly );
 
         try
         {
@@ -172,7 +177,7 @@ public class DefaultDataSetReportService
         }
     }
 
-    private List<Grid> getSectionDataSetReport( DataSet dataSet, Period period, OrganisationUnit unit,
+    private List<Grid> getSectionDataSetReport( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
         Set<String> filters, boolean selectedUnitOnly )
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -181,9 +186,9 @@ public class DefaultDataSetReportService
         List<Section> sections = new ArrayList<>( dataSet.getSections() );
         sections.sort( new SectionOrderComparator() );
 
-        Map<String, Object> valueMap = dataSetReportStore.getAggregatedValues( dataSet, period, unit, filters );
-        Map<String, Object> subTotalMap = dataSetReportStore.getAggregatedSubTotals( dataSet, period, unit, filters );
-        Map<String, Object> totalMap = dataSetReportStore.getAggregatedTotals( dataSet, period, unit, filters );
+        Map<String, Object> valueMap = dataSetReportStore.getAggregatedValues( dataSet, periods, unit, filters );
+        Map<String, Object> subTotalMap = dataSetReportStore.getAggregatedSubTotals( dataSet, periods, unit, filters );
+        Map<String, Object> totalMap = dataSetReportStore.getAggregatedTotals( dataSet, periods, unit, filters );
 
         List<Grid> grids = new ArrayList<>();
 
@@ -195,9 +200,8 @@ public class DefaultDataSetReportService
         {
             for ( CategoryCombo categoryCombo : section.getCategoryCombos() )
             {
-
                 Grid grid = new ListGrid().setTitle( section.getName() + SPACE + categoryCombo.getName() )
-                    .setSubtitle( unit.getName() + SPACE + format.formatPeriod( period ) );
+                    .setSubtitle( unit.getName() + SPACE + formatPeriods( periods, format ) );
 
                 // -----------------------------------------------------------------
                 // Grid headers
@@ -252,10 +256,7 @@ public class DefaultDataSetReportService
 
                         if ( selectedUnitOnly )
                         {
-                            DataValue dataValue = dataValueService.getDataValue( dataElement, period, unit,
-                                optionCombo );
-                            value = dataValue != null && dataValue.getValue() != null ? Double.parseDouble( dataValue
-                                .getValue() ) : null;
+                            value = getSelectedUnitValue( dataElement, periods, unit, optionCombo );
                         }
                         else
                         {
@@ -292,7 +293,7 @@ public class DefaultDataSetReportService
         return grids;
     }
 
-    private List<Grid> getDefaultDataSetReport( DataSet dataSet, Period period, OrganisationUnit unit,
+    private List<Grid> getDefaultDataSetReport( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
         Set<String> filters, boolean selectedUnitOnly )
     {
         ListMap<CategoryCombo, DataElement> map = new ListMap<>();
@@ -316,12 +317,55 @@ public class DefaultDataSetReportService
             tmpDataSet.getSections().add( section );
         }
 
-        return getSectionDataSetReport( tmpDataSet, period, unit, filters, selectedUnitOnly );
+        return getSectionDataSetReport( tmpDataSet, periods, unit, filters, selectedUnitOnly );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private String formatPeriods( List<Period> periods, I18nFormat format )
+    {
+        Collections.sort( periods );
+
+        List<String> formattedPeriods = periods.stream()
+            .map( p -> format.formatPeriod( p ) )
+            .collect( Collectors.toList() );
+
+        return Joiner.on( ", " ).join( formattedPeriods );
+    }
+
+    /**
+     * Returns the sum of values for the list of periods, but returns null if
+     * all the values are null.
+     *
+     * @param dataElement the data element.
+     * @param periods the periods.
+     * @param unit the organisation unit.
+     * @param optionCombo the category option combo.
+     * @return the combined value.
+     */
+    private Double getSelectedUnitValue( DataElement dataElement, List<Period> periods, OrganisationUnit unit,
+        CategoryOptionCombo optionCombo )
+    {
+        Double sum = null;
+
+        for ( Period period : periods )
+        {
+            DataValue dataValue = dataValueService.getDataValue( dataElement, period, unit, optionCombo );
+
+            Double value = (dataValue != null && dataValue.getValue() != null)
+                ? Double.parseDouble( dataValue.getValue() )
+                : null;
+
+            if ( value != null )
+            {
+                sum = value + firstNonNull( sum, 0.0 );
+            }
+        }
+
+        return sum;
+    }
 
     /**
      * Puts in aggregated datavalues in the custom dataentry form and returns

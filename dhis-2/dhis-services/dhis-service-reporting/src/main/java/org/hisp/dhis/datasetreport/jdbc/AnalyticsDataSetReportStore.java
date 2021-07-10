@@ -78,7 +78,7 @@ public class AnalyticsDataSetReportStore
     // -------------------------------------------------------------------------
 
     @Override
-    public Map<String, Object> getAggregatedValues( DataSet dataSet, Period period, OrganisationUnit unit,
+    public Map<String, Object> getAggregatedValues( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
         Set<String> filters )
     {
         List<DataElement> dataElements = new ArrayList<>( dataSet.getDataElements() );
@@ -92,7 +92,7 @@ public class AnalyticsDataSetReportStore
 
         DataQueryParams.Builder params = DataQueryParams.newBuilder()
             .withDataElements( dataElements )
-            .withPeriod( period )
+            .withPeriods( periods )
             .withOrganisationUnit( unit )
             .withCategoryOptionCombos( Lists.newArrayList() );
 
@@ -109,14 +109,14 @@ public class AnalyticsDataSetReportStore
         for ( Entry<String, Object> entry : map.entrySet() )
         {
             String[] split = entry.getKey().split( SEPARATOR );
-            dataMap.put( split[0] + SEPARATOR + split[3], entry.getValue() );
+            addToMap( dataMap, split[0] + SEPARATOR + split[3], entry.getValue() );
         }
 
         return dataMap;
     }
 
     @Override
-    public Map<String, Object> getAggregatedSubTotals( DataSet dataSet, Period period, OrganisationUnit unit,
+    public Map<String, Object> getAggregatedSubTotals( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
         Set<String> filters )
     {
         Map<String, Object> dataMap = new HashMap<>();
@@ -154,7 +154,7 @@ public class AnalyticsDataSetReportStore
 
                 DataQueryParams.Builder params = DataQueryParams.newBuilder()
                     .withDataElements( dataElements )
-                    .withPeriod( period )
+                    .withPeriods( periods )
                     .withOrganisationUnit( unit )
                     .withCategory( category );
 
@@ -169,7 +169,7 @@ public class AnalyticsDataSetReportStore
                 for ( Entry<String, Object> entry : map.entrySet() )
                 {
                     String[] split = entry.getKey().split( SEPARATOR );
-                    dataMap.put( split[0] + SEPARATOR + split[3], entry.getValue() );
+                    addToMap( dataMap, split[0] + SEPARATOR + split[3], entry.getValue() );
                 }
             }
         }
@@ -178,7 +178,7 @@ public class AnalyticsDataSetReportStore
     }
 
     @Override
-    public Map<String, Object> getAggregatedTotals( DataSet dataSet, Period period, OrganisationUnit unit,
+    public Map<String, Object> getAggregatedTotals( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
         Set<String> filters )
     {
         List<DataElement> dataElements = new ArrayList<>( dataSet.getDataElements() );
@@ -192,7 +192,7 @@ public class AnalyticsDataSetReportStore
 
         DataQueryParams.Builder params = DataQueryParams.newBuilder()
             .withDataElements( dataElements )
-            .withPeriod( period )
+            .withPeriods( periods )
             .withOrganisationUnit( unit );
 
         if ( filters != null )
@@ -208,15 +208,15 @@ public class AnalyticsDataSetReportStore
         for ( Entry<String, Object> entry : map.entrySet() )
         {
             String[] split = entry.getKey().split( SEPARATOR );
-            dataMap.put( split[0], entry.getValue() );
+            addToMap( dataMap, split[0], entry.getValue() );
         }
 
         return dataMap;
     }
 
     @Override
-    public Map<String, Object> getAggregatedIndicatorValues( DataSet dataSet, Period period, OrganisationUnit unit,
-        Set<String> filters )
+    public Map<String, Object> getAggregatedIndicatorValues( DataSet dataSet, List<Period> periods,
+        OrganisationUnit unit, Set<String> filters )
     {
         List<Indicator> indicators = new ArrayList<>( dataSet.getIndicators() );
 
@@ -227,7 +227,7 @@ public class AnalyticsDataSetReportStore
 
         DataQueryParams.Builder params = DataQueryParams.newBuilder()
             .withIndicators( indicators )
-            .withPeriod( period )
+            .withPeriods( periods )
             .withOrganisationUnit( unit );
 
         if ( filters != null )
@@ -243,9 +243,33 @@ public class AnalyticsDataSetReportStore
         for ( Entry<String, Object> entry : map.entrySet() )
         {
             String[] split = entry.getKey().split( SEPARATOR );
+            addToMap( dataMap, split[0], entry.getValue() );
             dataMap.put( split[0], entry.getValue() );
         }
 
         return dataMap;
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private void addToMap( Map<String, Object> dataMap, String key, Object value )
+    {
+        if ( value == null )
+        {
+            return;
+        }
+
+        Object existingValue = dataMap.get( key );
+
+        if ( existingValue == null || !(existingValue instanceof Double) || !(value instanceof Double) )
+        {
+            dataMap.put( key, value );
+        }
+        else
+        {
+            dataMap.put( key, (Double) existingValue + (Double) value );
+        }
     }
 }
