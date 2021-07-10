@@ -71,6 +71,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Joiner;
@@ -355,7 +356,7 @@ public class DefaultDataSetReportService
             DataValue dataValue = dataValueService.getDataValue( dataElement, period, unit, optionCombo );
 
             Double value = (dataValue != null && dataValue.getValue() != null)
-                ? Double.parseDouble( dataValue.getValue() )
+                ? MathUtils.parseDouble( dataValue.getValue() )
                 : null;
 
             if ( value != null )
