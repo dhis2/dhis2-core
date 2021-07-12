@@ -25,46 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.introspection;
-
-import java.util.Map;
-
-import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.system.util.AnnotationUtils;
-
-import com.google.common.base.CaseFormat;
+package org.hisp.dhis.deduplication;
 
 /**
- * A {@link PropertyIntrospector} that adds information to existing
- * {@link Property} values if they are annotated with
- * {@link org.hisp.dhis.translation.Translatable}.
- *
- * @author Jan Bernitt (extracted from {@link JacksonPropertyIntrospector})
+ * @author Luca Cambi <luca@dhis2.org>
  */
-public class TranslatablePropertyIntrospector implements PropertyIntrospector
+public class PotentialDuplicateException extends RuntimeException
 {
-    @Override
-    public void introspect( Class<?> klass, Map<String, Property> properties )
+    public PotentialDuplicateException( String message )
     {
-        Property translationsProperty = properties.get( BaseIdentifiableObject_.TRANSLATIONS );
-
-        if ( translationsProperty == null || !translationsProperty.isPersisted() )
-        {
-            return;
-        }
-
-        Map<String, String> translatableFields = AnnotationUtils.getTranslatableAnnotatedFields( klass );
-
-        for ( Property property : properties.values() )
-        {
-            if ( translatableFields.containsKey( property.getFieldName() ) )
-            {
-                property.setTranslatable( true );
-                property.setTranslationKey( translatableFields.get( property.getFieldName() ) );
-                String i18nKey = CaseFormat.LOWER_CAMEL.to( CaseFormat.LOWER_UNDERSCORE, property.getFieldName() );
-                property.setI18nTranslationKey( i18nKey );
-            }
-        }
+        super( message );
     }
 }

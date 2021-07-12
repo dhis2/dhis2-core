@@ -25,9 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.deduplication;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -37,15 +38,16 @@ import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.DeduplicationController;
+import org.hisp.dhis.webapi.controller.exception.ConflictException;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
+import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,7 +57,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.http.HttpStatus;
 
 import com.google.common.collect.Lists;
 
@@ -125,29 +126,20 @@ public class DeduplicationControllerTest
         verify( deduplicationService ).getAllPotentialDuplicatesBy( potentialDuplicateQuery );
     }
 
-    @Test
+    @Test( expected = NotFoundException.class )
     public void getPotentialDuplicateNotFound()
+        throws NotFoundException
     {
         when( deduplicationService.getPotentialDuplicateByUid( teiA ) ).thenReturn( null );
-
-        try
-        {
-            deduplicationController.getPotentialDuplicate( teiA );
-        }
-        catch ( WebMessageException e )
-        {
-            checkWebMessageException( e.getWebMessage(), HttpStatus.NOT_FOUND.value() );
-        }
-
-        verify( deduplicationService ).getPotentialDuplicateByUid( teiA );
+        deduplicationController.getPotentialDuplicate( teiA );
     }
 
     @Test
     public void getPotentialDuplicate()
-        throws WebMessageException
+        throws NotFoundException
     {
         when( deduplicationService.getPotentialDuplicateByUid( teiA ) )
-            .thenReturn( new PotentialDuplicate( teiA ) );
+            .thenReturn( new PotentialDuplicate( teiA, teiB ) );
 
         PotentialDuplicate pd = deduplicationController.getPotentialDuplicate( teiA );
 
@@ -157,11 +149,11 @@ public class DeduplicationControllerTest
 
     @Test
     public void postPotentialDuplicate()
-        throws WebMessageException
+        throws OperationNotAllowedException,
+        ConflictException,
+        NotFoundException
     {
-        PotentialDuplicate pd = new PotentialDuplicate( teiA, teiB );
-
-        Mockito.when( deduplicationService.exists( pd ) ).thenReturn( false );
+        Mockito.when( deduplicationService.exists( new PotentialDuplicate( teiA, teiB ) ) ).thenReturn( false );
 
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
 
@@ -178,48 +170,81 @@ public class DeduplicationControllerTest
     }
 
     @Test
-    public void postPotentialDuplicateMissingRequiredPropertyTeiA()
-    {
-        try
-        {
-            deduplicationController.postPotentialDuplicate( new PotentialDuplicate() );
-        }
-        catch ( WebMessageException e )
-        {
-            checkWebMessageException( e.getWebMessage(), HttpStatus.CONFLICT.value() );
-        }
-
-        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
-    }
-
-    @Test
     public void postPotentialDuplicateInvalidUid()
     {
         try
         {
-            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( "invalid" ) );
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( "invalid", "invalid1" ) );
         }
-        catch ( WebMessageException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
         {
-            checkWebMessageException( e.getWebMessage(), HttpStatus.CONFLICT.value() );
+            assertTrue( e instanceof ConflictException );
         }
 
         verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
     }
 
     @Test
-    public void postPotentialDuplicateInvalidTei()
+    public void postPotentialDuplicateInvalidUidTeiB()
+    {
+        when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
+            Lists.newArrayList() );
+
+        try
+        {
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, "invalid" ) );
+        }
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
+        {
+            assertTrue( e instanceof ConflictException );
+        }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
+    }
+
+    @Test
+    public void postPotentialDuplicateMissingRequiredTeis()
+    {
+        try
+        {
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( null, null ) );
+        }
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
+        {
+            assertTrue( e instanceof ConflictException );
+        }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
+    }
+
+    @Test
+    public void postPotentialDuplicateOnlyOneTei()
+    {
+        try
+        {
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, null ) );
+        }
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
+        {
+            assertTrue( e instanceof ConflictException );
+        }
+
+        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
+    }
+
+    @Test
+    public void postPotentialDuplicateTeiNotFound()
     {
         when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
             .thenReturn( null );
 
         try
         {
-            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA ) );
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, teiB ) );
         }
-        catch ( WebMessageException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
         {
-            checkWebMessageException( e.getWebMessage(), HttpStatus.NOT_FOUND.value() );
+            assertTrue( e instanceof NotFoundException );
         }
 
         verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
@@ -233,33 +258,15 @@ public class DeduplicationControllerTest
 
         try
         {
-            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA ) );
+            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, teiB ) );
         }
-        catch ( WebMessageException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
         {
-            checkWebMessageException( e.getWebMessage(), HttpStatus.FORBIDDEN.value() );
+            assertTrue( e instanceof OperationNotAllowedException );
         }
 
         verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
         verify( trackerAccessManager ).canRead( user, trackedEntityInstanceA );
-    }
-
-    @Test
-    public void postPotentialDuplicateInvalidUidTeiB()
-    {
-        when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
-            Lists.newArrayList() );
-
-        try
-        {
-            deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, "invalid" ) );
-        }
-        catch ( WebMessageException e )
-        {
-            checkWebMessageException( e.getWebMessage(), HttpStatus.CONFLICT.value() );
-        }
-
-        verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
     }
 
     @Test
@@ -275,9 +282,9 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, teiB ) );
         }
-        catch ( WebMessageException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
         {
-            checkWebMessageException( e.getWebMessage(), HttpStatus.FORBIDDEN.value() );
+            assertTrue( e instanceof OperationNotAllowedException );
         }
 
         verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
@@ -301,9 +308,9 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( pd );
         }
-        catch ( WebMessageException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
         {
-            checkWebMessageException( e.getWebMessage(), HttpStatus.CONFLICT.value() );
+            assertTrue( e instanceof ConflictException );
         }
 
         verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
@@ -314,10 +321,11 @@ public class DeduplicationControllerTest
 
     @Test
     public void markPotentialDuplicateInvalid()
-        throws WebMessageException
+        throws NotFoundException
     {
 
-        when( deduplicationService.getPotentialDuplicateByUid( teiA ) ).thenReturn( new PotentialDuplicate( teiA ) );
+        when( deduplicationService.getPotentialDuplicateByUid( teiA ) )
+            .thenReturn( new PotentialDuplicate( teiA, teiB ) );
 
         deduplicationController.markPotentialDuplicateInvalid( teiA );
 
@@ -330,26 +338,11 @@ public class DeduplicationControllerTest
         assertEquals( DeduplicationStatus.INVALID, pd.getValue().getStatus() );
     }
 
-    @Test
+    @Test( expected = NotFoundException.class )
     public void markPotentialDuplicateInvalidNotFound()
+        throws NotFoundException
     {
         when( deduplicationService.getPotentialDuplicateByUid( teiA ) ).thenReturn( null );
-
-        try
-        {
-            deduplicationController.markPotentialDuplicateInvalid( teiA );
-        }
-        catch ( WebMessageException e )
-        {
-            checkWebMessageException( e.getWebMessage(), HttpStatus.NOT_FOUND.value() );
-        }
-
-        verify( deduplicationService, times( 0 ) ).updatePotentialDuplicate( any() );
-    }
-
-    private void checkWebMessageException( WebMessage wm, int statusCode )
-    {
-        assertEquals( statusCode, wm.getHttpStatusCode().intValue() );
-        assertEquals( Status.ERROR, wm.getStatus() );
+        deduplicationController.markPotentialDuplicateInvalid( teiA );
     }
 }

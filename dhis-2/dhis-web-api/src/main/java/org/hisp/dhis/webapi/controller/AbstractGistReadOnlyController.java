@@ -60,9 +60,8 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -91,7 +90,7 @@ public abstract class AbstractGistReadOnlyController<T extends IdentifiableObjec
     // GET Gist
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/{uid}/gist", produces = MediaType.APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
         @PathVariable( "uid" ) String uid,
         HttpServletRequest request, HttpServletResponse response )
@@ -101,7 +100,7 @@ public abstract class AbstractGistReadOnlyController<T extends IdentifiableObjec
             .withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
     }
 
-    @RequestMapping( value = "/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/gist", produces = MediaType.APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
         HttpServletRequest request, HttpServletResponse response )
     {
@@ -109,7 +108,7 @@ public abstract class AbstractGistReadOnlyController<T extends IdentifiableObjec
             getSchema() );
     }
 
-    @RequestMapping( value = "/{uid}/{property}/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/{uid}/{property}/gist", produces = MediaType.APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
         @PathVariable( "uid" ) String uid,
         @PathVariable( "property" ) String property,
