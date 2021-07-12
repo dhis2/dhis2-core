@@ -43,8 +43,9 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -70,13 +71,13 @@ public class FilledOrganisationUnitLevelController
         this.organisationUnitService = organisationUnitService;
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( produces = MediaType.APPLICATION_JSON_VALUE )
     public @ResponseBody List<OrganisationUnitLevel> getList()
     {
         return organisationUnitService.getFilledOrganisationUnitLevels();
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.CREATED )
     public void setList( HttpServletRequest request, HttpServletResponse response )
         throws Exception

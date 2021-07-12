@@ -44,9 +44,12 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -82,7 +85,7 @@ public class SmsGatewayController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( method = RequestMethod.GET, produces = { "application/json" } )
+    @GetMapping( produces = { "application/json" } )
     public void getGateways( HttpServletResponse response )
         throws IOException
     {
@@ -90,7 +93,7 @@ public class SmsGatewayController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/{uid}", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/{uid}", produces = "application/json" )
     public void getGatewayConfiguration( @PathVariable String uid, HttpServletResponse response )
         throws WebMessageException,
         IOException
@@ -110,7 +113,7 @@ public class SmsGatewayController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/default/{uid}", method = RequestMethod.PUT )
+    @PutMapping( "/default/{uid}" )
     public void setDefault( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
         throws WebMessageException
     {
@@ -127,7 +130,7 @@ public class SmsGatewayController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT )
+    @PutMapping( "/{uid}" )
     public void updateGateway( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
         throws WebMessageException,
         IOException
@@ -153,7 +156,7 @@ public class SmsGatewayController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( method = RequestMethod.POST )
+    @PostMapping
     public void addGateway( HttpServletRequest request, HttpServletResponse response )
         throws IOException,
         WebMessageException
@@ -174,7 +177,7 @@ public class SmsGatewayController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{uid}" )
     public void removeGateway( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
         throws WebMessageException
     {

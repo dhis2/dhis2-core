@@ -27,20 +27,30 @@
  */
 package org.hisp.dhis.scheduling;
 
+import java.util.EnumMap;
+import java.util.Map;
+
+import lombok.AllArgsConstructor;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
+
 /**
- * This interface is an abstraction for the actual execution of jobs based on a
- * job configuration.
- *
- * @author Henning Håkonsen
+ * @author Jan Bernitt
  */
-public interface JobInstance
+@Service
+@AllArgsConstructor
+public class DefaultJobService implements JobService
 {
-    /**
-     * This method will try to execute the actual job. It will verify a set of
-     * parameters, such as no other jobs of the same JobType is running. If the
-     * JobConfiguration is disabled it will not run.
-     *
-     * @param jobConfiguration the configuration of the job.
-     */
-    void execute( JobConfiguration jobConfiguration );
+    private final ApplicationContext applicationContext;
+
+    private final Map<JobType, Job> jobsByType = new EnumMap<>( JobType.class );
+
+    @Override
+    public Job getJob( JobType type )
+    {
+        return jobsByType.computeIfAbsent( type,
+            key -> applicationContext.getBeansOfType( Job.class ).values().stream()
+                .filter( job -> job.getJobType() == type ).findFirst().orElse( null ) );
+    }
 }

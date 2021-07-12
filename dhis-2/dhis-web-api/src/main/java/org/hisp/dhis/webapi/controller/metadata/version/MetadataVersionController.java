@@ -60,9 +60,9 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -86,7 +86,7 @@ public class MetadataVersionController
     private ContextUtils contextUtils;
 
     // Gets the version by versionName or latest system version
-    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT, produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody MetadataVersion getMetaDataVersion(
         @RequestParam( value = "versionName", required = false ) String versionName )
         throws MetadataVersionException,
@@ -136,8 +136,8 @@ public class MetadataVersionController
 
     // Gets the list of all versions in between the passed version name and
     // latest system version
-    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
-        + "/history", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
+        + "/history", produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getMetaDataVersionHistory(
         @RequestParam( value = "baseline", required = false ) String versionName )
         throws MetadataVersionException,
@@ -211,7 +211,7 @@ public class MetadataVersionController
     }
 
     // Gets the list of all versions
-    @RequestMapping( value = "/metadata/versions", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = "/metadata/versions", produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getAllVersion()
         throws MetadataVersionException,
         BadRequestException
@@ -239,8 +239,8 @@ public class MetadataVersionController
     // Creates version in versioning table, exports the metadata and saves the
     // snapshot in datastore
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
-    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
-        + "/create", method = RequestMethod.POST, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @PostMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
+        + "/create", produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody MetadataVersion createSystemVersion( @RequestParam( value = "type" ) VersionType versionType )
         throws MetadataVersionException,
         BadRequestException
@@ -271,8 +271,8 @@ public class MetadataVersionController
 
     // endpoint to download metadata
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
-    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
-        + "/{versionName}/data", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
+        + "/{versionName}/data", produces = "application/json" )
     public @ResponseBody String downloadVersion( @PathVariable( "versionName" ) String versionName )
         throws MetadataVersionException,
         BadRequestException
@@ -304,8 +304,8 @@ public class MetadataVersionController
 
     // endpoint to download metadata in gzip format
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
-    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
-        + "/{versionName}/data.gz", method = RequestMethod.GET, produces = "*/*" )
+    @GetMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
+        + "/{versionName}/data.gz", produces = "*/*" )
     public void downloadGZipVersion( @PathVariable( "versionName" ) String versionName, HttpServletResponse response )
         throws MetadataVersionException,
         IOException,

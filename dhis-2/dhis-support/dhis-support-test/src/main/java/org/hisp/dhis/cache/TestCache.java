@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.cache;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * @author Luciano Fiandesio
@@ -66,9 +66,9 @@ public class TestCache<V> implements Cache<V>
     }
 
     @Override
-    public Collection<V> getAll()
+    public Stream<V> getAll()
     {
-        return mapCache.values();
+        return mapCache.values().stream();
     }
 
     @Override

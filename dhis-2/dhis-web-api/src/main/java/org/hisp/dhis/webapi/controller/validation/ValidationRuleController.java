@@ -53,9 +53,9 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.google.common.collect.Lists;
 
@@ -99,7 +99,7 @@ public class ValidationRuleController
         return super.getEntityList( metadata, options, filters, orders );
     }
 
-    @RequestMapping( value = "/expression/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )
     public void getExpressionDescription( @RequestBody String expression, HttpServletResponse response )
         throws IOException
     {

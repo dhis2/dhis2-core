@@ -50,9 +50,10 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
@@ -77,7 +78,7 @@ public class PushAnalysisController
     @Autowired
     private SchedulingManager schedulingManager;
 
-    @RequestMapping( value = "/{uid}/render", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/render" )
     public void renderPushAnalytics( @PathVariable( ) String uid, HttpServletResponse response )
         throws WebMessageException,
         IOException
@@ -102,7 +103,7 @@ public class PushAnalysisController
     }
 
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    @RequestMapping( value = "/{uid}/run", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/run" )
     public void sendPushAnalysis( @PathVariable( ) String uid )
         throws WebMessageException,
         IOException
@@ -117,6 +118,6 @@ public class PushAnalysisController
 
         JobConfiguration pushAnalysisJobConfiguration = new JobConfiguration( "pushAnalysisJob from controller",
             JobType.PUSH_ANALYSIS, "", new PushAnalysisJobParameters( uid ), true, true );
-        schedulingManager.executeJob( pushAnalysisJobConfiguration );
+        schedulingManager.executeNow( pushAnalysisJobConfiguration );
     }
 }

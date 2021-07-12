@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -42,20 +41,16 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ProgramTrackedEntityAttributeObjectBundleHook
-    extends AbstractObjectBundleHook
+    extends AbstractObjectBundleHook<ProgramTrackedEntityAttribute>
 {
+    /**
+     * Validate that the RenderType (if any) conforms to the constraints of
+     * ValueType or OptionSet.
+     */
     @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
+    public void validate( ProgramTrackedEntityAttribute object, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
-        /*
-         * Validate that the RenderType (if any) conforms to the constraints of
-         * ValueType or OptionSet.
-         */
-        if ( object != null && object.getClass().isAssignableFrom( ProgramTrackedEntityAttribute.class ) )
-        {
-            renderTypeConformsToConstrains( (ProgramTrackedEntityAttribute) object, addReports );
-        }
+        renderTypeConformsToConstrains( object, addReports );
     }
 
     private void renderTypeConformsToConstrains( ProgramTrackedEntityAttribute ptea, Consumer<ErrorReport> addReports )

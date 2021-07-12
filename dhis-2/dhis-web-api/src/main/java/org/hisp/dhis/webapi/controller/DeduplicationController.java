@@ -29,8 +29,10 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -52,12 +54,21 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import com.google.common.collect.Lists;
@@ -81,10 +92,14 @@ public class DeduplicationController
     private final ContextService contextService;
 
     @GetMapping
-    public Node getAll(
+    public Node getAllByQuery(
         PotentialDuplicateQuery query,
         HttpServletResponse response )
+        throws BadRequestException
     {
+        checkDeduplicationStatusRequestParam(
+            Optional.ofNullable( query.getStatus() ).map( Enum::name ).orElse( null ) );
+
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
         if ( fields.isEmpty() )
@@ -109,8 +124,30 @@ public class DeduplicationController
         return rootNode;
     }
 
+    @GetMapping( value = "/tei/{tei}" )
+    public List<PotentialDuplicate> getPotentialDuplicateByTei( @PathVariable String tei,
+        @RequestParam( value = "status", defaultValue = "ALL", required = false ) String status )
+        throws NotFoundException,
+        OperationNotAllowedException,
+        BadRequestException,
+        HttpStatusCodeException
+    {
+        checkDeduplicationStatusRequestParam( status );
+
+        List<PotentialDuplicate> potentialDuplicateList = deduplicationService.getPotentialDuplicateByTei( tei,
+            DeduplicationStatus.valueOf( status ) );
+
+        for ( PotentialDuplicate potentialDuplicate : potentialDuplicateList )
+        {
+            canReadTei( potentialDuplicate.getTeiA() );
+            canReadTei( potentialDuplicate.getTeiB() );
+        }
+
+        return potentialDuplicateList;
+    }
+
     @GetMapping( value = "/{id}" )
-    public PotentialDuplicate getPotentialDuplicate(
+    public PotentialDuplicate getPotentialDuplicateById(
         @PathVariable String id )
         throws NotFoundException,
         HttpStatusCodeException
@@ -153,6 +190,18 @@ public class DeduplicationController
         deduplicationService.deletePotentialDuplicate( potentialDuplicate );
     }
 
+    private void checkDeduplicationStatusRequestParam( String status )
+        throws BadRequestException
+    {
+        if ( null == status || Arrays.stream( DeduplicationStatus.values() )
+            .noneMatch( ds -> ds.name().equals( status.toUpperCase() ) ) )
+        {
+            throw new BadRequestException(
+                "Bad Request. Valid deduplication status are : " + Arrays.stream( DeduplicationStatus.values() )
+                    .map( Object::toString ).collect( Collectors.joining( "," ) ) );
+        }
+    }
+
     private PotentialDuplicate getPotentialDuplicateBy( String id )
         throws NotFoundException
     {
@@ -177,11 +226,8 @@ public class DeduplicationController
     {
         if ( deduplicationService.exists( potentialDuplicate ) )
         {
-            {
-                throw new ConflictException(
-                    "'" + potentialDuplicate.getTeiA() + "' " + "and '" + potentialDuplicate.getTeiB() +
-                        " is already marked as a potential duplicate" );
-            }
+            throw new ConflictException( "'" + potentialDuplicate.getTeiA() + "' " + "and '"
+                + potentialDuplicate.getTeiB() + " is already marked as a potential duplicate" );
         }
     }
 
@@ -200,6 +246,13 @@ public class DeduplicationController
             throw new ConflictException( "'" + tei + "' is not valid value for property '" + teiFieldName + "'" );
         }
 
+        canReadTei( tei );
+    }
+
+    private void canReadTei( String tei )
+        throws OperationNotAllowedException,
+        NotFoundException
+    {
         TrackedEntityInstance trackedEntityInstance = Optional.ofNullable( trackedEntityInstanceService
             .getTrackedEntityInstance( tei ) )
             .orElseThrow( () -> new NotFoundException( "No tracked entity instance found with id '" + tei + "'." ) );

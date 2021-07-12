@@ -62,7 +62,7 @@ public class FollowupValueManager
     private static final String FOLLOWUP_VALUE_HQL = "select new org.hisp.dhis.dataanalysis.FollowupValue(" +
         "de.uid, de.name, " +
         "pt.class, " +
-        "pe.startDate, pe.endDate, " +
+        "pe.startDate, pe.endDate, cast(null as java.lang.String)," +
         "ou.uid, ou.name, ou.path, " +
         "coc.uid, coc.name, " +
         "aoc.uid, aoc.name, " +

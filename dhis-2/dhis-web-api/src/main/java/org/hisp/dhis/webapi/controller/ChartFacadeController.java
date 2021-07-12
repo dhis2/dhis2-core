@@ -122,7 +122,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -225,7 +230,7 @@ public abstract class ChartFacadeController
     // GET
     // --------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET )
+    @GetMapping
     public @ResponseBody RootNode getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         HttpServletResponse response, HttpServletRequest request, User currentUser )
@@ -294,7 +299,7 @@ public abstract class ChartFacadeController
         return rootNode;
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}" )
     public @ResponseBody RootNode getObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
@@ -322,7 +327,7 @@ public abstract class ChartFacadeController
         return getObjectInternal( pvUid, rpParameters, filters, fields, user );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/{property}" )
     public @ResponseBody RootNode getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
@@ -370,7 +375,7 @@ public abstract class ChartFacadeController
         }
     }
 
-    @RequestMapping( value = "/{uid}/translations", method = RequestMethod.PUT )
+    @PutMapping( "/{uid}/translations" )
     public void replaceTranslations(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request, HttpServletResponse response )
@@ -445,7 +450,7 @@ public abstract class ChartFacadeController
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )
+    @PatchMapping( "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
@@ -608,7 +613,7 @@ public abstract class ChartFacadeController
     // POST
     // --------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
+    @PostMapping( consumes = "application/json" )
     public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -650,7 +655,7 @@ public abstract class ChartFacadeController
         webMessageService.send( webMessage, response, request );
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
+    @PostMapping( consumes = { "application/xml", "text/xml" } )
     public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -692,7 +697,7 @@ public abstract class ChartFacadeController
         webMessageService.send( webMessage, response, request );
     }
 
-    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/favorite" )
     @ResponseStatus( HttpStatus.OK )
     public void setAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -721,7 +726,7 @@ public abstract class ChartFacadeController
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
-    @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/subscriber" )
     @ResponseStatus( HttpStatus.OK )
     public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -754,7 +759,7 @@ public abstract class ChartFacadeController
     // PUT
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{uid}", consumes = MediaType.APPLICATION_JSON_VALUE )
     public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
@@ -795,8 +800,7 @@ public abstract class ChartFacadeController
         webMessageService.send( webMessage, response, request );
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { MediaType.APPLICATION_XML_VALUE,
-        MediaType.TEXT_XML_VALUE } )
+    @PutMapping( value = "/{uid}", consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE } )
     public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
@@ -841,7 +845,7 @@ public abstract class ChartFacadeController
     // DELETE
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{uid}" )
     @ResponseStatus( HttpStatus.OK )
     public void deleteObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -872,7 +876,7 @@ public abstract class ChartFacadeController
         webMessageService.send( WebMessageUtils.objectReport( importReport ), response, request );
     }
 
-    @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{uid}/favorite" )
     @ResponseStatus( HttpStatus.OK )
     public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -901,7 +905,7 @@ public abstract class ChartFacadeController
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
-    @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{uid}/subscriber" )
     @ResponseStatus( HttpStatus.OK )
     public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -934,7 +938,7 @@ public abstract class ChartFacadeController
     // Identifiable object collections add, delete
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/{property}/{itemId}" )
     public @ResponseBody RootNode getCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -986,7 +990,7 @@ public abstract class ChartFacadeController
         }
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -1004,7 +1008,7 @@ public abstract class ChartFacadeController
             Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
+    @PostMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -1022,7 +1026,7 @@ public abstract class ChartFacadeController
             Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -1038,7 +1042,7 @@ public abstract class ChartFacadeController
             identifiableObjects.getIdentifiableObjects() );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
+    @PutMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -1054,7 +1058,7 @@ public abstract class ChartFacadeController
             identifiableObjects.getIdentifiableObjects() );
     }
 
-    @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/{property}/{itemId}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItem(
         @PathVariable( "uid" ) String pvUid,
@@ -1075,7 +1079,7 @@ public abstract class ChartFacadeController
             Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @DeleteMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
     public void deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1090,7 +1094,7 @@ public abstract class ChartFacadeController
             Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_XML_VALUE )
+    @DeleteMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
     public void deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1105,7 +1109,7 @@ public abstract class ChartFacadeController
             Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{uid}/{property}/{itemId}" )
     public void deleteCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,

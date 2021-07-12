@@ -67,10 +67,12 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.GeoFeature;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.http.*;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -114,8 +116,7 @@ public class GeoFeatureController
     // Resources
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
-        ContextUtils.CONTENT_TYPE_HTML } )
+    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
     @ResponseBody
     public ResponseEntity<List<GeoFeature>> getGeoFeaturesJson(
         @RequestParam( required = false ) String ou,
@@ -139,7 +140,7 @@ public class GeoFeatureController
             .body( features );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = { "application/javascript" } )
+    @GetMapping( produces = { "application/javascript" } )
     public void getGeoFeaturesJsonP(
         @RequestParam( required = false ) String ou,
         @RequestParam( required = false ) String oug,

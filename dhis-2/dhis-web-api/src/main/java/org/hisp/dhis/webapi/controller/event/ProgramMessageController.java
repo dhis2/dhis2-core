@@ -55,8 +55,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -88,7 +89,7 @@ public class ProgramMessageController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( method = RequestMethod.GET, produces = { "application/json" } )
+    @GetMapping( produces = { "application/json" } )
     public void getProgramMessages( @RequestParam( required = false ) Set<String> ou,
         @RequestParam( required = false ) String programInstance,
         @RequestParam( required = false ) String programStageInstance,
@@ -114,7 +115,7 @@ public class ProgramMessageController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/scheduled", method = RequestMethod.GET )
+    @GetMapping( "/scheduled" )
     public void getScheduledMessage( @RequestParam( required = false ) Date scheduledAt, HttpServletResponse response )
         throws IOException
     {
@@ -131,7 +132,7 @@ public class ProgramMessageController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/scheduled/sent", method = RequestMethod.GET )
+    @GetMapping( "/scheduled/sent" )
     public void getScheduledSentMessage(
         @RequestParam( required = false ) String programInstance,
         @RequestParam( required = false ) String programStageInstance,
@@ -154,7 +155,7 @@ public class ProgramMessageController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( method = RequestMethod.POST, consumes = { "application/json" }, produces = { "application/json" } )
+    @PostMapping( consumes = { "application/json" }, produces = { "application/json" } )
     public void saveMessages( HttpServletRequest request, HttpServletResponse response )
         throws IOException,
         WebMessageException

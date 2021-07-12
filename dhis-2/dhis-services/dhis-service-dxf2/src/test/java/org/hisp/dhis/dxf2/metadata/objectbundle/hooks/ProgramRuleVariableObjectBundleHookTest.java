@@ -33,7 +33,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E4052;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +45,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.junit.Before;
 import org.junit.Rule;
@@ -98,15 +97,6 @@ public class ProgramRuleVariableObjectBundleHookTest
         when( sessionFactory.getCurrentSession() ).thenReturn( session );
         when( session.createQuery( anyString(), classArgumentCaptor.capture() ) ).thenReturn( query );
         when( program.getUid() ).thenReturn( "uid" );
-    }
-
-    @Test
-    public void shouldExitObjectNotInstanceOfProgramRuleVariable()
-    {
-        List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( new ProgramRule(),
-            objectBundle );
-        verifyNoInteractions( sessionFactory );
-        assertEquals( 0, errorReports.size() );
     }
 
     @Test

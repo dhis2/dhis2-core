@@ -74,15 +74,17 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = SharingController.RESOURCE_PATH, method = RequestMethod.GET )
+@RequestMapping( value = SharingController.RESOURCE_PATH )
 @Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SharingController
@@ -117,7 +119,7 @@ public class SharingController
     // Resources
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( produces = MediaType.APPLICATION_JSON_VALUE )
     public void getSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response )
         throws IOException,
         WebMessageException
@@ -225,11 +227,18 @@ public class SharingController
         renderService.toJson( response.getOutputStream(), sharing );
     }
 
-    @RequestMapping( method = { RequestMethod.POST, RequestMethod.PUT }, consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void setSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response,
+    @PutMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
+    public void putSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response,
         HttpServletRequest request )
-        throws IOException,
-        WebMessageException
+        throws Exception
+    {
+        postSharing( type, id, response, request );
+    }
+
+    @PostMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
+    public void postSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response,
+        HttpServletRequest request )
+        throws Exception
     {
         type = getSharingType( type );
 
@@ -379,7 +388,7 @@ public class SharingController
         webMessageService.send( WebMessageUtils.ok( "Access control set" ), response, request );
     }
 
-    @RequestMapping( value = "/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/search", produces = MediaType.APPLICATION_JSON_VALUE )
     public void searchUserGroups( @RequestParam String key, @RequestParam( required = false ) Integer pageSize,
         HttpServletResponse response )
         throws IOException,

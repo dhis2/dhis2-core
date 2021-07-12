@@ -45,8 +45,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.GoogleAccessToken;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -71,7 +71,7 @@ public class TokenController
         this.tokenCache = cacheProvider.createGoogleAccessTokenCache();
     }
 
-    @RequestMapping( value = "/google", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/google", produces = "application/json" )
     public @ResponseBody GoogleAccessToken getEarthEngineToken( HttpServletResponse response )
         throws WebMessageException,
         ExecutionException

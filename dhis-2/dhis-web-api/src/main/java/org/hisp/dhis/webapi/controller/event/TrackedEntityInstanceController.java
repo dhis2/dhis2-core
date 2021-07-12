@@ -94,10 +94,12 @@ import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -197,7 +199,7 @@ public class TrackedEntityInstanceController
         return rootNode;
     }
 
-    @RequestMapping( value = "/{teiId}/{attributeId}/image", method = RequestMethod.GET )
+    @GetMapping( "/{teiId}/{attributeId}/image" )
     public void getAttributeImage(
         @PathVariable( "teiId" ) String teiId,
         @PathVariable( "attributeId" ) String attributeId,
@@ -295,7 +297,7 @@ public class TrackedEntityInstanceController
         }
     }
 
-    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
+    @GetMapping( value = "/query", produces = { ContextUtils.CONTENT_TYPE_JSON,
         ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
     public @ResponseBody Grid queryTrackedEntityInstancesJson( TrackedEntityInstanceCriteria criteria,
         HttpServletResponse response )
@@ -304,7 +306,7 @@ public class TrackedEntityInstanceController
         return getGridByCriteria( criteria );
     }
 
-    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_XML )
+    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_XML )
     public void queryTrackedEntityInstancesXml( TrackedEntityInstanceCriteria criteria,
         HttpServletResponse response )
         throws Exception
@@ -313,7 +315,7 @@ public class TrackedEntityInstanceController
         GridUtils.toXml( getGridByCriteria( criteria ), response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_EXCEL )
+    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_EXCEL )
     public void queryTrackedEntityInstancesXls( TrackedEntityInstanceCriteria criteria,
         HttpServletResponse response )
         throws Exception
@@ -322,7 +324,7 @@ public class TrackedEntityInstanceController
         GridUtils.toXls( getGridByCriteria( criteria ), response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_CSV )
+    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_CSV )
     public void queryTrackedEntityInstancesCsv( TrackedEntityInstanceCriteria criteria,
         HttpServletResponse response )
         throws Exception
@@ -331,7 +333,7 @@ public class TrackedEntityInstanceController
         GridUtils.toCsv( getGridByCriteria( criteria ), response.getWriter() );
     }
 
-    @RequestMapping( value = "/count", method = RequestMethod.GET )
+    @GetMapping( "/count" )
     public @ResponseBody int getTrackedEntityInstanceCount( TrackedEntityInstanceCriteria criteria )
     {
         criteria.setSkipMeta( true );
@@ -368,7 +370,7 @@ public class TrackedEntityInstanceController
     // CREATE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
     public void postTrackedEntityInstanceJson(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
@@ -378,7 +380,7 @@ public class TrackedEntityInstanceController
         postTrackedEntityInstance( strategy, importOptions, request, response, MediaType.APPLICATION_JSON_VALUE );
     }
 
-    @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
+    @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE )
     public void postTrackedEntityInstanceXml(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
@@ -457,7 +459,7 @@ public class TrackedEntityInstanceController
     // UPDATE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
+    @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_XML_VALUE )
     public void updateTrackedEntityInstanceXml(
         @PathVariable String id,
         @RequestParam( required = false ) String program,
@@ -472,7 +474,7 @@ public class TrackedEntityInstanceController
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
-    @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE )
     public void updateTrackedEntityInstanceJson(
         @PathVariable String id,
         @RequestParam( required = false ) String program,
@@ -491,7 +493,7 @@ public class TrackedEntityInstanceController
     // DELETE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{id}", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{id}" )
     public void deleteTrackedEntityInstance( @PathVariable String id, HttpServletRequest request,
         HttpServletResponse response )
     {
