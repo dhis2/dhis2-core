@@ -714,7 +714,7 @@ public class DefaultCsvImportService
                         return persistedOS;
                     } )
                     : mapOptionSet.get( optionSet.getCode(), () -> {
-                        OptionSet persistedOS = optionService.getOptionSetByCode( optionSet.getUid() );
+                        OptionSet persistedOS = optionService.getOptionSetByCode( optionSet.getCode() );
                         persistedOS.getOptions();
                         return persistedOS;
                     } );
