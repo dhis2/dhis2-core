@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UserContext;
@@ -60,7 +61,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -111,7 +111,7 @@ public class MetadataImportExportController
     private GmlImportService gmlImportService;
 
     @Autowired
-    private SchedulingManager schedulingManager;
+    private AsyncTaskExecutor taskExecutor;
 
     @Autowired
     private MetadataExportService metadataExportService;
@@ -258,7 +258,7 @@ public class MetadataImportExportController
     {
         MetadataAsyncImporter metadataImporter = metadataAsyncImporterFactory.getObject();
         metadataImporter.setParams( params );
-        schedulingManager.executeJob( metadataImporter );
+        taskExecutor.executeTask( metadataImporter );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + METADATA_IMPORT );
         webMessageService.send( jobConfigurationReport( params.getId() ), response, request );
@@ -270,7 +270,7 @@ public class MetadataImportExportController
         GmlAsyncImporter gmlImporter = gmlAsyncImporterFactory.getObject();
         gmlImporter.setInputStream( request.getInputStream() );
         gmlImporter.setParams( params );
-        schedulingManager.executeJob( gmlImporter );
+        taskExecutor.executeTask( gmlImporter );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + GML_IMPORT );
         webMessageService.send( jobConfigurationReport( params.getId() ), response, request );

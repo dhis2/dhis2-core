@@ -36,13 +36,13 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.PredictionTask;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -70,7 +70,7 @@ public class PredictionController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private SchedulingManager schedulingManager;
+    private AsyncTaskExecutor taskExecutor;
 
     @Autowired
     private PredictionService predictionService;
@@ -98,7 +98,7 @@ public class PredictionController
             JobConfiguration jobId = new JobConfiguration( "inMemoryPrediction", PREDICTOR,
                 currentUserService.getCurrentUser().getUid(), true );
 
-            schedulingManager.executeJob(
+            taskExecutor.executeTask(
                 new PredictionTask( startDate, endDate, predictors, predictorGroups, predictionService, jobId ) );
 
             response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + PREDICTOR );
