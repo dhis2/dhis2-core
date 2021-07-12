@@ -58,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
@@ -70,7 +71,6 @@ import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -108,7 +108,7 @@ public class DataValueSetController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private SchedulingManager schedulingManager;
+    private AsyncTaskExecutor taskExecutor;
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -386,7 +386,7 @@ public class DataValueSetController
 
         JobConfiguration jobId = new JobConfiguration( "dataValueImport", DATAVALUE_IMPORT,
             currentUserService.getCurrentUser().getUid(), true );
-        schedulingManager.executeJob(
+        taskExecutor.executeTask(
             new ImportDataValueTask( dataValueSetService, adxDataService, sessionFactory, inputStream, importOptions,
                 jobId, format ) );
 

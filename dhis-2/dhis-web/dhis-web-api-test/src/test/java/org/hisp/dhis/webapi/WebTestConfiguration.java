@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
+import java.util.Date;
 
 import javax.transaction.Transactional;
 
@@ -48,16 +47,14 @@ import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.program.jdbc.JdbcOrgUnitAssociationStoreConfiguration;
-import org.hisp.dhis.scheduling.DefaultJobInstance;
+import org.hisp.dhis.scheduling.AbstractSchedulingManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.security.config.DhisWebCommonsWebSecurityConfig;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
-import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -174,31 +171,37 @@ public class WebTestConfiguration
      */
     @Bean
     @Primary
-    public SchedulingManager synchronousSchedulingManager( MessageService messageService, LeaderManager leaderManager,
-        JobConfigurationService jobConfigurationService, ApplicationContext applicationContext )
+    public SchedulingManager synchronousSchedulingManager( JobService jobService,
+        JobConfigurationService jobConfigurationService,
+        MessageService messageService, LeaderManager leaderManager )
     {
-        SchedulingManager manager = Mockito.mock( SchedulingManager.class );
-        doAnswer( invocation -> {
-            JobConfiguration jobConfiguration = invocation.getArgument( 0 );
-            DefaultJobInstance jobInstance = new DefaultJobInstance( manager, messageService, leaderManager );
-            jobInstance.execute( jobConfiguration );
-            return null;
-        } ).when( manager ).executeJob( any( JobConfiguration.class ) );
-        doAnswer( invocation -> {
-            JobConfiguration jobConfiguration = invocation.getArgument( 0 );
-            jobConfigurationService.updateJobConfiguration( jobConfiguration );
-            return null;
-        } ).when( manager ).jobConfigurationStarted( any() );
-        doAnswer( invocation -> {
-            JobConfiguration jobConfiguration = invocation.getArgument( 0 );
-            jobConfigurationService.updateJobConfiguration( jobConfiguration );
-            return null;
-        } ).when( manager ).jobConfigurationFinished( any() );
-        doAnswer( invocation -> {
-            JobType jobType = invocation.getArgument( 0 );
-            return applicationContext.getBean( jobType.getKey() );
-        } ).when( manager ).getJob( any() );
-        return manager;
+        return new AbstractSchedulingManager( jobService, jobConfigurationService, messageService, leaderManager )
+        {
+            @Override
+            public void schedule( JobConfiguration configuration )
+            {
+                // we don't run it
+            }
+
+            @Override
+            public void scheduleWithStartTime( JobConfiguration configuration, Date startTime )
+            {
+                // we don't run it
+            }
+
+            @Override
+            public void stop( JobConfiguration configuration )
+            {
+                // its either never started or we don't support stop (silent)
+            }
+
+            @Override
+            public boolean executeNow( JobConfiguration configuration )
+            {
+                execute( configuration );
+                return true;
+            }
+        };
     }
 
 }

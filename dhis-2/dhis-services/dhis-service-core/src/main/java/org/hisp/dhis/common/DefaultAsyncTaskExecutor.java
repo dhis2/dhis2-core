@@ -25,45 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.old.tracker.imports.impl;
+package org.hisp.dhis.common;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
+import java.util.concurrent.Future;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.springframework.stereotype.Service;
 
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceStrategyHandler;
-import org.springframework.http.MediaType;
-
-@RequiredArgsConstructor
-public abstract class AbstractTrackedEntityInstanceStrategy implements TrackedEntityInstanceStrategyHandler
+/**
+ * A mere DHIS2 front for springs {@link AsyncListenableTaskExecutor}.
+ *
+ * @author Jan Bernitt
+ */
+@Service
+public class DefaultAsyncTaskExecutor implements AsyncTaskExecutor
 {
-    protected final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final AsyncListenableTaskExecutor jobExecutor;
 
-    protected final AsyncTaskExecutor taskExecutor;
-
-    protected List<TrackedEntityInstance> getTrackedEntityInstancesListByMediaType( String mediaType,
-        InputStream inputStream )
-        throws IOException,
-        BadRequestException
+    public DefaultAsyncTaskExecutor( @Qualifier( "taskScheduler" ) AsyncListenableTaskExecutor jobExecutor )
     {
-        if ( MediaType.valueOf( mediaType ).equals( MediaType.APPLICATION_JSON ) )
-        {
-            return trackedEntityInstanceService.getTrackedEntityInstancesJson( inputStream );
-        }
-        else if ( mediaType
-            .equals( MediaType.APPLICATION_XML_VALUE ) )
-        {
-            return trackedEntityInstanceService.getTrackedEntityInstancesXml( inputStream );
-        }
-        else
-        {
-            throw new BadRequestException( "Value " + mediaType + " not allowed as Media Type " );
-        }
+        this.jobExecutor = jobExecutor;
+    }
+
+    @Override
+    public void executeTask( Runnable job )
+    {
+        jobExecutor.execute( job );
+    }
+
+    @Override
+    public Future<?> executeTaskWithCancelation( Runnable task )
+    {
+        return jobExecutor.submitListenable( task );
     }
 }
