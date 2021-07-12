@@ -38,6 +38,7 @@ import java.util.Set;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
 import org.hisp.dhis.query.Disjunction;
@@ -80,7 +81,8 @@ public class DefaultQueryPlanner implements QueryPlanner
         Junction.Type junctionType = query.getCriterions().size() <= 1 ? Junction.Type.AND
             : query.getRootJunctionType();
 
-        if ( (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
+        if ( !isFilterCategoryOptionsByCategories( query.getSchema(), query.getCriterions() )
+            && (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
         {
             return QueryPlan.QueryPlanBuilder.newBuilder()
                 .persistedQuery( Query.from( query.getSchema() ).setPlannedQuery( true ) )
@@ -251,6 +253,13 @@ public class DefaultQueryPlanner implements QueryPlanner
                     pQuery.getCriterions().add( criterion );
                     iterator.remove();
                 }
+                else if ( isFilterCategoryOptionsByCategories( query.getSchema(), Arrays.asList( restriction ) ) )
+                {
+                    pQuery.getAliases().addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
+                    pQuery.getCriterions().add( criterion );
+                    iterator.remove();
+                    query.getCriterions().remove( restriction );
+                }
             }
         }
 
@@ -299,6 +308,14 @@ public class DefaultQueryPlanner implements QueryPlanner
                         .addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
                     criteriaJunction.getCriterions().add( criterion );
                     iterator.remove();
+                }
+                else if ( isFilterCategoryOptionsByCategories( query.getSchema(), Arrays.asList( criterion ) ) )
+                {
+                    criteriaJunction.getAliases()
+                        .addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
+                    criteriaJunction.getCriterions().add( criterion );
+                    iterator.remove();
+                    query.getCriterions().remove( restriction );
                 }
                 else if ( persistedOnly )
                 {
@@ -366,6 +383,77 @@ public class DefaultQueryPlanner implements QueryPlanner
                 }
             }
         }
+        return false;
+    }
+
+    /**
+     * Fix performance issue DHIS2-11032.
+     * <p>
+     * Check if the given list of {@link Criterion} has filter
+     * {@link CategoryOption} by Category.
+     * </p>
+     *
+     * <p>
+     * This method is only applied to {@link CategoryOption},
+     * </p>
+     *
+     * @param schema the {@link Schema} of {@link Query} for checking if
+     *        schema's klass is {@link CategoryOption}
+     * @param criterionList list of {@link Criterion} for checking filters.
+     * @return
+     *         <p>
+     *         false if given schema's klass is not {@link CategoryOption}
+     *         </p>
+     *         <p>
+     *         true if query filters CategoryOptions by Categories, false
+     *         otherwise.
+     *         </p>
+     */
+    private boolean isFilterCategoryOptionsByCategories( Schema schema, List<Criterion> criterionList )
+    {
+        if ( !CategoryOption.class.isAssignableFrom( schema.getKlass() ) )
+        {
+            return false;
+        }
+
+        if ( isFilterByCategories( criterionList ) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if any of the given criterions has "categories" as the Restriction
+     * path.
+     *
+     * @param criterions List of criterions.
+     * @return true if the find "categories" in any of the criterions, false
+     *         otherwise.
+     */
+    private boolean isFilterByCategories( List<Criterion> criterions )
+    {
+        for ( Criterion criterion : criterions )
+        {
+            if ( criterion instanceof Restriction )
+            {
+                Restriction restriction = (Restriction) criterion;
+
+                if ( restriction.getPath().contains( "categories" ) )
+                {
+                    return true;
+                }
+            }
+            else if ( criterion instanceof Junction )
+            {
+                if ( isFilterByCategories( ((Junction) criterion).getCriterions() ) )
+                {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 }

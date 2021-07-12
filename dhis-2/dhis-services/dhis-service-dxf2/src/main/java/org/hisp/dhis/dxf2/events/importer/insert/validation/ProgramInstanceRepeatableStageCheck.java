@@ -66,10 +66,10 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
          */
         // @formatter:off
         if ( programInstance != null &&
-            tei != null &&
-            program.isRegistration() &&
-            !programStage.getRepeatable() &&
-            hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programStage.getId(), tei.getId() ) )
+             tei != null &&
+             program.isRegistration() &&
+             !programStage.getRepeatable() &&
+             hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programInstance.getId(), programStage.getId(), tei.getId() ) )
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "Program stage is not repeatable and an event already exists" ).setReference( event.getEvent() )
@@ -80,21 +80,23 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
         return success();
     }
 
-    private boolean hasProgramStageInstance( JdbcTemplate jdbcTemplate, long programStageId,
+    private boolean hasProgramStageInstance( JdbcTemplate jdbcTemplate, long programInstanceId, long programStageId,
         long trackedEntityInstanceId )
     {
         // @formatter:off
         final String sql = "select exists( " +
-            "select * " +
-            "from programstageinstance psi " +
-            "  join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
-            "where psi.programstageid = ? " +
-            "  and psi.deleted = false " +
-            "  and pi.trackedentityinstanceid = ? " +
-            "  and psi.status != 'SKIPPED'" +
+                "select * " +
+                "from programstageinstance psi " +
+                "  join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
+                "where pi.programinstanceid = ? " +
+                "  and psi.programstageid = ? " +
+                "  and psi.deleted = false " +
+                "  and pi.trackedentityinstanceid = ? " +
+                "  and psi.status != 'SKIPPED'" +
                 ")";
         // @formatter:on
 
-        return jdbcTemplate.queryForObject( sql, Boolean.class, programStageId, trackedEntityInstanceId );
+        return jdbcTemplate.queryForObject( sql, Boolean.class, programInstanceId, programStageId,
+            trackedEntityInstanceId );
     }
 }
