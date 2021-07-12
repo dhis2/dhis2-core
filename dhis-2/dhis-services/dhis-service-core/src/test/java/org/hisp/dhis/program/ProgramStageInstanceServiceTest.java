@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.StreamSupport.stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -567,7 +566,7 @@ public class ProgramStageInstanceServiceTest
 
     private Map<String, DataElement> convertToMap( Cache<DataElement> dataElementMap )
     {
-        return stream( dataElementMap.getAll().spliterator(), false )
+        return dataElementMap.getAll()
             .collect( Collectors.toMap( DataElement::getUid, d -> d ) );
     }
 
