@@ -28,20 +28,28 @@
 package org.hisp.dhis.dxf2.events.event.persistence;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventCommentStore;
 import org.hisp.dhis.dxf2.events.event.EventStore;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceAudit;
+import org.hisp.dhis.program.ProgramStageInstanceAuditService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +68,12 @@ public class DefaultEventPersistenceService
     @NonNull
     private final EventCommentStore jdbcEventCommentStore;
 
+    @Nonnull
+    private final DhisConfigurationProvider config;
+
+    @Nonnull
+    private final ProgramStageInstanceAuditService instanceAuditService;
+
     @Override
     @Transactional
     public void save( WorkContext context, List<Event> events )
@@ -70,6 +84,9 @@ public class DefaultEventPersistenceService
 
             List<ProgramStageInstance> programStageInstances = jdbcEventStore
                 .saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
+
+            programStageInstances.stream().filter( Objects::nonNull )
+                .forEach( i -> createAndAddProgramStageInstanceAudit( i, AuditType.CREATE ) );
 
             jdbcEventCommentStore.saveAllComments( programStageInstances );
 
@@ -97,6 +114,9 @@ public class DefaultEventPersistenceService
             List<ProgramStageInstance> programStageInstances = jdbcEventStore
                 .updateEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
 
+            programStageInstances.stream().filter( Objects::nonNull )
+                .forEach( i -> createAndAddProgramStageInstanceAudit( i, AuditType.UPDATE ) );
+
             jdbcEventCommentStore.saveAllComments( programStageInstances );
 
             if ( !context.getImportOptions().isSkipLastUpdated() )
@@ -119,6 +139,14 @@ public class DefaultEventPersistenceService
         if ( isNotEmpty( events ) )
         {
             jdbcEventStore.delete( events );
+
+            ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
+
+            List<ProgramStageInstance> programStageInstances = events.stream().map( mapper::map )
+                .collect( Collectors.toList() );
+
+            programStageInstances.stream().filter( Objects::nonNull )
+                .forEach( i -> createAndAddProgramStageInstanceAudit( i, AuditType.DELETE ) );
         }
     }
 
@@ -139,5 +167,19 @@ public class DefaultEventPersistenceService
             .distinct().collect( Collectors.toList() );
 
         jdbcEventStore.updateTrackedEntityInstances( distinctTeiList, context.getImportOptions().getUser() );
+    }
+
+    private void createAndAddProgramStageInstanceAudit( ProgramStageInstance programStageInstance, AuditType auditType )
+    {
+        if ( !config.isEnabled( CHANGELOG_TRACKER ) || programStageInstance == null )
+        {
+            return;
+        }
+
+        ProgramStageInstanceAudit audit = ProgramStageInstanceAudit.builder().auditType( auditType )
+            .programStageInstance( programStageInstance.getUid() )
+            .created( programStageInstance.getCreated() ).modifiedBy( programStageInstance.getStoredBy() ).build();
+
+        instanceAuditService.addProgramStageInstanceAudit( audit );
     }
 }
