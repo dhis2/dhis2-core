@@ -370,11 +370,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
-            .setImportReportMode( ImportReportMode.FULL )
-            .setUser( user )
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+
+        params.setUser( user )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( patchedObject );
+
+        // default to FULL unless ERRORS_NOT_OWNER has been requested
+        if ( ImportReportMode.ERRORS_NOT_OWNER != params.getImportReportMode() )
+        {
+            params.setImportReportMode( ImportReportMode.FULL );
+        }
 
         ImportReport importReport = importService.importMetadata( params );
         WebMessage webMessage = WebMessageUtils.objectReport( importReport );
@@ -546,11 +552,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         preUpdateEntity( objects.get( 0 ), parsed );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
-            .setImportReportMode( ImportReportMode.FULL )
-            .setUser( user )
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+
+        params.setUser( user )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( parsed );
+
+        // default to FULL unless ERRORS_NOT_OWNER has been requested
+        if ( ImportReportMode.ERRORS_NOT_OWNER != params.getImportReportMode() )
+        {
+            params.setImportReportMode( ImportReportMode.FULL );
+        }
 
         ImportReport importReport = importService.importMetadata( params );
         WebMessage webMessage = WebMessageUtils.objectReport( importReport );
