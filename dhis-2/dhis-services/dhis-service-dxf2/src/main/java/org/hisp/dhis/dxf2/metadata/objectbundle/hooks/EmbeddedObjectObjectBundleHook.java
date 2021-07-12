@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import java.util.Collection;
 import java.util.function.Consumer;
 
+import lombok.AllArgsConstructor;
+
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -44,25 +46,22 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
+@AllArgsConstructor
 public class EmbeddedObjectObjectBundleHook
-    extends AbstractObjectBundleHook
+    extends AbstractObjectBundleHook<IdentifiableObject>
 {
-    @Autowired
-    private DefaultAnalyticalObjectImportHandler analyticalObjectImportHandler;
+    private final DefaultAnalyticalObjectImportHandler analyticalObjectImportHandler;
 
-    @Autowired
-    private SchemaValidator schemaValidator;
+    private final SchemaValidator schemaValidator;
 
     @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
+    public void validate( IdentifiableObject object, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
         Class<? extends IdentifiableObject> klass = object.getClass();
         Schema schema = schemaService.getDynamicSchema( klass );
@@ -99,7 +98,7 @@ public class EmbeddedObjectObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
+    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
     {
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
@@ -114,7 +113,7 @@ public class EmbeddedObjectObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
@@ -129,7 +128,7 @@ public class EmbeddedObjectObjectBundleHook
         handleEmbeddedObjects( object, bundle, properties );
     }
 
-    private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, ObjectBundle bundle,
+    private void clearEmbeddedObjects( IdentifiableObject object, ObjectBundle bundle,
         Collection<Property> properties )
     {
         for ( Property property : properties )
@@ -150,7 +149,7 @@ public class EmbeddedObjectObjectBundleHook
         }
     }
 
-    private <T extends IdentifiableObject> void handleEmbeddedObjects( T object, ObjectBundle bundle,
+    private void handleEmbeddedObjects( IdentifiableObject object, ObjectBundle bundle,
         Collection<Property> properties )
     {
         for ( Property property : properties )

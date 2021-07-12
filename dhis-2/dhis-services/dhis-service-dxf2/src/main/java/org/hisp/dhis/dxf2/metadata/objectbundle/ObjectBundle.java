@@ -395,22 +395,23 @@ public class ObjectBundle implements ObjectIndexProvider
         return persisted ? persistedObjects : nonPersistedObjects;
     }
 
-    public List<IdentifiableObject> getObjects( Class<? extends IdentifiableObject> klass, boolean persisted )
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getObjects( Class<T> klass, boolean persisted )
     {
-        List<IdentifiableObject> identifiableObjects = null;
+        List<T> identifiableObjects = null;
 
         if ( persisted )
         {
             if ( persistedObjects.containsKey( klass ) )
             {
-                identifiableObjects = persistedObjects.get( klass );
+                identifiableObjects = (List<T>) persistedObjects.get( klass );
             }
         }
         else
         {
             if ( nonPersistedObjects.containsKey( klass ) )
             {
-                identifiableObjects = nonPersistedObjects.get( klass );
+                identifiableObjects = (List<T>) nonPersistedObjects.get( klass );
             }
         }
 

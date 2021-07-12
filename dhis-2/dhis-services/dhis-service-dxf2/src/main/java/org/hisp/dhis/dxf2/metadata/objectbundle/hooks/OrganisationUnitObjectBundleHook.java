@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import org.hibernate.Session;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -45,18 +44,13 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
+public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<OrganisationUnit>
 {
     @Override
-    public void preCommit( ObjectBundle objectBundle )
+    public void preCommit( ObjectBundle bundle )
     {
-        sortOrganisationUnits( objectBundle );
-    }
-
-    private void sortOrganisationUnits( ObjectBundle bundle )
-    {
-        List<IdentifiableObject> nonPersistedObjects = bundle.getObjects( OrganisationUnit.class, false );
-        List<IdentifiableObject> persistedObjects = bundle.getObjects( OrganisationUnit.class, true );
+        List<OrganisationUnit> nonPersistedObjects = bundle.getObjects( OrganisationUnit.class, false );
+        List<OrganisationUnit> persistedObjects = bundle.getObjects( OrganisationUnit.class, true );
 
         nonPersistedObjects.sort( new OrganisationUnitParentCountComparator() );
         persistedObjects.sort( new OrganisationUnitParentCountComparator() );
@@ -65,11 +59,6 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public void postCommit( ObjectBundle bundle )
     {
-        if ( !bundle.hasObjects( OrganisationUnit.class ) )
-        {
-            return;
-        }
-
         Iterable<OrganisationUnit> objects = bundle.getObjects( OrganisationUnit.class );
         Map<String, Map<String, Object>> objectReferences = bundle.getObjectReferences( OrganisationUnit.class );
 
@@ -97,28 +86,21 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
+    public void preCreate( OrganisationUnit object, ObjectBundle bundle )
     {
         setSRID( object );
     }
 
     @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
+    public void preUpdate( OrganisationUnit object, OrganisationUnit persistedObject, ObjectBundle bundle )
     {
         setSRID( object );
     }
 
     @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+    public void validate( OrganisationUnit organisationUnit, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
-        if ( object == null || !object.getClass().isAssignableFrom( OrganisationUnit.class ) )
-        {
-            return;
-        }
-
-        OrganisationUnit organisationUnit = (OrganisationUnit) object;
-
         if ( organisationUnit.getClosedDate() != null
             && organisationUnit.getClosedDate().before( organisationUnit.getOpeningDate() ) )
         {
@@ -128,15 +110,8 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
         }
     }
 
-    private void setSRID( IdentifiableObject object )
+    private void setSRID( OrganisationUnit organisationUnit )
     {
-        if ( !(object instanceof OrganisationUnit) )
-        {
-            return;
-        }
-
-        OrganisationUnit organisationUnit = (OrganisationUnit) object;
-
         if ( organisationUnit.getGeometry() != null )
         {
             organisationUnit.getGeometry().setSRID( GeoUtils.SRID );

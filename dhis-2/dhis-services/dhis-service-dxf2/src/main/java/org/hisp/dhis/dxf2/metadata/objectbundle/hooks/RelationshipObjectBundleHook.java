@@ -27,36 +27,27 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import org.hisp.dhis.common.IdentifiableObject;
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipObjectBundleHook" )
-public class RelationshipObjectBundleHook
-    extends AbstractObjectBundleHook
+@AllArgsConstructor
+public class RelationshipObjectBundleHook extends AbstractObjectBundleHook<Relationship>
 {
 
-    @Autowired
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
 
-    @Autowired
-    private RelationshipTypeService relationshipTypeService;
+    private final RelationshipTypeService relationshipTypeService;
 
     @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
+    public void preCreate( Relationship relationship, ObjectBundle bundle )
     {
-        if ( !Relationship.class.isInstance( object ) )
-        {
-            return;
-        }
-
-        Relationship relationship = (Relationship) object;
-
         handleRelationshipItem( relationship.getFrom() );
         sessionFactory.getCurrentSession().save( relationship.getFrom() );
         handleRelationshipItem( relationship.getTo() );
