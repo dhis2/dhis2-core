@@ -49,8 +49,6 @@ import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 import static org.springframework.util.MimeTypeUtils.IMAGE_PNG;
 import static org.springframework.util.MimeTypeUtils.parseMimeType;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.io.IOException;
 import java.util.Map;
@@ -78,6 +76,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -180,7 +179,7 @@ public class StaticContentController
      *
      * @param key key associated with the file.
      */
-    @RequestMapping( value = "/{key}", method = GET )
+    @GetMapping( "/{key}" )
     public void getStaticContent(
         @PathVariable( "key" ) String key, HttpServletRequest request,
         HttpServletResponse response )
@@ -233,7 +232,7 @@ public class StaticContentController
      */
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @ResponseStatus( NO_CONTENT )
-    @RequestMapping( value = "/{key}", method = POST )
+    @PostMapping( "/{key}" )
     public void updateStaticContent( @PathVariable( "key" ) String key,
         @RequestParam( value = "file" ) MultipartFile file )
         throws WebMessageException

@@ -82,10 +82,12 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -347,7 +349,7 @@ public class MessageConversationController
     // POST for reply on existing MessageConversation
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.POST )
+    @PostMapping( "/{uid}" )
     public void postMessageConversationReply(
         @PathVariable( "uid" ) String uid,
         @RequestBody String message,
@@ -407,7 +409,7 @@ public class MessageConversationController
         webMessageService.send( WebMessageUtils.created( "Message conversation created" ), response, request );
     }
 
-    @RequestMapping( value = "/{uid}/recipients", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/recipients" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addRecipientsToMessageConversation( @PathVariable( "uid" ) String uid,
         @RequestBody MessageConversation messageConversation )
@@ -437,7 +439,7 @@ public class MessageConversationController
     // POST for feedback
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/feedback", method = RequestMethod.POST )
+    @PostMapping( "/feedback" )
     public void postMessageConversationFeedback( @RequestParam( "subject" ) String subject, @RequestBody String body,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
@@ -453,8 +455,8 @@ public class MessageConversationController
     // Assign priority
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/priority", method = RequestMethod.POST, produces = {
-        MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
+    @PostMapping( value = "/{uid}/priority", produces = { MediaType.APPLICATION_JSON_VALUE,
+        MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode setMessagePriority(
         @PathVariable String uid, @RequestParam MessageConversationPriority messageConversationPriority,
         HttpServletResponse response )
@@ -495,7 +497,7 @@ public class MessageConversationController
     // Assign status
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/status", method = RequestMethod.POST, produces = {
+    @PostMapping( value = "/{uid}/status", produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode setMessageStatus(
         @PathVariable String uid,
@@ -538,7 +540,7 @@ public class MessageConversationController
     // Assign user
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/assign", method = RequestMethod.POST, produces = {
+    @PostMapping( value = "/{uid}/assign", produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode setUserAssigned(
         @PathVariable String uid,
@@ -595,7 +597,7 @@ public class MessageConversationController
     // Remove assigned user
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/assign", method = RequestMethod.DELETE, produces = {
+    @DeleteMapping( value = "/{uid}/assign", produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode removeUserAssigned(
         @PathVariable String uid,
@@ -633,7 +635,7 @@ public class MessageConversationController
     // Mark conversations read
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/read", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping( value = "/{uid}/read", produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode markMessageConversationRead(
         @PathVariable String uid, @RequestParam( required = false ) String userUid, HttpServletResponse response )
@@ -641,7 +643,7 @@ public class MessageConversationController
         return modifyMessageConversationRead( userUid, Lists.newArrayList( uid ), response, true );
     }
 
-    @RequestMapping( value = "/read", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping( value = "/read", produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode markMessageConversationsRead(
         @RequestParam( value = "user", required = false ) String userUid, @RequestBody List<String> uids,
@@ -654,7 +656,7 @@ public class MessageConversationController
     // Mark conversations unread
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/unread", method = RequestMethod.POST, produces = {
+    @PostMapping( value = "/{uid}/unread", produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode markMessageConversationUnread(
         @PathVariable String uid, @RequestParam( required = false ) String userUid, HttpServletResponse response )
@@ -662,7 +664,7 @@ public class MessageConversationController
         return modifyMessageConversationRead( userUid, Lists.newArrayList( uid ), response, false );
     }
 
-    @RequestMapping( value = "/unread", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping( value = "/unread", produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode markMessageConversationsUnread(
         @RequestParam( value = "user", required = false ) String userUid, @RequestBody List<String> uids,
@@ -675,7 +677,7 @@ public class MessageConversationController
     // Mark conversations for follow up
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "followup", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping( value = "followup", produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode markMessageConversationFollowup(
         @RequestParam( value = "user", required = false ) String userUid, @RequestBody List<String> uids,
@@ -730,7 +732,7 @@ public class MessageConversationController
     // Clear follow up
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "unfollowup", method = RequestMethod.POST, produces = { MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping( value = "unfollowup", produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode unmarkMessageConversationFollowup(
         @RequestParam( value = "user", required = false ) String userUid, @RequestBody List<String> uids,
@@ -805,7 +807,7 @@ public class MessageConversationController
     // In practice a DELETE on MessageConversation <-> User relationship
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{mc-uid}/{user-uid}", method = RequestMethod.DELETE, produces = {
+    @DeleteMapping( value = "/{mc-uid}/{user-uid}", produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode removeUserFromMessageConversation(
         @PathVariable( value = "mc-uid" ) String mcUid, @PathVariable( value = "user-uid" ) String userUid,
@@ -855,7 +857,7 @@ public class MessageConversationController
     // Remove a user from one or more MessageConversations (batch operation)
     // --------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.DELETE, produces = { MediaType.APPLICATION_JSON_VALUE,
+    @DeleteMapping( produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode removeUserFromMessageConversations(
         @RequestParam( "mc" ) List<String> mcUids, @RequestParam( value = "user", required = false ) String userUid,
@@ -906,7 +908,7 @@ public class MessageConversationController
         return responseNode;
     }
 
-    @RequestMapping( value = "/{mcUid}/{msgUid}/attachments/{fileUid}", method = RequestMethod.GET )
+    @GetMapping( "/{mcUid}/{msgUid}/attachments/{fileUid}" )
     public void getAttachment(
         @PathVariable( value = "mcUid" ) String mcUid,
         @PathVariable( value = "msgUid" ) String msgUid,

@@ -44,8 +44,7 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -64,7 +63,7 @@ public class IndexController
     // GET
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/api", method = RequestMethod.GET )
+    @GetMapping( "/api" )
     public void getIndex( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
@@ -72,7 +71,7 @@ public class IndexController
         response.sendRedirect( ContextUtils.getRootPath( request ) + location );
     }
 
-    @RequestMapping( value = "/", method = RequestMethod.GET )
+    @GetMapping( "/" )
     public void getIndexWithSlash( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
@@ -80,7 +79,7 @@ public class IndexController
         response.sendRedirect( ContextUtils.getRootPath( request ) + location );
     }
 
-    @RequestMapping( value = "/resources", method = RequestMethod.GET )
+    @GetMapping( "/resources" )
     public @ResponseBody RootNode getResources()
     {
         return createRootNode();

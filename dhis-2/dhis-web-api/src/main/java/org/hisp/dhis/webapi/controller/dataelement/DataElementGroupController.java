@@ -55,9 +55,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.google.common.collect.Lists;
@@ -76,7 +76,7 @@ public class DataElementGroupController
     @Autowired
     private DataElementService dataElementService;
 
-    @RequestMapping( value = "/{uid}/operands", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/operands" )
     public String getOperands( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
         Model model,
         TranslateParams translateParams, HttpServletRequest request, HttpServletResponse response )
@@ -114,7 +114,7 @@ public class DataElementGroupController
         return StringUtils.uncapitalize( getEntitySimpleName() );
     }
 
-    @RequestMapping( value = "/{uid}/operands/query/{q}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/operands/query/{q}" )
     public String getOperandsByQuery( @PathVariable( "uid" ) String uid,
         @PathVariable( "q" ) String q, @RequestParam Map<String, String> parameters, TranslateParams translateParams,
         Model model,
@@ -160,7 +160,7 @@ public class DataElementGroupController
         return StringUtils.uncapitalize( getEntitySimpleName() );
     }
 
-    @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/metadata" )
     public ResponseEntity<RootNode> getDataElementGroupWithDependencies(
         @PathVariable( "uid" ) String dataElementGroupId,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )

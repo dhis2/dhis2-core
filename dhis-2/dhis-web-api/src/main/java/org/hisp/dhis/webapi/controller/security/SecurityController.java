@@ -45,8 +45,8 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -72,7 +72,7 @@ public class SecurityController
     @Autowired
     private ObjectMapper jsonMapper;
 
-    @RequestMapping( value = "/qr", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/qr", produces = "application/json" )
     public void getQrCode( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
@@ -95,7 +95,7 @@ public class SecurityController
         jsonMapper.writeValue( response.getOutputStream(), map );
     }
 
-    @RequestMapping( value = "/authenticate", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/authenticate", produces = "application/json" )
     public void authenticate2FA( @RequestParam String code, HttpServletRequest request, HttpServletResponse response )
     {
         User currentUser = currentUserService.getCurrentUser();

@@ -29,9 +29,21 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
-import static org.hisp.dhis.webapi.utils.ContextUtils.*;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PDF;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
@@ -67,8 +79,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -107,7 +120,7 @@ public class DataValueSetController
     // Get
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML )
+    @GetMapping( produces = CONTENT_TYPE_XML )
     public void getDataValueSetXml(
         @RequestParam( required = false ) Set<String> dataSet,
         @RequestParam( required = false ) Set<String> dataElementGroup,
@@ -139,7 +152,7 @@ public class DataValueSetController
         dataValueSetService.writeDataValueSetXml( params, outputStream );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML_ADX )
+    @GetMapping( produces = CONTENT_TYPE_XML_ADX )
     public void getDataValueSetXmlAdx(
         @RequestParam Set<String> dataSet,
         @RequestParam( required = false ) Set<String> period,
@@ -171,7 +184,7 @@ public class DataValueSetController
         adxDataService.writeDataValueSet( params, outputStream );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_JSON )
+    @GetMapping( produces = CONTENT_TYPE_JSON )
     public void getDataValueSetJson(
         @RequestParam( required = false ) Set<String> dataSet,
         @RequestParam( required = false ) Set<String> dataElementGroup,
@@ -203,7 +216,7 @@ public class DataValueSetController
         dataValueSetService.writeDataValueSetJson( params, outputStream );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_CSV )
+    @GetMapping( produces = CONTENT_TYPE_CSV )
     public void getDataValueSetCsv(
         @RequestParam( required = false ) Set<String> dataSet,
         @RequestParam( required = false ) Set<String> dataElementGroup,
@@ -242,7 +255,7 @@ public class DataValueSetController
     // Post
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/xml" )
+    @PostMapping( consumes = "application/xml" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     public void postDxf2DataValueSet( ImportOptions importOptions,
         HttpServletRequest request, HttpServletResponse response )
@@ -262,7 +275,7 @@ public class DataValueSetController
         }
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML_ADX )
+    @PostMapping( consumes = CONTENT_TYPE_XML_ADX )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     public void postAdxDataValueSet( ImportOptions importOptions,
         HttpServletRequest request, HttpServletResponse response )
@@ -293,7 +306,7 @@ public class DataValueSetController
         }
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
+    @PostMapping( consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     public void postJsonDataValueSet( ImportOptions importOptions,
         HttpServletRequest request, HttpServletResponse response )
@@ -313,7 +326,7 @@ public class DataValueSetController
         }
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/csv" )
+    @PostMapping( consumes = "application/csv" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     public void postCsvDataValueSet( ImportOptions importOptions,
         HttpServletRequest request, HttpServletResponse response )
@@ -333,7 +346,7 @@ public class DataValueSetController
         }
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_PDF )
+    @PostMapping( consumes = CONTENT_TYPE_PDF )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     public void postPdfDataValueSet( ImportOptions importOptions,
         HttpServletRequest request, HttpServletResponse response )

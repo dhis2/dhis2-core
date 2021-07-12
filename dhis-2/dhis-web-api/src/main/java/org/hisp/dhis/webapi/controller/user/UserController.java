@@ -91,9 +91,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -243,7 +245,7 @@ public class UserController
     }
 
     @Override
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/{property}" )
     public @ResponseBody RootNode getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
@@ -278,7 +280,7 @@ public class UserController
     // -------------------------------------------------------------------------
 
     @Override
-    @RequestMapping( method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
+    @PostMapping( consumes = { "application/xml", "text/xml" } )
     public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -286,7 +288,7 @@ public class UserController
     }
 
     @Override
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
+    @PostMapping( consumes = "application/json" )
     public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -303,14 +305,14 @@ public class UserController
         postObject( request, response, getObjectReport( createUser( user, currentUser ) ) );
     }
 
-    @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
+    @PostMapping( value = INVITE_PATH, consumes = "application/json" )
     public void postJsonInvite( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         postInvite( request, response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
     }
 
-    @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
+    @PostMapping( value = INVITE_PATH, consumes = { "application/xml", "text/xml" } )
     public void postXmlInvite( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -327,7 +329,7 @@ public class UserController
         postObject( request, response, inviteUser( user, currentUser, request ) );
     }
 
-    @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
+    @PostMapping( value = BULK_INVITE_PATH, consumes = "application/json" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void postJsonInvites( HttpServletRequest request, HttpServletResponse response )
         throws Exception
@@ -335,7 +337,7 @@ public class UserController
         postInvites( request, renderService.fromJson( request.getInputStream(), Users.class ) );
     }
 
-    @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml",
+    @PostMapping( value = BULK_INVITE_PATH, consumes = { "application/xml",
         "text/xml" } )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void postXmlInvites( HttpServletRequest request, HttpServletResponse response )
@@ -360,7 +362,7 @@ public class UserController
         }
     }
 
-    @RequestMapping( value = "/{id}" + INVITE_PATH, method = RequestMethod.POST )
+    @PostMapping( value = "/{id}" + INVITE_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void resendInvite( @PathVariable String id, HttpServletRequest request )
         throws Exception
@@ -397,7 +399,7 @@ public class UserController
         }
     }
 
-    @RequestMapping( value = "/{id}/reset", method = RequestMethod.POST )
+    @PostMapping( "/{id}/reset" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void resetToInvite( @PathVariable String id, HttpServletRequest request )
         throws Exception
@@ -430,7 +432,7 @@ public class UserController
 
     @SuppressWarnings( "unchecked" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_REPLICATE_USER')" )
-    @RequestMapping( value = "/{uid}/replica", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/replica" )
     public void replicateUser( @PathVariable String uid,
         HttpServletRequest request, HttpServletResponse response )
         throws IOException,
@@ -518,7 +520,7 @@ public class UserController
         webMessageService.send( WebMessageUtils.created( "User replica created" ), response, request );
     }
 
-    @RequestMapping( value = "/{uid}/enabled", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/enabled" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void enableUser( @PathVariable( "uid" ) String uid )
         throws Exception
@@ -526,7 +528,7 @@ public class UserController
         setDisabled( uid, false );
     }
 
-    @RequestMapping( value = "/{uid}/disabled", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/disabled" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void disableUser( @PathVariable( "uid" ) String uid )
         throws Exception
@@ -534,7 +536,7 @@ public class UserController
         setDisabled( uid, true );
     }
 
-    @RequestMapping( value = "/{uid}/expired", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/expired" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void expireUser( @PathVariable( "uid" ) String uid, @RequestParam( "date" ) Date accountExpiry )
         throws Exception
@@ -542,7 +544,7 @@ public class UserController
         setExpires( uid, accountExpiry );
     }
 
-    @RequestMapping( value = "/{uid}/unexpired", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/unexpired" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void unexpireUser( @PathVariable( "uid" ) String uid )
         throws Exception
@@ -555,7 +557,7 @@ public class UserController
     // -------------------------------------------------------------------------
 
     @Override
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { "application/xml", "text/xml" } )
+    @PutMapping( value = "/{uid}", consumes = { "application/xml", "text/xml" } )
     public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
@@ -569,7 +571,7 @@ public class UserController
     }
 
     @Override
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
+    @PutMapping( value = "/{uid}", consumes = "application/json" )
     public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception

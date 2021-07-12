@@ -71,10 +71,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -131,8 +133,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     // Interpretation create
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/reportTable/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @PostMapping( value = "/reportTable/{uid}", consumes = { "text/html", "text/plain" } )
     public void writeReportTableInterpretation( @PathVariable( "uid" ) String visualizationUid,
         @RequestParam( value = "pe", required = false ) String isoPeriod,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
@@ -156,7 +157,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             request, response );
     }
 
-    @RequestMapping( value = "/chart/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
+    @PostMapping( value = "/chart/{uid}", consumes = { "text/html", "text/plain" } )
     public void writeChartInterpretation( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
@@ -176,8 +177,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         createIntepretation( new Interpretation( visualization, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/visualization/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @PostMapping( value = "/visualization/{uid}", consumes = { "text/html", "text/plain" } )
     public void writeVisualizationInterpretation( @PathVariable( "uid" )
     final String uid, @RequestParam( value = "ou", required = false )
     final String orgUnitUid, @RequestBody
@@ -198,7 +198,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         createIntepretation( new Interpretation( visualization, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/map/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
+    @PostMapping( value = "/map/{uid}", consumes = { "text/html", "text/plain" } )
     public void writeMapInterpretation( @PathVariable( "uid" ) String uid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
@@ -214,8 +214,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         createIntepretation( new Interpretation( map, text ), request, response );
     }
 
-    @RequestMapping( value = "/eventReport/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @PostMapping( value = "/eventReport/{uid}", consumes = { "text/html", "text/plain" } )
     public void writeEventReportInterpretation( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
@@ -235,8 +234,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         createIntepretation( new Interpretation( eventReport, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/eventChart/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @PostMapping( value = "/eventChart/{uid}", consumes = { "text/html", "text/plain" } )
     public void writeEventChartInterpretation( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
@@ -256,8 +254,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         createIntepretation( new Interpretation( eventChart, orgUnit, text ), request, response );
     }
 
-    @RequestMapping( value = "/dataSetReport/{uid}", method = RequestMethod.POST, consumes = { "text/html",
-        "text/plain" } )
+    @PostMapping( value = "/dataSetReport/{uid}", consumes = { "text/html", "text/plain" } )
     public void writeDataSetReportInterpretation( @PathVariable( "uid" ) String dataSetUid,
         @RequestParam( "pe" ) String isoPeriod, @RequestParam( "ou" ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request )
@@ -337,7 +334,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     // Interpretation update
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT )
+    @PutMapping( "/{uid}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateInterpretation( @PathVariable( "uid" ) String uid, @RequestBody String text,
         HttpServletResponse response )
@@ -383,7 +380,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     // Comment
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/comments", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
+    @PostMapping( value = "/{uid}/comments", consumes = { "text/html", "text/plain" } )
     public void postComment( @PathVariable( "uid" ) String uid, @RequestBody String text, HttpServletResponse response,
         HttpServletRequest request )
         throws WebMessageException
@@ -403,7 +400,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         webMessageService.send( WebMessageUtils.created( "Commented created" ), response, request );
     }
 
-    @RequestMapping( value = "/{uid}/comments/{cuid}", method = RequestMethod.PUT )
+    @PutMapping( "/{uid}/comments/{cuid}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateComment( @PathVariable( "uid" ) String uid, @PathVariable( "cuid" ) String cuid,
         HttpServletResponse response, @RequestBody String content )
@@ -433,7 +430,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         }
     }
 
-    @RequestMapping( value = "/{uid}/comments/{cuid}", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{uid}/comments/{cuid}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteComment( @PathVariable( "uid" ) String uid, @PathVariable( "cuid" ) String cuid,
         HttpServletResponse response )
@@ -471,7 +468,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     // Likes
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/like", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/like" )
     public void like( @PathVariable( "uid" ) String uid, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
@@ -496,7 +493,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         }
     }
 
-    @RequestMapping( value = "/{uid}/like", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{uid}/like" )
     public void unlike( @PathVariable( "uid" ) String uid, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {

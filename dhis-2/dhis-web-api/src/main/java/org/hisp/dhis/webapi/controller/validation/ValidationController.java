@@ -55,7 +55,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Lars Helge Overland
@@ -83,7 +88,7 @@ public class ValidationController
     @Autowired
     private WebMessageService webMessageService;
 
-    @RequestMapping( value = "/dataSet/{ds}", method = RequestMethod.GET )
+    @GetMapping( "/dataSet/{ds}" )
     public @ResponseBody ValidationSummary validate( @PathVariable String ds, @RequestParam String pe,
         @RequestParam String ou, @RequestParam( required = false ) String aoc,
         HttpServletResponse response, Model model )
