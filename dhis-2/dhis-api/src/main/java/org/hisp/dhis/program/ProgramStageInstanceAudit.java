@@ -30,21 +30,24 @@ package org.hisp.dhis.program;
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Zubair Asghar
  */
 
-@JacksonXmlRootElement( localName = "programStageInstanceAudit", namespace = DxfNamespaces.DXF_2_0 )
-@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JacksonXmlRootElement( localName = "programStageInstanceAudit", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStageInstanceAudit implements Serializable
 {
     private long id;
@@ -56,4 +59,58 @@ public class ProgramStageInstanceAudit implements Serializable
     private Date created;
 
     private AuditType auditType;
+
+    public long getId()
+    {
+        return id;
+    }
+
+    public void setId( long id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    public String getProgramStageInstance()
+    {
+        return programStageInstance;
+    }
+
+    public void setProgramStageInstance( String programStageInstance )
+    {
+        this.programStageInstance = programStageInstance;
+    }
+
+    @JsonProperty
+    public String getModifiedBy()
+    {
+        return modifiedBy;
+    }
+
+    public void setModifiedBy( String modifiedBy )
+    {
+        this.modifiedBy = modifiedBy;
+    }
+
+    @JsonProperty
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
+
+    @JsonProperty
+    public AuditType getAuditType()
+    {
+        return auditType;
+    }
+
+    public void setAuditType( AuditType auditType )
+    {
+        this.auditType = auditType;
+    }
 }

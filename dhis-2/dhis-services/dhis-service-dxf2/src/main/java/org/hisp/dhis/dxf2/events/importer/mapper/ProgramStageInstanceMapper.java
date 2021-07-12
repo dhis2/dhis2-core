@@ -112,6 +112,8 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         psi.setCreatedAtClient( parseDate( event.getCreatedAtClient() ) );
         psi.setLastUpdatedAtClient( parseDate( event.getLastUpdatedAtClient() ) );
 
+        psi.setCreated( parseDate( event.getCreated() ) );
+
         psi.setStoredBy( event.getStoredBy() );
         psi.setCompletedBy( event.getCompletedBy() );
 
@@ -180,6 +182,8 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         // CREATED AT CLIENT + UPDATED AT CLIENT
         psi.setCreatedAtClient( parseDate( event.getCreatedAtClient() ) );
         psi.setLastUpdatedAtClient( parseDate( event.getLastUpdatedAtClient() ) );
+
+        psi.setCreated( parseDate( event.getCreated() ) );
 
         psi.setStoredBy( event.getStoredBy() );
         psi.setCompletedBy( event.getCompletedBy() );

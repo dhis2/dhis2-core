@@ -84,10 +84,12 @@ public class DefaultProgramStageInstanceService
 
     private final DhisConfigurationProvider config;
 
+    private final ProgramStageInstanceAuditService programStageInstanceAuditService;
+
     public DefaultProgramStageInstanceService( CurrentUserService currentUserService,
         ProgramInstanceService programInstanceService, ProgramStageInstanceStore programStageInstanceStore,
         TrackedEntityDataValueAuditService dataValueAuditService, FileResourceService fileResourceService,
-        DhisConfigurationProvider config )
+        DhisConfigurationProvider config, ProgramStageInstanceAuditService programStageInstanceAuditService )
     {
         checkNotNull( currentUserService );
         checkNotNull( programInstanceService );
@@ -95,6 +97,7 @@ public class DefaultProgramStageInstanceService
         checkNotNull( dataValueAuditService );
         checkNotNull( fileResourceService );
         checkNotNull( config );
+        checkNotNull( programStageInstanceAuditService );
 
         this.currentUserService = currentUserService;
         this.programInstanceService = programInstanceService;
@@ -102,6 +105,7 @@ public class DefaultProgramStageInstanceService
         this.dataValueAuditService = dataValueAuditService;
         this.fileResourceService = fileResourceService;
         this.config = config;
+        this.programStageInstanceAuditService = programStageInstanceAuditService;
     }
 
     // -------------------------------------------------------------------------
@@ -131,6 +135,13 @@ public class DefaultProgramStageInstanceService
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         programStageInstanceStore.delete( programStageInstance );
+
+        ProgramStageInstanceAudit audit = ProgramStageInstanceAudit.builder()
+            .programStageInstance( programStageInstance.getUid() )
+            .created( programStageInstance.getCreated() ).modifiedBy( programStageInstance.getStoredBy() )
+            .auditType( AuditType.DELETE ).build();
+
+        programStageInstanceAuditService.addProgramStageInstanceAudit( audit );
     }
 
     @Override

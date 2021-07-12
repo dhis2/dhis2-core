@@ -537,13 +537,12 @@ public class AuditController
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        CollectionNode trackedEntityInstanceAudits = rootNode
+        CollectionNode programStageInstanceAudits = rootNode
             .addChild( new CollectionNode( "programStageInstanceAudits", true ) );
-        trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( ProgramStageInstanceAudit.class,
+        programStageInstanceAudits.addChildren( fieldFilterService.toCollectionNode( ProgramStageInstanceAudit.class,
             new FieldFilterParams( stageInstanceAudits, fields ) ).getChildren() );
 
         return rootNode;
-
     }
 
     // -----------------------------------------------------------------------------------------------------------------
