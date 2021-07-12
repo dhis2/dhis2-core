@@ -255,17 +255,16 @@ public class AnalyticsDataSetReportStore
     // -------------------------------------------------------------------------
 
     /**
-     * If values are numeric, sum the values in the map for the same key.
-     * If values are non-numeric, add the value to the map.
-     * Ignore nulls.
+     * If values are numeric, sum the values in the map for the same key. If
+     * values are non-numeric, add the value to the map. Ignore nulls.
      */
     private void addToMap( Map<String, Object> dataMap, String key, Object value )
     {
         if ( value != null )
         {
-            dataMap.compute( key, (k, v) -> ( v == null || !( v instanceof Double ) || !( value instanceof Double )
+            dataMap.compute( key, ( k, v ) -> (v == null || !(v instanceof Double) || !(value instanceof Double)
                 ? value
-                : (Double) v + (Double) value ) );
+                : (Double) v + (Double) value) );
         }
     }
 }

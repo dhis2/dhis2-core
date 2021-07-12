@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.datasetreport.impl;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dataentryform.DataEntryFormService.DATAELEMENT_TOTAL_PATTERN;
 import static org.hisp.dhis.dataentryform.DataEntryFormService.IDENTIFIER_PATTERN;
@@ -36,7 +35,6 @@ import static org.hisp.dhis.dataentryform.DataEntryFormService.INPUT_PATTERN;
 import static org.hisp.dhis.datasetreport.DataSetReportStore.SEPARATOR;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,8 +72,6 @@ import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.stereotype.Component;
-
-import com.google.common.base.Joiner;
 
 /**
  * @author Abyot Asalefew
@@ -350,7 +346,7 @@ public class DefaultDataSetReportService
             .filter( Objects::nonNull )
             .collect( Collectors.toList() );
 
-        return ( values.isEmpty() )
+        return (values.isEmpty())
             ? null
             : values.stream()
                 .mapToDouble( Double::doubleValue )
