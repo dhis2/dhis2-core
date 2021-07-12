@@ -84,8 +84,10 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -137,7 +139,7 @@ public class CompleteDataSetRegistrationController
     // GET
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML )
+    @GetMapping( produces = CONTENT_TYPE_XML )
     public void getCompleteRegistrationsXml(
         @RequestParam Set<String> dataSet,
         @RequestParam( required = false ) Set<String> period,
@@ -163,7 +165,7 @@ public class CompleteDataSetRegistrationController
         registrationExchangeService.writeCompleteDataSetRegistrationsXml( params, response.getOutputStream() );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_JSON )
+    @GetMapping( produces = CONTENT_TYPE_JSON )
     public void getCompleteRegistrationsJson(
         @RequestParam Set<String> dataSet,
         @RequestParam( required = false ) Set<String> period,
@@ -193,7 +195,7 @@ public class CompleteDataSetRegistrationController
     // POST
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML )
+    @PostMapping( consumes = CONTENT_TYPE_XML )
     public void postCompleteRegistrationsXml(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -212,7 +214,7 @@ public class CompleteDataSetRegistrationController
         }
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON )
+    @PostMapping( consumes = CONTENT_TYPE_JSON )
     public void postCompleteRegistrationsJson(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -235,7 +237,7 @@ public class CompleteDataSetRegistrationController
     // DELETE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.DELETE )
+    @DeleteMapping
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCompleteDataSetRegistration(
         @RequestParam Set<String> ds,

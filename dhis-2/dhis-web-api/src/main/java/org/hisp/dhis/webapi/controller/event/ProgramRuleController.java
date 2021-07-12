@@ -42,9 +42,9 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -66,7 +66,7 @@ public class ProgramRuleController
         this.programRuleEngineService = programRuleEngineService;
     }
 
-    @RequestMapping( value = "/condition/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/condition/description", produces = MediaType.APPLICATION_JSON_VALUE )
     public void validateCondition( @RequestBody String condition, @RequestParam String programId,
         HttpServletResponse response )
     {

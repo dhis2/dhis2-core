@@ -75,10 +75,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -141,7 +143,7 @@ public class DataValueController
     // ---------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
-    @RequestMapping( method = RequestMethod.POST )
+    @PostMapping
     @ResponseStatus( HttpStatus.CREATED )
     public void saveDataValue(
         @RequestParam String de,
@@ -161,7 +163,7 @@ public class DataValueController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
-    @RequestMapping( value = FILE_PATH, method = RequestMethod.POST )
+    @PostMapping( FILE_PATH )
     public @ResponseBody WebMessage saveFileDataValue(
         @RequestParam String de,
         @RequestParam( required = false ) String co,
@@ -387,7 +389,7 @@ public class DataValueController
     // ---------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_DELETE')" )
-    @RequestMapping( method = RequestMethod.DELETE )
+    @DeleteMapping
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteDataValue(
         @RequestParam String de,
@@ -462,7 +464,7 @@ public class DataValueController
     // GET
     // ---------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET )
+    @GetMapping
     public @ResponseBody List<String> getDataValue(
         @RequestParam String de,
         @RequestParam( required = false ) String co,
@@ -555,7 +557,7 @@ public class DataValueController
     // GET file
     // ---------------------------------------------------------------------
 
-    @RequestMapping( value = "/files", method = RequestMethod.GET )
+    @GetMapping( "/files" )
     public void getDataValueFile(
         @RequestParam String de,
         @RequestParam( required = false ) String co,

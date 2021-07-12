@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.cache;
 
-import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public interface Cache<V>
 {
@@ -79,7 +79,7 @@ public interface Cache<V>
      *
      * @return collection with all cached values
      */
-    Collection<V> getAll();
+    Stream<V> getAll();
 
     /**
      * Associates the {@code value} with the {@code key} in this cache. If the

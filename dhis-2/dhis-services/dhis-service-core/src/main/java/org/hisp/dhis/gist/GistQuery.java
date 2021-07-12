@@ -48,6 +48,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NamedParams;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Description of the gist query that should be run.
  *
@@ -64,7 +66,6 @@ import org.hisp.dhis.schema.annotation.Gist.Transform;
 @RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 public final class GistQuery
 {
-
     /**
      * Fields allow {@code property[sub,sub]} syntax where a comma occurs as
      * part of the property name. These commas need to be ignored when splitting
@@ -107,13 +108,16 @@ public final class GistQuery
 
     private final Class<? extends IdentifiableObject> elementType;
 
+    @JsonProperty
     private final int pageOffset;
 
+    @JsonProperty
     private final int pageSize;
 
     /**
      * Include total match count in pager? Default false.
      */
+    @JsonProperty
     private final boolean total;
 
     private final String contextRoot;
@@ -124,35 +128,51 @@ public final class GistQuery
      * Not the elements contained in the collection but those not contained
      * (yet). Default false.
      */
+    @JsonProperty
     private final boolean inverse;
 
     /**
      * Apply translations to translatable properties? Default true.
      */
+    @JsonProperty
     private final boolean translate;
 
     /**
      * Use absolute URLs when referring to other APIs in pager and
      * {@code apiEndpoints}? Default false.
      */
-    private final boolean absolute;
+    @JsonProperty
+    private final boolean absoluteUrls;
 
     /**
      * Return plain result list (without pager wrapper). Default false.
      */
+    @JsonProperty
     private final boolean headless;
 
     /**
      * Use OR instead of AND between filters so that any match for one of the
      * filters is a match. Default false.
      */
+    @JsonProperty
     private final boolean anyFilter;
 
+    /**
+     * Mode where no actual query is performed - instead the output and query is
+     * described similar to "SQL describe".
+     */
+    private final boolean describe;
+
+    /**
+     * The extend to which fields are included by default
+     */
+    @JsonProperty( value = "auto" )
     private final GistAutoType autoType;
 
     /**
      * Names of those properties that should be included in the response.
      */
+    @JsonProperty
     @Builder.Default
     private final List<Field> fields = emptyList();
 
@@ -160,9 +180,11 @@ public final class GistQuery
      * List of filter property expressions. An expression has the format
      * {@code property:operator:value} or {@code property:operator}.
      */
+    @JsonProperty
     @Builder.Default
     private final List<Filter> filters = emptyList();
 
+    @JsonProperty
     @Builder.Default
     private final List<Order> orders = emptyList();
 
@@ -178,7 +200,7 @@ public final class GistQuery
 
     public String getEndpointRoot()
     {
-        return isAbsolute() ? getContextRoot() : "";
+        return isAbsoluteUrls() ? getContextRoot() : "";
     }
 
     public GistQuery with( NamedParams params )
@@ -189,8 +211,9 @@ public final class GistQuery
             .translate( params.getBoolean( "translate", true ) )
             .inverse( params.getBoolean( "inverse", false ) )
             .total( params.getBoolean( "total", false ) )
-            .absolute( params.getBoolean( "absoluteUrls", false ) )
+            .absoluteUrls( params.getBoolean( "absoluteUrls", false ) )
             .headless( params.getBoolean( "headless", false ) )
+            .describe( params.getBoolean( "describe", false ) )
             .anyFilter( params.getString( "rootJunction", "AND" ).equalsIgnoreCase( "OR" ) )
             .fields( params.getStrings( "fields", FIELD_SPLIT ).stream()
                 .map( Field::parse ).collect( toList() ) )
@@ -366,14 +389,19 @@ public final class GistQuery
 
         public static final Field ALL = new Field( ALL_PATH, Transform.NONE );
 
+        @JsonProperty
         private final String propertyPath;
 
+        @JsonProperty
         private final Transform transformation;
 
+        @JsonProperty
         private final String alias;
 
+        @JsonProperty
         private final String transformationArgument;
 
+        @JsonProperty
         private final boolean translate;
 
         public Field( String propertyPath, Transform transformation )
@@ -381,6 +409,7 @@ public final class GistQuery
             this( propertyPath, transformation, "", null, false );
         }
 
+        @JsonProperty
         public String getName()
         {
             return alias.isEmpty() ? propertyPath : alias;
@@ -409,7 +438,9 @@ public final class GistQuery
         @Override
         public String toString()
         {
-            return propertyPath + "::" + transformation.name().toLowerCase().replace( '_', '-' );
+            return transformation == Transform.NONE
+                ? propertyPath
+                : propertyPath + "::" + transformation.name().toLowerCase().replace( '_', '-' );
         }
 
         public static Field parse( String field )
@@ -452,8 +483,10 @@ public final class GistQuery
     @AllArgsConstructor
     public static final class Order
     {
+        @JsonProperty
         private final String propertyPath;
 
+        @JsonProperty
         @Builder.Default
         private final Direction direction = Direction.ASC;
 
@@ -481,10 +514,13 @@ public final class GistQuery
     @Getter
     public static final class Filter
     {
+        @JsonProperty
         private final String propertyPath;
 
+        @JsonProperty
         private final Comparison operator;
 
+        @JsonProperty
         private final String[] value;
 
         public Filter( String propertyPath, Comparison operator, String... value )

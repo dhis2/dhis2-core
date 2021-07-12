@@ -118,9 +118,12 @@ import org.locationtech.jts.io.ParseException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -224,7 +227,7 @@ public class EventController
     // Query Read
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
+    @GetMapping( value = "/query", produces = { ContextUtils.CONTENT_TYPE_JSON,
         ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
     public @ResponseBody Grid queryEventsJson(
         @RequestParam( required = false ) String program,
@@ -299,7 +302,7 @@ public class EventController
 
     }
 
-    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_XML )
+    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_XML )
     public void queryEventsXml(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -372,7 +375,7 @@ public class EventController
         GridUtils.toXml( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_EXCEL )
+    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_EXCEL )
     public void queryEventsXls(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -446,7 +449,7 @@ public class EventController
 
     }
 
-    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_CSV )
+    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_CSV )
     public void queryEventsCsv(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -524,7 +527,7 @@ public class EventController
     // Object Read
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET )
+    @GetMapping
     public @ResponseBody RootNode getEvents(
         EventCriteria eventCriteria, @RequestParam Map<String, String> parameters, Model model,
         HttpServletResponse response,
@@ -577,7 +580,7 @@ public class EventController
         return rootNode;
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = { "application/xml", "application/xml+gzip", "text/xml" } )
+    @GetMapping( produces = { "application/xml", "application/xml+gzip", "text/xml" } )
     public @ResponseBody RootNode getXmlEvents(
         EventCriteria eventCriteria, @RequestParam Map<String, String> parameters, Model model,
         HttpServletResponse response,
@@ -631,7 +634,7 @@ public class EventController
         return rootNode;
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = { "application/csv", "application/csv+gzip", "text/csv" } )
+    @GetMapping( produces = { "application/csv", "application/csv+gzip", "text/csv" } )
     public void getCsvEvents(
         EventCriteria eventCriteria,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
@@ -665,7 +668,7 @@ public class EventController
     // Rows Read
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/eventRows", method = RequestMethod.GET )
+    @GetMapping( "/eventRows" )
     public @ResponseBody EventRows getEventRows(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String orgUnit,
@@ -702,7 +705,7 @@ public class EventController
         return eventRowService.getEventRows( params );
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}" )
     public @ResponseBody Event getEvent( @PathVariable( "uid" ) String uid,
         @RequestParam Map<String, String> parameters,
         Model model, HttpServletRequest request )
@@ -720,7 +723,7 @@ public class EventController
         return event;
     }
 
-    @RequestMapping( value = "/files", method = RequestMethod.GET )
+    @GetMapping( "/files" )
     public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
         @RequestParam( required = false ) ImageFileDimension dimension,
         HttpServletResponse response, HttpServletRequest request )
@@ -812,7 +815,7 @@ public class EventController
     // Create
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/xml" )
+    @PostMapping( consumes = "application/xml" )
     public void postXmlEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
     {
@@ -831,7 +834,7 @@ public class EventController
         return eventService.addEventsXml( inputStream, importOptions );
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
+    @PostMapping( consumes = "application/json" )
     public void postJsonEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
     {
@@ -900,7 +903,7 @@ public class EventController
         }
     }
 
-    @RequestMapping( value = "/{uid}/note", method = RequestMethod.POST, consumes = "application/json" )
+    @PostMapping( value = "/{uid}/note", consumes = "application/json" )
     public void postJsonEventForNote( @PathVariable( "uid" ) String uid,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
         throws IOException,
@@ -919,7 +922,7 @@ public class EventController
         webMessageService.send( WebMessageUtils.ok( "Event updated: " + uid ), response, request );
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = { "application/csv", "text/csv" } )
+    @PostMapping( consumes = { "application/csv", "text/csv" } )
     public void postCsvEvents( @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
         throws IOException,
@@ -945,7 +948,7 @@ public class EventController
     // Update
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { "application/xml", "text/xml" } )
+    @PutMapping( value = "/{uid}", consumes = { "application/xml", "text/xml" } )
     public void putXmlEvent( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions )
         throws IOException
@@ -957,7 +960,7 @@ public class EventController
         updateEvent( updatedEvent, false, importOptions, request, response );
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
+    @PutMapping( value = "/{uid}", consumes = "application/json" )
     public void putJsonEvent( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions )
         throws IOException
@@ -977,7 +980,7 @@ public class EventController
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
-    @RequestMapping( value = "/{uid}/{dataElementUid}", method = RequestMethod.PUT, consumes = "application/json" )
+    @PutMapping( value = "/{uid}/{dataElementUid}", consumes = "application/json" )
     public void putJsonEventSingleValue( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, @PathVariable( "dataElementUid" ) String dataElementUid )
         throws IOException,
@@ -998,7 +1001,7 @@ public class EventController
         updateEvent( updatedEvent, true, null, request, response );
     }
 
-    @RequestMapping( value = "/{uid}/eventDate", method = RequestMethod.PUT, consumes = "application/json" )
+    @PutMapping( value = "/{uid}/eventDate", consumes = "application/json" )
     public void putJsonEventForEventDate( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions )
         throws IOException,
@@ -1021,7 +1024,7 @@ public class EventController
     // Delete
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{uid}" )
     public void deleteEvent( HttpServletResponse response, HttpServletRequest request,
         @PathVariable( "uid" ) String uid )
     {

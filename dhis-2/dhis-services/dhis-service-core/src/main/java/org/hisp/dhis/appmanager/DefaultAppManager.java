@@ -116,7 +116,7 @@ public class DefaultAppManager
     @Override
     public List<App> getApps( String contextPath )
     {
-        List<App> apps = appCache.getAll().stream().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
+        List<App> apps = appCache.getAll().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
             .collect( Collectors.toList() );
 
         apps.forEach( a -> a.init( contextPath ) );
@@ -145,15 +145,7 @@ public class DefaultAppManager
         }
 
         // If no apps are found, check for original name
-        for ( App app : appCache.getAll() )
-        {
-            if ( app.getShortName().equals( appName ) )
-            {
-                return app;
-            }
-        }
-
-        return null;
+        return appCache.getAll().filter( app -> app.getShortName().equals( appName ) ).findFirst().orElse( null );
     }
 
     @Override

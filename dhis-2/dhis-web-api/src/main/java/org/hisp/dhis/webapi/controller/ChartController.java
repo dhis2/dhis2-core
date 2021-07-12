@@ -73,9 +73,9 @@ import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -138,7 +138,7 @@ public class ChartController
     // Get data
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = { "/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/{uid}/data", "/{uid}/data.png" } )
     public void getChart(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -170,7 +170,7 @@ public class ChartController
         ChartUtils.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
     }
 
-    @RequestMapping( value = { "/data", "/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/data", "/data.png" } )
     public void getChart(
         @RequestParam( value = "in" ) String indicatorUid,
         @RequestParam( value = "ou" ) String organisationUnitUid,
@@ -203,7 +203,7 @@ public class ChartController
         ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
 
-    @RequestMapping( value = { "/history/data", "/history/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/history/data", "/history/data.png" } )
     public void getHistoryChart(
         @RequestParam String de,
         @RequestParam String co,

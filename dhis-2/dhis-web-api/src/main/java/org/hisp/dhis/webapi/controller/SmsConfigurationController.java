@@ -44,9 +44,10 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
@@ -60,7 +61,7 @@ public class SmsConfigurationController
     @Autowired
     private SmsConfigurationManager smsConfigurationManager;
 
-    @RequestMapping( method = RequestMethod.GET )
+    @GetMapping
     public @ResponseBody SmsConfiguration getSmsConfiguration()
     {
         SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
@@ -73,7 +74,7 @@ public class SmsConfigurationController
         return smsConfiguration;
     }
 
-    @RequestMapping( value = "test", method = RequestMethod.GET )
+    @GetMapping( "test" )
     public @ResponseBody SmsConfiguration getTest()
     {
         SmsConfiguration smsConfiguration = new SmsConfiguration();
@@ -89,7 +90,7 @@ public class SmsConfigurationController
     // POST
     // --------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.PUT )
+    @PutMapping
     public @ResponseBody SmsConfiguration putSmsConfig( @RequestBody SmsConfiguration smsConfiguration )
         throws Exception
     {
