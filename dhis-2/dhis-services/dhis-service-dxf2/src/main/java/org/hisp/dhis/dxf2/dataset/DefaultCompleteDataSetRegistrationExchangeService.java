@@ -280,7 +280,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     @Override
     public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions )
     {
-        return saveCompleteDataSetRegistrationsJson( in, ImportOptions.getDefaultImportOptions(), null );
+        return saveCompleteDataSetRegistrationsJson( in, importOptions, null );
     }
 
     @Override
