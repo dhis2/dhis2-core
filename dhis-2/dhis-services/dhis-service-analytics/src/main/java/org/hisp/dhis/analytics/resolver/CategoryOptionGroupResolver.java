@@ -49,7 +49,7 @@ import com.google.common.base.Joiner;
 /**
  * @author Luciano Fiandesio
  */
-@Service
+@Service( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" )
 public class CategoryOptionGroupResolver
     implements
     ExpressionResolver
