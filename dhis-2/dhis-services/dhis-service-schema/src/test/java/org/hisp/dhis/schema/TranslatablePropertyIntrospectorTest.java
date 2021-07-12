@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.schema;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -35,6 +36,7 @@ import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.schema.introspection.TranslatablePropertyIntrospector;
 import org.junit.Test;
 
@@ -101,5 +103,28 @@ public class TranslatablePropertyIntrospectorTest extends DhisSpringTest
 
         assertFalse( propertyMap.get( "name" ).isTranslatable() );
         assertFalse( propertyMap.get( "code" ).isTranslatable() );
+    }
+
+    @Test
+    public void testI18nTranslationKey()
+    {
+        Property propTranslation = new Property( DataSet.class );
+        propTranslation.setName( "translations" );
+        propTranslation.setFieldName( "translations" );
+        propTranslation.setPersisted( true );
+
+        Property property = new Property( DataSet.class );
+        property.setFieldName( "formName" );
+        property.setName( "formName" );
+        property.setPersisted( true );
+
+        Map<String, Property> propertyMap = new HashMap<>();
+        propertyMap.put( "formName", property );
+        propertyMap.put( "translations", propTranslation );
+
+        TranslatablePropertyIntrospector introspector = new TranslatablePropertyIntrospector();
+        introspector.introspect( DataSet.class, propertyMap );
+        assertEquals( "form_name", propertyMap.get( "formName" ).getI18nTranslationKey() );
+
     }
 }
