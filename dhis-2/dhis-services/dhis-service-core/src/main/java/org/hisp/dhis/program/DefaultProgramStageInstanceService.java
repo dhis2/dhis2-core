@@ -84,12 +84,10 @@ public class DefaultProgramStageInstanceService
 
     private final DhisConfigurationProvider config;
 
-    private final ProgramStageInstanceAuditService programStageInstanceAuditService;
-
     public DefaultProgramStageInstanceService( CurrentUserService currentUserService,
         ProgramInstanceService programInstanceService, ProgramStageInstanceStore programStageInstanceStore,
         TrackedEntityDataValueAuditService dataValueAuditService, FileResourceService fileResourceService,
-        DhisConfigurationProvider config, ProgramStageInstanceAuditService programStageInstanceAuditService )
+        DhisConfigurationProvider config )
     {
         checkNotNull( currentUserService );
         checkNotNull( programInstanceService );
@@ -97,7 +95,6 @@ public class DefaultProgramStageInstanceService
         checkNotNull( dataValueAuditService );
         checkNotNull( fileResourceService );
         checkNotNull( config );
-        checkNotNull( programStageInstanceAuditService );
 
         this.currentUserService = currentUserService;
         this.programInstanceService = programInstanceService;
@@ -105,7 +102,6 @@ public class DefaultProgramStageInstanceService
         this.dataValueAuditService = dataValueAuditService;
         this.fileResourceService = fileResourceService;
         this.config = config;
-        this.programStageInstanceAuditService = programStageInstanceAuditService;
     }
 
     // -------------------------------------------------------------------------
@@ -268,7 +264,6 @@ public class DefaultProgramStageInstanceService
             if ( canComplete )
             {
                 programInstanceService.completeProgramInstanceStatus( programStageInstance.getProgramInstance() );
-
             }
         }
     }
@@ -357,8 +352,7 @@ public class DefaultProgramStageInstanceService
         for ( Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet() )
         {
             entry.getValue().setAutoFields();
-            createAndAddTrackedEntityDataValueAudit( entry.getValue(), entry.getKey(), programStageInstance,
-                AuditType.CREATE );
+            createAndAddAudit( entry.getValue(), entry.getKey(), programStageInstance, AuditType.CREATE );
             handleFileDataValueSave( entry.getValue(), entry.getKey() );
         }
     }
@@ -418,20 +412,17 @@ public class DefaultProgramStageInstanceService
         ProgramStageInstance programStageInstance )
     {
 
-        newDataValues.forEach( dv -> createAndAddTrackedEntityDataValueAudit( dv,
-            dataElementsCache.getOrDefault( dv.getDataElement(), null ),
+        newDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ),
             programStageInstance, AuditType.CREATE ) );
         updatedDataValues
-            .forEach( dv -> createAndAddTrackedEntityDataValueAudit( dv,
-                dataElementsCache.getOrDefault( dv.getDataElement(), null ),
+            .forEach( dv -> createAndAddAudit( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ),
                 programStageInstance, AuditType.UPDATE ) );
         removedDataValues
-            .forEach( dv -> createAndAddTrackedEntityDataValueAudit( dv,
-                dataElementsCache.getOrDefault( dv.getDataElement(), null ),
+            .forEach( dv -> createAndAddAudit( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ),
                 programStageInstance, AuditType.DELETE ) );
     }
 
-    private void createAndAddTrackedEntityDataValueAudit( EventDataValue dataValue, DataElement dataElement,
+    private void createAndAddAudit( EventDataValue dataValue, DataElement dataElement,
         ProgramStageInstance programStageInstance, AuditType auditType )
     {
         if ( !config.isEnabled( CHANGELOG_TRACKER ) || dataElement == null )
@@ -443,23 +434,6 @@ public class DefaultProgramStageInstanceService
             dataValue.getValue(), dataValue.getStoredBy(), dataValue.getProvidedElsewhere(), auditType );
 
         dataValueAuditService.addTrackedEntityDataValueAudit( dataValueAudit );
-    }
-
-    private void createOrUpdateProgramStageInstanceAudit( ProgramStageInstance programStageInstance,
-        AuditType auditType )
-    {
-        if ( !config.isEnabled( CHANGELOG_TRACKER ) || programStageInstance == null )
-        {
-            return;
-        }
-
-        ProgramStageInstanceAudit instanceAudit = ProgramStageInstanceAudit.builder()
-            .auditType( auditType )
-            .programStageInstance( programStageInstance.getUid() )
-            .created( programStageInstance.getCreated() )
-            .modifiedBy( programStageInstance.getStoredBy() ).build();
-
-        programStageInstanceAuditService.addProgramStageInstanceAudit( instanceAudit );
     }
 
     // -------------------------------------------------------------------------
