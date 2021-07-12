@@ -38,11 +38,11 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.PropertyType;
@@ -69,8 +69,7 @@ public class NotOwnerReferencesCheck implements ValidationCheck
 
         for ( IdentifiableObject object : joinObjects( persistedObjects, nonPersistedObjects ) )
         {
-            List<PreheatErrorReport> errorReports = checkReferences( object, bundle.getPreheat(),
-                bundle.getPreheatIdentifier(), bundle.isSkipSharing(), ctx );
+            List<PreheatErrorReport> errorReports = checkReferences( object, bundle.getPreheatIdentifier(), ctx );
 
             if ( !errorReports.isEmpty() && object != null )
             {
@@ -88,8 +87,8 @@ public class NotOwnerReferencesCheck implements ValidationCheck
         return typeReport;
     }
 
-    private List<PreheatErrorReport> checkReferences( IdentifiableObject object, Preheat preheat,
-        PreheatIdentifier identifier, boolean skipSharing, ValidationContext ctx )
+    private List<PreheatErrorReport> checkReferences( IdentifiableObject object, PreheatIdentifier identifier,
+        ValidationContext ctx )
     {
         if ( object == null )
         {
@@ -99,17 +98,41 @@ public class NotOwnerReferencesCheck implements ValidationCheck
         List<PreheatErrorReport> preheatErrorReports = new ArrayList<>();
 
         Schema schema = ctx.getSchemaService().getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
-        schema.getProperties().stream().filter( p -> p.isPersisted() && !p.isOwner()
+
+        schema.getProperties().stream().filter( p -> !p.isOwner()
             && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
             .forEach( p -> {
                 if ( !p.isCollection() )
                 {
                     IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
+
+                    if ( refObject != null )
+                    {
+                        preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
+                            ErrorCode.E5006, identifier.getIdentifiersWithName( refObject ),
+                            identifier.getIdentifiersWithName( object ), p.getName() ) );
+                    }
                 }
                 else
                 {
                     Collection<IdentifiableObject> refObjects = ReflectionUtils.invokeMethod( object,
                         p.getGetterMethod() );
+
+                    if ( refObjects == null )
+                    {
+                        return;
+                    }
+
+                    for ( IdentifiableObject refObject : refObjects )
+                    {
+                        if ( refObject != null )
+                        {
+                            preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
+                                ErrorCode.E5006, identifier.getIdentifiersWithName( refObject ),
+                                identifier.getIdentifiersWithName( object ), p.getCollectionName() ) );
+                        }
+                    }
+
                 }
             } );
 
