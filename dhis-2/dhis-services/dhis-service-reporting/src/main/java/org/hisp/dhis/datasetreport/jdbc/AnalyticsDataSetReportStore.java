@@ -262,7 +262,7 @@ public class AnalyticsDataSetReportStore
     {
         if ( value != null )
         {
-            dataMap.compute( key, ( k, v ) -> (v == null || !(v instanceof Double) || !(value instanceof Double)
+            dataMap.compute( key, ( k, v ) -> (!(v instanceof Double) || !(value instanceof Double)
                 ? value
                 : (Double) v + (Double) value) );
         }

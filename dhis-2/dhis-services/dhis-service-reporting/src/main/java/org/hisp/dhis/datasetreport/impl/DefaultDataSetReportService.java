@@ -326,7 +326,7 @@ public class DefaultDataSetReportService
     {
         return periods.stream()
             .sorted()
-            .map( p -> format.formatPeriod( p ) )
+            .map( format::formatPeriod )
             .collect( Collectors.joining( ", " ) );
     }
 
