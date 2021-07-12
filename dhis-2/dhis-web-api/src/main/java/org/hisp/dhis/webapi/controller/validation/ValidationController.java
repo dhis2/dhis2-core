@@ -143,7 +143,7 @@ public class ValidationController
             "validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "",
             null );
 
-        schedulingManager.executeJob( validationResultNotification );
+        schedulingManager.executeNow( validationResultNotification );
 
         webMessageService.send( WebMessageUtils.ok( "Initiated validation result notification" ), response, request );
     }

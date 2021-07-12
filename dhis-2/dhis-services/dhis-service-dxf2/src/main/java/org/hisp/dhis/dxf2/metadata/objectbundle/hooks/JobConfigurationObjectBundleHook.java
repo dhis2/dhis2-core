@@ -47,6 +47,7 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
@@ -63,6 +64,8 @@ public class JobConfigurationObjectBundleHook
     private final JobConfigurationService jobConfigurationService;
 
     private final SchedulingManager schedulingManager;
+
+    private final JobService jobService;
 
     @Override
     public void validate( JobConfiguration jobConfiguration, ObjectBundle bundle, Consumer<ErrorReport> addReports )
@@ -107,14 +110,14 @@ public class JobConfigurationObjectBundleHook
 
         setDefaultJobParameters( newObject );
 
-        schedulingManager.stopJob( persObject );
+        schedulingManager.stop( persObject );
     }
 
     @Override
     public void preDelete( JobConfiguration persistedObject, ObjectBundle bundle )
     {
 
-        schedulingManager.stopJob( persistedObject );
+        schedulingManager.stop( persistedObject );
         sessionFactory.getCurrentSession().delete( persistedObject );
     }
 
@@ -123,7 +126,7 @@ public class JobConfigurationObjectBundleHook
     {
         if ( jobConfiguration.getJobStatus() != DISABLED )
         {
-            schedulingManager.scheduleJob( jobConfiguration );
+            schedulingManager.schedule( jobConfiguration );
         }
     }
 
@@ -132,7 +135,7 @@ public class JobConfigurationObjectBundleHook
     {
         if ( jobConfiguration.getJobStatus() != DISABLED )
         {
-            schedulingManager.scheduleJob( jobConfiguration );
+            schedulingManager.schedule( jobConfiguration );
         }
     }
 
@@ -244,7 +247,7 @@ public class JobConfigurationObjectBundleHook
     private void validateJob( Consumer<ErrorReport> addReports, JobConfiguration jobConfiguration,
         JobConfiguration persistedJobConfiguration )
     {
-        Job job = schedulingManager.getJob( jobConfiguration.getJobType() );
+        Job job = jobService.getJob( jobConfiguration.getJobType() );
         ErrorReport jobValidation = job.validate();
 
         if ( jobValidation != null && (jobValidation.getErrorCode() != ErrorCode.E7010

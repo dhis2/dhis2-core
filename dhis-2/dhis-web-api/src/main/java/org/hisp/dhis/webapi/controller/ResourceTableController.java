@@ -109,7 +109,7 @@ public class ResourceTableController
             analyticsJobParameters, true, true );
         analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
 
-        schedulingManager.executeJob( analyticsTableJob );
+        schedulingManager.executeNow( analyticsTableJob );
 
         webMessageService.send( jobConfigurationReport( analyticsTableJob ), response, request );
     }
@@ -121,7 +121,7 @@ public class ResourceTableController
         JobConfiguration resourceTableJob = new JobConfiguration( "inMemoryResourceTableJob",
             JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid(), true );
 
-        schedulingManager.executeJob( resourceTableJob );
+        schedulingManager.executeNow( resourceTableJob );
 
         webMessageService.send( jobConfigurationReport( resourceTableJob ), response, request );
     }
@@ -133,7 +133,7 @@ public class ResourceTableController
         JobConfiguration monitoringJob = new JobConfiguration( "inMemoryMonitoringJob", JobType.MONITORING, "",
             new MonitoringJobParameters(), true, true );
 
-        schedulingManager.executeJob( monitoringJob );
+        schedulingManager.executeNow( monitoringJob );
 
         webMessageService.send( jobConfigurationReport( monitoringJob ), response, request );
     }

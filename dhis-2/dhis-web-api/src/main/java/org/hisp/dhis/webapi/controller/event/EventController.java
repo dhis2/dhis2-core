@@ -52,6 +52,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
@@ -99,7 +100,6 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -148,7 +148,7 @@ public class EventController
 
     private final CurrentUserService currentUserService;
 
-    private final SchedulingManager schedulingManager;
+    private final AsyncTaskExecutor taskExecutor;
 
     private final EventService eventService;
 
@@ -180,7 +180,7 @@ public class EventController
 
     private final ContextUtils contextUtils;
 
-    public EventController( CurrentUserService currentUserService, SchedulingManager schedulingManager,
+    public EventController( CurrentUserService currentUserService, AsyncTaskExecutor taskExecutor,
         EventService eventService, CsvEventService csvEventService, EventRowService eventRowService,
         DataElementService dataElementService, WebMessageService webMessageService, InputUtils inputUtils,
         RenderService renderService, ProgramStageInstanceService programStageInstanceService,
@@ -189,7 +189,7 @@ public class EventController
         RequestToSearchParamsMapper requestToSearchParamsMapper )
     {
         this.currentUserService = currentUserService;
-        this.schedulingManager = schedulingManager;
+        this.taskExecutor = taskExecutor;
         this.eventService = eventService;
         this.csvEventService = csvEventService;
         this.eventRowService = eventRowService;
@@ -1049,7 +1049,7 @@ public class EventController
     {
         JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
             EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
-        schedulingManager.executeJob( new ImportEventsTask( events, eventService, importOptions, jobId ) );
+        taskExecutor.executeTask( new ImportEventsTask( events, eventService, importOptions, jobId ) );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + EVENT_IMPORT );
         webMessageService.send( jobConfigurationReport( jobId ), response, request );

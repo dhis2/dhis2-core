@@ -25,42 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.old.tracker.imports.impl;
+package org.hisp.dhis.common;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
-import org.springframework.stereotype.Component;
+import java.util.concurrent.Future;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * A general service to run asynchronous tasks.
+ *
+ * @author Jan Bernitt
  */
-@Component
-public class TrackedEntityInstanceSyncStrategyImpl extends AbstractTrackedEntityInstanceStrategy
+public interface AsyncTaskExecutor
 {
-    public TrackedEntityInstanceSyncStrategyImpl( TrackedEntityInstanceService trackedEntityInstanceService,
-        AsyncTaskExecutor taskExecutor )
-    {
-        super( trackedEntityInstanceService, taskExecutor );
-    }
+    /**
+     * Executes a task asynchronously
+     *
+     * @param task The task to be executed
+     */
+    void executeTask( Runnable task );
 
-    @Override
-    public ImportSummaries mergeOrDeleteTrackedEntityInstances(
-        TrackerEntityInstanceRequest trackerEntityInstanceRequest )
-        throws IOException,
-        BadRequestException
-    {
-        List<TrackedEntityInstance> trackedEntityInstances = getTrackedEntityInstancesListByMediaType(
-            trackerEntityInstanceRequest.getMediaType(), trackerEntityInstanceRequest.getInputStream() );
-
-        return trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( trackedEntityInstances,
-            trackerEntityInstanceRequest.getImportOptions(), null );
-    }
-
+    /**
+     * Executes a task asynchronously returning a {@link Future} that can be
+     * used to cancel the execution.
+     *
+     * @param task The task to be executed
+     * @return a {@link Future} to cancel running execution
+     */
+    Future<?> executeTaskWithCancelation( Runnable task );
 }

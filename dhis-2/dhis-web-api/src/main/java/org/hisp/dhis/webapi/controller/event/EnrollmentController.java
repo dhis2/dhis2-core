@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -62,7 +63,6 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.EnrollmentCriteria;
@@ -105,7 +105,7 @@ public class EnrollmentController
     private EnrollmentService enrollmentService;
 
     @Autowired
-    private SchedulingManager schedulingManager;
+    private AsyncTaskExecutor taskExecutor;
 
     @Autowired
     private ProgramInstanceService programInstanceService;
@@ -385,7 +385,7 @@ public class EnrollmentController
      * Starts an asynchronous enrollment task.
      *
      * @param importOptions the ImportOptions.
-     * @param events the events to import.
+     * @param enrollments the enrollments to import.
      * @param request the HttpRequest.
      * @param response the HttpResponse.
      */
@@ -394,8 +394,8 @@ public class EnrollmentController
     {
         JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
             ENROLLMENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
-        schedulingManager
-            .executeJob( new ImportEnrollmentsTask( enrollments, enrollmentService, importOptions, jobId ) );
+        taskExecutor
+            .executeTask( new ImportEnrollmentsTask( enrollments, enrollmentService, importOptions, jobId ) );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + ENROLLMENT_IMPORT );
         webMessageService.send( jobConfigurationReport( jobId ), response, request );

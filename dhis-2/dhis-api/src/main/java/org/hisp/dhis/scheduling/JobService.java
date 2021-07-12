@@ -25,42 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.old.tracker.imports.impl;
-
-import java.io.IOException;
-import java.util.List;
-
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.scheduling;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * Gives access to all managed instances of {@link Job}s.
+ *
+ * Each {@link JobType} has a specific implementation of its {@link Job} which
+ * also is a managed instance (component).
+ *
+ * @author Jan Bernitt
  */
-@Component
-public class TrackedEntityInstanceSyncStrategyImpl extends AbstractTrackedEntityInstanceStrategy
+public interface JobService
 {
-    public TrackedEntityInstanceSyncStrategyImpl( TrackedEntityInstanceService trackedEntityInstanceService,
-        AsyncTaskExecutor taskExecutor )
-    {
-        super( trackedEntityInstanceService, taskExecutor );
-    }
-
-    @Override
-    public ImportSummaries mergeOrDeleteTrackedEntityInstances(
-        TrackerEntityInstanceRequest trackerEntityInstanceRequest )
-        throws IOException,
-        BadRequestException
-    {
-        List<TrackedEntityInstance> trackedEntityInstances = getTrackedEntityInstancesListByMediaType(
-            trackerEntityInstanceRequest.getMediaType(), trackerEntityInstanceRequest.getInputStream() );
-
-        return trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( trackedEntityInstances,
-            trackerEntityInstanceRequest.getImportOptions(), null );
-    }
-
+    /**
+     * Get a {@link Job} component based on the job type.
+     *
+     * @param type the job type for the job we want to collect
+     * @return the managed {@link Job} component for the given {@link JobType}
+     */
+    Job getJob( JobType type );
 }
