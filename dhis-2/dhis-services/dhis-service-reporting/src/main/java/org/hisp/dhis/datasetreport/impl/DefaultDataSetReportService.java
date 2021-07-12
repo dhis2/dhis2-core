@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
@@ -327,45 +328,33 @@ public class DefaultDataSetReportService
 
     private String formatPeriods( List<Period> periods, I18nFormat format )
     {
-        Collections.sort( periods );
-
-        List<String> formattedPeriods = periods.stream()
+        return periods.stream()
+            .sorted()
             .map( p -> format.formatPeriod( p ) )
-            .collect( Collectors.toList() );
-
-        return Joiner.on( ", " ).join( formattedPeriods );
+            .collect( Collectors.joining( ", " ) );
     }
 
     /**
      * Returns the sum of values for the list of periods, but returns null if
      * all the values are null.
-     *
-     * @param dataElement the data element.
-     * @param periods the periods.
-     * @param unit the organisation unit.
-     * @param optionCombo the category option combo.
-     * @return the combined value.
      */
     private Double getSelectedUnitValue( DataElement dataElement, List<Period> periods, OrganisationUnit unit,
         CategoryOptionCombo optionCombo )
     {
-        Double sum = null;
+        List<Double> values = periods.stream()
+            .map( p -> dataValueService.getDataValue( dataElement, p, unit, optionCombo ) )
+            .filter( Objects::nonNull )
+            .map( DataValue::getValue )
+            .filter( Objects::nonNull )
+            .map( MathUtils::parseDouble )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toList() );
 
-        for ( Period period : periods )
-        {
-            DataValue dataValue = dataValueService.getDataValue( dataElement, period, unit, optionCombo );
-
-            Double value = (dataValue != null && dataValue.getValue() != null)
-                ? MathUtils.parseDouble( dataValue.getValue() )
-                : null;
-
-            if ( value != null )
-            {
-                sum = value + firstNonNull( sum, 0.0 );
-            }
-        }
-
-        return sum;
+        return ( values.isEmpty() )
+            ? null
+            : values.stream()
+                .mapToDouble( Double::doubleValue )
+                .sum();
     }
 
     /**
