@@ -47,14 +47,17 @@ public class ExpressionResolvers implements ExpressionResolverCollection
 
     public ExpressionResolvers(
         @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" ) ExpressionResolver cogExpressionResolver,
-        @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionResolver" ) ExpressionResolver coExpressionResolver )
+        @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionResolver" ) ExpressionResolver coExpressionResolver,
+        @Qualifier( "org.hisp.dhis.analytics.resolver.DataElementGroupResolver" ) ExpressionResolver deGroupExpressionResolver )
     {
         checkNotNull( cogExpressionResolver );
         checkNotNull( coExpressionResolver );
+        checkNotNull( deGroupExpressionResolver );
 
         resolvers = new ArrayList<>();
         resolvers.add( cogExpressionResolver );
         resolvers.add( coExpressionResolver );
+        resolvers.add( deGroupExpressionResolver );
     }
 
     @Override

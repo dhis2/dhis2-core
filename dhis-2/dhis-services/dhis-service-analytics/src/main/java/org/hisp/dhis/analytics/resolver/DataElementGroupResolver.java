@@ -34,10 +34,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.category.CategoryOptionComboStore;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupStore;
 import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupStore;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.stereotype.Service;
 
@@ -47,35 +46,29 @@ import com.google.common.base.Joiner;
  * @author Dusan Bernat
  */
 
-@Service( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" )
-public class CategoryOptionGroupResolver implements ExpressionResolver
+@Service( "org.hisp.dhis.analytics.resolver.DataElementGroupResolver" )
+public class DataElementGroupResolver implements ExpressionResolver
 {
     private final ExpressionService expressionService;
 
-    private final CategoryOptionGroupStore categoryOptionGroupStore;
-
-    private final CategoryOptionComboStore categoryOptionComboStore;
+    private final DataElementGroupStore dataElementGroupStore;
 
     private static final String LEFT_BRACKET = "(";
 
     private static final String RIGHT_BRACKET = ")";
 
-    private static final String LOGICAL_AND = "&";
-
-    private static final String CATEGORY_OPTION_GROUP_PREFIX = "coGroup:";
+    private static final String DATA_ELEMENT_GROUP_PREFIX = "deGroup:";
 
     private static final String EMPTY_STRING = "";
 
-    public CategoryOptionGroupResolver( ExpressionService expressionService,
-        CategoryOptionGroupStore categoryOptionGroupStore, CategoryOptionComboStore categoryOptionComboStore )
+    public DataElementGroupResolver( ExpressionService expressionService,
+        DataElementGroupStore dataElementGroupStore )
     {
-        checkNotNull( categoryOptionGroupStore );
-        checkNotNull( categoryOptionComboStore );
         checkNotNull( expressionService );
+        checkNotNull( dataElementGroupStore );
 
         this.expressionService = expressionService;
-        this.categoryOptionGroupStore = categoryOptionGroupStore;
-        this.categoryOptionComboStore = categoryOptionComboStore;
+        this.dataElementGroupStore = dataElementGroupStore;
     }
 
     @Override
@@ -86,39 +79,21 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
 
         for ( DimensionalItemId id : dimItemIds )
         {
-            if ( id.getItem() != null && id.getId1() != null && id.getId1().contains( CATEGORY_OPTION_GROUP_PREFIX ) )
+            if ( id.getItem() != null && id.getId0() != null && id.getId0().contains( DATA_ELEMENT_GROUP_PREFIX ) )
             {
-                String[] cogUidList = id.getId1().split( LOGICAL_AND );
-                expression = getExpression( expression, id, cogUidList );
-            }
+                DataElementGroup deGroup = dataElementGroupStore
+                    .getByUid( id.getId0().replace( DATA_ELEMENT_GROUP_PREFIX, EMPTY_STRING ) );
 
-            if ( id.getItem() != null && id.getId2() != null && id.getId2().contains( CATEGORY_OPTION_GROUP_PREFIX ) )
-            {
-                String[] cogUidList = id.getId2().split( LOGICAL_AND );
-                expression = getExpression( expression, id, cogUidList );
-            }
-        }
+                if ( deGroup != null )
+                {
+                    List<String> resolved = deGroup.getMembers()
+                        .stream()
+                        .map( de -> id.getItem().replace( id.getId0(), de.getUid() ) )
+                        .collect( Collectors.toList() );
 
-        return expression;
-    }
-
-    private String getExpression( String expression, DimensionalItemId id, String[] cogUidList )
-    {
-        for ( String cogUid : cogUidList )
-        {
-            CategoryOptionGroup cog = categoryOptionGroupStore
-                .getByUid( cogUid.replace( CATEGORY_OPTION_GROUP_PREFIX, EMPTY_STRING ) );
-
-            if ( cog != null )
-            {
-
-                List<String> resolved = categoryOptionComboStore.getCategoryOptionCombosByGroupUid( cog.getUid() )
-                    .stream()
-                    .map( coc -> id.getItem().replace( cogUid, coc.getUid() ) )
-                    .collect( Collectors.toList() );
-
-                expression = expression.replace( id.getItem(),
-                    LEFT_BRACKET + Joiner.on( "+" ).join( resolved ) + RIGHT_BRACKET );
+                    expression = expression.replace( id.getItem(),
+                        LEFT_BRACKET + Joiner.on( "+" ).join( resolved ) + RIGHT_BRACKET );
+                }
             }
         }
 
