@@ -138,10 +138,6 @@ public class RedisCache<V> implements Cache<V>
     public Stream<V> getAll()
     {
         Set<String> keySet = redisTemplate.keys( cacheRegion + "*" );
-        if ( keySet == null )
-        {
-            return Stream.empty();
-        }
         List<V> values = redisTemplate.opsForValue().multiGet( keySet );
         return values == null ? Stream.empty() : values.stream();
     }
