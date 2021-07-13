@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.datasetreport;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,13 +46,13 @@ public interface DataSetReportStore
      * Get a mapping from dimensional identifiers to aggregated values.
      *
      * @param dataSet the data set.
-     * @param period the period.
+     * @param periods the periods.
      * @param unit the organisation unit.
      * @param filters the filters on the analytics dimension format, e.g.
      *        <dim-id>:<dim-item>;<dim-item>
      * @return a mapping from dimensional identifiers to aggregated values.
      */
-    Map<String, Object> getAggregatedValues( DataSet dataSet, Period period, OrganisationUnit unit,
+    Map<String, Object> getAggregatedValues( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
         Set<String> filters );
 
     /**
@@ -59,28 +60,28 @@ public interface DataSetReportStore
      * values.
      *
      * @param dataSet the data set.
-     * @param period the period.
+     * @param periods the periods.
      * @param unit the organisation unit.
      * @param filters the filters on the analytics dimension format, e.g.
      *        <dim-id>:<dim-item>;<dim-item>
      * @return a mapping from dimensional identifiers to aggregated sub-total
      *         values.
      */
-    Map<String, Object> getAggregatedSubTotals( DataSet dataSet, Period period, OrganisationUnit unit,
+    Map<String, Object> getAggregatedSubTotals( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
         Set<String> filters );
 
     /**
      * Get a mapping from dimensional identifiers to aggregated total values.
      *
      * @param dataSet the data set.
-     * @param period the period.
+     * @param periods the periods.
      * @param unit the organisation unit.
      * @param filters the filters on the analytics dimension format, e.g.
      *        <dim-id>:<dim-item>;<dim-item>
      * @return a mapping from dimensional identifiers to aggregated total
      *         values.
      */
-    Map<String, Object> getAggregatedTotals( DataSet dataSet, Period period, OrganisationUnit unit,
+    Map<String, Object> getAggregatedTotals( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
         Set<String> filters );
 
     /**
@@ -88,13 +89,13 @@ public interface DataSetReportStore
      * values.
      *
      * @param dataSet the data set.
-     * @param period the period.
+     * @param periods the periods.
      * @param unit the organisation unit.
      * @param filters the filters on the analytics dimension format, e.g.
      *        <dim-id>:<dim-item>;<dim-item>
      * @return a mapping from dimensional identifiers to aggregated indicator
      *         values.
      */
-    Map<String, Object> getAggregatedIndicatorValues( DataSet dataSet, Period period, OrganisationUnit unit,
+    Map<String, Object> getAggregatedIndicatorValues( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
         Set<String> filters );
 }
