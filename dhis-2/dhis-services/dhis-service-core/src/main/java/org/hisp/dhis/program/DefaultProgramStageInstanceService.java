@@ -136,12 +136,15 @@ public class DefaultProgramStageInstanceService
     {
         programStageInstanceStore.delete( programStageInstance );
 
-        ProgramStageInstanceAudit audit = ProgramStageInstanceAudit.builder()
-            .programStageInstance( programStageInstance.getUid() )
-            .created( programStageInstance.getCreated() ).modifiedBy( programStageInstance.getStoredBy() )
-            .auditType( AuditType.DELETE ).build();
+        if ( programStageInstance != null )
+        {
+            ProgramStageInstanceAudit audit = ProgramStageInstanceAudit.builder()
+                .programStageInstance( programStageInstance.getUid() )
+                .created( programStageInstance.getCreated() ).modifiedBy( programStageInstance.getStoredBy() )
+                .auditType( AuditType.DELETE ).build();
 
-        programStageInstanceAuditService.addProgramStageInstanceAudit( audit );
+            programStageInstanceAuditService.addProgramStageInstanceAudit( audit );
+        }
     }
 
     @Override

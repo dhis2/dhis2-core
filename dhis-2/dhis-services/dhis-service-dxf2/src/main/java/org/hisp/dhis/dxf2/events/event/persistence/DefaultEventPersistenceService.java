@@ -171,7 +171,7 @@ public class DefaultEventPersistenceService
 
     private void createAndAddProgramStageInstanceAudit( ProgramStageInstance programStageInstance, AuditType auditType )
     {
-        if ( !config.isEnabled( CHANGELOG_TRACKER ) || programStageInstance == null )
+        if ( !config.isEnabled( CHANGELOG_TRACKER ) )
         {
             return;
         }
