@@ -14,6 +14,9 @@
 
         <property name="programStageInstance" column="programstageinstance" />
 
+        <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+                     column="programstageid" foreign-key="fk_programstageinstanceaudit_programstageid" />
+
         <property name="modifiedBy" column="modifiedby" />
 
         <property name="auditType" column="audittype" length="100" not-null="true">

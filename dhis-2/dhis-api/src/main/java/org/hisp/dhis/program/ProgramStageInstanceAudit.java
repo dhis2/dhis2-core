@@ -54,9 +54,12 @@ public class ProgramStageInstanceAudit implements Serializable
 
     private String programStageInstance;
 
+    private ProgramStage programStage;
+
     private String modifiedBy;
 
-    private Date created;
+    @Builder.Default
+    private Date created = new Date();
 
     private AuditType auditType;
 
@@ -112,5 +115,14 @@ public class ProgramStageInstanceAudit implements Serializable
     public void setAuditType( AuditType auditType )
     {
         this.auditType = auditType;
+    }
+
+    @JsonProperty
+    public ProgramStage getProgramStage() {
+        return programStage;
+    }
+
+    public void setProgramStage(ProgramStage programStage) {
+        this.programStage = programStage;
     }
 }
