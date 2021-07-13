@@ -56,8 +56,8 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 public class NotOwnerReferencesCheck implements ValidationCheck
 {
     @Override
-    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+    public <T extends IdentifiableObject> TypeReport check( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext ctx )
     {
         if ( (persistedObjects.isEmpty() && nonPersistedObjects.isEmpty())
