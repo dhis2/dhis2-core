@@ -179,8 +179,8 @@ public class DefaultEventPersistenceService
         ProgramStageInstanceAudit audit = ProgramStageInstanceAudit.builder().auditType( auditType )
             .programStageInstance( programStageInstance.getUid() )
             .modifiedBy( programStageInstance.getStoredBy() )
-                .programStage( programStageInstance.getProgramStage() )
-                .build();
+            .programStage( programStageInstance.getProgramStage() )
+            .build();
 
         instanceAuditService.addProgramStageInstanceAudit( audit );
     }

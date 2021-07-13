@@ -140,8 +140,8 @@ public class DefaultProgramStageInstanceService
         {
             ProgramStageInstanceAudit audit = ProgramStageInstanceAudit.builder()
                 .programStageInstance( programStageInstance.getUid() )
-               .modifiedBy( programStageInstance.getStoredBy() )
-                    .programStage( programStageInstance.getProgramStage() )
+                .modifiedBy( programStageInstance.getStoredBy() )
+                .programStage( programStageInstance.getProgramStage() )
                 .auditType( AuditType.DELETE ).build();
 
             programStageInstanceAuditService.addProgramStageInstanceAudit( audit );

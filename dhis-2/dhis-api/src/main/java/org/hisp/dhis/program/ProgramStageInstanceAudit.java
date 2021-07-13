@@ -118,11 +118,13 @@ public class ProgramStageInstanceAudit implements Serializable
     }
 
     @JsonProperty
-    public ProgramStage getProgramStage() {
+    public ProgramStage getProgramStage()
+    {
         return programStage;
     }
 
-    public void setProgramStage(ProgramStage programStage) {
+    public void setProgramStage( ProgramStage programStage )
+    {
         this.programStage = programStage;
     }
 }
