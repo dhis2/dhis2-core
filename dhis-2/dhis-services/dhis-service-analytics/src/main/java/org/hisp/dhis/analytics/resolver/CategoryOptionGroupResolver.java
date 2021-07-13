@@ -28,31 +28,27 @@
 package org.hisp.dhis.analytics.resolver;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
-import static org.hisp.dhis.expression.Expression.*;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Joiner;
 
 /**
- * @author Luciano Fiandesio
+ * @author Dusan Bernat
  */
+
 @Service( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" )
-public class CategoryOptionGroupResolver
-    implements
-    ExpressionResolver
+public class CategoryOptionGroupResolver implements ExpressionResolver
 {
     private final ExpressionService expressionService;
 
@@ -60,122 +56,66 @@ public class CategoryOptionGroupResolver
 
     private final CategoryOptionComboStore categoryOptionComboStore;
 
-    public CategoryOptionGroupResolver( CategoryOptionGroupStore categoryOptionGroupStore,
-        CategoryOptionComboStore categoryOptionComboStore,
-        ExpressionService expressionService )
+    private static final String LEFT_BRACKET = "(";
+
+    private static final String RIGHT_BRACKET = ")";
+
+    private static final String LOGICAL_AND = "&";
+
+    private static final String CATEGORY_OPTION_GROUP_PREFIX = "coGroup:";
+
+    private static final String EMPTY_STRING = "";
+
+    public CategoryOptionGroupResolver( ExpressionService expressionService,
+        CategoryOptionGroupStore categoryOptionGroupStore, CategoryOptionComboStore categoryOptionComboStore )
     {
         checkNotNull( categoryOptionGroupStore );
-        checkNotNull( expressionService );
         checkNotNull( categoryOptionComboStore );
+        checkNotNull( expressionService );
 
+        this.expressionService = expressionService;
         this.categoryOptionGroupStore = categoryOptionGroupStore;
         this.categoryOptionComboStore = categoryOptionComboStore;
-        this.expressionService = expressionService;
     }
 
-    private Set<String> resolveCoCFromCog( String categoryOptionGroupUid )
-    {
-        return categoryOptionComboStore.getCategoryOptionCombosByGroupUid( categoryOptionGroupUid ).stream()
-            .map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() );
-    }
-
-    /**
-     * Resolves a Data Element Operand expression containing one or two Category
-     * Option Group UID to an equivalent expression where the associated
-     * Category Option Combos for the given Category Option Group are "exploded"
-     * into the expression.
-     *
-     * Resolves one of the expressions below:
-     *
-     * 1) #{DEUID.COGUID.AOCUID} 2) #{DEUID.COCUID.COGUID} 3)
-     * #{DEUID.COG1UID.COG2UID}
-     *
-     * to:
-     *
-     * 1) #{DEUID.COCUID1.AOCUID} + #{DEUID.COCUID2.AOCUID} +
-     * #{DEUID.COCUID3.AOCUID} where COCUID1,2,3... are resolved by fetching all
-     * COCUID by COGUID
-     *
-     * 2) #{DEUID.COCUID} + #{DEUID.COCUID1} + #{DEUID.COCUID2} +
-     * #{DEUID.COCUID3} + #{DEUID.COCUID4} where COCUID1,2,3... are resolved by
-     * fetching all COCUID by COGUID
-     *
-     * 3) #{DEUID.COCUID1} + #{DEUID.COCUID2} + #{DEUID.COCUID3} +
-     * #{DEUID.COCUID4} where COCUID1 and COCUID2 are resolved from COG1UID and
-     * COCUID3 and COCUID4 are resolved from COGUID2
-     *
-     * DEUID = Data Element UID COCUID = Category Option Combo UID COGUID =
-     * Category Option Group UID
-     *
-     * @param expression a Data Element Expression
-     * @return an expression containing additional CategoryOptionCombos based on
-     *         the given Category Option Group
-     */
     @Override
-    @Transactional( readOnly = true )
     public String resolve( String expression )
     {
-        // Get a DimensionalItemId from the expression. The expression is parsed
-        // and
-        // each element placed in the DimensionalItemId
         Set<DimensionalItemId> dimItemIds = expressionService.getExpressionDimensionalItemIds( expression,
             INDICATOR_EXPRESSION );
-        List<String> resolvedOperands = new ArrayList<>();
-        if ( isDataElementOperand( dimItemIds ) )
+
+        for ( DimensionalItemId id : dimItemIds )
         {
-            DimensionalItemId dimensionalItemId = dimItemIds.stream().findFirst().get();
-            // First element is always the Data Element Id
-            String dataElementUid = dimensionalItemId.getId0();
-
-            resolvedOperands
-                .addAll( evaluate( dataElementUid, dimensionalItemId.getId1(), dimensionalItemId.getId2() ) );
-
-            resolvedOperands.addAll( evaluate( dataElementUid, dimensionalItemId.getId2(), null ) );
+            if ( id.getItem() != null && id.getId1() != null && id.getId1().contains( CATEGORY_OPTION_GROUP_PREFIX ) )
+            {
+                String[] cogUidList = id.getId1().split( LOGICAL_AND );
+                expression = getExpression( expression, id, cogUidList );
+            }
         }
-        if ( resolvedOperands.isEmpty() )
+
+        return expression;
+    }
+
+    private String getExpression( String expression, DimensionalItemId id, String[] cogUidList )
+    {
+        for ( String cogUid : cogUidList )
         {
-            // nothing to resolve, add the expression as it is
-            resolvedOperands.add( expression );
+            CategoryOptionGroup cog = categoryOptionGroupStore
+                .getByUid( cogUid.replace( CATEGORY_OPTION_GROUP_PREFIX, EMPTY_STRING ) );
+
+            if ( cog != null )
+            {
+
+                List<String> resolved = categoryOptionComboStore.getCategoryOptionCombosByGroupUid( cog.getUid() )
+                    .stream()
+                    .map( coc -> id.getItem().replace( cogUid, coc.getUid() ) )
+                    .collect( Collectors.toList() );
+
+                expression = expression.replace( id.getItem(),
+                    LEFT_BRACKET + Joiner.on( "+" ).join( resolved ) + RIGHT_BRACKET );
+            }
         }
-        return Joiner.on( "+" ).join( resolvedOperands );
-    }
 
-    private List<String> evaluate( String dataElementUid, String uid, String uid2 )
-    {
-        List<String> resolvedExpression = new ArrayList<>();
-        Optional<String> cogUid = getCategoryOptionGroupUid( uid );
-        if ( cogUid.isPresent() )
-        {
-            Set<String> cocs = resolveCoCFromCog( cogUid.get() );
-            resolvedExpression = Arrays.asList( resolve( cocs, dataElementUid, uid2 ).split( "\\+" ) );
-        }
-        return resolvedExpression;
-    }
-
-    private String resolve( Set<String> cocs, String dataElementUid, String third )
-    {
-        boolean isAoc = isAoc( third );
-
-        return cocs.stream()
-            .map( coc -> EXP_OPEN + dataElementUid + SEPARATOR + coc + (isAoc ? SEPARATOR + third : "") + EXP_CLOSE )
-            .collect( Collectors.joining( "+" ) );
-    }
-
-    private boolean isAoc( String uid )
-    {
-        return (uid != null && categoryOptionComboStore.getByUid( uid ) != null);
-    }
-
-    private Optional<String> getCategoryOptionGroupUid( String uid )
-    {
-        CategoryOptionGroup cog = categoryOptionGroupStore.getByUid( uid );
-
-        return cog == null ? Optional.empty() : Optional.of( cog.getUid() );
-    }
-
-    private boolean isDataElementOperand( Set<DimensionalItemId> dimensionalItemIds )
-    {
-        return dimensionalItemIds.size() == 1
-            && dimensionalItemIds.iterator().next().getDimensionItemType().equals( DATA_ELEMENT_OPERAND );
+        return expression;
     }
 }
