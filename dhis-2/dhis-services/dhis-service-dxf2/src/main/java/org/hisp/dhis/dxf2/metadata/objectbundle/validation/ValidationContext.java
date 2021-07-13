@@ -45,7 +45,6 @@ import org.hisp.dhis.user.UserService;
 @AllArgsConstructor
 public class ValidationContext
 {
-
     private final ObjectBundleHooks objectBundleHooks;
 
     private final SchemaValidator schemaValidator;
