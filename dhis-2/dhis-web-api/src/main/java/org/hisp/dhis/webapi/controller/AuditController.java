@@ -497,7 +497,7 @@ public class AuditController
     @RequestMapping( value = "programStageInstance", method = RequestMethod.GET )
     public @ResponseBody RootNode getProgramStageInstanceAudit(
         @RequestParam( required = false ) AuditType auditType,
-        @RequestParam( required = false ) String event,
+        @RequestParam( required = false ) String psi,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
@@ -511,7 +511,7 @@ public class AuditController
         }
 
         ProgramStageInstanceAuditParam params = ProgramStageInstanceAuditParam.builder().auditType( auditType )
-            .programStageInstance( event )
+            .programStageInstance( psi )
             .skipPaging( PagerUtils.isSkipPaging( skipPaging, paging ) )
             .build();
 
