@@ -107,11 +107,4 @@ public class DefaultDeduplicationService
     {
         potentialDuplicateStore.save( potentialDuplicate );
     }
-
-    @Override
-    @Transactional
-    public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
-    {
-        potentialDuplicateStore.delete( potentialDuplicate );
-    }
 }
