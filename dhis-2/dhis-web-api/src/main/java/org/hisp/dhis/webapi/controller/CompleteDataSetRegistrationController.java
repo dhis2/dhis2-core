@@ -53,6 +53,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
@@ -75,7 +76,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -84,8 +84,10 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -125,7 +127,7 @@ public class CompleteDataSetRegistrationController
     private RenderService renderService;
 
     @Autowired
-    private SchedulingManager schedulingManager;
+    private AsyncTaskExecutor taskExecutor;
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -137,7 +139,7 @@ public class CompleteDataSetRegistrationController
     // GET
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML )
+    @GetMapping( produces = CONTENT_TYPE_XML )
     public void getCompleteRegistrationsXml(
         @RequestParam Set<String> dataSet,
         @RequestParam( required = false ) Set<String> period,
@@ -163,7 +165,7 @@ public class CompleteDataSetRegistrationController
         registrationExchangeService.writeCompleteDataSetRegistrationsXml( params, response.getOutputStream() );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_JSON )
+    @GetMapping( produces = CONTENT_TYPE_JSON )
     public void getCompleteRegistrationsJson(
         @RequestParam Set<String> dataSet,
         @RequestParam( required = false ) Set<String> period,
@@ -193,7 +195,7 @@ public class CompleteDataSetRegistrationController
     // POST
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML )
+    @PostMapping( consumes = CONTENT_TYPE_XML )
     public void postCompleteRegistrationsXml(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -212,7 +214,7 @@ public class CompleteDataSetRegistrationController
         }
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON )
+    @PostMapping( consumes = CONTENT_TYPE_JSON )
     public void postCompleteRegistrationsJson(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -235,7 +237,7 @@ public class CompleteDataSetRegistrationController
     // DELETE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.DELETE )
+    @DeleteMapping
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCompleteDataSetRegistration(
         @RequestParam Set<String> ds,
@@ -326,7 +328,7 @@ public class CompleteDataSetRegistrationController
         JobConfiguration jobId = new JobConfiguration( "inMemoryCompleteDataSetRegistrationImport",
             COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
-        schedulingManager.executeJob(
+        taskExecutor.executeTask(
             new ImportCompleteDataSetRegistrationsTask(
                 registrationExchangeService, sessionFactory, tmpFile.getLeft(), tmpFile.getRight(), importOptions,
                 format,

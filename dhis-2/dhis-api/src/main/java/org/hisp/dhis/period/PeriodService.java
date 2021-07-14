@@ -288,7 +288,7 @@ public interface PeriodService
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a PeriodType.
+     * Returns a persisted PeriodType.
      *
      * @param id the id of the PeriodType to return.
      * @return the PeriodType with the given id, or null if no match.
@@ -312,7 +312,7 @@ public interface PeriodService
     PeriodType getPeriodTypeByName( String name );
 
     /**
-     * Returns a PeriodType represented by the given Class.
+     * Returns a persisted PeriodType represented by the given Class.
      *
      * @param periodType the Class type of the PeriodType.
      * @return a PeriodType instance.

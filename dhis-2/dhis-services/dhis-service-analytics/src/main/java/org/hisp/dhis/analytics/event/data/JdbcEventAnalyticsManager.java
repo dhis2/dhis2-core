@@ -39,6 +39,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
@@ -66,6 +67,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -489,9 +491,18 @@ public class JdbcEventAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += hlp.whereAnd() + " "
-                        + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
-                        " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    String field = getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() );
+
+                    if ( IN.equals( filter.getOperator() ) )
+                    {
+                        QueryFilter inQueryFilter = new InQueryFilter( field, filter );
+                        sql += hlp.whereAnd() + " " + getSqlFilter( inQueryFilter, item );
+                    }
+                    else
+                    {
+                        sql += hlp.whereAnd() + " " + field + " " + filter.getSqlOperator() + " "
+                            + getSqlFilter( filter, item ) + " ";
+                    }
                 }
             }
         }
@@ -607,7 +618,7 @@ public class JdbcEventAnalyticsManager
      * rank. Only data for the last 10 years relative to the period end date is
      * included.
      *
-     * @param the {@link EventQueryParams}.
+     * @param params the {@link EventQueryParams}.
      */
     private String getFirstOrLastValueSubquerySql( EventQueryParams params )
     {
@@ -644,7 +655,7 @@ public class JdbcEventAnalyticsManager
      * query. The period dimension is replaced by the name of the single period
      * in the given query.
      *
-     * @param the {@link EventQueryParams}.
+     * @param params the {@link EventQueryParams}.
      */
     private List<String> getFirstOrLastValueSubqueryQuotedColumns( EventQueryParams params )
     {

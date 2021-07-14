@@ -83,11 +83,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -99,7 +100,7 @@ import com.google.common.collect.Sets;
  */
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@RequestMapping( value = "/me", method = RequestMethod.GET )
+@RequestMapping( "/me" )
 public class MeController
 {
     @Autowired
@@ -153,7 +154,7 @@ public class MeController
     private static final Set<UserSettingKey> USER_SETTING_KEYS = new HashSet<>(
         Sets.newHashSet( UserSettingKey.values() ) );
 
-    @RequestMapping( value = "", method = RequestMethod.GET )
+    @GetMapping
     public void getCurrentUser( HttpServletResponse response )
         throws Exception
     {
@@ -224,7 +225,7 @@ public class MeController
         return false;
     }
 
-    @RequestMapping( value = "/dataApprovalWorkflows", method = RequestMethod.GET )
+    @GetMapping( "/dataApprovalWorkflows" )
     public void getCurrentUserDataApprovalWorkflows( HttpServletResponse response )
         throws Exception
     {
@@ -240,7 +241,7 @@ public class MeController
         nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
     }
 
-    @RequestMapping( value = "", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
     public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -277,7 +278,7 @@ public class MeController
             response.getOutputStream() );
     }
 
-    @RequestMapping( value = { "/authorization", "/authorities" } )
+    @GetMapping( value = { "/authorization", "/authorities" } )
     public void getAuthorities( HttpServletResponse response )
         throws IOException,
         NotAuthenticatedException
@@ -294,7 +295,7 @@ public class MeController
         renderService.toJson( response.getOutputStream(), currentUser.getUserCredentials().getAllAuthorities() );
     }
 
-    @RequestMapping( value = { "/authorization/{authority}", "/authorities/{authority}" } )
+    @GetMapping( value = { "/authorization/{authority}", "/authorities/{authority}" } )
     public void hasAuthority( HttpServletResponse response, @PathVariable String authority )
         throws IOException,
         NotAuthenticatedException
@@ -313,7 +314,7 @@ public class MeController
         renderService.toJson( response.getOutputStream(), hasAuthority );
     }
 
-    @RequestMapping( value = "/settings" )
+    @GetMapping( "/settings" )
     public void getSettings( HttpServletResponse response )
         throws IOException,
         NotAuthenticatedException
@@ -333,7 +334,7 @@ public class MeController
         renderService.toJson( response.getOutputStream(), userSettings );
     }
 
-    @RequestMapping( value = "/settings/{key}" )
+    @GetMapping( "/settings/{key}" )
     public void getSetting( HttpServletResponse response, @PathVariable String key )
         throws IOException,
         WebMessageException,
@@ -365,7 +366,7 @@ public class MeController
         renderService.toJson( response.getOutputStream(), value );
     }
 
-    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT, consumes = { "text/*", "application/*" } )
+    @PutMapping( value = "/changePassword", consumes = { "text/*", "application/*" } )
     @ResponseStatus( HttpStatus.ACCEPTED )
     public void changePassword( @RequestBody Map<String, String> body, HttpServletResponse response )
         throws WebMessageException,
@@ -400,21 +401,21 @@ public class MeController
         userService.expireActiveSessions( currentUser.getUserCredentials() );
     }
 
-    @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )
+    @PostMapping( value = "/verifyPassword", consumes = "text/*" )
     public @ResponseBody RootNode verifyPasswordText( @RequestBody String password, HttpServletResponse response )
         throws WebMessageException
     {
         return verifyPasswordInternal( password, getCurrentUserOrThrow() );
     }
 
-    @RequestMapping( value = "/validatePassword", method = RequestMethod.POST, consumes = "text/*" )
+    @PostMapping( value = "/validatePassword", consumes = "text/*" )
     public @ResponseBody RootNode validatePasswordText( @RequestBody String password, HttpServletResponse response )
         throws WebMessageException
     {
         return validatePasswordInternal( password, getCurrentUserOrThrow() );
     }
 
-    @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/verifyPassword", consumes = MediaType.APPLICATION_JSON_VALUE )
     public @ResponseBody RootNode verifyPasswordJson( @RequestBody Map<String, String> body,
         HttpServletResponse response )
         throws WebMessageException
@@ -422,7 +423,7 @@ public class MeController
         return verifyPasswordInternal( body.get( "password" ), getCurrentUserOrThrow() );
     }
 
-    @RequestMapping( value = "/dashboard" )
+    @GetMapping( "/dashboard" )
     public @ResponseBody Dashboard getDashboard( HttpServletResponse response )
         throws Exception
     {
@@ -449,7 +450,7 @@ public class MeController
         interpretationService.updateCurrentUserLastChecked();
     }
 
-    @RequestMapping( value = "/dataApprovalLevels", produces = { "application/json", "text/*" } )
+    @GetMapping( value = "/dataApprovalLevels", produces = { "application/json", "text/*" } )
     public void getApprovalLevels( HttpServletResponse response )
         throws IOException
     {

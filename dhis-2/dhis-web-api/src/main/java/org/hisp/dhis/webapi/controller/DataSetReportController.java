@@ -27,24 +27,33 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.common.cache.*;
-import org.hisp.dhis.dataset.*;
-import org.hisp.dhis.datasetreport.*;
-import org.hisp.dhis.dxf2.webmessage.*;
-import org.hisp.dhis.organisationunit.*;
-import org.hisp.dhis.period.*;
-import org.hisp.dhis.system.grid.*;
-import org.hisp.dhis.webapi.mvc.annotation.*;
-import org.hisp.dhis.webapi.service.*;
-import org.hisp.dhis.webapi.utils.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.stereotype.*;
-import org.springframework.web.bind.annotation.*;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datasetreport.DataSetReportService;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.service.WebMessageService;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Stian Sandvold
@@ -77,8 +86,7 @@ public class DataSetReportController
     @Autowired
     IdentifiableObjectManager idObjectManager;
 
-    @RequestMapping( value = RESOURCE_PATH
-        + "/custom", method = RequestMethod.GET, produces = "text/html;charset=UTF-8" )
+    @GetMapping( value = RESOURCE_PATH + "/custom", produces = "text/html;charset=UTF-8" )
     public @ResponseBody String getCustomDataSetReport( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,
@@ -103,7 +111,7 @@ public class DataSetReportController
         return dataSetReportService.getCustomDataSetReport( dataSet, period, orgUnit, filter, selectedUnitOnly );
     }
 
-    @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = RESOURCE_PATH, produces = "application/json" )
     public @ResponseBody List<Grid> getDataSetReportAsJson( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,
@@ -121,7 +129,7 @@ public class DataSetReportController
         return dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + ".xls", method = RequestMethod.GET )
+    @GetMapping( RESOURCE_PATH + ".xls" )
     public void getDataSetReportAsExcel( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,
@@ -141,7 +149,7 @@ public class DataSetReportController
         GridUtils.toXls( grids, response.getOutputStream() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + ".pdf", method = RequestMethod.GET )
+    @GetMapping( RESOURCE_PATH + ".pdf" )
     public void getDataSetReportAsPdf( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,

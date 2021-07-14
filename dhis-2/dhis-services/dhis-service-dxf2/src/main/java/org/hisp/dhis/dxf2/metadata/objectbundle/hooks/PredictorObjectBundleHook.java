@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.predictor.Predictor;
@@ -38,45 +37,22 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-public class PredictorObjectBundleHook
-    extends AbstractObjectBundleHook
+public class PredictorObjectBundleHook extends AbstractObjectBundleHook<Predictor>
 {
     @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
+    public void preCreate( Predictor predictor, ObjectBundle bundle )
     {
-        if ( !Predictor.class.isInstance( object ) )
-        {
-            return;
-        }
-
-        Predictor predictor = (Predictor) object;
-        Expression skipTest = predictor.getSampleSkipTest();
-
-        preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(),
-            bundle.getPreheatIdentifier() );
-
-        if ( skipTest != null )
-        {
-            preheatService.connectReferences( skipTest, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-        }
-
-        sessionFactory.getCurrentSession().save( predictor.getGenerator() );
-
-        if ( skipTest != null )
-        {
-            sessionFactory.getCurrentSession().save( skipTest );
-        }
+        saveSkipTest( predictor, bundle );
     }
 
     @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
+    public void preUpdate( Predictor predictor, Predictor persistedObject, ObjectBundle bundle )
     {
-        if ( !Predictor.class.isInstance( object ) )
-        {
-            return;
-        }
+        saveSkipTest( predictor, bundle );
+    }
 
-        Predictor predictor = (Predictor) object;
+    private void saveSkipTest( Predictor predictor, ObjectBundle bundle )
+    {
         Expression skipTest = predictor.getSampleSkipTest();
 
         preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(),

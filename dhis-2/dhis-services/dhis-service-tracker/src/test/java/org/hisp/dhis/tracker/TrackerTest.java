@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -108,7 +109,7 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertTrue( validationReport.getErrorReports().isEmpty() );
+        assertFalse( validationReport.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 

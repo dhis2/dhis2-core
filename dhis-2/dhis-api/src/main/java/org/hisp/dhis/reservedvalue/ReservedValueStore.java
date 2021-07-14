@@ -38,13 +38,15 @@ public interface ReservedValueStore
     extends GenericStore<ReservedValue>
 {
 
+    void bulkInsertReservedValues( List<ReservedValue> toAdd );
+
     void reserveValues( List<ReservedValue> toAdd );
 
-    List<ReservedValue> reserveValuesAndCheckUniqueness( ReservedValue reservedValue, List<String> values );
+    List<ReservedValue> getAvailableValues( ReservedValue reservedValue, List<String> values );
+
+    List<ReservedValue> getReservedValues( ReservedValue reservedValue, List<String> values );
 
     List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
-
-    List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
 
     int getNumberOfUsedValues( ReservedValue reservedValue );
 

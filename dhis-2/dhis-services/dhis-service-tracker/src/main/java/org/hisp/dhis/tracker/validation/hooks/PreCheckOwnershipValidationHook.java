@@ -87,12 +87,11 @@ public class PreCheckOwnershipValidationHook
         if ( strategy.isDelete() )
         {
             TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
-            checkNotNull( tei, TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
             if ( tei.getProgramInstances().stream().anyMatch( pi -> !pi.isDeleted() )
                 && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
             {
-                addError( reporter, E1100, bundle.getUser(), tei );
+                addError( reporter, E1100, user, tei );
             }
         }
 
@@ -112,19 +111,14 @@ public class PreCheckOwnershipValidationHook
         OrganisationUnit ownerOrgUnit = context.getOwnerOrganisationUnit( enrollment.getTrackedEntity(),
             enrollment.getProgram() );
 
-        checkNotNull( user, USER_CANT_BE_NULL );
-
         if ( strategy.isDelete() )
         {
-            ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );
-
-            checkNotNull( pi, PROGRAM_INSTANCE_CANT_BE_NULL );
-
-            boolean hasNonDeletedEvents = context.programInstanceHasEvents( pi.getUid() );
+            boolean hasNonDeletedEvents = context.programInstanceHasEvents( enrollment.getEnrollment() );
             boolean hasNotCascadeDeleteAuthority = !user
                 .isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
 
-            addErrorIf( () -> hasNonDeletedEvents && hasNotCascadeDeleteAuthority, reporter, E1103, user, pi );
+            addErrorIf( () -> hasNonDeletedEvents && hasNotCascadeDeleteAuthority, reporter, E1103, user,
+                enrollment.getEnrollment() );
         }
 
         trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
@@ -223,12 +217,12 @@ public class PreCheckOwnershipValidationHook
 
     private String getTeiUidFromEvent( TrackerImportValidationContext context, Event event, Program program )
     {
-        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
-
         if ( program.isWithoutRegistration() )
         {
             return null;
         }
+
+        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
 
         if ( programInstance == null )
         {

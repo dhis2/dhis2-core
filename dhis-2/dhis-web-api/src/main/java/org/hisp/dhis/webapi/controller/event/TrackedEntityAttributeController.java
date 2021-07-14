@@ -51,9 +51,9 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -78,7 +78,7 @@ public class TrackedEntityAttributeController
     @Autowired
     private ContextService context;
 
-    @RequestMapping( value = "/{id}/generateAndReserve", method = RequestMethod.GET, produces = {
+    @GetMapping( value = "/{id}/generateAndReserve", produces = {
         ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody List<ReservedValue> generateAndReserveValues(
@@ -109,7 +109,7 @@ public class TrackedEntityAttributeController
      * @return The id generated
      * @throws WebMessageException
      */
-    @RequestMapping( value = "/{id}/generate", method = RequestMethod.GET )
+    @GetMapping( "/{id}/generate" )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody ReservedValue legacyQueryTrackedEntityInstancesJson(
         @PathVariable String id,
@@ -126,7 +126,7 @@ public class TrackedEntityAttributeController
         return reserve( id, 1, expiration ).get( 0 );
     }
 
-    @RequestMapping( value = "/{id}/requiredValues", method = RequestMethod.GET )
+    @GetMapping( "/{id}/requiredValues" )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody Map<String, List<String>> getRequiredValues( @PathVariable String id )
         throws WebMessageException

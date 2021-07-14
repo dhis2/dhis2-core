@@ -49,9 +49,10 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -91,7 +92,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( method = RequestMethod.POST, produces = { "application/json" } )
+    @PostMapping( produces = { "application/json" } )
     public void sendSMSMessage( @RequestParam String recipient, @RequestParam String message,
         HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
@@ -119,7 +120,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( method = RequestMethod.POST, consumes = { "application/json" }, produces = { "application/json" } )
+    @PostMapping( consumes = { "application/json" }, produces = { "application/json" } )
     public void sendSMSMessage( HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException,
         IOException
@@ -142,7 +143,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
     // DELETE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE, produces = "application/json" )
+    @DeleteMapping( value = "/{uid}", produces = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     public void deleteOutboundMessage( @PathVariable String uid, HttpServletRequest request,
         HttpServletResponse response )
@@ -160,7 +161,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
         webMessageService.send( WebMessageUtils.ok( "OutboundSms with " + uid + " deleted" ), response, request );
     }
 
-    @RequestMapping( method = RequestMethod.DELETE, produces = "application/json" )
+    @DeleteMapping( produces = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     public void deleteOutboundMessages( @RequestParam List<String> ids, HttpServletRequest request,
         HttpServletResponse response )

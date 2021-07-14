@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +45,6 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -304,6 +302,8 @@ public class MetadataImportParams
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ImportReportMode getImportReportMode()
     {
         return importReportMode;
@@ -472,16 +472,14 @@ public class MetadataImportParams
 
         for ( Schema schema : schemas )
         {
-            Object value = ReflectionUtils.invokeGetterMethod( schema.getPlural(), metadata );
-
-            if ( value != null && Collection.class.isAssignableFrom( HibernateProxyUtils.getRealClass( value ) )
-                && schema.isIdentifiableObject() )
+            if ( schema.isIdentifiableObject() )
             {
-                List<IdentifiableObject> objects = new ArrayList<>( (Collection<IdentifiableObject>) value );
+                Class<? extends IdentifiableObject> key = (Class<? extends IdentifiableObject>) schema.getKlass();
+                List<? extends IdentifiableObject> schemaObjects = metadata.getValues( key );
 
-                if ( !objects.isEmpty() )
+                if ( !schemaObjects.isEmpty() )
                 {
-                    objectMap.put( (Class<? extends IdentifiableObject>) schema.getKlass(), objects );
+                    objectMap.put( key, new ArrayList<>( schemaObjects ) );
                 }
             }
         }

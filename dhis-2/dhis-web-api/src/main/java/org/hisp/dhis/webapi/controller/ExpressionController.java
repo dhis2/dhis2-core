@@ -45,8 +45,8 @@ import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -66,7 +66,7 @@ public class ExpressionController
     @Autowired
     private I18nManager i18nManager;
 
-    @RequestMapping( value = "/description", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/description", produces = MediaType.APPLICATION_JSON_VALUE )
     public void getExpressionDescription( @RequestParam String expression, HttpServletResponse response )
         throws IOException
     {

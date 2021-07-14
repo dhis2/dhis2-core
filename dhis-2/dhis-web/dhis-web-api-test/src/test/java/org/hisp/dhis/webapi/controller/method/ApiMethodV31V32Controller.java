@@ -34,8 +34,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -44,7 +46,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @RequestMapping( "/method/testV31V32" )
 public class ApiMethodV31V32Controller
 {
-    @RequestMapping( "a" )
+    @GetMapping( "a" )
     @ApiVersion( DhisApiVersion.V31 )
     public void testV31( HttpServletResponse response )
         throws IOException
@@ -52,7 +54,7 @@ public class ApiMethodV31V32Controller
         response.getWriter().println( "TEST" );
     }
 
-    @RequestMapping( value = "a", method = RequestMethod.POST )
+    @PostMapping( value = "a" )
     @ApiVersion( DhisApiVersion.V31 )
     public void testPostV31( HttpServletResponse response )
         throws IOException
@@ -68,7 +70,7 @@ public class ApiMethodV31V32Controller
         response.getWriter().println( "TEST" );
     }
 
-    @RequestMapping( value = "b", method = RequestMethod.PUT )
+    @PutMapping( value = "b" )
     @ApiVersion( DhisApiVersion.V32 )
     public void testPutV32( HttpServletResponse response )
         throws IOException

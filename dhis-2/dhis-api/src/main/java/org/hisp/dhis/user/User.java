@@ -149,6 +149,11 @@ public class User
         unit.getUsers().remove( this );
     }
 
+    public void addOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        organisationUnits.forEach( this::addOrganisationUnit );
+    }
+
     public void removeOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         organisationUnits.forEach( this::removeOrganisationUnit );

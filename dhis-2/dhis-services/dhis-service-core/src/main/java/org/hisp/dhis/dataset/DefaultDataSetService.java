@@ -281,6 +281,13 @@ public class DefaultDataSetService
     }
 
     @Override
+    @Transactional
+    public void deleteLockExceptions( OrganisationUnit organisationUnit )
+    {
+        lockExceptionStore.delete( organisationUnit );
+    }
+
+    @Override
     @Transactional( readOnly = true )
     public boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now )
     {

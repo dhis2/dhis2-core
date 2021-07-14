@@ -48,9 +48,9 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -75,7 +75,7 @@ public class DocumentController
     @Autowired
     private ContextUtils contextUtils;
 
-    @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data" )
     public void getDocumentContent( @PathVariable( "uid" ) String uid, HttpServletResponse response )
         throws Exception
     {

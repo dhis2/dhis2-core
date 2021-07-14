@@ -46,12 +46,12 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
+public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook<IdentifiableObject>
 {
     @Override
-    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
-        if ( VersionedObject.class.isInstance( object ) )
+        if ( object instanceof VersionedObject )
         {
             VersionedObject versionObj = (VersionedObject) object;
             int persistedVersion = ((VersionedObject) persistedObject).getVersion();
@@ -62,15 +62,15 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
+    public void postCreate( IdentifiableObject persistedObject, ObjectBundle bundle )
     {
         VersionedObject versionedObject = null;
 
-        if ( Section.class.isInstance( persistedObject ) )
+        if ( persistedObject instanceof Section )
         {
             versionedObject = ((Section) persistedObject).getDataSet();
         }
-        else if ( Option.class.isInstance( persistedObject ) )
+        else if ( persistedObject instanceof Option )
         {
             versionedObject = ((Option) persistedObject).getOptionSet();
         }
@@ -83,8 +83,7 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass,
-        List<T> objects, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void postTypeImport( Class<T> klass, List<T> objects, ObjectBundle bundle )
     {
         if ( Section.class.isAssignableFrom( klass ) )
         {
