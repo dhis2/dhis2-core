@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.user.User;
@@ -150,6 +151,8 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
     public static void assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
         JsonWebMessage actual )
     {
+        assertTrue( "response appears to be something other than a WebMessage: " + actual.toString(),
+            actual.has( "httpStatusCode", "httpStatus", "status" ) );
         assertEquals( httpStatusCode, actual.getHttpStatusCode() );
         assertEquals( httpStatus, actual.getHttpStatus() );
         assertEquals( status, actual.getStatus() );

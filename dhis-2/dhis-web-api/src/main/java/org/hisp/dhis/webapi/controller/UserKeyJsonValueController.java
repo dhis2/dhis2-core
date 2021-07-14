@@ -43,7 +43,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValue;
 import org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -71,9 +70,6 @@ public class UserKeyJsonValueController
     private RenderService renderService;
 
     @Autowired
-    private WebMessageService messageService;
-
-    @Autowired
     private CurrentUserService currentUserService;
 
     /**
@@ -82,7 +78,6 @@ public class UserKeyJsonValueController
      */
     @GetMapping( value = "", produces = "application/json" )
     public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
-        throws IOException
     {
         setNoStore( response );
 
@@ -95,8 +90,7 @@ public class UserKeyJsonValueController
      */
     @GetMapping( value = "/{namespace}", produces = "application/json" )
     public @ResponseBody List<String> getKeys( @PathVariable String namespace, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws WebMessageException
     {
         if ( !userKeyJsonValueService.getNamespacesByUser( currentUserService.getCurrentUser() ).contains( namespace ) )
         {
@@ -129,8 +123,7 @@ public class UserKeyJsonValueController
     public @ResponseBody String getUserKeyJsonValue(
         @PathVariable String namespace,
         @PathVariable String key, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws WebMessageException
     {
         UserKeyJsonValue userKeyJsonValue = userKeyJsonValueService.getUserKeyJsonValue(
             currentUserService.getCurrentUser(), namespace, key );
