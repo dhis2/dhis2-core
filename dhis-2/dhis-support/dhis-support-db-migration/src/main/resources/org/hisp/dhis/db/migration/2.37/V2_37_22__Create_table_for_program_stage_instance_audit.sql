@@ -1,4 +1,4 @@
-CREATE TABLE programstageinstanceaudit (
+CREATE TABLE IF NOT EXISTS programstageinstanceaudit (
     programstageinstanceauditid bigint NOT NULL,
     programstageinstance character varying(255),
     programstageid bigint,

@@ -75,7 +75,6 @@ import org.hisp.dhis.program.ProgramStageInstanceAudit;
 import org.hisp.dhis.program.ProgramStageInstanceAuditParam;
 import org.hisp.dhis.program.ProgramStageInstanceAuditService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
@@ -108,8 +107,6 @@ public class AuditController
 
     private final ProgramStageInstanceService programStageInstanceService;
 
-    private final ProgramStageService programStageService;
-
     private final DataValueAuditService dataValueAuditService;
 
     private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
@@ -136,8 +133,7 @@ public class AuditController
         TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
         FieldFilterService fieldFilterService,
         ContextService contextService, FileResourceService fileResourceService,
-        ProgramStageInstanceAuditService programStageInstanceAuditService,
-        ProgramStageService programStageService )
+        ProgramStageInstanceAuditService programStageInstanceAuditService )
     {
         checkNotNull( manager );
         checkNotNull( programStageInstanceService );
@@ -149,7 +145,6 @@ public class AuditController
         checkNotNull( contextService );
         checkNotNull( fileResourceService );
         checkNotNull( programStageInstanceAuditService );
-        checkNotNull( programStageService );
 
         this.manager = manager;
         this.programStageInstanceService = programStageInstanceService;
@@ -162,7 +157,6 @@ public class AuditController
         this.contextService = contextService;
         this.fileResourceService = fileResourceService;
         this.programStageInstanceAuditService = programStageInstanceAuditService;
-        this.programStageService = programStageService;
     }
 
     /**
