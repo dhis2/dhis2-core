@@ -34,6 +34,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
+import org.hisp.dhis.analytics.resolver.ExpressionResolverCollection;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
@@ -62,7 +63,7 @@ public class IndicatorController
     private ExpressionService expressionService;
 
     @Autowired
-    private ExpressionResolver resolver;
+    private ExpressionResolverCollection resolvers;
 
     @Autowired
     private I18nManager i18nManager;
@@ -73,7 +74,13 @@ public class IndicatorController
     {
         I18n i18n = i18nManager.getI18n();
 
-        String resolvedExpression = resolver.resolve( expression );
+        String resolvedExpression = expression;
+
+        for ( ExpressionResolver resolver : resolvers.getExpressionResolvers() )
+        {
+            resolvedExpression = resolver.resolve( resolvedExpression );
+        }
+
         ExpressionValidationOutcome result = expressionService.expressionIsValid( resolvedExpression,
             INDICATOR_EXPRESSION );
 
