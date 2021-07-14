@@ -150,8 +150,8 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
     public static void assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
         JsonWebMessage actual )
     {
-        assertEquals( httpStatus, actual.getHttpStatus() );
         assertEquals( httpStatusCode, actual.getHttpStatusCode() );
+        assertEquals( httpStatus, actual.getHttpStatus() );
         assertEquals( status, actual.getStatus() );
         assertEquals( message, actual.getMessage() );
     }
