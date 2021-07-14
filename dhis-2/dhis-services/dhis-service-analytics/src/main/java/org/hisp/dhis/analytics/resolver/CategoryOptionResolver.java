@@ -78,7 +78,7 @@ public class CategoryOptionResolver implements ExpressionResolver
 
         for ( DimensionalItemId id : dimItemIds )
         {
-            if ( id.getId1() != null && id.getId1().contains( CATEGORY_OPTION_PREFIX ) )
+            if ( id.getItem() != null && id.getId1() != null && id.getId1().contains( CATEGORY_OPTION_PREFIX ) )
             {
                 CategoryOption co = categoryOptionStore
                     .getByUid( id.getId1().replace( CATEGORY_OPTION_PREFIX, EMPTY_STRING ) );
