@@ -114,7 +114,6 @@ public class DataElementGroupResolverTest
         resolver = new DataElementGroupResolver( expressionService, dataElementGroupStore );
 
         when( dataElementGroupStore.getByUid( anyString() ) ).thenReturn( dataElementGroup );
-
     }
 
     @Test

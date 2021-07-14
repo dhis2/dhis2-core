@@ -155,7 +155,7 @@ public class CategoryOptionResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenCoPrefixInUid1()
+    public void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
