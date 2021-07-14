@@ -93,22 +93,6 @@ public class CategoryOptionResolver implements ExpressionResolver
                         LEFT_BRACKET + Joiner.on( "+" ).join( resolved ) + RIGHT_BRACKET );
                 }
             }
-
-            if ( id.getItem() != null && id.getId2() != null && id.getId2().contains( CATEGORY_OPTION_PREFIX ) )
-            {
-                CategoryOption co = categoryOptionStore
-                    .getByUid( id.getId2().replace( CATEGORY_OPTION_PREFIX, EMPTY_STRING ) );
-
-                if ( co != null )
-                {
-                    List<String> resolved = co.getCategoryOptionCombos().stream()
-                        .map( coc -> id.getItem().replace( id.getId2(), coc.getUid() ) )
-                        .collect( Collectors.toList() );
-
-                    expression = expression.replace( id.getItem(),
-                        LEFT_BRACKET + Joiner.on( "+" ).join( resolved ) + RIGHT_BRACKET );
-                }
-            }
         }
 
         return expression;
