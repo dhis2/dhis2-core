@@ -27,23 +27,19 @@
  */
 package org.hisp.dhis.analytics.resolver;
 
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionGroup;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionComboStore;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupStore;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupStore;
 import org.hisp.dhis.expression.ExpressionService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -57,13 +53,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Dusan Bernat
  */
-public class CategoryOptionGroupResolverTest
+public class DataElementGroupResolverTest
 {
     @Mock
-    private CategoryOptionGroupStore categoryOptionGroupStore;
-
-    @Mock
-    private CategoryOptionComboStore categoryOptionComboStore;
+    private DataElementGroupStore dataElementGroupStore;
 
     @Mock
     private ExpressionService expressionService;
@@ -79,15 +72,15 @@ public class CategoryOptionGroupResolverTest
 
     private String uid3;
 
-    private CategoryOptionCombo coc1;
+    private DataElement de1;
 
-    private CategoryOptionCombo coc2;
+    private DataElement de2;
 
-    private CategoryOptionCombo coc3;
+    private DataElement de3;
 
     DimensionalItemId dimensionalItemId;
 
-    private static final String CATEGORY_OPTION_GROUP_PREFIX = "coGroup:";
+    private static final String DATA_ELEMENT_GROUP_PREFIX = "deGroup:";
 
     @Before
     public void setUp()
@@ -98,28 +91,30 @@ public class CategoryOptionGroupResolverTest
 
         uid3 = CodeGenerator.generateUid();
 
-        CategoryOptionGroup categoryOptionGroup = createCategoryOptionGroup( 'A' );
+        de1 = createDataElement( 'X' );
 
-        coc1 = createCategoryOptionCombo( 'X' );
+        de1.setPeriodOffset( 3 );
 
-        coc2 = createCategoryOptionCombo( 'Y' );
+        de2 = createDataElement( 'Y' );
 
-        coc3 = createCategoryOptionCombo( 'Z' );
+        de2.setPeriodOffset( 2 );
 
-        resolver = new CategoryOptionGroupResolver( expressionService, categoryOptionGroupStore,
-            categoryOptionComboStore );
+        de3 = createDataElement( 'Z' );
 
-        when( categoryOptionGroupStore.getByUid( anyString() ) ).thenReturn( categoryOptionGroup );
+        de3.setPeriodOffset( 1 );
 
-        List<CategoryOptionCombo> cocList = new ArrayList<>();
+        DataElementGroup dataElementGroup = createDataElementGroup( 'A' );
 
-        cocList.add( coc1 );
+        dataElementGroup.addDataElement( de1 );
 
-        cocList.add( coc2 );
+        dataElementGroup.addDataElement( de2 );
 
-        cocList.add( coc3 );
+        dataElementGroup.addDataElement( de3 );
 
-        when( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( anyString() ) ).thenReturn( cocList );
+        resolver = new DataElementGroupResolver( expressionService, dataElementGroupStore );
+
+        when( dataElementGroupStore.getByUid( anyString() ) ).thenReturn( dataElementGroup );
+
     }
 
     @Test
@@ -127,8 +122,9 @@ public class CategoryOptionGroupResolverTest
     {
         // arrange
 
-        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            CATEGORY_OPTION_GROUP_PREFIX + uid2, uid3, 0, createIndicatorExpression() );
+        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND,
+            DATA_ELEMENT_GROUP_PREFIX + uid1,
+            uid2, uid3, 0, createIndicatorExpression() );
 
         String expression = createIndicatorExpression();
 
@@ -141,7 +137,7 @@ public class CategoryOptionGroupResolverTest
 
         // assert
 
-        assertEquals( expectedResolvedIndicatorExpression( coc1.getUid(), coc2.getUid(), coc3.getUid() ),
+        assertEquals( expectedResolvedIndicatorExpression( de1.getUid(), de2.getUid(), de3.getUid() ),
             resolvedExpression );
     }
 
@@ -150,8 +146,9 @@ public class CategoryOptionGroupResolverTest
     {
         // arrange
 
-        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            CATEGORY_OPTION_GROUP_PREFIX + uid2, uid3, 0 );
+        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND,
+            DATA_ELEMENT_GROUP_PREFIX + uid1,
+            uid2, uid3, 0 );
 
         String expression = createIndicatorExpression();
 
@@ -168,7 +165,7 @@ public class CategoryOptionGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
+    public void verifyExpressionIsNotResolvedWhenDeGroupPrefixNotInUid0()
     {
         // arrange
 
@@ -213,14 +210,14 @@ public class CategoryOptionGroupResolverTest
 
     private String createIndicatorExpression()
     {
-        return String.format( "#{%s.coGroup:%s.%s}", uid1, uid2, uid3 );
+        return String.format( "#{deGroup:%s.%s.%s}", uid1, uid2, uid3 );
     }
 
-    private String expectedResolvedIndicatorExpression( String coc1_uid, String coc2_uid, String coc3_uid )
+    private String expectedResolvedIndicatorExpression( String de1_uid, String de2_uid, String de3_uid )
     {
         return String.format( "(#{%s.%s.%s}+#{%s.%s.%s}+#{%s.%s.%s})",
-            uid1, coc1_uid, uid3,
-            uid1, coc2_uid, uid3,
-            uid1, coc3_uid, uid3 );
+            de1_uid, uid2, uid3,
+            de2_uid, uid2, uid3,
+            de3_uid, uid2, uid3 );
     }
 }

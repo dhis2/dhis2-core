@@ -34,9 +34,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupStore;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.stereotype.Service;
 
@@ -46,28 +46,29 @@ import com.google.common.base.Joiner;
  * @author Dusan Bernat
  */
 
-@Service( "org.hisp.dhis.analytics.resolver.CategoryOptionResolver" )
-public class CategoryOptionResolver implements ExpressionResolver
+@Service( "org.hisp.dhis.analytics.resolver.DataElementGroupResolver" )
+public class DataElementGroupResolver implements ExpressionResolver
 {
     private final ExpressionService expressionService;
 
-    private final CategoryOptionStore categoryOptionStore;
+    private final DataElementGroupStore dataElementGroupStore;
 
     private static final String LEFT_BRACKET = "(";
 
     private static final String RIGHT_BRACKET = ")";
 
-    private static final String CATEGORY_OPTION_PREFIX = "co:";
+    private static final String DATA_ELEMENT_GROUP_PREFIX = "deGroup:";
 
     private static final String EMPTY_STRING = "";
 
-    public CategoryOptionResolver( ExpressionService expressionService, CategoryOptionStore categoryOptionStore )
+    public DataElementGroupResolver( ExpressionService expressionService,
+        DataElementGroupStore dataElementGroupStore )
     {
-        checkNotNull( categoryOptionStore );
         checkNotNull( expressionService );
+        checkNotNull( dataElementGroupStore );
 
         this.expressionService = expressionService;
-        this.categoryOptionStore = categoryOptionStore;
+        this.dataElementGroupStore = dataElementGroupStore;
     }
 
     @Override
@@ -78,15 +79,16 @@ public class CategoryOptionResolver implements ExpressionResolver
 
         for ( DimensionalItemId id : dimItemIds )
         {
-            if ( id.getId1().contains( CATEGORY_OPTION_PREFIX ) )
+            if ( id.getItem() != null && id.getId0() != null && id.getId0().contains( DATA_ELEMENT_GROUP_PREFIX ) )
             {
-                CategoryOption co = categoryOptionStore
-                    .getByUid( id.getId1().replace( CATEGORY_OPTION_PREFIX, EMPTY_STRING ) );
+                DataElementGroup deGroup = dataElementGroupStore
+                    .getByUid( id.getId0().replace( DATA_ELEMENT_GROUP_PREFIX, EMPTY_STRING ) );
 
-                if ( co != null )
+                if ( deGroup != null )
                 {
-                    List<String> resolved = co.getCategoryOptionCombos().stream()
-                        .map( coc -> id.getItem().replace( id.getId1(), coc.getUid() ) )
+                    List<String> resolved = deGroup.getMembers()
+                        .stream()
+                        .map( de -> id.getItem().replace( id.getId0(), de.getUid() ) )
                         .collect( Collectors.toList() );
 
                     expression = expression.replace( id.getItem(),
