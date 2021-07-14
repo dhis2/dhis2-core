@@ -160,16 +160,33 @@ public class DeduplicationController
         return potentialDuplicate;
     }
 
-    @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST }, value = "/{id}/invalidation" )
-    public void markPotentialDuplicateInvalid(
-        @PathVariable String id )
+    @PutMapping( value = "/{id}" )
+    public void updatePotentialDuplicate( @PathVariable String id, @RequestParam( value = "status" ) String status )
         throws NotFoundException,
-        HttpStatusCodeException
+        HttpStatusCodeException,
+        BadRequestException
     {
-        PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
+        checkDeduplicationStatusRequestParam( status );
 
-        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
+        PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
+        DeduplicationStatus deduplicationStatus = DeduplicationStatus.valueOf( status );
+
+        checkDbAndRequestStatus( potentialDuplicate, deduplicationStatus );
+
+        potentialDuplicate.setStatus( deduplicationStatus );
         deduplicationService.updatePotentialDuplicate( potentialDuplicate );
+    }
+
+    private void checkDbAndRequestStatus( PotentialDuplicate potentialDuplicate,
+        DeduplicationStatus deduplicationStatus )
+        throws BadRequestException
+    {
+        if ( deduplicationStatus == DeduplicationStatus.MERGED )
+            throw new BadRequestException(
+                "Bad request. Can't update a potential duplicate to " + DeduplicationStatus.MERGED.name() );
+        if ( potentialDuplicate.getStatus() == DeduplicationStatus.MERGED )
+            throw new BadRequestException( "Bad request. Can't update a potential duplicate that is already "
+                + DeduplicationStatus.MERGED.name() );
     }
 
     @DeleteMapping( value = "/{id}" )
@@ -179,7 +196,8 @@ public class DeduplicationController
         HttpStatusCodeException
     {
         PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
-        deduplicationService.deletePotentialDuplicate( potentialDuplicate );
+        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
+        deduplicationService.updatePotentialDuplicate( potentialDuplicate );
     }
 
     private void checkDeduplicationStatusRequestParam( String status )
