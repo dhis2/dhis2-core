@@ -44,6 +44,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.base.Joiner;
 
 /**
+ * @author Luciano Fiandesio
  * @author Dusan Bernat
  */
 

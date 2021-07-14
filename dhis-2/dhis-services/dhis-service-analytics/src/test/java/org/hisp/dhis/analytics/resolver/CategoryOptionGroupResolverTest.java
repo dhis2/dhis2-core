@@ -55,6 +55,7 @@ import org.mockito.junit.MockitoRule;
 import com.google.common.collect.Sets;
 
 /**
+ * @author Luciano Fiandesio
  * @author Dusan Bernat
  */
 public class CategoryOptionGroupResolverTest
