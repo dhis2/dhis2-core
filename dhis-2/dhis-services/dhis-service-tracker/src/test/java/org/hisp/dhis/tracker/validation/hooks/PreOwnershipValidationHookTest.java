@@ -250,7 +250,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         assertFalse( reporter.hasErrors() );
         verify( trackerImportAccessManager ).checkWriteEnrollmentAccess( reporter, program,
-            TEI_ID, organisationUnit );
+            TEI_ID, organisationUnit, organisationUnit );
     }
 
     @Test
@@ -273,7 +273,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         assertFalse( reporter.hasErrors() );
         verify( trackerImportAccessManager ).checkWriteEnrollmentAccess( reporter, program,
-            TEI_ID, organisationUnit );
+            TEI_ID, organisationUnit, organisationUnit );
     }
 
     @Test
@@ -297,7 +297,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         assertFalse( reporter.hasErrors() );
         verify( trackerImportAccessManager ).checkWriteEnrollmentAccess( reporter, program,
-            TEI_ID, organisationUnit );
+            TEI_ID, organisationUnit, organisationUnit );
     }
 
     @Test
@@ -321,7 +321,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1103 ) );
         verify( trackerImportAccessManager ).checkWriteEnrollmentAccess( reporter, program,
-            TEI_ID, organisationUnit );
+            TEI_ID, organisationUnit, organisationUnit );
     }
 
     @Test
@@ -342,7 +342,8 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit, null,
+        verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit,
+            organisationUnit, null,
             null, false );
     }
 
@@ -364,7 +365,8 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit, null,
+        verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit,
+            organisationUnit, null,
             null, false );
     }
 
@@ -387,7 +389,8 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit, null,
+        verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit,
+            organisationUnit, null,
             null, false );
     }
 
@@ -410,7 +413,8 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit, null,
+        verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit,
+            organisationUnit, null,
             null, false );
     }
 
@@ -433,7 +437,8 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1083 ) );
-        verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit, null,
+        verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit,
+            organisationUnit, null,
             null, false );
     }
 
