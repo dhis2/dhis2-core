@@ -28,12 +28,14 @@
 package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
+import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,4 +141,18 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
             () -> new HttpResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) );
     }
 
+    public static void assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
+        JsonResponse actual )
+    {
+        assertWebMessage( httpStatus, httpStatusCode, status, message, actual.as( JsonWebMessage.class ) );
+    }
+
+    public static void assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
+        JsonWebMessage actual )
+    {
+        assertEquals( httpStatus, actual.getHttpStatus() );
+        assertEquals( httpStatusCode, actual.getHttpStatusCode() );
+        assertEquals( status, actual.getStatus() );
+        assertEquals( message, actual.getMessage() );
+    }
 }
