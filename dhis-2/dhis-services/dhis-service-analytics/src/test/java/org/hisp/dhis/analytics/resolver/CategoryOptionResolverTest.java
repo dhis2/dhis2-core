@@ -137,7 +137,7 @@ public class CategoryOptionResolverTest
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            CATEGORY_OPTION_PREFIX + uid2, uid3, 0 );
+            CATEGORY_OPTION_PREFIX + uid2, uid3, 0, createIndicatorExpression() );
 
         String expression = createIndicatorExpression();
 
@@ -150,7 +150,8 @@ public class CategoryOptionResolverTest
 
         // assert
 
-        assertEquals( expression, resolvedExpression );
+        assertEquals( expectedResolvedIndicatorExpression( coc1.getUid(), coc2.getUid(), coc3.getUid() ),
+            resolvedExpression );
     }
 
     @Test
