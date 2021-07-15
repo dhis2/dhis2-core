@@ -39,6 +39,7 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.startWithMediaType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -256,6 +257,22 @@ public interface WebClient
             return series() == Series.SUCCESSFUL;
         }
 
+        /**
+         * Access raw response body for non JSON responses
+         *
+         * @param contentType the expected content type
+         * @return raw content body in UTF-8 encoding
+         */
+        public String content( MediaType contentType )
+        {
+            if ( contentType.isCompatibleWith( MediaType.APPLICATION_JSON ) )
+            {
+                fail( "Use one of the other content() methods for JSON" );
+            }
+            assertEquals( contentType.toString(), header( "Content-Type" ) );
+            return failOnException( () -> response.getContentAsString( StandardCharsets.UTF_8 ) );
+        }
+
         public JsonResponse content()
         {
             return content( Series.SUCCESSFUL );
@@ -276,19 +293,36 @@ public interface WebClient
         public JsonError error()
         {
             assertTrue( "not a client or server error", series().value() >= 4 );
-            return contentUnchecked().as( JsonError.class );
+            return errorInternal();
         }
 
         public JsonError error( HttpStatus expected )
         {
             assertStatus( expected, this );
-            return contentUnchecked().as( JsonError.class );
+            return errorInternal();
         }
 
         public JsonError error( Series expected )
         {
             // OBS! cannot use assertSeries as it uses this method
             assertEquals( expected, series() );
+            return errorInternal();
+        }
+
+        private JsonError errorInternal()
+        {
+            if ( response.getBufferSize() == 0 )
+            {
+                String errorMessage = response.getErrorMessage();
+                if ( errorMessage != null )
+                {
+                    errorMessage = '"' + errorMessage + '"';
+                }
+                String error = String.format(
+                    "{\"status\": \"error\",\"httpStatus\":\"%s\",\"httpStatusCode\":%d, \"message\":%s}",
+                    status().name(), response.getStatus(), errorMessage );
+                return new JsonResponse( error ).as( JsonError.class );
+            }
             return contentUnchecked().as( JsonError.class );
         }
 
