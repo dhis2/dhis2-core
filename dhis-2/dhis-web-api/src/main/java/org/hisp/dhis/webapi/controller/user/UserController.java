@@ -282,52 +282,56 @@ public class UserController
 
     @Override
     @PostMapping( consumes = { "application/xml", "text/xml" } )
-    public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postXmlObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        postObject( request, response, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
+        return postObject( response, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
     }
 
     @Override
     @PostMapping( consumes = "application/json" )
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        postObject( request, response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
+        return postObject( response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
     }
 
-    private void postObject( HttpServletRequest request, HttpServletResponse response, User user )
+    private WebMessage postObject( HttpServletResponse response, User user )
         throws WebMessageException
     {
         User currentUser = currentUserService.getCurrentUser();
 
         validateCreateUser( user, currentUser );
 
-        postObject( request, response, getObjectReport( createUser( user, currentUser ) ) );
+        return postObject( response, getObjectReport( createUser( user, currentUser ) ) );
     }
 
     @PostMapping( value = INVITE_PATH, consumes = "application/json" )
-    public void postJsonInvite( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postJsonInvite( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        postInvite( request, response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
+        return postInvite( request, response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
     }
 
     @PostMapping( value = INVITE_PATH, consumes = { "application/xml", "text/xml" } )
-    public void postXmlInvite( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postXmlInvite( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        postInvite( request, response, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
+        return postInvite( request, response, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
     }
 
-    private void postInvite( HttpServletRequest request, HttpServletResponse response, User user )
+    private WebMessage postInvite( HttpServletRequest request, HttpServletResponse response, User user )
         throws WebMessageException
     {
         User currentUser = currentUserService.getCurrentUser();
 
         validateInviteUser( user, currentUser );
 
-        postObject( request, response, inviteUser( user, currentUser, request ) );
+        return postObject( response, inviteUser( user, currentUser, request ) );
     }
 
     @PostMapping( value = BULK_INVITE_PATH, consumes = "application/json" )
@@ -558,31 +562,27 @@ public class UserController
     // -------------------------------------------------------------------------
 
     @Override
-    @PutMapping( value = "/{uid}", consumes = { "application/xml", "text/xml" } )
-    public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+    @PutMapping( value = "/{uid}", consumes = { "application/xml", "text/xml" }, produces = "application/xml" )
+    @ResponseBody
+    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
     {
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
-        ImportReport importReport = updateUser( pvUid, parsed );
-
-        response.setContentType( "application/xml" );
-        renderService.toXml( response.getOutputStream(), importReport );
+        return WebMessageUtils.importReport( updateUser( pvUid, parsed ) );
     }
 
     @Override
-    @PutMapping( value = "/{uid}", consumes = "application/json" )
-    public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+    @PutMapping( value = "/{uid}", consumes = "application/json", produces = "application/json" )
+    @ResponseBody
+    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        ImportReport importReport = updateUser( pvUid, parsed );
-
-        response.setContentType( "application/json" );
-        renderService.toJson( response.getOutputStream(), importReport );
+        return WebMessageUtils.importReport( updateUser( pvUid, parsed ) );
     }
 
     protected ImportReport updateUser( String userUid, User parsedUserObject )

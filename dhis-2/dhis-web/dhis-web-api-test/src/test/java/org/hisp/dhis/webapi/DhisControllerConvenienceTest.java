@@ -153,9 +153,9 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
     {
         assertTrue( "response appears to be something other than a WebMessage: " + actual.toString(),
             actual.has( "httpStatusCode", "httpStatus", "status" ) );
-        assertEquals( httpStatusCode, actual.getHttpStatusCode() );
-        assertEquals( httpStatus, actual.getHttpStatus() );
-        assertEquals( status, actual.getStatus() );
-        assertEquals( message, actual.getMessage() );
+        assertEquals( "unexpected HTTP status code", httpStatusCode, actual.getHttpStatusCode() );
+        assertEquals( "unexpected HTTP status", httpStatus, actual.getHttpStatus() );
+        assertEquals( "unexpected status", status, actual.getStatus() );
+        assertEquals( "unexpected message", message, actual.getMessage() );
     }
 }

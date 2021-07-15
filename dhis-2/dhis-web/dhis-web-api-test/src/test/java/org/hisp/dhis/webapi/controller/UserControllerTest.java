@@ -44,6 +44,7 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,6 +158,32 @@ public class UserControllerTest extends DhisControllerConvenienceTest
             "Password must have at least 8 characters, one digit, one uppercase",
             POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}" )
                 .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testPutJsonObject()
+    {
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+
+        assertWebMessage( "OK", 200, "OK", null,
+            PUT( "/users/" + peter.getUid(), user.toString() ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    public void testPostJsonObject()
+    {
+        assertWebMessage( "Created", 201, "OK", null,
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'HarryS'}}" )
+                .content( HttpStatus.CREATED ) );
+    }
+
+    @Test
+    public void testPostJsonInvite()
+    {
+        assertWebMessage( "Created", 201, "OK", null,
+            POST( "/users/invite",
+                "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'userCredentials':{'username':'HarryS'}}" )
+                    .content( HttpStatus.CREATED ) );
     }
 
     private String extractTokenFromEmailText( String message )
