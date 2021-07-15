@@ -112,14 +112,19 @@ public class CategoryOptionGroupTaglessResolver
         List<String> resolvedOperands = new ArrayList<>();
         if ( isDataElementOperand( dimItemIds ) )
         {
-            DimensionalItemId dimensionalItemId = dimItemIds.stream().findFirst().get();
-            // First element is always the Data Element Id
-            String dataElementUid = dimensionalItemId.getId0();
+            Optional<DimensionalItemId> dimItemId = dimItemIds.stream().findFirst();
 
-            resolvedOperands
-                .addAll( evaluate( dataElementUid, dimensionalItemId.getId1(), dimensionalItemId.getId2() ) );
+            if ( dimItemId.isPresent() )
+            {
+                DimensionalItemId dimensionalItemId = dimItemId.get();
+                // First element is always the Data Element Id
+                String dataElementUid = dimensionalItemId.getId0();
 
-            resolvedOperands.addAll( evaluate( dataElementUid, dimensionalItemId.getId2(), null ) );
+                resolvedOperands
+                    .addAll( evaluate( dataElementUid, dimensionalItemId.getId1(), dimensionalItemId.getId2() ) );
+
+                resolvedOperands.addAll( evaluate( dataElementUid, dimensionalItemId.getId2(), null ) );
+            }
         }
         if ( resolvedOperands.isEmpty() )
         {
