@@ -29,14 +29,15 @@ package org.hisp.dhis.webapi.controller.validation;
 
 import java.util.ArrayList;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,7 +51,6 @@ import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -84,9 +84,6 @@ public class ValidationController
 
     @Autowired
     private SchedulingManager schedulingManager;
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     @GetMapping( "/dataSet/{ds}" )
     public @ResponseBody ValidationSummary validate( @PathVariable String ds, @RequestParam String pe,
@@ -137,14 +134,17 @@ public class ValidationController
 
     @RequestMapping( value = "/sendNotifications", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
-    public void runValidationNotificationsTask( HttpServletResponse response, HttpServletRequest request )
+    @ResponseBody
+    public WebMessage runValidationNotificationsTask()
     {
         JobConfiguration validationResultNotification = new JobConfiguration(
             "validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "",
             null );
+        validationResultNotification.setInMemoryJob( true );
+        validationResultNotification.setUid( CodeGenerator.generateUid() );
 
         schedulingManager.executeNow( validationResultNotification );
 
-        webMessageService.send( WebMessageUtils.ok( "Initiated validation result notification" ), response, request );
+        return WebMessageUtils.ok( "Initiated validation result notification" );
     }
 }
