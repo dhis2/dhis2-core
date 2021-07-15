@@ -141,31 +141,6 @@ public class DeduplicationControllerMvcTest
     }
 
     @Test
-    public void shouldDeletePotentialDuplicate()
-        throws Exception
-    {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-
-        String uid = "uid";
-
-        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-
-        mockMvc.perform( delete( ENDPOINT + "/" + uid )
-            .content( "{}" )
-            .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() );
-
-        ArgumentCaptor<PotentialDuplicate> potentialDuplicateArgumentCaptor = ArgumentCaptor
-            .forClass( PotentialDuplicate.class );
-
-        verify( deduplicationService ).updatePotentialDuplicate( potentialDuplicateArgumentCaptor.capture() );
-        verify( deduplicationService ).getPotentialDuplicateByUid( uid );
-
-        assertEquals( DeduplicationStatus.INVALID, potentialDuplicateArgumentCaptor.getValue().getStatus() );
-    }
-
-    @Test
     public void shouldThrowUpdatePotentialDuplicateAlreadyMerged()
         throws Exception
     {

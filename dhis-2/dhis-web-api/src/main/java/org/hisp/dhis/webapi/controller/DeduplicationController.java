@@ -189,17 +189,6 @@ public class DeduplicationController
                 + DeduplicationStatus.MERGED.name() );
     }
 
-    @DeleteMapping( value = "/{id}" )
-    public void deletePotentialDuplicate(
-        @PathVariable String id )
-        throws NotFoundException,
-        HttpStatusCodeException
-    {
-        PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
-        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
-        deduplicationService.updatePotentialDuplicate( potentialDuplicate );
-    }
-
     private void checkDeduplicationStatusRequestParam( String status )
         throws BadRequestException
     {
