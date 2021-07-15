@@ -129,11 +129,14 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
                         .map( BaseIdentifiableObject::getUid )
                         .collect( Collectors.toList() );
                 }
-
-                cocUidIntersection.retainAll( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( cog.getUid() )
-                    .stream()
-                    .map( BaseIdentifiableObject::getUid )
-                    .collect( Collectors.toList() ) );
+                else
+                {
+                    cocUidIntersection
+                        .retainAll( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( cog.getUid() )
+                            .stream()
+                            .map( BaseIdentifiableObject::getUid )
+                            .collect( Collectors.toList() ) );
+                }
             }
         }
 
