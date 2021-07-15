@@ -53,6 +53,7 @@ import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -433,7 +434,8 @@ public class UserController
     @SuppressWarnings( "unchecked" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_REPLICATE_USER')" )
     @PostMapping( "/{uid}/replica" )
-    public void replicateUser( @PathVariable String uid,
+    @ResponseBody
+    public WebMessage replicateUser( @PathVariable String uid,
         HttpServletRequest request, HttpServletResponse response )
         throws IOException,
         WebMessageException
@@ -442,7 +444,7 @@ public class UserController
 
         if ( existingUser == null || existingUser.getUserCredentials() == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "User not found: " + uid ) );
+            return WebMessageUtils.conflict( "User not found: " + uid );
         }
 
         User currentUser = currentUserService.getCurrentUser();
@@ -456,23 +458,22 @@ public class UserController
 
         if ( auth == null || username == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Username must be specified" ) );
+            return WebMessageUtils.conflict( "Username must be specified" );
         }
 
         if ( userService.getUserCredentialsByUsername( username ) != null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Username already taken: " + username ) );
+            return WebMessageUtils.conflict( "Username already taken: " + username );
         }
 
         if ( password == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Password must be specified" ) );
+            return WebMessageUtils.conflict( "Password must be specified" );
         }
 
         if ( !ValidationUtils.passwordIsValid( password ) )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Password must have at least 8 characters, one digit, one uppercase" ) );
+            return WebMessageUtils.conflict( "Password must have at least 8 characters, one digit, one uppercase" );
         }
 
         User userReplica = new User();
@@ -517,7 +518,7 @@ public class UserController
         }
 
         response.addHeader( "Location", UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid() );
-        webMessageService.send( WebMessageUtils.created( "User replica created" ), response, request );
+        return WebMessageUtils.created( "User replica created" );
     }
 
     @PostMapping( "/{uid}/enabled" )

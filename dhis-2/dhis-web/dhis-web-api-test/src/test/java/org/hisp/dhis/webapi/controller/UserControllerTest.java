@@ -111,6 +111,54 @@ public class UserControllerTest extends DhisControllerConvenienceTest
             POST( "/users/does-not-exist/reset" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
+    @Test
+    public void testReplicateUser()
+    {
+        assertWebMessage( "Created", 201, "OK", "User replica created",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'Saf€sEcre1'}" )
+                .content() );
+    }
+
+    @Test
+    public void testReplicateUser_UserNameAlreadyTaken()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Username already taken: Peter",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'Peter','password':'Saf€sEcre1'}" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testReplicateUser_UserNotFound()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "User not found: notfoundid",
+            POST( "/users/notfoundid/replica", "{'username':'peter2','password':'Saf€sEcre1'}" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testReplicateUser_UserNameNotSpecified()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Username must be specified",
+            POST( "/users/" + peter.getUid() + "/replica", "{'password':'Saf€sEcre1'}" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testReplicateUser_PasswordNotSpecified()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Password must be specified",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2'}" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testReplicateUser_PasswordNotValid()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "Password must have at least 8 characters, one digit, one uppercase",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
     private String extractTokenFromEmailText( String message )
     {
         int tokenPos = message.indexOf( "?token=" );
