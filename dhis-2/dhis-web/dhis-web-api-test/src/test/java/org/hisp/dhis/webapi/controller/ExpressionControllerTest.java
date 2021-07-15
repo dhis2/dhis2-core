@@ -28,24 +28,34 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.mock.web.MockMultipartFile;
 
-public class FileResourceControllerTest extends DhisControllerConvenienceTest
+/**
+ * Tests the {@link ExpressionController} using (mocked) REST requests.
+ *
+ * @author Jan Bernitt
+ */
+public class ExpressionControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    public void testSaveOrgUnitImage()
+    public void testGetExpressionDescription()
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
+        JsonWebMessage response = GET( "/expressions/description?expression=0" )
+            .content().as( JsonWebMessage.class );
+        assertWebMessage( "OK", 200, "OK", "Valid", response );
+        assertEquals( "0", response.getDescription() );
+    }
 
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+    @Test
+    public void testGetExpressionDescription_InvalidExpression()
+    {
+        JsonWebMessage response = GET( "/expressions/description?expression=invalid" )
+            .content().as( JsonWebMessage.class );
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not well-formed", response );
+        assertNull( response.getDescription() );
     }
 }

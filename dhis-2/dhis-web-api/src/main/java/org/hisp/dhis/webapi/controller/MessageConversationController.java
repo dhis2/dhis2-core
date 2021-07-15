@@ -42,6 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -233,21 +234,21 @@ public class MessageConversationController
     // --------------------------------------------------------------------------
 
     @Override
-    public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postXmlObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         MessageConversation messageConversation = renderService
             .fromXml( request.getInputStream(), MessageConversation.class );
-        postObject( response, request, messageConversation );
+        return postObject( response, request, messageConversation );
     }
 
     @Override
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         MessageConversation messageConversation = renderService
             .fromJson( request.getInputStream(), MessageConversation.class );
-        postObject( response, request, messageConversation );
+        return postObject( response, request, messageConversation );
     }
 
     private Set<User> getUsersToMessageConversation( MessageConversation messageConversation, Set<User> users )
@@ -295,7 +296,7 @@ public class MessageConversationController
         return usersToMessageConversation;
     }
 
-    private void postObject( HttpServletResponse response, HttpServletRequest request,
+    private WebMessage postObject( HttpServletResponse response, HttpServletRequest request,
         MessageConversation messageConversation )
         throws WebMessageException
     {
@@ -342,7 +343,7 @@ public class MessageConversationController
 
         response
             .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
-        webMessageService.send( WebMessageUtils.created( "Message conversation created" ), response, request );
+        return WebMessageUtils.created( "Message conversation created" );
     }
 
     // --------------------------------------------------------------------------
@@ -792,14 +793,13 @@ public class MessageConversationController
      * therefore requires override authority for the current user.
      *
      * @param uid the uid of the MessageConversation to delete.
-     * @throws Exception
      */
     @Override
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_IMPORT')" )
-    public void deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+    public WebMessage deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        super.deleteObject( uid, request, response );
+        return super.deleteObject( uid, request, response );
     }
 
     // --------------------------------------------------------------------------

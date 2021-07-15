@@ -136,6 +136,14 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    public void replaceTranslations_NoSuchEntity()
+    {
+        String translations = "{'translations': [{'locale':'sv', 'property':'name'}]}";
+        assertWebMessage( "Not Found", 404, "ERROR", "User with id notanid could not be found.",
+            PUT( "/users/notanid/translations", translations ).content( HttpStatus.NOT_FOUND ) );
+    }
+
+    @Test
     public void replaceTranslations_MissingValue()
     {
         String id = getCurrentUser().getUid();
@@ -405,6 +413,13 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         assertTrue( program.exists() );
         assertEquals( "rwrw----", program.getSharing().getPublic().string() );
         assertFalse( "programs cannot be external", program.getSharing().isExternal() );
+    }
+
+    @Test
+    public void testSetSharing_EntityNoFound()
+    {
+        assertWebMessage( "Not Found", 404, "ERROR", "Program with id doesNotExist could not be found.",
+            PUT( "/programs/doesNotExist/sharing", "{}" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     private void assertUserGroupHasOnlyUser( String groupId, String userId )

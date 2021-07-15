@@ -27,25 +27,35 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.mock.web.MockMultipartFile;
 
-public class FileResourceControllerTest extends DhisControllerConvenienceTest
+/**
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.event.ProgramRuleActionController}
+ * using (mocked) REST requests.
+ *
+ * @author Jan Bernitt
+ */
+public class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    public void testSaveOrgUnitImage()
+    public void testGetDataExpressionDescription()
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
+        String pId = assertStatus( HttpStatus.CREATED,
+            POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
 
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programRuleActions/data/expression/description?programId=" + pId, "70" ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    public void testGetDataExpressionDescription_NoSuchProgram()
+    {
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+            POST( "/programRuleActions/data/expression/description?programId=xyz", "70" ).content( HttpStatus.OK ) );
     }
 }

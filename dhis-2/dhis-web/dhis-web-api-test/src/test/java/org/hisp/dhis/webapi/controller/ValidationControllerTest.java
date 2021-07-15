@@ -27,25 +27,22 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
-
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.mock.web.MockMultipartFile;
 
-public class FileResourceControllerTest extends DhisControllerConvenienceTest
+/**
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.validation.ValidationController} using
+ * (mocked) REST requests.
+ *
+ * @author Jan Bernitt
+ */
+public class ValidationControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    public void testSaveOrgUnitImage()
+    public void testRunValidationNotificationsTask()
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+        assertWebMessage( "OK", 200, "OK", "Initiated validation result notification",
+            POST( "/validation/sendNotifications" ).content() );
     }
 }

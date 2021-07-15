@@ -25,27 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.mvc;
 
-import static org.junit.Assert.assertEquals;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.mock.web.MockMultipartFile;
-
-public class FileResourceControllerTest extends DhisControllerConvenienceTest
+/**
+ * Configure content negotiation so that both path extensions {@code .json} and
+ * {@code .xml} can be used as well as the {@code Accept} header.
+ *
+ * Default response is JSON.
+ *
+ * @author Jan Bernitt
+ */
+@Configuration
+public class ContentNegotiationConfig implements WebMvcConfigurer
 {
-    @Test
-    public void testSaveOrgUnitImage()
+    @Override
+    public void configureContentNegotiation( ContentNegotiationConfigurer config )
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
+        config
+            .favorPathExtension( true )
+            .favorParameter( false )
+            .ignoreAcceptHeader( false )
+            .defaultContentType( MediaType.APPLICATION_JSON )
+            .mediaType( "json", MediaType.APPLICATION_JSON )
+            .mediaType( "xml", MediaType.APPLICATION_XML );
+    }
 
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+    @Override
+    public void configurePathMatch( PathMatchConfigurer config )
+    {
+        config.setUseSuffixPatternMatch( true );
     }
 }

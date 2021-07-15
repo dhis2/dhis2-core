@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -72,6 +73,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
@@ -124,14 +126,16 @@ public class MapController
     @Override
     @PutMapping( value = "/{uid}", consumes = "application/json" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void putJsonObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage putJsonObject( @PathVariable String uid, HttpServletRequest request,
+        HttpServletResponse response )
         throws Exception
     {
         Map map = mappingService.getMap( uid );
 
         if ( map == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Map does not exist: " + uid ) );
+            return WebMessageUtils.notFound( "Map does not exist: " + uid );
         }
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
@@ -144,6 +148,7 @@ public class MapController
             .setSkipSharing( params.isSkipSharing() )
             .setSkipTranslation( params.isSkipTranslation() ) );
         mappingService.updateMap( map );
+        return null;
     }
 
     @Override

@@ -41,6 +41,7 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.eventchart.EventChart;
@@ -357,14 +358,15 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     }
 
     @Override
-    public void deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public WebMessage deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
 
         if ( interpretation == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Interpretation does not exist: " + uid ) );
+            return WebMessageUtils.notFound( "Interpretation does not exist: " + uid );
         }
 
         if ( !currentUserService.getCurrentUser().equals( interpretation.getCreatedBy() )
@@ -374,6 +376,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         }
 
         interpretationService.deleteInterpretation( interpretation );
+        return null;
     }
 
     // -------------------------------------------------------------------------

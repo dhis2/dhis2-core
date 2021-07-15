@@ -27,47 +27,44 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.event.ProgramIndicatorController}
+ * using (mocked) REST requests.
+ *
+ * @author Jan Bernitt
  */
-@Controller
-@RequestMapping( value = LegendSetSchemaDescriptor.API_ENDPOINT )
-public class LegendSetController
-    extends AbstractCrudController<LegendSet>
+public class ProgramIndicatorControllerTest extends DhisControllerConvenienceTest
 {
-    @Override
-    @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD') or hasRole('ALL')" )
-    public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+    @Test
+    public void testGetExpressionDescription()
     {
-        return super.postJsonObject( request, response );
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programIndicators/expression/description", "70" ).content( HttpStatus.OK ) );
     }
 
-    @Override
-    @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD')  or hasRole('ALL')" )
-    public WebMessage putJsonObject( @PathVariable String uid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws Exception
+    @Test
+    public void testGetExpressionDescription_MalformedExpression()
     {
-        return super.putJsonObject( uid, request, response );
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+            POST( "/programIndicators/filter/description", "illegal" ).content( HttpStatus.OK ) );
     }
 
-    @Override
-    @PreAuthorize( "hasRole('F_LEGEND_SET_DELETE') or hasRole('ALL')" )
-    public WebMessage deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+    @Test
+    public void testValidateFilter()
     {
-        return super.deleteObject( uid, request, response );
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programIndicators/filter/description", "1 < 2" ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    public void testValidateFilter_MalformedExpression()
+    {
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+            POST( "/programIndicators/filter/description", "illegal" ).content( HttpStatus.OK ) );
     }
 }

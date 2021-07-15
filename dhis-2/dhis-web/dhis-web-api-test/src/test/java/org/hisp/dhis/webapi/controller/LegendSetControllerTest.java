@@ -27,47 +27,41 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Tests the {@link LegendSetController} using (mocked) REST requests.
+ *
+ * @author Jan Bernitt
  */
-@Controller
-@RequestMapping( value = LegendSetSchemaDescriptor.API_ENDPOINT )
-public class LegendSetController
-    extends AbstractCrudController<LegendSet>
+public class LegendSetControllerTest extends DhisControllerConvenienceTest
 {
-    @Override
-    @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD') or hasRole('ALL')" )
-    public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+    @Test
+    public void testPostJsonObject()
     {
-        return super.postJsonObject( request, response );
+        assertWebMessage( "Created", 201, "OK", null,
+            POST( "/legendSets/", "{'name':'LS'}" ).content( HttpStatus.CREATED ) );
     }
 
-    @Override
-    @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD')  or hasRole('ALL')" )
-    public WebMessage putJsonObject( @PathVariable String uid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws Exception
+    @Test
+    public void testPutJsonObject()
     {
-        return super.putJsonObject( uid, request, response );
+        String id = assertStatus( HttpStatus.CREATED, POST( "/legendSets/", "{'name':'LS'}" ) );
+
+        assertWebMessage( "OK", 200, "OK", null,
+            PUT( "/legendSets/" + id, "{'name':'New LS'}" ).content( HttpStatus.OK ) );
     }
 
-    @Override
-    @PreAuthorize( "hasRole('F_LEGEND_SET_DELETE') or hasRole('ALL')" )
-    public WebMessage deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+    @Test
+    public void testDeleteObject()
     {
-        return super.deleteObject( uid, request, response );
+        String id = assertStatus( HttpStatus.CREATED, POST( "/legendSets/", "{'name':'LS'}" ) );
+
+        assertWebMessage( "OK", 200, "OK", null,
+            DELETE( "/legendSets/" + id ).content( HttpStatus.OK ) );
     }
 }

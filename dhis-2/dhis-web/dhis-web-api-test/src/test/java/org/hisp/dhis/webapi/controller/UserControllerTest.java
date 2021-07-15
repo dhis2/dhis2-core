@@ -44,6 +44,7 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,6 +110,80 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     {
         assertEquals( "Object not found for uid: does-not-exist",
             POST( "/users/does-not-exist/reset" ).error( HttpStatus.NOT_FOUND ).getMessage() );
+    }
+
+    @Test
+    public void testReplicateUser()
+    {
+        assertWebMessage( "Created", 201, "OK", "User replica created",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'Saf€sEcre1'}" )
+                .content() );
+    }
+
+    @Test
+    public void testReplicateUser_UserNameAlreadyTaken()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Username already taken: Peter",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'Peter','password':'Saf€sEcre1'}" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testReplicateUser_UserNotFound()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "User not found: notfoundid",
+            POST( "/users/notfoundid/replica", "{'username':'peter2','password':'Saf€sEcre1'}" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testReplicateUser_UserNameNotSpecified()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Username must be specified",
+            POST( "/users/" + peter.getUid() + "/replica", "{'password':'Saf€sEcre1'}" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testReplicateUser_PasswordNotSpecified()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Password must be specified",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2'}" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testReplicateUser_PasswordNotValid()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "Password must have at least 8 characters, one digit, one uppercase",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testPutJsonObject()
+    {
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+
+        assertWebMessage( "OK", 200, "OK", null,
+            PUT( "/users/" + peter.getUid(), user.toString() ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    public void testPostJsonObject()
+    {
+        assertWebMessage( "Created", 201, "OK", null,
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'HarryS'}}" )
+                .content( HttpStatus.CREATED ) );
+    }
+
+    @Test
+    public void testPostJsonInvite()
+    {
+        assertWebMessage( "Created", 201, "OK", null,
+            POST( "/users/invite",
+                "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'userCredentials':{'username':'HarryS'}}" )
+                    .content( HttpStatus.CREATED ) );
     }
 
     private String extractTokenFromEmailText( String message )

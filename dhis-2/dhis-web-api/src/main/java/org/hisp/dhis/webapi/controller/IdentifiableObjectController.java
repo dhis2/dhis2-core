@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -63,21 +64,21 @@ public class IdentifiableObjectController
     }
 
     @Override
-    public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postXmlObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         throw new HttpRequestMethodNotSupportedException( "POST" );
     }
 
     @Override
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         throw new HttpRequestMethodNotSupportedException( "POST" );
     }
 
     @Override
-    public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
     {
@@ -85,10 +86,10 @@ public class IdentifiableObjectController
     }
 
     @Override
-    public void deleteObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+    public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
     {
-        throw new HttpRequestMethodNotSupportedException( "PUT" );
+        throw new HttpRequestMethodNotSupportedException( "DELETE" );
     }
 }

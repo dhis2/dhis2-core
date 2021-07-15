@@ -29,13 +29,10 @@ package org.hisp.dhis.webapi.controller.indicator;
 
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.analytics.resolver.ExpressionResolverCollection;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.feedback.Status;
@@ -50,6 +47,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -69,8 +67,8 @@ public class IndicatorController
     private I18nManager i18nManager;
 
     @PostMapping( value = "/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getExpressionDescription( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
+    @ResponseBody
+    public WebMessage getExpressionDescription( @RequestBody String expression )
     {
         I18n i18n = i18nManager.getI18n();
 
@@ -94,6 +92,6 @@ public class IndicatorController
                 expressionService.getExpressionDescription( resolvedExpression, INDICATOR_EXPRESSION ) );
         }
 
-        webMessageService.sendJson( message, response );
+        return message;
     }
 }
