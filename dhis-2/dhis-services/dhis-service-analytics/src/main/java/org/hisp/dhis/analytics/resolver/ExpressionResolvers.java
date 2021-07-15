@@ -46,10 +46,13 @@ public class ExpressionResolvers implements ExpressionResolverCollection
     private final List<ExpressionResolver> expressionResolvers;
 
     public ExpressionResolvers(
+        @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupTaglessResolver" ) ExpressionResolver cogTaglessExpressionResolver,
         @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" ) ExpressionResolver cogExpressionResolver,
         @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionResolver" ) ExpressionResolver coExpressionResolver,
         @Qualifier( "org.hisp.dhis.analytics.resolver.DataElementGroupResolver" ) ExpressionResolver degExpressionResolver )
     {
+        checkNotNull( cogTaglessExpressionResolver );
+
         checkNotNull( cogExpressionResolver );
 
         checkNotNull( coExpressionResolver );
@@ -57,6 +60,8 @@ public class ExpressionResolvers implements ExpressionResolverCollection
         checkNotNull( degExpressionResolver );
 
         expressionResolvers = new ArrayList<>();
+
+        expressionResolvers.add( cogTaglessExpressionResolver );
 
         expressionResolvers.add( cogExpressionResolver );
 
