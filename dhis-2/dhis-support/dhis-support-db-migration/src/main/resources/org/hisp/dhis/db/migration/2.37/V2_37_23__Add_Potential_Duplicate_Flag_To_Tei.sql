@@ -1,4 +1,4 @@
-ALTER TABLE trackedentityinstance ADD COLUMN if not exists potentialDuplicate BOOLEAN DEFAULT FALSE;
+ALTER TABLE trackedentityinstance ADD COLUMN IF NOT EXISTS potentialduplicate BOOLEAN DEFAULT FALSE;
 
 UPDATE
     trackedentityinstance
