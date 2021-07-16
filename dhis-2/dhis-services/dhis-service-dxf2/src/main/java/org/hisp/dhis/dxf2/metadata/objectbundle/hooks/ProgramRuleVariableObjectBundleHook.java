@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -37,6 +38,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -109,18 +112,45 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
     private List<ErrorReport> validateUniqueProgramRuleName( ObjectBundle bundle,
         ProgramRuleVariable programRuleVariable )
     {
-        Query<ProgramRuleVariable> query = getProgramRuleVariableQuery( programRuleVariable );
+        List<ProgramRuleVariable> prvWithSameNameAndSameProgram = getProgramRuleVariableQuery( programRuleVariable )
+            .getResultList();
 
-        int allowedCount = UPDATE_STRATEGIES.contains( bundle.getImportMode() ) ? 1 : 0;
-
-        if ( query.getResultList().size() > allowedCount )
+        // update
+        if ( UPDATE_STRATEGIES.contains( bundle.getImportMode() ) )
         {
-            return ImmutableList.of(
-                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4032, programRuleVariable.getName(),
-                    programRuleVariable.getProgram().getUid() ) );
+            if ( !isLegitUpdate( programRuleVariable, prvWithSameNameAndSameProgram ) )
+            {
+                return prvWithSameNameAlreadyExistsError( programRuleVariable );
+            }
         }
 
-        return new ArrayList<>();
+        // insert
+        else if ( CollectionUtils.isNotEmpty( prvWithSameNameAndSameProgram ) )
+        {
+            return prvWithSameNameAlreadyExistsError( programRuleVariable );
+        }
+
+        return Collections.emptyList();
+    }
+
+    private boolean isLegitUpdate( ProgramRuleVariable programRuleVariable,
+        List<ProgramRuleVariable> existingPrvs )
+    {
+        return existingPrvs.isEmpty() ||
+            existingPrvs.stream()
+                .anyMatch( existingPrv -> hasSameUid( existingPrv, programRuleVariable ) );
+    }
+
+    private boolean hasSameUid( ProgramRuleVariable existingPrv, ProgramRuleVariable programRuleVariable )
+    {
+        return StringUtils.equals( existingPrv.getUid(), programRuleVariable.getUid() );
+    }
+
+    private List<ErrorReport> prvWithSameNameAlreadyExistsError( ProgramRuleVariable programRuleVariable )
+    {
+        return Collections.singletonList(
+            new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4032, programRuleVariable.getName(),
+                programRuleVariable.getProgram().getUid() ) );
     }
 
     private Query<ProgramRuleVariable> getProgramRuleVariableQuery( ProgramRuleVariable programRuleVariable )
