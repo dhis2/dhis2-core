@@ -35,6 +35,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -83,6 +84,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
+import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
@@ -499,6 +502,33 @@ public class TrackedEntityInstanceController
     {
         ImportSummary importSummary = trackedEntityInstanceService.deleteTrackedEntityInstance( id );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+    }
+
+    @PutMapping( "/{tei}/potentialduplicate" )
+    public void updatePotentialDuplicateFlag(
+        @PathVariable String tei,
+        @RequestParam boolean flag )
+        throws OperationNotAllowedException,
+        NotFoundException
+    {
+
+        User user = currentUserService.getCurrentUser();
+
+        org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = Optional.ofNullable( instanceService
+            .getTrackedEntityInstance( tei ) )
+            .orElseThrow( () -> new NotFoundException( "No tracked entity instance found with id '" + tei + "'." ) );
+
+        List<String> trackerAccessErrors = trackerAccessManager.canWrite( user, trackedEntityInstance );
+
+        if ( !trackerAccessErrors.isEmpty() )
+        {
+            throw new OperationNotAllowedException(
+                "You're not authorized to access the TrackedEntityInstance with id: " + tei );
+        }
+
+        trackedEntityInstance.setPotentialDuplicate( flag );
+
+        instanceService.updateTrackedEntityInstance( trackedEntityInstance );
     }
 
     // -------------------------------------------------------------------------
