@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.analytics.resolver;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionStore;
@@ -47,6 +48,7 @@ import com.google.common.base.Joiner;
  */
 
 @Service( "org.hisp.dhis.analytics.resolver.CategoryOptionResolver" )
+@AllArgsConstructor
 public class CategoryOptionResolver implements ExpressionResolver
 {
     private final ExpressionService expressionService;
@@ -61,15 +63,6 @@ public class CategoryOptionResolver implements ExpressionResolver
 
     private static final String EMPTY_STRING = "";
 
-    public CategoryOptionResolver( ExpressionService expressionService, CategoryOptionStore categoryOptionStore )
-    {
-        checkNotNull( categoryOptionStore );
-        checkNotNull( expressionService );
-
-        this.expressionService = expressionService;
-        this.categoryOptionStore = categoryOptionStore;
-    }
-
     @Override
     public String resolve( String expression )
     {
@@ -78,7 +71,7 @@ public class CategoryOptionResolver implements ExpressionResolver
 
         for ( DimensionalItemId id : dimItemIds )
         {
-            if ( id.getItem() != null && id.getId1() != null && id.getId1().contains( CATEGORY_OPTION_PREFIX ) )
+            if ( id.getItem() != null && id.getId1() != null && id.getId1().startsWith( CATEGORY_OPTION_PREFIX ) )
             {
                 CategoryOption co = categoryOptionStore
                     .getByUid( id.getId1().replace( CATEGORY_OPTION_PREFIX, EMPTY_STRING ) );
