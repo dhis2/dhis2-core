@@ -35,6 +35,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
@@ -42,7 +43,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValue;
 import org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -70,9 +70,6 @@ public class UserKeyJsonValueController
     private RenderService renderService;
 
     @Autowired
-    private WebMessageService messageService;
-
-    @Autowired
     private CurrentUserService currentUserService;
 
     /**
@@ -81,7 +78,6 @@ public class UserKeyJsonValueController
      */
     @GetMapping( value = "", produces = "application/json" )
     public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
-        throws IOException
     {
         setNoStore( response );
 
@@ -94,8 +90,7 @@ public class UserKeyJsonValueController
      */
     @GetMapping( value = "/{namespace}", produces = "application/json" )
     public @ResponseBody List<String> getKeys( @PathVariable String namespace, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws WebMessageException
     {
         if ( !userKeyJsonValueService.getNamespacesByUser( currentUserService.getCurrentUser() ).contains( namespace ) )
         {
@@ -112,15 +107,12 @@ public class UserKeyJsonValueController
      * Deletes all keys with the given user and namespace.
      */
     @DeleteMapping( "/{namespace}" )
-    public void deleteKeys(
-        @PathVariable String namespace,
-        HttpServletResponse response )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage deleteKeys( @PathVariable String namespace )
     {
         userKeyJsonValueService.deleteNamespaceFromUser( currentUserService.getCurrentUser(), namespace );
 
-        messageService
-            .sendJson( WebMessageUtils.ok( "All keys from namespace '" + namespace + "' deleted." ), response );
+        return WebMessageUtils.ok( "All keys from namespace '" + namespace + "' deleted." );
     }
 
     /**
@@ -131,8 +123,7 @@ public class UserKeyJsonValueController
     public @ResponseBody String getUserKeyJsonValue(
         @PathVariable String namespace,
         @PathVariable String key, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws WebMessageException
     {
         UserKeyJsonValue userKeyJsonValue = userKeyJsonValueService.getUserKeyJsonValue(
             currentUserService.getCurrentUser(), namespace, key );
@@ -153,25 +144,24 @@ public class UserKeyJsonValueController
      * namespace and value supplied.
      */
     @PostMapping( value = "/{namespace}/{key}", produces = "application/json", consumes = "application/json" )
-    public void addUserKeyJsonValue(
+    @ResponseBody
+    public WebMessage addUserKeyJsonValue(
         @PathVariable String namespace,
         @PathVariable String key,
         @RequestBody String body,
-        @RequestParam( defaultValue = "false" ) boolean encrypt,
-        HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        @RequestParam( defaultValue = "false" ) boolean encrypt )
+        throws IOException
     {
         if ( userKeyJsonValueService.getUserKeyJsonValue( currentUserService.getCurrentUser(), namespace,
             key ) != null )
         {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "The key '" + key + "' already exists in the namespace '" + namespace + "'." ) );
+            return WebMessageUtils
+                .conflict( "The key '" + key + "' already exists in the namespace '" + namespace + "'." );
         }
 
         if ( !renderService.isValidJson( body ) )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "The data is not valid JSON." ) );
+            return WebMessageUtils.badRequest( "The data is not valid JSON." );
         }
 
         UserKeyJsonValue userKeyJsonValue = new UserKeyJsonValue();
@@ -184,71 +174,61 @@ public class UserKeyJsonValueController
 
         userKeyJsonValueService.addUserKeyJsonValue( userKeyJsonValue );
 
-        response.setStatus( HttpServletResponse.SC_CREATED );
-        messageService
-            .sendJson( WebMessageUtils.created( "Key '" + key + "' in namespace '" + namespace + "' created." ),
-                response );
+        return WebMessageUtils.created( "Key '" + key + "' in namespace '" + namespace + "' created." );
     }
 
     /**
      * Update a key.
      */
     @PutMapping( value = "/{namespace}/{key}", produces = "application/json", consumes = "application/json" )
-    public void updateUserKeyJsonValue(
+    @ResponseBody
+    public WebMessage updateUserKeyJsonValue(
         @PathVariable String namespace,
         @PathVariable String key,
-        @RequestBody String body,
-        HttpServletResponse response )
-        throws WebMessageException,
-        IOException
+        @RequestBody String body )
+        throws IOException
     {
         UserKeyJsonValue userKeyJsonValue = userKeyJsonValueService.getUserKeyJsonValue(
             currentUserService.getCurrentUser(), namespace, key );
 
         if ( userKeyJsonValue == null )
         {
-            throw new WebMessageException( WebMessageUtils
-                .notFound( "The key '" + key + "' was not found in the namespace '" + namespace + "'." ) );
+            return WebMessageUtils
+                .notFound( "The key '" + key + "' was not found in the namespace '" + namespace + "'." );
         }
 
         if ( !renderService.isValidJson( body ) )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "The data is not valid JSON." ) );
+            return WebMessageUtils.badRequest( "The data is not valid JSON." );
         }
 
         userKeyJsonValue.setValue( body );
 
         userKeyJsonValueService.updateUserKeyJsonValue( userKeyJsonValue );
 
-        response.setStatus( HttpServletResponse.SC_OK );
-        messageService
-            .sendJson( WebMessageUtils.created( "Key '" + key + "' in namespace '" + namespace + "' updated." ),
-                response );
+        return WebMessageUtils.ok( "Key '" + key + "' in namespace '" + namespace + "' updated." );
     }
 
     /**
      * Delete a key.
      */
     @DeleteMapping( value = "/{namespace}/{key}", produces = "application/json" )
-    public void deleteUserKeyJsonValue(
+    @ResponseBody
+    public WebMessage deleteUserKeyJsonValue(
         @PathVariable String namespace,
-        @PathVariable String key,
-        HttpServletResponse response )
-        throws WebMessageException
+        @PathVariable String key )
     {
         UserKeyJsonValue userKeyJsonValue = userKeyJsonValueService.getUserKeyJsonValue(
             currentUserService.getCurrentUser(), namespace, key );
 
         if ( userKeyJsonValue == null )
         {
-            throw new WebMessageException( WebMessageUtils
-                .notFound( "The key '" + key + "' was not found in the namespace '" + namespace + "'." ) );
+            return WebMessageUtils
+                .notFound( "The key '" + key + "' was not found in the namespace '" + namespace + "'." );
         }
 
         userKeyJsonValueService.deleteUserKeyJsonValue( userKeyJsonValue );
 
-        messageService
-            .sendJson( WebMessageUtils.ok( "Key '" + key + "' deleted from the namespace '" + namespace + "'." ),
-                response );
+        return WebMessageUtils.ok( "Key '" + key + "' deleted from the namespace '" + namespace + "'." );
     }
 }

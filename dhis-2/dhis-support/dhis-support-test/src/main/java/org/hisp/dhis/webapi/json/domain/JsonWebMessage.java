@@ -25,27 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.json.domain;
 
-import static org.junit.Assert.assertEquals;
-
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.mock.web.MockMultipartFile;
 
-public class FileResourceControllerTest extends DhisControllerConvenienceTest
+/**
+ * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
+ *
+ * @author Jan Bernitt
+ */
+public interface JsonWebMessage extends JsonObject
 {
-    @Test
-    public void testSaveOrgUnitImage()
+    default String getHttpStatus()
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
+        return getString( "httpStatus" ).string();
+    }
 
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+    default int getHttpStatusCode()
+    {
+        return getNumber( "httpStatusCode" ).intValue();
+    }
+
+    default String getStatus()
+    {
+        return getString( "status" ).string();
+    }
+
+    default String getMessage()
+    {
+        return getString( "message" ).string();
+    }
+
+    default String getDescription()
+    {
+        return getString( "description" ).string();
     }
 }

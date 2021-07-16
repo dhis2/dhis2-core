@@ -30,17 +30,14 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
@@ -52,7 +49,6 @@ import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
 import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -63,6 +59,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Ken Haase (ken@dhis2.org)
@@ -70,17 +67,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @Slf4j
 @RequestMapping( value = PredictorSchemaDescriptor.API_ENDPOINT )
-public class PredictorController
-    extends AbstractCrudController<Predictor>
+public class PredictorController extends AbstractCrudController<Predictor>
 {
     @Autowired
     private PredictorService predictorService;
 
     @Autowired
     private PredictionService predictionService;
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     @Autowired
     private ExpressionService expressionService;
@@ -90,13 +83,12 @@ public class PredictorController
 
     @RequestMapping( value = "/{uid}/run", method = { RequestMethod.POST, RequestMethod.PUT } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
-    public void runPredictor(
+    @ResponseBody
+    public WebMessage runPredictor(
         @PathVariable( "uid" ) String uid,
         @RequestParam Date startDate,
         @RequestParam Date endDate,
-        TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        TranslateParams translateParams )
     {
         Predictor predictor = predictorService.getPredictor( uid );
 
@@ -106,28 +98,23 @@ public class PredictorController
 
             predictionService.predict( predictor, startDate, endDate, predictionSummary );
 
-            webMessageService.send(
-                WebMessageUtils.ok( "Generated " + predictionSummary.getPredictions() + " predictions" ), response,
-                request );
+            return WebMessageUtils.ok( "Generated " + predictionSummary.getPredictions() + " predictions" );
         }
         catch ( Exception ex )
         {
             log.error( "Unable to predict " + predictor.getName(), ex );
 
-            webMessageService.send(
-                WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response,
-                request );
+            return WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() );
         }
     }
 
     @RequestMapping( value = "/run", method = { RequestMethod.POST, RequestMethod.PUT } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
-    public void runPredictors(
+    @ResponseBody
+    public WebMessage runPredictors(
         @RequestParam Date startDate,
         @RequestParam Date endDate,
-        TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        TranslateParams translateParams )
     {
         int count = 0;
 
@@ -147,20 +134,16 @@ public class PredictorController
             {
                 log.error( "Unable to predict " + predictor.getName(), ex );
 
-                webMessageService.send(
-                    WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response,
-                    request );
-
-                return;
+                return WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() );
             }
         }
 
-        webMessageService.send( WebMessageUtils.ok( "Generated " + count + " predictions" ), response, request );
+        return WebMessageUtils.ok( "Generated " + count + " predictions" );
     }
 
     @PostMapping( value = "/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getExpressionDescription( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
+    @ResponseBody
+    public WebMessage getExpressionDescription( @RequestBody String expression )
     {
         I18n i18n = i18nManager.getI18n();
 
@@ -175,12 +158,12 @@ public class PredictorController
             message.setDescription( expressionService.getExpressionDescription( expression, PREDICTOR_EXPRESSION ) );
         }
 
-        webMessageService.sendJson( message, response );
+        return message;
     }
 
     @PostMapping( value = "/skipTest/description", produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getSkipTestDescription( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
+    @ResponseBody
+    public WebMessage getSkipTestDescription( @RequestBody String expression )
     {
         I18n i18n = i18nManager.getI18n();
 
@@ -195,6 +178,6 @@ public class PredictorController
             message.setDescription( expressionService.getExpressionDescription( expression, PREDICTOR_SKIP_TEST ) );
         }
 
-        webMessageService.sendJson( message, response );
+        return message;
     }
 }

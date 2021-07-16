@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.webmessage;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
@@ -176,6 +178,7 @@ public class WebMessage
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
+    @Nonnull
     public Integer getHttpStatusCode()
     {
         return httpStatus.value();

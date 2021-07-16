@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -45,6 +42,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Lars Helge Overland
@@ -61,8 +59,8 @@ public class ProgramIndicatorController
     private I18nManager i18nManager;
 
     @PostMapping( value = "/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getExpressionDescription( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
+    @ResponseBody
+    public WebMessage getExpressionDescription( @RequestBody String expression )
     {
         I18n i18n = i18nManager.getI18n();
 
@@ -85,12 +83,12 @@ public class ProgramIndicatorController
             message.setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
         }
 
-        webMessageService.sendJson( message, response );
+        return message;
     }
 
     @PostMapping( value = "/filter/description", produces = MediaType.APPLICATION_JSON_VALUE )
-    public void validateFilter( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
+    @ResponseBody
+    public WebMessage validateFilter( @RequestBody String expression )
     {
         I18n i18n = i18nManager.getI18n();
 
@@ -113,6 +111,6 @@ public class ProgramIndicatorController
             message.setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
         }
 
-        webMessageService.sendJson( message, response );
+        return message;
     }
 }
