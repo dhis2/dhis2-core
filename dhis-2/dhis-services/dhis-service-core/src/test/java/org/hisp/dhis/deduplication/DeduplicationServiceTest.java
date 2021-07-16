@@ -246,12 +246,13 @@ public class DeduplicationServiceTest
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
 
-        assertEquals( DeduplicationStatus.OPEN, potentialDuplicate.getStatus() );
+        assertEquals( DeduplicationStatus.OPEN,
+            deduplicationService.getPotentialDuplicateById( potentialDuplicate.getId() ).getStatus() );
 
         potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
         deduplicationService.updatePotentialDuplicate( potentialDuplicate );
 
-        assertEquals( DeduplicationStatus.INVALID, potentialDuplicate.getStatus() );
+        assertEquals( DeduplicationStatus.INVALID,
+            deduplicationService.getPotentialDuplicateById( potentialDuplicate.getId() ).getStatus() );
     }
-
 }
