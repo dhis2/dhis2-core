@@ -73,7 +73,7 @@ public class TrackedEntityInstance
 
     private Set<TrackedEntityProgramOwner> programOwners = new HashSet<>();
 
-    private boolean isPotentialDuplicate;
+    private boolean potentialDuplicate;
 
     @AuditAttribute
     private OrganisationUnit organisationUnit;
@@ -142,12 +142,12 @@ public class TrackedEntityInstance
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isPotentialDuplicate()
     {
-        return isPotentialDuplicate;
+        return potentialDuplicate;
     }
 
     public void setPotentialDuplicate( boolean potentialDuplicate )
     {
-        isPotentialDuplicate = potentialDuplicate;
+        this.potentialDuplicate = potentialDuplicate;
     }
 
     @JsonProperty
