@@ -60,9 +60,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -103,7 +106,7 @@ public class AppController
     // Resources
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( produces = ContextUtils.CONTENT_TYPE_JSON )
     public void getApps( @RequestParam( required = false ) String key,
         HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -138,7 +141,7 @@ public class AppController
         renderService.toJson( response.getOutputStream(), apps );
     }
 
-    @RequestMapping( method = RequestMethod.POST )
+    @PostMapping
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void installApp( @RequestParam( "file" ) MultipartFile file )
@@ -158,7 +161,7 @@ public class AppController
         }
     }
 
-    @RequestMapping( method = RequestMethod.PUT )
+    @PutMapping
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void reloadApps()
@@ -166,7 +169,7 @@ public class AppController
         appManager.reloadApps();
     }
 
-    @RequestMapping( value = "/{app}/**", method = RequestMethod.GET )
+    @GetMapping( "/{app}/**" )
     public void renderApp( @PathVariable( "app" ) String app,
         HttpServletRequest request, HttpServletResponse response )
         throws IOException,
@@ -257,7 +260,7 @@ public class AppController
         }
     }
 
-    @RequestMapping( value = "/{app}", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{app}" )
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteApp( @PathVariable( "app" ) String app, @RequestParam( required = false ) boolean deleteAppData )
@@ -279,7 +282,7 @@ public class AppController
     }
 
     @SuppressWarnings( "unchecked" )
-    @RequestMapping( value = "/config", method = RequestMethod.POST, consumes = ContextUtils.CONTENT_TYPE_JSON )
+    @PostMapping( value = "/config", consumes = ContextUtils.CONTENT_TYPE_JSON )
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void setConfig( HttpServletRequest request )

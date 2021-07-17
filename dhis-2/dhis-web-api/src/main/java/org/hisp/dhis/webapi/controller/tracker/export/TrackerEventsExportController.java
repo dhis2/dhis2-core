@@ -57,7 +57,6 @@ import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -145,7 +144,7 @@ public class TrackerEventsExportController
         return false;
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}" )
     public org.hisp.dhis.tracker.domain.Event getEvent(
         @PathVariable( "uid" ) String uid,
         @RequestParam Map<String, String> parameters,

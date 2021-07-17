@@ -43,6 +43,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Delayed;
@@ -51,6 +52,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
@@ -59,7 +61,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.util.concurrent.FailureCallback;
@@ -88,26 +89,29 @@ public class SchedulingManagerTest
 
     private final Job job = mock( Job.class );
 
-    private SchedulingManager schedulingManager;
+    private DefaultSchedulingManager schedulingManager;
 
     @Before
     public void setUp()
     {
-        when( applicationContext.getBean( anyString() ) ).thenReturn( job );
+        when( applicationContext.getBeansOfType( any() ) ).thenReturn( Collections.singletonMap( "test", job ) );
 
-        schedulingManager = new DefaultSchedulingManager( jobConfigurationService, mock( MessageService.class ),
-            mock( LeaderManager.class ), taskScheduler, mock( AsyncListenableTaskExecutor.class ), applicationContext );
+        schedulingManager = new DefaultSchedulingManager( new DefaultJobService( applicationContext ),
+            jobConfigurationService, mock( MessageService.class ),
+            mock( LeaderManager.class ), taskScheduler, mock( AsyncTaskExecutor.class ) );
     }
 
     @Test
     public void testScheduleRunCronJob()
     {
         JobConfiguration configuration = createCronJonConfiguration();
+        when( job.getJobType() ).thenReturn( configuration.getJobType() );
+        when( jobConfigurationService.getJobConfigurationByUid( configuration.getUid() ) ).thenReturn( configuration );
 
         ArgumentCaptor<Runnable> cronTask = ArgumentCaptor.forClass( Runnable.class );
         when( taskScheduler.schedule( cronTask.capture(), any( Trigger.class ) ) ).thenReturn( new MockFuture<>() );
 
-        schedulingManager.scheduleJob( configuration );
+        schedulingManager.schedule( configuration );
 
         assertScheduledJob( configuration, SchedulingManagerTest::createCronJonConfiguration, cronTask.getValue() );
     }
@@ -116,12 +120,14 @@ public class SchedulingManagerTest
     public void testScheduleRunFixedDelayJob()
     {
         JobConfiguration configuration = createFixedDelayJobConfiguration();
+        when( job.getJobType() ).thenReturn( configuration.getJobType() );
+        when( jobConfigurationService.getJobConfigurationByUid( configuration.getUid() ) ).thenReturn( configuration );
 
         ArgumentCaptor<Runnable> delayTask = ArgumentCaptor.forClass( Runnable.class );
         when( taskScheduler.scheduleWithFixedDelay( delayTask.capture(), any( Instant.class ), any( Duration.class ) ) )
             .thenReturn( new MockFuture<>() );
 
-        schedulingManager.scheduleJob( configuration );
+        schedulingManager.schedule( configuration );
 
         assertScheduledJob( configuration, SchedulingManagerTest::createFixedDelayJobConfiguration,
             delayTask.getValue() );
@@ -131,11 +137,13 @@ public class SchedulingManagerTest
     public void testScheduleRunWithStartTimeJob()
     {
         JobConfiguration configuration = createStartTimeJobConfiguration();
+        when( job.getJobType() ).thenReturn( configuration.getJobType() );
+        when( jobConfigurationService.getJobConfigurationByUid( configuration.getUid() ) ).thenReturn( configuration );
 
         ArgumentCaptor<Runnable> startTimeTask = ArgumentCaptor.forClass( Runnable.class );
         when( taskScheduler.schedule( startTimeTask.capture(), any( Date.class ) ) ).thenReturn( new MockFuture<>() );
 
-        schedulingManager.scheduleJobWithStartTime( configuration, new Date() );
+        schedulingManager.scheduleWithStartTime( configuration, new Date() );
 
         assertScheduledJob( configuration, SchedulingManagerTest::createStartTimeJobConfiguration,
             startTimeTask.getValue() );
@@ -162,16 +170,16 @@ public class SchedulingManagerTest
 
     private static JobConfiguration createStartTimeJobConfiguration()
     {
-        JobConfiguration configuration = new JobConfiguration( "CLUSTER_LEADER_RENEWAL", JobType.LEADER_RENEWAL, null,
-            true );
-        return configuration;
+        return new JobConfiguration( "CLUSTER_LEADER_RENEWAL", JobType.LEADER_RENEWAL, null, true );
     }
 
     private void assertScheduledJob( JobConfiguration configuration, Supplier<JobConfiguration> copy, Runnable task )
     {
         assertNotNull( "job was not scheduled", task );
         assertScheduledJobCompletes( configuration, task );
+        assertScheduledJobDoesNotStartWhenAlreadyRunning( configuration, task );
         assertScheduledJobStops( configuration, task );
+        assertScheduledJobStopWhenInterrupted( configuration, task );
         assertScheduledJobFailsGraceful( configuration, task );
         assertScheduledJobStaysDisabled( configuration, copy, task );
     }
@@ -182,49 +190,50 @@ public class SchedulingManagerTest
 
         task.run(); // synchronously
 
-        verify( applicationContext, atLeastOnce() ).getBean( anyString() );
+        verify( applicationContext, atLeastOnce() ).getBeansOfType( any() );
         if ( !configuration.isInMemoryJob() )
         {
             assertEquals( JobStatus.COMPLETED, configuration.getLastExecutedStatus() );
             assertNotNull( "job did not complete", configuration.getLastExecuted() );
         }
         assertFalse( "job is still considered running when it is actually finished",
-            schedulingManager.isJobConfigurationRunning( configuration.getJobType() ) );
+            schedulingManager.isRunning( configuration.getJobType() ) );
     }
 
     private void assertIsRunning( JobConfiguration configuration )
     {
-        if ( !configuration.isInMemoryJob() )
-        {
-            assertEquals( JobStatus.RUNNING, configuration.getJobStatus() );
-            assertTrue( schedulingManager.isJobConfigurationRunning( configuration.getJobType() ) );
-        }
-        else
-        {
-            assertFalse( schedulingManager.isJobConfigurationRunning( configuration.getJobType() ) );
-        }
+        assertTrue( schedulingManager.isRunning( configuration.getJobType() ) );
+        assertEquals( JobStatus.RUNNING, configuration.getJobStatus() );
+    }
+
+    private void assertScheduledJobDoesNotStartWhenAlreadyRunning( JobConfiguration configuration, Runnable task )
+    {
+        setUpJobExecute( jobConfiguration -> assertFalse( schedulingManager.executeNow( configuration ) ) );
+
+        task.run(); // synchronously
+
+        assertTrue( schedulingManager.executeNow( configuration ) );
     }
 
     private void assertScheduledJobStops( JobConfiguration configuration, Runnable task )
     {
         // once running the job stops itself
-        setUpJobExecute( jobConfiguration -> {
-            schedulingManager.stopJob( jobConfiguration );
-            assertEquals( JobStatus.STOPPED, jobConfiguration.getLastExecutedStatus() );
-        } );
+        setUpJobExecute( jobConfiguration -> schedulingManager.stop( jobConfiguration ) );
 
         task.run(); // synchronously
 
-        if ( configuration.isInMemoryJob() )
-        {
-            assertEquals( JobStatus.STOPPED, configuration.getLastExecutedStatus() );
-        }
-        else
-        {
-            // OBS! this is most likely a bug but cannot be fixed easily
-            assertEquals( JobStatus.COMPLETED, configuration.getLastExecutedStatus() );
-        }
-        assertFalse( schedulingManager.isJobConfigurationRunning( configuration.getJobType() ) );
+        assertEquals( JobStatus.STOPPED, configuration.getLastExecutedStatus() );
+        assertFalse( schedulingManager.isRunning( configuration.getJobType() ) );
+    }
+
+    private void assertScheduledJobStopWhenInterrupted( JobConfiguration configuration, Runnable task )
+    {
+        setUpJobExecute( jobConfiguration -> Thread.currentThread().interrupt() );
+
+        task.run(); // synchronously
+
+        assertEquals( JobStatus.STOPPED, configuration.getLastExecutedStatus() );
+        assertFalse( schedulingManager.isRunning( configuration.getJobType() ) );
     }
 
     private void assertScheduledJobFailsGraceful( JobConfiguration configuration, Runnable task )
@@ -236,7 +245,7 @@ public class SchedulingManagerTest
         task.run(); // synchronously
 
         assertEquals( JobStatus.FAILED, configuration.getLastExecutedStatus() );
-        assertFalse( schedulingManager.isJobConfigurationRunning( configuration.getJobType() ) );
+        assertFalse( schedulingManager.isRunning( configuration.getJobType() ) );
     }
 
     private void assertScheduledJobStaysDisabled( JobConfiguration configuration, Supplier<JobConfiguration> copy,
@@ -245,11 +254,11 @@ public class SchedulingManagerTest
         if ( !configuration.isInMemoryJob() )
         {
             setUpJobExecute( jobConfiguration -> {
+                // pretend the job has been disabled in database
+                JobConfiguration persistent = copy.get();
+                persistent.setJobStatus( JobStatus.DISABLED );
+                when( jobConfigurationService.getJobConfigurationByUid( anyString() ) ).thenReturn( persistent );
             } );
-            // pretend the job has been disabled in database
-            JobConfiguration persistent = copy.get();
-            persistent.setJobStatus( JobStatus.DISABLED );
-            when( jobConfigurationService.getJobConfigurationByUid( anyString() ) ).thenReturn( persistent );
 
             task.run(); // synchronously
 

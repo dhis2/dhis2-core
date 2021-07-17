@@ -34,10 +34,10 @@ import javax.jms.TextMessage;
 
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
@@ -54,11 +54,11 @@ public class TrackerNotificationMessageManager extends BaseMessageManager
 
     public TrackerNotificationMessageManager(
         MessageManager messageManager,
-        SchedulingManager schedulingManager,
+        AsyncTaskExecutor taskExecutor,
         RenderService renderService,
         ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory )
     {
-        super( messageManager, schedulingManager, renderService );
+        super( messageManager, taskExecutor, renderService );
         this.trackerNotificationThreadObjectFactory = trackerNotificationThreadObjectFactory;
     }
 

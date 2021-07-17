@@ -48,9 +48,10 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -77,7 +78,7 @@ public class SqlViewController
     // Get
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = "/{uid}/data", produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getViewJson( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
         throws WebMessageException
@@ -89,7 +90,7 @@ public class SqlViewController
         return buildResponse( sqlView, query );
     }
 
-    @RequestMapping( value = "/{uid}/data.xml", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.xml" )
     public @ResponseBody RootNode getViewXml( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
         throws WebMessageException
@@ -101,7 +102,7 @@ public class SqlViewController
         return buildResponse( sqlView, query );
     }
 
-    @RequestMapping( value = "/{uid}/data.csv", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.csv" )
     public void getViewCsv( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
         HttpServletResponse response )
@@ -123,7 +124,7 @@ public class SqlViewController
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "/{uid}/data.xls", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.xls" )
     public void getViewXls( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
         HttpServletResponse response )
@@ -145,7 +146,7 @@ public class SqlViewController
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/{uid}/data.html", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.html" )
     public void getViewHtml( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
         HttpServletResponse response )
@@ -164,7 +165,7 @@ public class SqlViewController
         GridUtils.toHtml( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "/{uid}/data.html+css", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.html+css" )
     public void getViewHtmlCss( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
         HttpServletResponse response )
@@ -183,7 +184,7 @@ public class SqlViewController
         GridUtils.toHtmlCss( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "/{uid}/data.pdf", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.pdf" )
     public void getViewPdf( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
         HttpServletResponse response )
@@ -206,7 +207,7 @@ public class SqlViewController
     // Post
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/execute", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/execute" )
     public void executeView( @PathVariable( "uid" ) String uid, @RequestParam( required = false ) Set<String> var,
         HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
@@ -236,7 +237,7 @@ public class SqlViewController
         }
     }
 
-    @RequestMapping( value = "/{uid}/refresh", method = RequestMethod.POST )
+    @PostMapping( "/{uid}/refresh" )
     public void refreshMaterializedView( @PathVariable( "uid" ) String uid,
         HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException

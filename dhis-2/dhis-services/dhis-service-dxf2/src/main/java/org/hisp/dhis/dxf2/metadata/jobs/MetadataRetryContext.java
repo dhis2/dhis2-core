@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.dxf2.metadata.jobs;
 
-import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.springframework.context.annotation.Scope;
@@ -93,21 +90,10 @@ public class MetadataRetryContext
     {
         Status status = importReport.getStatus();
 
-        if ( Status.ERROR.equals( status ) )
+        if ( Status.ERROR == status )
         {
             StringBuilder report = new StringBuilder();
-            List<ErrorReport> errorReports = importReport.getErrorReports();
-
-            for ( ErrorReport errorReport : errorReports )
-            {
-
-                if ( errorReport != null )
-                {
-                    report.append( errorReport.toString() + "\n" );
-                }
-
-            }
-
+            importReport.forEachErrorReport( errorReport -> report.append( errorReport.toString() + "\n" ) );
             retryContext.setAttribute( MetadataSyncJob.METADATA_SYNC_REPORT, report.toString() );
         }
     }

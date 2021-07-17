@@ -29,11 +29,9 @@ package org.hisp.dhis.cache;
 
 import static org.springframework.util.Assert.hasText;
 
-import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
-
-import com.google.common.collect.Sets;
+import java.util.stream.Stream;
 
 /**
  * A No operation implementation of {@link Cache}. The implementation will not
@@ -84,9 +82,9 @@ public class NoOpCache<V> implements Cache<V>
     }
 
     @Override
-    public Collection<V> getAll()
+    public Stream<V> getAll()
     {
-        return Sets.newHashSet();
+        return Stream.empty();
     }
 
     @Override

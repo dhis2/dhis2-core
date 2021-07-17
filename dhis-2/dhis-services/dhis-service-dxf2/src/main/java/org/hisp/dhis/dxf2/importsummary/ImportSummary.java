@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.dxf2.importsummary;
 
-import static java.util.Collections.unmodifiableSet;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Predicate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -56,12 +55,12 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
 
     /**
      * Number of total conflicts. In contrast to the collection of
-     * {@link ImportConflict}s which deduplicate this counts each conflict added
-     * using {@link #addConflict(String, String)}
+     * {@link ImportConflict}s which deduplicate this variable counts each
+     * conflict added.
      */
-    private int totalConflictCount = 0;
+    private int totalConflictOccurrenceCount = 0;
 
-    private final Set<ImportConflict> conflicts = new HashSet<>();
+    private final Map<String, ImportConflict> conflicts = new LinkedHashMap<>();
 
     private String dataSetComplete;
 
@@ -185,12 +184,26 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
         return this;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "conflicts", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "conflict", namespace = DxfNamespaces.DXF_2_0 )
     public Iterable<ImportConflict> getConflicts()
     {
-        return unmodifiableSet( conflicts );
+        return conflicts.values();
+    }
+
+    /**
+     * This is strictly just provided to allow deserialisation form JSON.
+     *
+     * This method does not set but add the provided conflicts which in case of
+     * a fresh summary from deserialisation has the same result.
+     *
+     * @param conflicts list of conflicts to add
+     */
+    public void setConflicts( List<ImportConflict> conflicts )
+    {
+        conflicts.forEach( this::addConflict );
     }
 
     @JsonProperty
@@ -309,27 +322,23 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
     }
 
     @Override
-    public void addConflict( String object, String message )
+    public void addConflict( ImportConflict conflict )
     {
-        totalConflictCount++;
-        conflicts.add( new ImportConflict( object, message ) );
+        totalConflictOccurrenceCount++;
+        conflicts.compute( conflict.getGroupingKey(),
+            ( key, aggregate ) -> aggregate == null ? conflict : aggregate.mergeWith( conflict ) );
     }
 
-    public int getTotalConflictCount()
+    @Override
+    public int getTotalConflictOccurrenceCount()
     {
-        return totalConflictCount;
+        return totalConflictOccurrenceCount;
     }
 
     @Override
     public int getConflictCount()
     {
         return conflicts.size();
-    }
-
-    @Override
-    public boolean hasConflict( Predicate<ImportConflict> test )
-    {
-        return conflicts.stream().anyMatch( test );
     }
 
     @Override

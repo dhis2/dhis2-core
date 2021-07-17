@@ -33,7 +33,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E4052;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +45,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,6 +55,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Luca Cambi
@@ -99,16 +100,7 @@ public class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldExitObjectNotInstanceOfProgramRuleVariable()
-    {
-        List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( new ProgramRule(),
-            objectBundle );
-        verifyNoInteractions( sessionFactory );
-        assertEquals( 0, errorReports.size() );
-    }
-
-    @Test
-    public void shouldFailValidationInvalidCount()
+    public void shouldFailInsertAlreadyExisting()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE );
@@ -122,16 +114,72 @@ public class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldNotFailValidationInvalidCount()
+    public void shouldNotFailUpdateExistingSameUid()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
-        when( query.getResultList() ).thenReturn( Collections.singletonList( new ProgramRuleVariable() ) );
+
+        ProgramRuleVariable existingProgramRuleVariable = new ProgramRuleVariable();
+        existingProgramRuleVariable.setName( "word" );
+        existingProgramRuleVariable.setUid( "uid1" );
+
+        when( query.getResultList() ).thenReturn( Collections.singletonList( existingProgramRuleVariable ) );
 
         when( programRuleVariable.getName() ).thenReturn( "word" );
+        when( programRuleVariable.getUid() ).thenReturn( "uid1" );
+
         List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
             objectBundle );
+
         assertEquals( 0, errorReports.size() );
+    }
+
+    @Test
+    public void shouldNotFailUpdateExistingMoreThanOneSameUid()
+    {
+        when( programRuleVariable.getProgram() ).thenReturn( program );
+        when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
+
+        ProgramRuleVariable existingProgramRuleVariable = new ProgramRuleVariable();
+        existingProgramRuleVariable.setName( "word" );
+        existingProgramRuleVariable.setUid( "uid1" );
+
+        ProgramRuleVariable anotherExistingProgramRuleVariable = new ProgramRuleVariable();
+        anotherExistingProgramRuleVariable.setName( "word" );
+        anotherExistingProgramRuleVariable.setUid( "uid2" );
+
+        when( query.getResultList() )
+            .thenReturn( ImmutableList.of( existingProgramRuleVariable, anotherExistingProgramRuleVariable ) );
+
+        when( programRuleVariable.getName() ).thenReturn( "word" );
+        when( programRuleVariable.getUid() ).thenReturn( "uid1" );
+
+        List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
+            objectBundle );
+
+        assertEquals( 0, errorReports.size() );
+    }
+
+    @Test
+    public void shouldFailUpdateExistingDifferentUid()
+    {
+        when( programRuleVariable.getProgram() ).thenReturn( program );
+        when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
+
+        ProgramRuleVariable existingProgramRuleVariable = new ProgramRuleVariable();
+        existingProgramRuleVariable.setName( "word" );
+        existingProgramRuleVariable.setUid( "uid1" );
+
+        when( query.getResultList() ).thenReturn( Collections.singletonList( existingProgramRuleVariable ) );
+
+        when( programRuleVariable.getName() ).thenReturn( "word" );
+        when( programRuleVariable.getUid() ).thenReturn( "uid2" );
+
+        List<ErrorReport> errorReports = programRuleVariableObjectBundleHook.validate( programRuleVariable,
+            objectBundle );
+
+        assertEquals( 1, errorReports.size() );
+        assertTrue( errorReports.stream().anyMatch( e -> e.getErrorCode().equals( E4051 ) ) );
     }
 
     @Test

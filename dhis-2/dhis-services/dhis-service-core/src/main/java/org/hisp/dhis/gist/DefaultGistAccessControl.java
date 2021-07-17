@@ -90,7 +90,13 @@ public class DefaultGistAccessControl implements GistAccessControl
     @Override
     public boolean isSuperuser()
     {
-        return currentUser != null && !currentUser.isSuper();
+        return currentUser != null && currentUser.isSuper();
+    }
+
+    @Override
+    public boolean canReadHQL()
+    {
+        return isSuperuser() || currentUser.isAuthorized( "F_METADATA_EXPORT" );
     }
 
     @Override

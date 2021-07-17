@@ -41,9 +41,11 @@ import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -63,7 +65,7 @@ public class CacheController
 
     private final CappedLocalCache cache;
 
-    @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( produces = "application/json" )
     public @ResponseBody CacheInfo getInfo( @RequestParam( value = "condensed", required = false ) Boolean condensed )
     {
         CacheInfo info = getCacheInfo();
@@ -78,14 +80,14 @@ public class CacheController
                 .collect( Collectors.toList() ) );
     }
 
-    @RequestMapping( value = "/regions", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/regions", produces = "application/json" )
     public @ResponseBody Set<String> getRegions()
     {
         // sort alphabetically
         return new TreeSet<>( cache.getRegions() );
     }
 
-    @RequestMapping( value = "/regions/{region}", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/regions/{region}", produces = "application/json" )
     public @ResponseBody CacheGroupInfo getRegionInfo( @PathVariable( "region" ) String region )
         throws NotFoundException
     {
@@ -100,13 +102,13 @@ public class CacheController
         throw new NotFoundException( region );
     }
 
-    @RequestMapping( value = "/cap", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/cap", produces = "application/json" )
     public @ResponseBody CacheCapInfo getCapInfo()
     {
         return getCacheInfo().getCap();
     }
 
-    @RequestMapping( value = "/cap", method = RequestMethod.PUT )
+    @PutMapping( "/cap" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCap( @RequestParam( value = "heap", required = false ) Integer heap,
         @RequestParam( value = "hard", required = false ) Integer hard,
@@ -126,14 +128,14 @@ public class CacheController
         }
     }
 
-    @RequestMapping( value = "/invalidate", method = RequestMethod.POST )
+    @PostMapping( "/invalidate" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void invalidate()
     {
         cache.invalidate();
     }
 
-    @RequestMapping( value = "/regions/{region}/invalidate", method = RequestMethod.POST )
+    @PostMapping( "/regions/{region}/invalidate" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void invalidateRegion( @PathVariable( "region" ) String region )
     {

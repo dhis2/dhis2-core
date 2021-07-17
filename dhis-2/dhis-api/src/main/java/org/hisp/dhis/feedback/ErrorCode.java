@@ -45,6 +45,18 @@ public enum ErrorCode
     E1104( "Attribute option combo not found or not accessible: `{0}`" ),
     E1105( "Data set not found or not accessible: `{0}`" ),
 
+    /* Org unit merge */
+    E1500( "At least two source orgs unit must be specified" ),
+    E1501( "Target org unit must be specified" ),
+    E1502( "Target org unit cannot be a source org unit" ),
+
+    /* Org unit split */
+    E1510( "Source org unit must be specified" ),
+    E1511( "At least two target org units must be specified" ),
+    E1512( "Source org unit cannot be a target org unit" ),
+    E1513( "Primary target must be specified" ),
+    E1514( "Primary target must be a target org unit" ),
+
     /* Data */
     E2000( "Query parameters cannot be null" ),
     E2001( "At least one data element, data set or data element group must be specified" ),
@@ -198,6 +210,8 @@ public enum ErrorCode
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." ),
     E5005( "Properties `{0}` in objects `{1}` must be unique within the payload" ),
+    E5006(
+        "Non owner reference {0} on object {1} for association `{2}` is not allowed within payload for ERRORS_NOT_OWNER" ),
 
     /* Metadata import */
     E6000( "Program `{0}` has more than one Program Instances" ),
@@ -286,6 +300,7 @@ public enum ErrorCode
     E7226( "Dimension is not a valid query item: `{0}`" ),
     E7227( "Relationship entity type not supported: `{0}`" ),
     E7228( "Fallback coordinate field is invalid: `{0}` " ),
+    E7229( "Operator '{0}' does not allow missing value" ),
 
     /* Org unit analytics */
     E7300( "At least one organisation unit must be specified" ),
@@ -298,7 +313,46 @@ public enum ErrorCode
     E7500( "Organisation unit does not exist: `{0}`" ),
     E7501( "Validation rule does not exist: `{0}`" ),
     E7502( "Filter for period is not valid: `{0}`" ),
-    E7503( "Filter for created date period is not valid: `{0}`" );
+    E7503( "Filter for created date period is not valid: `{0}`" ),
+
+    /* Data import validation */
+    // Data Set validation
+    E7600( "Data set not found or not accessible: `{0}`" ),
+    E7601( "User does not have write access for DataSet: `{0}`" ),
+    E7602( "A valid dataset is required" ),
+    E7603( "Org unit not found or not accessible: `{0}`" ),
+    E7604( "Attribute option combo not found or not accessible: `{0}`" ),
+    // Data Value validation
+    E7610( "Data element not found or not accessible: `{0}`" ),
+    E7611( "Period not valid: `{0}`" ),
+    E7612( "Organisation unit not found or not accessible: `{0}`" ),
+    E7613( "Category option combo not found or not accessible for writing data: `{0}`" ),
+    E7614( "Category option combo: `{0}` option not accessible: `{1}`" ),
+    E7615( "Attribute option combo not found or not accessible for writing data: `{0}`" ),
+    E7616( "Attribute option combo: `{0}` option not accessible: `{1}`" ),
+    E7617( "Organisation unit: `{0}` not in hierarchy of current user: `{1}`" ),
+    E7618( "Data value or comment not specified for data element: `{0}`" ),
+    E7619( "Value must match data element''s `{0}` type constraints: {1}" ),
+    E7620( "Invalid comment: {0}" ),
+    E7621( "Data value is not a valid option of the data element option set: `{0}`" ),
+    // Data Value constraints
+    E7630( "Category option combo is required but is not specified" ),
+    E7631( "Attribute option combo is required but is not specified" ),
+    E7632( "Period type of period: `{0}` not valid for data element: `{1}`" ),
+    E7633( "Data element: `{0}` is not part of dataset: `{1}`" ),
+    E7634( "Category option combo: `{0}` must be part of category combo of data element: `{1}`" ),
+    E7635( "Attribute option combo: `{0}` must be part of category combo of data sets of data element: `{1}`" ),
+    E7636( "Data element: `{1}` must be assigned through data sets to organisation unit: `{0}`" ),
+    E7637( "Invalid storedBy: {0}" ),
+    E7638( "Period: `{0}` is not within date range of attribute option combo: `{1}`" ),
+    E7639( "Organisation unit: `{0}` is not valid for attribute option combo: `{1}`" ),
+    E7640( "Current date is past expiry days for period: `{0}`  and data set: `{1}`" ),
+    E7641( "Period: `{0}` is after latest open future period: `{2}` for data element: `{1}`" ),
+    E7642(
+        "Data is already approved for data set: `{3}` period: `{1}` organisation unit: `{0}` attribute option combo: `{2}`" ),
+    E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),
+    E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),
+    E7645( "No data value for file resource exist for the given combination for data element: `{0}`" );
 
     private String message;
 

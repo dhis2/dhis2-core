@@ -53,9 +53,9 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.google.common.collect.Lists;
@@ -84,7 +84,7 @@ public class MapViewController
     // Get data
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = { "/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/{uid}/data", "/{uid}/data.png" } )
     public void getMapViewData( @PathVariable String uid, HttpServletResponse response )
         throws Exception
     {
@@ -98,7 +98,7 @@ public class MapViewController
         renderMapViewPng( mapView, response );
     }
 
-    @RequestMapping( value = { "/data", "/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/data", "/data.png" } )
     public void getMapView( Model model,
         @RequestParam( value = "in" ) String indicatorUid,
         @RequestParam( value = "ou" ) String organisationUnitUid,

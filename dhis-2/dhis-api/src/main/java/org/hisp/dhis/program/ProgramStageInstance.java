@@ -124,6 +124,13 @@ public class ProgramStageInstance
         this.programStage = programStage;
     }
 
+    public ProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
+        OrganisationUnit organisationUnit )
+    {
+        this( programInstance, programStage );
+        this.organisationUnit = organisationUnit;
+    }
+
     @Override
     public void setAutoFields()
     {

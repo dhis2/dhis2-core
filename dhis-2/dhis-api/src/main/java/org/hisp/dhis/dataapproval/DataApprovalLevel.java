@@ -77,10 +77,15 @@ public class DataApprovalLevel
     {
     }
 
-    public DataApprovalLevel( String name, int orgUnitLevel, CategoryOptionGroupSet categoryOptionGroupSet )
+    public DataApprovalLevel( String name, int orgUnitLevel )
     {
         this.name = name;
         this.orgUnitLevel = orgUnitLevel;
+    }
+
+    public DataApprovalLevel( String name, int orgUnitLevel, CategoryOptionGroupSet categoryOptionGroupSet )
+    {
+        this( name, orgUnitLevel );
         this.categoryOptionGroupSet = categoryOptionGroupSet;
     }
 

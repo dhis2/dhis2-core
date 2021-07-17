@@ -79,7 +79,6 @@ public class JobConfigurationServiceTest
 
         assertNotNull( jobType );
         assertEquals( JobType.CONTINUOUS_ANALYTICS_TABLE.getSchedulingType(), jobType.getSchedulingType() );
-        assertEquals( JobType.CONTINUOUS_ANALYTICS_TABLE.getKey(), jobType.getKey() );
     }
 
     @Test

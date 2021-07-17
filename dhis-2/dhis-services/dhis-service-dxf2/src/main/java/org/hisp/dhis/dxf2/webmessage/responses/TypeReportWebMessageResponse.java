@@ -59,7 +59,7 @@ public class TypeReportWebMessageResponse
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Status getStatus()
     {
-        return typeReport.getErrorReports().isEmpty() ? Status.OK : Status.ERROR;
+        return !typeReport.hasErrorReports() ? Status.OK : Status.ERROR;
     }
 
     @JsonProperty

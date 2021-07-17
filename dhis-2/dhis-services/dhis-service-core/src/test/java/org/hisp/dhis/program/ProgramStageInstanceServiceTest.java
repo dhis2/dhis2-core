@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.*;
+import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -324,7 +326,7 @@ public class ProgramStageInstanceServiceTest
         dataElementMap.put( dataElementC.getUid(), dataElementC );
         dataElementMap.put( dataElementD.getUid(), dataElementD );
 
-        dataElements = new ArrayList<>( dataElementMap.getAll() );
+        dataElements = dataElementMap.getAll().collect( toList() );
     }
 
     @Test
@@ -564,7 +566,7 @@ public class ProgramStageInstanceServiceTest
 
     private Map<String, DataElement> convertToMap( Cache<DataElement> dataElementMap )
     {
-        return dataElementMap.getAll().stream()
+        return dataElementMap.getAll()
             .collect( Collectors.toMap( DataElement::getUid, d -> d ) );
     }
 

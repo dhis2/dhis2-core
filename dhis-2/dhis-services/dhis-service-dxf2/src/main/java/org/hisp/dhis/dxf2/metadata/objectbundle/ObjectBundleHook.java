@@ -29,20 +29,62 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static java.util.Collections.emptyList;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * Contains hooks for object bundle commit phase.
  *
+ * A hook is bound to a target type. This is either a specific class type (an
+ * actual database object) or an abstract type. This means a hook either handles
+ * one specific type or a family of types.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface ObjectBundleHook
+public interface ObjectBundleHook<T>
 {
+
+    /**
+     * Is either:
+     *
+     * A non abstract {@code class} implementing {@link ObjectBundleHook} in
+     * which case the hook is considered to only apply to that particular class
+     *
+     * Or an interface in which case the hook is considered to apply to all
+     * classes implementing that interface.
+     *
+     * Or {@code null} in which case the hook is considered to apply to all
+     * objects.
+     *
+     * @return The target type of object (scope) to which the hook applies.
+     */
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    default Class<T> getTarget()
+    {
+        Class<? extends ObjectBundleHook> hookType = getClass();
+        Type base = hookType.getGenericSuperclass();
+        if ( base instanceof ParameterizedType
+            && ObjectBundleHook.class.isAssignableFrom( (Class<?>) ((ParameterizedType) base).getRawType() ) )
+        {
+            return (Class<T>) ((ParameterizedType) base)
+                .getActualTypeArguments()[0];
+        }
+        for ( Type t : hookType.getGenericInterfaces() )
+        {
+            if ( t instanceof ParameterizedType && (((ParameterizedType) t).getRawType() == ObjectBundleHook.class) )
+            {
+                return (Class<T>) ((ParameterizedType) t).getActualTypeArguments()[0];
+            }
+        }
+        // all objects are targets
+        return null;
+    }
+
     /**
      * Hook to run custom validation code. Run before any other validation.
      *
@@ -51,23 +93,23 @@ public interface ObjectBundleHook
      * @param addReports a consumer for all errors identified during the
      *        validation
      */
-    <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle, Consumer<ErrorReport> addReports );
+    void validate( T object, ObjectBundle bundle, Consumer<ErrorReport> addReports );
 
     /**
      * Hook to run custom validation code. Run before any other validation.
      *
      * Should only be used in tests as a convenient way to run
-     * {@link #validate(IdentifiableObject, ObjectBundle, Consumer)}. Otherwise
-     * prefer {@link #validate(IdentifiableObject, ObjectBundle, Consumer)} to
-     * avoid intermediate collections.
+     * {@link #validate(Object, ObjectBundle, Consumer)}. Otherwise prefer
+     * {@link #validate(Object, ObjectBundle, Consumer)} to avoid intermediate
+     * collections.
      *
-     * @see #validate(IdentifiableObject, ObjectBundle, Consumer)
+     * @see #validate(Object, ObjectBundle, Consumer)
      * @param object Object to validate
      * @param bundle Current validation phase bundle
      * @return Empty list if not errors, if errors then populated with one or
      *         more ErrorReports
      */
-    default <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    default List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
         @SuppressWarnings( "unchecked" )
         List<ErrorReport>[] box = new List[1];
@@ -87,12 +129,20 @@ public interface ObjectBundleHook
     /**
      * Run before commit phase has started.
      *
+     * This is only called if the bundle contains objects of this hooks
+     * {@link #getTarget()} type. It is never called for hooks with abstract
+     * target type.
+     *
      * @param bundle Current commit phase bundle
      */
     void preCommit( ObjectBundle bundle );
 
     /**
      * Run after commit phase has finished.
+     *
+     * This is only called if the bundle contains objects of this hooks
+     * {@link #getTarget()} type.It is never called for hooks with abstract
+     * target type.
      *
      * @param bundle Current commit phase bundle
      */
@@ -104,8 +154,7 @@ public interface ObjectBundleHook
      *
      * @param bundle Current commit phase bundle
      */
-    <T extends IdentifiableObject> void preTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects,
-        ObjectBundle bundle );
+    <E extends T> void preTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle );
 
     /**
      * Run after a type import has finished. I.e. run before importing orgUnits,
@@ -113,41 +162,40 @@ public interface ObjectBundleHook
      *
      * @param bundle Current commit phase bundle
      */
-    <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects,
-        ObjectBundle bundle );
+    <E extends T> void postTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle );
 
     /**
      * Run before object has been created.
      *
      * @param bundle Current commit phase bundle
      */
-    <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle );
+    void preCreate( T object, ObjectBundle bundle );
 
     /**
      * Run after object has been created.
      *
      * @param bundle Current commit phase bundle
      */
-    <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle );
+    void postCreate( T persistedObject, ObjectBundle bundle );
 
     /**
      * Run before object has been updated.
      *
      * @param bundle Current commit phase bundle
      */
-    <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle );
+    void preUpdate( T object, T persistedObject, ObjectBundle bundle );
 
     /**
      * Run after object has been updated.
      *
      * @param bundle Current commit phase bundle
      */
-    <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle );
+    void postUpdate( T persistedObject, ObjectBundle bundle );
 
     /**
      * Run before object has been deleted.
      *
      * @param bundle Current commit phase bundle
      */
-    <T extends IdentifiableObject> void preDelete( T persistedObject, ObjectBundle bundle );
+    void preDelete( T persistedObject, ObjectBundle bundle );
 }

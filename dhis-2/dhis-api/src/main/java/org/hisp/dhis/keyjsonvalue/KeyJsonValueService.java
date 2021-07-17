@@ -126,6 +126,15 @@ public interface KeyJsonValueService
     void deleteKeyJsonValue( KeyJsonValue entry );
 
     /**
+     * Adds a new KeyJsonValue entry or updates the entry if the namespace and
+     * key already exists.
+     *
+     * @param entry the KeyJsonValue entry to be saved or updated.
+     * @throws IllegalArgumentException when the entry value is not valid JSON
+     */
+    void saveOrUpdateKeyJsonValue( KeyJsonValue entry );
+
+    /**
      * Deletes all entries associated with a given namespace.
      *
      * @param namespace the namespace to delete

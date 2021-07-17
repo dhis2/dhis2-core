@@ -45,10 +45,13 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -76,7 +79,7 @@ public class UserKeyJsonValueController
      * Returns a JSON array of strings representing the different namespaces
      * used. If no namespaces exist, an empty array is returned.
      */
-    @RequestMapping( value = "", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "", produces = "application/json" )
     public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
         throws IOException
     {
@@ -89,7 +92,7 @@ public class UserKeyJsonValueController
      * Returns a JSON array of strings representing the different keys used in a
      * given namespace. If no namespaces exist, an empty array is returned.
      */
-    @RequestMapping( value = "/{namespace}", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/{namespace}", produces = "application/json" )
     public @ResponseBody List<String> getKeys( @PathVariable String namespace, HttpServletResponse response )
         throws IOException,
         WebMessageException
@@ -108,7 +111,7 @@ public class UserKeyJsonValueController
     /**
      * Deletes all keys with the given user and namespace.
      */
-    @RequestMapping( value = "/{namespace}", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{namespace}" )
     public void deleteKeys(
         @PathVariable String namespace,
         HttpServletResponse response )
@@ -124,7 +127,7 @@ public class UserKeyJsonValueController
      * Retrieves the value of the KeyJsonValue represented by the given key and
      * namespace from the current user.
      */
-    @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/{namespace}/{key}", produces = "application/json" )
     public @ResponseBody String getUserKeyJsonValue(
         @PathVariable String namespace,
         @PathVariable String key, HttpServletResponse response )
@@ -149,7 +152,7 @@ public class UserKeyJsonValueController
      * Creates a new KeyJsonValue Object on the current user with the key,
      * namespace and value supplied.
      */
-    @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.POST, produces = "application/json", consumes = "application/json" )
+    @PostMapping( value = "/{namespace}/{key}", produces = "application/json", consumes = "application/json" )
     public void addUserKeyJsonValue(
         @PathVariable String namespace,
         @PathVariable String key,
@@ -190,7 +193,7 @@ public class UserKeyJsonValueController
     /**
      * Update a key.
      */
-    @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.PUT, produces = "application/json", consumes = "application/json" )
+    @PutMapping( value = "/{namespace}/{key}", produces = "application/json", consumes = "application/json" )
     public void updateUserKeyJsonValue(
         @PathVariable String namespace,
         @PathVariable String key,
@@ -226,7 +229,7 @@ public class UserKeyJsonValueController
     /**
      * Delete a key.
      */
-    @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.DELETE, produces = "application/json" )
+    @DeleteMapping( value = "/{namespace}/{key}", produces = "application/json" )
     public void deleteUserKeyJsonValue(
         @PathVariable String namespace,
         @PathVariable String key,
