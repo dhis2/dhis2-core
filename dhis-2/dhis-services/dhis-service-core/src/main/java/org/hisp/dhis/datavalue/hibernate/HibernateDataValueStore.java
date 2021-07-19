@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 
 import java.util.*;
 import java.util.function.Function;
@@ -220,7 +221,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             hql += "and ao.id in (:attributeOptionCombos) ";
         }
 
-        if ( params.hasLastUpdated() )
+        if ( params.hasLastUpdated() || params.hasLastUpdatedDuration() )
         {
             hql += "and dv.lastUpdated >= :lastUpdated ";
         }
@@ -276,6 +277,10 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         if ( params.hasLastUpdated() )
         {
             query.setParameter( "lastUpdated", params.getLastUpdated() );
+        }
+        else if ( params.hasLastUpdatedDuration() )
+        {
+            query.setParameter( "lastUpdated", DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) );
         }
 
         if ( params.hasLimit() )
