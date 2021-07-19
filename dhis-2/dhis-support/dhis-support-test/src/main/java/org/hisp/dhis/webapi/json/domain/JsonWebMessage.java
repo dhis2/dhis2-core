@@ -60,4 +60,9 @@ public interface JsonWebMessage extends JsonObject
     {
         return getString( "description" ).string();
     }
+
+    default JsonTypeReport getResponse()
+    {
+        return get( "response", JsonTypeReport.class );
+    }
 }
