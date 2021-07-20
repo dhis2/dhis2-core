@@ -64,7 +64,7 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     public void testPostAdxDataValueSet()
     {
         String content = POST( "/dataValueSets/",
-            Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
+            Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
             ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML );
         assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
     }
@@ -73,7 +73,7 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     public void testPostAdxDataValueSet_Async()
     {
         String content = POST( "/dataValueSets?async=true",
-            Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
+            Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
             ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML );
         assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
         assertTrue( content.contains( "Initiated dataValueImport" ) );

@@ -286,7 +286,7 @@ public class DataValueSetController
         {
             return startAsyncImport( importOptions, ImportDataValueTask.FORMAT_ADX, request, response );
         }
-        ImportSummary summary = dataValueSetService.saveDataValueSet( request.getInputStream(), importOptions,
+        ImportSummary summary = adxDataService.saveDataValueSet( request.getInputStream(), importOptions,
             null );
         summary.setImportOptions( importOptions );
 
