@@ -160,26 +160,33 @@ public class DeduplicationController
         return potentialDuplicate;
     }
 
-    @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST }, value = "/{id}/invalidation" )
-    public void markPotentialDuplicateInvalid(
-        @PathVariable String id )
+    @PutMapping( value = "/{id}" )
+    public void updatePotentialDuplicate( @PathVariable String id, @RequestParam( value = "status" ) String status )
         throws NotFoundException,
-        HttpStatusCodeException
+        HttpStatusCodeException,
+        BadRequestException
     {
-        PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
+        checkDeduplicationStatusRequestParam( status );
 
-        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
+        PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
+        DeduplicationStatus deduplicationStatus = DeduplicationStatus.valueOf( status );
+
+        checkDbAndRequestStatus( potentialDuplicate, deduplicationStatus );
+
+        potentialDuplicate.setStatus( deduplicationStatus );
         deduplicationService.updatePotentialDuplicate( potentialDuplicate );
     }
 
-    @DeleteMapping( value = "/{id}" )
-    public void deletePotentialDuplicate(
-        @PathVariable String id )
-        throws NotFoundException,
-        HttpStatusCodeException
+    private void checkDbAndRequestStatus( PotentialDuplicate potentialDuplicate,
+        DeduplicationStatus deduplicationStatus )
+        throws BadRequestException
     {
-        PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
-        deduplicationService.deletePotentialDuplicate( potentialDuplicate );
+        if ( deduplicationStatus == DeduplicationStatus.MERGED )
+            throw new BadRequestException(
+                "Bad request. Can't update a potential duplicate to " + DeduplicationStatus.MERGED.name() );
+        if ( potentialDuplicate.getStatus() == DeduplicationStatus.MERGED )
+            throw new BadRequestException( "Bad request. Can't update a potential duplicate that is already "
+                + DeduplicationStatus.MERGED.name() );
     }
 
     private void checkDeduplicationStatusRequestParam( String status )
