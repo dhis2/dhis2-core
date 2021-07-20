@@ -27,25 +27,44 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
-
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.mock.web.MockMultipartFile;
 
-public class FileResourceControllerTest extends DhisControllerConvenienceTest
+/**
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.event.ProgramIndicatorController}
+ * using (mocked) REST requests.
+ *
+ * @author Jan Bernitt
+ */
+public class ProgramIndicatorControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    public void testSaveOrgUnitImage()
+    public void testGetExpressionDescription()
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programIndicators/expression/description", "70" ).content( HttpStatus.OK ) );
+    }
 
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+    @Test
+    public void testGetExpressionDescription_MalformedExpression()
+    {
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+            POST( "/programIndicators/filter/description", "illegal" ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    public void testValidateFilter()
+    {
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programIndicators/filter/description", "1 < 2" ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    public void testValidateFilter_MalformedExpression()
+    {
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+            POST( "/programIndicators/filter/description", "illegal" ).content( HttpStatus.OK ) );
     }
 }

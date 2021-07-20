@@ -52,7 +52,7 @@ public class WebMessageService
     @Autowired
     private RenderService renderService;
 
-    public void sendJson( WebMessage message, HttpServletResponse response )
+    private void sendJson( WebMessage message, HttpServletResponse response )
     {
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         response.setStatus( message.getHttpStatusCode() );
@@ -66,7 +66,7 @@ public class WebMessageService
         }
     }
 
-    public void sendXml( WebMessage message, HttpServletResponse response )
+    private void sendXml( WebMessage message, HttpServletResponse response )
     {
         response.setContentType( MediaType.APPLICATION_XML_VALUE );
         response.setStatus( message.getHttpStatusCode() );
