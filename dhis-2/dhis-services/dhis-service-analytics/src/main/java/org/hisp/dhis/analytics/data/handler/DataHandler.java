@@ -1056,7 +1056,7 @@ public class DataHandler
             if ( periodOffsetRow != null )
             {
                 result.put( key, new DimensionItemObjectValue( dimensionalItemObject,
-                    ((Number) row.get( valueIndex )).doubleValue() ) );
+                    ((Number) periodOffsetRow.get( valueIndex )).doubleValue() ) );
             }
 
             clone = SerializationUtils.clone( dimensionalItemObject );
