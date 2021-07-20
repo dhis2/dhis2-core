@@ -373,14 +373,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
 
         params.setUser( user )
+            .setImportReportMode( ImportReportMode.ERRORS_NOT_OWNER )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( patchedObject );
-
-        // default to FULL unless ERRORS_NOT_OWNER has been requested
-        if ( ImportReportMode.ERRORS_NOT_OWNER != params.getImportReportMode() )
-        {
-            params.setImportReportMode( ImportReportMode.FULL );
-        }
 
         ImportReport importReport = importService.importMetadata( params );
         WebMessage webMessage = WebMessageUtils.objectReport( importReport );
