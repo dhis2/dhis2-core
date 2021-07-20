@@ -881,7 +881,6 @@ public abstract class ChartFacadeController
     @ResponseBody
     public WebMessage removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
-        throws Exception
     {
         if ( !getSchema().isFavoritable() )
         {

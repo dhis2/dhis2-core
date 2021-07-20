@@ -259,7 +259,6 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     public WebMessage writeDataSetReportInterpretation( @PathVariable( "uid" ) String dataSetUid,
         @RequestParam( "pe" ) String isoPeriod, @RequestParam( "ou" ) String orgUnitUid, @RequestBody String text,
         HttpServletResponse response )
-        throws WebMessageException
     {
         DataSet dataSet = idObjectManager.get( DataSet.class, dataSetUid );
 
@@ -436,7 +435,6 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     @ResponseBody
     public WebMessage deleteComment( @PathVariable( "uid" ) String uid, @PathVariable( "cuid" ) String cuid,
         HttpServletResponse response )
-        throws WebMessageException
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
 

@@ -66,7 +66,6 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -107,8 +106,6 @@ public class AccountController
 
     private final SystemSettingManager systemSettingManager;
 
-    private final WebMessageService webMessageService;
-
     private final PasswordValidationService passwordValidationService;
 
     private final ObjectMapper jsonMapper;
@@ -120,7 +117,6 @@ public class AccountController
         PasswordManager passwordManager,
         SecurityService securityService,
         SystemSettingManager systemSettingManager,
-        WebMessageService webMessageService,
         PasswordValidationService passwordValidationService,
         ObjectMapper jsonMapper )
     {
@@ -130,7 +126,6 @@ public class AccountController
         this.passwordManager = passwordManager;
         this.securityService = securityService;
         this.systemSettingManager = systemSettingManager;
-        this.webMessageService = webMessageService;
         this.passwordValidationService = passwordValidationService;
         this.jsonMapper = jsonMapper;
     }
