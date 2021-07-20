@@ -45,7 +45,6 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsTestUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -66,8 +65,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -75,14 +72,6 @@ import com.google.common.collect.Sets;
 
 /**
  * Tests aggregation of data in event analytics tables.
- * <p>
- * To create a new test:
- * <p>
- * <ul>
- * <li>Make new EventQueryParam.</li>
- * <li>Add to 'eventQueryParams' map.</li>
- * <li>Add HashMap<String, Double> with expected output to results map.</li>
- * </ul>
  *
  * @author Henning Haakonsen
  */
@@ -96,8 +85,6 @@ public class EventAnalyticsServiceTest
     private OrganisationUnit ouC;
 
     private Program programA;
-
-    private Program programB;
 
     @Autowired
     private EventAnalyticsService eventAnalyticsService;
@@ -120,34 +107,12 @@ public class EventAnalyticsServiceTest
     @Autowired
     private UserService _userService;
 
-    @Captor
-    private ArgumentCaptor<List<DimensionalItemObject>> canReadItems;
-
     @Override
     public void setUpTest()
-        throws IOException
     {
         userService = _userService;
-        Period peJan = createPeriod( "2017-01" );
-        Period peFeb = createPeriod( "2017-02" );
-        Period peMar = createPeriod( "2017-03" );
-        Period peApril = createPeriod( "2017-04" );
 
-        periodService.addPeriod( peJan );
-        periodService.addPeriod( peFeb );
-        periodService.addPeriod( peMar );
-        periodService.addPeriod( peApril );
-
-        DataElement deA = createDataElement( 'A' );
-        DataElement deB = createDataElement( 'B' );
-        DataElement deC = createDataElement( 'C' );
-        DataElement deD = createDataElement( 'D' );
-
-        dataElementService.addDataElement( deA );
-        dataElementService.addDataElement( deB );
-        dataElementService.addDataElement( deC );
-        dataElementService.addDataElement( deD );
-
+        // Common stubbed data
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
@@ -167,58 +132,6 @@ public class EventAnalyticsServiceTest
         idObjectManager.save( ouC );
         idObjectManager.save( ouD );
         idObjectManager.save( ouE );
-
-        programA = createProgram( 'A', null, null, Sets.newHashSet( ouA, ouB ), null );
-        programA.setUid( "programA123" );
-        idObjectManager.save( programA );
-
-        programB = createProgram( 'B', null, null, Sets.newHashSet( ouA, ouB ), null );
-        programB.setUid( "programB123" );
-        idObjectManager.save( programB );
-
-        ProgramStage psA = createProgramStage( 'A', 0 );
-        psA.setUid( "programStgA" );
-        psA.addDataElement( deA, 0 );
-        psA.addDataElement( deB, 1 );
-        idObjectManager.save( psA );
-
-        ProgramStage psB = createProgramStage( 'B', 0 );
-        psB.setUid( "programStgB" );
-        psB.addDataElement( deA, 0 );
-        psB.addDataElement( deB, 1 );
-        idObjectManager.save( psB );
-
-        ProgramStage psC = createProgramStage( 'C', 0 );
-        psC.setUid( "programStgC" );
-        psC.addDataElement( deA, 0 );
-        psC.addDataElement( deB, 1 );
-        idObjectManager.save( psC );
-
-        programA.getProgramStages().add( psA );
-
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        idObjectManager.save( trackedEntityType );
-
-        org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( ouA );
-        maleA.setUid( "person1234A" );
-        org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB = createTrackedEntityInstance( ouB );
-        femaleB.setUid( "person1234B" );
-
-        maleA.setTrackedEntityType( trackedEntityType );
-        femaleB.setTrackedEntityType( trackedEntityType );
-
-        idObjectManager.save( maleA );
-        idObjectManager.save( femaleB );
-
-        programInstanceService.enrollTrackedEntityInstance( maleA, programA, null, null, ouA );
-        programInstanceService.enrollTrackedEntityInstance( femaleB, programA, null, null, ouA );
-
-        // Read event data from CSV file
-        List<String[]> eventDataLines = CsvUtils.readCsvAsListFromClasspath( "csv/eventData.csv", true );
-        parseEventData( eventDataLines );
-
-        // Generate analytics tables
-        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build() );
     }
 
     @Override
@@ -227,10 +140,31 @@ public class EventAnalyticsServiceTest
         analyticsTableGenerator.dropTables();
     }
 
+    /**
+     * <p>
+     * To create a new test that needs the analytics table populated:
+     * <p>
+     * <ul>
+     * <li>Make new EventQueryParam.</li>
+     * <li>Add to 'eventQueryParams' map.</li>
+     * <li>Add HashMap<String, Double> with expected output to results map.</li>
+     * </ul>
+     */
     @Test
     public void testGridAggregation()
+        throws IOException
     {
         // Given
+
+        // Stubbed events data
+        stubAnalyticsEventsData();
+
+        // Events data from CSV file
+        List<String[]> eventDataLines = CsvUtils.readCsvAsListFromClasspath( "csv/eventData.csv", true );
+        parseEventData( eventDataLines );
+
+        // The generated analytics tables
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build() );
 
         // The user
         createAndInjectAdminUser();
@@ -250,6 +184,7 @@ public class EventAnalyticsServiceTest
         // The results
         Map<String, Double> events_2017_keyValue = new HashMap<>();
         events_2017_keyValue.put( "ouabcdefghA", 6.0 );
+
         Map<String, Map<String, Double>> results = new HashMap<>();
         results.put( "events_2017", events_2017_keyValue );
 
@@ -271,6 +206,11 @@ public class EventAnalyticsServiceTest
     {
         // Given
 
+        // A program
+        Program aProgram = createProgram( 'B', null, null, Sets.newHashSet( ouA, ouB ), null );
+        aProgram.setUid( "aProgram123" );
+        idObjectManager.save( aProgram );
+
         // The category options
         CategoryOption coA = createCategoryOption( 'A' );
         CategoryOption coB = createCategoryOption( 'B' );
@@ -290,7 +230,7 @@ public class EventAnalyticsServiceTest
         User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
         user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
         userService.addUser( user );
-        enableDataSharing( user, programB, AccessStringHelper.DATA_READ_WRITE );
+        enableDataSharing( user, aProgram, AccessStringHelper.DATA_READ_WRITE );
         idObjectManager.update( user );
         injectSecurityContext( user );
 
@@ -299,7 +239,7 @@ public class EventAnalyticsServiceTest
             .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withStartDate( getDate( 2017, 1, 1 ) )
             .withEndDate( getDate( 2017, 12, 31 ) )
-            .withProgram( programB )
+            .withProgram( aProgram )
             .build();
 
         // The params
@@ -309,6 +249,7 @@ public class EventAnalyticsServiceTest
         // The results
         Map<String, Double> events_2017_keyValue = new HashMap<>();
         events_2017_keyValue.put( "ouabcdefghA", 6.0 );
+
         Map<String, Map<String, Double>> results = new HashMap<>();
         results.put( "events_2017", events_2017_keyValue );
 
@@ -329,6 +270,11 @@ public class EventAnalyticsServiceTest
     public void testDimensionRestrictionWhenUserCannotReadCategoryOptions()
     {
         // Given
+
+        // A program
+        Program aProgram = createProgram( 'B', null, null, Sets.newHashSet( ouA, ouB ), null );
+        aProgram.setUid( "aProgram123" );
+        idObjectManager.save( aProgram );
 
         // The category options
         CategoryOption coA = createCategoryOption( 'A' );
@@ -355,7 +301,7 @@ public class EventAnalyticsServiceTest
         User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
         user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
         userService.addUser( user );
-        enableDataSharing( user, programB, AccessStringHelper.DATA_READ_WRITE );
+        enableDataSharing( user, aProgram, AccessStringHelper.DATA_READ_WRITE );
         idObjectManager.update( user );
         injectSecurityContext( user );
 
@@ -364,7 +310,7 @@ public class EventAnalyticsServiceTest
             .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withStartDate( getDate( 2017, 1, 1 ) )
             .withEndDate( getDate( 2017, 12, 31 ) )
-            .withProgram( programB )
+            .withProgram( aProgram )
             .build();
 
         Map<String, EventQueryParams> eventQueryParams = new HashMap<>();
@@ -411,5 +357,69 @@ public class EventAnalyticsServiceTest
 
             event.setStatus( EventStatus.COMPLETED );
         }
+    }
+
+    private void stubAnalyticsEventsData()
+    {
+        Period peJan = createPeriod( "2017-01" );
+        Period peFeb = createPeriod( "2017-02" );
+        Period peMar = createPeriod( "2017-03" );
+        Period peApril = createPeriod( "2017-04" );
+
+        periodService.addPeriod( peJan );
+        periodService.addPeriod( peFeb );
+        periodService.addPeriod( peMar );
+        periodService.addPeriod( peApril );
+
+        DataElement deA = createDataElement( 'A' );
+        DataElement deB = createDataElement( 'B' );
+        DataElement deC = createDataElement( 'C' );
+        DataElement deD = createDataElement( 'D' );
+
+        dataElementService.addDataElement( deA );
+        dataElementService.addDataElement( deB );
+        dataElementService.addDataElement( deC );
+        dataElementService.addDataElement( deD );
+
+        programA = createProgram( 'A', null, null, Sets.newHashSet( ouA, ouB ), null );
+        programA.setUid( "programA123" );
+        idObjectManager.save( programA );
+
+        ProgramStage psA = createProgramStage( 'A', 0 );
+        psA.setUid( "programStgA" );
+        psA.addDataElement( deA, 0 );
+        psA.addDataElement( deB, 1 );
+        idObjectManager.save( psA );
+
+        ProgramStage psB = createProgramStage( 'B', 0 );
+        psB.setUid( "programStgB" );
+        psB.addDataElement( deA, 0 );
+        psB.addDataElement( deB, 1 );
+        idObjectManager.save( psB );
+
+        ProgramStage psC = createProgramStage( 'C', 0 );
+        psC.setUid( "programStgC" );
+        psC.addDataElement( deA, 0 );
+        psC.addDataElement( deB, 1 );
+        idObjectManager.save( psC );
+
+        programA.getProgramStages().add( psA );
+
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        idObjectManager.save( trackedEntityType );
+
+        org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( ouA );
+        maleA.setUid( "person1234A" );
+        org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB = createTrackedEntityInstance( ouB );
+        femaleB.setUid( "person1234B" );
+
+        maleA.setTrackedEntityType( trackedEntityType );
+        femaleB.setTrackedEntityType( trackedEntityType );
+
+        idObjectManager.save( maleA );
+        idObjectManager.save( femaleB );
+
+        programInstanceService.enrollTrackedEntityInstance( maleA, programA, null, null, ouA );
+        programInstanceService.enrollTrackedEntityInstance( femaleB, programA, null, null, ouA );
     }
 }
