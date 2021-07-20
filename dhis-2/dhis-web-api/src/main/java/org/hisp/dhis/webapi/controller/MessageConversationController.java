@@ -351,13 +351,13 @@ public class MessageConversationController
     // --------------------------------------------------------------------------
 
     @PostMapping( "/{uid}" )
-    public void postMessageConversationReply(
+    @ResponseBody
+    public WebMessage postMessageConversationReply(
         @PathVariable( "uid" ) String uid,
         @RequestBody String message,
         @RequestParam( value = "internal", defaultValue = "false" ) boolean internal,
         @RequestParam( value = "attachments", required = false ) Set<String> attachments,
         HttpServletRequest request, HttpServletResponse response )
-        throws Exception
     {
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
@@ -365,7 +365,7 @@ public class MessageConversationController
 
         if ( conversation == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Message conversation does not exist: " + uid ) );
+            return WebMessageUtils.notFound( "Message conversation does not exist: " + uid );
         }
 
         if ( internal && !messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() ) )
@@ -386,15 +386,14 @@ public class MessageConversationController
 
             if ( fileResource == null )
             {
-                throw new WebMessageException(
-                    WebMessageUtils.conflict( "Attachment '" + fileResourceUid + "' not found." ) );
+                return WebMessageUtils.conflict( "Attachment '" + fileResourceUid + "' not found." );
             }
 
             if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT )
                 || fileResource.isAssigned() )
             {
-                throw new WebMessageException( WebMessageUtils
-                    .conflict( "Attachment '" + fileResourceUid + "' is already used or not a valid attachment." ) );
+                return WebMessageUtils
+                    .conflict( "Attachment '" + fileResourceUid + "' is already used or not a valid attachment." );
             }
 
             fileResource.setAssigned( true );
@@ -407,7 +406,7 @@ public class MessageConversationController
 
         response
             .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
-        webMessageService.send( WebMessageUtils.created( "Message conversation created" ), response, request );
+        return WebMessageUtils.created( "Message conversation created" );
     }
 
     @PostMapping( "/{uid}/recipients" )
@@ -441,15 +440,15 @@ public class MessageConversationController
     // --------------------------------------------------------------------------
 
     @PostMapping( "/feedback" )
-    public void postMessageConversationFeedback( @RequestParam( "subject" ) String subject, @RequestBody String body,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public WebMessage postMessageConversationFeedback( @RequestParam( "subject" ) String subject,
+        @RequestBody String body, HttpServletRequest request )
     {
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
         messageService.sendTicketMessage( subject, body, metaData );
 
-        webMessageService.send( WebMessageUtils.created( "Feedback created" ), response, request );
+        return WebMessageUtils.created( "Feedback created" );
     }
 
     // --------------------------------------------------------------------------

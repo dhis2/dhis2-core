@@ -67,4 +67,38 @@ public class MessageConversationControllerTest extends DhisControllerConvenience
         assertWebMessage( "OK", 200, "OK", null,
             DELETE( "/messageConversations/" + uid ).content( HttpStatus.OK ) );
     }
+
+    @Test
+    public void testPostMessageConversationReply()
+    {
+        String uid = assertStatus( HttpStatus.CREATED, POST( "/messageConversations/",
+            "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
+
+        assertWebMessage( "Created", 201, "OK", "Message conversation created",
+            POST( "/messageConversations/" + uid, "The message" ).content( HttpStatus.CREATED ) );
+    }
+
+    @Test
+    public void testPostMessageConversationReply_NoSuchObject()
+    {
+        assertWebMessage( "Not Found", 404, "ERROR", "Message conversation does not exist: xyz",
+            POST( "/messageConversations/xyz", "The message" ).content( HttpStatus.NOT_FOUND ) );
+    }
+
+    @Test
+    public void testPostMessageConversationReply_NoSuchAttachment()
+    {
+        String uid = assertStatus( HttpStatus.CREATED, POST( "/messageConversations/",
+            "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
+
+        assertWebMessage( "Conflict", 409, "ERROR", "Attachment 'xyz' not found.",
+            POST( "/messageConversations/" + uid + "?attachments=xyz", "The message" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testPostMessageConversationFeedback()
+    {
+        assertWebMessage( "Created", 201, "OK", "Feedback created",
+            POST( "/messageConversations/feedback?subject=test", "The message" ).content( HttpStatus.CREATED ) );
+    }
 }
