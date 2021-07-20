@@ -27,40 +27,65 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the {@link AccountController} using (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.event.EnrollmentController}
+ * using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-public class AccountControllerTest extends DhisControllerConvenienceTest
+public class EnrollmentControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testRecoverAccount_NotEnabled()
+    public void testPostEnrollmentJson_ValidationError()
     {
-        User test = switchToNewUser( "test" );
-        switchToSuperuser();
-        assertWebMessage( "Conflict", 409, "ERROR", "Account recovery is not enabled",
-            POST( "/account/recovery?username=" + test.getUsername() ).content( HttpStatus.CONFLICT ) );
+        assertWebMessage( "Conflict", 409, "ERROR", "TrackedEntityInstance does not exist.",
+            POST( "/enrollments/", "{}" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testRestoreAccount_InvalidTokenPassword()
+    public void testUpdateEnrollmentForNoteJson_NoSuchObject()
     {
-        assertWebMessage( "Conflict", 409, "ERROR", "Account recovery failed",
-            POST( "/account/restore?token=xyz&password=secret" ).content( HttpStatus.CONFLICT ) );
+        assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
+            POST( "/enrollments/xyz/note", "{}" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testCreateAccount()
+    public void testUpdateEnrollmentJson()
     {
-        assertWebMessage( "Bad Request", 400, "ERROR", "User self registration is not allowed",
-            POST(
-                "/account?username=test&firstName=fn&surname=sn&password=secret&email=test@example.com&phoneNumber=0123456789&employer=em" )
-                    .content( HttpStatus.BAD_REQUEST ) );
+        assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
+            PUT( "/enrollments/xyz", "{}" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testCancelEnrollment()
+    {
+        assertWebMessage( "Not Found", 404, "ERROR", "Enrollment not found for ID xyz",
+            PUT( "/enrollments/xyz/cancelled" ).content( HttpStatus.NOT_FOUND ) );
+    }
+
+    @Test
+    public void testCompleteEnrollment()
+    {
+        assertWebMessage( "Not Found", 404, "ERROR", "Enrollment not found for ID xyz",
+            PUT( "/enrollments/xyz/completed" ).content( HttpStatus.NOT_FOUND ) );
+    }
+
+    @Test
+    public void testIncompleteEnrollment()
+    {
+        assertWebMessage( "Not Found", 404, "ERROR", "Enrollment not found for ID xyz",
+            PUT( "/enrollments/xyz/incompleted" ).content( HttpStatus.NOT_FOUND ) );
+    }
+
+    @Test
+    public void testDeleteEnrollment()
+    {
+        assertWebMessage( "OK", 200, "OK", "Import was successful.",
+            DELETE( "/enrollments/xyz" ).content( HttpStatus.OK ) );
     }
 }
