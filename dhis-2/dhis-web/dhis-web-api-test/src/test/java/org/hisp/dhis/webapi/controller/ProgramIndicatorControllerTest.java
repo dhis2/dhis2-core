@@ -25,31 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.adx;
+package org.hisp.dhis.webapi.controller;
+
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * Simple class for ADX checked exceptions which can wrap an ImportConflict.
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.event.ProgramIndicatorController}
+ * using (mocked) REST requests.
  *
- * @author bobj
+ * @author Jan Bernitt
  */
-public class AdxException
-    extends Exception
+public class ProgramIndicatorControllerTest extends DhisControllerConvenienceTest
 {
-    private final String object;
-
-    public String getObject()
+    @Test
+    public void testGetExpressionDescription()
     {
-        return object;
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programIndicators/expression/description", "70" ).content( HttpStatus.OK ) );
     }
 
-    public AdxException( String msg )
+    @Test
+    public void testGetExpressionDescription_MalformedExpression()
     {
-        this( "ADX Error", msg );
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+            POST( "/programIndicators/filter/description", "illegal" ).content( HttpStatus.OK ) );
     }
 
-    public AdxException( String object, String msg )
+    @Test
+    public void testValidateFilter()
     {
-        super( msg );
-        this.object = object;
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programIndicators/filter/description", "1 < 2" ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    public void testValidateFilter_MalformedExpression()
+    {
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+            POST( "/programIndicators/filter/description", "illegal" ).content( HttpStatus.OK ) );
     }
 }

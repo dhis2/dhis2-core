@@ -25,31 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.adx;
+package org.hisp.dhis.webapi.json.domain;
+
+import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
- * Simple class for ADX checked exceptions which can wrap an ImportConflict.
+ * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
  *
- * @author bobj
+ * @author Jan Bernitt
  */
-public class AdxException
-    extends Exception
+public interface JsonWebMessage extends JsonObject
 {
-    private final String object;
-
-    public String getObject()
+    default String getHttpStatus()
     {
-        return object;
+        return getString( "httpStatus" ).string();
     }
 
-    public AdxException( String msg )
+    default int getHttpStatusCode()
     {
-        this( "ADX Error", msg );
+        return getNumber( "httpStatusCode" ).intValue();
     }
 
-    public AdxException( String object, String msg )
+    default String getStatus()
     {
-        super( msg );
-        this.object = object;
+        return getString( "status" ).string();
+    }
+
+    default String getMessage()
+    {
+        return getString( "message" ).string();
+    }
+
+    default String getDescription()
+    {
+        return getString( "description" ).string();
     }
 }

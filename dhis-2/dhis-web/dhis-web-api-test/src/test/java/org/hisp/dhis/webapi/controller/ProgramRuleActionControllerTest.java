@@ -25,31 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.adx;
+package org.hisp.dhis.webapi.controller;
+
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * Simple class for ADX checked exceptions which can wrap an ImportConflict.
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.event.ProgramRuleActionController}
+ * using (mocked) REST requests.
  *
- * @author bobj
+ * @author Jan Bernitt
  */
-public class AdxException
-    extends Exception
+public class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest
 {
-    private final String object;
-
-    public String getObject()
+    @Test
+    public void testGetDataExpressionDescription()
     {
-        return object;
+        String pId = assertStatus( HttpStatus.CREATED,
+            POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
+
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programRuleActions/data/expression/description?programId=" + pId, "70" ).content( HttpStatus.OK ) );
     }
 
-    public AdxException( String msg )
+    @Test
+    public void testGetDataExpressionDescription_NoSuchProgram()
     {
-        this( "ADX Error", msg );
-    }
-
-    public AdxException( String object, String msg )
-    {
-        super( msg );
-        this.object = object;
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+            POST( "/programRuleActions/data/expression/description?programId=xyz", "70" ).content( HttpStatus.OK ) );
     }
 }

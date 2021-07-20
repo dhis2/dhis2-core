@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.deduplication;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -52,6 +53,7 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -139,45 +141,69 @@ public class DeduplicationControllerMvcTest
     }
 
     @Test
-    public void shouldMarkPotentialDuplicateInvalid()
+    public void shouldThrowUpdatePotentialDuplicateAlreadyMerged()
         throws Exception
     {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-
         String uid = "uid";
+
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
+        potentialDuplicate.setStatus( DeduplicationStatus.MERGED );
 
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
 
-        mockMvc.perform( post( ENDPOINT + "/" + uid + "/invalidation" )
-            .content( "{}" )
+        mockMvc.perform( put( ENDPOINT + "/" + uid ).param( "status", DeduplicationStatus.INVALID.name() )
+            .content( objectMapper.writeValueAsString( potentialDuplicate ) )
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() );
+            .andExpect( status().isBadRequest() )
+            .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
 
-        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
-
-        verify( deduplicationService ).updatePotentialDuplicate( potentialDuplicate );
         verify( deduplicationService ).getPotentialDuplicateByUid( uid );
     }
 
     @Test
-    public void shouldDeletePotentialDuplicate()
+    public void shouldThrowUpdatePotentialDuplicateToMergedStatus()
         throws Exception
     {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-
         String uid = "uid";
+
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
 
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
 
-        mockMvc.perform( delete( ENDPOINT + "/" + uid )
-            .content( "{}" )
+        mockMvc.perform( put( ENDPOINT + "/" + uid ).param( "status", DeduplicationStatus.MERGED.name() )
+            .content( objectMapper.writeValueAsString( potentialDuplicate ) )
+            .contentType( MediaType.APPLICATION_JSON )
+            .accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isBadRequest() )
+            .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
+
+        verify( deduplicationService ).getPotentialDuplicateByUid( uid );
+    }
+
+    @Test
+    public void shouldUpdatePotentialDuplicate()
+        throws Exception
+    {
+        String uid = "uid";
+
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
+
+        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
+
+        mockMvc.perform( put( ENDPOINT + "/" + uid ).param( "status", DeduplicationStatus.INVALID.name() )
+            .content( objectMapper.writeValueAsString( potentialDuplicate ) )
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() );
 
-        verify( deduplicationService ).deletePotentialDuplicate( potentialDuplicate );
+        ArgumentCaptor<PotentialDuplicate> potentialDuplicateArgumentCaptor = ArgumentCaptor
+            .forClass( PotentialDuplicate.class );
+
         verify( deduplicationService ).getPotentialDuplicateByUid( uid );
+        verify( deduplicationService ).updatePotentialDuplicate( potentialDuplicateArgumentCaptor.capture() );
+
+        assertEquals( DeduplicationStatus.INVALID, potentialDuplicateArgumentCaptor.getValue().getStatus() );
     }
 
     @Test
@@ -192,10 +218,7 @@ public class DeduplicationControllerMvcTest
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() )
-            .andExpect( content().contentType( "application/json" ) )
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+            .andExpect( content().contentType( "application/json" ) );
 
         verify( deduplicationService ).getAllPotentialDuplicatesBy( any() );
     }

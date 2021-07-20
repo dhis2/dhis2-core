@@ -27,19 +27,19 @@
  */
 package org.hisp.dhis.analytics.resolver;
 
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupStore;
 import org.hisp.dhis.expression.ExpressionService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,10 +53,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Dusan Bernat
  */
-public class CategoryOptionResolverTest
+public class DataElementGroupResolverTest
 {
     @Mock
-    private CategoryOptionStore categoryOptionStore;
+    private DataElementGroupStore dataElementGroupStore;
 
     @Mock
     private ExpressionService expressionService;
@@ -72,15 +72,15 @@ public class CategoryOptionResolverTest
 
     private String uid3;
 
-    private CategoryOptionCombo coc1;
+    private DataElement de1;
 
-    private CategoryOptionCombo coc2;
+    private DataElement de2;
 
-    private CategoryOptionCombo coc3;
+    private DataElement de3;
 
     DimensionalItemId dimensionalItemId;
 
-    private static final String CATEGORY_OPTION_PREFIX = "co:";
+    private static final String DATA_ELEMENT_GROUP_PREFIX = "deGroup:";
 
     @Before
     public void setUp()
@@ -91,31 +91,39 @@ public class CategoryOptionResolverTest
 
         uid3 = CodeGenerator.generateUid();
 
-        CategoryOption categoryOption = createCategoryOption( 'A' );
+        de1 = createDataElement( 'X' );
 
-        coc1 = createCategoryOptionCombo( 'X' );
+        de1.setPeriodOffset( 3 );
 
-        categoryOption.addCategoryOptionCombo( coc1 );
+        de2 = createDataElement( 'Y' );
 
-        coc2 = createCategoryOptionCombo( 'Y' );
+        de2.setPeriodOffset( 2 );
 
-        categoryOption.addCategoryOptionCombo( coc2 );
+        de3 = createDataElement( 'Z' );
 
-        coc3 = createCategoryOptionCombo( 'Z' );
+        de3.setPeriodOffset( 1 );
 
-        categoryOption.addCategoryOptionCombo( coc3 );
+        DataElementGroup dataElementGroup = createDataElementGroup( 'A' );
 
-        resolver = new CategoryOptionResolver( expressionService, categoryOptionStore );
+        dataElementGroup.addDataElement( de1 );
 
-        when( categoryOptionStore.getByUid( anyString() ) ).thenReturn( categoryOption );
+        dataElementGroup.addDataElement( de2 );
+
+        dataElementGroup.addDataElement( de3 );
+
+        resolver = new DataElementGroupResolver( expressionService, dataElementGroupStore );
+
+        when( dataElementGroupStore.getByUid( anyString() ) ).thenReturn( dataElementGroup );
     }
 
     @Test
     public void verifyExpressionIsResolvedProperly()
     {
         // arrange
-        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            CATEGORY_OPTION_PREFIX + uid2, uid3, 0, createIndicatorExpression() );
+
+        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND,
+            DATA_ELEMENT_GROUP_PREFIX + uid1,
+            uid2, uid3, 0, createIndicatorExpression() );
 
         String expression = createIndicatorExpression();
 
@@ -128,7 +136,7 @@ public class CategoryOptionResolverTest
 
         // assert
 
-        assertEquals( expectedResolvedIndicatorExpression( coc1.getUid(), coc2.getUid(), coc3.getUid() ),
+        assertEquals( expectedResolvedIndicatorExpression( de1.getUid(), de2.getUid(), de3.getUid() ),
             resolvedExpression );
     }
 
@@ -136,8 +144,10 @@ public class CategoryOptionResolverTest
     public void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
     {
         // arrange
-        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            CATEGORY_OPTION_PREFIX + uid2, uid3, 0, createIndicatorExpression() );
+
+        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND,
+            DATA_ELEMENT_GROUP_PREFIX + uid1,
+            uid2, uid3, 0 );
 
         String expression = createIndicatorExpression();
 
@@ -150,14 +160,14 @@ public class CategoryOptionResolverTest
 
         // assert
 
-        assertEquals( expectedResolvedIndicatorExpression( coc1.getUid(), coc2.getUid(), coc3.getUid() ),
-            resolvedExpression );
+        assertEquals( expression, resolvedExpression );
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
+    public void verifyExpressionIsNotResolvedWhenDeGroupPrefixNotInUid0()
     {
         // arrange
+
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
             uid2, uid3, 0, createIndicatorExpression() );
 
@@ -179,6 +189,7 @@ public class CategoryOptionResolverTest
     public void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
     {
         // arrange
+
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
             uid2, uid3, 0, createIndicatorExpression() );
 
@@ -198,14 +209,14 @@ public class CategoryOptionResolverTest
 
     private String createIndicatorExpression()
     {
-        return String.format( "#{%s.co:%s.%s}", uid1, uid2, uid3 );
+        return String.format( "#{deGroup:%s.%s.%s}", uid1, uid2, uid3 );
     }
 
-    private String expectedResolvedIndicatorExpression( String coc1_uid, String coc2_uid, String coc3_uid )
+    private String expectedResolvedIndicatorExpression( String de1_uid, String de2_uid, String de3_uid )
     {
         return String.format( "(#{%s.%s.%s}+#{%s.%s.%s}+#{%s.%s.%s})",
-            uid1, coc1_uid, uid3,
-            uid1, coc2_uid, uid3,
-            uid1, coc3_uid, uid3 );
+            de1_uid, uid2, uid3,
+            de2_uid, uid2, uid3,
+            de3_uid, uid2, uid3 );
     }
 }

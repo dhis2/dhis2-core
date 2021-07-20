@@ -25,31 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.adx;
+package org.hisp.dhis.webapi.controller;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.junit.Test;
 
 /**
- * Simple class for ADX checked exceptions which can wrap an ImportConflict.
+ * Tests the {@link ExpressionController} using (mocked) REST requests.
  *
- * @author bobj
+ * @author Jan Bernitt
  */
-public class AdxException
-    extends Exception
+public class ExpressionControllerTest extends DhisControllerConvenienceTest
 {
-    private final String object;
-
-    public String getObject()
+    @Test
+    public void testGetExpressionDescription()
     {
-        return object;
+        JsonWebMessage response = GET( "/expressions/description?expression=0" )
+            .content().as( JsonWebMessage.class );
+        assertWebMessage( "OK", 200, "OK", "Valid", response );
+        assertEquals( "0", response.getDescription() );
     }
 
-    public AdxException( String msg )
+    @Test
+    public void testGetExpressionDescription_InvalidExpression()
     {
-        this( "ADX Error", msg );
-    }
-
-    public AdxException( String object, String msg )
-    {
-        super( msg );
-        this.object = object;
+        JsonWebMessage response = GET( "/expressions/description?expression=invalid" )
+            .content().as( JsonWebMessage.class );
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not well-formed", response );
+        assertNull( response.getDescription() );
     }
 }

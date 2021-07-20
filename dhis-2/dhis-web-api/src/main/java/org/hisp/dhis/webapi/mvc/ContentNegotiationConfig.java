@@ -25,31 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.adx;
+package org.hisp.dhis.webapi.mvc;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Simple class for ADX checked exceptions which can wrap an ImportConflict.
+ * Configure content negotiation so that both path extensions {@code .json} and
+ * {@code .xml} can be used as well as the {@code Accept} header.
  *
- * @author bobj
+ * Default response is JSON.
+ *
+ * @author Jan Bernitt
  */
-public class AdxException
-    extends Exception
+@Configuration
+public class ContentNegotiationConfig implements WebMvcConfigurer
 {
-    private final String object;
-
-    public String getObject()
+    @Override
+    public void configureContentNegotiation( ContentNegotiationConfigurer config )
     {
-        return object;
+        config
+            .favorPathExtension( true )
+            .favorParameter( false )
+            .ignoreAcceptHeader( false )
+            .defaultContentType( MediaType.APPLICATION_JSON )
+            .mediaType( "json", MediaType.APPLICATION_JSON )
+            .mediaType( "xml", MediaType.APPLICATION_XML );
     }
 
-    public AdxException( String msg )
+    @Override
+    public void configurePathMatch( PathMatchConfigurer config )
     {
-        this( "ADX Error", msg );
-    }
-
-    public AdxException( String object, String msg )
-    {
-        super( msg );
-        this.object = object;
+        config.setUseSuffixPatternMatch( true );
     }
 }
