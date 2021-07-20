@@ -31,6 +31,7 @@ import static java.util.Collections.singletonList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -370,7 +371,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+        Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
+
+        if ( !parameterValuesMap.containsKey( "importReportMode" ) )
+        {
+            parameterValuesMap.put( "importReportMode", Collections.singletonList( "ERRORS_NOT_OWNER" ) );
+        }
+
+        MetadataImportParams params = importService.getParamsFromMap( parameterValuesMap );
 
         params.setUser( user )
             .setImportReportMode( ImportReportMode.ERRORS_NOT_OWNER )
