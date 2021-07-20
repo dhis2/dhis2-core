@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.bundle.persister;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
@@ -35,11 +35,11 @@ import org.hisp.dhis.tracker.report.TrackerTypeReport;
  */
 public interface TrackerObjectDeletionService
 {
-    TrackerTypeReport deleteEnrollments( TrackerBundle bundle, TrackerType trackerType );
+    TrackerTypeReport deleteEnrollments( TrackerBundle bundle );
 
-    TrackerTypeReport deleteEvents( TrackerBundle bundle, TrackerType trackerType );
+    TrackerTypeReport deleteEvents( TrackerBundle bundle );
 
-    TrackerTypeReport deleteTrackedEntityInstances( TrackerBundle bundle, TrackerType trackerType );
+    TrackerTypeReport deleteTrackedEntityInstances( TrackerBundle bundle );
 
-    TrackerTypeReport deleteRelationShips( TrackerBundle bundle, TrackerType trackerType );
+    TrackerTypeReport deleteRelationShips( TrackerBundle bundle );
 }
