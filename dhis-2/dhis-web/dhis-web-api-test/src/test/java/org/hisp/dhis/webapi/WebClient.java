@@ -55,6 +55,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.WebClientUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
@@ -95,6 +96,21 @@ public interface WebClient
     static Header ContentType( MediaType mimeType )
     {
         return Header( "ContentType", mimeType );
+    }
+
+    static Header ContentType( String mimeType )
+    {
+        return Header( "ContentType", mimeType );
+    }
+
+    static Header Accept( MediaType mimeType )
+    {
+        return Header( "Accept", mimeType );
+    }
+
+    static Header Accept( String mimeType )
+    {
+        return Header( "Accept", mimeType );
     }
 
     static Body Body( String body )
@@ -189,7 +205,7 @@ public interface WebClient
                 Header header = (Header) c;
                 if ( header.name.equalsIgnoreCase( "ContentType" ) )
                 {
-                    contentMediaType = (MediaType) header.value;
+                    contentMediaType = WebClientUtils.asMediaType( header.value );
                 }
                 else
                 {
@@ -269,7 +285,10 @@ public interface WebClient
             {
                 fail( "Use one of the other content() methods for JSON" );
             }
-            assertEquals( contentType.toString(), header( "Content-Type" ) );
+            String actualContentType = header( "Content-Type" );
+            String expected = contentType.toString();
+            assertTrue( String.format( "Expected %s but was: %s", expected, actualContentType ),
+                actualContentType.startsWith( expected ) );
             return failOnException( () -> response.getContentAsString( StandardCharsets.UTF_8 ) );
         }
 
@@ -311,7 +330,7 @@ public interface WebClient
 
         private JsonError errorInternal()
         {
-            if ( response.getBufferSize() == 0 )
+            if ( response.getContentType() == null || response.getContentLength() == 0 )
             {
                 String errorMessage = response.getErrorMessage();
                 if ( errorMessage != null )

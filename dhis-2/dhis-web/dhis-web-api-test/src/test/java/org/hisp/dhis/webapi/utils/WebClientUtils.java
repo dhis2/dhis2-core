@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.utils;
 
 import static org.junit.Assert.assertEquals;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +46,7 @@ import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonObjectReport;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
+import org.springframework.http.MediaType;
 
 /**
  * Helpers needed when testing with {@link org.hisp.dhis.webapi.WebClient} and
@@ -233,6 +235,25 @@ public class WebClientUtils
             }
         }
         return null;
+    }
+
+    public static MediaType asMediaType( Object value )
+    {
+        if ( value == null || value instanceof MediaType )
+        {
+            return (MediaType) value;
+        }
+        String mediaType = value.toString();
+        int typeSubtypeDivider = mediaType.indexOf( '/' );
+        int charsetIndex = mediaType.indexOf( "; charset=" );
+        if ( charsetIndex > 0 )
+        {
+            return new MediaType( mediaType.substring( 0, typeSubtypeDivider ),
+                mediaType.substring( typeSubtypeDivider + 1, charsetIndex ),
+                Charset.forName( mediaType.substring( charsetIndex + 10 ) ) );
+        }
+        return new MediaType( mediaType.substring( 0, typeSubtypeDivider ),
+            mediaType.substring( typeSubtypeDivider + 1 ) );
     }
 
     private WebClientUtils()
