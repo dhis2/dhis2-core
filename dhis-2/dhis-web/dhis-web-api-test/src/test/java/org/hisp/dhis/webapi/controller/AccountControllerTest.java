@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link AccountController} using (mocked) REST requests.
@@ -36,4 +39,28 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
  */
 public class AccountControllerTest extends DhisControllerConvenienceTest
 {
+    @Test
+    public void testRecoverAccount_NotEnabled()
+    {
+        User test = switchToNewUser( "test" );
+        switchToSuperuser();
+        assertWebMessage( "Conflict", 409, "ERROR", "Account recovery is not enabled",
+            POST( "/account/recovery?username=" + test.getUsername() ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testRestoreAccount_InvalidTokenPassword()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Account recovery failed",
+            POST( "/account/restore?token=xyz&password=secret" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testCreateAccount()
+    {
+        assertWebMessage( "Bad Request", 400, "ERROR", "User self registration is not allowed",
+            POST(
+                "/account?username=test&firstName=fn&surname=sn&password=secret&email=test@example.com&phoneNumber=0123456789&employer=em" )
+                    .content( HttpStatus.OK ) );
+    }
 }
