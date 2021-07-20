@@ -77,7 +77,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,9 +119,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @Autowired
     protected MetadataExportService exportService;
-
-    @Autowired
-    protected WebMessageService webMessageService;
 
     @Autowired
     protected HibernateCacheManager hibernateCacheManager;
