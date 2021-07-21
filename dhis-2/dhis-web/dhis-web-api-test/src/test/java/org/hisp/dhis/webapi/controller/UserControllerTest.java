@@ -88,7 +88,7 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     public void testResetToInvite_NoEmail()
     {
         assertStatus( HttpStatus.OK,
-            PATCH( "/users/{id}", peter.getUid(),
+            PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
                 Body( "[{'op': 'replace', 'path': '/email', 'value': null}]" ) ) );
 
         assertEquals( "user_does_not_have_valid_email",
