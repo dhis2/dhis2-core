@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import java.util.Set;
 
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
@@ -45,8 +44,7 @@ import com.google.common.collect.Sets;
  * @author Halvdan Hoem Grelland
  */
 @Component
-public class ProgramNotificationTemplateObjectBundleHook
-    extends AbstractObjectBundleHook
+public class ProgramNotificationTemplateObjectBundleHook extends AbstractObjectBundleHook<ProgramNotificationTemplate>
 {
     private ImmutableMap<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>> RECIPIENT_TO_VALUETYPE_RESOLVER = new ImmutableMap.Builder<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>()
         .put( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE,
@@ -62,42 +60,27 @@ public class ProgramNotificationTemplateObjectBundleHook
         .build();
 
     @Override
-    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
+    public void preCreate( ProgramNotificationTemplate template, ObjectBundle bundle )
     {
-        if ( !ProgramNotificationTemplate.class.isInstance( object ) )
-            return;
-        ProgramNotificationTemplate template = (ProgramNotificationTemplate) object;
-
         preProcess( template );
     }
 
     @Override
-    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    public void preUpdate( ProgramNotificationTemplate template, ProgramNotificationTemplate persistedObject,
+        ObjectBundle bundle )
     {
-        if ( !ProgramNotificationTemplate.class.isInstance( object ) )
-            return;
-        ProgramNotificationTemplate template = (ProgramNotificationTemplate) object;
-
         preProcess( template );
     }
 
     @Override
-    public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
+    public void postCreate( ProgramNotificationTemplate template, ObjectBundle bundle )
     {
-        if ( !ProgramNotificationTemplate.class.isInstance( persistedObject ) )
-            return;
-        ProgramNotificationTemplate template = (ProgramNotificationTemplate) persistedObject;
-
         postProcess( template );
     }
 
     @Override
-    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    public void postUpdate( ProgramNotificationTemplate template, ObjectBundle bundle )
     {
-        if ( !ProgramNotificationTemplate.class.isInstance( persistedObject ) )
-            return;
-        ProgramNotificationTemplate template = (ProgramNotificationTemplate) persistedObject;
-
         postProcess( template );
     }
 
@@ -132,18 +115,18 @@ public class ProgramNotificationTemplateObjectBundleHook
         }
     }
 
-    private void postProcess( ProgramNotificationTemplate pnt )
+    private void postProcess( ProgramNotificationTemplate template )
     {
-        ProgramNotificationRecipient pnr = pnt.getNotificationRecipient();
+        ProgramNotificationRecipient pnr = template.getNotificationRecipient();
 
         ValueType valueType = null;
 
         if ( RECIPIENT_TO_VALUETYPE_RESOLVER.containsKey( pnr ) )
         {
             Function<ProgramNotificationTemplate, ValueType> resolver = RECIPIENT_TO_VALUETYPE_RESOLVER.get( pnr );
-            valueType = resolver.apply( pnt );
+            valueType = resolver.apply( template );
         }
 
-        pnt.setDeliveryChannels( CHANNEL_MAPPER.getOrDefault( valueType, Sets.newHashSet() ) );
+        template.setDeliveryChannels( CHANNEL_MAPPER.getOrDefault( valueType, Sets.newHashSet() ) );
     }
 }

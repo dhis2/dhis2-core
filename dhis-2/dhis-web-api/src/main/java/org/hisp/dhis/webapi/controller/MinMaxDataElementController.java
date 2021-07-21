@@ -60,9 +60,10 @@ import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Lists;
@@ -136,7 +137,7 @@ public class MinMaxDataElementController
     // POST
     // --------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
+    @PostMapping( consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')" )
     public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
@@ -171,7 +172,7 @@ public class MinMaxDataElementController
     // DELETE
     // --------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.DELETE, consumes = "application/json" )
+    @DeleteMapping( consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_DELETE')" )
     public void deleteObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception

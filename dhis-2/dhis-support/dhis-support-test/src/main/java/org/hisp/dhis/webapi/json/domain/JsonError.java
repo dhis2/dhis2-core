@@ -97,7 +97,9 @@ public interface JsonError extends JsonObject
             }
         };
         String message = getMessage();
-        str.append( message != null ? message : "(no error message in response)" );
+        str.append( message != null
+            ? message
+            : String.format( "(no error message in %d %s response)", getHttpStatusCode(), getHttpStatus() ) );
         if ( getTypeReport().exists() )
         {
             printer.accept( getTypeReport().getErrorReports() );

@@ -28,9 +28,11 @@
 package org.hisp.dhis.feedback;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,6 +41,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -49,11 +52,11 @@ import com.google.common.base.MoreObjects;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )
-public class ObjectReport
+public class ObjectReport implements ErrorReportContainer
 {
     private final Class<?> klass;
 
-    private Integer index;
+    private final Integer index;
 
     /**
      * UID of object (if object is id object).
@@ -65,7 +68,7 @@ public class ObjectReport
      */
     private String displayName;
 
-    private Map<ErrorCode, List<ErrorReport>> errorReportsByCode = new HashMap<>();
+    private final Map<ErrorCode, List<ErrorReport>> errorReportsByCode = new EnumMap<>( ErrorCode.class );
 
     public ObjectReport( @Nonnull IdentifiableObject object, @Nonnull ObjectIndexProvider objectIndexProvider )
     {
@@ -112,9 +115,10 @@ public class ObjectReport
     // Utility Methods
     // -----------------------------------------------------------------------------------
 
-    public void merge( ObjectReport objectReport )
+    public ObjectReport merge( ObjectReport objectReport )
     {
-        addErrorReports( objectReport.getErrorReports() );
+        objectReport.forEachErrorReport( this::addErrorReport );
+        return this;
     }
 
     public void addErrorReports( List<? extends ErrorReport> errorReports )
@@ -124,12 +128,7 @@ public class ObjectReport
 
     public void addErrorReport( ErrorReport errorReport )
     {
-        if ( !errorReportsByCode.containsKey( errorReport.getErrorCode() ) )
-        {
-            errorReportsByCode.put( errorReport.getErrorCode(), new ArrayList<>() );
-        }
-
-        errorReportsByCode.get( errorReport.getErrorCode() ).add( errorReport );
+        errorReportsByCode.computeIfAbsent( errorReport.getErrorCode(), key -> new ArrayList<>() ).add( errorReport );
     }
 
     // -----------------------------------------------------------------------------------
@@ -175,8 +174,7 @@ public class ObjectReport
     public List<ErrorReport> getErrorReports()
     {
         List<ErrorReport> errorReports = new ArrayList<>();
-        errorReportsByCode.values().forEach( errorReports::addAll );
-
+        forEachErrorReport( errorReports::add );
         return errorReports;
     }
 
@@ -185,28 +183,44 @@ public class ObjectReport
     @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
     public void setErrorReports( List<ErrorReport> errorReports )
     {
+        errorReportsByCode.clear();
         if ( errorReports != null )
         {
-            errorReports.forEach( er -> {
-                List<ErrorReport> errorReportForCode = errorReportsByCode.get( er.getErrorCode() );
-                if ( errorReportForCode == null )
-                {
-                    errorReportForCode = new ArrayList<>();
-                }
-                errorReportForCode.add( er );
-                errorReportsByCode.put( er.getErrorCode(), errorReportForCode );
-            } );
+            errorReports.forEach(
+                er -> errorReportsByCode.computeIfAbsent( er.getErrorCode(), key -> new ArrayList<>() ).add( er ) );
         }
     }
 
-    public List<ErrorCode> getErrorCodes()
+    @JsonIgnore
+    @Override
+    public int getErrorReportsCount()
     {
-        return new ArrayList<>( errorReportsByCode.keySet() );
+        return errorReportsByCode.values().stream().mapToInt( List::size ).sum();
     }
 
-    public Map<ErrorCode, List<ErrorReport>> getErrorReportsByCode()
+    @Override
+    public int getErrorReportsCount( ErrorCode errorCode )
     {
-        return errorReportsByCode;
+        List<ErrorReport> reports = errorReportsByCode.get( errorCode );
+        return reports == null ? 0 : reports.size();
+    }
+
+    @Override
+    public boolean hasErrorReports()
+    {
+        return !errorReportsByCode.isEmpty();
+    }
+
+    @Override
+    public boolean hasErrorReport( Predicate<ErrorReport> test )
+    {
+        return errorReportsByCode.values().stream().anyMatch( reports -> reports.stream().anyMatch( test ) );
+    }
+
+    @Override
+    public void forEachErrorReport( Consumer<ErrorReport> reportConsumer )
+    {
+        errorReportsByCode.values().forEach( reports -> reports.forEach( reportConsumer ) );
     }
 
     public boolean isEmpty()
@@ -229,4 +243,5 @@ public class ObjectReport
             .add( "errorReports", getErrorReports() )
             .toString();
     }
+
 }

@@ -27,15 +27,14 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -52,31 +51,16 @@ import org.springframework.stereotype.Component;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-public class ProgramStageObjectBundleHook
-    extends AbstractObjectBundleHook
+@AllArgsConstructor
+public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<ProgramStage>
 {
     private final AclService aclService;
 
     private final ProgramStageSectionService programStageSectionService;
 
-    public ProgramStageObjectBundleHook( AclService aclService, ProgramStageSectionService programStageSectionService )
-    {
-        checkNotNull( aclService );
-        this.aclService = aclService;
-        this.programStageSectionService = programStageSectionService;
-    }
-
     @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
+    public void validate( ProgramStage programStage, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
-        if ( object == null || !object.getClass().isAssignableFrom( ProgramStage.class ) )
-        {
-            return;
-        }
-
-        ProgramStage programStage = (ProgramStage) object;
-
         if ( programStage.getNextScheduleDate() != null )
         {
             DataElement nextScheduleDate = bundle.getPreheat().get( bundle.getPreheatIdentifier(), DataElement.class,
@@ -94,27 +78,20 @@ public class ProgramStageObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> void postCreate( T object, ObjectBundle bundle )
+    public void postCreate( ProgramStage programStage, ObjectBundle bundle )
     {
-        if ( !(object instanceof ProgramStage) )
-        {
-            return;
-        }
-
-        ProgramStage programStage = (ProgramStage) object;
-
         Session session = sessionFactory.getCurrentSession();
 
         updateProgramStageSections( session, programStage );
     }
 
     @Override
-    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    public void preUpdate( ProgramStage object, ProgramStage persistedObject, ObjectBundle bundle )
     {
         if ( object == null || !object.getClass().isAssignableFrom( ProgramStage.class ) )
             return;
 
-        deleteRemovedSection( (ProgramStage) persistedObject, (ProgramStage) object );
+        deleteRemovedSection( persistedObject, object );
     }
 
     private void deleteRemovedSection( ProgramStage persistedProgramStage, ProgramStage importProgramStage )

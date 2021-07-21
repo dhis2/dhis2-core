@@ -68,9 +68,9 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -133,7 +133,7 @@ public class DimensionController
     }
 
     @SuppressWarnings( "unchecked" )
-    @RequestMapping( value = "/{uid}/items", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/items" )
     public @ResponseBody RootNode getItems( @PathVariable String uid, @RequestParam Map<String, String> parameters,
         OrderParams orderParams )
         throws QueryParserException
@@ -187,7 +187,7 @@ public class DimensionController
         return rootNode;
     }
 
-    @RequestMapping( value = "/constraints", method = RequestMethod.GET )
+    @GetMapping( "/constraints" )
     public @ResponseBody RootNode getDimensionConstraints(
         @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links )
     {
@@ -206,7 +206,7 @@ public class DimensionController
         return rootNode;
     }
 
-    @RequestMapping( value = "/recommendations", method = RequestMethod.GET )
+    @GetMapping( "/recommendations" )
     public @ResponseBody RootNode getRecommendedDimensions( @RequestParam Set<String> dimension )
     {
         List<String> fields = newArrayList( contextService.getParameterValues( "fields" ) );
@@ -226,7 +226,7 @@ public class DimensionController
         return rootNode;
     }
 
-    @RequestMapping( value = "/dataSet/{uid}", method = RequestMethod.GET )
+    @GetMapping( "/dataSet/{uid}" )
     public @ResponseBody RootNode getDimensionsForDataSet( @PathVariable String uid,
         @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links,
         Model model, HttpServletResponse response )

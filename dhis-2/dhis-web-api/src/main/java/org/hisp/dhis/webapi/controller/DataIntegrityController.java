@@ -42,14 +42,14 @@ import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
 @Controller
-@RequestMapping( method = RequestMethod.GET )
+@RequestMapping
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataIntegrityController
 {
@@ -69,7 +69,7 @@ public class DataIntegrityController
     // --------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @RequestMapping( value = DataIntegrityController.RESOURCE_PATH, method = RequestMethod.POST )
+    @PostMapping( DataIntegrityController.RESOURCE_PATH )
     public void runAsyncDataIntegrity( HttpServletResponse response, HttpServletRequest request )
     {
         JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null,
@@ -77,7 +77,7 @@ public class DataIntegrityController
         jobConfiguration.setUserUid( currentUserService.getCurrentUser().getUid() );
         jobConfiguration.setAutoFields();
 
-        schedulingManager.executeJob( jobConfiguration );
+        schedulingManager.executeNow( jobConfiguration );
 
         webMessageService.send( jobConfigurationReport( jobConfiguration ), response, request );
     }

@@ -85,7 +85,7 @@ public class SharingControllerTest
         when( aclService.isClassShareable( eq( OrganisationUnit.class ) ) ).thenReturn( true );
         doReturn( organisationUnit ).when( manager ).get( eq( OrganisationUnit.class ), eq( "kkSjhdhks" ) );
 
-        sharingController.setSharing( "organisationUnit", "kkSjhdhks", response, request );
+        sharingController.postSharing( "organisationUnit", "kkSjhdhks", response, request );
     }
 
     @Test( expected = AccessDeniedException.class )
@@ -99,7 +99,7 @@ public class SharingControllerTest
         when( aclService.isClassShareable( eq( Category.class ) ) ).thenReturn( true );
         when( manager.get( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
 
-        sharingController.setSharing( "category", "kkSjhdhks", response, request );
+        sharingController.postSharing( "category", "kkSjhdhks", response, request );
     }
 
     @Test( expected = WebMessageException.class )
@@ -115,7 +115,7 @@ public class SharingControllerTest
 
         try
         {
-            sharingController.setSharing( "category", "kkSjhdhks", response, request );
+            sharingController.postSharing( "category", "kkSjhdhks", response, request );
         }
         catch ( WebMessageException e )
         {

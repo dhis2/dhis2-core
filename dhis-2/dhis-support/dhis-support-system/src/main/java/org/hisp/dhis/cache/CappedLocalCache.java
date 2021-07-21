@@ -31,10 +31,8 @@ import static java.lang.Integer.parseInt;
 import static java.lang.Math.max;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.unmodifiableSet;
-import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +46,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.LongConsumer;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -209,9 +208,9 @@ public class CappedLocalCache
         }
 
         @Override
-        public Collection<V> getAll()
+        public Stream<V> getAll()
         {
-            return entries.values().stream().map( CacheEntry::read ).collect( toList() );
+            return entries.values().stream().map( CacheEntry::read );
         }
 
         @Override

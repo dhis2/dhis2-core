@@ -43,6 +43,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHooks;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.Preheat;
@@ -86,7 +87,8 @@ public class ValidationFactoryTest
     {
         // Create a validation factory with a dummy check
         validationFactory = new ValidationFactory( schemaValidator, schemaService, aclService, userService,
-            Collections.emptyList(), ImmutableMap.of( CREATE_AND_UPDATE, ListUtils.newList( DummyCheck.class ) ) );
+            new ObjectBundleHooks( Collections.emptyList() ),
+            ImmutableMap.of( CREATE_AND_UPDATE, ListUtils.newList( DummyCheck.class ) ) );
     }
 
     @Test
@@ -104,7 +106,7 @@ public class ValidationFactoryTest
         assertThat( typeReport.getStats().getUpdated(), is( 0 ) );
         assertThat( typeReport.getStats().getDeleted(), is( 0 ) );
         assertThat( typeReport.getStats().getIgnored(), is( 1 ) );
-        assertThat( typeReport.getObjectReports(), hasSize( 1 ) );
+        assertThat( typeReport.getObjectReportsCount(), is( 1 ) );
     }
 
     private ObjectBundle createObjectBundle()

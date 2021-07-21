@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -41,47 +40,38 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProgramStageDataElementObjectBundleHook
-    extends AbstractObjectBundleHook
+public class ProgramStageDataElementObjectBundleHook extends AbstractObjectBundleHook<ProgramStageDataElement>
 {
-
+    /**
+     * Validate that the RenderType (if any) conforms to the constraints of
+     * ValueType or OptionSet.
+     */
     @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
+    public void validate( ProgramStageDataElement psda, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
+        DeviceRenderTypeMap<ValueTypeRenderingObject> map = psda.getRenderType();
 
-        /*
-         * Validate that the RenderType (if any) conforms to the constraints of
-         * ValueType or OptionSet.
-         */
-        if ( object != null && object.getClass().isAssignableFrom( ProgramStageDataElement.class ) )
+        if ( map == null )
         {
-            ProgramStageDataElement psda = (ProgramStageDataElement) object;
-            DeviceRenderTypeMap<ValueTypeRenderingObject> map = psda.getRenderType();
-
-            if ( map == null )
+            return;
+        }
+        DataElement de = psda.getDataElement();
+        for ( ValueTypeRenderingObject renderingObject : map.values() )
+        {
+            if ( renderingObject.getType() == null )
             {
-                return;
+                addReports
+                    .accept( new ErrorReport( ProgramStageDataElement.class, ErrorCode.E4011, "renderType.type" ) );
             }
-            DataElement de = psda.getDataElement();
-            for ( ValueTypeRenderingObject renderingObject : map.values() )
+
+            if ( !ValidationUtils
+                .validateRenderingType( ProgramStageDataElement.class, de.getValueType(), de.hasOptionSet(),
+                    renderingObject.getType() ) )
             {
-                if ( renderingObject.getType() == null )
-                {
-                    addReports
-                        .accept( new ErrorReport( ProgramStageDataElement.class, ErrorCode.E4011, "renderType.type" ) );
-                }
-
-                if ( !ValidationUtils
-                    .validateRenderingType( ProgramStageDataElement.class, de.getValueType(), de.hasOptionSet(),
-                        renderingObject.getType() ) )
-                {
-                    addReports.accept( new ErrorReport( ProgramStageDataElement.class, ErrorCode.E4017,
-                        renderingObject.getType(), de.getValueType() ) );
-                }
-
+                addReports.accept( new ErrorReport( ProgramStageDataElement.class, ErrorCode.E4017,
+                    renderingObject.getType(), de.getValueType() ) );
             }
+
         }
     }
-
 }

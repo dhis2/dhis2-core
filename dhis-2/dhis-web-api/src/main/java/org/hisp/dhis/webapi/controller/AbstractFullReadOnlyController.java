@@ -85,9 +85,8 @@ import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -165,7 +164,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // GET Full
     // --------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET )
+    @GetMapping
     public @ResponseBody RootNode getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         HttpServletResponse response, User currentUser )
@@ -241,7 +240,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return rootNode;
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}" )
     public @ResponseBody RootNode getObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
@@ -269,7 +268,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return getObjectInternal( pvUid, rpParameters, filters, fields, user );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/{property}" )
     public @ResponseBody RootNode getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
@@ -316,7 +315,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         }
     }
 
-    @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/{property}/{itemId}" )
     public @ResponseBody RootNode getCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
