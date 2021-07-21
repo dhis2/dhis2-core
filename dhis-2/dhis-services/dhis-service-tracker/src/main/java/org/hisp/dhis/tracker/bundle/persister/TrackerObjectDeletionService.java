@@ -25,23 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.embeddedjetty;
+package org.hisp.dhis.tracker.bundle.persister;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.report.TrackerTypeReport;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Zubair Asghar
  */
-@Slf4j
-public class StartupFinishedRoutine extends AbstractStartupRoutine
+public interface TrackerObjectDeletionService
 {
-    @Override
-    public void execute()
-        throws Exception
-    {
-        log.info( String.format( "DHIS2 API Server Startup Finished In %s Seconds! Running on port: %s",
-            (JettyEmbeddedCoreWeb.getElapsedMsSinceStart() / 1000), System.getProperty( "jetty.http.port" ) ) );
-    }
+    TrackerTypeReport deleteEnrollments( TrackerBundle bundle );
+
+    TrackerTypeReport deleteEvents( TrackerBundle bundle );
+
+    TrackerTypeReport deleteTrackedEntityInstances( TrackerBundle bundle );
+
+    TrackerTypeReport deleteRelationShips( TrackerBundle bundle );
 }

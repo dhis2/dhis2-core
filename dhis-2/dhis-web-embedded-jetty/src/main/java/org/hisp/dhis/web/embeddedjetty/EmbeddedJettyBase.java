@@ -35,6 +35,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -42,18 +44,13 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 
 import com.google.common.base.Preconditions;
 
+@Slf4j
 public abstract class EmbeddedJettyBase
 {
-    // OBS: Important to not set the 'log' variable here to static,
-    // this will cause logback to boot before default properties set in
-    private final Logger log = LoggerFactory.getLogger( EmbeddedJettyBase.class );
-
     public EmbeddedJettyBase()
     {
         Thread.currentThread().setUncaughtExceptionHandler( EmbeddedJettyUncaughtExceptionHandler.systemExit( log ) );
@@ -166,9 +163,9 @@ public abstract class EmbeddedJettyBase
     {
         Preconditions.checkNotNull( key );
         Preconditions.checkNotNull( defaultValue );
-        System.setProperty( key, System.getProperty( key, defaultValue ) );
+        String property = System.getProperty( key, defaultValue );
+        System.setProperty( key, property );
     }
 
     public abstract ServletContextHandler getServletContextHandler();
-
 }

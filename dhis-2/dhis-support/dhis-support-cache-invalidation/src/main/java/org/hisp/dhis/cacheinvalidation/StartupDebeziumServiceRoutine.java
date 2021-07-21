@@ -25,21 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.cacheinvalidation;
 
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.TrackerTypeReport;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
 
 /**
- * @author Zubair Asghar
+ * Startup routine responsible for starting the Debezium engine service. The
+ * {@link DebeziumPreStartupRoutine} is called first so that the
+ * {@link TableNameToEntityMapping} is already been initialized, see
+ * {@link TableNameToEntityMapping#init}
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface TrackerObjectDeletionService
+@Slf4j
+@Profile( { "!test", "!test-h2" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine
 {
-    TrackerTypeReport deleteEnrollments( TrackerBundle bundle, TrackerType trackerType );
+    @Autowired
+    private DebeziumService debeziumService;
 
-    TrackerTypeReport deleteEvents( TrackerBundle bundle, TrackerType trackerType );
-
-    TrackerTypeReport deleteTrackedEntityInstances( TrackerBundle bundle, TrackerType trackerType );
-
-    TrackerTypeReport deleteRelationShips( TrackerBundle bundle, TrackerType trackerType );
+    public void execute()
+        throws InterruptedException
+    {
+        debeziumService.startDebeziumEngine();
+    }
 }
