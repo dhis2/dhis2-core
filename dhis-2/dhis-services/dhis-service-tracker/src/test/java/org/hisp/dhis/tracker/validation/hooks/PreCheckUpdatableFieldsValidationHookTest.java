@@ -73,8 +73,6 @@ public class PreCheckUpdatableFieldsValidationHookTest
 
     private final static String EVENT_ID = "EventId";
 
-    private final static String RELATIONSHIP_ID = "RelationshipId";
-
     private PreCheckUpdatableFieldsValidationHook validationHook;
 
     @Rule

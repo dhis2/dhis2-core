@@ -33,31 +33,30 @@ import javax.jms.JMSException;
 import javax.jms.TextMessage;
 
 import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair Asghar
  */
-
 @Component
 public abstract class BaseMessageManager
 {
     private final MessageManager messageManager;
 
-    private final SchedulingManager schedulingManager;
+    private final AsyncTaskExecutor taskExecutor;
 
     private final RenderService renderService;
 
     public BaseMessageManager(
         MessageManager messageManager,
-        SchedulingManager schedulingManager,
+        AsyncTaskExecutor taskExecutor,
         RenderService renderService )
     {
         this.messageManager = messageManager;
-        this.schedulingManager = schedulingManager;
+        this.taskExecutor = taskExecutor;
         this.renderService = renderService;
     }
 
@@ -73,7 +72,7 @@ public abstract class BaseMessageManager
 
     public void executeJob( Runnable runnable )
     {
-        schedulingManager.executeJob( runnable );
+        taskExecutor.executeTask( runnable );
     }
 
     public TrackerSideEffectDataBundle toBundle( TextMessage message )

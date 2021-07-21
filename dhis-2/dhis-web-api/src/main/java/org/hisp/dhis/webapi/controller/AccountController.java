@@ -73,8 +73,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -132,7 +133,7 @@ public class AccountController
         this.jsonMapper = jsonMapper;
     }
 
-    @RequestMapping( value = "/recovery", method = RequestMethod.POST )
+    @PostMapping( "/recovery" )
     public void recoverAccount(
         @RequestParam String username,
         HttpServletRequest request,
@@ -188,7 +189,7 @@ public class AccountController
         }
     }
 
-    @RequestMapping( value = "/restore", method = RequestMethod.POST )
+    @PostMapping( "/restore" )
     public void restoreAccount(
         @RequestParam String token,
         @RequestParam String password,
@@ -259,7 +260,7 @@ public class AccountController
         webMessageService.send( WebMessageUtils.ok( "Account restored" ), response, request );
     }
 
-    @RequestMapping( method = RequestMethod.POST )
+    @PostMapping
     public void createAccount(
         @RequestParam String username,
         @RequestParam String firstName,
@@ -487,7 +488,7 @@ public class AccountController
         webMessageService.send( WebMessageUtils.ok( "Account created" ), response, request );
     }
 
-    @RequestMapping( value = "/password", method = RequestMethod.POST )
+    @PostMapping( "/password" )
     public void updatePassword(
         @RequestParam String oldPassword,
         @RequestParam String password,
@@ -561,7 +562,7 @@ public class AccountController
         ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
-    @RequestMapping( value = "/username", method = RequestMethod.GET )
+    @GetMapping( "/username" )
     public void validateUserNameGet( @RequestParam String username, HttpServletResponse response )
         throws IOException
     {
@@ -570,7 +571,7 @@ public class AccountController
         ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
-    @RequestMapping( value = "/validateUsername", method = RequestMethod.POST )
+    @PostMapping( "/validateUsername" )
     public void validateUserNameGetPost( @RequestParam String username, HttpServletResponse response )
         throws IOException
     {
@@ -579,7 +580,7 @@ public class AccountController
         ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
-    @RequestMapping( value = "/password", method = RequestMethod.GET )
+    @GetMapping( "/password" )
     public void validatePasswordGet( @RequestParam String password, HttpServletResponse response )
         throws IOException
     {
@@ -588,7 +589,7 @@ public class AccountController
         ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
-    @RequestMapping( value = "/validatePassword", method = RequestMethod.POST )
+    @PostMapping( "/validatePassword" )
     public void validatePasswordPost( @RequestParam String password, HttpServletResponse response )
         throws IOException
     {

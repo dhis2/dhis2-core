@@ -28,119 +28,80 @@
 package org.hisp.dhis.scheduling;
 
 import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 
 /**
- * Interface for scheduling jobs.
- * <p>
- * <p>
- * The main steps of the scheduling:
- * <p>
- * <ul>
- * <li>Create a job configuration {@link JobConfiguration}</li>
- * <li>This job configuration needs a job specific parameters object
- * {@link JobParameters}, ie
- * {@link org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters}.</li>
- * <li>Call scheduleJob with the job configuration.</li>
- * <li>The schedulingManager calls the spring scheduler with a runnable object
- * {@link JobInstance}.</li>
- * <li>When the cron expression occurs the job will try to execute from the
- * runnable object, job instance.</li>
- * </ul>
+ * {@link Job}s are tasks that are supposed to run asynchronously.
+ *
+ * A {@link JobConfiguration} is a specific configuration for running such a
+ * task.
+ *
+ * There should be one {@link JobConfiguration} for each {@link JobType} and
+ * only one task of each {@link JobType} can run at the same time.
+ *
+ * Usually a {@link Job}'s execution is scheduled by using
+ * {@link #schedule(JobConfiguration)} or
+ * {@link #scheduleWithStartTime(JobConfiguration, Date)}.
+ *
+ * Alternatively a execution can be ran ad-hoc using
+ * {@link #executeNow(JobConfiguration)}.
+ *
+ * There are ways to schedule a task for future execution:
+ * <dl>
+ * <dt>Cron expression ({@link SchedulingType#CRON}):</dt>
+ * <dd>To {@link #schedule(JobConfiguration)} a task in a reoccurring time
+ * pattern</dd>
+ * <dt>Fixed delay time ({@link SchedulingType#FIXED_DELAY}):</dt>
+ * <dd>To {@link #schedule(JobConfiguration)} a task in a fixed interval</dd>
+ * <dt>Start time based:</dt>
+ * <dd>To {@link #scheduleWithStartTime(JobConfiguration, Date)} a task once at
+ * a specific point in time.</dd>
+ * </dl>
  *
  * @author Henning Håkonsen
  */
 public interface SchedulingManager
 {
-    /**
-     * Check if this job configuration is currently running
-     *
-     * @param type type of job to check
-     * @return true/false
-     */
-    boolean isJobConfigurationRunning( JobType type );
 
     /**
-     * Set up default behavior for a started job.
+     * Schedules a job with the given job configuration.
      *
-     * @param jobConfiguration the job which started
-     */
-    void jobConfigurationStarted( JobConfiguration jobConfiguration );
-
-    /**
-     * Set up default behavior for a finished job.
-     * <p>
-     * A special case is if a job is disabled when running, but the job does not
-     * stop. The job will run normally one last time and try to set finished
-     * status. Since the job is disabled we manually set these parameters in
-     * this method so that the job is not automatically rescheduled.
-     * <p>
-     * Also we don't want to update a job configuration if the job is deleted.
+     * This stops running jobs of the same {@link JobType} is necessary and
+     * replaces existing scheduled tasks in the future.
      *
-     * @param jobConfiguration the job which started
-     */
-    void jobConfigurationFinished( JobConfiguration jobConfiguration );
-
-    /**
-     * Schedules a job with the given job configuration. The job will be
-     * scheduled based on the {@link JobConfiguration#cronExpression} property.
+     * The job will be scheduled based on the
+     * {@link JobConfiguration#getCronExpression()} property.
      *
-     * @param jobConfiguration the job to schedule.
+     * @param configuration the job to schedule.
      */
-    void scheduleJob( JobConfiguration jobConfiguration );
+    void schedule( JobConfiguration configuration );
 
     /**
      * Schedule a job with the given start time.
      *
-     * @param jobConfiguration The jobConfiguration with job details to be
-     *        scheduled
+     * This stops running jobs of the same {@link JobType} is necessary and
+     * replaces existing scheduled tasks in the future.
+     *
+     * @param configuration The configuration with job details to be scheduled
      * @param startTime The time at which the job should start
      */
-    void scheduleJobWithStartTime( JobConfiguration jobConfiguration, Date startTime );
+    void scheduleWithStartTime( JobConfiguration configuration, Date startTime );
 
     /**
-     * Stops one job.
+     * Stops the currently running task with the same {@link JobType} as the
+     * provided configuration.
      */
-    void stopJob( JobConfiguration jobConfiguration );
+    void stop( JobConfiguration configuration );
 
     /**
-     * Get a job based on the job type.
+     * Ad-hoc execution of a {@link JobConfiguration}.
      *
-     * @param jobType the job type for the job we want to collect
-     * @return the job
-     */
-    Job getJob( JobType jobType );
-
-    /**
-     * Execute the job.
+     * This only starts a new new task if no job with the same {@link JobType}
+     * is running.
      *
-     * @param jobConfiguration The configuration of the job to be executed
+     * @param configuration The configuration of the job to be executed
+     * @return true, if the job was was not already running and got started now,
+     *         otherwise false
      */
-    boolean executeJob( JobConfiguration jobConfiguration );
+    boolean executeNow( JobConfiguration configuration );
 
-    /**
-     * Execute an actual job without validation
-     *
-     * @param job The job to be executed
-     */
-    void executeJob( Runnable job );
-
-    /**
-     * Execute the given job immediately and return a ListenableFuture.
-     *
-     * @param callable the job to execute.
-     * @param <T> return type of the supplied {@link Callable}.
-     * @return a {@link Future} representing the result of the job.
-     */
-    <T> Future<T> executeJob( Callable<T> callable );
-
-    /**
-     * Returns a list of all scheduled jobs sorted based on cron expression and
-     * the current time.
-     *
-     * @return list of jobs
-     */
-    Map<String, Future<?>> getAllFutureJobs();
 }

@@ -161,7 +161,11 @@ public class JdbcEventAnalyticsTableManager
 
         Calendar calendar = PeriodType.getCalendar();
 
-        List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
+        List<Program> programs = params.isSkipPrograms() ? idObjectManager.getAllNoAcl( Program.class )
+            : idObjectManager.getAllNoAcl( Program.class )
+                .stream()
+                .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
+                .collect( Collectors.toList() );
 
         for ( Program program : programs )
         {
@@ -212,7 +216,10 @@ public class JdbcEventAnalyticsTableManager
 
         List<AnalyticsTable> tables = new ArrayList<>();
 
-        List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
+        List<Program> programs = params.isSkipPrograms() ? idObjectManager.getAllNoAcl( Program.class )
+            .stream()
+            .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
+            .collect( Collectors.toList() ) : idObjectManager.getAllNoAcl( Program.class );
 
         for ( Program program : programs )
         {
@@ -301,6 +308,12 @@ public class JdbcEventAnalyticsTableManager
                 "yearly = '" + partition.getYear() + "'",
                 "executiondate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
                 "executiondate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
+    }
+
+    @Override
+    protected String getPartitionColumn()
+    {
+        return "yearly";
     }
 
     @Override
@@ -536,7 +549,7 @@ public class JdbcEventAnalyticsTableManager
     {
         if ( valueType.isNumeric() || valueType.isDate() )
         {
-            String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : valueType.isDate() ? DATE_REGEXP : "";
+            String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
 
             return " and eventdatavalues #>> '{" + uid + ",value}' " + statementBuilder.getRegexpMatch() + " '" + regex
                 + "'";

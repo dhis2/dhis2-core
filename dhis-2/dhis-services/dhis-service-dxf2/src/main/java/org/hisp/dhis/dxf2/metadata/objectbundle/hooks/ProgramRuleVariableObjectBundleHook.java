@@ -29,12 +29,15 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS;
 
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -44,12 +47,13 @@ import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Zubair Asghar.
  */
 @Component
-public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHook
+public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHook<ProgramRuleVariable>
 {
     private final ImmutableMap<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>> SOURCE_TYPE_RESOLVER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>>()
         .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, this::processCalculatedValue )
@@ -60,42 +64,67 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, this::processTEA )
         .build();
 
+    private static final Set<ImportStrategy> UPDATE_STRATEGIES = ImmutableSet.of(
+        ImportStrategy.UPDATE,
+        ImportStrategy.CREATE_AND_UPDATE,
+        ImportStrategy.NEW_AND_UPDATES,
+        ImportStrategy.UPDATES );
+
     private static final String FROM_PROGRAM_RULE_VARIABLE = " from ProgramRuleVariable prv where prv.name = :name and prv.program.uid = :programUid";
 
-    private final String PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REGEX;
-
-    ProgramRuleVariableObjectBundleHook()
-    {
-        PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REGEX = "("
-            + String.join( "|", PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS ) + ")";
-    }
+    private static final String PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS_REGEX = "("
+        + String.join( "|", PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS ) + ")";
 
     @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+    public void validate( ProgramRuleVariable programRuleVariable, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
-        if ( object instanceof ProgramRuleVariable )
-        {
-            ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) object;
-
-            validateUniqueProgramRuleName( bundle, programRuleVariable, addReports );
-            validateProgramRuleNameKeyWords( programRuleVariable, addReports );
-        }
+        validateUniqueProgramRuleName( bundle, programRuleVariable, addReports );
+        validateProgramRuleNameKeyWords( programRuleVariable, addReports );
     }
 
     private void validateUniqueProgramRuleName( ObjectBundle bundle,
         ProgramRuleVariable programRuleVariable, Consumer<ErrorReport> addReports )
     {
-        Query<ProgramRuleVariable> query = getProgramRuleVariableQuery( programRuleVariable );
+        List<ProgramRuleVariable> prvWithSameNameAndSameProgram = getProgramRuleVariableQuery( programRuleVariable )
+            .getResultList();
 
-        int allowedCount = bundle.getImportMode() == ImportStrategy.UPDATE ? 1 : 0;
-
-        if ( query.getResultList().size() > allowedCount )
+        // update
+        if ( UPDATE_STRATEGIES.contains( bundle.getImportMode() ) )
         {
-            addReports.accept(
-                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4051, programRuleVariable.getName(),
-                    programRuleVariable.getProgram().getUid() ) );
+            if ( !isLegitUpdate( programRuleVariable, prvWithSameNameAndSameProgram ) )
+            {
+                failPrvWithSameNAmeAlreadyExists( programRuleVariable, addReports );
+            }
+            return;
         }
+
+        // insert
+        if ( CollectionUtils.isNotEmpty( prvWithSameNameAndSameProgram ) )
+        {
+            failPrvWithSameNAmeAlreadyExists( programRuleVariable, addReports );
+        }
+    }
+
+    private boolean isLegitUpdate( ProgramRuleVariable programRuleVariable,
+        List<ProgramRuleVariable> existingPrvs )
+    {
+        return existingPrvs.isEmpty() ||
+            existingPrvs.stream()
+                .anyMatch( existingPrv -> hasSameUid( existingPrv, programRuleVariable ) );
+    }
+
+    private boolean hasSameUid( ProgramRuleVariable existingPrv, ProgramRuleVariable programRuleVariable )
+    {
+        return StringUtils.equals( existingPrv.getUid(), programRuleVariable.getUid() );
+    }
+
+    private void failPrvWithSameNAmeAlreadyExists( ProgramRuleVariable programRuleVariable,
+        Consumer<ErrorReport> addReports )
+    {
+        addReports.accept(
+            new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4051, programRuleVariable.getName(),
+                programRuleVariable.getProgram().getUid() ) );
     }
 
     private Query<ProgramRuleVariable> getProgramRuleVariableQuery( ProgramRuleVariable programRuleVariable )
@@ -122,14 +151,12 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
     }
 
     @Override
-    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    public void preUpdate( ProgramRuleVariable variable, ProgramRuleVariable persistedObject, ObjectBundle bundle )
     {
-        if ( object instanceof ProgramRuleVariable )
+        Consumer<ProgramRuleVariable> mod = SOURCE_TYPE_RESOLVER.get( variable.getSourceType() );
+        if ( mod != null )
         {
-            ProgramRuleVariable variable = (ProgramRuleVariable) object;
-
-            SOURCE_TYPE_RESOLVER.getOrDefault( variable.getSourceType(), v -> {
-            } ).accept( variable );
+            mod.accept( variable );
         }
     }
 

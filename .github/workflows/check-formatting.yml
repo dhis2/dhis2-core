@@ -20,7 +20,13 @@ jobs:
           restore-keys: ${{ runner.os }}-maven-
 
       - name: Check formatting in core
-        run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/pom.xml
+        env:
+          # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
+          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
+        run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/pom.xml $MAVEN_BUILD_OPTS
 
       - name: Check formatting in web
-        run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml
+        env:
+          # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
+          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
+        run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml $MAVEN_BUILD_OPTS

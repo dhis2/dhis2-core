@@ -30,7 +30,7 @@
 
         <property name="teiA" column="teiA" length="11" not-null="true" />
 
-        <property name="teiB" column="teiB" length="11" not-null="false" />
+        <property name="teiB" column="teiB" length="11" not-null="true" />
 
         <property name="status" column="status">
             <type name="org.hibernate.type.EnumType">

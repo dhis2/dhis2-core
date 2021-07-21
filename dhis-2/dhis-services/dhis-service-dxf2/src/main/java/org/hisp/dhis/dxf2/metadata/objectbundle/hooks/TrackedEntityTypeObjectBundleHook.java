@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -48,17 +47,15 @@ import org.springframework.stereotype.Component;
  * @author Luca Cambi <luca@dhis2.org>
  */
 @Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityTypeObjectBundleHook" )
-public class TrackedEntityTypeObjectBundleHook extends AbstractObjectBundleHook
+public class TrackedEntityTypeObjectBundleHook extends AbstractObjectBundleHook<TrackedEntityType>
 {
     @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
+    public void validate( TrackedEntityType object, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
-
-        Optional.ofNullable( object ).filter( o -> o.getClass().isAssignableFrom( TrackedEntityType.class ) )
-            .map( TrackedEntityType.class::cast )
-            .flatMap( trackedEntityType -> Optional.ofNullable( trackedEntityType.getTrackedEntityAttributes() ) )
-            .ifPresent( teAttrs -> teAttrs.stream().filter( Objects::nonNull ).forEach( tea -> {
+        List<TrackedEntityAttribute> attributes = object.getTrackedEntityAttributes();
+        if ( attributes != null && !attributes.isEmpty() )
+        {
+            attributes.stream().filter( Objects::nonNull ).forEach( tea -> {
                 PreheatIdentifier preheatIdentifier = bundle.getPreheatIdentifier();
 
                 if ( bundle.getPreheat().get( preheatIdentifier, tea ) == null )
@@ -68,8 +65,7 @@ public class TrackedEntityTypeObjectBundleHook extends AbstractObjectBundleHook
                             preheatIdentifier.getIdentifiersWithName( tea ) ).setErrorProperty( "id" )
                                 .setMainId( tea.getUid() ) );
                 }
-
-            } ) );
-
+            } );
+        }
     }
 }

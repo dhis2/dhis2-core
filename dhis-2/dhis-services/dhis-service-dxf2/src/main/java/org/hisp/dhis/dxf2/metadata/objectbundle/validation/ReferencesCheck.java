@@ -59,13 +59,11 @@ import org.hisp.dhis.user.sharing.Sharing;
 /**
  * @author Luciano Fiandesio
  */
-public class ReferencesCheck
-    implements
-    ValidationCheck
+public class ReferencesCheck implements ValidationCheck
 {
     @Override
-    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+    public <T extends IdentifiableObject> TypeReport check( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext ctx )
     {
         if ( persistedObjects.isEmpty() && nonPersistedObjects.isEmpty() )
@@ -88,7 +86,7 @@ public class ReferencesCheck
             }
         }
 
-        if ( !typeReport.getErrorReports().isEmpty() && AtomicMode.ALL == bundle.getAtomicMode() )
+        if ( typeReport.hasErrorReports() && AtomicMode.ALL == bundle.getAtomicMode() )
         {
             typeReport.getStats().incIgnored();
         }

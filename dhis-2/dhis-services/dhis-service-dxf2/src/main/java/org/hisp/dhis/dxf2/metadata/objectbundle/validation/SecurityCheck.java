@@ -47,8 +47,8 @@ import org.hisp.dhis.user.User;
 public class SecurityCheck implements ObjectValidationCheck
 {
     @Override
-    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext context, Consumer<ObjectReport> addReports )
     {
         if ( importStrategy.isUpdate() || importStrategy.isCreateAndUpdate() )
@@ -61,8 +61,8 @@ public class SecurityCheck implements ObjectValidationCheck
         }
     }
 
-    private void runValidationCheck( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> objects, ImportStrategy importMode, ValidationContext ctx,
+    private <T extends IdentifiableObject> void runValidationCheck( ObjectBundle bundle, Class<T> klass,
+        List<T> objects, ImportStrategy importMode, ValidationContext ctx,
         Consumer<ObjectReport> addReports )
     {
         if ( objects == null || objects.isEmpty() )
@@ -72,7 +72,7 @@ public class SecurityCheck implements ObjectValidationCheck
 
         PreheatIdentifier identifier = bundle.getPreheatIdentifier();
 
-        for ( IdentifiableObject object : objects )
+        for ( T object : objects )
         {
             if ( importMode.isCreate() )
             {
@@ -89,7 +89,7 @@ public class SecurityCheck implements ObjectValidationCheck
             }
             else
             {
-                IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
+                T persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
 
                 if ( importMode.isUpdate() )
                 {
@@ -128,12 +128,16 @@ public class SecurityCheck implements ObjectValidationCheck
                 }
             }
 
-            List<ErrorReport> sharingErrorReports = ctx.getAclService().verifySharing( object, bundle.getUser() );
-            if ( !sharingErrorReports.isEmpty() )
+            if ( !bundle.isSkipSharing() )
             {
-                addReports.accept( createObjectReport( sharingErrorReports, object, bundle ) );
-                ctx.markForRemoval( object );
+                List<ErrorReport> sharingErrorReports = ctx.getAclService().verifySharing( object, bundle.getUser() );
+                if ( !sharingErrorReports.isEmpty() )
+                {
+                    addReports.accept( createObjectReport( sharingErrorReports, object, bundle ) );
+                    ctx.markForRemoval( object );
+                }
             }
+
         }
     }
 }

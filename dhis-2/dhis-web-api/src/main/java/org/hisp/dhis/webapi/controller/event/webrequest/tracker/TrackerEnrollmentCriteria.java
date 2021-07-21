@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
 import java.util.Date;
+import java.util.Optional;
 
 import lombok.Data;
 import lombok.Getter;
@@ -77,10 +78,9 @@ public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter
     }
 
     @Override
-    public String translateField( String dtoFieldName, boolean isLegacy )
+    public Optional<String> translateField( String dtoFieldName, boolean isLegacy )
     {
-        return (isLegacy ? translate( dtoFieldName, LegacyDtoToEntityFieldTranslator.values() )
-            : translate( dtoFieldName, DtoToEntityFieldTranslator.values() )).orElse( dtoFieldName );
+        return translate( dtoFieldName, DtoToEntityFieldTranslator.values() );
     }
 
     /**
@@ -102,32 +102,11 @@ public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter
         CREATED_AT( "created" ),
         UPDATED_AT( "lastUpdated" ),
         UPDATED_AT_CLIENT( "lastUpdatedAtClient" ),
-        TRACKED_ENTITY( "trackedEntityInstance" ),
+        TRACKED_ENTITY( "pi.entityInstance.uid" ),
+        TRACKED_ENTITY_INSTANCE( "pi.entityInstance.uid" ),
         ENROLLED_AT( "enrollmentDate" ),
         OCCURRED_AT( "incidentDate" ),
         COMPLETED_AT( "endDate" );
-
-        @Getter
-        private final String entityName;
-
-    }
-
-    /**
-     * Dto to database field translator for old tracker Enrollment export
-     * controller
-     */
-    @RequiredArgsConstructor
-    private enum LegacyDtoToEntityFieldTranslator implements EntityNameSupplier
-    {
-        /**
-         * this enum names must be the same as
-         * org.hisp.dhis.dxf2.events.enrollment.Enrollment fields, just with
-         * different case
-         *
-         * example: org.hisp.dhis.dxf2.events.enrollment.Enrollment.lastUpdated
-         * --> LAST_UPDATED
-         */
-        ENROLLMENT( "uid" );
 
         @Getter
         private final String entityName;

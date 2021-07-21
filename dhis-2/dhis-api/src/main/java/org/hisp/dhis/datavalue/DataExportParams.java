@@ -84,6 +84,8 @@ public class DataExportParams
 
     private boolean orderByOrgUnitPath;
 
+    private boolean orderByPeriod;
+
     private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
 
     private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
@@ -274,6 +276,7 @@ public class DataExportParams
             .add( "org unit level", orgUnitLevel )
             .add( "children", includeChildren )
             .add( "order by org unit path", orderByOrgUnitPath )
+            .add( "order by period", orderByPeriod )
             .add( "org unit groups", organisationUnitGroups )
             .add( "attribute option combos", attributeOptionCombos )
             .add( "category option dimension constraints", coDimensionConstraints )
@@ -442,6 +445,17 @@ public class DataExportParams
     public DataExportParams setOrderByOrgUnitPath( boolean orderByOrgUnitPath )
     {
         this.orderByOrgUnitPath = orderByOrgUnitPath;
+        return this;
+    }
+
+    public boolean isOrderByPeriod()
+    {
+        return orderByPeriod;
+    }
+
+    public DataExportParams setOrderByPeriod( boolean orderByPeriod )
+    {
+        this.orderByPeriod = orderByPeriod;
         return this;
     }
 

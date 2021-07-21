@@ -141,6 +141,9 @@ public class MvcTestConfig implements WebMvcConfigurer
         .put( "csv", parseMediaType( "application/csv" ) )
         .put( "csv.gz", parseMediaType( "application/csv+gzip" ) )
         .put( "csv.zip", parseMediaType( "application/csv+zip" ) )
+        .put( "adx.xml", parseMediaType( "application/adx+xml" ) )
+        .put( "adx.xml.gz", parseMediaType( "application/adx+xml+gzip" ) )
+        .put( "adx.xml.zip", parseMediaType( "application/adx+xml+zip" ) )
         .put( "geojson", parseMediaType( "application/json+geojson" ) )
         .build();
 

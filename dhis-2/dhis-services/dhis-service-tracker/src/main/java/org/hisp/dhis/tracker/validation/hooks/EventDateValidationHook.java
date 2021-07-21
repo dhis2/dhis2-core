@@ -64,7 +64,7 @@ public class EventDateValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        Program program = context.getProgramStage( event.getProgramStage() ).getProgram();
+        Program program = context.getProgram( event.getProgram() );
 
         if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
         {

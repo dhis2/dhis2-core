@@ -461,6 +461,13 @@ public class DefaultDataApprovalService
     }
 
     @Override
+    @Transactional
+    public void addDataApproval( DataApproval dataApproval )
+    {
+        dataApprovalStore.addDataApproval( dataApproval );
+    }
+
+    @Override
     @Transactional( readOnly = true )
     public DataApproval getDataApproval( DataApproval dataApproval )
     {

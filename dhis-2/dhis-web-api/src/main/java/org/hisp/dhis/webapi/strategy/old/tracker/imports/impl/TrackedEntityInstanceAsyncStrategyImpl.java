@@ -30,11 +30,11 @@ package org.hisp.dhis.webapi.strategy.old.tracker.imports.impl;
 import java.io.IOException;
 import java.util.List;
 
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.dxf2.events.trackedentity.ImportTrackedEntitiesTask;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
 import org.springframework.stereotype.Component;
@@ -46,9 +46,9 @@ import org.springframework.stereotype.Component;
 public class TrackedEntityInstanceAsyncStrategyImpl extends AbstractTrackedEntityInstanceStrategy
 {
     public TrackedEntityInstanceAsyncStrategyImpl( TrackedEntityInstanceService trackedEntityInstanceService,
-        SchedulingManager schedulingManager )
+        AsyncTaskExecutor taskExecutor )
     {
-        super( trackedEntityInstanceService, schedulingManager );
+        super( trackedEntityInstanceService, taskExecutor );
     }
 
     @Override
@@ -60,7 +60,7 @@ public class TrackedEntityInstanceAsyncStrategyImpl extends AbstractTrackedEntit
         List<TrackedEntityInstance> trackedEntityInstanceList = getTrackedEntityInstancesListByMediaType(
             trackerEntityInstanceRequest.getMediaType(), trackerEntityInstanceRequest.getInputStream() );
 
-        schedulingManager.executeJob( new ImportTrackedEntitiesTask( trackedEntityInstanceList,
+        taskExecutor.executeTask( new ImportTrackedEntitiesTask( trackedEntityInstanceList,
             trackedEntityInstanceService, trackerEntityInstanceRequest.getImportOptions(),
             trackerEntityInstanceRequest.getJobConfiguration() ) );
 

@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.lang.reflect.InvocationTargetException;
@@ -308,7 +308,7 @@ public abstract class TrackerTest extends IntegrationTestBase
             createEnrollmentWithEvents( this.programA, entityInstance, eventSize, enrollmentValues ),
             ImportOptions.getDefaultImportOptions() );
 
-        assertThat( importSummary.getConflicts(), hasSize( 0 ) );
+        assertEquals( 0, importSummary.getConflictCount() );
 
         assertThat( importSummary.getEvents().getImported(), is( eventSize ) );
 

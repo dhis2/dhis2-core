@@ -33,6 +33,7 @@ import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
 
 import java.net.URI;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,17 +42,13 @@ import lombok.AllArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -84,8 +81,6 @@ public class DefaultGistService implements GistService
 
     private final ObjectMapper jsonMapper;
 
-    private final GistValidator validator;
-
     private Session getSession()
     {
         return sessionFactory.getCurrentSession();
@@ -94,27 +89,21 @@ public class DefaultGistService implements GistService
     @Override
     public GistQuery plan( GistQuery query )
     {
-        return new GistPlanner( query, createPropertyContext( query ) ).plan();
+        return new GistPlanner( query, createPropertyContext( query ), createGistAccessControl() ).plan();
     }
 
     @Override
     public List<?> gist( GistQuery query )
     {
+        GistAccessControl access = createGistAccessControl();
         RelativePropertyContext context = createPropertyContext( query );
-        validator.validateQuery( query, context );
-        GistBuilder queryBuilder = createFetchBuilder( query, context, currentUserService.getCurrentUser(),
-            this::getUserGroupIdsByUserId, this::getAccessFromSharing );
+        new GistValidator( query, context, access ).validateQuery();
+        GistBuilder queryBuilder = createFetchBuilder( query, context, access,
+            this::getUserGroupIdsByUserId );
         List<Object[]> rows = fetchWithParameters( query, queryBuilder,
             getSession().createQuery( queryBuilder.buildFetchHQL(), Object[].class ) );
         queryBuilder.transform( rows );
         return rows;
-    }
-
-    private Access getAccessFromSharing( Sharing sharing, User user, Class<? extends IdentifiableObject> type )
-    {
-        BaseIdentifiableObject object = new BaseIdentifiableObject();
-        object.setSharing( sharing );
-        return aclService.getAccess( object, user, type );
     }
 
     @Override
@@ -127,14 +116,17 @@ public class DefaultGistService implements GistService
         Integer total = null;
         if ( query.isTotal() )
         {
-            if ( rows.size() < query.getPageSize() )
+            if ( rows.size() < query.getPageSize() && !rows.isEmpty() )
             {
+                // NB. only do this when rows are returned as otherwise the page
+                // simply might not exist which leads to zero rows
                 total = query.getPageOffset() + rows.size();
             }
             else
             {
+                GistAccessControl access = createGistAccessControl();
                 RelativePropertyContext context = createPropertyContext( query );
-                GistBuilder countBuilder = createCountBuilder( query, context, currentUserService.getCurrentUser(),
+                GistBuilder countBuilder = createCountBuilder( query, context, access,
                     this::getUserGroupIdsByUserId );
                 total = countWithParameters( countBuilder,
                     getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
@@ -156,6 +148,69 @@ public class DefaultGistService implements GistService
         return new GistPager( page, query.getPageSize(), total, prev, next );
     }
 
+    @Override
+    public Map<String, ?> describe( GistQuery unplanned )
+    {
+        GistAccessControl access = createGistAccessControl();
+
+        GistQuery planned = unplanned;
+        Map<String, Object> description = new LinkedHashMap<>();
+        description.put( "unplanned", unplanned );
+        try
+        {
+            planned = plan( unplanned );
+        }
+        catch ( RuntimeException ex )
+        {
+            description.put( "error.type", ex.getClass().getName() );
+            description.put( "error.message", ex.getMessage() );
+            description.put( "status", "planning-failed" );
+            return description;
+        }
+
+        RelativePropertyContext context = createPropertyContext( planned );
+
+        // describe query
+        description.put( "planned.summary", planned.getFieldNames() );
+        description.put( "planned", planned );
+
+        // describe validation
+        try
+        {
+            new GistValidator( planned, context, access ).validateQuery();
+        }
+        catch ( RuntimeException ex )
+        {
+            description.put( "error.type", ex.getClass().getName() );
+            description.put( "error.message", ex.getMessage() );
+            description.put( "status", "validation-failed" );
+            return description;
+        }
+
+        // describe HQL queries
+        if ( access.canReadHQL() )
+        {
+            if ( planned.isTotal() )
+            {
+                description.put( "hql.count",
+                    createCountBuilder( planned, context, access, this::getUserGroupIdsByUserId ).buildCountHQL() );
+            }
+            GistBuilder fetchBuilder = createFetchBuilder( planned, context, access, this::getUserGroupIdsByUserId );
+            description.put( "hql.fetch", fetchBuilder.buildFetchHQL() );
+            Map<String, Object> params = new LinkedHashMap<>();
+            fetchBuilder.addFetchParameters( params::put, this::parseFilterArgument );
+            description.put( "hql.parameters", params );
+        }
+
+        description.put( "status", "ok" );
+        return description;
+    }
+
+    private GistAccessControl createGistAccessControl()
+    {
+        return new DefaultGistAccessControl( currentUserService.getCurrentUser(), aclService, userService, this );
+    }
+
     private RelativePropertyContext createPropertyContext( GistQuery query )
     {
         return new RelativePropertyContext( query.getElementType(), schemaService::getDynamicSchema );
@@ -164,7 +219,7 @@ public class DefaultGistService implements GistService
     private <T> List<T> fetchWithParameters( GistQuery gistQuery, GistBuilder builder, Query<T> query )
     {
         builder.addFetchParameters( query::setParameter, this::parseFilterArgument );
-        query.setMaxResults( gistQuery.getPageSize() );
+        query.setMaxResults( Math.max( 1, gistQuery.getPageSize() ) );
         query.setFirstResult( gistQuery.getPageOffset() );
         query.setCacheable( false );
         return query.list();

@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Iterator;
 
-import org.apache.commons.collections4.*;
+import lombok.AllArgsConstructor;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -49,15 +49,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Order( 0 )
-public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
+@AllArgsConstructor
+public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<IdentifiableObject>
 {
     private final AclService aclService;
-
-    public IdentifiableObjectBundleHook( AclService aclService )
-    {
-        checkNotNull( aclService );
-        this.aclService = aclService;
-    }
 
     @Override
     public void preCreate( IdentifiableObject identifiableObject, ObjectBundle bundle )

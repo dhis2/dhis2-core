@@ -42,7 +42,6 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -68,10 +67,6 @@ import com.google.common.collect.Sets;
 public class EventDateValidationHookTest
     extends DhisConvenienceTest
 {
-    private static final String PROGRAM_STAGE_WITH_REGISTRATION_ID = "ProgramStageWithRegistration";
-
-    private static final String PROGRAM_STAGE_WITHOUT_REGISTRATION_ID = "ProgramStageWithoutRegistration";
-
     private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";
 
     private static final String PROGRAM_WITHOUT_REGISTRATION_ID = "ProgramWithoutRegistration";
@@ -95,11 +90,11 @@ public class EventDateValidationHookTest
 
         when( validationContext.getBundle() ).thenReturn( bundle );
 
-        when( validationContext.getProgramStage( PROGRAM_STAGE_WITH_REGISTRATION_ID ) )
-            .thenReturn( getProgramStageWithRegistration() );
+        when( validationContext.getProgram( PROGRAM_WITH_REGISTRATION_ID ) )
+            .thenReturn( getProgramWithRegistration() );
 
-        when( validationContext.getProgramStage( PROGRAM_STAGE_WITHOUT_REGISTRATION_ID ) )
-            .thenReturn( getProgramStageWithoutRegistration() );
+        when( validationContext.getProgram( PROGRAM_WITHOUT_REGISTRATION_ID ) )
+            .thenReturn( getProgramWithoutRegistration() );
     }
 
     @Test
@@ -107,7 +102,7 @@ public class EventDateValidationHookTest
     {
         // given
         Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE_WITHOUT_REGISTRATION_ID );
+        event.setProgram( PROGRAM_WITHOUT_REGISTRATION_ID );
         event.setOccurredAt( now() );
         event.setStatus( EventStatus.ACTIVE );
 
@@ -129,7 +124,7 @@ public class EventDateValidationHookTest
     {
         // given
         Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE_WITHOUT_REGISTRATION_ID );
+        event.setProgram( PROGRAM_WITHOUT_REGISTRATION_ID );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
 
@@ -147,7 +142,7 @@ public class EventDateValidationHookTest
     {
         // given
         Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE_WITH_REGISTRATION_ID );
+        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setStatus( EventStatus.ACTIVE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
@@ -165,7 +160,7 @@ public class EventDateValidationHookTest
     {
         // given
         Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE_WITH_REGISTRATION_ID );
+        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setStatus( EventStatus.COMPLETED );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
@@ -183,7 +178,7 @@ public class EventDateValidationHookTest
     {
         // given
         Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE_WITH_REGISTRATION_ID );
+        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setOccurredAt( Instant.now() );
         event.setStatus( EventStatus.SCHEDULE );
 
@@ -202,7 +197,7 @@ public class EventDateValidationHookTest
     {
         // given
         Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE_WITH_REGISTRATION_ID );
+        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setOccurredAt( now() );
         event.setStatus( EventStatus.COMPLETED );
 
@@ -221,7 +216,7 @@ public class EventDateValidationHookTest
     {
         // given
         Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE_WITH_REGISTRATION_ID );
+        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setOccurredAt( now() );
         event.setCompletedAt( sevenDaysAgo() );
         event.setStatus( EventStatus.COMPLETED );
@@ -241,7 +236,7 @@ public class EventDateValidationHookTest
     {
         // given
         Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE_WITH_REGISTRATION_ID );
+        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setOccurredAt( null );
         event.setScheduledAt( null );
         event.setStatus( EventStatus.SKIPPED );
@@ -261,7 +256,7 @@ public class EventDateValidationHookTest
     {
         // given
         Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE_WITH_REGISTRATION_ID );
+        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setOccurredAt( sevenDaysAgo() );
         event.setStatus( EventStatus.ACTIVE );
 
@@ -273,22 +268,6 @@ public class EventDateValidationHookTest
         // then
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1047 ) );
-    }
-
-    private ProgramStage getProgramStageWithRegistration()
-    {
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( PROGRAM_STAGE_WITH_REGISTRATION_ID );
-        programStage.setProgram( getProgramWithRegistration() );
-        return programStage;
-    }
-
-    private ProgramStage getProgramStageWithoutRegistration()
-    {
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( PROGRAM_STAGE_WITHOUT_REGISTRATION_ID );
-        programStage.setProgram( getProgramWithoutRegistration() );
-        return programStage;
     }
 
     private Program getProgramWithRegistration()

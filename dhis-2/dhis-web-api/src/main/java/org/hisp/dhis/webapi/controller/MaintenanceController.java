@@ -27,11 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.io.IOException;
 import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
@@ -42,25 +38,24 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.util.CategoryUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.maintenance.MaintenanceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
@@ -74,13 +69,7 @@ public class MaintenanceController
     public static final String RESOURCE_PATH = "/maintenance";
 
     @Autowired
-    private WebMessageService webMessageService;
-
-    @Autowired
     private MaintenanceService maintenanceService;
-
-    @Autowired
-    private RenderService renderService;
 
     @Autowired
     private ResourceTableService resourceTableService;
@@ -218,20 +207,17 @@ public class MaintenanceController
     @RequestMapping( value = "/categoryOptionComboUpdate/categoryCombo/{uid}", method = { RequestMethod.PUT,
         RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    public void updateCategoryOptionCombos( @PathVariable String uid, HttpServletRequest request,
-        HttpServletResponse response )
+    @ResponseBody
+    public WebMessage updateCategoryOptionCombos( @PathVariable String uid )
     {
         CategoryCombo categoryCombo = categoryService.getCategoryCombo( uid );
 
         if ( categoryCombo == null )
         {
-            webMessageService.sendJson( WebMessageUtils.conflict( "CategoryCombo does not exist: " + uid ), response );
-            return;
+            return WebMessageUtils.conflict( "CategoryCombo does not exist: " + uid );
         }
 
-        ImportSummaries importSummaries = categoryUtils.addAndPruneOptionCombos( categoryCombo );
-
-        webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+        return WebMessageUtils.importSummaries( categoryUtils.addAndPruneOptionCombos( categoryCombo ) );
     }
 
     @RequestMapping( value = { "/cacheClear", "/cache" }, method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -245,57 +231,45 @@ public class MaintenanceController
     @RequestMapping( value = "/dataPruning/organisationUnits/{uid}", method = { RequestMethod.PUT,
         RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL')" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void pruneDataByOrganisationUnit( @PathVariable String uid, HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public WebMessage pruneDataByOrganisationUnit( @PathVariable String uid )
     {
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( uid );
 
         if ( organisationUnit == null )
         {
-            webMessageService
-                .sendJson( WebMessageUtils.conflict( "Organisation unit does not exist: " + uid ), response );
-            return;
+            return WebMessageUtils.conflict( "Organisation unit does not exist: " + uid );
         }
 
-        boolean result = maintenanceService.pruneData( organisationUnit );
-
-        WebMessage message = result ? WebMessageUtils.ok( "Data was pruned successfully" )
+        return maintenanceService.pruneData( organisationUnit )
+            ? WebMessageUtils.ok( "Data was pruned successfully" )
             : WebMessageUtils.conflict( "Data could not be pruned" );
-
-        webMessageService.sendJson( message, response );
     }
 
     @RequestMapping( value = "/dataPruning/dataElements/{uid}", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL')" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void pruneDataByDataElement( @PathVariable String uid, HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public WebMessage pruneDataByDataElement( @PathVariable String uid )
     {
         DataElement dataElement = dataElementService.getDataElement( uid );
 
         if ( dataElement == null )
         {
-            webMessageService
-                .sendJson( WebMessageUtils.conflict( "Data element does not exist: " + uid ), response );
-            return;
+            return WebMessageUtils.conflict( "Data element does not exist: " + uid );
         }
 
-        boolean result = maintenanceService.pruneData( dataElement );
-
-        WebMessage message = result ? WebMessageUtils.ok( "Data was pruned successfully" )
+        return maintenanceService.pruneData( dataElement )
+            ? WebMessageUtils.ok( "Data was pruned successfully" )
             : WebMessageUtils.conflict( "Data could not be pruned" );
-
-        webMessageService.sendJson( message, response );
     }
 
-    @RequestMapping( value = "/appReload", method = RequestMethod.GET )
+    @GetMapping( "/appReload" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    public void appReload( HttpServletResponse response )
-        throws IOException
+    @ResponseBody
+    public WebMessage appReload()
     {
         appManager.reloadApps();
-        renderService.toJson( response.getOutputStream(), WebMessageUtils.ok( "Apps reloaded" ) );
+        return WebMessageUtils.ok( "Apps reloaded" );
     }
 
     @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )

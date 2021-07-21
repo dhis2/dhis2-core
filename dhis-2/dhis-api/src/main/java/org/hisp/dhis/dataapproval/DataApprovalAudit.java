@@ -29,6 +29,7 @@ package org.hisp.dhis.dataapproval;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -54,7 +55,7 @@ public class DataApprovalAudit
     /**
      * Identifies the data approval audit record (required).
      */
-    private int id;
+    private long id;
 
     /**
      * The approval level for which this approval is defined.
@@ -121,12 +122,12 @@ public class DataApprovalAudit
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }
@@ -234,21 +235,8 @@ public class DataApprovalAudit
     @Override
     public int hashCode()
     {
-        final int prime = 31;
-
-        int result = 1;
-
-        result = prime * result + id;
-        result = prime * result + ((level == null) ? 0 : level.hashCode());
-        result = prime * result + ((workflow == null) ? 0 : workflow.hashCode());
-        result = prime * result + ((period == null) ? 0 : period.hashCode());
-        result = prime * result + ((organisationUnit == null) ? 0 : organisationUnit.hashCode());
-        result = prime * result + ((attributeOptionCombo == null) ? 0 : attributeOptionCombo.hashCode());
-        result = prime * result + ((action == null) ? 0 : action.hashCode());
-        result = prime * result + ((created == null) ? 0 : created.hashCode());
-        result = prime * result + ((creator == null) ? 0 : creator.hashCode());
-
-        return result;
+        return Objects.hash( id, level, workflow, period, organisationUnit, attributeOptionCombo, action, created,
+            creator );
     }
 
     @Override
@@ -275,114 +263,21 @@ public class DataApprovalAudit
         {
             return true;
         }
-
-        if ( object == null || !(object instanceof DataApprovalAudit) )
+        if ( !(object instanceof DataApprovalAudit) )
         {
             return false;
         }
 
-        DataApprovalAudit that = (DataApprovalAudit) object;
+        DataApprovalAudit other = (DataApprovalAudit) object;
 
-        if ( id != that.id )
-        {
-            return false;
-        }
-        else if ( level != null )
-        {
-            if ( !level.equals( that.getLevel() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getLevel() != null )
-        {
-            return false;
-        }
-
-        if ( workflow != null )
-        {
-            if ( !workflow.equals( that.getWorkflow() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getWorkflow() != null )
-        {
-            return false;
-        }
-
-        if ( period != null )
-        {
-            if ( !period.equals( that.getPeriod() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getPeriod() != null )
-        {
-            return false;
-        }
-
-        if ( organisationUnit != null )
-        {
-            if ( !organisationUnit.equals( that.getOrganisationUnit() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getOrganisationUnit() != null )
-        {
-            return false;
-        }
-
-        if ( attributeOptionCombo != null )
-        {
-            if ( !attributeOptionCombo.equals( that.getAttributeOptionCombo() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getAttributeOptionCombo() != null )
-        {
-            return false;
-        }
-
-        if ( action != null )
-        {
-            if ( !action.equals( that.getAction() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getAction() != null )
-        {
-            return false;
-        }
-
-        if ( created != null )
-        {
-            if ( !created.equals( that.getCreated() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getCreated() != null )
-        {
-            return false;
-        }
-
-        if ( creator != null )
-        {
-            if ( !creator.equals( that.getCreator() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getCreator() != null )
-        {
-            return false;
-        }
-
-        return true;
+        return id == other.id
+            && action == other.action
+            && Objects.equals( level, other.level )
+            && Objects.equals( workflow, other.workflow )
+            && Objects.equals( period, other.period )
+            && Objects.equals( organisationUnit, other.organisationUnit )
+            && Objects.equals( attributeOptionCombo, other.attributeOptionCombo )
+            && Objects.equals( created, other.created )
+            && Objects.equals( creator, other.creator );
     }
 }

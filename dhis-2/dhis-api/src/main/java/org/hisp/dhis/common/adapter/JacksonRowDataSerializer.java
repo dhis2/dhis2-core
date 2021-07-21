@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common.adapter;
 
+import static org.hisp.dhis.common.adapter.OutputFormatter.maybeFormat;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -56,7 +58,7 @@ public class JacksonRowDataSerializer
 
             for ( Object field : row )
             {
-                jgen.writeString( field != null ? String.valueOf( field ) : EMPTY );
+                jgen.writeString( field != null ? String.valueOf( maybeFormat( field ) ) : EMPTY );
             }
 
             jgen.writeEndArray();

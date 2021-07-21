@@ -105,6 +105,20 @@ public interface AclService
     boolean canRead( User user, IdentifiableObject object );
 
     /**
+     * Same as {@link #canRead(User, IdentifiableObject)} except that it allows
+     * to pass superclasses as object that can be validated as if they are of a
+     * certain object type.
+     *
+     * @param user User to check against
+     * @param object Object to check, could be
+     *        {@link org.hisp.dhis.common.BaseIdentifiableObject}
+     * @param objType the type as which to regard the provided object
+     * @param <T> type of the passed object
+     * @return Result of test
+     */
+    <T extends IdentifiableObject> boolean canRead( User user, T object, Class<? extends T> objType );
+
+    /**
      * Can user read data this object.
      *
      * @param user User to check against

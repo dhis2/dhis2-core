@@ -3593,6 +3593,42 @@
       "translations": []
     }
   ],
+  "categoryOptions": [
+    {
+      "created": "2021-06-02T15:43:13.212",
+      "lastUpdated": "2021-06-02T15:43:13.212",
+      "name": "category option A",
+      "code": "CATOPT_A",
+      "id": "fjvZIRlTBrp",
+      "sharing": {
+        "owner": "GOLswS44mh8",
+        "external": false,
+        "users": {},
+        "userGroups": {},
+        "public": "rw------"
+      },
+      "attributeValues": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "g8upMTyEZGZ",
+          "code": "OU_167609"
+        },
+        {
+          "id": "O6uvpzGd5pu",
+          "code": "OU_264"
+        },
+        {
+          "id": "DiszpKrYNg8",
+          "code": "OU_559"
+        },
+        {
+          "id": "YuQRtpLP10I",
+          "code": "OU_539"
+        }
+      ]
+    }
+  ],
   "categoryCombos": [
     {
       "code": "default",

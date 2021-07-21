@@ -40,7 +40,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleEffects;
@@ -183,8 +182,7 @@ public class DefaultTrackerProgramRuleService
 
     private Program getProgramFromEvent( TrackerPreheat preheat, Event event )
     {
-        ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
-        return programStage.getProgram();
+        return preheat.get( Program.class, event.getProgram() );
     }
 
     private ProgramInstance getEnrollment( TrackerBundle bundle, String enrollmentUid )

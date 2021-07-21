@@ -54,6 +54,7 @@ import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStatusPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
@@ -79,6 +80,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.MandatoryAttributesCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.NotOwnerReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SchemaCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SecurityCheck;
@@ -160,7 +162,8 @@ public class ServiceConfig
         UniqueMultiPropertiesCheck.class,
         MandatoryAttributesCheck.class,
         UniqueAttributesCheck.class,
-        ReferencesCheck.class );
+        ReferencesCheck.class,
+        NotOwnerReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = newArrayList(
         DuplicateIdsCheck.class,
@@ -172,7 +175,8 @@ public class ServiceConfig
         UniqueMultiPropertiesCheck.class,
         MandatoryAttributesCheck.class,
         UniqueAttributesCheck.class,
-        ReferencesCheck.class );
+        ReferencesCheck.class,
+        NotOwnerReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = newArrayList(
         DuplicateIdsCheck.class,
@@ -184,7 +188,8 @@ public class ServiceConfig
         UniqueMultiPropertiesCheck.class,
         MandatoryAttributesCheck.class,
         UniqueAttributesCheck.class,
-        ReferencesCheck.class );
+        ReferencesCheck.class,
+        NotOwnerReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = newArrayList(
         SecurityCheck.class,
@@ -264,6 +269,7 @@ public class ServiceConfig
         return ImmutableMap.of( CREATE, newArrayList(
             ImportOptionsPreProcessor.class,
             EventStoredByPreProcessor.class,
+            EventStatusPreProcessor.class,
             ProgramInstancePreProcessor.class,
             ProgramStagePreProcessor.class,
             EventGeometryPreProcessor.class,
@@ -287,6 +293,7 @@ public class ServiceConfig
         return ImmutableMap.of( UPDATE, newArrayList(
             ImportOptionsPreProcessor.class,
             EventStoredByPreProcessor.class,
+            EventStatusPreProcessor.class,
             ProgramStageInstanceUpdatePreProcessor.class,
             ProgramInstanceGeometryPreProcessor.class,
             UserInfoUpdatePreProcessor.class ) );
@@ -336,8 +343,8 @@ public class ServiceConfig
             .put( ProgramRuleActionType.CREATEEVENT, BaseProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.WARNINGONCOMPLETE, BaseProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.ERRORONCOMPLETE, BaseProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.SHOWWARNING, BaseProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.SHOWERROR, BaseProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SHOWWARNING, AlwaysValidProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SHOWERROR, AlwaysValidProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.SETMANDATORYFIELD, BaseProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.HIDEOPTION, HideOptionProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.HIDESECTION, HideSectionProgramRuleActionValidator.class )

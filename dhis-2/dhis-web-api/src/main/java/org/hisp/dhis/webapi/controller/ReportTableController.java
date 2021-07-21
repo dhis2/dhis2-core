@@ -52,15 +52,16 @@ import org.hisp.dhis.schema.descriptors.ReportTableSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationGridService;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -81,7 +82,10 @@ public class ReportTableController
     extends ReportTableFacadeController
 {
     @Autowired
-    public VisualizationService visualizationService;
+    private VisualizationService visualizationService;
+
+    @Autowired
+    public VisualizationGridService visualizationGridService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -116,7 +120,7 @@ public class ReportTableController
     // GET - Report table data
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data" )
     public @ResponseBody Grid getReportTableData( @PathVariable( "uid" ) String uid, Model model,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -126,7 +130,7 @@ public class ReportTableController
         return getReportTableGrid( uid, organisationUnitUid, date );
     }
 
-    @RequestMapping( value = "/{uid}/data.html", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.html" )
     public void getReportTableHtml( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -142,7 +146,7 @@ public class ReportTableController
         GridUtils.toHtml( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "/{uid}/data.html+css", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.html+css" )
     public void getReportTableHtmlCss( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -158,7 +162,7 @@ public class ReportTableController
         GridUtils.toHtmlCss( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "/{uid}/data.xml", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.xml" )
     public void getReportTableXml( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -174,7 +178,7 @@ public class ReportTableController
         GridUtils.toXml( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/{uid}/data.pdf", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.pdf" )
     public void getReportTablePdf( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -190,7 +194,7 @@ public class ReportTableController
         GridUtils.toPdf( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/{uid}/data.xls", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.xls" )
     public void getReportTableXls( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -206,7 +210,7 @@ public class ReportTableController
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/{uid}/data.csv", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.csv" )
     public void getReportTableCsv( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -235,7 +239,7 @@ public class ReportTableController
 
         date = date != null ? date : new Date();
 
-        return visualizationService.getVisualizationGrid( uid, date, organisationUnitUid );
+        return visualizationGridService.getVisualizationGrid( uid, date, organisationUnitUid );
     }
 
     // --------------------------------------------------------------------------

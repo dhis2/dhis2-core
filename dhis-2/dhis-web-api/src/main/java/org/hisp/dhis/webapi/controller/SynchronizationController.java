@@ -34,7 +34,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
@@ -44,9 +44,10 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
@@ -70,18 +71,18 @@ public class SynchronizationController
     private RenderService renderService;
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_EXPORT_DATA')" )
-    @RequestMapping( value = "/dataPush", method = RequestMethod.POST )
+    @PostMapping( "/dataPush" )
     public void execute( HttpServletResponse response )
         throws IOException
     {
-        ImportSummary summary = synchronizationManager.executeDataValuePush();
+        ImportConflicts summary = synchronizationManager.executeDataValuePush();
 
         response.setContentType( CONTENT_TYPE_JSON );
         renderService.toJson( response.getOutputStream(), summary );
     }
 
     @PreAuthorize( "hasRole('ALL')" )
-    @RequestMapping( value = "/metadataPull", method = RequestMethod.POST )
+    @PostMapping( "/metadataPull" )
     public void importMetaData( @RequestBody String url, HttpServletResponse response )
         throws IOException
     {
@@ -91,13 +92,13 @@ public class SynchronizationController
         renderService.toJson( response.getOutputStream(), importReport );
     }
 
-    @RequestMapping( value = "/availability", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/availability", produces = "application/json" )
     public @ResponseBody AvailabilityStatus remoteServerAvailable()
     {
         return synchronizationManager.isRemoteServerAvailable();
     }
 
-    @RequestMapping( value = "/metadataRepo", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/metadataRepo", produces = "application/json" )
     public @ResponseBody String getMetadataRepoIndex()
     {
         return restTemplate.getForObject( SettingKey.METADATA_REPO_URL.getDefaultValue().toString(), String.class );

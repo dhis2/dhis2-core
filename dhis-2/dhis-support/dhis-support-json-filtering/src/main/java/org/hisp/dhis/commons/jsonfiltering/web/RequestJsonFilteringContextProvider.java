@@ -174,7 +174,6 @@ public class RequestJsonFilteringContextProvider extends AbstractJsonFilteringCo
     {
         public static final String REQUEST_KEY = FilterCache.class.getName();
 
-        @SuppressWarnings( "RedundantStringConstructorCall" )
         private static final String NULL = new String();
 
         private final Map<Class, String> map = new HashMap<>();
@@ -192,7 +191,6 @@ public class RequestJsonFilteringContextProvider extends AbstractJsonFilteringCo
             return cache;
         }
 
-        @SuppressWarnings( "StringEquality" )
         public String get( Class key )
         {
             String value = map.get( key );
@@ -214,6 +212,5 @@ public class RequestJsonFilteringContextProvider extends AbstractJsonFilteringCo
 
             map.put( key, value );
         }
-
     }
 }

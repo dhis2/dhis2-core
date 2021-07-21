@@ -29,6 +29,7 @@ package org.hisp.dhis.deduplication;
 
 public enum DeduplicationStatus
 {
+    ALL,
     OPEN,
     INVALID,
     MERGED

@@ -50,7 +50,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.net.MediaType;
 
@@ -70,7 +74,7 @@ public class IconController
     @Autowired
     private ContextService contextService;
 
-    @RequestMapping( method = RequestMethod.GET )
+    @GetMapping
     public @ResponseBody List<IconData> getIcons( HttpServletResponse response,
         @RequestParam( required = false ) Collection<String> keywords )
     {
@@ -91,13 +95,13 @@ public class IconController
             .collect( Collectors.toList() );
     }
 
-    @RequestMapping( value = "/keywords", method = RequestMethod.GET )
+    @GetMapping( "/keywords" )
     public @ResponseBody Collection<String> getKeywords( HttpServletResponse response )
     {
         return iconService.getKeywords();
     }
 
-    @RequestMapping( value = "/{iconKey}", method = RequestMethod.GET )
+    @GetMapping( "/{iconKey}" )
     public @ResponseBody IconData getIcon( HttpServletResponse response, @PathVariable String iconKey )
         throws WebMessageException
     {
@@ -115,7 +119,7 @@ public class IconController
         return icon.get();
     }
 
-    @RequestMapping( value = "/{iconKey}/icon.svg", method = RequestMethod.GET )
+    @GetMapping( "/{iconKey}/icon.svg" )
     public void getIconData( HttpServletResponse response, @PathVariable String iconKey )
         throws WebMessageException,
         IOException

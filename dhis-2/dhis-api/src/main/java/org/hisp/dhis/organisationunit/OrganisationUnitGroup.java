@@ -82,10 +82,20 @@ public class OrganisationUnitGroup
         return organisationUnit.getGroups().add( this );
     }
 
+    public void addOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        organisationUnits.forEach( this::addOrganisationUnit );
+    }
+
     public boolean removeOrganisationUnit( OrganisationUnit organisationUnit )
     {
         members.remove( organisationUnit );
         return organisationUnit.getGroups().remove( this );
+    }
+
+    public void removeOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        organisationUnits.forEach( this::removeOrganisationUnit );
     }
 
     public void removeAllOrganisationUnits()
@@ -197,11 +207,13 @@ public class OrganisationUnitGroup
         this.geometry = geometry;
     }
 
+    @Override
     public boolean hasDescendantsWithCoordinates()
     {
         return CoordinateUtils.hasDescendantsWithCoordinates( members );
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public FeatureType getFeatureType()

@@ -74,7 +74,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class SchemaIdResponseMapper
 {
-
     /**
      * This method will map the respective element UID's with their respective
      * id schema set. The 'outputIdScheme' is considered the most general id
@@ -91,7 +90,7 @@ public class SchemaIdResponseMapper
      *        outputDataElementIdScheme and outputOrgUnitIdScheme.
      * @return a Map of <uid, mapping value>
      */
-    Map<String, String> getSchemeIdResponseMap( final DataQueryParams params )
+    public Map<String, String> getSchemeIdResponseMap( final DataQueryParams params )
     {
         final Map<String, String> responseMap = getDimensionItemIdSchemeMap( params.getAllDimensionItems(),
             params.getOutputIdScheme() );
@@ -131,6 +130,17 @@ public class SchemaIdResponseMapper
     {
         map.putAll( getDataElementOperandIdSchemeMap(
             asTypedList( params.getDataElementOperands() ), params.getOutputIdScheme() ) );
+
+        if ( params.getProgramStage() != null )
+        {
+            map.put( params.getProgramStage().getUid(),
+                params.getProgramStage().getPropertyValue( params.getOutputIdScheme() ) );
+        }
+
+        if ( params.getProgram() != null )
+        {
+            map.put( params.getProgram().getUid(), params.getProgram().getPropertyValue( params.getOutputIdScheme() ) );
+        }
     }
 
     private void applyDataElementOperandsIdSchemaMapping( final DataQueryParams params, final Map<String, String> map )

@@ -72,9 +72,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -124,7 +124,7 @@ public class SystemController
     // UID Generator
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = { "/uid", "/id" }, method = RequestMethod.GET, produces = {
+    @GetMapping( value = { "/uid", "/id" }, produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode getUid( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
@@ -147,7 +147,7 @@ public class SystemController
         return rootNode;
     }
 
-    @RequestMapping( value = { "/uid", "/id" }, method = RequestMethod.GET, produces = { "application/csv" } )
+    @GetMapping( value = { "/uid", "/id" }, produces = { "application/csv" } )
     public void getUidCsv( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
         throws IOException,
@@ -173,7 +173,7 @@ public class SystemController
         csvGenerator.flush();
     }
 
-    @RequestMapping( value = "/uuid", method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE,
+    @GetMapping( value = "/uuid", produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode getUuid( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
@@ -200,7 +200,7 @@ public class SystemController
     // Tasks
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/tasks", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/tasks", produces = { "*/*", "application/json" } )
     public void getTasksJson( HttpServletResponse response )
         throws IOException
     {
@@ -210,7 +210,7 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
     }
 
-    @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/tasks/{jobType}", produces = { "*/*", "application/json" } )
     public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -224,8 +224,7 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @RequestMapping( value = "/tasks/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
+    @GetMapping( value = "/tasks/{jobType}/{jobId}", produces = { "*/*", "application/json" } )
     public void getTaskJsonByUid( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
@@ -244,8 +243,7 @@ public class SystemController
     // Tasks summary
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
+    @GetMapping( value = "/taskSummaries/{jobType}", produces = { "*/*", "application/json" } )
     public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -261,8 +259,7 @@ public class SystemController
         response.setContentType( CONTENT_TYPE_JSON );
     }
 
-    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
+    @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = { "*/*", "application/json" } )
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
@@ -298,8 +295,7 @@ public class SystemController
     // Various
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json",
-        "application/javascript" } )
+    @GetMapping( value = "/info", produces = { "application/json", "application/javascript" } )
     public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request,
         HttpServletResponse response )
     {
@@ -318,7 +314,7 @@ public class SystemController
         return info;
     }
 
-    @RequestMapping( value = "/objectCounts", method = RequestMethod.GET )
+    @GetMapping( "/objectCounts" )
     public @ResponseBody RootNode getObjectCounts()
     {
         Map<Objects, Long> objectCounts = statisticsProvider.getObjectCounts();
@@ -332,7 +328,7 @@ public class SystemController
         return rootNode;
     }
 
-    @RequestMapping( value = "/ping", method = RequestMethod.GET )
+    @GetMapping( "/ping" )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody String ping( HttpServletResponse response )
     {
@@ -341,13 +337,13 @@ public class SystemController
         return "pong";
     }
 
-    @RequestMapping( value = "/flags", method = RequestMethod.GET, produces = { "application/json" } )
+    @GetMapping( value = "/flags", produces = { "application/json" } )
     public @ResponseBody List<StyleObject> getFlags()
     {
         return getFlagObjects();
     }
 
-    @RequestMapping( value = "/styles", method = RequestMethod.GET, produces = { "application/json" } )
+    @GetMapping( value = "/styles", produces = { "application/json" } )
     public @ResponseBody List<StyleObject> getStyles()
     {
         return styleManager.getStyles();

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -39,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang.time.DateUtils;
@@ -64,8 +66,11 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
@@ -362,7 +367,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
         Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
@@ -401,7 +406,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
         Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
@@ -435,7 +440,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
         Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
@@ -466,7 +471,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -489,7 +494,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
 
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -512,7 +517,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
 
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -534,7 +539,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
 
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -558,7 +563,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
 
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -582,7 +587,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
 
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -631,9 +636,14 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
     {
         in = new ClassPathResource( "datavalueset/dataValueSetBooleanTest.csv" ).getInputStream();
 
-        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
-        assertEquals( summary.getConflicts().toString(), 4, summary.getConflicts().size() ); // False
-                                                                                             // rows
+        ImportConflicts summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
+        String description = summary.getConflictsDescription();
+        assertEquals( description, 4, summary.getTotalConflictOccurrenceCount() );
+        assertEquals( description, 4, summary.getConflictOccurrenceCount( ErrorCode.E7619 ) );
+        assertEquals( description, 2, summary.getConflictCount() );
+        Iterator<ImportConflict> conflicts = summary.getConflicts().iterator();
+        assertArrayEquals( new int[] { 10, 11 }, conflicts.next().getIndexes() );
+        assertArrayEquals( new int[] { 16, 17 }, conflicts.next().getIndexes() );
 
         List<String> expectedBools = Lists.newArrayList( "true", "false" );
         List<DataValue> resultBools = mockDataValueBatchHandler.getInserts();
@@ -659,7 +669,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
 
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
 
@@ -682,7 +692,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
 
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( 0, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -702,7 +712,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         ImportSummary summary = dataValueSetService
             .saveDataValueSet( new ClassPathResource( "datavalueset/dataValueSetC.xml" ).getInputStream() );
 
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( 3, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -725,7 +735,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
 
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( 3, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -747,7 +757,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
 
@@ -767,7 +777,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
-        assertEquals( summary.getConflicts().toString(), 2, summary.getConflicts().size() );
+        assertEquals( summary.getConflictsDescription(), 2, summary.getConflictCount() );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
 
@@ -801,7 +811,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( summary.getConflicts().toString(), 2, summary.getConflicts().size() );
+        assertEquals( summary.getConflictsDescription(), 2, summary.getConflictCount() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -824,7 +834,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
 
-        assertEquals( summary.getConflicts().toString(), 2, summary.getConflicts().size() );
+        assertEquals( summary.getConflictsDescription(), 2, summary.getConflictCount() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -842,7 +852,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
 
-        assertEquals( summary.getConflicts().toString(), 1, summary.getConflicts().size() );
+        assertEquals( summary.getConflictsDescription(), 1, summary.getConflictCount() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -860,7 +870,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
 
-        assertEquals( summary.getConflicts().toString(), 1, summary.getConflicts().size() );
+        assertEquals( summary.getConflictsDescription(), 1, summary.getConflictCount() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -878,7 +888,10 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
 
-        assertEquals( summary.getConflicts().toString(), 2, summary.getConflicts().size() );
+        String description = summary.getConflictsDescription();
+        assertEquals( description, 2, summary.getTotalConflictOccurrenceCount() );
+        assertEquals( description, 1, summary.getConflictCount() );
+        assertArrayEquals( new int[] { 1, 2 }, summary.getConflicts().iterator().next().getIndexes() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -896,7 +909,10 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
 
-        assertEquals( summary.getConflicts().toString(), 2, summary.getConflicts().size() );
+        String description = summary.getConflictsDescription();
+        assertEquals( description, 2, summary.getTotalConflictOccurrenceCount() );
+        assertEquals( description, 1, summary.getConflictCount() );
+        assertArrayEquals( new int[] { 0, 2 }, summary.getConflicts().iterator().next().getIndexes() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -914,7 +930,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
 
-        assertEquals( summary.getConflicts().toString(), 1, summary.getConflicts().size() );
+        assertEquals( summary.getConflictsDescription(), 1, summary.getConflictCount() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -930,7 +946,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( summary.getConflicts().toString(), 1, summary.getConflicts().size() );
+        assertEquals( summary.getConflictsDescription(), 1, summary.getConflictCount() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
     }
@@ -948,7 +964,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( summary.getConflicts().toString(), 2, summary.getConflicts().size() );
+        assertEquals( summary.getConflictsDescription(), 2, summary.getConflictCount() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -974,7 +990,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( summary.getConflicts().toString(), 1, summary.getConflicts().size() );
+        assertEquals( summary.getConflictsDescription(), 1, summary.getConflictCount() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -1005,7 +1021,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getUpdates();
         Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
@@ -1037,7 +1053,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getUpdates();
         Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
@@ -1061,7 +1077,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getUpdates();
         Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
@@ -1083,7 +1099,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
         assertEquals( 2, summary.getImportCount().getIgnored() );
         assertEquals( 1, summary.getImportCount().getImported() );
-        assertEquals( summary.getConflicts().toString(), 2, summary.getConflicts().size() );
+        assertEquals( summary.getConflictsDescription(), 2, summary.getConflictCount() );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
 
@@ -1126,7 +1142,7 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( summary.getConflicts().toString(), 3, summary.getConflicts().size() );
+        assertEquals( summary.getConflictsDescription(), 3, summary.getConflictCount() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -1339,5 +1355,13 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         Date monthEnd = DateUtils.addDays( DateUtils.addMonths( monthStart, 1 ), -1 );
 
         return createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), monthStart, monthEnd );
+    }
+
+    private static void assertHasNoConflicts( ImportConflicts summary )
+    {
+        if ( summary.hasConflicts() )
+        {
+            assertEquals( summary.getConflictsDescription(), 0, summary.getConflictCount() );
+        }
     }
 }

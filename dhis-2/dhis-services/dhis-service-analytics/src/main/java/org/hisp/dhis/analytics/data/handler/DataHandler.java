@@ -132,6 +132,7 @@ import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
+import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -173,7 +174,7 @@ public class DataHandler
 
     private final ConstantService constantService;
 
-    private final ExpressionResolver resolver;
+    private final ExpressionResolvers resolvers;
 
     private final ExpressionService expressionService;
 
@@ -190,14 +191,14 @@ public class DataHandler
     private DataAggregator dataAggregator;
 
     public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
-        ConstantService constantService, ExpressionResolver resolver, ExpressionService expressionService,
+        ConstantService constantService, ExpressionResolvers resolvers, ExpressionService expressionService,
         QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
         AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService )
     {
         checkNotNull( eventAnalyticsService );
         checkNotNull( rawAnalyticsManager );
         checkNotNull( constantService );
-        checkNotNull( resolver );
+        checkNotNull( resolvers );
         checkNotNull( expressionService );
         checkNotNull( queryPlanner );
         checkNotNull( queryValidator );
@@ -208,7 +209,7 @@ public class DataHandler
         this.eventAnalyticsService = eventAnalyticsService;
         this.rawAnalyticsManager = rawAnalyticsManager;
         this.constantService = constantService;
-        this.resolver = resolver;
+        this.resolvers = resolvers;
         this.expressionService = expressionService;
         this.queryPlanner = queryPlanner;
         this.queryValidator = queryValidator;
@@ -890,8 +891,12 @@ public class DataHandler
     {
         for ( Indicator indicator : indicators )
         {
-            indicator.setNumerator( resolver.resolve( indicator.getNumerator() ) );
-            indicator.setDenominator( resolver.resolve( indicator.getDenominator() ) );
+            for ( ExpressionResolver resolver : resolvers.getExpressionResolvers() )
+            {
+                indicator.setNumerator( resolver.resolve( indicator.getNumerator() ) );
+
+                indicator.setDenominator( resolver.resolve( indicator.getDenominator() ) );
+            }
         }
 
         return indicators;
@@ -971,7 +976,8 @@ public class DataHandler
                 else
                 {
                     result.put( join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP ),
-                        new DimensionItemObjectValue( dimensionalItems.get( 0 ), (Double) row.get( valueIndex ) ) );
+                        new DimensionItemObjectValue( dimensionalItems.get( 0 ),
+                            ((Number) row.get( valueIndex )).doubleValue() ) );
                 }
             }
         }
@@ -1050,7 +1056,7 @@ public class DataHandler
             if ( periodOffsetRow != null )
             {
                 result.put( key, new DimensionItemObjectValue( dimensionalItemObject,
-                    (Double) periodOffsetRow.get( valueIndex ) ) );
+                    ((Number) periodOffsetRow.get( valueIndex )).doubleValue() ) );
             }
 
             clone = SerializationUtils.clone( dimensionalItemObject );
