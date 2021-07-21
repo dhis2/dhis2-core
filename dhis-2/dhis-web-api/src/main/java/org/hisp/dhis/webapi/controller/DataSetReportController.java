@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -47,7 +48,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -79,9 +79,6 @@ public class DataSetReportController
 
     @Autowired
     private ContextUtils contextUtils;
-
-    @Autowired
-    WebMessageService webMessageService;
 
     @Autowired
     IdentifiableObjectManager idObjectManager;
