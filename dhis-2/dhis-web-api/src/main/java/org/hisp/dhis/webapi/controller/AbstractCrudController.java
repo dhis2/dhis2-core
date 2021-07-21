@@ -381,7 +381,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         MetadataImportParams params = importService.getParamsFromMap( parameterValuesMap );
 
         params.setUser( user )
-            .setImportReportMode( ImportReportMode.ERRORS_NOT_OWNER )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( patchedObject );
 
