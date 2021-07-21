@@ -31,14 +31,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.common.adapter.*;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.util.*;
+import org.hisp.dhis.util.SharingUtils;
 import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

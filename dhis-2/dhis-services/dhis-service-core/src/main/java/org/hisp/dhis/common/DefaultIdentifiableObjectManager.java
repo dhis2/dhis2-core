@@ -998,7 +998,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    public void resetNonOwnerProperties(Object object )
+    public void resetNonOwnerProperties( Object object )
     {
         if ( object == null )
         {
