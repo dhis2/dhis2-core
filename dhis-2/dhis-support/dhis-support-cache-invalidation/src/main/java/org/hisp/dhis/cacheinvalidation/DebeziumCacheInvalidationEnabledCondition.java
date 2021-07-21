@@ -25,23 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.embeddedjetty;
+package org.hisp.dhis.cacheinvalidation;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
-public class StartupFinishedRoutine extends AbstractStartupRoutine
+public class DebeziumCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
 {
     @Override
-    public void execute()
-        throws Exception
+    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        log.info( String.format( "DHIS2 API Server Startup Finished In %s Seconds! Running on port: %s",
-            (JettyEmbeddedCoreWeb.getElapsedMsSinceStart() / 1000), System.getProperty( "jetty.http.port" ) ) );
+        if ( isTestRun( context ) )
+        {
+            return false;
+        }
+
+        return getConfiguration().isEnabled( ConfigurationKey.DEBEZIUM_ENABLED );
+    }
+
+    @Override
+    public ConfigurationPhase getConfigurationPhase()
+    {
+        return ConfigurationPhase.PARSE_CONFIGURATION;
     }
 }

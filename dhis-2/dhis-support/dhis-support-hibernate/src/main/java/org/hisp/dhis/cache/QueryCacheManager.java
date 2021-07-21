@@ -25,49 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datasetreport;
+package org.hisp.dhis.cache;
 
-import java.util.List;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hibernate.Cache;
+import org.springframework.stereotype.Service;
+
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 
 /**
- * @author Abyot Asalefew
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface DataSetReportService
+@Service
+@Slf4j
+public class QueryCacheManager
 {
-    /**
-     * Generates HTML code for a custom data set report.
-     *
-     * @param dataSet the data set.
-     * @param periods the periods.
-     * @param orgUnit the organisation unit.
-     * @param dimensions mapping between dimension identifiers and dimension
-     *        option identifiers.
-     * @param selectedUnitOnly indicates whether to use captured or aggregated
-     *        data.
-     * @return the HTML code for the custom data set report.
-     */
-    String getCustomDataSetReport( DataSet dataSet, List<Period> periods, OrganisationUnit orgUnit,
-        Set<String> dimensions, boolean selectedUnitOnly );
+    private final Map<String, Set<String>> regionNameMap = new ConcurrentHashMap<>();
 
-    /**
-     * Generates a list of Grids based on the data set sections or custom form.
-     *
-     * @param dataSet the data set.
-     * @param periods the periods.
-     * @param orgUnit the organisation unit.
-     * @param dimensions mapping between dimension identifiers and dimension
-     *        option identifiers.
-     * @param selectedUnitOnly indicates whether to use captured or aggregated
-     *        data.
-     * @return a list of Grids.
-     */
-    List<Grid> getDataSetReportAsGrid( DataSet dataSet, List<Period> periods, OrganisationUnit orgUnit,
-        Set<String> dimensions, boolean selectedUnitOnly );
+    private final HashFunction sessionIdHasher = Hashing.sha256();
+
+    public String generateRegionName( Class<?> klass, String queryString )
+    {
+        String queryStringHash = sessionIdHasher.newHasher().putString( queryString, StandardCharsets.UTF_8 ).hash()
+            .toString();
+        String regionName = klass.getName() + "_" + queryStringHash;
+
+        Set<String> allQueriesOnKlass = regionNameMap.computeIfAbsent( klass.getName(), s -> new HashSet<>() );
+        allQueriesOnKlass.add( queryStringHash );
+
+        return regionName;
+    }
+
+    public void evictQueryCache( Cache cache, Class<?> klass )
+    {
+        Set<String> hashes = regionNameMap.getOrDefault( klass.getName(), Collections.emptySet() );
+
+        for ( String regionNameHash : hashes )
+        {
+            String key = klass.getName() + "_" + regionNameHash;
+
+            cache.evictQueryRegion( key );
+        }
+    }
 }
