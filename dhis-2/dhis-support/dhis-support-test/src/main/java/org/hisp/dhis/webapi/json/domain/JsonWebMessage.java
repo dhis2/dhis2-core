@@ -61,13 +61,4 @@ public interface JsonWebMessage extends JsonObject
         return getString( "description" ).string();
     }
 
-    /**
-     * Different messages use different types of response objects. Therefore the
-     * expected type is provided.
-     */
-    default <T extends JsonObject> T getResponse( Class<T> as )
-    {
-        return get( "response", as );
-    }
-
 }

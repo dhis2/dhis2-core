@@ -514,7 +514,7 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             .as( JsonWebMessage.class );
         assertWebMessage( "Conflict", 409, "ERROR",
             "One more more errors occurred, please see full details in import report.", message );
-        JsonTypeReport response = message.getResponse( JsonTypeReport.class );
+        JsonTypeReport response = message.get( "response", JsonTypeReport.class );
         assertEquals( 1, response.getObjectReports().size() );
         assertEquals( ErrorCode.E3015, response.getObjectReports().get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
     }
