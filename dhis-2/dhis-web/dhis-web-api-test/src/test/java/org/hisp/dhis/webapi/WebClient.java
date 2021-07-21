@@ -47,6 +47,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -330,7 +331,7 @@ public interface WebClient
 
         private JsonError errorInternal()
         {
-            if ( response.getContentType() == null || response.getContentLength() == 0 )
+            if ( !hasBody() )
             {
                 String errorMessage = response.getErrorMessage();
                 if ( errorMessage != null )
@@ -343,6 +344,18 @@ public interface WebClient
                 return new JsonResponse( error ).as( JsonError.class );
             }
             return contentUnchecked().as( JsonError.class );
+        }
+
+        private boolean hasBody()
+        {
+            try
+            {
+                return !response.getContentAsString( StandardCharsets.UTF_8 ).isEmpty();
+            }
+            catch ( UnsupportedEncodingException ex )
+            {
+                return true;
+            }
         }
 
         public JsonResponse contentUnchecked()
