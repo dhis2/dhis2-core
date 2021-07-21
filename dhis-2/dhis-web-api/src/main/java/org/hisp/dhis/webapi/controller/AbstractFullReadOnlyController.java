@@ -35,13 +35,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.common.DhisApiVersion;
