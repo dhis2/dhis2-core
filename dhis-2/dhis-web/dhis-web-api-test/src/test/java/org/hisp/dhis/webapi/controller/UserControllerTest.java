@@ -70,7 +70,7 @@ public class UserControllerTest extends DhisControllerConvenienceTest
         peter = switchToNewUser( "Peter" );
         switchToSuperuser();
         assertStatus( HttpStatus.OK,
-            PATCH( "/users/{id}", peter.getUid(),
+            PATCH( "/users/{id}?importReportMode=ERRORS", peter.getUid(),
                 Body( "[{'op': 'replace', 'path': '/email', 'value': 'peter@pan.net'}]" ) ) );
     }
 
