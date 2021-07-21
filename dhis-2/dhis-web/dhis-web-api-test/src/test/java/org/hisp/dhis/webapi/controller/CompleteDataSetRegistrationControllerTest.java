@@ -27,9 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.webapi.WebClient.Accept;
+import static org.hisp.dhis.webapi.WebClient.Body;
+import static org.hisp.dhis.webapi.WebClient.ContentType;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 /**
  * Tests the {@link CompleteDataSetRegistrationController} using (mocked) REST
@@ -44,5 +53,36 @@ public class CompleteDataSetRegistrationControllerTest extends DhisControllerCon
     {
         assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
             POST( "/completeDataSetRegistrations", "{}" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testPostCompleteRegistrationsJson_Pre37()
+    {
+        JsonImportSummary summary = POST( "/36/completeDataSetRegistrations", "{}" )
+            .content( HttpStatus.CONFLICT ).as( JsonImportSummary.class );
+        assertEquals( "ImportSummary", summary.getResponseType() );
+        assertEquals( "ERROR", summary.getStatus() );
+    }
+
+    @Test
+    public void testPostCompleteRegistrationsXml()
+    {
+        HttpResponse response = POST( "/completeDataSetRegistrations",
+            Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),
+            Accept( CONTENT_TYPE_XML ) );
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        String content = response.content( MediaType.APPLICATION_XML );
+        assertTrue( content.startsWith( "<webMessage " ) );
+    }
+
+    @Test
+    public void testPostCompleteRegistrationsXml_Pre37()
+    {
+        HttpResponse response = POST( "/36/completeDataSetRegistrations",
+            Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),
+            Accept( CONTENT_TYPE_XML ) );
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        String content = response.content( MediaType.APPLICATION_XML );
+        assertTrue( content.startsWith( "<importSummary " ) );
     }
 }

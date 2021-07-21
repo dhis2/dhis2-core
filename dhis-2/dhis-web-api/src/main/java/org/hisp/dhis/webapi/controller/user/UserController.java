@@ -46,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -570,7 +571,8 @@ public class UserController
     {
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
-        return WebMessageUtils.importReport( updateUser( pvUid, parsed ) );
+        return WebMessageUtils.importReport( updateUser( pvUid, parsed ) )
+            .withPlainResponseBefore( DhisApiVersion.V37 );
     }
 
     @Override
@@ -582,7 +584,8 @@ public class UserController
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        return WebMessageUtils.importReport( updateUser( pvUid, parsed ) );
+        return WebMessageUtils.importReport( updateUser( pvUid, parsed ) )
+            .withPlainResponseBefore( DhisApiVersion.V37 );
     }
 
     protected ImportReport updateUser( String userUid, User parsedUserObject )

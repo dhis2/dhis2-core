@@ -48,6 +48,7 @@ import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
+import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.snippets.SomeUserId;
@@ -513,9 +514,9 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             .as( JsonWebMessage.class );
         assertWebMessage( "Conflict", 409, "ERROR",
             "One more more errors occurred, please see full details in import report.", message );
-        assertEquals( 1, message.getResponse().getObjectReports().size() );
-        assertEquals( ErrorCode.E3015,
-            message.getResponse().getObjectReports().get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
+        JsonTypeReport response = message.getResponse( JsonTypeReport.class );
+        assertEquals( 1, response.getObjectReports().size() );
+        assertEquals( ErrorCode.E3015, response.getObjectReports().get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
     }
 
     @Test

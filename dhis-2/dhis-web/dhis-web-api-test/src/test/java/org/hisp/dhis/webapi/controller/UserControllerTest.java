@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.webapi.WebClient.Accept;
 import static org.hisp.dhis.webapi.WebClient.Body;
+import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -45,10 +47,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
@@ -167,6 +171,40 @@ public class UserControllerTest extends DhisControllerConvenienceTest
 
         assertWebMessage( "OK", 200, "OK", null,
             PUT( "/users/" + peter.getUid(), user.toString() ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    public void testPutJsonObject_Pre37()
+    {
+        JsonObject user = GET( "/36/users/{id}", peter.getUid() ).content();
+
+        JsonImportSummary summary = PUT( "/36/users/" + peter.getUid(), user.toString() )
+            .content( HttpStatus.OK ).as( JsonImportSummary.class );
+        assertEquals( "ImportReport", summary.getResponseType() );
+        assertEquals( "OK", summary.getStatus() );
+        assertEquals( 1, summary.getStats().getUpdated() );
+        assertEquals( peter.getUid(), summary.getTypeReports().get( 0 ).getObjectReports().get( 0 ).getUid() );
+    }
+
+    @Test
+    public void testPutXmlObject()
+    {
+        HttpResponse response = PUT( "/users/" + peter.getUid(), Body( "<user></user>" ),
+            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        String content = response.content( MediaType.APPLICATION_XML );
+        assertTrue( content.contains(
+            "<message>One more more errors occurred, please see full details in import report.</message>" ) );
+    }
+
+    @Test
+    public void testPutXmlObject_Pre37()
+    {
+        HttpResponse response = PUT( "/36/users/" + peter.getUid(), Body( "<user></user>" ),
+            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        String content = response.content( MediaType.APPLICATION_XML );
+        assertTrue( content.startsWith( "<importReport " ) );
     }
 
     @Test

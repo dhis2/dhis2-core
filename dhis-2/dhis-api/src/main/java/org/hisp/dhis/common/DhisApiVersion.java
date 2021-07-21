@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.common;
 
+import static java.lang.Integer.parseInt;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Enum representing web API versions. The API version is exposed through the
  * API URL at <code>/api/{version}/{resource}</code>, where
@@ -149,6 +154,25 @@ public enum DhisApiVersion
             }
         }
 
+        return DEFAULT;
+    }
+
+    private static final Pattern API_VERSION_PATTERN = Pattern.compile( "/api/(?<version>[0-9]{2})/" );
+
+    private static final Pattern STARTS_WITH_VERSION_PATTERN = Pattern.compile( "/(?<version>[0-9]{2})/" );
+
+    public static DhisApiVersion getVersionFromPath( String path )
+    {
+        Matcher matcher = API_VERSION_PATTERN.matcher( path );
+        if ( matcher.find() )
+        {
+            return getVersion( parseInt( matcher.group( "version" ) ) );
+        }
+        matcher = STARTS_WITH_VERSION_PATTERN.matcher( path );
+        if ( matcher.find() )
+        {
+            return getVersion( parseInt( matcher.group( "version" ) ) );
+        }
         return DEFAULT;
     }
 }

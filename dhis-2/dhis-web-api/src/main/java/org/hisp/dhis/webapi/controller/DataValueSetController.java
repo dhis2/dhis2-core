@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.common.DhisApiVersion.V37;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
@@ -272,7 +273,7 @@ public class DataValueSetController
         ImportSummary summary = dataValueSetService.saveDataValueSet( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
 
-        return WebMessageUtils.importSummary( summary );
+        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( V37 );
     }
 
     @PostMapping( consumes = CONTENT_TYPE_XML_ADX, produces = CONTENT_TYPE_XML )
@@ -290,7 +291,7 @@ public class DataValueSetController
             null );
         summary.setImportOptions( importOptions );
 
-        return WebMessageUtils.importSummary( summary );
+        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( V37 );
     }
 
     @PostMapping( consumes = "application/json", produces = CONTENT_TYPE_JSON )
@@ -307,7 +308,7 @@ public class DataValueSetController
         ImportSummary summary = dataValueSetService.saveDataValueSetJson( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
 
-        return WebMessageUtils.importSummary( summary );
+        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( V37 );
     }
 
     @PostMapping( consumes = "application/csv", produces = CONTENT_TYPE_JSON )
@@ -324,7 +325,7 @@ public class DataValueSetController
         ImportSummary summary = dataValueSetService.saveDataValueSetCsv( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
 
-        return WebMessageUtils.importSummary( summary );
+        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( V37 );
     }
 
     @PostMapping( consumes = CONTENT_TYPE_PDF, produces = CONTENT_TYPE_JSON )
@@ -341,7 +342,7 @@ public class DataValueSetController
         ImportSummary summary = dataValueSetService.saveDataValueSetPdf( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
 
-        return WebMessageUtils.importSummary( summary );
+        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( V37 );
     }
 
     // -------------------------------------------------------------------------

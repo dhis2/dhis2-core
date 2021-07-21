@@ -31,25 +31,29 @@ import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
- * Web API equivalent of a {@link org.hisp.dhis.feedback.TypeReport}.
+ * Web API equivalent of an {@code ImportSummary}.
  *
  * @author Jan Bernitt
  */
-public interface JsonTypeReport extends JsonObject
+public interface JsonImportSummary extends JsonObject
 {
+    default String getResponseType()
+    {
+        return getString( "responseType" ).string();
+    }
+
+    default String getStatus()
+    {
+        return getString( "status" ).string();
+    }
 
     default JsonStats getStats()
     {
         return get( "stats", JsonStats.class );
     }
 
-    default JsonList<JsonObjectReport> getObjectReports()
+    default JsonList<JsonTypeReport> getTypeReports()
     {
-        return getList( "objectReports", JsonObjectReport.class );
-    }
-
-    default JsonList<JsonErrorReport> getErrorReports()
-    {
-        return getList( "errorReports", JsonErrorReport.class );
+        return getList( "typeReports", JsonTypeReport.class );
     }
 }

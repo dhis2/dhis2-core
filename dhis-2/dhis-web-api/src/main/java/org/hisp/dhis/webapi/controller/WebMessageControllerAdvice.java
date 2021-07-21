@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageResponse;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -48,7 +50,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  * @author Jan Bernitt
  */
 @ControllerAdvice
-public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage>
+public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessageResponse>
 {
     @Override
     public boolean supports( MethodParameter returnType,
@@ -58,11 +60,13 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
     }
 
     @Override
-    public WebMessage beforeBodyWrite( WebMessage body, MethodParameter returnType, MediaType selectedContentType,
+    public WebMessageResponse beforeBodyWrite( WebMessageResponse body, MethodParameter returnType,
+        MediaType selectedContentType,
         Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request,
         ServerHttpResponse response )
     {
-        HttpStatus httpStatus = HttpStatus.resolve( body.getHttpStatusCode() );
+        WebMessage message = (WebMessage) body;
+        HttpStatus httpStatus = HttpStatus.resolve( message.getHttpStatusCode() );
         if ( httpStatus != null )
         {
             response.setStatusCode( httpStatus );
@@ -70,6 +74,15 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
             {
                 response.getHeaders().addIfAbsent( "Cache-Control",
                     CacheControl.noCache().cachePrivate().getHeaderValue() );
+            }
+        }
+        DhisApiVersion plainBefore = message.getPlainResponseBefore();
+        if ( plainBefore != null )
+        {
+            if ( plainBefore == DhisApiVersion.ALL
+                || DhisApiVersion.getVersionFromPath( request.getURI().getPath() ).lt( plainBefore ) )
+            {
+                return message.getResponse();
             }
         }
         return body;
