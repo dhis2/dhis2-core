@@ -42,8 +42,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -59,6 +57,7 @@ import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -69,7 +68,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.api.client.util.Lists;
+import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.internal.Primitives;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Note that it is required for nameable object stores to have concrete
@@ -992,6 +995,43 @@ public class DefaultIdentifiableObjectManager
     public void refresh( Object object )
     {
         sessionFactory.getCurrentSession().refresh( object );
+    }
+
+    @Override
+    public void resetNonOwnerProperties(Object object )
+    {
+        if ( object == null )
+        {
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        // sessionFactory.getCurrentSession().detach( object );
+
+        schema.getProperties()
+            .stream()
+            .filter( p -> !p.isOwner() && p.getSetterMethod() != null )
+            .forEach( ( p ) -> {
+                Class<?> parameterType = p.getSetterMethod().getParameterTypes()[0];
+
+                if ( p.isCollection() )
+                {
+                    Collection<?> targetObject = ReflectionUtils.newCollectionInstance( parameterType );
+                    ReflectionUtils.invokeMethod( object, p.getSetterMethod(), targetObject );
+                }
+                else
+                {
+                    if ( Primitives.isPrimitive( parameterType ) )
+                    {
+                        ReflectionUtils.invokeMethod( object, p.getSetterMethod(),
+                            Defaults.defaultValue( parameterType ) );
+                    }
+                    else
+                    {
+                        ReflectionUtils.invokeMethod( object, p.getSetterMethod(), (Object) null );
+                    }
+                }
+            } );
     }
 
     @Override

@@ -363,6 +363,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
+        manager.resetNonOwnerProperties( persistedObject );
+
         prePatchEntity( persistedObject );
 
         final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );

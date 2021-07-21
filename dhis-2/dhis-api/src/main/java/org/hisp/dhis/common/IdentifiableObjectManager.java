@@ -161,6 +161,13 @@ public interface IdentifiableObjectManager
 
     void refresh( Object object );
 
+    /**
+     * Resets all properties that are not owned by the object type.
+     * 
+     * @param object object to reset
+     */
+    void resetNonOwnerProperties( Object object );
+
     void flush();
 
     void clear();
