@@ -133,7 +133,6 @@ public class DataImportTest
         response = systemActions.getTaskSummariesResponse( "DATAVALUE_IMPORT", taskId );
 
         response.validate().statusCode( 200 )
-            .rootPath( "response" )
             .body( "status", equalTo( "SUCCESS" ) )
             .rootPath( "importCount" )
             .body( "deleted", equalTo( 0 ) )
@@ -157,6 +156,7 @@ public class DataImportTest
         ApiResponse response = dataValueSetActions.post( importedPayload );
 
         response.validate().statusCode( 200 )
+            .rootPath( "response" )
             .body( "status", equalTo( "SUCCESS" ) )
             .body( "conflicts", empty() )
             .body( "importCount", notNullValue() )
