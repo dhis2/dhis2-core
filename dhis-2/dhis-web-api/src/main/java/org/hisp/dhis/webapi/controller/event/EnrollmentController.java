@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -62,7 +63,6 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.EnrollmentCriteria;
@@ -76,9 +76,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -102,7 +105,7 @@ public class EnrollmentController
     private EnrollmentService enrollmentService;
 
     @Autowired
-    private SchedulingManager schedulingManager;
+    private AsyncTaskExecutor taskExecutor;
 
     @Autowired
     private ProgramInstanceService programInstanceService;
@@ -123,7 +126,7 @@ public class EnrollmentController
     // READ
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "", method = RequestMethod.GET )
+    @GetMapping
     public @ResponseBody RootNode getEnrollments(
         EnrollmentCriteria enrollmentCriteria )
     {
@@ -184,7 +187,7 @@ public class EnrollmentController
         return rootNode;
     }
 
-    @RequestMapping( value = "/{id}", method = RequestMethod.GET )
+    @GetMapping( "/{id}" )
     public @ResponseBody Enrollment getEnrollment( @PathVariable String id,
         @RequestParam Map<String, String> parameters, Model model )
         throws NotFoundException
@@ -196,7 +199,7 @@ public class EnrollmentController
     // CREATE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
     public void postEnrollmentJson( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -241,7 +244,7 @@ public class EnrollmentController
         }
     }
 
-    @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
+    @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
     public void postEnrollmentXml( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -290,7 +293,7 @@ public class EnrollmentController
     // UPDATE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{id}/note", method = RequestMethod.POST, consumes = "application/json" )
+    @PostMapping( value = "/{id}/note", consumes = "application/json" )
     public void updateEnrollmentForNoteJson( @PathVariable String id, HttpServletRequest request,
         HttpServletResponse response )
         throws IOException
@@ -300,7 +303,7 @@ public class EnrollmentController
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
-    @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
+    @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
     public void updateEnrollmentXml( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request,
         HttpServletResponse response )
         throws IOException
@@ -312,7 +315,7 @@ public class EnrollmentController
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
-    @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
     public void updateEnrollmentJson( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request,
         HttpServletResponse response )
         throws IOException
@@ -324,7 +327,7 @@ public class EnrollmentController
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
-    @RequestMapping( value = "/{id}/cancelled", method = RequestMethod.PUT )
+    @PutMapping( "/{id}/cancelled" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void cancelEnrollment( @PathVariable String id )
         throws WebMessageException
@@ -337,7 +340,7 @@ public class EnrollmentController
         enrollmentService.cancelEnrollment( id );
     }
 
-    @RequestMapping( value = "/{id}/completed", method = RequestMethod.PUT )
+    @PutMapping( "/{id}/completed" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void completeEnrollment( @PathVariable String id )
         throws WebMessageException
@@ -350,7 +353,7 @@ public class EnrollmentController
         enrollmentService.completeEnrollment( id );
     }
 
-    @RequestMapping( value = "/{id}/incompleted", method = RequestMethod.PUT )
+    @PutMapping( "/{id}/incompleted" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void incompleteEnrollment( @PathVariable String id )
         throws WebMessageException
@@ -367,7 +370,7 @@ public class EnrollmentController
     // DELETE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{id}", method = RequestMethod.DELETE )
+    @DeleteMapping( "/{id}" )
     public void deleteEnrollment( @PathVariable String id, HttpServletRequest request, HttpServletResponse response )
     {
         ImportSummary importSummary = enrollmentService.deleteEnrollment( id );
@@ -382,7 +385,7 @@ public class EnrollmentController
      * Starts an asynchronous enrollment task.
      *
      * @param importOptions the ImportOptions.
-     * @param events the events to import.
+     * @param enrollments the enrollments to import.
      * @param request the HttpRequest.
      * @param response the HttpResponse.
      */
@@ -391,8 +394,8 @@ public class EnrollmentController
     {
         JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
             ENROLLMENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
-        schedulingManager
-            .executeJob( new ImportEnrollmentsTask( enrollments, enrollmentService, importOptions, jobId ) );
+        taskExecutor
+            .executeTask( new ImportEnrollmentsTask( enrollments, enrollmentService, importOptions, jobId ) );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + ENROLLMENT_IMPORT );
         webMessageService.send( jobConfigurationReport( jobId ), response, request );

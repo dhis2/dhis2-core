@@ -25,40 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.serialization;
+package org.hisp.dhis.analytics.resolver;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 
 /**
- * @author Jan Bernitt
+ * A collections of components that can analyze analytics expressions so that
+ * each expression can be resolved to its final "shape".
+ *
+ * @author Dusan Bernat
  */
-public class ImportConflictJacksonTest
+public interface ExpressionResolverCollection
 {
-
-    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
-
-    @Test
-    public void testIterableSerialisedAsJsonArray()
-    {
-        ImportSummary summary = new ImportSummary();
-        summary.addConflict( "foo", "bar" );
-        summary.addConflict( "x", "y" );
-
-        JsonNode summaryNodes = jsonMapper.valueToTree( summary );
-
-        assertTrue( summaryNodes.has( "conflicts" ) );
-        JsonNode conflicts = summaryNodes.get( "conflicts" );
-        assertTrue( conflicts.isArray() );
-        assertEquals( 2, conflicts.size() );
-        assertEquals( "[{\"object\":\"x\",\"value\":\"y\"},{\"object\":\"foo\",\"value\":\"bar\"}]",
-            conflicts.toString() );
-    }
+    List<ExpressionResolver> getExpressionResolvers();
 }

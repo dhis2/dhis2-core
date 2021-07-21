@@ -52,19 +52,19 @@ import org.hisp.dhis.schema.Schema;
 public class MandatoryAttributesCheck implements ObjectValidationCheck
 {
     @Override
-    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
     {
         Schema schema = ctx.getSchemaService().getDynamicSchema( klass );
-        List<IdentifiableObject> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+        List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
 
         if ( objects.isEmpty() || !schema.havePersistedProperty( "attributeValues" ) )
         {
             return;
         }
 
-        for ( IdentifiableObject object : objects )
+        for ( T object : objects )
         {
             List<ErrorReport> errorReports = checkMandatoryAttributes( klass, object, bundle.getPreheat() );
 

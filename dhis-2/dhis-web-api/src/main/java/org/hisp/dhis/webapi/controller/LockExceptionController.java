@@ -72,8 +72,10 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -121,7 +123,7 @@ public class LockExceptionController
     // Resources
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getLockExceptions( @RequestParam( required = false ) String key,
         @RequestParam Map<String, String> rpParameters, HttpServletRequest request, HttpServletResponse response )
         throws IOException,
@@ -189,7 +191,7 @@ public class LockExceptionController
         return rootNode;
     }
 
-    @RequestMapping( value = "/combinations", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = "/combinations", produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getLockExceptionCombinations()
         throws IOException,
         WebMessageException
@@ -219,7 +221,7 @@ public class LockExceptionController
         return rootNode;
     }
 
-    @RequestMapping( method = RequestMethod.POST )
+    @PostMapping
     public void addLockException( @RequestParam( "ou" ) String organisationUnitId,
         @RequestParam( "pe" ) String periodId,
         @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response )
@@ -289,7 +291,7 @@ public class LockExceptionController
         }
     }
 
-    @RequestMapping( method = RequestMethod.DELETE )
+    @DeleteMapping
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteLockException( @RequestParam( name = "ou", required = false ) String organisationUnitId,
         @RequestParam( "pe" ) String periodId,

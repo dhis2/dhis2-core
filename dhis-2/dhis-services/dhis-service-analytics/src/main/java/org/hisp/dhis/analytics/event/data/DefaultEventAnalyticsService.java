@@ -64,6 +64,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -169,11 +170,14 @@ public class DefaultEventAnalyticsService
 
     private final AnalyticsCache analyticsCache;
 
+    final SchemaIdResponseMapper schemaIdResponseMapper;
+
     public DefaultEventAnalyticsService( DataElementService dataElementService,
         TrackedEntityAttributeService trackedEntityAttributeService, EventAnalyticsManager eventAnalyticsManager,
         EventDataQueryService eventDataQueryService, AnalyticsSecurityManager securityManager,
         EventQueryPlanner queryPlanner, EventQueryValidator queryValidator, DatabaseInfo databaseInfo,
-        AnalyticsCache analyticsCache, EnrollmentAnalyticsManager enrollmentAnalyticsManager )
+        AnalyticsCache analyticsCache, EnrollmentAnalyticsManager enrollmentAnalyticsManager,
+        SchemaIdResponseMapper schemaIdResponseMapper )
     {
         super( securityManager, queryValidator );
 
@@ -184,6 +188,7 @@ public class DefaultEventAnalyticsService
         checkNotNull( queryPlanner );
         checkNotNull( databaseInfo );
         checkNotNull( analyticsCache );
+        checkNotNull( schemaIdResponseMapper );
 
         this.dataElementService = dataElementService;
         this.trackedEntityAttributeService = trackedEntityAttributeService;
@@ -193,6 +198,7 @@ public class DefaultEventAnalyticsService
         this.databaseInfo = databaseInfo;
         this.analyticsCache = analyticsCache;
         this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
+        this.schemaIdResponseMapper = schemaIdResponseMapper;
     }
 
     // -------------------------------------------------------------------------
@@ -587,6 +593,26 @@ public class DefaultEventAnalyticsService
         return grid;
     }
 
+    /**
+     * Substitutes the meta data of the grid with the identifier scheme meta
+     * data property indicated in the query. This happens only when a custom ID
+     * Schema is set.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param grid the grid.
+     */
+    private void maybeApplyIdScheme( DataQueryParams params, Grid grid )
+    {
+        if ( !params.isSkipMeta() )
+        {
+            if ( params.hasCustomIdSchemaSet() )
+            {
+                // Apply all schemas set/mapped to the grid.
+                grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
+            }
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Query
     // -------------------------------------------------------------------------
@@ -594,7 +620,11 @@ public class DefaultEventAnalyticsService
     @Override
     public Grid getEvents( EventQueryParams params )
     {
-        return getGrid( params );
+        final Grid grid = getGrid( params );
+
+        maybeApplyIdScheme( params, grid );
+
+        return grid;
     }
 
     @Override

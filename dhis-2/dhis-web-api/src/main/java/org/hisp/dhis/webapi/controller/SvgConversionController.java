@@ -48,8 +48,8 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -60,7 +60,7 @@ public class SvgConversionController
     @Autowired
     private ContextUtils contextUtils;
 
-    @RequestMapping( value = "/svg.png", method = RequestMethod.POST, consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED )
+    @PostMapping( value = "/svg.png", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED )
     public void toPng( @RequestParam String svg, @RequestParam( required = false ) String filename,
         HttpServletResponse response )
         throws Exception
@@ -72,7 +72,7 @@ public class SvgConversionController
         convertToPng( svg, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/svg.pdf", method = RequestMethod.POST, consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED )
+    @PostMapping( value = "/svg.pdf", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED )
     public void toPdf( @RequestParam String svg, @RequestParam( required = false ) String filename,
         HttpServletResponse response )
         throws Exception

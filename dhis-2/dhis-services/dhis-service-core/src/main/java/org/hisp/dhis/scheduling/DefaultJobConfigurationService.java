@@ -95,7 +95,7 @@ public class DefaultJobConfigurationService
     @Transactional
     public void addJobConfigurations( List<JobConfiguration> jobConfigurations )
     {
-        jobConfigurations.forEach( jobConfiguration -> jobConfigurationStore.save( jobConfiguration ) );
+        jobConfigurations.forEach( this::addJobConfiguration );
     }
 
     @Override
@@ -154,7 +154,7 @@ public class DefaultJobConfigurationService
                 continue;
             }
 
-            Map<String, Property> jobParameters = Maps.uniqueIndex( getJobParameters( jobType ), p -> p.getName() );
+            Map<String, Property> jobParameters = Maps.uniqueIndex( getJobParameters( jobType ), Property::getName );
 
             propertyMap.put( jobType.name(), jobParameters );
         }

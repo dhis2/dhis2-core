@@ -47,7 +47,7 @@ import org.hisp.dhis.analytics.data.handler.HeaderHandler;
 import org.hisp.dhis.analytics.data.handler.MetadataHandler;
 import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
-import org.hisp.dhis.analytics.resolver.ExpressionResolver;
+import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -110,7 +110,7 @@ public abstract class AnalyticsServiceBaseTest
     private AnalyticsCacheSettings analyticsCacheSettings;
 
     @Mock
-    private ExpressionResolver resolver;
+    private ExpressionResolvers resolvers;
 
     @Mock
     private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
@@ -125,7 +125,7 @@ public abstract class AnalyticsServiceBaseTest
         HeaderHandler headerHandler = new HeaderHandler();
         MetadataHandler metadataHandler = new MetadataHandler( dataQueryService, schemaIdResponseMapper );
         DataHandler dataHandler = new DataHandler( eventAnalyticsService, rawAnalyticsManager, constantService,
-            resolver, expressionService, queryPlanner, queryValidator, systemSettingManager, analyticsManager,
+            resolvers, expressionService, queryPlanner, queryValidator, systemSettingManager, analyticsManager,
             organisationUnitService );
 
         target = new DataAggregator( headerHandler, metadataHandler, dataHandler );

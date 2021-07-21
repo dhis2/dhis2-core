@@ -28,7 +28,10 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,7 +42,6 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.user.User;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,22 +76,6 @@ public class TrackedEntityTypeObjectBundleHookTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getPreheatIdentifier() ).thenReturn( PreheatIdentifier.UID, PreheatIdentifier.UID );
-    }
-
-    @Test
-    public void shouldReportNoErrorObjectIsNull()
-    {
-
-        assertEquals( 0, trackedEntityTypeObjectBundleHook.validate( null, bundle ).size() );
-        verify( bundle, times( 0 ) ).getPreheat();
-    }
-
-    @Test
-    public void shouldReportNoErrorDifferentClass()
-    {
-
-        assertEquals( 0, trackedEntityTypeObjectBundleHook.validate( new User(), bundle ).size() );
-        verify( bundle, times( 0 ) ).getPreheat();
     }
 
     @Test

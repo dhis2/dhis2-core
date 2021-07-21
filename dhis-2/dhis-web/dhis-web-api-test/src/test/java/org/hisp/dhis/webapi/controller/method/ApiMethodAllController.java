@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
@@ -43,7 +44,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping( "/method/testAll" )
 public class ApiMethodAllController
 {
-    @RequestMapping( "a" )
+    @GetMapping( "a" )
     @ApiVersion( DhisApiVersion.ALL )
     public void testAllA( HttpServletResponse response )
         throws IOException
@@ -51,7 +52,7 @@ public class ApiMethodAllController
         response.getWriter().println( "TEST" );
     }
 
-    @RequestMapping( "b" )
+    @GetMapping( "b" )
     @ApiVersion( DhisApiVersion.ALL )
     public void testAllB( HttpServletResponse response )
         throws IOException

@@ -28,20 +28,32 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.User;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -98,21 +110,11 @@ public class ProgramObjectBundleHookTest
     }
 
     @Test
-    public void verifyNoProgramInstanceIsIgnored()
-    {
-        User user = new User();
-
-        subject.preCreate( user, null );
-
-        verifyNoInteractions( programInstanceService );
-    }
-
-    @Test
     public void verifyMissingBundleIsIgnored()
     {
         ProgramInstance programInstance = new ProgramInstance();
 
-        subject.preCreate( programInstance, null );
+        subject.preCreate( programA, null );
 
         verifyNoInteractions( programInstanceService );
     }

@@ -45,9 +45,9 @@ import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -66,7 +66,7 @@ public class DashboardController
     // Search
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/q/{query}", method = RequestMethod.GET )
+    @GetMapping( "/q/{query}" )
     public @ResponseBody DashboardSearchResult search( @PathVariable String query,
         @RequestParam( required = false ) Set<DashboardItemType> max,
         @RequestParam( required = false ) Integer count,
@@ -75,7 +75,7 @@ public class DashboardController
         return dashboardService.search( query, max, count, maxCount );
     }
 
-    @RequestMapping( value = "/q", method = RequestMethod.GET )
+    @GetMapping( "/q" )
     public @ResponseBody DashboardSearchResult searchNoFilter(
         @RequestParam( required = false ) Set<DashboardItemType> max, @RequestParam( required = false ) Integer count,
         @RequestParam( required = false ) Integer maxCount )
@@ -87,7 +87,7 @@ public class DashboardController
     // Metadata with dependencies
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/metadata" )
     public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException

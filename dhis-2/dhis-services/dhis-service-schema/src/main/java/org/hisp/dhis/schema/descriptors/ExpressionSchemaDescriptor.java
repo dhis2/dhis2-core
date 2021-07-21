@@ -47,7 +47,6 @@ public class ExpressionSchemaDescriptor
     public Schema getSchema()
     {
         Schema schema = new Schema( Expression.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1000 );
 
         return schema;

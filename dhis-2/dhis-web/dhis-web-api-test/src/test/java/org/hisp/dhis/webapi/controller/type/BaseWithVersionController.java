@@ -34,8 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.PostMapping;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,7 +42,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @ApiVersion( DhisApiVersion.V31 )
 public abstract class BaseWithVersionController
 {
-    @RequestMapping( value = "/{id}", method = RequestMethod.POST )
+    @PostMapping( "/{id}" )
     public void testWithId( @PathVariable String id, HttpServletResponse response )
         throws IOException
     {

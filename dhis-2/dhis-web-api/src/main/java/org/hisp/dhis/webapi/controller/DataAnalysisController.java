@@ -94,9 +94,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -161,7 +162,7 @@ public class DataAnalysisController
     @Autowired
     private FollowupAnalysisService followupAnalysisService;
 
-    @RequestMapping( value = "/validationRules", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/validationRules", consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody List<ValidationResultView> performValidationRulesAnalysis(
         @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams,
@@ -203,7 +204,7 @@ public class DataAnalysisController
         return validationResultsListToResponse( validationResults );
     }
 
-    @RequestMapping( value = "validationRulesExpression", method = RequestMethod.GET )
+    @GetMapping( "validationRulesExpression" )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody ValidationRuleExpressionDetails getValidationRuleExpressionDetials(
         @RequestParam String validationRuleId,
@@ -255,7 +256,7 @@ public class DataAnalysisController
         return validationService.getValidationRuleExpressionDetails( params );
     }
 
-    @RequestMapping( value = "/stdDevOutlier", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/stdDevOutlier", consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody List<DeflatedDataValue> performStdDevOutlierAnalysis(
         @RequestBody DataAnalysisParams stdDevOutlierAnalysisParams,
@@ -302,7 +303,7 @@ public class DataAnalysisController
         return deflatedValuesListToResponse( dataValues );
     }
 
-    @RequestMapping( value = "/minMaxOutlier", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/minMaxOutlier", consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody List<DeflatedDataValue> performMinMaxOutlierAnalysis(
         @RequestBody DataAnalysisParams params,
@@ -350,7 +351,7 @@ public class DataAnalysisController
         return deflatedValuesListToResponse( dataValues );
     }
 
-    @RequestMapping( value = "/followup", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/followup", consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody List<DeflatedDataValue> performFollowupAnalysis( @RequestBody DataAnalysisParams params,
         HttpSession session )
@@ -390,14 +391,14 @@ public class DataAnalysisController
         return deflatedValuesListToResponse( dataValues );
     }
 
-    @RequestMapping( value = "/followup", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/followup", produces = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody FollowupAnalysisResponse performFollowupAnalysis( FollowupAnalysisRequest request )
     {
         return followupAnalysisService.getFollowupDataValues( request );
     }
 
-    @RequestMapping( value = "/followup/mark", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/followup/mark", consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public @ResponseBody void markDataValues( @RequestBody UpdateFollowUpForDataValuesRequest params )
     {
@@ -430,7 +431,7 @@ public class DataAnalysisController
         }
     }
 
-    @RequestMapping( value = "/report.pdf", method = RequestMethod.GET )
+    @GetMapping( "/report.pdf" )
     public void getPdfReport( HttpSession session, HttpServletResponse response )
         throws Exception
     {
@@ -447,7 +448,7 @@ public class DataAnalysisController
         GridUtils.toPdf( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/report.xls", method = RequestMethod.GET )
+    @GetMapping( "/report.xls" )
     public void getXlsReport( HttpSession session, HttpServletResponse response )
         throws Exception
     {
@@ -463,7 +464,7 @@ public class DataAnalysisController
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/report.csv", method = RequestMethod.GET )
+    @GetMapping( "/report.csv" )
     public void getCSVReport( HttpSession session, HttpServletResponse response )
         throws Exception
     {
@@ -480,7 +481,7 @@ public class DataAnalysisController
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "validationRules/report.pdf", method = RequestMethod.GET )
+    @GetMapping( "validationRules/report.pdf" )
     public void getValidationRulesPdfReport( HttpSession session, HttpServletResponse response )
         throws Exception
     {
@@ -497,7 +498,7 @@ public class DataAnalysisController
         GridUtils.toPdf( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "validationRules/report.xls", method = RequestMethod.GET )
+    @GetMapping( "validationRules/report.xls" )
     public void getValidationRulesXlsReport( HttpSession session, HttpServletResponse response )
         throws Exception
     {
@@ -513,7 +514,7 @@ public class DataAnalysisController
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "validationRules/report.csv", method = RequestMethod.GET )
+    @GetMapping( "validationRules/report.csv" )
     public void getValidationRulesCSVReport( HttpSession session, HttpServletResponse response )
         throws Exception
     {

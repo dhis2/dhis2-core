@@ -45,14 +45,6 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    @Transactional
-    public long addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
-    {
-        potentialDuplicateStore.save( potentialDuplicate );
-        return potentialDuplicate.getId();
-    }
-
-    @Override
     @Transactional( readOnly = true )
     public PotentialDuplicate getPotentialDuplicateById( long id )
     {
@@ -74,11 +66,24 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    @Transactional
-    public void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate )
+    @Transactional( readOnly = true )
+    public boolean exists( PotentialDuplicate potentialDuplicate )
     {
-        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
-        potentialDuplicateStore.update( potentialDuplicate );
+        return potentialDuplicateStore.exists( potentialDuplicate );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query )
+    {
+        return potentialDuplicateStore.getAllByQuery( query );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<PotentialDuplicate> getPotentialDuplicateByTei( String tei, DeduplicationStatus status )
+    {
+        return potentialDuplicateStore.getAllByTei( tei, status );
     }
 
     @Override
@@ -90,23 +95,16 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public boolean exists( PotentialDuplicate potentialDuplicate )
+    @Transactional
+    public void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
-        return potentialDuplicateStore.exists( potentialDuplicate );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query )
-    {
-        return potentialDuplicateStore.getAllByQuery( query );
+        potentialDuplicateStore.update( potentialDuplicate );
     }
 
     @Override
     @Transactional
-    public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
+    public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
-        potentialDuplicateStore.delete( potentialDuplicate );
+        potentialDuplicateStore.save( potentialDuplicate );
     }
 }

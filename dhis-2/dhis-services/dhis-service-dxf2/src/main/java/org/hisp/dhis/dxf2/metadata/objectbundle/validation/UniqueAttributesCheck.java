@@ -54,11 +54,11 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 public class UniqueAttributesCheck implements ObjectValidationCheck
 {
     @Override
-    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
     {
-        List<IdentifiableObject> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+        List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
 
         if ( objects.isEmpty()
             || !ctx.getSchemaService().getDynamicSchema( klass ).havePersistedProperty( "attributeValues" ) )
@@ -66,7 +66,7 @@ public class UniqueAttributesCheck implements ObjectValidationCheck
             return;
         }
 
-        for ( IdentifiableObject object : objects )
+        for ( T object : objects )
         {
             List<ErrorReport> errorReports = checkUniqueAttributes( klass, object, bundle.getPreheat(),
                 bundle.getPreheatIdentifier() );

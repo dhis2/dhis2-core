@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -96,7 +97,7 @@ public class ObjectBundleServiceFavoritesTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
         objectBundleService.commit( bundle );
 
         List<DataSet> dataSets = manager.getAll( DataSet.class );
@@ -118,9 +119,9 @@ public class ObjectBundleServiceFavoritesTest
         assertNotNull( visualizations.get( 0 ).getAxes() );
         assertNotNull( visualizations.get( 1 ).getAxes() );
         assertNotNull( visualizations.get( 2 ).getAxes() );
-        assertNotNull( visualizations.get( 0 ).getLegend() );
-        assertNotNull( visualizations.get( 1 ).getLegend() );
-        assertNotNull( visualizations.get( 2 ).getLegend() );
+        assertNotNull( visualizations.get( 0 ).getSeriesKey() );
+        assertNotNull( visualizations.get( 1 ).getSeriesKey() );
+        assertNotNull( visualizations.get( 2 ).getSeriesKey() );
         assertEquals( 2, visualizations.get( 0 ).getSeries().size() );
         assertEquals( 2, visualizations.get( 1 ).getSeries().size() );
         assertEquals( 2, visualizations.get( 2 ).getSeries().size() );
@@ -155,7 +156,7 @@ public class ObjectBundleServiceFavoritesTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
         objectBundleService.commit( bundle );
 
         List<DataSet> dataSets = manager.getAll( DataSet.class );
@@ -188,7 +189,7 @@ public class ObjectBundleServiceFavoritesTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
         objectBundleService.commit( bundle );
 
         List<LegendSet> legendSets = manager.getAll( LegendSet.class );
@@ -216,7 +217,7 @@ public class ObjectBundleServiceFavoritesTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
         objectBundleService.commit( bundle );
 
         List<LegendSet> legendSets = manager.getAll( LegendSet.class );

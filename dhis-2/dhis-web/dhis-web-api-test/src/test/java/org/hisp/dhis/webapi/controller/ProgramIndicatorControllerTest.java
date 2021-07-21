@@ -25,21 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.TrackerTypeReport;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * @author Zubair Asghar
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.event.ProgramIndicatorController}
+ * using (mocked) REST requests.
+ *
+ * @author Jan Bernitt
  */
-public interface TrackerObjectDeletionService
+public class ProgramIndicatorControllerTest extends DhisControllerConvenienceTest
 {
-    TrackerTypeReport deleteEnrollments( TrackerBundle bundle, TrackerType trackerType );
+    @Test
+    public void testGetExpressionDescription()
+    {
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programIndicators/expression/description", "70" ).content( HttpStatus.OK ) );
+    }
 
-    TrackerTypeReport deleteEvents( TrackerBundle bundle, TrackerType trackerType );
+    @Test
+    public void testGetExpressionDescription_MalformedExpression()
+    {
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+            POST( "/programIndicators/filter/description", "illegal" ).content( HttpStatus.OK ) );
+    }
 
-    TrackerTypeReport deleteTrackedEntityInstances( TrackerBundle bundle, TrackerType trackerType );
+    @Test
+    public void testValidateFilter()
+    {
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programIndicators/filter/description", "1 < 2" ).content( HttpStatus.OK ) );
+    }
 
-    TrackerTypeReport deleteRelationShips( TrackerBundle bundle, TrackerType trackerType );
+    @Test
+    public void testValidateFilter_MalformedExpression()
+    {
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+            POST( "/programIndicators/filter/description", "illegal" ).content( HttpStatus.OK ) );
+    }
 }

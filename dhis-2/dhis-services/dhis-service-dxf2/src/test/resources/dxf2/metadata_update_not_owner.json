@@ -1,0 +1,36 @@
+{
+  "dataElements": [
+    {
+      "lastUpdated": "2017-07-27T13:12:40.026",
+      "id": "TVhgZzgkACY",
+      "created": "2017-07-27T13:12:40.026",
+      "name": "Value",
+      "shortName": "Value",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "valueType": "NUMBER",
+      "zeroIsSignificant": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "dataElementGroups": [
+        {
+          "id": "ID1"
+        },
+        {
+          "id": "ID2"
+        },
+        {
+          "id": "ID3"
+        },
+        {
+          "id": "ID4"
+        }
+      ]
+    }
+  ]
+}

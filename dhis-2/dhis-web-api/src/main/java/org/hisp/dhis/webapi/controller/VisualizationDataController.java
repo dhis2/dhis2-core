@@ -66,9 +66,8 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -112,7 +111,7 @@ public class VisualizationDataController
     // GET - ReportTable data
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/reportTables/{uid}/data", method = RequestMethod.GET )
+    @GetMapping( value = "/reportTables/{uid}/data" )
     public @ResponseBody Grid getReportTableData( @PathVariable( "uid" ) String uid, Model model,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date )
@@ -120,7 +119,7 @@ public class VisualizationDataController
         return getReportTableGrid( uid, organisationUnitUid, date );
     }
 
-    @RequestMapping( value = "/reportTables/{uid}/data.html", method = RequestMethod.GET )
+    @GetMapping( value = "/reportTables/{uid}/data.html" )
     public void getReportTableHtml( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -136,7 +135,7 @@ public class VisualizationDataController
         GridUtils.toHtml( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "/reportTables/{uid}/data.html+css", method = RequestMethod.GET )
+    @GetMapping( value = "/reportTables/{uid}/data.html+css" )
     public void getReportTableHtmlCss( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -152,7 +151,7 @@ public class VisualizationDataController
         GridUtils.toHtmlCss( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "/reportTables/{uid}/data.xml", method = RequestMethod.GET )
+    @GetMapping( value = "/reportTables/{uid}/data.xml" )
     public void getReportTableXml( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -168,7 +167,7 @@ public class VisualizationDataController
         GridUtils.toXml( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/reportTables/{uid}/data.pdf", method = RequestMethod.GET )
+    @GetMapping( value = "/reportTables/{uid}/data.pdf" )
     public void getReportTablePdf( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -184,7 +183,7 @@ public class VisualizationDataController
         GridUtils.toPdf( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/reportTables/{uid}/data.xls", method = RequestMethod.GET )
+    @GetMapping( value = "/reportTables/{uid}/data.xls" )
     public void getReportTableXls( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -200,7 +199,7 @@ public class VisualizationDataController
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/reportTables/{uid}/data.csv", method = RequestMethod.GET )
+    @GetMapping( value = "/reportTables/{uid}/data.csv" )
     public void getReportTableCsv( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -235,7 +234,7 @@ public class VisualizationDataController
     // GET Chart data
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = { "/charts/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/{uid}/data", "/{uid}/data.png" } )
     public void getChart(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -267,7 +266,7 @@ public class VisualizationDataController
         ChartUtils.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
     }
 
-    @RequestMapping( value = { "/charts/data", "/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/data", "/data.png" } )
     public void getChart(
         @RequestParam( value = "in" ) String indicatorUid,
         @RequestParam( value = "ou" ) String organisationUnitUid,
@@ -300,7 +299,7 @@ public class VisualizationDataController
         ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
 
-    @RequestMapping( value = { "/charts/history/data", "/history/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/history/data", "/history/data.png" } )
     public void getHistoryChart(
         @RequestParam String de,
         @RequestParam String co,

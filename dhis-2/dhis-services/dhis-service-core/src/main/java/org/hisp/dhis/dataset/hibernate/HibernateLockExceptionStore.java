@@ -153,6 +153,16 @@ public class HibernateLockExceptionStore
     }
 
     @Override
+    public void delete( OrganisationUnit organisationUnit )
+    {
+        final String hql = "delete from LockException where organisationUnit=:organisationUnit";
+
+        getQuery( hql )
+            .setParameter( "organisationUnit", organisationUnit )
+            .executeUpdate();
+    }
+
+    @Override
     public List<LockException> getAllOrderedName( int first, int max )
     {
         return getList( getCriteriaBuilder(), newJpaParameters()

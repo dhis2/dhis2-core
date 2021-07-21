@@ -25,22 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.webapi.controller;
+
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * This interface is an abstraction for the actual execution of jobs based on a
- * job configuration.
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.event.ProgramRuleActionController}
+ * using (mocked) REST requests.
  *
- * @author Henning Håkonsen
+ * @author Jan Bernitt
  */
-public interface JobInstance
+public class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest
 {
-    /**
-     * This method will try to execute the actual job. It will verify a set of
-     * parameters, such as no other jobs of the same JobType is running. If the
-     * JobConfiguration is disabled it will not run.
-     *
-     * @param jobConfiguration the configuration of the job.
-     */
-    void execute( JobConfiguration jobConfiguration );
+    @Test
+    public void testGetDataExpressionDescription()
+    {
+        String pId = assertStatus( HttpStatus.CREATED,
+            POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
+
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programRuleActions/data/expression/description?programId=" + pId, "70" ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    public void testGetDataExpressionDescription_NoSuchProgram()
+    {
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+            POST( "/programRuleActions/data/expression/description?programId=xyz", "70" ).content( HttpStatus.OK ) );
+    }
 }

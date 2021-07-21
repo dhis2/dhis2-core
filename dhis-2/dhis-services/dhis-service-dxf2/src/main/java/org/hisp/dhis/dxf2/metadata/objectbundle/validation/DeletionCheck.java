@@ -45,8 +45,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 public class DeletionCheck implements ObjectValidationCheck
 {
     @Override
-    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
     {
         if ( nonPersistedObjects == null || nonPersistedObjects.isEmpty() )

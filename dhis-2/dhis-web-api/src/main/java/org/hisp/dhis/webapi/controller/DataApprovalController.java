@@ -83,9 +83,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -145,7 +147,7 @@ public class DataApprovalController
     // Get
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = APPROVALS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = APPROVALS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON )
     public void getApprovalPermissions(
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String wf,
@@ -171,8 +173,8 @@ public class DataApprovalController
         renderService.toJson( response.getOutputStream(), status.getPermissions() );
     }
 
-    @RequestMapping( value = { MULTIPLE_APPROVALS_PATH,
-        APPROVALS_PATH + "/approvals" }, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = { MULTIPLE_APPROVALS_PATH,
+        APPROVALS_PATH + "/approvals" }, produces = ContextUtils.CONTENT_TYPE_JSON )
     public void getMultipleApprovalPermissions(
         @RequestParam Set<String> wf,
         @RequestParam( required = false ) Set<String> pe,
@@ -288,7 +290,7 @@ public class DataApprovalController
         renderService.toJson( response.getOutputStream(), approvalStatuses );
     }
 
-    @RequestMapping( value = STATUS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = STATUS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getApproval(
         @RequestParam Set<String> ds,
         @RequestParam( required = false ) String pe,
@@ -378,8 +380,8 @@ public class DataApprovalController
             createdDate, createdByUsername, status.getPermissions() );
     }
 
-    @RequestMapping( value = APPROVALS_PATH
-        + "/categoryOptionCombos", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = APPROVALS_PATH
+        + "/categoryOptionCombos", produces = ContextUtils.CONTENT_TYPE_JSON )
     public void getApprovalByCategoryOptionCombos(
         @RequestParam( required = false ) Set<String> ds,
         @RequestParam( required = false ) Set<String> wf,
@@ -449,7 +451,7 @@ public class DataApprovalController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')" )
-    @RequestMapping( value = APPROVALS_PATH, method = RequestMethod.POST )
+    @PostMapping( value = APPROVALS_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveApproval(
         @RequestParam( required = false ) String ds,
@@ -473,7 +475,7 @@ public class DataApprovalController
         dataApprovalService.approveData( dataApprovalList );
     }
 
-    @RequestMapping( value = APPROVALS_PATH + "/approvals", method = RequestMethod.POST )
+    @PostMapping( APPROVALS_PATH + "/approvals" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveApprovalBatch( @RequestBody ApprovalsDto approvals )
         throws WebMessageException
@@ -481,7 +483,7 @@ public class DataApprovalController
         dataApprovalService.approveData( getDataApprovalList( approvals ) );
     }
 
-    @RequestMapping( value = APPROVALS_PATH + "/unapprovals", method = RequestMethod.POST )
+    @PostMapping( APPROVALS_PATH + "/unapprovals" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeApprovalBatch( @RequestBody ApprovalsDto approvals )
         throws WebMessageException
@@ -494,7 +496,7 @@ public class DataApprovalController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')" )
-    @RequestMapping( value = ACCEPTANCES_PATH, method = RequestMethod.POST )
+    @PostMapping( ACCEPTANCES_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void acceptApproval(
         @RequestParam( required = false ) String ds,
@@ -518,7 +520,7 @@ public class DataApprovalController
         dataApprovalService.acceptData( dataApprovalList );
     }
 
-    @RequestMapping( value = ACCEPTANCES_PATH + "/acceptances", method = RequestMethod.POST )
+    @PostMapping( ACCEPTANCES_PATH + "/acceptances" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveAcceptanceBatch( @RequestBody ApprovalsDto approvals )
         throws WebMessageException
@@ -526,7 +528,7 @@ public class DataApprovalController
         dataApprovalService.acceptData( getDataApprovalList( approvals ) );
     }
 
-    @RequestMapping( value = ACCEPTANCES_PATH + "/unacceptances", method = RequestMethod.POST )
+    @PostMapping( ACCEPTANCES_PATH + "/unacceptances" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeAcceptancesBatch( @RequestBody ApprovalsDto approvals )
         throws WebMessageException
@@ -539,7 +541,7 @@ public class DataApprovalController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')" )
-    @RequestMapping( value = APPROVALS_PATH, method = RequestMethod.DELETE )
+    @DeleteMapping( APPROVALS_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeApproval(
         @RequestParam( required = false ) Set<String> ds,
@@ -570,7 +572,7 @@ public class DataApprovalController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')" )
-    @RequestMapping( value = ACCEPTANCES_PATH, method = RequestMethod.DELETE )
+    @DeleteMapping( ACCEPTANCES_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void unacceptApproval(
         @RequestParam( required = false ) String ds,

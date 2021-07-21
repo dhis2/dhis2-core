@@ -31,7 +31,6 @@ import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.tracker.validation.AbstractImportValidationTest.ADMIN_USER_UID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -100,7 +99,7 @@ public class TrackerSideEffectHandlerServiceTest extends TransactionalIntegratio
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertTrue( validationReport.getErrorReports().isEmpty() );
+        assertFalse( validationReport.hasErrorReports() );
 
         objectBundleService.commit( bundle );
     }

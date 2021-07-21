@@ -47,10 +47,12 @@ import javax.xml.xpath.XPathExpressionException;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.collections4.*;
+import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -58,7 +60,6 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.mapping.MapView;
@@ -552,9 +553,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
         ImportReport importReport = importService.importMetadata( params );
 
-        assertTrue( importReport.getTypeReports().stream()
-            .flatMap( typeReport -> typeReport.getErrorReports().stream() )
-            .anyMatch( errorReport -> errorReport.getErrorCode().equals( ErrorCode.E5005 ) ) );
+        assertTrue( importReport.hasErrorReport( errorReport -> errorReport.getErrorCode() == ErrorCode.E5005 ) );
     }
 
     @Test
@@ -813,11 +812,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         dbmsManager.clearSession();
 
         report = importService.importMetadata( params );
-        final List<ErrorReport> errorReports = report.getErrorReports();
-        for ( ErrorReport errorReport : errorReports )
-        {
-            log.error( "Error report:" + errorReport );
-        }
+        report.forEachErrorReport( errorReport -> log.error( "Error report:" + errorReport ) );
         assertEquals( Status.OK, report.getStatus() );
 
         dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
@@ -868,11 +863,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         params.setMetadataSyncImport( true );
 
         report = importService.importMetadata( params );
-        final List<ErrorReport> errorReports = report.getErrorReports();
-        for ( ErrorReport errorReport : errorReports )
-        {
-            log.error( "Error report:" + errorReport );
-        }
+        report.forEachErrorReport( errorReport -> log.error( "Error report:" + errorReport ) );
         assertEquals( Status.OK, report.getStatus() );
 
         programStage = manager.get( ProgramStage.class, "NpsdDv6kKSO" );

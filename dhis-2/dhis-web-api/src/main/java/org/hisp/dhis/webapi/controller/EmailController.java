@@ -47,9 +47,9 @@ import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -80,7 +80,7 @@ public class EmailController
     @Autowired
     private WebMessageService webMessageService;
 
-    @RequestMapping( value = "/test", method = RequestMethod.POST )
+    @PostMapping( "/test" )
     public void sendTestEmail( HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
@@ -97,7 +97,7 @@ public class EmailController
         emailResponseHandler( emailResponse, request, response );
     }
 
-    @RequestMapping( value = "/notification", method = RequestMethod.POST )
+    @PostMapping( "/notification" )
     public void sendSystemNotificationEmail( @RequestBody Email email,
         HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
@@ -118,7 +118,7 @@ public class EmailController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SEND_EMAIL')" )
-    @RequestMapping( value = "/notification", method = RequestMethod.POST, produces = "application/json" )
+    @PostMapping( value = "/notification", produces = "application/json" )
     public void sendEmailNotification( @RequestParam Set<String> recipients, @RequestParam String message,
         @RequestParam( defaultValue = "DHIS 2" ) String subject,
         HttpServletResponse response, HttpServletRequest request )
