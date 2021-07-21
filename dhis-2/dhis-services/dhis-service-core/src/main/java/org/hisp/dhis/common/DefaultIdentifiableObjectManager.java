@@ -42,6 +42,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -71,8 +73,6 @@ import com.google.api.client.util.Lists;
 import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.internal.Primitives;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Note that it is required for nameable object stores to have concrete
