@@ -25,23 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.embeddedjetty;
+package org.hisp.dhis.cache;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hibernate.Cache;
+import org.springframework.stereotype.Service;
+
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Service
 @Slf4j
-public class StartupFinishedRoutine extends AbstractStartupRoutine
+public class QueryCacheManager
 {
-    @Override
-    public void execute()
-        throws Exception
+    private final Map<String, Set<String>> regionNameMap = new ConcurrentHashMap<>();
+
+    private final HashFunction sessionIdHasher = Hashing.sha256();
+
+    public String generateRegionName( Class<?> klass, String queryString )
     {
-        log.info( String.format( "DHIS2 API Server Startup Finished In %s Seconds! Running on port: %s",
-            (JettyEmbeddedCoreWeb.getElapsedMsSinceStart() / 1000), System.getProperty( "jetty.http.port" ) ) );
+        String queryStringHash = sessionIdHasher.newHasher().putString( queryString, StandardCharsets.UTF_8 ).hash()
+            .toString();
+        String regionName = klass.getName() + "_" + queryStringHash;
+
+        Set<String> allQueriesOnKlass = regionNameMap.computeIfAbsent( klass.getName(), s -> new HashSet<>() );
+        allQueriesOnKlass.add( queryStringHash );
+
+        return regionName;
+    }
+
+    public void evictQueryCache( Cache cache, Class<?> klass )
+    {
+        Set<String> hashes = regionNameMap.getOrDefault( klass.getName(), Collections.emptySet() );
+
+        for ( String regionNameHash : hashes )
+        {
+            String key = klass.getName() + "_" + regionNameHash;
+
+            cache.evictQueryRegion( key );
+        }
     }
 }

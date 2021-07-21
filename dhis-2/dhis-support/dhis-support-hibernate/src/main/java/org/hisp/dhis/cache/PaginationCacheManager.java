@@ -25,23 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.embeddedjetty;
+package org.hisp.dhis.cache;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Service
 @Slf4j
-public class StartupFinishedRoutine extends AbstractStartupRoutine
+public class PaginationCacheManager
 {
-    @Override
-    public void execute()
-        throws Exception
+    private final Map<String, Cache<String, Long>> cacheMap = new ConcurrentHashMap<>();
+
+    public void evictCache( String key )
     {
-        log.info( String.format( "DHIS2 API Server Startup Finished In %s Seconds! Running on port: %s",
-            (JettyEmbeddedCoreWeb.getElapsedMsSinceStart() / 1000), System.getProperty( "jetty.http.port" ) ) );
+        Cache<String, Long> cache = getPaginationCacheStrict( key );
+
+        if ( cache != null )
+        {
+            cache.clear();
+        }
+    }
+
+    private Cache<String, Long> getPaginationCacheStrict( String key )
+    {
+        return cacheMap.get( key );
+    }
+
+    public <T extends IdentifiableObject> Cache<String, Long> getPaginationCache( Class<T> entityClass )
+    {
+        return cacheMap.computeIfAbsent( entityClass.getName(), s -> createCache() );
+    }
+
+    private Cache<String, Long> createCache()
+    {
+        return new Cache2kBuilder<String, Long>()
+        {
+        }
+            .expireAfterWrite( 1, TimeUnit.MINUTES )
+            .build();
     }
 }

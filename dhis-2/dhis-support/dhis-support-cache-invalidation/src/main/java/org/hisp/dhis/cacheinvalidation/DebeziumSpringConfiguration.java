@@ -25,23 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.embeddedjetty;
+package org.hisp.dhis.cacheinvalidation;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistryImpl;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
-public class StartupFinishedRoutine extends AbstractStartupRoutine
+@Order( 101 )
+@ComponentScan( basePackages = { "org.hisp.dhis" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+@Configuration
+public class DebeziumSpringConfiguration
 {
-    @Override
-    public void execute()
-        throws Exception
+    @Bean
+    public static SessionRegistryImpl sessionRegistry()
     {
-        log.info( String.format( "DHIS2 API Server Startup Finished In %s Seconds! Running on port: %s",
-            (JettyEmbeddedCoreWeb.getElapsedMsSinceStart() / 1000), System.getProperty( "jetty.http.port" ) ) );
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public DebeziumPreStartupRoutine debeziumPreStartupRoutine()
+    {
+        DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
+        routine.setName( "debeziumPreStartupRoutine" );
+        routine.setRunlevel( 1 );
+        routine.setSkipInTests( true );
+        return routine;
+    }
+
+    @Bean
+    public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine()
+    {
+        StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();
+        routine.setName( "StartupDebeziumServiceRoutine" );
+        routine.setRunlevel( 20 );
+        routine.setSkipInTests( true );
+        return routine;
     }
 }
