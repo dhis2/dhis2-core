@@ -163,7 +163,7 @@ public interface IdentifiableObjectManager
 
     /**
      * Resets all properties that are not owned by the object type.
-     * 
+     *
      * @param object object to reset
      */
     void resetNonOwnerProperties( Object object );
