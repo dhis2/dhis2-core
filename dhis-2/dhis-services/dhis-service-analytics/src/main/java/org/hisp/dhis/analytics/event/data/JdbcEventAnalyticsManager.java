@@ -390,11 +390,6 @@ public class JdbcEventAnalyticsManager
     @Override
     protected String getWhereClause( EventQueryParams params )
     {
-        // if( params.getOutputType() == EventOutputType.ENROLLMENT ) {
-        // return "where enrollmentdate >= '2020-07-01' and enrollmentdate <=
-        // '2021-06-30' and (uidlevel1 = 'ImspTQPwCqd' )";
-        // }
-
         String sql = "";
         SqlHelper hlp = new SqlHelper();
 
