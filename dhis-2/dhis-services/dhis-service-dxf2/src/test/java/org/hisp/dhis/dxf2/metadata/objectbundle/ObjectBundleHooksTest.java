@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.hooks.AnalyticalObjectObjectBundleHook;
 import org.hisp.dhis.dxf2.metadata.objectbundle.hooks.IdentifiableObjectBundleHook;
@@ -46,6 +45,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserObjectBundleHook;
 import org.hisp.dhis.dxf2.metadata.objectbundle.hooks.VersionedObjectObjectBundleHook;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 
 /**
@@ -86,7 +86,7 @@ public class ObjectBundleHooksTest
             IdentifiableObjectBundleHook.class, VersionedObjectObjectBundleHook.class );
         assertHasHooksOfType( new User(),
             IdentifiableObjectBundleHook.class, VersionedObjectObjectBundleHook.class );
-        assertHasHooksOfType( new Chart(),
+        assertHasHooksOfType( new Visualization(),
             IdentifiableObjectBundleHook.class, VersionedObjectObjectBundleHook.class,
             AnalyticalObjectObjectBundleHook.class );
     }
@@ -112,7 +112,7 @@ public class ObjectBundleHooksTest
             getCommitHookTypes( OrganisationUnit.class, User.class ) );
         assertEquals(
             asList( OrganisationUnitObjectBundleHook.class, UserObjectBundleHook.class ),
-            getCommitHookTypes( Chart.class, OrganisationUnit.class, User.class ) );
+            getCommitHookTypes( Visualization.class, OrganisationUnit.class, User.class ) );
     }
 
     @SafeVarargs
