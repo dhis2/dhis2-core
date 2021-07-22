@@ -106,11 +106,9 @@ public class ObjectBundleServiceImportReportModeTest extends TransactionalIntegr
 
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertTrue( validate.hasErrorReports() );
-        System.err.println( validate );
-        assertEquals( 5, validate.getErrorReportsCount() );
+        assertEquals( 4, validate.getErrorReportsCount() );
 
-        validate.forEachErrorReport( errorReport -> {
-            assertEquals( "Invalid error code, expected E5006", ErrorCode.E5006, errorReport.getErrorCode() );
-        } );
+        validate.forEachErrorReport( errorReport -> assertEquals( "Invalid error code, expected E5006", ErrorCode.E5006,
+            errorReport.getErrorCode() ) );
     }
 }
