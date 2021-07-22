@@ -55,6 +55,7 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.security.config.DhisWebCommonsWebSecurityConfig;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
+import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -108,6 +109,7 @@ import com.google.common.collect.ImmutableMap;
     org.hisp.dhis.reporting.config.StoreConfig.class,
     org.hisp.dhis.analytics.config.ServiceConfig.class,
     JacksonObjectMapperConfig.class,
+    ContentNegotiationConfig.class,
     JdbcOrgUnitAssociationStoreConfiguration.class,
     StartupConfig.class
 } )
