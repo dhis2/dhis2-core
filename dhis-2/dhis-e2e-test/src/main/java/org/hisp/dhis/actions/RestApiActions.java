@@ -257,6 +257,7 @@ public class RestApiActions
     {
         Response response = this.given().body( object, ObjectMapperType.GSON )
             .when()
+            .queryParam( "importReportMode", "ERRORS" )
             .contentType( "application/json-patch+json" )
             .patch( resourceId );
 
