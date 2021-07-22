@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.deletedobject.hibernate;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hisp.dhis.cacheinvalidation.KnownTransactionsService;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
@@ -47,6 +50,14 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEventListener
 {
+    private final transient KnownTransactionsService knownTransactionsService;
+
+    public DeletedObjectPostDeleteEventListener( KnownTransactionsService knownTransactionsService )
+    {
+        checkNotNull( knownTransactionsService );
+        this.knownTransactionsService = knownTransactionsService;
+    }
+
     @Override
     public void onPostDelete( PostDeleteEvent event )
     {
@@ -60,6 +71,8 @@ public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEve
 
             StatelessSession session = event.getPersister().getFactory().openStatelessSession();
             session.beginTransaction();
+
+            knownTransactionsService.registerEvent( event );
 
             try
             {
