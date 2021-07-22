@@ -1006,7 +1006,6 @@ public class DefaultIdentifiableObjectManager
         }
 
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
-        // sessionFactory.getCurrentSession().detach( object );
 
         schema.getProperties()
             .stream()
