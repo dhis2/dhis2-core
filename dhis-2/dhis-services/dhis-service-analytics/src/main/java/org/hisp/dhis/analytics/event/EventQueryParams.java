@@ -426,7 +426,7 @@ public class EventQueryParams
      * from the periods as start date and the latest end date from the periods
      * as end date. Remove the period dimension or filter.
      */
-    private void replacePeriodsWithStartEndDates( boolean withDimensionOrFilter )
+    private void replacePeriodsWithStartEndDates( boolean isPeriodsWithStartEndDatesOnly )
     {
         List<Period> periods = asTypedList( getDimensionOrFilterItems( PERIOD_DIM_ID ) );
 
@@ -446,7 +446,7 @@ public class EventQueryParams
             }
         }
 
-        if ( withDimensionOrFilter )
+        if ( isPeriodsWithStartEndDatesOnly )
         {
             removeDimensionOrFilter( PERIOD_DIM_ID );
         }
