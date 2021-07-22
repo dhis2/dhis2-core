@@ -224,7 +224,7 @@ public class DefaultEventDataQueryService
 
         if ( request.getOutputType() == EventOutputType.ENROLLMENT )
         {
-            params.withDimensionReplacingStartEndDatesForPeriods();
+            params.withStartEndDatesForPeriods( false );
         }
         else
         {

@@ -1348,15 +1348,15 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withDimensionReplacingStartEndDatesForPeriods()
+        public Builder withStartEndDatesForPeriods( boolean periodsReplacedByStartEndDates )
         {
-            this.params.replacePeriodsWithStartEndDates( false );
+            this.params.replacePeriodsWithStartEndDates( periodsReplacedByStartEndDates );
             return this;
         }
 
         public Builder withStartEndDatesForPeriods()
         {
-            this.params.replacePeriodsWithStartEndDates( true );
+            withStartEndDatesForPeriods( true );
             return this;
         }
 
