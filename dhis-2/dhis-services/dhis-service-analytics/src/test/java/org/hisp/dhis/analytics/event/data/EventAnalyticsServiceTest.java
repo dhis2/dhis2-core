@@ -185,20 +185,11 @@ public class EventAnalyticsServiceTest
         Map<String, Double> events_2017_keyValue = new HashMap<>();
         events_2017_keyValue.put( "ouabcdefghA", 6.0 );
 
-        Map<String, Map<String, Double>> results = new HashMap<>();
-        results.put( "events_2017", events_2017_keyValue );
+        // When
+        Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( events_2017_params );
 
-        for ( Map.Entry<String, EventQueryParams> entry : eventQueryParams.entrySet() )
-        {
-            String key = entry.getKey();
-            EventQueryParams params = entry.getValue();
-
-            // When
-            Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( params );
-
-            // Then
-            AnalyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, results.get( key ) );
-        }
+        // Then
+        AnalyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, events_2017_keyValue );
     }
 
     @Test
@@ -250,20 +241,11 @@ public class EventAnalyticsServiceTest
         Map<String, Double> events_2017_keyValue = new HashMap<>();
         events_2017_keyValue.put( "ouabcdefghA", 6.0 );
 
-        Map<String, Map<String, Double>> results = new HashMap<>();
-        results.put( "events_2017", events_2017_keyValue );
+        // When
+        Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( events_2017_params );
 
-        for ( Map.Entry<String, EventQueryParams> entry : eventQueryParams.entrySet() )
-        {
-            String key = entry.getKey();
-            EventQueryParams params = entry.getValue();
-
-            // When
-            Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( params );
-
-            // Then
-            AnalyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, results.get( key ) );
-        }
+        // Then
+        AnalyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, events_2017_keyValue );
     }
 
     @Test
@@ -313,19 +295,11 @@ public class EventAnalyticsServiceTest
             .withProgram( aProgram )
             .build();
 
-        Map<String, EventQueryParams> eventQueryParams = new HashMap<>();
-        eventQueryParams.put( "events_2017", events_2017_params );
-
-        for ( Map.Entry<String, EventQueryParams> entry : eventQueryParams.entrySet() )
-        {
-            EventQueryParams params = entry.getValue();
-
-            // Then
-            Throwable exception = assertThrows( IllegalQueryException.class,
-                () -> eventAnalyticsService.getAggregatedEventData( params ) );
-            assertThat( exception.getMessage(),
-                containsString( "Current user is constrained by a dimension but has access to no dimension items" ) );
-        }
+        // Then
+        Throwable exception = assertThrows( IllegalQueryException.class,
+            () -> eventAnalyticsService.getAggregatedEventData( events_2017_params ) );
+        assertThat( exception.getMessage(),
+            containsString( "Current user is constrained by a dimension but has access to no dimension items" ) );
     }
 
     // -------------------------------------------------------------------------
