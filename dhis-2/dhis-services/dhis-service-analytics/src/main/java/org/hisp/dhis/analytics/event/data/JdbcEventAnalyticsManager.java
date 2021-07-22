@@ -481,7 +481,7 @@ public class JdbcEventAnalyticsManager
         // Program stage
         // ---------------------------------------------------------------------
 
-        if ( params.hasProgramStage() && params.getOutputType() == EventOutputType.EVENT )
+        if ( params.hasProgramStage() && params.getOutputType() != EventOutputType.ENROLLMENT )
         {
             sql += hlp.whereAnd() + " " + quoteAlias( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
         }
