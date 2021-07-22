@@ -32,7 +32,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +45,6 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.system.util.LocaleUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebLocale;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,9 +75,6 @@ public class LocaleController
 
     @Autowired
     private I18nLocaleService localeService;
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -137,14 +132,13 @@ public class LocaleController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_ADD')" )
     @PostMapping( value = "/dbLocales" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public void addLocale( @RequestParam String country, @RequestParam String language,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public WebMessage addLocale( @RequestParam String country, @RequestParam String language,
+        HttpServletResponse response )
     {
         if ( StringUtils.isEmpty( country ) || StringUtils.isEmpty( language ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Invalid country or language code." ) );
+            return WebMessageUtils.conflict( "Invalid country or language code." );
         }
 
         String localeCode = LocaleUtils.getLocaleString( language, country, null );
@@ -157,7 +151,7 @@ public class LocaleController
 
             if ( i18nLocale != null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Locale code existed." ) );
+                return WebMessageUtils.conflict( "Locale code existed." );
             }
         }
 
@@ -168,7 +162,7 @@ public class LocaleController
         response.setHeader( ContextUtils.HEADER_LOCATION,
             contextService.getApiPath() + "/locales/" + i18nLocale.getUid() );
 
-        webMessageService.send( webMessage, response, request );
+        return webMessage;
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_DELETE')" )
