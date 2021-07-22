@@ -44,6 +44,7 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.feedback.ObjectIndexProvider;
 import org.hisp.dhis.feedback.TypedIndexedObjectContainer;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -97,6 +98,12 @@ public class ObjectBundle implements ObjectIndexProvider
      * Sets import strategy (create, update, etc).
      */
     private final ImportStrategy importMode;
+
+    /**
+     * Adjust hows objects imported should be reported (all objects, only errors
+     * etc)
+     */
+    private final ImportReportMode importReportMode;
 
     /**
      * Should import be treated as a atomic import (all or nothing).
@@ -182,6 +189,7 @@ public class ObjectBundle implements ObjectIndexProvider
         this.objectBundleMode = params.getObjectBundleMode();
         this.preheatIdentifier = params.getPreheatIdentifier();
         this.importMode = params.getImportStrategy();
+        this.importReportMode = params.getImportReportMode();
         this.atomicMode = params.getAtomicMode();
         this.preheatMode = params.getPreheatMode();
         this.mergeMode = params.getMergeMode();
@@ -239,6 +247,11 @@ public class ObjectBundle implements ObjectIndexProvider
     public ImportStrategy getImportMode()
     {
         return importMode;
+    }
+
+    public ImportReportMode getImportReportMode()
+    {
+        return importReportMode;
     }
 
     public AtomicMode getAtomicMode()
@@ -395,22 +408,23 @@ public class ObjectBundle implements ObjectIndexProvider
         return persisted ? persistedObjects : nonPersistedObjects;
     }
 
-    public List<IdentifiableObject> getObjects( Class<? extends IdentifiableObject> klass, boolean persisted )
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getObjects( Class<T> klass, boolean persisted )
     {
-        List<IdentifiableObject> identifiableObjects = null;
+        List<T> identifiableObjects = null;
 
         if ( persisted )
         {
             if ( persistedObjects.containsKey( klass ) )
             {
-                identifiableObjects = persistedObjects.get( klass );
+                identifiableObjects = (List<T>) persistedObjects.get( klass );
             }
         }
         else
         {
             if ( nonPersistedObjects.containsKey( klass ) )
             {
-                identifiableObjects = nonPersistedObjects.get( klass );
+                identifiableObjects = (List<T>) nonPersistedObjects.get( klass );
             }
         }
 

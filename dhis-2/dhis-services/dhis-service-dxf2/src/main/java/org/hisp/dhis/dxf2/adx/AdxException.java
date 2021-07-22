@@ -44,7 +44,7 @@ public class AdxException
 
     public AdxException( String msg )
     {
-        this( null, msg );
+        this( "ADX Error", msg );
     }
 
     public AdxException( String object, String msg )

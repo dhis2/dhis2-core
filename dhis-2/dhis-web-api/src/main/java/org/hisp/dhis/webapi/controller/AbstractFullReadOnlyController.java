@@ -35,14 +35,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -84,9 +83,8 @@ import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -109,11 +107,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
 
-    private final Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
-    {
-    }
-        .expireAfterWrite( 1, TimeUnit.MINUTES )
-        .build();
+    @Autowired
+    protected PaginationCacheManager paginationCacheManager;
 
     @Autowired
     protected IdentifiableObjectManager manager;
@@ -167,7 +162,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // GET Full
     // --------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET )
+    @GetMapping
     public @ResponseBody RootNode getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         HttpServletResponse response, User currentUser )
@@ -211,9 +206,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             }
             else
             {
+                Cache<String, Long> paginationCache = paginationCacheManager.getPaginationCache( getEntityClass() );
                 String cacheKey = composePaginationCountKey( currentUser, filters, options );
-                totalCount = paginationCountCache.computeIfAbsent( cacheKey,
-                    () -> countTotal( options, filters, orders ) );
+                totalCount = paginationCache.computeIfAbsent( cacheKey, () -> countTotal( options, filters, orders ) );
             }
 
             pager = new Pager( options.getPage(), totalCount, options.getPageSize() );
@@ -243,7 +238,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return rootNode;
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}" )
     public @ResponseBody RootNode getObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
@@ -271,7 +266,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return getObjectInternal( pvUid, rpParameters, filters, fields, user );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/{property}" )
     public @ResponseBody RootNode getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
@@ -318,7 +313,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         }
     }
 
-    @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/{property}/{itemId}" )
     public @ResponseBody RootNode getCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,

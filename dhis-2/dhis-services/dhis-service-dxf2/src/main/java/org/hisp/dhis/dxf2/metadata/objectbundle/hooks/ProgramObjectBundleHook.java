@@ -31,7 +31,8 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import org.hisp.dhis.common.IdentifiableObject;
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -53,9 +54,8 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class ProgramObjectBundleHook
-    extends
-    AbstractObjectBundleHook
+@AllArgsConstructor
+public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program>
 {
     private final ProgramInstanceService programInstanceService;
 
@@ -65,52 +65,26 @@ public class ProgramObjectBundleHook
 
     private final AclService aclService;
 
-    public ProgramObjectBundleHook( ProgramInstanceService programInstanceService, ProgramService programService,
-        ProgramStageService programStageService, AclService aclService )
+    @Override
+    public void postCreate( Program object, ObjectBundle bundle )
     {
-        this.programInstanceService = programInstanceService;
-        this.programStageService = programStageService;
-        this.programService = programService;
-        this.aclService = aclService;
+        syncSharingForEventProgram( object );
+
+        addProgramInstance( object );
+
+        updateProgramStage( object );
     }
 
     @Override
-    public void postCreate( IdentifiableObject object, ObjectBundle bundle )
+    public void postUpdate( Program object, ObjectBundle bundle )
     {
-        if ( !isProgram( object ) )
-        {
-            return;
-        }
-
-        syncSharingForEventProgram( (Program) object );
-
-        addProgramInstance( (Program) object );
-
-        updateProgramStage( (Program) object );
+        syncSharingForEventProgram( object );
     }
 
     @Override
-    public void postUpdate( IdentifiableObject object, ObjectBundle bundle )
-    {
-        if ( !isProgram( object ) )
-        {
-            return;
-        }
-
-        syncSharingForEventProgram( (Program) object );
-    }
-
-    @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+    public void validate( Program program, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
-        if ( !isProgram( object ) )
-        {
-            return;
-        }
-
-        Program program = (Program) object;
-
         if ( program.getId() != 0 && getProgramInstancesCount( program ) > 1 )
         {
             addReports.accept( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
@@ -139,7 +113,7 @@ public class ProgramObjectBundleHook
             return;
         }
 
-        program.getProgramStages().stream().forEach( ps -> {
+        program.getProgramStages().forEach( ps -> {
 
             if ( Objects.isNull( ps.getProgram() ) )
             {
@@ -170,11 +144,6 @@ public class ProgramObjectBundleHook
     private int getProgramInstancesCount( Program program )
     {
         return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ).size();
-    }
-
-    private boolean isProgram( Object object )
-    {
-        return object instanceof Program;
     }
 
     private void validateAttributeSecurity( Program program, ObjectBundle bundle,

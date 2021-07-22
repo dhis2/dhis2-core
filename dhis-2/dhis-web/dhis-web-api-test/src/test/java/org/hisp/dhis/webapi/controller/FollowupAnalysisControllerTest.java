@@ -87,6 +87,7 @@ public class FollowupAnalysisControllerTest extends AbstractDataValueControllerT
         assertEquals( "5", value.getValue() );
         assertEquals( "admin", value.getStoredBy() );
         assertEquals( "Needs_check", value.getComment() );
+        assertEquals( "March 2021", value.getPeName() );
         assertNotNull( value.getLastUpdated() );
         assertNotNull( value.getCreated() );
     }

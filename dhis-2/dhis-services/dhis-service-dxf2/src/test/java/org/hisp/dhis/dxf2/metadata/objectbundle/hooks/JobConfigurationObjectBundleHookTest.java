@@ -34,8 +34,8 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.junit.Assert;
@@ -61,7 +61,7 @@ public class JobConfigurationObjectBundleHookTest
     private JobConfigurationService jobConfigurationService;
 
     @Mock
-    private SchedulingManager schedulingManager;
+    private JobService jobService;
 
     @Mock
     private Job job;
@@ -87,7 +87,7 @@ public class JobConfigurationObjectBundleHookTest
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
-        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
+        Mockito.when( jobService.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
             .thenReturn( job );
 
         JobConfiguration jobConfiguration = new JobConfiguration();
@@ -106,7 +106,7 @@ public class JobConfigurationObjectBundleHookTest
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
-        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
+        Mockito.when( jobService.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
             .thenReturn( job );
 
         JobConfiguration jobConfiguration = new JobConfiguration();
@@ -124,7 +124,7 @@ public class JobConfigurationObjectBundleHookTest
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
-        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
+        Mockito.when( jobService.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
             .thenReturn( job );
         Mockito.when( job.validate() ).thenReturn( new ErrorReport( Class.class, ErrorCode.E7000 ) );
 
@@ -144,7 +144,7 @@ public class JobConfigurationObjectBundleHookTest
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
-        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.DATA_SYNC ) ) )
+        Mockito.when( jobService.getJob( Mockito.eq( JobType.DATA_SYNC ) ) )
             .thenReturn( job );
         Mockito.when( job.validate() ).thenReturn( new ErrorReport( Class.class, ErrorCode.E7010 ) );
 
@@ -169,7 +169,7 @@ public class JobConfigurationObjectBundleHookTest
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( null );
-        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
+        Mockito.when( jobService.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
             .thenReturn( job );
         Mockito.when( job.validate() ).thenReturn( new ErrorReport( Class.class, ErrorCode.E7010 ) );
 
@@ -190,7 +190,7 @@ public class JobConfigurationObjectBundleHookTest
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
-        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
+        Mockito.when( jobService.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
             .thenReturn( job );
         Mockito.when( job.validate() ).thenReturn( new ErrorReport( Class.class, ErrorCode.E7010 ) );
 
@@ -210,7 +210,7 @@ public class JobConfigurationObjectBundleHookTest
         String jobConfigUid = "jsdhJSJHD";
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( jobConfigUid ) ) )
             .thenReturn( analyticsTableJobConfig );
-        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
+        Mockito.when( jobService.getJob( Mockito.eq( JobType.ANALYTICSTABLE_UPDATE ) ) )
             .thenReturn( job );
 
         JobConfiguration jobConfiguration = new JobConfiguration();
@@ -233,7 +233,7 @@ public class JobConfigurationObjectBundleHookTest
 
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( jobConfigUid ) ) )
             .thenReturn( contAnalyticsTableJobConfig );
-        Mockito.when( schedulingManager.getJob( Mockito.eq( JobType.CONTINUOUS_ANALYTICS_TABLE ) ) )
+        Mockito.when( jobService.getJob( Mockito.eq( JobType.CONTINUOUS_ANALYTICS_TABLE ) ) )
             .thenReturn( job );
 
         JobConfiguration jobConfiguration = new JobConfiguration();

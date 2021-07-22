@@ -27,16 +27,15 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -59,7 +58,8 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class UserObjectBundleHook extends AbstractObjectBundleHook
+@AllArgsConstructor
+public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 {
     private final UserService userService;
 
@@ -69,30 +69,10 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 
     private final AclService aclService;
 
-    public UserObjectBundleHook( UserService userService, FileResourceService fileResourceService,
-        CurrentUserService currentUserService, AclService aclService )
-    {
-        checkNotNull( userService );
-        checkNotNull( fileResourceService );
-        checkNotNull( currentUserService );
-        checkNotNull( aclService );
-        this.userService = userService;
-        this.fileResourceService = fileResourceService;
-        this.currentUserService = currentUserService;
-        this.aclService = aclService;
-    }
-
     @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
+    public void validate( User user, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
-        if ( !(object instanceof User) )
-        {
-            return;
-        }
-
-        User user = (User) object;
-
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
             addReports.accept( new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "Whatsapp" ) );
@@ -100,12 +80,10 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
+    public void preCreate( User user, ObjectBundle bundle )
     {
-        if ( !(object instanceof User) || ((User) object).getUserCredentials() == null )
+        if ( user.getUserCredentials() == null )
             return;
-
-        User user = (User) object;
 
         User currentUser = currentUserService.getCurrentUser();
 
@@ -123,13 +101,12 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public void postCreate( IdentifiableObject persistedObject, ObjectBundle bundle )
+    public void postCreate( User user, ObjectBundle bundle )
     {
-        if ( !(persistedObject instanceof User) || !bundle.hasExtras( persistedObject, "uc" ) )
+        if ( !bundle.hasExtras( user, "uc" ) )
             return;
 
-        User user = (User) persistedObject;
-        final UserCredentials userCredentials = (UserCredentials) bundle.getExtras( persistedObject, "uc" );
+        final UserCredentials userCredentials = (UserCredentials) bundle.getExtras( user, "uc" );
 
         if ( !StringUtils.isEmpty( userCredentials.getPassword() ) )
         {
@@ -148,18 +125,15 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         sessionFactory.getCurrentSession().save( userCredentials );
         user.setUserCredentials( userCredentials );
         sessionFactory.getCurrentSession().update( user );
-        bundle.removeExtras( persistedObject, "uc" );
+        bundle.removeExtras( user, "uc" );
     }
 
     @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
+    public void preUpdate( User user, User persisted, ObjectBundle bundle )
     {
-        if ( !(object instanceof User) || ((User) object).getUserCredentials() == null )
+        if ( user.getUserCredentials() == null )
             return;
-        User user = (User) object;
         bundle.putExtras( user, "uc", user.getUserCredentials() );
-
-        User persisted = (User) persistedObject;
 
         if ( persisted.getAvatar() != null
             && (user.getAvatar() == null || !persisted.getAvatar().getUid().equals( user.getAvatar().getUid() )) )
@@ -177,13 +151,12 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public void postUpdate( IdentifiableObject persistedObject, ObjectBundle bundle )
+    public void postUpdate( User user, ObjectBundle bundle )
     {
-        if ( !(persistedObject instanceof User) || !bundle.hasExtras( persistedObject, "uc" ) )
+        if ( !bundle.hasExtras( user, "uc" ) )
             return;
 
-        User user = (User) persistedObject;
-        final UserCredentials userCredentials = (UserCredentials) bundle.getExtras( persistedObject, "uc" );
+        final UserCredentials userCredentials = (UserCredentials) bundle.getExtras( user, "uc" );
         final UserCredentials persistedUserCredentials = bundle.getPreheat().get( bundle.getPreheatIdentifier(),
             UserCredentials.class, user );
 
@@ -201,18 +174,13 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         user.setUserCredentials( persistedUserCredentials );
 
         sessionFactory.getCurrentSession().update( user.getUserCredentials() );
-        bundle.removeExtras( persistedObject, "uc" );
+        bundle.removeExtras( user, "uc" );
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
     public void postCommit( ObjectBundle bundle )
     {
-        if ( !bundle.hasObjects( User.class ) )
-        {
-            return;
-        }
-
         Iterable<User> objects = bundle.getObjects( User.class );
         Map<String, Map<String, Object>> userReferences = bundle.getObjectReferences( User.class );
         Map<String, Map<String, Object>> userCredentialsReferences = bundle

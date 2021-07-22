@@ -40,9 +40,9 @@ import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -56,7 +56,7 @@ public class OptionSetController
     @Autowired
     private OptionService optionService;
 
-    @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/metadata" )
     public ResponseEntity<RootNode> getOptionSetWithDependencies( @PathVariable( "uid" ) String pvUid,
         HttpServletResponse response, @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException

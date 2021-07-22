@@ -30,10 +30,11 @@ package org.hisp.dhis.cache;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.springframework.util.Assert.hasText;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -134,10 +135,11 @@ public class RedisCache<V> implements Cache<V>
     }
 
     @Override
-    public Collection<V> getAll()
+    public Stream<V> getAll()
     {
         Set<String> keySet = redisTemplate.keys( cacheRegion + "*" );
-        return redisTemplate.opsForValue().multiGet( keySet );
+        List<V> values = redisTemplate.opsForValue().multiGet( keySet );
+        return values == null ? Stream.empty() : values.stream();
     }
 
     @Override

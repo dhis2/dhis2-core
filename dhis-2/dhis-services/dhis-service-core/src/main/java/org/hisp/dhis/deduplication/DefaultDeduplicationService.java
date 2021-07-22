@@ -45,13 +45,6 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    @Transactional
-    public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
-    {
-        potentialDuplicateStore.save( potentialDuplicate );
-    }
-
-    @Override
     @Transactional( readOnly = true )
     public PotentialDuplicate getPotentialDuplicateById( long id )
     {
@@ -73,21 +66,6 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    @Transactional
-    public void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
-    {
-        potentialDuplicateStore.update( potentialDuplicate );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public int countPotentialDuplicates( PotentialDuplicateQuery query )
-    {
-
-        return potentialDuplicateStore.getCountByQuery( query );
-    }
-
-    @Override
     @Transactional( readOnly = true )
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
@@ -102,9 +80,31 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    @Transactional
-    public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
+    @Transactional( readOnly = true )
+    public List<PotentialDuplicate> getPotentialDuplicateByTei( String tei, DeduplicationStatus status )
     {
-        potentialDuplicateStore.delete( potentialDuplicate );
+        return potentialDuplicateStore.getAllByTei( tei, status );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public int countPotentialDuplicates( PotentialDuplicateQuery query )
+    {
+
+        return potentialDuplicateStore.getCountByQuery( query );
+    }
+
+    @Override
+    @Transactional
+    public void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
+    {
+        potentialDuplicateStore.update( potentialDuplicate );
+    }
+
+    @Override
+    @Transactional
+    public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
+    {
+        potentialDuplicateStore.save( potentialDuplicate );
     }
 }

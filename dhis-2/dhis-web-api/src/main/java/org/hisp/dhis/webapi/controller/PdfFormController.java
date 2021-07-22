@@ -56,9 +56,10 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.pdf.PdfWriter;
@@ -103,7 +104,7 @@ public class PdfFormController
     // DataSet
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/dataSet/{dataSetUid}", method = RequestMethod.GET )
+    @GetMapping( "/dataSet/{dataSetUid}" )
     public void getFormPdfDataSet( @PathVariable String dataSetUid, HttpServletRequest request,
         HttpServletResponse response, OutputStream out )
         throws Exception
@@ -133,7 +134,7 @@ public class PdfFormController
         baos.writeTo( out );
     }
 
-    @RequestMapping( value = "/dataSet", method = RequestMethod.POST )
+    @PostMapping( "/dataSet" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     public void sendFormPdfDataSet( HttpServletRequest request, HttpServletResponse response )
         throws Exception

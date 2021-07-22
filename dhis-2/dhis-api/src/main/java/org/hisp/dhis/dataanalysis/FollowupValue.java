@@ -31,9 +31,12 @@ import java.util.Date;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -64,6 +67,10 @@ public final class FollowupValue
 
     @JsonProperty
     private Date peEndDate;
+
+    @Setter
+    @JsonProperty
+    private String peName;
 
     @JsonProperty
     private String ou;
@@ -113,5 +120,11 @@ public final class FollowupValue
         return peType == null
             ? null
             : PeriodType.getIsoPeriod( PeriodType.getCalendar(), peType, peStartDate );
+    }
+
+    @JsonIgnore
+    Period getPeAsPeriod()
+    {
+        return peType == null ? null : PeriodType.getPeriodFromIsoString( getPe() );
     }
 }

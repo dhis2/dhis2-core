@@ -39,7 +39,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
@@ -53,7 +53,7 @@ public class OAuth2ConfirmAccessController
     @Qualifier( "org.hisp.dhis.system.velocity.VelocityManager" )
     VelocityManager velocityManager;
 
-    @RequestMapping( "/oauth/confirm_access" )
+    @GetMapping( "/oauth/confirm_access" )
     public ModelAndView getAccessConfirmationB( Map<String, Object> model, HttpServletRequest request )
         throws Exception
     {
@@ -93,7 +93,7 @@ public class OAuth2ConfirmAccessController
         return new ModelAndView( approvalView, model );
     }
 
-    @RequestMapping( "/oauth/error" )
+    @GetMapping( "/oauth/error" )
     public ModelAndView handleError( HttpServletRequest request )
     {
         String errorSummary;
