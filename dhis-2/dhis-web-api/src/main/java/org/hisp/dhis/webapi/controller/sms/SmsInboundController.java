@@ -34,9 +34,11 @@ import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
@@ -51,13 +53,13 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -66,9 +68,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping( value = "/sms/inbound" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class SmsInboundController extends AbstractCrudController<IncomingSms>
 {
-    private final WebMessageService webMessageService;
 
     private final IncomingSmsService incomingSMSService;
 
@@ -80,52 +82,38 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
 
     private final CurrentUserService currentUserService;
 
-    public SmsInboundController(
-        WebMessageService webMessageService,
-        IncomingSmsService incomingSMSService,
-        RenderService renderService,
-        SMSCommandService smsCommandService,
-        UserService userService,
-        CurrentUserService currentUserService )
-    {
-        this.webMessageService = webMessageService;
-        this.incomingSMSService = incomingSMSService;
-        this.renderService = renderService;
-        this.smsCommandService = smsCommandService;
-        this.userService = userService;
-        this.currentUserService = currentUserService;
-    }
-
     // -------------------------------------------------------------------------
     // POST
     // -------------------------------------------------------------------------
 
     @PostMapping( produces = { "application/json" } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void receiveSMSMessage( @RequestParam String originator, @RequestParam( required = false ) Date receivedTime,
-        @RequestParam String message, @RequestParam( defaultValue = "Unknown", required = false ) String gateway,
-        HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage receiveSMSMessage( @RequestParam String originator,
+        @RequestParam( required = false ) Date receivedTime, @RequestParam String message,
+        @RequestParam( defaultValue = "Unknown", required = false ) String gateway )
         throws WebMessageException
     {
         if ( originator == null || originator.length() <= 0 )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Originator must be specified" ) );
+            return WebMessageUtils.conflict( "Originator must be specified" );
         }
 
         if ( message == null || message.length() <= 0 )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Message must be specified" ) );
+            return WebMessageUtils.conflict( "Message must be specified" );
         }
 
         long smsId = incomingSMSService.save( message, originator, gateway, receivedTime,
             getUserByPhoneNumber( originator, message ) );
 
-        webMessageService.send( WebMessageUtils.ok( "Received SMS: " + smsId ), response, request );
+        return WebMessageUtils.ok( "Received SMS: " + smsId );
     }
 
     @PostMapping( consumes = { "application/json" }, produces = { "application/json" } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void receiveSMSMessage( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage receiveSMSMessage( HttpServletRequest request )
         throws WebMessageException,
         IOException
     {
@@ -134,12 +122,13 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
 
         long smsId = incomingSMSService.save( sms );
 
-        webMessageService.send( WebMessageUtils.ok( "Received SMS: " + smsId ), response, request );
+        return WebMessageUtils.ok( "Received SMS: " + smsId );
     }
 
-    @PostMapping( value = "/import", consumes = "application/json" )
+    @PostMapping( value = "/import", produces = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void importUnparsedSMSMessages( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage importUnparsedSMSMessages()
     {
         List<IncomingSms> importMessageList = incomingSMSService.getAllUnparsedMessages();
 
@@ -148,7 +137,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
             incomingSMSService.update( sms );
         }
 
-        webMessageService.send( WebMessageUtils.ok( "Import successful" ), response, request );
+        return WebMessageUtils.ok( "Import successful" );
     }
 
     // -------------------------------------------------------------------------
@@ -157,30 +146,29 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
 
     @DeleteMapping( value = "/{uid}", produces = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteInboundMessage( @PathVariable String uid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage deleteInboundMessage( @PathVariable String uid )
     {
         IncomingSms sms = incomingSMSService.get( uid );
 
         if ( sms == null )
         {
-            throw new WebMessageException( notFound( "No IncomingSms with id '" + uid + "' was found." ) );
+            return notFound( "No IncomingSms with id '" + uid + "' was found." );
         }
 
         incomingSMSService.delete( uid );
 
-        webMessageService.send( WebMessageUtils.ok( "IncomingSms with " + uid + " deleted" ), response, request );
+        return WebMessageUtils.ok( "IncomingSms with " + uid + " deleted" );
     }
 
     @DeleteMapping( produces = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteInboundMessages( @RequestParam List<String> ids, HttpServletRequest request,
-        HttpServletResponse response )
+    @ResponseBody
+    public WebMessage deleteInboundMessages( @RequestParam List<String> ids )
     {
         ids.forEach( incomingSMSService::delete );
 
-        webMessageService.send( WebMessageUtils.ok( "Objects deleted" ), response, request );
+        return WebMessageUtils.ok( "Objects deleted" );
     }
 
     // -------------------------------------------------------------------------
