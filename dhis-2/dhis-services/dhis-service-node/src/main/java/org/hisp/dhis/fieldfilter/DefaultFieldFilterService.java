@@ -220,7 +220,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 .collect( Collectors.joining( "," ) );
         }
 
-        if ( params.getObjects().isEmpty() || objects.stream().noneMatch( Objects::nonNull ) )
+        if ( params.getObjects().isEmpty() || objects.stream().allMatch( Objects::isNull ) )
         {
             return collectionNode;
         }
