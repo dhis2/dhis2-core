@@ -54,7 +54,7 @@ public class ProgramStageInstanceAudit implements Serializable
 
     private String programStageInstance;
 
-    private ProgramStage programStage;
+    private String programStage;
 
     private String modifiedBy;
 
@@ -118,12 +118,12 @@ public class ProgramStageInstanceAudit implements Serializable
     }
 
     @JsonProperty
-    public ProgramStage getProgramStage()
+    public String getProgramStage()
     {
         return programStage;
     }
 
-    public void setProgramStage( ProgramStage programStage )
+    public void setProgramStage( String programStage )
     {
         this.programStage = programStage;
     }
