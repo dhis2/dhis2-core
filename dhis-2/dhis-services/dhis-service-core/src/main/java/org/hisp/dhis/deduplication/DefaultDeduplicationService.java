@@ -28,21 +28,25 @@
 package org.hisp.dhis.deduplication;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service( "org.hisp.dhis.deduplication.DeduplicationService" )
+@RequiredArgsConstructor
 public class DefaultDeduplicationService
     implements DeduplicationService
 {
-
     private final PotentialDuplicateStore potentialDuplicateStore;
 
-    public DefaultDeduplicationService( PotentialDuplicateStore potentialDuplicateStore )
-    {
-        this.potentialDuplicateStore = potentialDuplicateStore;
-    }
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Override
     @Transactional( readOnly = true )
@@ -99,6 +103,70 @@ public class DefaultDeduplicationService
     public void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
         potentialDuplicateStore.update( potentialDuplicate );
+    }
+
+    @Override
+    public boolean isAutoMergeable( PotentialDuplicate potentialDuplicate )
+    {
+        TrackedEntityInstance trackedEntityInstanceA = Optional.ofNullable( trackedEntityInstanceService
+            .getTrackedEntityInstance( potentialDuplicate.getTeiA() ) )
+            .orElseThrow( () -> new PotentialDuplicateException(
+                "No tracked entity instance found with id '" + potentialDuplicate.getTeiA() + "'." ) );
+
+        TrackedEntityInstance trackedEntityInstanceB = Optional.ofNullable( trackedEntityInstanceService
+            .getTrackedEntityInstance( potentialDuplicate.getTeiB() ) )
+            .orElseThrow( () -> new PotentialDuplicateException(
+                "No tracked entity instance found with id '" + potentialDuplicate.getTeiB() + "'." ) );
+
+        if ( !trackedEntityInstanceA.getTrackedEntityType().equals( trackedEntityInstanceB.getTrackedEntityType() ) )
+        {
+            return false;
+        }
+
+        if ( trackedEntityInstanceA.isDeleted() || trackedEntityInstanceB.isDeleted() )
+        {
+            return false;
+        }
+
+        if ( trackedEntityInstanceA.getRelationshipItems().stream()
+            .anyMatch( relationshipItem -> null != relationshipItem.getRelationship().getTo().getTrackedEntityInstance()
+                && relationshipItem.getRelationship().getTo().getTrackedEntityInstance()
+                    .equals( trackedEntityInstanceB ) ) )
+        {
+            return false;
+        }
+
+        if ( trackedEntityInstanceB.getRelationshipItems().stream()
+            .anyMatch( relationshipItem -> null != relationshipItem.getRelationship().getTo().getTrackedEntityInstance()
+                && relationshipItem.getRelationship().getTo().getTrackedEntityInstance()
+                    .equals( trackedEntityInstanceA ) ) )
+        {
+            return false;
+        }
+
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA = trackedEntityInstanceA
+            .getTrackedEntityAttributeValues();
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB = trackedEntityInstanceB
+            .getTrackedEntityAttributeValues();
+
+        if ( null == trackedEntityAttributeValueA || null == trackedEntityAttributeValueB )
+        {
+            return true;
+        }
+
+        for ( TrackedEntityAttributeValue teavA : trackedEntityAttributeValueA )
+        {
+            for ( TrackedEntityAttributeValue teavB : trackedEntityAttributeValueB )
+            {
+                if ( teavA.getAttribute().equals( teavB.getAttribute() )
+                    && !teavA.getValue().equals( teavB.getValue() ) )
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     @Override
