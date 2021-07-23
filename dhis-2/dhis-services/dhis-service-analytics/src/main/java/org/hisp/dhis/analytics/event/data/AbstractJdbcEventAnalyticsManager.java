@@ -295,7 +295,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         String countClause = getAggregateClause( params );
 
         String sql = TextUtils.removeLastComma( "select " + countClause + " as value," +
-            StringUtils.join( getSelectColumns( params ), "," ) + " " );
+            StringUtils.join( getSelectColumns( params, true ), "," ) + " " );
 
         // ---------------------------------------------------------------------
         // Criteria
