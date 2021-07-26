@@ -141,10 +141,9 @@ public class WebClientUtils
             {
                 return report.getString( "uid" ).string();
             }
-            String location = response.location();
-            return location == null ? null : location.substring( location.lastIndexOf( '/' ) + 1 );
         }
-        return null;
+        String location = response.location();
+        return location == null ? null : location.substring( location.lastIndexOf( '/' ) + 1 );
     }
 
     /**

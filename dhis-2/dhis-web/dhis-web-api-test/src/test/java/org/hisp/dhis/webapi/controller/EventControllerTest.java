@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.WebClient.Accept;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
@@ -137,29 +136,5 @@ public class EventControllerTest extends DhisControllerConvenienceTest
     {
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
             DELETE( "/events/xyz" ).content( HttpStatus.OK ) );
-    }
-
-    private String postEvent()
-    {
-        String ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
-        String progId = assertStatus( HttpStatus.CREATED,
-            POST( "/programs/",
-                "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION','organisationUnits':[{'id':'"
-                    + ouId + "'}]}" ) );
-
-        String psId = assertStatus( HttpStatus.CREATED,
-            POST( "/programStages/", "{'name':'PS1', 'shortName':'PS1', 'program':{'id':'" + progId + "'}}" ) );
-
-        return assertStatus( HttpStatus.OK,
-            POST( "/events",
-                "{" +
-                    "'status':'ACTIVE'," +
-                    "'eventDate':'2030-01-01'," +
-                    "'orgUnit':'" + ouId + "'," +
-                    "'program':'" + progId + "'," +
-                    "'programStage':'" + psId + "'" +
-                    "}" ) );
     }
 }
