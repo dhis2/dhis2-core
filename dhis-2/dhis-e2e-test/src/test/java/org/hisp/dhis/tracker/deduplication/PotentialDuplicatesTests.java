@@ -34,6 +34,7 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.tracker.PotentialDuplicatesActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
+import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,7 +68,7 @@ public class PotentialDuplicatesTests
     }
 
     @ParameterizedTest
-    @ValueSource( strings = { "OPEN", "INVALID", "MERGED", "ALL" } )
+    @ValueSource( strings = { "OPEN", "INVALID", "MERGED" } )
     public void shouldFilterByStatus( String status )
     {
         String teiA = createTei();
@@ -75,7 +76,8 @@ public class PotentialDuplicatesTests
 
         potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, status ).validate().statusCode( 200 );
 
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + status ) )
+        ApiResponse response = potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + status ) );
+        response
             .validate()
             .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .body( "identifiableObjects.status", everyItem( equalTo( status ) ) );
@@ -95,6 +97,16 @@ public class PotentialDuplicatesTests
             .validate()
             .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .body( "identifiableObjects.status", allOf( hasItem( "OPEN" ), hasItem( "INVALID" ), hasItem( "MERGED" ) ) );
+    }
+
+    @Test
+    public void shouldRequireBthTeis()
+    {
+        potentialDuplicatesActions.createPotentialDuplicate( null, createTei(), "OPEN" )
+            .validate()
+            .statusCode( not( 200 ) )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "message", containsStringIgnoringCase( "missing required input property" ) );
     }
 
     private String createTei()
