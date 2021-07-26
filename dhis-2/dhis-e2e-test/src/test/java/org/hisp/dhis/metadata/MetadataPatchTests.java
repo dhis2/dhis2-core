@@ -40,6 +40,7 @@ import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -82,6 +83,7 @@ public class MetadataPatchTests
             .create( new JsonObjectBuilder().addProperty( "name", DataGenerator.randomString() ).build() );
     }
 
+    @Disabled( "DHIS2-11483" )
     @Test
     public void shouldReplaceArray()
     {
@@ -102,6 +104,7 @@ public class MetadataPatchTests
         dataElementActions.get( dataElementId ).validate().body( "userAccesses", hasSize( 1 ) );
     }
 
+    @Disabled( "DHIS2-11483" )
     @Test
     public void shouldRemoveArray()
     {
