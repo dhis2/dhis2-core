@@ -38,13 +38,13 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dashboard.impl.DashboardCascadeSharingService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
+import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
@@ -71,7 +71,7 @@ public class DashboardCascadeSharingTest
     private AclService aclService;
 
     @Autowired
-    private DashboardCascadeSharingService dashboardCascadeSharingService;
+    private CascadeSharingService<Dashboard> dashboardCascadeSharingService;
 
     @Autowired
     private IdentifiableObjectManager objectManager;
