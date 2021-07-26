@@ -65,24 +65,6 @@ public class DeduplicationServiceTest
     @Mock
     private TrackedEntityInstance trackedEntityInstanceB;
 
-    @Mock
-    private RelationshipItem relationshipItemAFrom;
-
-    @Mock
-    private RelationshipItem relationshipItemBFrom;
-
-    @Mock
-    private RelationshipItem relationshipItemATo;
-
-    @Mock
-    private RelationshipItem relationshipItemBTo;
-
-    @Mock
-    private Relationship relationshipA;
-
-    @Mock
-    private Relationship relationshipB;
-
     private PotentialDuplicate potentialDuplicate;
 
     private static final String teiA = "trackedentA";
@@ -119,10 +101,6 @@ public class DeduplicationServiceTest
         when( trackedEntityInstanceB.getTrackedEntityType() ).thenReturn( trackedEntityPerson );
 
         setAttributeValues();
-
-        setRelationShipTeiA();
-
-        setRelationShipTeiB();
     }
 
     private void setAttributeValues()
@@ -148,40 +126,11 @@ public class DeduplicationServiceTest
             .thenReturn( new HashSet<>( Arrays.asList( sexAttributeValueB, nameAttributeValueB ) ) );
     }
 
-    private void setRelationShipTeiB()
-    {
-        when( relationshipItemBFrom.getRelationship() ).thenReturn( relationshipB );
-        when( relationshipItemBTo.getRelationship() ).thenReturn( relationshipB );
-
-        lenient().when( relationshipItemBFrom.getTrackedEntityInstance() ).thenReturn( trackedEntityInstanceB );
-
-        when( relationshipB.getTo() ).thenReturn( relationshipItemBTo );
-
-        when( trackedEntityInstanceB.getRelationshipItems() )
-            .thenReturn( new HashSet<>( Arrays.asList( relationshipItemBFrom, relationshipItemBTo ) ) );
-    }
-
-    private void setRelationShipTeiA()
-    {
-        when( relationshipItemAFrom.getRelationship() ).thenReturn( relationshipA );
-        when( relationshipItemATo.getRelationship() ).thenReturn( relationshipA );
-
-        lenient().when( relationshipItemAFrom.getTrackedEntityInstance() ).thenReturn( trackedEntityInstanceA );
-
-        when( relationshipA.getTo() ).thenReturn( relationshipItemATo );
-
-        when( trackedEntityInstanceA.getRelationshipItems() )
-            .thenReturn( new HashSet<>( Arrays.asList( relationshipItemAFrom, relationshipItemATo ) ) );
-    }
-
     @Test
     public void shouldBeAutoMergeable()
     {
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setUid( "uid" );
-
-        lenient().when( relationshipItemATo.getProgramInstance() ).thenReturn( programInstance );
-        lenient().when( relationshipItemBTo.getProgramInstance() ).thenReturn( programInstance );
 
         assertTrue( deduplicationService.isAutoMergeable( potentialDuplicate ) );
     }
@@ -214,20 +163,6 @@ public class DeduplicationServiceTest
     }
 
     @Test
-    public void shouldNotBeAutoMergeableRelationShipBetweenEntities()
-    {
-        when( relationshipItemBTo.getTrackedEntityInstance() ).thenReturn( trackedEntityInstanceA );
-
-        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
-
-        lenient().when( relationshipItemBTo.getTrackedEntityInstance() ).thenReturn( null );
-
-        when( relationshipItemATo.getTrackedEntityInstance() ).thenReturn( trackedEntityInstanceB );
-
-        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
-    }
-
-    @Test
     public void shouldNotBeAutoMergeableDifferentAttributeValues()
     {
         TrackedEntityAttributeValue sexAttributeValueB = getTrackedEntityAttributeValue( sexUid, sexName,
@@ -241,6 +176,15 @@ public class DeduplicationServiceTest
             .thenReturn( new HashSet<>( Arrays.asList( sexAttributeValueB, nameAttributeValueB ) ) );
 
         assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
+    }
+
+    @Test
+    public void shouldtBeAutoMergeableAttributeValuesIsEmpty()
+    {
+        when( trackedEntityInstanceB.getTrackedEntityAttributeValues() )
+                .thenReturn( new HashSet<>() );
+
+        assertTrue( deduplicationService.isAutoMergeable( potentialDuplicate ) );
     }
 
     @Test( expected = PotentialDuplicateException.class )

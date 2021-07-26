@@ -128,22 +128,6 @@ public class DefaultDeduplicationService
             return false;
         }
 
-        if ( trackedEntityInstanceA.getRelationshipItems().stream()
-            .anyMatch( relationshipItem -> null != relationshipItem.getRelationship().getTo().getTrackedEntityInstance()
-                && relationshipItem.getRelationship().getTo().getTrackedEntityInstance()
-                    .equals( trackedEntityInstanceB ) ) )
-        {
-            return false;
-        }
-
-        if ( trackedEntityInstanceB.getRelationshipItems().stream()
-            .anyMatch( relationshipItem -> null != relationshipItem.getRelationship().getTo().getTrackedEntityInstance()
-                && relationshipItem.getRelationship().getTo().getTrackedEntityInstance()
-                    .equals( trackedEntityInstanceA ) ) )
-        {
-            return false;
-        }
-
         Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA = trackedEntityInstanceA
             .getTrackedEntityAttributeValues();
         Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB = trackedEntityInstanceB
