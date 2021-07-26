@@ -38,6 +38,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -50,8 +51,6 @@ import org.hisp.dhis.dxf2.common.ImportSummary;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.exception.InvalidTypeException;
-import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
@@ -67,6 +66,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.CodeList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -126,47 +126,33 @@ public class SystemController
 
     @GetMapping( value = { "/uid", "/id" }, produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode getUid( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+    public @ResponseBody CodeList getUid(
+        @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
-        throws IOException,
-        InvalidTypeException
     {
-        limit = Math.min( limit, 10000 );
-
-        RootNode rootNode = new RootNode( "codes" );
-        CollectionNode collectionNode = rootNode.addChild( new CollectionNode( "codes" ) );
-        collectionNode.setWrapping( false );
-
-        for ( int i = 0; i < limit; i++ )
-        {
-            collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateUid() ) );
-        }
-
         setNoStore( response );
-
-        return rootNode;
+        return generateCodeList( Math.min( limit, 10000 ), CodeGenerator::generateUid );
     }
 
     @GetMapping( value = { "/uid", "/id" }, produces = { "application/csv" } )
-    public void getUidCsv( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+    public void getUidCsv(
+        @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
-        throws IOException,
-        InvalidTypeException
+        throws IOException
     {
-        limit = Math.min( limit, 10000 );
+        CodeList codeList = generateCodeList( Math.min( limit, 10000 ), CodeGenerator::generateUid );
+        CsvSchema schema = CsvSchema.builder()
+            .addColumn( "uid" )
+            .setUseHeader( true )
+            .build();
 
         CsvGenerator csvGenerator = CSV_FACTORY.createGenerator( response.getOutputStream() );
+        csvGenerator.setSchema( schema );
 
-        CsvSchema.Builder schemaBuilder = CsvSchema.builder()
-            .addColumn( "uid" )
-            .setUseHeader( true );
-
-        csvGenerator.setSchema( schemaBuilder.build() );
-
-        for ( int i = 0; i < limit; i++ )
+        for ( String code : codeList.getCodes() )
         {
             csvGenerator.writeStartObject();
-            csvGenerator.writeStringField( "uid", CodeGenerator.generateUid() );
+            csvGenerator.writeStringField( "uid", code );
             csvGenerator.writeEndObject();
         }
 
@@ -175,25 +161,14 @@ public class SystemController
 
     @GetMapping( value = "/uuid", produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode getUuid( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+    public @ResponseBody CodeList getUuid(
+        @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
-        throws IOException,
-        InvalidTypeException
     {
-        limit = Math.min( limit, 10000 );
-
-        RootNode rootNode = new RootNode( "codes" );
-        CollectionNode collectionNode = rootNode.addChild( new CollectionNode( "codes" ) );
-        collectionNode.setWrapping( false );
-
-        for ( int i = 0; i < limit; i++ )
-        {
-            collectionNode.addChild( new SimpleNode( "code", UUID.randomUUID().toString() ) );
-        }
-
+        CodeList codeList = generateCodeList( Math.min( limit, 10000 ), () -> UUID.randomUUID().toString() );
         setNoStore( response );
 
-        return rootNode;
+        return codeList;
     }
 
     // -------------------------------------------------------------------------
@@ -359,5 +334,17 @@ public class SystemController
         return systemSettingManager.getFlags().stream()
             .map( flag -> new StyleObject( i18n.getString( flag ), flag, (flag + ".png") ) )
             .collect( Collectors.toList() );
+    }
+
+    private CodeList generateCodeList( Integer limit, Supplier<String> codeSupplier )
+    {
+        CodeList codeList = new CodeList();
+
+        for ( int i = 0; i < limit; i++ )
+        {
+            codeList.getCodes().add( codeSupplier.get() );
+        }
+
+        return codeList;
     }
 }
