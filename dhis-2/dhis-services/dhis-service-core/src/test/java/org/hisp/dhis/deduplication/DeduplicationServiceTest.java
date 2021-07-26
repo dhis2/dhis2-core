@@ -29,15 +29,13 @@ package org.hisp.dhis.deduplication;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -65,6 +63,12 @@ public class DeduplicationServiceTest
     @Mock
     private TrackedEntityInstance trackedEntityInstanceB;
 
+    @Mock
+    private ProgramInstance programInstanceA;
+
+    @Mock
+    private ProgramInstance programInstanceB;
+
     private PotentialDuplicate potentialDuplicate;
 
     private static final String teiA = "trackedentA";
@@ -90,6 +94,11 @@ public class DeduplicationServiceTest
 
         when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) ).thenReturn( trackedEntityInstanceA );
         when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) ).thenReturn( trackedEntityInstanceB );
+
+        when( trackedEntityInstanceA.getProgramInstances() )
+            .thenReturn( new HashSet<>( Arrays.asList( programInstanceA ) ) );
+        when( trackedEntityInstanceB.getProgramInstances() )
+            .thenReturn( new HashSet<>( Arrays.asList( programInstanceB ) ) );
 
         String uidPerson = "uidPerson";
 
@@ -163,6 +172,20 @@ public class DeduplicationServiceTest
     }
 
     @Test
+    public void shouldNotBeAutoMergeableSameProgram()
+    {
+        Program program = new Program();
+        program.setUid( "progarUid" );
+        program.setDescription( "programDescr" );
+        program.setName( "programName" );
+
+        when( programInstanceA.getProgram() ).thenReturn( program );
+        when( programInstanceB.getProgram() ).thenReturn( program );
+
+        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
+    }
+
+    @Test
     public void shouldNotBeAutoMergeableDifferentAttributeValues()
     {
         TrackedEntityAttributeValue sexAttributeValueB = getTrackedEntityAttributeValue( sexUid, sexName,
@@ -182,7 +205,7 @@ public class DeduplicationServiceTest
     public void shouldtBeAutoMergeableAttributeValuesIsEmpty()
     {
         when( trackedEntityInstanceB.getTrackedEntityAttributeValues() )
-                .thenReturn( new HashSet<>() );
+            .thenReturn( new HashSet<>() );
 
         assertTrue( deduplicationService.isAutoMergeable( potentialDuplicate ) );
     }

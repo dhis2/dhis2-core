@@ -33,6 +33,7 @@ import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -118,6 +119,19 @@ public class DefaultDeduplicationService
             .orElseThrow( () -> new PotentialDuplicateException(
                 "No tracked entity instance found with id '" + potentialDuplicate.getTeiB() + "'." ) );
 
+        if ( !trackedEntityInstanceA.getProgramInstances().isEmpty()
+            && !trackedEntityInstanceB.getProgramInstances().isEmpty() )
+        {
+            for ( ProgramInstance programInstanceA : trackedEntityInstanceA.getProgramInstances() )
+            {
+                for ( ProgramInstance programInstanceB : trackedEntityInstanceA.getProgramInstances() )
+                {
+                    if ( programInstanceA.getProgram().equals( programInstanceB.getProgram() ) )
+                        return false;
+                }
+            }
+        }
+
         if ( !trackedEntityInstanceA.getTrackedEntityType().equals( trackedEntityInstanceB.getTrackedEntityType() ) )
         {
             return false;
@@ -133,8 +147,7 @@ public class DefaultDeduplicationService
         Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB = trackedEntityInstanceB
             .getTrackedEntityAttributeValues();
 
-        if ( ( null == trackedEntityAttributeValueA || trackedEntityAttributeValueA.isEmpty() ) ||
-                ( null == trackedEntityAttributeValueB || trackedEntityAttributeValueB.isEmpty() ))
+        if ( trackedEntityAttributeValueA.isEmpty() || trackedEntityAttributeValueB.isEmpty() )
         {
             return true;
         }
