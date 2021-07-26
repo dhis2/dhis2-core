@@ -149,7 +149,8 @@ public class DefaultDeduplicationService
         Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB = trackedEntityInstanceB
             .getTrackedEntityAttributeValues();
 
-        if ( null == trackedEntityAttributeValueA || null == trackedEntityAttributeValueB )
+        if ( ( null == trackedEntityAttributeValueA || trackedEntityAttributeValueA.isEmpty() ) ||
+                ( null == trackedEntityAttributeValueB || trackedEntityAttributeValueB.isEmpty() ))
         {
             return true;
         }
