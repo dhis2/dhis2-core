@@ -25,18 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.statistics;
 
+package org.hisp.dhis.webapi.webdomain;
+
+import java.util.HashMap;
 import java.util.Map;
 
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Objects;
 
-/**
- * @author Lars Helge Overland
- */
-public interface StatisticsProvider
-{
-    String ID = StatisticsProvider.class.getName();
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-    Map<Objects, Long> getObjectCounts();
+/**
+ * @author Morten Olav Hansen
+ */
+@JacksonXmlRootElement( localName = "objectCounts", namespace = DxfNamespaces.DXF_2_0 )
+public class ObjectCount
+{
+    private final Map<String, Long> objectCounts;
+
+    public ObjectCount( Map<Objects, Long> objectCounts )
+    {
+        this.objectCounts = new HashMap<>();
+        objectCounts.keySet().forEach( k -> this.objectCounts.put( k.getValue(), objectCounts.get( k ) ) );
+    }
+
+    @JsonAnyGetter
+    public Map<String, Long> getObjectCounts()
+    {
+        return objectCounts;
+    }
 }

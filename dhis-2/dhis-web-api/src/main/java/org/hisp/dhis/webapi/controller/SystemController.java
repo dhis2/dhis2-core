@@ -46,13 +46,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.dxf2.common.ImportSummary;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
@@ -67,11 +63,11 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.CodeList;
+import org.hisp.dhis.webapi.webdomain.ObjectCount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -271,7 +267,8 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/info", produces = { "application/json", "application/javascript" } )
-    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request,
+    public @ResponseBody SystemInfo getSystemInfo(
+        HttpServletRequest request,
         HttpServletResponse response )
     {
         SystemInfo info = systemService.getSystemInfo();
@@ -289,18 +286,10 @@ public class SystemController
         return info;
     }
 
-    @GetMapping( "/objectCounts" )
-    public @ResponseBody RootNode getObjectCounts()
+    @GetMapping( value = "/objectCounts" )
+    public @ResponseBody ObjectCount getObjectCounts()
     {
-        Map<Objects, Long> objectCounts = statisticsProvider.getObjectCounts();
-        RootNode rootNode = NodeUtils.createRootNode( "objectCounts" );
-
-        for ( Objects objects : objectCounts.keySet() )
-        {
-            rootNode.addChild( new SimpleNode( objects.getValue(), objectCounts.get( objects ) ) );
-        }
-
-        return rootNode;
+        return new ObjectCount( statisticsProvider.getObjectCounts() );
     }
 
     @GetMapping( "/ping" )
