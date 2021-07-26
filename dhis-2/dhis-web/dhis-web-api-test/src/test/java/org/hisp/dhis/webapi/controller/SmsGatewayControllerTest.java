@@ -31,6 +31,7 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -42,10 +43,21 @@ import org.springframework.http.HttpStatus;
  */
 public class SmsGatewayControllerTest extends DhisControllerConvenienceTest
 {
+    private String uid;
+
+    @After
+    public void tearDown()
+    {
+        if ( uid != null )
+        {
+            assertStatus( HttpStatus.OK, DELETE( "/gateways/" + uid ) );
+        }
+    }
+
     @Test
     public void testSetDefault()
     {
-        String uid = assertStatus( HttpStatus.OK,
+        uid = assertStatus( HttpStatus.OK,
             POST( "/gateways", "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}" ) );
 
         assertWebMessage( "OK", 200, "OK", "test is set to default",
@@ -62,7 +74,7 @@ public class SmsGatewayControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testUpdateGateway()
     {
-        String uid = assertStatus( HttpStatus.OK,
+        uid = assertStatus( HttpStatus.OK,
             POST( "/gateways", "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}" ) );
 
         JsonObject gateway = GET( "/gateways/{uid}", uid ).content();
@@ -88,11 +100,12 @@ public class SmsGatewayControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testRemoveGateway()
     {
-        String uid = assertStatus( HttpStatus.OK,
+        uid = assertStatus( HttpStatus.OK,
             POST( "/gateways", "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}" ) );
 
         assertWebMessage( "OK", 200, "OK", "Gateway removed successfully",
             DELETE( "/gateways/" + uid ).content( HttpStatus.OK ) );
+        uid = null;
     }
 
     @Test
