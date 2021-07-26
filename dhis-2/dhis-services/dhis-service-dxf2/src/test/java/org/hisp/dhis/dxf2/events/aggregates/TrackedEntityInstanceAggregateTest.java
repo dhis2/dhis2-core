@@ -598,32 +598,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     }
 
     @Test
-    public void testEnrollmentWithoutOrgUnit()
-    {
-        Map<String, Object> enrollmentValues = new HashMap<>();
-        enrollmentValues.put( "orgUnit", null );
-        doInTransaction( () -> this.persistTrackedEntityInstanceWithEnrollmentAndEvents( enrollmentValues ) );
-
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
-        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setIncludeAllAttributes( true );
-
-        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
-        params.setIncludeEnrollments( true );
-        params.setIncludeEvents( true );
-
-        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false, true );
-        TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
-        Enrollment enrollment = tei.getEnrollments().get( 0 );
-        Event event = enrollment.getEvents().get( 0 );
-
-        assertNotNull( enrollment );
-        assertNotNull( event );
-
-    }
-
-    @Test
     public void testTrackedEntityInstanceRelationshipsTei2Tei()
     {
         final String[] teiUid = new String[2];
