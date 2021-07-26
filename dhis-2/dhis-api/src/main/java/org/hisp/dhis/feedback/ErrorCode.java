@@ -132,6 +132,8 @@ public enum ErrorCode
     E3016( "Data sharing is not enabled for this object" ),
     E3017( "Invalid user group access string: `{0}`" ),
     E3018( "Invalid user access string: `{0}`" ),
+    E3019(
+        "Couldn't cascade share `{0}` with uid `{1}` to object `{2}` with uid `{3}` because it does not have read access." ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`." ),

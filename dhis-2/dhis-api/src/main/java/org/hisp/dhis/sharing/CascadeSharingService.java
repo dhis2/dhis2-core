@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user.sharing;
+package org.hisp.dhis.sharing;
 
-import lombok.NoArgsConstructor;
+import java.util.List;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.sharing.AccessObject;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ErrorReport;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@NoArgsConstructor
-@JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
-public class UserAccess
-    extends AccessObject
+public interface CascadeSharingService<T extends IdentifiableObject>
 {
-    public UserAccess( String access, String id )
-    {
-        super( access, id );
-    }
-
-    public UserAccess( User user, String access )
-    {
-        super( access, user.getUid() );
-    }
-
-    public UserAccess( org.hisp.dhis.user.UserAccess userAccess )
-    {
-        super( userAccess.getAccess(), userAccess.getId() );
-    }
-
-    public void setUser( User user )
-    {
-        this.id = user.getUid();
-    }
-
-    public org.hisp.dhis.user.UserAccess toDtoObject()
-    {
-        org.hisp.dhis.user.UserAccess userAccess = new org.hisp.dhis.user.UserAccess();
-        userAccess.setUid( this.id );
-        userAccess.setAccess( this.access );
-        User user = new User();
-        user.setUid( this.id );
-        userAccess.setUser( user );
-        userAccess.setUid( this.id );
-
-        return userAccess;
-    }
+    List<ErrorReport> cascadeSharing( T object, CascadeSharingParameters parameters );
 }

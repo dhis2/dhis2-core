@@ -27,47 +27,35 @@
  */
 package org.hisp.dhis.user.sharing;
 
-import java.io.Serializable;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.sharing.AccessObject;
 import org.hisp.dhis.user.UserGroup;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@AllArgsConstructor
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
 public class UserGroupAccess
-    implements Serializable
+    extends AccessObject
 {
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private String access;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private String id;
-
     public UserGroupAccess( UserGroup userGroup, String access )
     {
-        this.access = access;
-        this.id = userGroup.getUid();
+        super( access, userGroup.getUid() );
     }
 
     public UserGroupAccess( org.hisp.dhis.user.UserGroupAccess userGroupAccess )
     {
-        this.id = userGroupAccess.getUid();
-        this.access = userGroupAccess.getAccess();
+        super( userGroupAccess.getAccess(), userGroupAccess.getUid() );
+    }
+
+    public UserGroupAccess( String access, String id )
+    {
+        super( access, id );
     }
 
     public void setUserGroup( UserGroup userGroup )

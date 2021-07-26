@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user.sharing;
+package org.hisp.dhis.visualization;
 
-import lombok.NoArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.sharing.AccessObject;
-import org.hisp.dhis.user.User;
+import lombok.NonNull;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.sharing.CascadeSharingParameters;
+import org.hisp.dhis.sharing.CascadeSharingService;
+import org.springframework.stereotype.Service;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@NoArgsConstructor
-@JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
-public class UserAccess
-    extends AccessObject
+@Service
+public class VisualizationCascadeSharingService
+    implements CascadeSharingService<Visualization>
 {
-    public UserAccess( String access, String id )
+    private final IdentifiableObjectManager manager;
+
+    public VisualizationCascadeSharingService( @NonNull IdentifiableObjectManager manager )
     {
-        super( access, id );
+        this.manager = manager;
     }
 
-    public UserAccess( User user, String access )
+    @Override
+    public List<ErrorReport> cascadeSharing( Visualization visualization, CascadeSharingParameters parameters )
     {
-        super( access, user.getUid() );
-    }
+        List<ErrorReport> errorReports = new ArrayList<>();
 
-    public UserAccess( org.hisp.dhis.user.UserAccess userAccess )
-    {
-        super( userAccess.getAccess(), userAccess.getId() );
-    }
+        if ( parameters.isDryRun() )
+        {
+            manager.update( visualization );
+        }
 
-    public void setUser( User user )
-    {
-        this.id = user.getUid();
-    }
-
-    public org.hisp.dhis.user.UserAccess toDtoObject()
-    {
-        org.hisp.dhis.user.UserAccess userAccess = new org.hisp.dhis.user.UserAccess();
-        userAccess.setUid( this.id );
-        userAccess.setAccess( this.access );
-        User user = new User();
-        user.setUid( this.id );
-        userAccess.setUser( user );
-        userAccess.setUid( this.id );
-
-        return userAccess;
+        return errorReports;
     }
 }
