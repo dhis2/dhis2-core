@@ -89,43 +89,54 @@ public class EventControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testPostCsvEvents()
     {
-
+        assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
+            POST( "/events", Body( ",," ), ContentType( "text/csv" ) )
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
     public void testPostCsvEvents_Async()
     {
-
+        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryEventImport",
+            POST( "/events?async=true", Body( ",," ), ContentType( "text/csv" ) )
+                .content( HttpStatus.OK ) );
     }
 
     @Test
     public void testPutXmlEvent()
     {
-
+        assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
+            PUT( "/events/xyz", Body( "<event></event>" ), ContentType( APPLICATION_XML ) )
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
     public void testPutJsonEvent()
     {
-
+        assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
+            PUT( "/events/xyz", Body( "{}" ) )
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testPutJsonEventSingleValue()
+    public void testPutJsonEventSingleValue_NoSuchObject()
     {
-
+        assertWebMessage( "Not Found", 404, "ERROR", "DataElement not found for ID abc",
+            PUT( "/events/xyz/abc", "{}" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testPutJsonEventForEventDate()
+    public void testPutJsonEventForEventDate_NoSuchObject()
     {
-
+        assertWebMessage( "Not Found", 404, "ERROR", "Event not found for ID xyz",
+            PUT( "/events/xyz/eventDate", "{}" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testDeleteEvent()
+    public void testDeleteEvent_NoSuchObject()
     {
-
+        assertWebMessage( "OK", 200, "OK", "Import was successful.",
+            DELETE( "/events/xyz" ).content( HttpStatus.OK ) );
     }
 
     private String postEvent()
