@@ -47,10 +47,6 @@ public class CodeList
     @JacksonXmlElementWrapper( localName = "code", namespace = DxfNamespaces.DXF_2_0, useWrapping = false )
     private final List<String> codes = new ArrayList<>();
 
-    public CodeList()
-    {
-    }
-
     public List<String> getCodes()
     {
         return codes;
