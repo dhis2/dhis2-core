@@ -29,7 +29,6 @@
 package org.hisp.dhis.helpers.matchers;
 
 import com.google.gson.JsonObject;
-import com.oracle.javafx.jmx.json.JSONException;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.hisp.dhis.helpers.JsonParserUtils;
