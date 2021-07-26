@@ -119,18 +119,8 @@ public class DefaultDeduplicationService
             .orElseThrow( () -> new PotentialDuplicateException(
                 "No tracked entity instance found with id '" + potentialDuplicate.getTeiB() + "'." ) );
 
-        if ( !trackedEntityInstanceA.getProgramInstances().isEmpty()
-            && !trackedEntityInstanceB.getProgramInstances().isEmpty() )
-        {
-            for ( ProgramInstance programInstanceA : trackedEntityInstanceA.getProgramInstances() )
-            {
-                for ( ProgramInstance programInstanceB : trackedEntityInstanceA.getProgramInstances() )
-                {
-                    if ( programInstanceA.getProgram().equals( programInstanceB.getProgram() ) )
-                        return false;
-                }
-            }
-        }
+        if ( enrolledSameProgram( trackedEntityInstanceA, trackedEntityInstanceB ) )
+            return false;
 
         if ( !trackedEntityInstanceA.getTrackedEntityType().equals( trackedEntityInstanceB.getTrackedEntityType() ) )
         {
@@ -147,9 +137,15 @@ public class DefaultDeduplicationService
         Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB = trackedEntityInstanceB
             .getTrackedEntityAttributeValues();
 
+        return !sameAttributesAreEquals( trackedEntityAttributeValueA, trackedEntityAttributeValueB );
+    }
+
+    private boolean sameAttributesAreEquals( Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA,
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB )
+    {
         if ( trackedEntityAttributeValueA.isEmpty() || trackedEntityAttributeValueB.isEmpty() )
         {
-            return true;
+            return false;
         }
 
         for ( TrackedEntityAttributeValue teavA : trackedEntityAttributeValueA )
@@ -159,12 +155,29 @@ public class DefaultDeduplicationService
                 if ( teavA.getAttribute().equals( teavB.getAttribute() )
                     && !teavA.getValue().equals( teavB.getValue() ) )
                 {
-                    return false;
+                    return true;
                 }
             }
         }
+        return false;
+    }
 
-        return true;
+    private boolean enrolledSameProgram( TrackedEntityInstance trackedEntityInstanceA,
+        TrackedEntityInstance trackedEntityInstanceB )
+    {
+        if ( !trackedEntityInstanceA.getProgramInstances().isEmpty()
+            && !trackedEntityInstanceB.getProgramInstances().isEmpty() )
+        {
+            for ( ProgramInstance programInstanceA : trackedEntityInstanceA.getProgramInstances() )
+            {
+                for ( ProgramInstance programInstanceB : trackedEntityInstanceB.getProgramInstances() )
+                {
+                    if ( programInstanceA.getProgram().equals( programInstanceB.getProgram() ) )
+                        return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override

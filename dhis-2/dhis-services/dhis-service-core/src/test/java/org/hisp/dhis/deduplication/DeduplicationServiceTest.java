@@ -32,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 
 import org.hisp.dhis.program.Program;
@@ -95,11 +96,6 @@ public class DeduplicationServiceTest
         when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) ).thenReturn( trackedEntityInstanceA );
         when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) ).thenReturn( trackedEntityInstanceB );
 
-        when( trackedEntityInstanceA.getProgramInstances() )
-            .thenReturn( new HashSet<>( Arrays.asList( programInstanceA ) ) );
-        when( trackedEntityInstanceB.getProgramInstances() )
-            .thenReturn( new HashSet<>( Arrays.asList( programInstanceB ) ) );
-
         String uidPerson = "uidPerson";
 
         TrackedEntityType trackedEntityPerson = new TrackedEntityType();
@@ -109,7 +105,32 @@ public class DeduplicationServiceTest
         when( trackedEntityInstanceA.getTrackedEntityType() ).thenReturn( trackedEntityPerson );
         when( trackedEntityInstanceB.getTrackedEntityType() ).thenReturn( trackedEntityPerson );
 
+        setUpPrograms();
+
         setAttributeValues();
+    }
+
+    private void setUpPrograms()
+    {
+        when( trackedEntityInstanceA.getProgramInstances() )
+            .thenReturn( new HashSet<>( Collections.singletonList( programInstanceA ) ) );
+        when( trackedEntityInstanceB.getProgramInstances() )
+            .thenReturn( new HashSet<>( Collections.singletonList( programInstanceB ) ) );
+
+        Program programA = new Program();
+        programA.setUid( "progrAUid" );
+        programA.setDescription( "programADescr" );
+        programA.setName( "programAName" );
+
+        Program programB = new Program();
+        programB.setUid( "progrBrUid" );
+        programB.setDescription( "programBDescr" );
+        programB.setName( "programBName" );
+
+        when( programInstanceA.getProgram() )
+            .thenReturn( programA );
+        when( programInstanceB.getProgram() )
+            .thenReturn( programB );
     }
 
     private void setAttributeValues()
@@ -138,9 +159,6 @@ public class DeduplicationServiceTest
     @Test
     public void shouldBeAutoMergeable()
     {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( "uid" );
-
         assertTrue( deduplicationService.isAutoMergeable( potentialDuplicate ) );
     }
 
@@ -172,10 +190,10 @@ public class DeduplicationServiceTest
     }
 
     @Test
-    public void shouldNotBeAutoMergeableSameProgram()
+    public void shouldNotBeAutoMergeableWithSameProgram()
     {
         Program program = new Program();
-        program.setUid( "progarUid" );
+        program.setUid( "progrUid" );
         program.setDescription( "programDescr" );
         program.setName( "programName" );
 
