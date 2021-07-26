@@ -113,7 +113,7 @@ public class OrgUnitProfileTests
         // arrange
 
         MetadataApiResponse response = new MetadataActions()
-            .importAndValidateMetadata( new File( "src/test/resources/metadata/orgUnits/ou_with_group_and_set.json" ) );
+            .importAndValidateMetadata( new File( "src/test/resources/metadata/orgunits/ou_with_group_and_set.json" ) );
 
         String groupSet = response.extractObjectUid( "OrganisationUnitGroupSet" ).get( 0 );
         String ou = response.extractObjectUid( "OrganisationUnit" ).get( 0 );
