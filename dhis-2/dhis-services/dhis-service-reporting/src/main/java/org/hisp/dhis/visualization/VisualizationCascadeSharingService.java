@@ -32,14 +32,21 @@ import java.util.List;
 
 import lombok.NonNull;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.sharing.AbstractCascadeSharingService;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
 import org.hisp.dhis.sharing.CascadeSharingService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class VisualizationCascadeSharingService
+    extends AbstractCascadeSharingService
     implements CascadeSharingService<Visualization>
 {
     private final IdentifiableObjectManager manager;
@@ -50,11 +57,44 @@ public class VisualizationCascadeSharingService
     }
 
     @Override
+    @Transactional
     public List<ErrorReport> cascadeSharing( Visualization visualization, CascadeSharingParameters parameters )
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        if ( parameters.isDryRun() )
+        CachingMap<String, BaseIdentifiableObject> mapObjects = new CachingMap<>();
+
+        for ( DimensionalObject column : visualization.getColumns() )
+        {
+            for ( DimensionalItemObject item : column.getItems() )
+            {
+                BaseIdentifiableObject dimensionObject = mapObjects.get( item.getDimensionItem(),
+                    manager.get( item.getDimensionItem() ) );
+                errorReports.addAll( mergeSharing( visualization, dimensionObject ) );
+
+                if ( canUpdateSharing( parameters, errorReports ) )
+                {
+                    manager.update( dimensionObject );
+                }
+            }
+        }
+
+        for ( DimensionalObject row : visualization.getRows() )
+        {
+            for ( DimensionalItemObject item : row.getItems() )
+            {
+                BaseIdentifiableObject dimensionObject = mapObjects.get( item.getDimensionItem(),
+                    manager.get( item.getDimensionItem() ) );
+                errorReports.addAll( mergeSharing( visualization, dimensionObject ) );
+
+                if ( canUpdateSharing( parameters, errorReports ) )
+                {
+                    manager.update( dimensionObject );
+                }
+            }
+        }
+
+        if ( canUpdateSharing( parameters, errorReports ) )
         {
             manager.update( visualization );
         }

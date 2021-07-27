@@ -38,7 +38,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.sharing.AbstractCascadeSharingService;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
 import org.hisp.dhis.sharing.CascadeSharingService;
-import org.hisp.dhis.visualization.VisualizationCascadeSharingService;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,10 +48,10 @@ public class DashboardCascadeSharingService
 {
     private final IdentifiableObjectManager manager;
 
-    private final VisualizationCascadeSharingService visualizationCascadeSharingService;
+    private final CascadeSharingService<Visualization> visualizationCascadeSharingService;
 
     public DashboardCascadeSharingService( @NonNull IdentifiableObjectManager manager,
-        @NonNull VisualizationCascadeSharingService visualizationCascadeSharingService )
+        @NonNull CascadeSharingService<Visualization> visualizationCascadeSharingService )
     {
         this.manager = manager;
         this.visualizationCascadeSharingService = visualizationCascadeSharingService;
@@ -67,7 +67,7 @@ public class DashboardCascadeSharingService
             switch ( dashboardItem.getType() )
             {
             case VISUALIZATION:
-                mergeSharing( dashboard, dashboardItem.getVisualization() );
+                errorReports.addAll( mergeSharing( dashboard, dashboardItem.getVisualization() ) );
                 errorReports.addAll(
                     visualizationCascadeSharingService.cascadeSharing( dashboardItem.getVisualization(), parameters ) );
                 break;
@@ -89,7 +89,7 @@ public class DashboardCascadeSharingService
             }
         } );
 
-        if ( !parameters.isDryRun() )
+        if ( canUpdateSharing( parameters, errorReports ) )
         {
             manager.update( dashboard );
         }

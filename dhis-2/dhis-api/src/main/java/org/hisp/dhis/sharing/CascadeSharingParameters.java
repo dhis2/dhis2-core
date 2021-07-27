@@ -38,5 +38,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CascadeSharingParameters
 {
+    /**
+     * TRUE: do not save anything, just return errors if any FALSE: save data if
+     * possible ( depends on atomic flag value )
+     */
     private boolean dryRun = false;
+
+    /**
+     * TRUE: Fail on errors, do not save anything. FALSE: Ignore errors, just
+     * save the valid data.
+     */
+    private boolean atomic = false;
 }

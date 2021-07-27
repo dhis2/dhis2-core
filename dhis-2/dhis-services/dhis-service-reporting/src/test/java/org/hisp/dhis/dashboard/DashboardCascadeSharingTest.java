@@ -28,6 +28,7 @@
 package org.hisp.dhis.dashboard;
 
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -39,6 +40,8 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -84,6 +87,8 @@ public class DashboardCascadeSharingTest
 
     private Sharing sharingUserA;
 
+    private Sharing sharingUserB;
+
     private Sharing sharingUserGroupA;
 
     private DataElement dataElementA;
@@ -102,6 +107,9 @@ public class DashboardCascadeSharingTest
         sharingUserA = new Sharing();
         sharingUserA.addUserAccess( new UserAccess( userA, AccessStringHelper.READ ) );
 
+        sharingUserB = new Sharing();
+        sharingUserB.addUserAccess( new UserAccess( userB, AccessStringHelper.DEFAULT ) );
+
         sharingUserGroupA = new Sharing();
         sharingUserGroupA.addUserGroupAccess( new UserGroupAccess( userGroupA, AccessStringHelper.READ ) );
 
@@ -119,8 +127,11 @@ public class DashboardCascadeSharingTest
      * Dashboard has sharingUserA Dashboard has visuallizationA visuallizationA
      * has dataElementA Expected: vzA and dataElementA should be shared to userA
      */
+    @Test
     public void testCascadeShareVisualization()
     {
+        objectManager.save( dataElementA );
+
         Visualization vzA = createVisualization( 'A' );
         addDimensionItemToVisualization( vzA, dataElementA.getUid() );
         visualizationService.save( vzA );
@@ -130,14 +141,49 @@ public class DashboardCascadeSharingTest
 
         objectManager.save( dashboardItemA, false );
 
+        dashboard.getItems().clear();
         dashboard.getItems().add( dashboardItemA );
         dashboard.setSharing( sharingUserA );
 
         objectManager.save( dashboard, false );
 
-        dashboardCascadeSharingService.cascadeSharing( dashboard, new CascadeSharingParameters() );
+        List<ErrorReport> errors = dashboardCascadeSharingService.cascadeSharing( dashboard,
+            new CascadeSharingParameters() );
+        assertEquals( 0, errors.size() );
 
-        assertTrue( aclService.canRead( userA, dashboardItemA ) );
+        assertTrue( aclService.canRead( userA, dataElementA ) );
+        assertFalse( aclService.canRead( userB, dataElementA ) );
+    }
+
+    @Test
+    public void testCascadeShareVisualizationError()
+    {
+        objectManager.save( dataElementA );
+
+        Visualization vzA = createVisualization( 'A' );
+
+        addDimensionItemToVisualization( vzA, dataElementA.getUid() );
+        visualizationService.save( vzA );
+
+        DashboardItem dashboardItemA = createDashboardItem( "A" );
+        dashboardItemA.setVisualization( vzA );
+
+        objectManager.save( dashboardItemA, false );
+
+        dashboard.getItems().clear();
+        dashboard.getItems().add( dashboardItemA );
+        dashboard.setSharing( sharingUserB );
+
+        objectManager.save( dashboard, false );
+
+        List<ErrorReport> errors = dashboardCascadeSharingService.cascadeSharing( dashboard,
+            new CascadeSharingParameters() );
+        assertEquals( 1, errors.size() );
+        assertEquals( ErrorCode.E3019, errors.get( 0 ).getErrorCode() );
+
+        assertFalse( aclService.canRead( userB, vzA ) );
+        assertFalse( aclService.canRead( userB, dataElementA ) );
+
     }
 
     /**
@@ -165,10 +211,41 @@ public class DashboardCascadeSharingTest
         dashboard.setSharing( sharingUserA );
         objectManager.save( dashboard, false );
 
-        dashboardCascadeSharingService.cascadeSharing( dashboard, new CascadeSharingParameters() );
-
-        assertTrue( aclService.canRead( userA, dashboardItemA ) );
+        List<ErrorReport> errors = dashboardCascadeSharingService.cascadeSharing( dashboard,
+            new CascadeSharingParameters() );
+        assertEquals( 0, errors.size() );
         assertTrue( aclService.canRead( userA, dashboardItemA.getMap() ) );
+        assertFalse( aclService.canRead( userB, dashboardItemA.getMap() ) );
+    }
+
+    /**
+     * Dashboard is shared to userB. But userB's access is set to
+     * DEFAULT('--------') Expected: return error with code E3019
+     */
+    @Test
+    public void testCascadeShareMapError()
+    {
+        MapView mapView = createMapView( "Test" );
+        Map map = new Map();
+        map.setName( "mapA" );
+        map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        map.setMapViews( Lists.newArrayList( mapView ) );
+        objectManager.save( map, false );
+        objectManager.flush();
+
+        DashboardItem dashboardItemA = createDashboardItem( "A" );
+        dashboardItemA.setMap( map );
+
+        dashboard.getItems().clear();
+        dashboard.getItems().add( dashboardItemA );
+        dashboard.setSharing( sharingUserB );
+        objectManager.save( dashboard, false );
+
+        List<ErrorReport> errors = dashboardCascadeSharingService
+            .cascadeSharing( dashboard, new CascadeSharingParameters() );
+        assertEquals( 1, errors.size() );
+        assertEquals( ErrorCode.E3019, errors.get( 0 ).getErrorCode() );
+
         assertFalse( aclService.canRead( userB, dashboardItemA.getMap() ) );
     }
 

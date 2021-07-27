@@ -92,4 +92,9 @@ public abstract class AbstractCascadeSharingService
 
         return errorReports;
     }
+
+    protected boolean canUpdateSharing( CascadeSharingParameters parameters, List<ErrorReport> errorReports )
+    {
+        return !parameters.isDryRun() || (parameters.isAtomic() || errorReports.isEmpty());
+    }
 }
