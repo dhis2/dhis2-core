@@ -46,7 +46,6 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.DeduplicationController;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -136,8 +135,8 @@ public class DeduplicationControllerMvcTest
             .content( objectMapper.writeValueAsString( potentialDuplicate ) )
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isConflict() )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof ConflictException ) );
+            .andExpect( status().isBadRequest() )
+            .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
     }
 
     @Test
@@ -252,6 +251,9 @@ public class DeduplicationControllerMvcTest
         when( deduplicationService.getPotentialDuplicateByTei( eq( tei ), any() ) )
             .thenReturn( Collections.singletonList( new PotentialDuplicate( teiA, teiB ) ) );
 
+        when( trackedEntityInstanceService.getTrackedEntityInstance( tei ) )
+            .thenReturn( new TrackedEntityInstance() );
+
         mockMvc.perform( get( ENDPOINT + "/tei/" + tei ).param( "status", DeduplicationStatus.INVALID.name() )
             .content( "{}" )
             .contentType( MediaType.APPLICATION_JSON )
@@ -268,6 +270,9 @@ public class DeduplicationControllerMvcTest
     {
         String tei = "tei";
 
+        when( trackedEntityInstanceService.getTrackedEntityInstance( tei ) )
+            .thenReturn( new TrackedEntityInstance() );
+
         mockMvc.perform( get( ENDPOINT + "/tei/" + tei ).param( "status", "wrong status" )
             .content( "{}" )
             .contentType( MediaType.APPLICATION_JSON )
@@ -282,7 +287,7 @@ public class DeduplicationControllerMvcTest
     {
         String tei = "tei";
 
-        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( tei ) )
+        when( trackedEntityInstanceService.getTrackedEntityInstance( tei ) )
             .thenReturn( null );
 
         mockMvc.perform( get( ENDPOINT + "/tei/" + tei )
@@ -299,10 +304,10 @@ public class DeduplicationControllerMvcTest
     {
         String tei = "tei";
 
-        when( deduplicationService.getPotentialDuplicateByTei( eq( tei ), any() ) )
-            .thenReturn( Collections.singletonList( new PotentialDuplicate( teiA, teiB ) ) );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( tei ) )
+            .thenReturn( new TrackedEntityInstance() );
 
-        lenient().when( trackerAccessManager.canRead( any(), any( TrackedEntityInstance.class ) ) )
+        when( trackerAccessManager.canRead( any(), any( TrackedEntityInstance.class ) ) )
             .thenReturn( Collections.singletonList( "Read Error" ) );
 
         mockMvc.perform( get( ENDPOINT + "/tei/" + tei )
@@ -312,7 +317,7 @@ public class DeduplicationControllerMvcTest
             .andExpect( status().isForbidden() )
             .andExpect( result -> assertTrue( result.getResolvedException() instanceof OperationNotAllowedException ) );
 
-        verify( deduplicationService ).getPotentialDuplicateByTei( tei, DeduplicationStatus.ALL );
+        verify( deduplicationService, times( 0 ) ).getPotentialDuplicateByTei( tei, DeduplicationStatus.ALL );
     }
 
     @Test
