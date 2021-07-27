@@ -35,10 +35,12 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.tracker.PotentialDuplicatesActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Arrays;
@@ -100,13 +102,42 @@ public class PotentialDuplicatesTests
     }
 
     @Test
-    public void shouldRequireBthTeis()
+    public void shouldRequireBothTeis()
     {
         potentialDuplicatesActions.createPotentialDuplicate( null, createTei(), "OPEN" )
             .validate()
             .statusCode( not( 200 ) )
             .body( "status", equalTo( "ERROR" ) )
             .body( "message", containsStringIgnoringCase( "missing required input property" ) );
+    }
+
+    @CsvSource( {
+        "MERGED,INVALID,false",
+        "OPEN,INVALID,true",
+        "OPEN,MERGED,false",
+        "INVALID,OPEN,true"
+    } )
+    @ParameterizedTest
+    public void shouldUpdateStatus( String status, String newStatus, boolean shouldUpdate )
+    {
+        ApiResponse response = potentialDuplicatesActions.createPotentialDuplicate( createTei(), createTei(), status );
+        response.validate().statusCode( 200 );
+
+        String duplicateId = response.extractString( "id" );
+
+        response = potentialDuplicatesActions.update( duplicateId + "?status=" + newStatus, new JsonObjectBuilder().build() );
+
+        if ( shouldUpdate )
+        {
+            response.validate().statusCode( 200 );
+
+            potentialDuplicatesActions.get( duplicateId ).validate()
+                .statusCode( 200 )
+                .body( "status", equalTo( newStatus ) );
+            return;
+        }
+
+        response.validate().statusCode( 400 ).body( "status", equalTo( "ERROR" ) );
     }
 
     private String createTei()
