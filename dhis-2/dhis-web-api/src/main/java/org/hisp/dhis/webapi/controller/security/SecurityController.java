@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.security.SecurityUtils;
 import org.hisp.dhis.setting.SettingKey;
@@ -42,12 +43,12 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,9 +66,6 @@ public class SecurityController
 
     @Autowired
     private SystemSettingManager systemSettingManager;
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     @Autowired
     private ObjectMapper jsonMapper;
@@ -96,7 +94,8 @@ public class SecurityController
     }
 
     @GetMapping( value = "/authenticate", produces = "application/json" )
-    public void authenticate2FA( @RequestParam String code, HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage authenticate2FA( @RequestParam String code )
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -107,11 +106,11 @@ public class SecurityController
 
         if ( !SecurityUtils.verify( currentUser.getUserCredentials(), code ) )
         {
-            webMessageService.send( WebMessageUtils.unathorized( "2FA code not authenticated" ), response, request );
+            return WebMessageUtils.unathorized( "2FA code not authenticated" );
         }
         else
         {
-            webMessageService.send( WebMessageUtils.ok( "2FA code authenticated" ), response, request );
+            return WebMessageUtils.ok( "2FA code authenticated" );
         }
     }
 }
