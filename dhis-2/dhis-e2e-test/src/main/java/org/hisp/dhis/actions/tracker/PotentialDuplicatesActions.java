@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,46 +26,32 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.actions.metadata;
+package org.hisp.dhis.actions.tracker;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-
+import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ProgramStageActions extends RestApiActions
+public class PotentialDuplicatesActions
+    extends RestApiActions
 {
-    public ProgramStageActions()
+    public PotentialDuplicatesActions()
     {
-        super( "/programStages" );
+        super( "/potentialDuplicates" );
     }
 
-    public ApiResponse enableUserAssignment( String programStageId, boolean enabled )
+    public ApiResponse createPotentialDuplicate( String teiA, String teiB, String status )
     {
-        JsonObject body = this.get( programStageId ).getBody();
+        JsonObject object = new JsonObjectBuilder()
+            .addProperty( "teiA", teiA )
+            .addProperty( "teiB", teiB )
+            .addProperty( "status", status )
+            .build();
 
-        body.addProperty( "enableUserAssignment", enabled );
-
-        ApiResponse response = this.update( programStageId, body );
-
-        response.validate().statusCode( 200 );
-
-        return response;
-    }
-
-    public void setValidationStrategy( String programStageId, String strategy )
-    {
-        this.patch( programStageId, "add", "/validationStrategy", strategy )
-            .validate().statusCode( 200 );
-
-        this.get( programStageId )
-            .validate().body( "validationStrategy", equalTo( strategy ) );
+        return this.post( object );
     }
 }
