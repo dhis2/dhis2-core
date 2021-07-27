@@ -255,6 +255,9 @@
       "filterDimensions": [
         "ou"
       ],
+      "seriesKey": {
+        "hidden": true
+      },
       "series": [
         {
           "dimensionItem": "JXWenbITNIR",
@@ -359,6 +362,9 @@
           }
         }
       ],
+      "seriesKey": {
+        "hidden": true
+      },
       "series": [
         {
           "dimensionItem": "JrpFZgTcp5m",
@@ -474,6 +480,9 @@
       "filterDimensions": [
         "ou"
       ],
+      "seriesKey": {
+        "hidden": true
+      },
       "series": [
         {
           "dimensionItem": "JrpFZgTcp5m",

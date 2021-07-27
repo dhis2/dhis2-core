@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
+import org.hisp.dhis.security.SystemAuthoritiesProvider;
+
 /**
  * Simple SystemAuthoritiesProvider where the system authorities are simply set
  * using a setter method.

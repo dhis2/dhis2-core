@@ -40,6 +40,7 @@
     <property name="lastYear" />
     
     <property name="last5Years" />
+    <property name="last10Years" />
     <property name="last12Months" />
     <property name="last6Months" />
     <property name="last3Months" />
@@ -49,7 +50,8 @@
     <property name="thisFinancialYear" />
     <property name="lastFinancialYear" />
     <property name="last5FinancialYears" />
-    
+    <property name="last10FinancialYears" />
+
     <property name="thisWeek" />
     <property name="lastWeek" />
     <property name="thisBiWeek" />

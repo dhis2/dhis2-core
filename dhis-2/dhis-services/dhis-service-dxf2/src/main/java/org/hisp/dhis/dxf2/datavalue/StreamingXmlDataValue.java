@@ -54,6 +54,8 @@ public class StreamingXmlDataValue
 
     private static final String FIELD_STOREDBY = "storedBy";
 
+    private static final String FIELD_CREATED = "created";
+
     private static final String FIELD_LAST_UPDATED = "lastUpdated";
 
     private static final String FIELD_COMMENT = "comment";
@@ -130,6 +132,12 @@ public class StreamingXmlDataValue
     public String getStoredBy()
     {
         return storedBy = storedBy == null ? reader.getAttributeValue( FIELD_STOREDBY ) : storedBy;
+    }
+
+    @Override
+    public String getCreated()
+    {
+        return created = created == null ? reader.getAttributeValue( FIELD_CREATED ) : created;
     }
 
     @Override

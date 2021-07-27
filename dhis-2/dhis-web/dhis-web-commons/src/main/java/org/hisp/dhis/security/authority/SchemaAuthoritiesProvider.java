@@ -30,6 +30,7 @@ package org.hisp.dhis.security.authority;
 import java.util.Collection;
 
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.SystemAuthoritiesProvider;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

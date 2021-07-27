@@ -47,15 +47,17 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
+import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -72,48 +74,49 @@ public class DefaultAppManager
 
     private final CurrentUserService currentUserService;
 
-    private final LocalAppStorageService localAppStorageService;
+    private final AppStorageService localAppStorageService;
 
-    private final JCloudsAppStorageService jCloudsAppStorageService;
+    private final AppStorageService jCloudsAppStorageService;
 
     private final KeyJsonValueService keyJsonValueService;
 
+    /**
+     * In-memory storage of installed apps. Initially loaded on startup. Should
+     * not be cleared during runtime.
+     */
     private final Cache<App> appCache;
 
     public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
         CurrentUserService currentUserService,
-        LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
-        KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
+        @Qualifier( "org.hisp.dhis.appmanager.LocalAppStorageService" ) AppStorageService localAppStorageService,
+        @Qualifier( "org.hisp.dhis.appmanager.JCloudsAppStorageService" ) AppStorageService jCloudsAppStorageService,
+        KeyJsonValueService keyJsonValueService, CacheBuilderProvider cacheBuilderProvider )
     {
         checkNotNull( dhisConfigurationProvider );
         checkNotNull( currentUserService );
         checkNotNull( localAppStorageService );
         checkNotNull( jCloudsAppStorageService );
         checkNotNull( keyJsonValueService );
-        checkNotNull( cacheProvider );
+        checkNotNull( cacheBuilderProvider );
 
         this.dhisConfigurationProvider = dhisConfigurationProvider;
         this.currentUserService = currentUserService;
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
         this.keyJsonValueService = keyJsonValueService;
-        this.appCache = cacheProvider.createAppCache();
+        this.appCache = cacheBuilderProvider.<App> newCacheBuilder()
+            .forRegion( "appCache" )
+            .build();
     }
 
     // -------------------------------------------------------------------------
     // AppManagerService implementation
     // -------------------------------------------------------------------------
 
-    @PostConstruct
-    public void initCache()
-    {
-        reloadApps();
-    }
-
     @Override
     public List<App> getApps( String contextPath )
     {
-        List<App> apps = appCache.getAll().stream().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
+        List<App> apps = appCache.getAll().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
             .collect( Collectors.toList() );
 
         apps.forEach( a -> a.init( contextPath ) );
@@ -142,15 +145,7 @@ public class DefaultAppManager
         }
 
         // If no apps are found, check for original name
-        for ( App app : appCache.getAll() )
-        {
-            if ( app.getShortName().equals( appName ) )
-            {
-                return app;
-            }
-        }
-
-        return null;
+        return appCache.getAll().filter( app -> app.getShortName().equals( appName ) ).findFirst().orElse( null );
     }
 
     @Override
@@ -278,6 +273,7 @@ public class DefaultAppManager
         if ( app.getAppState().ok() )
         {
             appCache.put( app.getKey(), app );
+            registerKeyJsonValueProtection( app );
         }
 
         return app.getAppState();
@@ -290,21 +286,19 @@ public class DefaultAppManager
     }
 
     @Override
-    @Async
     public void deleteApp( App app, boolean deleteAppData )
     {
         if ( app != null )
         {
             getAppStorageServiceByApp( app ).deleteApp( app );
-        }
+            unregisterKeyJsonValueProtection( app );
+            if ( deleteAppData )
+            {
+                deleteAppData( app );
+            }
 
-        if ( deleteAppData )
-        {
-            keyJsonValueService.deleteNamespace( app.getActivities().getDhis().getNamespace() );
-            log.info( String.format( "Deleted app namespace '%s'", app.getActivities().getDhis().getNamespace() ) );
+            appCache.invalidate( app.getKey() );
         }
-
-        appCache.invalidate( app.getKey() );
     }
 
     @Override
@@ -340,18 +334,28 @@ public class DefaultAppManager
     }
 
     /**
-     * Triggers AppStorageServices to re-discover apps
+     * Reloads apps by triggering the process to discover apps from local
+     * filesystem and remote cloud storage and installing all detected apps.
+     * This method is invoked automatically on startup.
      */
     @Override
+    @PostConstruct
     public void reloadApps()
     {
-        localAppStorageService.discoverInstalledApps().entrySet().stream()
-            .filter( entry -> !appCache.getIfPresent( entry.getKey() ).isPresent() )
-            .forEach( entry -> appCache.put( entry.getKey(), entry.getValue() ) );
+        localAppStorageService.discoverInstalledApps().values().stream()
+            .filter( app -> !exists( app.getKey() ) )
+            .forEach( this::installApp );
 
-        jCloudsAppStorageService.discoverInstalledApps().entrySet().stream()
-            .filter( entry -> !appCache.getIfPresent( entry.getKey() ).isPresent() )
-            .forEach( entry -> appCache.put( entry.getKey(), entry.getValue() ) );
+        jCloudsAppStorageService.discoverInstalledApps().values().stream()
+            .filter( app -> !exists( app.getKey() ) )
+            .forEach( this::installApp );
+
+    }
+
+    private void installApp( App app )
+    {
+        appCache.put( app.getKey(), app );
+        registerKeyJsonValueProtection( app );
     }
 
     @Override
@@ -371,7 +375,7 @@ public class DefaultAppManager
         Set<String> auths = user.getUserCredentials().getAllAuthorities();
 
         return auths.contains( "ALL" ) ||
-            auths.contains( "M_dhis-web-maintenance-appmanager" ) ||
+            auths.contains( WEB_MAINTENANCE_APPMANAGER_AUTHORITY ) ||
             auths.contains( app.getSeeAppAuthority() );
     }
 
@@ -412,5 +416,37 @@ public class DefaultAppManager
         apps.putAll( localAppStorageService.getReservedNamespaces() );
 
         return apps;
+    }
+
+    private void deleteAppData( App app )
+    {
+        String namespace = app.getActivities().getDhis().getNamespace();
+        if ( namespace != null && !namespace.isEmpty() )
+        {
+            keyJsonValueService.deleteNamespace( namespace );
+            log.info( String.format( "Deleted app namespace '%s'", namespace ) );
+        }
+    }
+
+    private void registerKeyJsonValueProtection( App app )
+    {
+        String namespace = app.getActivities().getDhis().getNamespace();
+        if ( namespace != null && !namespace.isEmpty() )
+        {
+            String[] authorities = app.getShortName() == null
+                ? new String[] { WEB_MAINTENANCE_APPMANAGER_AUTHORITY }
+                : new String[] { WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority() };
+            keyJsonValueService.addProtection(
+                new KeyJsonNamespaceProtection( namespace, ProtectionType.RESTRICTED, true, authorities ) );
+        }
+    }
+
+    private void unregisterKeyJsonValueProtection( App app )
+    {
+        String namespace = app.getActivities().getDhis().getNamespace();
+        if ( namespace != null && !namespace.isEmpty() )
+        {
+            keyJsonValueService.removeProtection( namespace );
+        }
     }
 }

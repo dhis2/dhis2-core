@@ -195,11 +195,6 @@ public class QueryItem
         return StringUtils.join( filterStrings, ", " );
     }
 
-    public String getTypeAsString()
-    {
-        return valueType.getJavaClass().getName();
-    }
-
     public boolean isNumeric()
     {
         return valueType.isNumeric();

@@ -27,11 +27,7 @@
  */
 package org.hisp.dhis.visualization;
 
-import java.util.Date;
-
 import org.hisp.dhis.common.AnalyticalObjectService;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.user.User;
 
 /**
  * Interface responsible for providing CRUD and business methods related to a
@@ -55,7 +51,7 @@ public interface VisualizationService
      * @param id the id of the Visualization to retrieve.
      * @return the Visualization.
      */
-    Visualization loadVisualization( long id );
+    Visualization getVisualization( long id );
 
     /**
      * Retrieves the Visualization with the given uid.
@@ -63,7 +59,7 @@ public interface VisualizationService
      * @param uid the uid of the Visualization to retrieve.
      * @return the Visualization.
      */
-    Visualization loadVisualization( String uid );
+    Visualization getVisualization( String uid );
 
     /**
      * Deletes a Visualization.
@@ -71,29 +67,6 @@ public interface VisualizationService
      * @param visualization the Visualization to delete.
      */
     void delete( Visualization visualization );
-
-    /**
-     * Instantiates and populates a Grid populated with data from the given
-     * Visualization.
-     *
-     * @param uid of the Visualization.
-     * @param relativePeriodDate the visualization date.
-     * @param organisationUnitUid the organisation unit uid.
-     * @return a Grid.
-     */
-    Grid getVisualizationGrid( String uid, Date relativePeriodDate, String organisationUnitUid );
-
-    /**
-     * Instantiates and populates a Grid populated with data from the given
-     * Visualization.
-     *
-     * @param uid of the Visualization.
-     * @param relativePeriodDate the visualization date.
-     * @param organisationUnitUid the organisation unit uid.
-     * @param user the current user.
-     * @return a Grid.
-     */
-    Grid getVisualizationGridByUser( String uid, Date relativePeriodDate, String organisationUnitUid, User user );
 
     /**
      * Retrieves the Visualization with the given uid. Bypasses the ACL system.

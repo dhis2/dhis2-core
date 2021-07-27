@@ -41,6 +41,8 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -127,7 +129,7 @@ public class BaseIdentifiableObject
     /**
      * This object is available as external read-only.
      */
-    protected transient boolean externalAccess;
+    protected transient Boolean externalAccess;
 
     /**
      * Access string for public access.
@@ -367,6 +369,7 @@ public class BaseIdentifiableObject
         return cacheAttributeValues.get( attributeUid );
     }
 
+    @Gist( included = Include.FALSE )
     @Override
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
@@ -445,6 +448,7 @@ public class BaseIdentifiableObject
     }
 
     @Override
+    @Gist( included = Include.FALSE )
     @JsonProperty
     @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
     @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
@@ -476,7 +480,6 @@ public class BaseIdentifiableObject
     public void setUser( User user )
     {
         // TODO remove this after implementing functions for using Owner
-        // property
         setCreatedBy( createdBy == null ? user : createdBy );
         setOwner( user != null ? user.getUid() : null );
     }
@@ -492,11 +495,12 @@ public class BaseIdentifiableObject
     @PropertyRange( min = 8, max = 8 )
     public String getPublicAccess()
     {
-        return getSharing().getPublicAccess();
+        return SharingUtils.getDtoPublicAccess( publicAccess, getSharing() );
     }
 
     public void setPublicAccess( String publicAccess )
     {
+        this.publicAccess = publicAccess;
         getSharing().setPublicAccess( publicAccess );
     }
 
@@ -505,15 +509,12 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean getExternalAccess()
     {
-        if ( sharing == null )
-        {
-            sharing = new Sharing();
-        }
-        return sharing.isExternal();
+        return SharingUtils.getDtoExternalAccess( externalAccess, getSharing() );
     }
 
     public void setExternalAccess( boolean externalAccess )
     {
+        this.externalAccess = externalAccess;
         getSharing().setExternal( externalAccess );
     }
 
@@ -523,7 +524,7 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<org.hisp.dhis.user.UserGroupAccess> getUserGroupAccesses()
     {
-        return SharingUtils.getDtoUserGroupAccesses( getSharing() );
+        return SharingUtils.getDtoUserGroupAccesses( userGroupAccesses, getSharing() );
     }
 
     public void setUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
@@ -538,7 +539,7 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<org.hisp.dhis.user.UserAccess> getUserAccesses()
     {
-        return SharingUtils.getDtoUserAccess( sharing );
+        return SharingUtils.getDtoUserAccesses( userAccesses, getSharing() );
     }
 
     public void setUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
@@ -548,6 +549,7 @@ public class BaseIdentifiableObject
     }
 
     @Override
+    @Gist( included = Include.FALSE )
     @JsonProperty
     @JacksonXmlProperty( localName = "access", namespace = DxfNamespaces.DXF_2_0 )
     public Access getAccess()
@@ -585,13 +587,14 @@ public class BaseIdentifiableObject
     }
 
     @Override
+    @Gist( included = Include.FALSE )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Sharing getSharing()
     {
         if ( sharing == null )
         {
-            sharing = SharingUtils.generateSharingFromIdentifiableObject( this );
+            sharing = new Sharing();
         }
 
         return sharing;

@@ -31,9 +31,9 @@ import javax.jms.JMSException;
 import javax.jms.TextMessage;
 
 import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
@@ -50,17 +50,17 @@ public class TrackerMessageManager
 {
     private final ObjectMapper objectMapper;
 
-    private final SchedulingManager schedulingManager;
+    private final AsyncTaskExecutor taskExecutor;
 
     private final ObjectFactory<TrackerImportThread> trackerImportThreadFactory;
 
     public TrackerMessageManager(
         ObjectMapper objectMapper,
-        SchedulingManager schedulingManager,
+        AsyncTaskExecutor taskExecutor,
         ObjectFactory<TrackerImportThread> trackerImportThreadFactory )
     {
         this.objectMapper = objectMapper;
-        this.schedulingManager = schedulingManager;
+        this.taskExecutor = taskExecutor;
         this.trackerImportThreadFactory = trackerImportThreadFactory;
     }
 
@@ -86,6 +86,6 @@ public class TrackerMessageManager
         TrackerImportThread trackerImportThread = trackerImportThreadFactory.getObject();
         trackerImportThread.setTrackerImportParams( trackerImportParams );
 
-        schedulingManager.executeJob( trackerImportThread );
+        taskExecutor.executeTask( trackerImportThread );
     }
 }

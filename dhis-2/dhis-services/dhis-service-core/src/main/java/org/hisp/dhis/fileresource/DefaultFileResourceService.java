@@ -180,15 +180,22 @@ public class DefaultFileResourceService
     @Transactional
     public void deleteFileResource( FileResource fileResource )
     {
-        if ( fileResource == null || fileResourceStore.get( fileResource.getId() ) == null )
+        if ( fileResource == null )
         {
             return;
         }
 
-        FileDeletedEvent deleteFileEvent = new FileDeletedEvent( fileResource.getStorageKey(),
-            fileResource.getContentType(), fileResource.getDomain() );
+        FileResource existingResource = fileResourceStore.get( fileResource.getId() );
 
-        fileResourceStore.delete( fileResource );
+        if ( existingResource == null )
+        {
+            return;
+        }
+
+        FileDeletedEvent deleteFileEvent = new FileDeletedEvent( existingResource.getStorageKey(),
+            existingResource.getContentType(), existingResource.getDomain() );
+
+        fileResourceStore.delete( existingResource );
 
         fileEventPublisher.publishEvent( deleteFileEvent );
     }

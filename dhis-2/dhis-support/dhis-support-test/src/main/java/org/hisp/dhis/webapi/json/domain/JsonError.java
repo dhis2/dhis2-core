@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.json.domain;
 
 import java.util.function.Consumer;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
 
@@ -59,6 +60,16 @@ public interface JsonError extends JsonObject
         return getString( "message" ).string();
     }
 
+    default String getDevMessage()
+    {
+        return getString( "devMessage" ).string();
+    }
+
+    default ErrorCode getErrorCode()
+    {
+        return getString( "errorCode" ).parsed( ErrorCode::valueOf );
+    }
+
     /**
      * OBS! This property only exists in some error responses.
      */
@@ -86,7 +97,9 @@ public interface JsonError extends JsonObject
             }
         };
         String message = getMessage();
-        str.append( message != null ? message : "(no error message in response)" );
+        str.append( message != null
+            ? message
+            : String.format( "(no error message in %d %s response)", getHttpStatusCode(), getHttpStatus() ) );
         if ( getTypeReport().exists() )
         {
             printer.accept( getTypeReport().getErrorReports() );

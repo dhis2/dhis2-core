@@ -52,5 +52,9 @@ public class StyledObject implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    private TextMode textMode;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     private FontStyle fontStyle;
 }

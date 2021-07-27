@@ -30,6 +30,10 @@ package org.hisp.dhis.schema.descriptors;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -37,7 +41,6 @@ import org.hisp.dhis.schema.SchemaDescriptor;
  */
 public class ProgramStageInstanceFilterSchemaDescriptor implements SchemaDescriptor
 {
-
     public static final String SINGULAR = "eventFilter";
 
     public static final String PLURAL = "eventFilters";
@@ -50,6 +53,10 @@ public class ProgramStageInstanceFilterSchemaDescriptor implements SchemaDescrip
         Schema schema = new Schema( ProgramStageInstanceFilter.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setDefaultPrivate( true );
+
+        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
+
         return schema;
     }
 

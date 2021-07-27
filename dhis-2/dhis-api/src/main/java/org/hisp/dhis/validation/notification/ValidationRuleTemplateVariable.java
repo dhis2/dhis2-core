@@ -37,8 +37,7 @@ import org.hisp.dhis.notification.TemplateVariable;
  * @author Halvdan Hoem Grelland
  */
 public enum ValidationRuleTemplateVariable
-    implements
-    TemplateVariable
+    implements TemplateVariable
 {
     RULE_NAME( "rule_name" ),
     DESCRIPTION( "rule_description" ),

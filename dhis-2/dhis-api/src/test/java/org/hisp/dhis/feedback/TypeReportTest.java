@@ -57,8 +57,8 @@ public class TypeReportTest
         typeReport0.addObjectReport( objectReport1 );
         typeReport0.addObjectReport( objectReport2 );
 
-        assertEquals( 3, typeReport0.getObjectReports().size() );
-        assertEquals( 3, typeReport0.getErrorReports().size() );
+        assertEquals( 3, typeReport0.getObjectReportsCount() );
+        assertEquals( 3, typeReport0.getErrorReportsCount() );
 
         ObjectReport objectReport3 = new ObjectReport( DataElement.class, 3 );
         ObjectReport objectReport4 = new ObjectReport( DataElement.class, 4 );
@@ -76,8 +76,8 @@ public class TypeReportTest
         typeReport1.addObjectReport( objectReport1 );
         typeReport1.addObjectReport( objectReport2 );
 
-        assertEquals( 3, typeReport1.getObjectReports().size() );
-        assertEquals( 3, typeReport1.getErrorReports().size() );
+        assertEquals( 3, typeReport1.getObjectReportsCount() );
+        assertEquals( 3, typeReport1.getErrorReportsCount() );
     }
 
     @Test
@@ -99,8 +99,8 @@ public class TypeReportTest
         typeReport0.addObjectReport( objectReport1 );
         typeReport0.addObjectReport( objectReport2 );
 
-        assertEquals( 3, typeReport0.getObjectReports().size() );
-        assertEquals( 3, typeReport0.getErrorReports().size() );
+        assertEquals( 3, typeReport0.getObjectReportsCount() );
+        assertEquals( 3, typeReport0.getErrorReportsCount() );
 
         ObjectReport objectReport3 = new ObjectReport( DataElement.class, 3 );
         ObjectReport objectReport4 = new ObjectReport( DataElement.class, 4 );
@@ -118,12 +118,12 @@ public class TypeReportTest
         typeReport1.addObjectReport( objectReport4 );
         typeReport1.addObjectReport( objectReport5 );
 
-        assertEquals( 3, typeReport1.getObjectReports().size() );
-        assertEquals( 3, typeReport1.getErrorReports().size() );
+        assertEquals( 3, typeReport1.getObjectReportsCount() );
+        assertEquals( 3, typeReport1.getErrorReportsCount() );
 
         typeReport0.merge( typeReport1 );
 
-        assertEquals( 6, typeReport0.getErrorReports().size() );
-        assertEquals( 6, typeReport0.getObjectReports().size() );
+        assertEquals( 6, typeReport0.getErrorReportsCount() );
+        assertEquals( 6, typeReport0.getObjectReportsCount() );
     }
 }

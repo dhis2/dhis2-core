@@ -66,7 +66,7 @@ import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -84,6 +84,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
+import org.hisp.dhis.programrule.engine.TrackerEnrollmentWebHookEvent;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -292,6 +293,8 @@ public abstract class AbstractEnrollmentService
         enrollment.setCompletedDate( programInstance.getEndDate() );
         enrollment.setCompletedBy( programInstance.getCompletedBy() );
         enrollment.setStoredBy( programInstance.getStoredBy() );
+        enrollment.setCreatedByUserInfo( programInstance.getCreatedByUserInfo() );
+        enrollment.setLastUpdatedByUserInfo( programInstance.getLastUpdatedByUserInfo() );
         enrollment.setDeleted( programInstance.isDeleted() );
 
         enrollment.getNotes().addAll( NoteHelper.convertNotes( programInstance.getComments() ) );
@@ -519,7 +522,7 @@ public abstract class AbstractEnrollmentService
 
         programInstanceService.addProgramInstance( programInstance, importOptions.getUser() );
 
-        importSummary = validateProgramInstance( program, programInstance, enrollment );
+        importSummary = validateProgramInstance( program, programInstance, enrollment, importSummary );
 
         if ( importSummary.getStatus() != ImportStatus.SUCCESS )
         {
@@ -533,6 +536,8 @@ public abstract class AbstractEnrollmentService
         eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, programInstance.getId() ) );
 
         eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getId() ) );
+
+        eventPublisher.publishEvent( new TrackerEnrollmentWebHookEvent( this, programInstance.getUid() ) );
 
         updateFeatureType( program, enrollment, programInstance );
         updateAttributeValues( enrollment, importOptions );
@@ -567,10 +572,8 @@ public abstract class AbstractEnrollmentService
     }
 
     private ImportSummary validateProgramInstance( Program program, ProgramInstance programInstance,
-        Enrollment enrollment )
+        Enrollment enrollment, ImportSummary importSummary )
     {
-        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
-
         if ( programInstance == null )
         {
             importSummary.setStatus( ImportStatus.ERROR );
@@ -640,22 +643,12 @@ public abstract class AbstractEnrollmentService
     {
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
-        if ( program == null )
+        String error = validateProgramForEnrollment( program, enrollment );
+        if ( !StringUtils.isEmpty( error ) )
         {
             importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setDescription( "Program can not be null" );
+            importSummary.setDescription( error );
             importSummary.incrementIgnored();
-
-            return importSummary;
-        }
-
-        if ( !program.isRegistration() )
-        {
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setDescription( "Provided program " + program.getUid() +
-                " is a program without registration. An enrollment cannot be created into program without registration." );
-            importSummary.incrementIgnored();
-
             return importSummary;
         }
 
@@ -713,17 +706,40 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        Set<ImportConflict> importConflicts = checkAttributes( entityInstance, enrollment, importOptions );
+        checkAttributes( entityInstance, enrollment, importOptions, importSummary );
 
-        if ( !importConflicts.isEmpty() )
+        if ( importSummary.hasConflicts() )
         {
-            importSummary.setConflicts( importConflicts );
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.incrementIgnored();
-            importSummary.setReference( enrollment.getEnrollment() );
         }
 
         return importSummary;
+    }
+
+    private String validateProgramForEnrollment( Program program, Enrollment enrollment )
+    {
+        if ( program == null )
+        {
+            return "Program can not be null";
+        }
+
+        if ( !program.isRegistration() )
+        {
+            return "Provided program " + program.getUid() +
+                " is a program without registration. An enrollment cannot be created into program without registration.";
+        }
+
+        if ( program.getOrganisationUnits() != null && program.getOrganisationUnits().size() > 0 )
+        {
+            boolean programOrgUnitAccessible = program.getOrganisationUnits().stream()
+                .anyMatch( pou -> pou.getUid().equals( enrollment.getOrgUnit() ) );
+            if ( !programOrgUnitAccessible )
+            {
+                return "Program is not assigned to this Organisation Unit: " + enrollment.getOrgUnit();
+            }
+        }
+        return null;
     }
 
     // -------------------------------------------------------------------------
@@ -801,14 +817,12 @@ public abstract class AbstractEnrollmentService
                 .incrementIgnored();
         }
 
-        Set<ImportConflict> importConflicts = checkAttributes( programInstance.getEntityInstance(), enrollment,
-            importOptions );
+        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
+        checkAttributes( programInstance.getEntityInstance(), enrollment, importOptions, importSummary );
 
-        if ( !importConflicts.isEmpty() )
+        if ( importSummary.hasConflicts() )
         {
-            ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR ).incrementIgnored();
-            importSummary.setConflicts( importConflicts );
-            importSummary.setReference( enrollment.getEnrollment() );
+            importSummary.setStatus( ImportStatus.ERROR ).incrementIgnored();
             return importSummary;
         }
 
@@ -886,7 +900,7 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        ImportSummary importSummary = validateProgramInstance( program, programInstance, enrollment );
+        validateProgramInstance( program, programInstance, enrollment, importSummary );
 
         if ( importSummary.getStatus() != ImportStatus.SUCCESS )
         {
@@ -977,13 +991,12 @@ public abstract class AbstractEnrollmentService
 
             if ( importOptions.getUser() != null )
             {
-                List<ImportConflict> importConflicts = isAllowedToDelete( importOptions.getUser(), programInstance );
+                isAllowedToDelete( importOptions.getUser(), programInstance, importSummary );
 
-                if ( !importConflicts.isEmpty() )
+                if ( importSummary.hasConflicts() )
                 {
                     importSummary.setStatus( ImportStatus.ERROR );
                     importSummary.setReference( programInstance.getUid() );
-                    importSummary.getConflicts().addAll( importConflicts );
                     importSummary.incrementIgnored();
                     return importSummary;
                 }
@@ -1219,11 +1232,10 @@ public abstract class AbstractEnrollmentService
             || !user.isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
     }
 
-    private Set<ImportConflict> checkAttributes(
+    private void checkAttributes(
         org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance,
-        Enrollment enrollment, ImportOptions importOptions )
+        Enrollment enrollment, ImportOptions importOptions, ImportConflicts importConflicts )
     {
-        Set<ImportConflict> importConflicts = new HashSet<>();
         Map<TrackedEntityAttribute, Boolean> mandatoryMap = Maps.newHashMap();
         Map<String, String> attributeValueMap = Maps.newHashMap();
 
@@ -1260,8 +1272,8 @@ public abstract class AbstractEnrollmentService
             if ( mandatory && doValidationOfMandatoryAttributes( importOptions.getUser() )
                 && !attributeValueMap.containsKey( trackedEntityAttribute.getUid() ) )
             {
-                importConflicts.add( new ImportConflict( "Attribute.attribute", "Missing mandatory attribute "
-                    + trackedEntityAttribute.getUid() ) );
+                importConflicts.addConflict( "Attribute.attribute", "Missing mandatory attribute "
+                    + trackedEntityAttribute.getUid() );
                 continue;
             }
 
@@ -1271,9 +1283,9 @@ public abstract class AbstractEnrollmentService
             {
                 // We shorten the value to first 25 characters, since we dont
                 // want to post a 1200+ string back.
-                importConflicts.add( new ImportConflict( "Attribute.value",
+                importConflicts.addConflict( "Attribute.value",
                     String.format( "Value exceeds the character limit of %s characters: '%s...'", TEA_VALUE_MAX_LENGTH,
-                        attributeValueMap.get( trackedEntityAttribute.getUid() ).substring( 0, 25 ) ) ) );
+                        attributeValueMap.get( trackedEntityAttribute.getUid() ).substring( 0, 25 ) ) );
             }
 
             if ( trackedEntityAttribute.isUnique() )
@@ -1288,8 +1300,8 @@ public abstract class AbstractEnrollmentService
 
         if ( !attributeValueMap.isEmpty() )
         {
-            importConflicts.add( new ImportConflict( "Attribute.attribute",
-                "Only program attributes is allowed for enrollment " + attributeValueMap ) );
+            importConflicts.addConflict( "Attribute.attribute",
+                "Only program attributes is allowed for enrollment " + attributeValueMap );
         }
 
         if ( !program.getSelectEnrollmentDatesInFuture() )
@@ -1297,9 +1309,8 @@ public abstract class AbstractEnrollmentService
             if ( Objects.nonNull( enrollment.getEnrollmentDate() )
                 && enrollment.getEnrollmentDate().after( new Date() ) )
             {
-                importConflicts
-                    .add( new ImportConflict( "Enrollment.date", "Enrollment Date can't be future date :" + enrollment
-                        .getEnrollmentDate() ) );
+                importConflicts.addConflict( "Enrollment.date", "Enrollment Date can't be future date :" + enrollment
+                    .getEnrollmentDate() );
             }
         }
 
@@ -1307,19 +1318,17 @@ public abstract class AbstractEnrollmentService
         {
             if ( Objects.nonNull( enrollment.getIncidentDate() ) && enrollment.getIncidentDate().after( new Date() ) )
             {
-                importConflicts.add(
-                    new ImportConflict( "Enrollment.incidentDate", "Incident Date can't be future date :" + enrollment
-                        .getIncidentDate() ) );
+                importConflicts.addConflict( "Enrollment.incidentDate",
+                    "Incident Date can't be future date :" + enrollment
+                        .getIncidentDate() );
             }
         }
-
-        return importConflicts;
     }
 
     private void checkAttributeUniquenessWithinScope(
         org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance,
         TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit,
-        Set<ImportConflict> importConflicts )
+        ImportConflicts importConflicts )
     {
         if ( value == null )
         {
@@ -1331,7 +1340,7 @@ public abstract class AbstractEnrollmentService
 
         if ( errorMessage != null )
         {
-            importConflicts.add( new ImportConflict( "Attribute.value", errorMessage ) );
+            importConflicts.addConflict( "Attribute.value", errorMessage );
         }
     }
 
@@ -1402,7 +1411,7 @@ public abstract class AbstractEnrollmentService
     }
 
     private void validateAttributeType( Attribute attribute, ImportOptions importOptions,
-        Set<ImportConflict> importConflicts )
+        ImportConflicts importConflicts )
     {
         // Cache is populated if it is a batch operation. Otherwise, it is not.
         TrackedEntityAttribute teAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(),
@@ -1410,14 +1419,14 @@ public abstract class AbstractEnrollmentService
 
         if ( teAttribute == null )
         {
-            importConflicts.add( new ImportConflict( "Attribute.attribute", "Does not point to a valid attribute." ) );
+            importConflicts.addConflict( "Attribute.attribute", "Does not point to a valid attribute." );
         }
 
         String errorMessage = trackedEntityAttributeService.validateValueType( teAttribute, attribute.getValue() );
 
         if ( errorMessage != null )
         {
-            importConflicts.add( new ImportConflict( "Attribute.value", errorMessage ) );
+            importConflicts.addConflict( "Attribute.value", errorMessage );
         }
     }
 
@@ -1532,9 +1541,8 @@ public abstract class AbstractEnrollmentService
         importOptions.setUser( userService.getUser( importOptions.getUser().getUid() ) );
     }
 
-    private List<ImportConflict> isAllowedToDelete( User user, ProgramInstance pi )
+    private void isAllowedToDelete( User user, ProgramInstance pi, ImportConflicts importConflicts )
     {
-        List<ImportConflict> importConflicts = new ArrayList<>();
 
         Set<ProgramStageInstance> notDeletedProgramStageInstances = pi.getProgramStageInstances().stream()
             .filter( psi -> !psi.isDeleted() )
@@ -1543,19 +1551,17 @@ public abstract class AbstractEnrollmentService
         if ( !notDeletedProgramStageInstances.isEmpty()
             && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
         {
-            importConflicts.add( new ImportConflict( pi.getUid(),
+            importConflicts.addConflict( pi.getUid(),
                 "Enrollment " + pi.getUid()
                     + " cannot be deleted as it has associated events and user does not have authority: "
-                    + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) );
+                    + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
         }
 
         List<String> errors = trackerAccessManager.canDelete( user, pi, false );
 
         if ( !errors.isEmpty() )
         {
-            errors.forEach( error -> importConflicts.add( new ImportConflict( pi.getUid(), error ) ) );
+            errors.forEach( error -> importConflicts.addConflict( pi.getUid(), error ) );
         }
-
-        return importConflicts;
     }
 }

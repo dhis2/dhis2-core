@@ -41,7 +41,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
@@ -54,7 +54,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository( "org.hisp.dhis.visualization.VisualizationStore" )
 public class HibernateVisualizationStore
-    extends HibernateIdentifiableObjectStore<Visualization>
+    extends HibernateAnalyticalObjectStore<Visualization>
     implements VisualizationStore
 {
     private enum VisualizationSet

@@ -30,11 +30,10 @@ package org.hisp.dhis.validation.notification;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.common.NotificationTemplateObject;
 import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
@@ -48,8 +47,8 @@ import com.google.common.collect.Sets;
  * @author Halvdan Hoem Grelland
  */
 public class ValidationNotificationTemplate
-    extends BaseIdentifiableObject
-    implements NotificationTemplate, MetadataObject
+    extends NotificationTemplateObject
+    implements MetadataObject
 {
     private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = Sets.newHashSet( DeliveryChannel.values() );
 

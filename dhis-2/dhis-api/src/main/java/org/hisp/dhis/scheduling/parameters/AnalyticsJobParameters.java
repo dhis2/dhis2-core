@@ -57,6 +57,8 @@ public class AnalyticsJobParameters
 
     private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
+    private Set<String> skipPrograms = new HashSet<>();
+
     private boolean skipResourceTables = false;
 
     public AnalyticsJobParameters()
@@ -64,10 +66,11 @@ public class AnalyticsJobParameters
     }
 
     public AnalyticsJobParameters( Integer lastYears, Set<AnalyticsTableType> skipTableTypes,
-        boolean skipResourceTables )
+        Set<String> skipPrograms, boolean skipResourceTables )
     {
         this.lastYears = lastYears;
         this.skipTableTypes = skipTableTypes;
+        this.skipPrograms = skipPrograms;
         this.skipResourceTables = skipResourceTables;
     }
 
@@ -91,9 +94,22 @@ public class AnalyticsJobParameters
         return skipTableTypes;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "skipPrograms", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "skipProgram", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getSkipPrograms()
+    {
+        return skipPrograms;
+    }
+
     public void setSkipTableTypes( Set<AnalyticsTableType> skipTableTypes )
     {
         this.skipTableTypes = skipTableTypes;
+    }
+
+    public void setSkipPrograms( Set<String> skipPrograms )
+    {
+        this.skipPrograms = skipPrograms;
     }
 
     @JsonProperty

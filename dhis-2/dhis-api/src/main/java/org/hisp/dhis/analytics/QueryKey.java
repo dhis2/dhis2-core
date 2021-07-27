@@ -39,6 +39,9 @@ import org.apache.commons.lang.StringUtils;
  */
 public class QueryKey
 {
+    // Null Value
+    public static final String NV = "NV";
+
     private static final char VALUE_SEP = ':';
 
     private static final char COMPONENT_SEP = '-';
@@ -57,7 +60,7 @@ public class QueryKey
      */
     public QueryKey add( String property, Object value )
     {
-        String keyComponent = property + VALUE_SEP + String.valueOf( value );
+        String keyComponent = property + VALUE_SEP + value;
         this.keyComponents.add( keyComponent );
         return this;
     }

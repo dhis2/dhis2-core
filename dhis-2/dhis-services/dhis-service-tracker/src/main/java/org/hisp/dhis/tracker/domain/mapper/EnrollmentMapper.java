@@ -39,7 +39,7 @@ import org.mapstruct.Mapping;
     InstantMapper.class } )
 public interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
 {
-    @Mapping( target = "uid", source = "enrollment" )
+    @Mapping( target = "enrollment", source = "enrollment" )
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
@@ -48,5 +48,7 @@ public interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events
     @Mapping( target = "enrolledAt", source = "enrollmentDate" )
     @Mapping( target = "occurredAt", source = "incidentDate" )
     @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
     Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
 }

@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query;
 
-import java.util.List;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dataitem.DataItem;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -41,24 +38,22 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public interface DataItemQuery
 {
-
     /**
-     * Responsible for building the respective query statement and executing it
-     * in order to find the list of items based on the given parameter map.
+     * Builds and returns the SQL statement required by the implementation.
      *
      * @param paramsMap
-     * @return the data items found
+     * @return the full SQL statement
      */
-    List<DataItem> find( MapSqlParameterSource paramsMap );
+    String getStatement( MapSqlParameterSource paramsMap );
 
     /**
-     * Responsible for building the respective count statement and executing it
-     * in order to find the total of data items for the given parameter map.
+     * Checks if the query rules match the required conditions so the query can
+     * be executed.
      *
      * @param paramsMap
-     * @return the items found
+     * @return true if matches, false otherwise
      */
-    int count( MapSqlParameterSource paramsMap );
+    boolean matchQueryRules( MapSqlParameterSource paramsMap );
 
     /**
      * Simply returns the entity associated with the respective interface/query

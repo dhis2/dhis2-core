@@ -53,15 +53,12 @@ public class SqlViewSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1010 );
         schema.setDataShareable( true );
+        schema.setDataWriteShareable( false );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_SQLVIEW_PUBLIC_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_SQLVIEW_PRIVATE_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_SQLVIEW_DELETE" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_SQLVIEW_EXTERNAL" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_SQLVIEW_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_SQLVIEW_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_SQLVIEW_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_SQLVIEW_EXTERNAL" ) ) );
 
         return schema;
     }

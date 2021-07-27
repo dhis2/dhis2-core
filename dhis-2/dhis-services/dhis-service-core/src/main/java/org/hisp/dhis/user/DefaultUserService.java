@@ -40,7 +40,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -103,7 +102,7 @@ public class DefaultUserService
 
     private final SessionRegistry sessionRegistry;
 
-    private Cache<String> userDisplayNameCache;
+    private final Cache<String> userDisplayNameCache;
 
     public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
         UserCredentialsStore userCredentialsStore, UserAuthorityGroupStore userAuthorityGroupStore,
@@ -293,9 +292,9 @@ public class DefaultUserService
 
     private void handleUserQueryParams( UserQueryParams params )
     {
-        boolean canGrantOwnRoles = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
-        params.setDisjointRoles( !canGrantOwnRoles );
+        boolean canSeeOwnRoles = params.isCanSeeOwnUserAuthorityGroups() ||
+            (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        params.setDisjointRoles( !canSeeOwnRoles );
 
         if ( !params.hasUser() )
         {
@@ -318,7 +317,7 @@ public class DefaultUserService
 
         if ( params.isUserOrgUnits() && params.hasUser() )
         {
-            params.setOrganisationUnits( Lists.newArrayList( params.getUser().getOrganisationUnits() ) );
+            params.setOrganisationUnits( params.getUser().getOrganisationUnits() );
         }
     }
 
@@ -820,7 +819,6 @@ public class DefaultUserService
     @Override
     public String getDisplayName( String userUid )
     {
-        Optional<String> displayName = userDisplayNameCache.get( userUid, c -> userStore.getDisplayName( userUid ) );
-        return displayName.isPresent() ? displayName.get() : null;
+        return userDisplayNameCache.get( userUid, c -> userStore.getDisplayName( userUid ) ).orElse( null );
     }
 }

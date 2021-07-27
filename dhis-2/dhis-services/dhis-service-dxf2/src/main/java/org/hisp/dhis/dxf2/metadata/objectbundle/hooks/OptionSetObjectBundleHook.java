@@ -29,35 +29,23 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.Objects;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.option.OptionSet;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OptionSetObjectBundleHook
-    extends AbstractObjectBundleHook
+public class OptionSetObjectBundleHook extends AbstractObjectBundleHook<OptionSet>
 {
     @Override
-    public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
+    public void postCreate( OptionSet persistedObject, ObjectBundle bundle )
     {
-        if ( !OptionSet.class.isInstance( persistedObject ) )
-        {
-            return;
-        }
-
-        updateOption( (OptionSet) persistedObject );
+        updateOption( persistedObject );
     }
 
     @Override
-    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    public void postUpdate( OptionSet persistedObject, ObjectBundle bundle )
     {
-        if ( !OptionSet.class.isInstance( persistedObject ) )
-        {
-            return;
-        }
-
-        updateOption( (OptionSet) persistedObject );
+        updateOption( persistedObject );
     }
 
     private void updateOption( OptionSet optionSet )

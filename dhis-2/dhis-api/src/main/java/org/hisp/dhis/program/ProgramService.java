@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -99,6 +100,8 @@ public interface ProgramService
      *         no Programs.
      */
     List<Program> getAllPrograms();
+
+    Collection<Program> getPrograms( Collection<String> uids );
 
     /**
      * Get all {@link Program} belong to a orgunit

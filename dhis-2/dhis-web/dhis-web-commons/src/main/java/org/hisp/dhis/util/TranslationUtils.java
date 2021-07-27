@@ -30,7 +30,6 @@ package org.hisp.dhis.util;
 import static org.hisp.dhis.system.util.ReflectionUtils.getProperty;
 
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -73,7 +72,7 @@ public class TranslationUtils
             return null;
         }
 
-        Map<String, String> translationMap = new Hashtable<>();
+        Map<String, String> translationMap = new HashMap<>();
 
         for ( Translation translation : translations )
         {

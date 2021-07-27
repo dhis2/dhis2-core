@@ -374,7 +374,7 @@
           "id": "QfUVllTs6cS"
         }
       ],
-      "onlyEnrollOnce": true,
+      "onlyEnrollOnce": false,
       "lastUpdated": "2019-03-29T12:41:33.039",
       "trackedEntityType": {
         "id": "bPJ0FMtcnEh"

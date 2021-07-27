@@ -33,6 +33,8 @@ import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
+import com.google.common.base.CaseFormat;
+
 /**
  * A {@link PropertyIntrospector} that adds information to existing
  * {@link Property} values if they are annotated with
@@ -60,6 +62,8 @@ public class TranslatablePropertyIntrospector implements PropertyIntrospector
             {
                 property.setTranslatable( true );
                 property.setTranslationKey( translatableFields.get( property.getFieldName() ) );
+                String i18nKey = CaseFormat.LOWER_CAMEL.to( CaseFormat.LOWER_UNDERSCORE, property.getFieldName() );
+                property.setI18nTranslationKey( i18nKey );
             }
         }
     }

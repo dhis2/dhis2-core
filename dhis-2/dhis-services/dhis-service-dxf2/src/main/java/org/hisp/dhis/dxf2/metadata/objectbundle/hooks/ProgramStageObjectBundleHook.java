@@ -27,15 +27,14 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -52,32 +51,16 @@ import org.springframework.stereotype.Component;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-public class ProgramStageObjectBundleHook
-    extends AbstractObjectBundleHook
+@AllArgsConstructor
+public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<ProgramStage>
 {
     private final AclService aclService;
 
     private final ProgramStageSectionService programStageSectionService;
 
-    public ProgramStageObjectBundleHook( AclService aclService, ProgramStageSectionService programStageSectionService )
-    {
-        checkNotNull( aclService );
-        this.aclService = aclService;
-        this.programStageSectionService = programStageSectionService;
-    }
-
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public void validate( ProgramStage programStage, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
-        if ( object == null || !object.getClass().isAssignableFrom( ProgramStage.class ) )
-        {
-            return new ArrayList<>();
-        }
-
-        ProgramStage programStage = (ProgramStage) object;
-
-        List<ErrorReport> errors = new ArrayList<>();
-
         if ( programStage.getNextScheduleDate() != null )
         {
             DataElement nextScheduleDate = bundle.getPreheat().get( bundle.getPreheatIdentifier(), DataElement.class,
@@ -86,38 +69,29 @@ public class ProgramStageObjectBundleHook
             if ( !programStage.getDataElements().contains( programStage.getNextScheduleDate() )
                 || nextScheduleDate == null || !nextScheduleDate.getValueType().equals( ValueType.DATE ) )
             {
-                errors.add( new ErrorReport( ProgramStage.class, ErrorCode.E6001, programStage.getUid(),
+                addReports.accept( new ErrorReport( ProgramStage.class, ErrorCode.E6001, programStage.getUid(),
                     programStage.getNextScheduleDate().getUid() ) );
             }
         }
 
-        errors.addAll( validateProgramStageDataElementsAcl( programStage, bundle ) );
-
-        return errors;
+        validateProgramStageDataElementsAcl( programStage, bundle, addReports );
     }
 
     @Override
-    public <T extends IdentifiableObject> void postCreate( T object, ObjectBundle bundle )
+    public void postCreate( ProgramStage programStage, ObjectBundle bundle )
     {
-        if ( !ProgramStage.class.isInstance( object ) )
-        {
-            return;
-        }
-
-        ProgramStage programStage = (ProgramStage) object;
-
         Session session = sessionFactory.getCurrentSession();
 
         updateProgramStageSections( session, programStage );
     }
 
     @Override
-    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    public void preUpdate( ProgramStage object, ProgramStage persistedObject, ObjectBundle bundle )
     {
         if ( object == null || !object.getClass().isAssignableFrom( ProgramStage.class ) )
             return;
 
-        deleteRemovedSection( (ProgramStage) persistedObject, (ProgramStage) object );
+        deleteRemovedSection( persistedObject, object );
     }
 
     private void deleteRemovedSection( ProgramStage persistedProgramStage, ProgramStage importProgramStage )
@@ -143,7 +117,7 @@ public class ProgramStageObjectBundleHook
             return;
         }
 
-        programStage.getProgramStageSections().stream().forEach( pss -> {
+        programStage.getProgramStageSections().forEach( pss -> {
             if ( pss.getProgramStage() == null )
             {
                 pss.setProgramStage( programStage );
@@ -153,13 +127,12 @@ public class ProgramStageObjectBundleHook
         session.update( programStage );
     }
 
-    private List<ErrorReport> validateProgramStageDataElementsAcl( ProgramStage programStage, ObjectBundle bundle )
+    private void validateProgramStageDataElementsAcl( ProgramStage programStage, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errors = new ArrayList<>();
-
         if ( programStage.getDataElements().isEmpty() )
         {
-            return errors;
+            return;
         }
 
         PreheatIdentifier identifier = bundle.getPreheatIdentifier();
@@ -170,12 +143,10 @@ public class ProgramStageObjectBundleHook
 
             if ( dataElement == null || !aclService.canRead( bundle.getUser(), de ) )
             {
-                errors.add( new ErrorReport( DataElement.class, ErrorCode.E3012,
+                addReports.accept( new ErrorReport( DataElement.class, ErrorCode.E3012,
                     identifier.getIdentifiersWithName( bundle.getUser() ),
                     identifier.getIdentifiersWithName( de ) ) );
             }
         } );
-
-        return errors;
     }
 }

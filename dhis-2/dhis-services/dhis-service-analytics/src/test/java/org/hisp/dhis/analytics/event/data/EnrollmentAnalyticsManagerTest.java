@@ -27,17 +27,34 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -59,6 +76,8 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Luciano Fiandesio
@@ -193,6 +212,92 @@ public class EnrollmentAnalyticsManagerTest
             + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
 
         assertSql( sql.getValue(), expected );
+    }
+
+    @Test
+    public void verifyGetEnrollmentsWithMissingValueEqFilter()
+    {
+        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
+            + " where analytics_event_"
+            + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid() + "' order by executiondate desc limit 1 )";
+
+        String expected = subSelect + " is null";
+
+        testIt( EQ, NV, Collections.singleton(
+            ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ) ) );
+    }
+
+    @Test
+    public void verifyGetEnrollmentsWithMissingValueNeFilter()
+    {
+        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
+            + " where analytics_event_"
+            + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid() + "' order by executiondate desc limit 1 )";
+
+        String expected = subSelect + " is not null";
+        testIt( NE, NV, Collections.singleton(
+            ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ) ) );
+    }
+
+    @Test
+    public void verifyGetEnrollmentsWithMissingValueAndNumericValuesInFilter()
+    {
+        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
+            + " where analytics_event_"
+            + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid() + "' order by executiondate desc limit 1 )";
+
+        String numericValues = String.join( OPTION_SEP, "10", "11", "12" );
+        String expected = "(" + subSelect + " in (" + String.join( ",", numericValues.split( OPTION_SEP ) )
+            + ") or " + subSelect + " is null )";
+        testIt( IN,
+            numericValues + OPTION_SEP + NV,
+            Collections.singleton( ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ) ) );
+    }
+
+    @Test
+    public void verifyGetEnrollmentsWithoutMissingValueAndNumericValuesInFilter()
+    {
+        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
+            + " where analytics_event_"
+            + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid() + "' order by executiondate desc limit 1 )";
+
+        String numericValues = String.join( OPTION_SEP, "10", "11", "12" );
+        String expected = subSelect + " in (" + String.join( ",", numericValues.split( OPTION_SEP ) ) + ")";
+        testIt( IN,
+            numericValues,
+            Collections.singleton( ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ) ) );
+    }
+
+    @Test
+    public void verifyGetEnrollmentsWithOnlyMissingValueInFilter()
+    {
+        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
+            + " where analytics_event_"
+            + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid() + "' order by executiondate desc limit 1 )";
+
+        String expected = subSelect + " is null";
+        String unexpected = "(" + subSelect + " in (";
+        testIt( IN, NV,
+            ImmutableList.of(
+                ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ),
+                ( capturedSql ) -> assertThat( capturedSql, not( containsString( unexpected ) ) ) ) );
+    }
+
+    private void testIt( QueryOperator operator, String filter, Collection<Consumer<String>> assertions )
+    {
+        subject.getEnrollments(
+            createRequestParamsWithFilter( programStage, ValueType.INTEGER, operator, filter ),
+            new ListGrid(),
+            10000 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        assertions.forEach( consumer -> consumer.accept( sql.getValue() ) );
     }
 
     @Test
@@ -343,5 +448,114 @@ public class EnrollmentAnalyticsManagerTest
             + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
 
         assertSql( sql.getValue(), expected );
+    }
+
+    @Test
+    public void verifyGetColumnOfTypeCoordinateAndNoProgramStages()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+
+        // When
+        String columnSql = subject.getColumn( item );
+
+        // Then
+        assertThat( columnSql, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
+    }
+
+    @Test
+    public void verifyGetColumnOfTypeCoordinateAndWithProgramStages()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+        item.setProgramStage( programStage );
+        item.setProgram( programA );
+
+        // When
+        String columnSql = subject.getColumn( item );
+
+        // Then
+        assertThat( columnSql,
+            is( "(select \"" + dataElementA.getUid()
+                + "\" from analytics_event_" + programA.getUid() + " where analytics_event_" + programA.getUid()
+                + ".pi = ax.pi and \"" + dataElementA.getUid() + "\" is not null and ps = '" + programStage.getUid()
+                + "' order by executiondate desc limit 1 )" ) );
+    }
+
+    @Test
+    public void verifyGetCoordinateColumnAndNoProgramStage()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+        item.setProgram( programA );
+
+        // When
+        String columnSql = subject.getCoordinateColumn( item );
+
+        // Then
+        String colName = quote( item.getItemName() );
+        String eventTableName = "analytics_event_" + item.getProgram().getUid();
+
+        assertThat( columnSql,
+            is( "(select " +
+                "'[' || round(ST_X((" + colName + "))::numeric, 6) || ',' || round(ST_Y((" + colName
+                + "))::numeric, 6) || ']' as " + colName +
+                " from " + eventTableName +
+                " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+                "and " + colName + " is not null " +
+                "order by executiondate " + "desc limit 1 )" ) );
+    }
+
+    @Test
+    public void verifyGetCoordinateColumnWithProgramStage()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+        item.setProgramStage( programStage );
+        item.setProgram( programA );
+
+        // When
+        String columnSql = subject.getCoordinateColumn( item );
+
+        // Then
+        String colName = quote( item.getItemName() );
+        String eventTableName = "analytics_event_" + item.getProgram().getUid();
+
+        assertThat( columnSql,
+            is( "(select " +
+                "'[' || round(ST_X((" + colName + "))::numeric, 6) || ',' || round(ST_Y((" + colName
+                + "))::numeric, 6) || ']' as " + colName + " from " + eventTableName +
+                " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+                "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() +
+                "' order by executiondate " + "desc limit 1 )" ) );
+    }
+
+    @Test
+    public void verifyGetCoordinateColumnWithNoProgram()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+        item.setProgramStage( programStage );
+
+        // When
+        String columnSql = subject.getCoordinateColumn( item );
+
+        // Then
+        assertThat( columnSql, is( EMPTY ) );
     }
 }

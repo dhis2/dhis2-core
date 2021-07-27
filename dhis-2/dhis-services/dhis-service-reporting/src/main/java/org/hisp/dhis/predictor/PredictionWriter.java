@@ -35,8 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
@@ -63,10 +61,6 @@ public class PredictionWriter
 
     private PredictionSummary summary;
 
-    private String storedBy;
-
-    private CachingMap<String, CategoryOptionCombo> cocMap = new CachingMap<>();
-
     public PredictionWriter( DataValueService dataValueService, BatchHandlerFactory batchHandlerFactory )
     {
         checkNotNull( dataValueService );
@@ -83,11 +77,10 @@ public class PredictionWriter
      * @param summary prediction summary into which to write statistics.
      * @param storedBy string to identify the user storing the predicted values.
      */
-    public void init( Set<Period> existingOutputPeriods, PredictionSummary summary, String storedBy )
+    public void init( Set<Period> existingOutputPeriods, PredictionSummary summary )
     {
         this.existingOutputPeriods = existingOutputPeriods;
         this.summary = summary;
-        this.storedBy = storedBy;
 
         dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
     }

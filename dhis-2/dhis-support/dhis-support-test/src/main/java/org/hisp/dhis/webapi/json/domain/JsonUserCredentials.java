@@ -44,4 +44,9 @@ public interface JsonUserCredentials extends JsonIdentifiableObject
         return get( "lastLogin", JsonDate.class ).date();
     }
 
+    default LocalDateTime getAccountExpiry()
+    {
+        return get( "accountExpiry", JsonDate.class ).date();
+    }
+
 }

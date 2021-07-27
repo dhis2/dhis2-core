@@ -39,4 +39,6 @@ public class BaseIdentifiableObject_
 
     public static final String TRANSLATIONS = "translations";
 
+    public static final String SHARING = "sharing";
+
 }

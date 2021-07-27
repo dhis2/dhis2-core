@@ -28,12 +28,15 @@
 package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +77,8 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
 
     private MockHttpSession session;
 
+    private User superUser;
+
     private User currentUser;
 
     @Before
@@ -86,7 +91,12 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
         characterEncodingFilter.setForceEncoding( true );
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
         TestUtils.executeStartupRoutines( webApplicationContext );
-        switchToNewUser( null, "ALL" );
+        superUser = switchToNewUser( null, "ALL" );
+    }
+
+    protected final String getSuperuserUid()
+    {
+        return superUser.getUid();
     }
 
     protected final User getCurrentUser()
@@ -94,19 +104,35 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
         return currentUser;
     }
 
+    protected final User switchToSuperuser()
+    {
+        switchContextToUser( superUser );
+        return superUser;
+    }
+
     protected final User switchToNewUser( String username, String... authorities )
     {
+        if ( superUser != null )
+        {
+            // we need to be an admin to be allowed to create user groups
+            switchContextToUser( superUser );
+        }
         currentUser = currentUser == null
             ? createAdminUser( authorities )
             : createUser( username, authorities );
 
-        injectSecurityContext( currentUser );
+        switchContextToUser( currentUser );
+
+        return currentUser;
+    }
+
+    private void switchContextToUser( User user )
+    {
+        injectSecurityContext( user );
 
         session = new MockHttpSession();
         session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
             SecurityContextHolder.getContext() );
-
-        return currentUser;
     }
 
     @Override
@@ -116,4 +142,20 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
             () -> new HttpResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) );
     }
 
+    public static void assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
+        JsonResponse actual )
+    {
+        assertWebMessage( httpStatus, httpStatusCode, status, message, actual.as( JsonWebMessage.class ) );
+    }
+
+    public static void assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
+        JsonWebMessage actual )
+    {
+        assertTrue( "response appears to be something other than a WebMessage: " + actual.toString(),
+            actual.has( "httpStatusCode", "httpStatus", "status" ) );
+        assertEquals( httpStatusCode, actual.getHttpStatusCode() );
+        assertEquals( httpStatus, actual.getHttpStatus() );
+        assertEquals( status, actual.getStatus() );
+        assertEquals( message, actual.getMessage() );
+    }
 }

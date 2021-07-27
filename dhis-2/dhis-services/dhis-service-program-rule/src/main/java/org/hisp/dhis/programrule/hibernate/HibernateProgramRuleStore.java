@@ -80,13 +80,16 @@ public class HibernateProgramRuleStore
     }
 
     @Override
-    public List<ProgramRule> getByProgram( Set<String> programIds )
+    public List<ProgramRule> getByProgramStage( Set<String> programStageIds )
     {
-        final String jql = "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program.uid in (:ids)";
+        final String jql = "SELECT distinct pr FROM ProgramRule pr, ProgramStage ps, Program p " +
+            "JOIN FETCH pr.programRuleActions pra " +
+            "WHERE p = ps.program AND p.uid = pr.program.uid " +
+            "AND ps.uid in (:ids)";
 
         Session session = getSession();
         return session.createQuery( jql, ProgramRule.class )
-            .setParameterList( "ids", programIds )
+            .setParameterList( "ids", programStageIds )
             .getResultList();
     }
 
@@ -94,8 +97,7 @@ public class HibernateProgramRuleStore
     public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> actionTypes )
     {
         final String hql = "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
-            "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) " +
-            "AND pr.programStage IS NULL";
+            "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) ";
 
         return getQuery( hql )
             .setParameter( "program", program )

@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
@@ -119,9 +116,7 @@ public class DataValueCheckTest extends BaseValidationTest
         event.setDataValues( Sets.newHashSet( dv1, dv2 ) );
         final ImportSummary summary = rule.check( new ImmutableEvent( event ), this.workContext );
         assertHasError( summary, event, null );
-        assertThat( summary.getConflicts(), hasSize( 1 ) );
-        assertThat( summary.getConflicts().iterator().next().getValue(), is( "value_required_but_not_provided" ) );
-        assertThat( summary.getConflicts().iterator().next().getObject(), is( de3.getUid() ) );
+        assertHasConflict( summary, "value_required_but_not_provided", de3.getUid() );
     }
 
     @Test
@@ -170,10 +165,7 @@ public class DataValueCheckTest extends BaseValidationTest
         event.setDataValues( Sets.newHashSet( dv1, dv2 ) );
         final ImportSummary summary = rule.check( new ImmutableEvent( event ), this.workContext );
         assertHasError( summary, event, null );
-        assertThat( summary.getConflicts(), hasSize( 1 ) );
-        assertThat( summary.getConflicts().iterator().next().getValue(),
-            is( "iDontExist is not a valid data element" ) );
-        assertThat( summary.getConflicts().iterator().next().getObject(), is( "dataElement" ) );
+        assertHasConflict( summary, "iDontExist is not a valid data element", "dataElement" );
     }
 
     @Test
@@ -209,9 +201,7 @@ public class DataValueCheckTest extends BaseValidationTest
         final ImportSummary summary = rule.check( new ImmutableEvent( event ), this.workContext );
 
         assertHasError( summary, event, null );
-        assertThat( summary.getConflicts(), hasSize( 1 ) );
-        assertThat( summary.getConflicts().iterator().next().getValue(), is( "Invalid data value found." ) );
-        assertThat( summary.getConflicts().iterator().next().getObject(), is( de1.getUid() ) );
+        assertHasConflict( summary, "Invalid data value found.", de1.getUid() );
     }
 
 }

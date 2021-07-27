@@ -55,5 +55,22 @@ public interface ProgramRuleEngineService
      */
     List<RuleEffect> evaluateEventAndRunEffects( String event );
 
+    /**
+     * Gets the description of program rule condition. This also provides run
+     * time validation for program rule condition.
+     *
+     * @param condition to get description for.
+     * @param programId program id which program rule is associated to.
+     * @return {@link RuleValidationResult}
+     */
     RuleValidationResult getDescription( String condition, String programId );
+
+    /**
+     * Gets the description of program rule action data field.
+     *
+     * @param dataExpression to get description for.
+     * @param programId program id which program rule is associated to.
+     * @return {@link RuleValidationResult}
+     */
+    RuleValidationResult getDataExpressionDescription( String dataExpression, String programId );
 }

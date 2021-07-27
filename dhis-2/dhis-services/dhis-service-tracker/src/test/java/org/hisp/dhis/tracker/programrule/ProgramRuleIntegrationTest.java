@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.tracker.programrule;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,21 +39,32 @@ import java.util.Map;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.metadata.objectbundle.*;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.report.*;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -82,9 +95,6 @@ public class ProgramRuleIntegrationTest
     @Autowired
     private ObjectBundleValidationService objectBundleValidationService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
-
     private User userA;
 
     @Override
@@ -105,17 +115,22 @@ public class ProgramRuleIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertTrue( validationReport.getErrorReports().isEmpty() );
+        assertFalse( validationReport.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
         Program program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJnf" );
+        Program programWithoutRegistration = bundle.getPreheat()
+            .get( PreheatIdentifier.UID, Program.class, "BFcipDERJne" );
         DataElement dataElement = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00001" );
         ProgramStage programStage = bundle.getPreheat().get( PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKSO" );
 
         ProgramRule programRuleA = createProgramRule( 'A', program );
         programRuleA.setUid( "ProgramRule" );
         programRuleService.addProgramRule( programRuleA );
+
+        ProgramRule programRuleWithoutRegistration = createProgramRule( 'W', programWithoutRegistration );
+        programRuleService.addProgramRule( programRuleWithoutRegistration );
 
         ProgramRule programRuleB = createProgramRule( 'B', program );
         programRuleB.setProgramStage( programStage );
@@ -139,12 +154,29 @@ public class ProgramRuleIntegrationTest
 
         programRuleA.getProgramRuleActions().add( programRuleActionShowWarning );
         programRuleA.getProgramRuleActions().add( programRuleActionAssign );
-        programRuleService.updateProgramRule( programRuleA );
+
+        programRuleWithoutRegistration.getProgramRuleActions().add( programRuleActionShowWarning );
+        programRuleService.updateProgramRule( programRuleWithoutRegistration );
 
         programRuleB.getProgramRuleActions().add( programRuleActionShowWarningForProgramStage );
         programRuleService.updateProgramRule( programRuleB );
 
         userA = userService.getUser( "M5zQapPyTZI" );
+    }
+
+    @Test
+    public void testImportProgramEventSuccessWithWarningRaised()
+        throws IOException
+    {
+        InputStream inputStream = new ClassPathResource( "tracker/program_event.json" ).getInputStream();
+
+        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
+        params.setUserId( userA.getUid() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertNotNull( trackerImportReport );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertEquals( 1, trackerImportReport.getValidationReport().getWarningReports().size() );
     }
 
     @Test

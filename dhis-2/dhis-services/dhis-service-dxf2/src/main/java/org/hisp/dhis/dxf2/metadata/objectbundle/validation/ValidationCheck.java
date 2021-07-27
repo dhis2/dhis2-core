@@ -41,6 +41,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
  *
  * @author Luciano Fiandesio
  */
+@FunctionalInterface
 public interface ValidationCheck
 {
     /**
@@ -56,12 +57,12 @@ public interface ValidationCheck
      *
      * @return a {@link TypeReport}
      */
-    TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+    <T extends IdentifiableObject> TypeReport check( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext context );
 
-    default List<IdentifiableObject> selectObjects( List<IdentifiableObject> persistedObjects,
-        List<IdentifiableObject> nonPersistedObjects, ImportStrategy importStrategy )
+    default <T extends IdentifiableObject> List<T> selectObjects( List<T> persistedObjects,
+        List<T> nonPersistedObjects, ImportStrategy importStrategy )
     {
 
         if ( importStrategy.isCreateAndUpdate() )

@@ -33,6 +33,7 @@ import java.util.Map;
 
 import org.hisp.dhis.cache.Cache;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Async;
 
 /**
  * @author Stian Sandvold
@@ -75,7 +76,8 @@ public interface AppStorageService
      * @param app the app to delete
      * @return true if app is deleted, false if something fails
      */
-    boolean deleteApp( App app );
+    @Async
+    void deleteApp( App app );
 
     /**
      * Looks up and returns a resource representing the page for the app

@@ -33,7 +33,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = DebugMapper.class )
+@Mapper( uses = { DebugMapper.class, OptionSetMapper.class } )
 public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntityAttribute>
 {
     TrackedEntityAttributeMapper INSTANCE = Mappers.getMapper( TrackedEntityAttributeMapper.class );
@@ -51,6 +51,6 @@ public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntit
     @Mapping( target = "skipSynchronization" )
     @Mapping( target = "valueType" )
     @Mapping( target = "orgunitScope" )
-    @Mapping( target = "optionSet.options" )
+    @Mapping( target = "optionSet" )
     TrackedEntityAttribute map( TrackedEntityAttribute trackedEntityType );
 }

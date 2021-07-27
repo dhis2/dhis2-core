@@ -139,8 +139,6 @@ public class TrackerPreheatServiceIntegration
                 .build() )
             .build();
 
-        trackerPreheatService.validate( trackerPreheatParams );
-
         TrackerPreheat preheat = trackerPreheatService.preheat( trackerPreheatParams );
 
         assertNotNull( preheat );

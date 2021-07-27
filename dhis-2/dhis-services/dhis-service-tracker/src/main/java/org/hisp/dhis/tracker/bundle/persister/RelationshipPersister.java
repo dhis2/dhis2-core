@@ -122,4 +122,11 @@ public class RelationshipPersister
     {
         return TrackerType.RELATIONSHIP;
     }
+
+    @Override
+    protected void persistOwnership( TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship entity )
+    {
+        // NOTHING TO DO
+
+    }
 }

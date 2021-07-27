@@ -141,7 +141,7 @@ public class AuditManager
         return map;
     }
 
-    public AuditAttributes collectAuditAttributes( Object entity, Class entityClass )
+    public AuditAttributes collectAuditAttributes( Object entity, Class<?> entityClass )
     {
         AuditAttributes auditAttributes = new AuditAttributes();
 

@@ -405,6 +405,50 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
     boolean isInUserHierarchy( String uid, Set<OrganisationUnit> organisationUnits );
 
     /**
+     * Indicates whether the given organisation unit is part of the hierarchy of
+     * the data view organisation units of the current user.
+     *
+     * @param organisationUnit the organisation unit.
+     * @return true if the given organisation unit is part of the hierarchy.
+     */
+    boolean isInUserDataViewHierarchy( OrganisationUnit organisationUnit );
+
+    /**
+     * Equal to
+     * {@link OrganisationUnitService#isInUserDataViewHierarchy(OrganisationUnit)}
+     * except adds a caching layer on top. Use this method when performance is
+     * imperative and the risk of a stale result is tolerable.
+     *
+     * @param organisationUnit the organisation unit.
+     * @return true if the given organisation unit is part of the hierarchy.
+     */
+    boolean isInUserDataViewHierarchyCached( OrganisationUnit organisationUnit );
+
+    /**
+     * Indicates whether the given organisation unit is part of the hierarchy of
+     * the given user data view organisation units.
+     *
+     * @param user the user to check for.
+     * @param organisationUnit the organisation unit.
+     * @return true if the given organisation unit is part of the data view
+     *         hierarchy.
+     */
+    boolean isInUserDataViewHierarchy( User user, OrganisationUnit organisationUnit );
+
+    /**
+     * Equal to
+     * {@link OrganisationUnitService#isInUserDataViewHierarchy(User,OrganisationUnit)}
+     * except adds a caching layer on top. Use this method when performance is
+     * imperative and the risk of a stale result is tolerable.
+     *
+     * @param user the user to check for.
+     * @param organisationUnit the organisation unit.
+     * @return true if the given organisation unit is part of the data view
+     *         hierarchy.
+     */
+    boolean isInUserDataViewHierarchyCached( User user, OrganisationUnit organisationUnit );
+
+    /**
      * Indicates whether the given organisation unit is part of the search
      * hierarchy of the organisation units of the current user.
      *

@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import lombok.Getter;
@@ -45,10 +43,16 @@ import com.google.common.base.MoreObjects;
 @Getter
 public class UserQueryParams
 {
+    /**
+     * The user query string.
+     */
     private String query;
 
     private String phoneNumber;
 
+    /**
+     * The current user in the context of the user query.
+     */
     private User user;
 
     private boolean canManage;
@@ -71,7 +75,11 @@ public class UserQueryParams
 
     private UserInvitationStatus invitationStatus;
 
-    private List<OrganisationUnit> organisationUnits = new ArrayList<>();
+    private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+
+    private Set<OrganisationUnit> dataViewOrganisationUnits = new HashSet<>();
+
+    private Set<OrganisationUnit> teiSearchOrganisationUnits = new HashSet<>();
 
     private Set<UserGroup> userGroups = new HashSet<>();
 
@@ -86,6 +94,14 @@ public class UserQueryParams
     private boolean prefetchUserGroups;
 
     private Boolean disabled;
+
+    /**
+     * Indicates whether users should be able to see users which have the same
+     * user roles. This setting is for internal use only, and will override the
+     * {@link SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS} system setting.
+     * Should not be exposed in the API.
+     */
+    private boolean canSeeOwnUserAuthorityGroups = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -129,7 +145,7 @@ public class UserQueryParams
     }
 
     // -------------------------------------------------------------------------
-    // Builder
+    // Logic
     // -------------------------------------------------------------------------
 
     public UserQueryParams addOrganisationUnit( OrganisationUnit unit )
@@ -138,9 +154,31 @@ public class UserQueryParams
         return this;
     }
 
+    public UserQueryParams addDataViewOrganisationUnit( OrganisationUnit unit )
+    {
+        this.dataViewOrganisationUnits.add( unit );
+        return this;
+    }
+
+    public UserQueryParams addTeiSearchOrganisationUnit( OrganisationUnit unit )
+    {
+        this.teiSearchOrganisationUnits.add( unit );
+        return this;
+    }
+
     public boolean hasOrganisationUnits()
     {
         return !organisationUnits.isEmpty();
+    }
+
+    public boolean hasDataViewOrganisationUnits()
+    {
+        return !dataViewOrganisationUnits.isEmpty();
+    }
+
+    public boolean hasTeiSearchOrganisationUnits()
+    {
+        return !teiSearchOrganisationUnits.isEmpty();
     }
 
     public boolean hasUserGroups()
@@ -154,7 +192,7 @@ public class UserQueryParams
     }
 
     // -------------------------------------------------------------------------
-    // Getters and setters
+    // Set methods
     // -------------------------------------------------------------------------
 
     public UserQueryParams setQuery( String query )
@@ -229,9 +267,21 @@ public class UserQueryParams
         return this;
     }
 
-    public UserQueryParams setOrganisationUnits( List<OrganisationUnit> organisationUnits )
+    public UserQueryParams setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
+        return this;
+    }
+
+    public UserQueryParams setDataViewOrganisationUnits( Set<OrganisationUnit> dataViewOrganisationUnits )
+    {
+        this.dataViewOrganisationUnits = dataViewOrganisationUnits;
+        return this;
+    }
+
+    public UserQueryParams setTeiSearchOrganisationUnits( Set<OrganisationUnit> teiSearchOrganisationUnits )
+    {
+        this.teiSearchOrganisationUnits = teiSearchOrganisationUnits;
         return this;
     }
 
@@ -280,6 +330,12 @@ public class UserQueryParams
     public UserQueryParams setDisabled( Boolean disabled )
     {
         this.disabled = disabled;
+        return this;
+    }
+
+    public UserQueryParams setCanSeeOwnUserAuthorityGroups( boolean canSeeOwnUserAuthorityGroups )
+    {
+        this.canSeeOwnUserAuthorityGroups = canSeeOwnUserAuthorityGroups;
         return this;
     }
 }

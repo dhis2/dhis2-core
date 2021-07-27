@@ -33,7 +33,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,6 +40,8 @@ import java.util.Set;
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Dang Duy Hieu
@@ -233,7 +234,7 @@ public class UserGroupServiceTest
     @Test
     public void testGetDisplayName()
     {
-        UserGroup userGroup = createUserGroup( 'A', Collections.EMPTY_SET );
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet() );
 
         userGroupService.addUserGroup( userGroup );
 

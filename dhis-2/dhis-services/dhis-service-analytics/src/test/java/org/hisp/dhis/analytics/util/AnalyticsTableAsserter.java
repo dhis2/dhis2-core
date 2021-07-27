@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.ColumnDataType;
+import org.hisp.dhis.analytics.IndexType;
 
 /**
  * @author Luciano Fiandesio
@@ -179,12 +180,12 @@ public class AnalyticsTableAsserter
             return addColumnUnquoted( quote( name ), dataType, alias, null );
         }
 
-        public Builder addColumn( String name, ColumnDataType dataType, String alias, String indexType )
+        public Builder addColumn( String name, ColumnDataType dataType, String alias, IndexType indexType )
         {
             return addColumnUnquoted( quote( name ), dataType, alias, indexType );
         }
 
-        public Builder addColumnUnquoted( String name, ColumnDataType dataType, String alias, String indexType )
+        public Builder addColumnUnquoted( String name, ColumnDataType dataType, String alias, IndexType indexType )
         {
             AnalyticsTableColumn col = new AnalyticsTableColumn( name, dataType, alias );
 

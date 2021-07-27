@@ -46,6 +46,7 @@ import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ContextUtils;
 
 /**
@@ -156,6 +157,8 @@ public class GetDataElementsAction
     public String execute()
         throws Exception
     {
+        canReadType( DataElement.class );
+
         if ( id != null && id != ALL )
         {
             DataElementGroup dataElementGroup = dataElementService.getDataElementGroup( id );
@@ -230,6 +233,9 @@ public class GetDataElementsAction
         {
             FilterUtils.filter( dataElements, new AggregatableDataElementFilter() );
         }
+
+        User currentUser = currentUserService.getCurrentUser();
+        dataElements.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         if ( usePaging )
         {

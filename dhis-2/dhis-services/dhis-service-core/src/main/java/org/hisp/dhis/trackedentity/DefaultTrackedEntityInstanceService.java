@@ -47,6 +47,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACK
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,6 +68,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.Authorities;
@@ -156,7 +158,7 @@ public class DefaultTrackedEntityInstanceService
     @Override
     @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params,
-        boolean skipAccessValidation )
+        boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
         {
@@ -174,14 +176,14 @@ public class DefaultTrackedEntityInstanceService
             validate( params );
         }
 
+        if ( !skipSearchScopeValidation )
+        {
+            validateSearchScope( params, false );
+        }
+
         User user = currentUserService.getCurrentUser();
 
         params.setUser( user );
-
-        if ( !params.isPaging() && !params.isSkipPaging() )
-        {
-            params.setDefaultPaging();
-        }
 
         params.handleCurrentUserSelectionMode();
 
@@ -206,7 +208,7 @@ public class DefaultTrackedEntityInstanceService
     @Override
     @Transactional( readOnly = true )
     public List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params,
-        boolean skipAccessValidation )
+        boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
         {
@@ -227,14 +229,14 @@ public class DefaultTrackedEntityInstanceService
             validate( params );
         }
 
+        if ( !skipSearchScopeValidation )
+        {
+            validateSearchScope( params, false );
+        }
+
         User user = currentUserService.getCurrentUser();
 
         params.setUser( user );
-
-        if ( !params.isPaging() && !params.isSkipPaging() )
-        {
-            params.setDefaultPaging();
-        }
 
         params.handleCurrentUserSelectionMode();
 
@@ -290,7 +292,9 @@ public class DefaultTrackedEntityInstanceService
 
         params.handleCurrentUserSelectionMode();
 
-        return trackedEntityInstanceStore.countTrackedEntityInstances( params );
+        // using countForGrid here to leverage the better performant rewritten
+        // sql query
+        return trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params );
     }
 
     // TODO lower index on attribute value?
@@ -555,6 +559,11 @@ public class DefaultTrackedEntityInstanceService
             violation = "Program and tracked entity cannot be specified simultaneously";
         }
 
+        if ( !params.hasTrackedEntityInstances() && !params.hasProgram() && !params.hasTrackedEntityType() )
+        {
+            violation = "Either Program or Tracked entity type should be specified";
+        }
+
         if ( params.hasProgramStatus() && !params.hasProgram() )
         {
             violation = "Program must be defined when program status is defined";
@@ -722,7 +731,7 @@ public class DefaultTrackedEntityInstanceService
             {
                 maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
 
-                if ( isProgramMinAttributesViolated( params ) )
+                if ( !params.hasTrackedEntityInstances() && isProgramMinAttributesViolated( params ) )
                 {
                     throw new IllegalQueryException(
                         "At least " + params.getProgram().getMinAttributesRequiredToSearch()
@@ -734,7 +743,7 @@ public class DefaultTrackedEntityInstanceService
             {
                 maxTeiLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
 
-                if ( isTeTypeMinAttributesViolated( params ) )
+                if ( !params.hasTrackedEntityInstances() && isTeTypeMinAttributesViolated( params ) )
                 {
                     throw new IllegalQueryException(
                         "At least " + params.getTrackedEntityType().getMinAttributesRequiredToSearch()
@@ -742,19 +751,19 @@ public class DefaultTrackedEntityInstanceService
                 }
             }
 
-            if ( maxTeiLimit > 0 &&
-                ((isGridSearch
-                    && trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params ) > maxTeiLimit) ||
-                    (!isGridSearch && trackedEntityInstanceStore.countTrackedEntityInstances( params ) > maxTeiLimit)) )
+            if ( maxTeiLimit > 0 && params.isPaging()
+                && params.getOffset() > 0 && (params.getOffset() + params.getPageSizeWithDefault()) > maxTeiLimit )
             {
                 throw new IllegalQueryException( "maxteicountreached" );
             }
+
+            params.setMaxTeiLimit( maxTeiLimit );
         }
     }
 
     private boolean isProgramMinAttributesViolated( TrackedEntityInstanceQueryParams params )
     {
-        if ( params.hasUniqueFilters() )
+        if ( params.hasUniqueFilter() )
         {
             return false;
         }
@@ -769,7 +778,7 @@ public class DefaultTrackedEntityInstanceService
 
     private boolean isTeTypeMinAttributesViolated( TrackedEntityInstanceQueryParams params )
     {
-        if ( params.hasUniqueFilters() )
+        if ( params.hasUniqueFilter() )
         {
             return false;
         }
@@ -813,7 +822,22 @@ public class DefaultTrackedEntityInstanceService
     @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
+        if ( uids == null || uids.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
         return trackedEntityInstanceStore.getTrackedEntityInstancesByUid( uids, user );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
+    {
+        if ( uids == null || uids.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+        return trackedEntityInstanceStore.getTrackedEntityOuInfoByUid( uids, user );
     }
 
     @Override

@@ -67,11 +67,12 @@ public interface TrackedEntityInstanceService
      *        the directives for how much data should be fetched (e.g.
      *        Enrollments, Events, Relationships)
      * @param skipAccessValidation whether access validation should be ignored
-     *
+     * @param skipSearchScopeValidation whether search scope validation should
+     *        be ignored
      * @return a List of {@see TrackedEntityInstance}
      */
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
-        TrackedEntityInstanceParams params, boolean skipAccessValidation );
+        TrackedEntityInstanceParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation );
@@ -87,24 +88,18 @@ public interface TrackedEntityInstanceService
     TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
         TrackedEntityInstanceParams params );
 
-    // -------------------------------------------------------------------------
-    // CREATE
-    // -------------------------------------------------------------------------
-
-    ImportSummaries addTrackedEntityInstanceXml( InputStream inputStream, ImportOptions importOptions )
-        throws IOException;
-
-    ImportSummaries addTrackedEntityInstanceJson( InputStream inputStream, ImportOptions importOptions )
-        throws IOException;
-
     TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
         TrackedEntityInstanceParams params, User user );
 
-    ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions );
+    // -------------------------------------------------------------------------
+    // CREATE, UPDATE or DELETE
+    // -------------------------------------------------------------------------
+
+    ImportSummaries mergeOrDeleteTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
+        ImportOptions importOptions, JobConfiguration jobId );
 
     ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions, JobConfiguration jobId );
+        ImportOptions importOptions );
 
     ImportSummary addTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions );
 
@@ -119,9 +114,6 @@ public interface TrackedEntityInstanceService
     ImportSummary updateTrackedEntityInstanceJson( String id, String programId, InputStream inputStream,
         ImportOptions importOptions )
         throws IOException;
-
-    ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions );
 
     ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, String programId,
         ImportOptions importOptions, boolean singleUpdate );

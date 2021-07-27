@@ -58,10 +58,8 @@ public class ChartSchemaDescriptor implements SchemaDescriptor
         schema.setImplicitPrivateAuthority( true );
         schema.setOrder( 2000 );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( F_CHART_PUBLIC_ADD ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( F_CHART_EXTERNAL ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( F_CHART_PUBLIC_ADD ) ) );
+        schema.add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( F_CHART_EXTERNAL ) ) );
 
         return schema;
     }

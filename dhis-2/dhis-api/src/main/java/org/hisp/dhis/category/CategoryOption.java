@@ -139,10 +139,20 @@ public class CategoryOption
         organisationUnit.getCategoryOptions().add( this );
     }
 
+    public void addOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        organisationUnits.forEach( this::addOrganisationUnit );
+    }
+
     public void removeOrganisationUnit( OrganisationUnit organisationUnit )
     {
         organisationUnits.remove( organisationUnit );
         organisationUnit.getCategoryOptions().remove( this );
+    }
+
+    public void removeOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        organisationUnits.forEach( this::removeOrganisationUnit );
     }
 
     public boolean includes( OrganisationUnit ou )

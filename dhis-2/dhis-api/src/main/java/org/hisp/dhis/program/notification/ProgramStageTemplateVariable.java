@@ -53,8 +53,7 @@ import org.hisp.dhis.notification.TemplateVariable;
  * @author Halvdan Hoem Grelland
  */
 public enum ProgramStageTemplateVariable
-    implements
-    TemplateVariable
+    implements TemplateVariable
 {
     PROGRAM_NAME( "program_name" ),
     PROGRAM_STAGE_NAME( "program_stage_name" ),
@@ -63,6 +62,7 @@ public enum ProgramStageTemplateVariable
     DAYS_SINCE_DUE_DATE( "days_since_due_date" ),
     DAYS_UNTIL_DUE_DATE( "days_until_due_date" ),
     CURRENT_DATE( "current_date" ),
+    EVENT_DATE( "event_date" ),
     PROGRAM_ID( "program_id" ),
     EVENT_ORG_UNIT_ID( "event_org_unit_id" ),
     ENROLLMENT_ORG_UNIT_ID( "enrollment_org_unit_id" ),

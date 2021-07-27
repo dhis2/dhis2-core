@@ -65,8 +65,7 @@ public interface ProgramStageDataElementService
     void deleteProgramStageDataElement( ProgramStageDataElement programStageDataElement );
 
     /**
-     * Retrieve ProgramStageDataElement list on a program stage and a data
-     * element
+     * Retrieve ProgramStageDataElement on a program stage and a data element
      *
      * @param programStage ProgramStage
      * @param dataElement DataElement

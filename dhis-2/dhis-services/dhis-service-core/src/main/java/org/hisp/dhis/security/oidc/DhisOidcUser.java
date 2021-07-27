@@ -46,10 +46,10 @@ public class DhisOidcUser
 
     private final UserCredentials userCredentials;
 
-    public DhisOidcUser( UserCredentials userCredentials, Map<String, Object> attributes, String sub,
+    public DhisOidcUser( UserCredentials userCredentials, Map<String, Object> attributes, String nameAttributeKey,
         OidcIdToken idToken )
     {
-        super( userCredentials.getAuthorities(), attributes, sub );
+        super( userCredentials.getAuthorities(), attributes, nameAttributeKey );
         this.oidcIdToken = idToken;
         this.userCredentials = userCredentials;
     }

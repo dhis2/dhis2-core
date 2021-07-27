@@ -41,12 +41,12 @@ public class AnalyticsTableColumn
     /**
      * The column name.
      */
-    private String name;
+    private final String name;
 
     /**
      * The column data type.
      */
-    private ColumnDataType dataType;
+    private final ColumnDataType dataType;
 
     /**
      * Column not null constraint, default is to allow null values.
@@ -69,9 +69,10 @@ public class AnalyticsTableColumn
     private boolean skipIndex = false;
 
     /**
-     * Explicit index type, defaults to database default type.
+     * Explicit index type, defaults to database default type
+     * {@link IndexType#BTREE}.
      */
-    private String indexType;
+    private IndexType indexType = IndexType.BTREE;
 
     /**
      * Explicit index column names, defaults to column name.
@@ -83,6 +84,8 @@ public class AnalyticsTableColumn
     // -------------------------------------------------------------------------
 
     /**
+     * Constructor.
+     *
      * @param name analytics table column name.
      * @param dataType analytics table column data type.
      * @param alias source table column alias and name.
@@ -96,6 +99,8 @@ public class AnalyticsTableColumn
     }
 
     /**
+     * Constructor.
+     *
      * @param name analytics table column name.
      * @param dataType analytics table column data type.
      * @param notNull analytics table column not null constraint.
@@ -103,10 +108,8 @@ public class AnalyticsTableColumn
      */
     public AnalyticsTableColumn( String name, ColumnDataType dataType, ColumnNotNullConstraint notNull, String alias )
     {
-        this.name = name;
-        this.dataType = dataType;
+        this( name, dataType, alias );
         this.notNull = notNull;
-        this.alias = alias;
     }
 
     // -------------------------------------------------------------------------
@@ -164,7 +167,7 @@ public class AnalyticsTableColumn
      *
      * @param indexType the index type.
      */
-    public AnalyticsTableColumn withIndexType( String indexType )
+    public AnalyticsTableColumn withIndexType( IndexType indexType )
     {
         this.indexType = indexType;
         return this;
@@ -204,7 +207,7 @@ public class AnalyticsTableColumn
         return skipIndex;
     }
 
-    public String getIndexType()
+    public IndexType getIndexType()
     {
         return indexType;
     }

@@ -174,7 +174,7 @@ public class NoRegistrationSingleEventServiceTest
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertEquals( 0, importSummary.getConflicts().size() );
+        assertEquals( 0, importSummary.getConflictCount() );
         assertNotNull( importSummary.getReference() );
 
         event = eventService

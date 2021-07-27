@@ -40,10 +40,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import org.apache.commons.collections.MapUtils;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -56,7 +56,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "sharing", namespace = DxfNamespaces.DXF_2_0 )
 public class Sharing
-    implements Serializable, EmbeddedObject
+    implements Serializable
 {
     private static final long serialVersionUID = 6977793211734844477L;
 
@@ -75,16 +75,36 @@ public class Sharing
     /**
      * Map of UserAccess. Key is User uid
      */
-    @Builder.Default
+    @Setter
     @JsonProperty
     private Map<String, UserAccess> users = new HashMap<>();
+
+    public Map<String, UserAccess> getUsers()
+    {
+        if ( users == null )
+        {
+            users = new HashMap<>();
+        }
+
+        return users;
+    }
 
     /**
      * Map of UserGroupAccess. Key is UserGroup uid
      */
-    @Builder.Default
+    @Setter
     @JsonProperty
     private Map<String, UserGroupAccess> userGroups = new HashMap<>();
+
+    public Map<String, UserGroupAccess> getUserGroups()
+    {
+        if ( userGroups == null )
+        {
+            userGroups = new HashMap<>();
+        }
+
+        return userGroups;
+    }
 
     public void setOwner( User user )
     {

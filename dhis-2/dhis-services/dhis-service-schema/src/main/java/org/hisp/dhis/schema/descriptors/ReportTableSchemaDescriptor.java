@@ -58,10 +58,8 @@ public class ReportTableSchemaDescriptor implements SchemaDescriptor
         schema.setOrder( 2000 );
         schema.setImplicitPrivateAuthority( true );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( F_REPORTTABLE_PUBLIC_ADD ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( F_REPORTTABLE_EXTERNAL ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( F_REPORTTABLE_PUBLIC_ADD ) ) );
+        schema.add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( F_REPORTTABLE_EXTERNAL ) ) );
 
         return schema;
     }

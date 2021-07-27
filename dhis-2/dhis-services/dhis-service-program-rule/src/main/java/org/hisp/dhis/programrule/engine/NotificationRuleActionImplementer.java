@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
+import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -105,7 +106,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     }
 
     @Transactional( readOnly = true )
-    public boolean validate( RuleEffect ruleEffect, ProgramInstance programInstance )
+    public NotificationValidationResult validate( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         checkNotNull( ruleEffect, "Rule Effect cannot be null" );
         checkNotNull( programInstance, "ProgramInstance cannot be null" );
@@ -116,17 +117,20 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
         {
             log.warn( String.format( "No template found for Program: %s", programInstance.getProgram().getName() ) );
 
-            return false;
+            return NotificationValidationResult.builder().valid( false ).build();
         }
 
-        if ( !notificationLoggingService.isValidForSending( generateKey( template, programInstance ) ) )
+        ExternalNotificationLogEntry logEntry = notificationLoggingService
+            .getByKey( generateKey( template, programInstance ) );
+
+        // template has already been delivered and repeated delivery not allowed
+        if ( logEntry != null && !logEntry.isAllowMultiple() )
         {
-            log.info( String.format( "Skipped rule action for template id: %s", template.getUid() ) );
-
-            return false;
+            return NotificationValidationResult.builder().valid( false )
+                .template( template ).logEntry( logEntry ).build();
         }
 
-        return true;
+        return NotificationValidationResult.builder().valid( true ).template( template ).logEntry( logEntry ).build();
     }
 
     protected void checkNulls( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )

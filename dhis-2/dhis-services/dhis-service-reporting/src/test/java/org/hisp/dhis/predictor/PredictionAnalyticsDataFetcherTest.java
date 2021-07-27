@@ -64,7 +64,6 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
@@ -74,9 +73,6 @@ import com.google.common.collect.Lists;
 public class PredictionAnalyticsDataFetcherTest
     extends DhisConvenienceTest
 {
-    @Autowired
-    private PredictionAnalyticsDataFetcher predictionAnalyticsDataFetcher;
-
     @Mock
     private AnalyticsService analyticsService;;
 
@@ -264,21 +260,21 @@ public class PredictionAnalyticsDataFetcherTest
             .addValue( programIndicatorA.getUid() )
             .addValue( orgUnits.get( TEST_A ).getUid() )
             .addValue( attributeOptionComboA.getUid() )
-            .addValue( (Double) 10.0 );
+            .addValue( 10.0 );
 
         gridWithAttributeOptionsA.addRow()
             .addValue( periodA.getIsoDate() )
             .addValue( programIndicatorB.getUid() )
             .addValue( orgUnits.get( TEST_A ).getUid() )
             .addValue( attributeOptionComboA.getUid() )
-            .addValue( (Double) 20.0 );
+            .addValue( 20.0 );
 
         gridWithAttributeOptionsA.addRow()
             .addValue( periodB.getIsoDate() )
             .addValue( programIndicatorB.getUid() )
             .addValue( orgUnits.get( TEST_B ).getUid() )
             .addValue( attributeOptionComboA.getUid() )
-            .addValue( (Double) 30.0 );
+            .addValue( 30.0 );
 
         gridWithAttributeOptionsB = newGridWithAttributeOptions();
 
@@ -287,14 +283,14 @@ public class PredictionAnalyticsDataFetcherTest
             .addValue( trackedEntityAttributeA.getUid() )
             .addValue( orgUnits.get( TEST_C ).getUid() )
             .addValue( attributeOptionComboA.getUid() )
-            .addValue( (Double) 40.0 );
+            .addValue( 40.0 );
 
         gridWithAttributeOptionsB.addRow()
             .addValue( periodA.getIsoDate() )
             .addValue( trackedEntityAttributeA.getUid() )
             .addValue( orgUnits.get( TEST_D ).getUid() )
             .addValue( attributeOptionComboA.getUid() )
-            .addValue( (Double) 50.0 );
+            .addValue( 50.0 );
 
         gridWithAttributeOptionsC = newGridWithAttributeOptions();
 
@@ -303,7 +299,7 @@ public class PredictionAnalyticsDataFetcherTest
             .addValue( trackedEntityAttributeA.getUid() )
             .addValue( orgUnits.get( TEST_E ).getUid() )
             .addValue( attributeOptionComboA.getUid() )
-            .addValue( (Double) 60.0 );
+            .addValue( 60.0 );
 
         gridWithoutAttributeOptionsA = newGridWithoutAttributeOptions();
 
@@ -311,7 +307,7 @@ public class PredictionAnalyticsDataFetcherTest
             .addValue( periodA.getIsoDate() )
             .addValue( programAttributeAUid )
             .addValue( orgUnits.get( TEST_B ).getUid() )
-            .addValue( (Double) 70.0 );
+            .addValue( 70.0 );
 
         gridWithoutAttributeOptionsB = newGridWithoutAttributeOptions();
 
@@ -321,7 +317,7 @@ public class PredictionAnalyticsDataFetcherTest
             .addValue( periodA.getIsoDate() )
             .addValue( programAttributeAUid )
             .addValue( orgUnits.get( TEST_E ).getUid() )
-            .addValue( (Double) 80.0 );
+            .addValue( 80.0 );
 
         fetcher = new PredictionAnalyticsDataFetcher( analyticsService );
 

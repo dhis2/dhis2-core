@@ -1,0 +1,115 @@
+{
+
+  "companyList": [
+    {
+      "companyId": 12,
+      "companyDisplayName": "Some xyz",
+      "companySubGroupNames": [{
+        "id": 1,
+        "title": "ghi",
+        "branchname": "smart branch",
+        "groupCreatedDate": "2018-01-12",
+        "companySubGrpGivenNames": [{
+          "id": 1.1,
+          "name": "smart branch name",
+          "createdDate": "2017-01-11",
+          "totalrevenue": 134
+        }, {
+          "id": 1.2,
+          "name": "smart branch name 2",
+          "createdDate": "2017-01-10",
+          "totalrevenue": 133456
+        }
+        ]
+      }, {
+        "id": 10,
+        "title": "tvg",
+        "branchname": "smart branch10",
+        "groupCreatedDate": "2016-01-12"
+      }
+      ],
+      "boardMeetingDates": [{
+        "date1": "2018-01-01",
+        "date2": "2018-01-02",
+        "duration1": 2,
+        "duration2": 3,
+        "priority": "medium"
+      }
+      ],
+      "place": "Belgium",
+      "type": "Private",
+      "totalEmployees": 2000,
+      "directorsDetails":[{
+        "position": "nasal1",
+        "qualifications": [{
+          "degree": "management",
+          "accamedicpassDate": "1988-01-10"
+        }
+        ],
+        "experience": [{
+          "years": 12,
+          "careerStartDate": "1989-01-12"
+        }
+        ],
+        "languageKnown": "English",
+        "nationality": "Americans"
+      }
+      ]
+    },
+    {
+      "companyId": 13,
+      "companyDisplayName": "Some xyz1",
+      "companySubGroupNames": [{
+        "id": 13.1,
+        "title": "ghi1",
+        "branchname": "smart branch11",
+        "groupCreatedDate": "2018-01-12",
+        "companySubGrpGivenNames": [{
+          "id": "13.1.1",
+          "name": "smart branch name known",
+          "createdDate": "2017-01-11",
+          "totalrevenue": 14567
+        }, {
+          "id": "13.1.2",
+          "name": "smart branch name 2 known",
+          "createdDate": "2017-01-10",
+          "totalrevenue": 134656
+        }
+        ]
+      }, {
+        "id": 20,
+        "title": "tvg2",
+        "branchname": "smart branch102",
+        "groupCreatedDate": "2016-01-12"
+      }
+      ],
+      "boardMeetingDates": [{
+        "date1": "2018-01-01",
+        "date2": "2018-01-02",
+        "duration1": 2,
+        "duration2": 3,
+        "priority": "medium"
+      }
+      ],
+      "place": "Belgium",
+      "type": "Private",
+      "totalEmployees": 2000,
+      "directorsDetails":[{
+        "position": "narain",
+        "qualifications": [{
+          "degree": "Maser in Engineering",
+          "accamedicpassDate": "1989-01-10"
+        }
+        ],
+        "experience": [{
+          "years": 12,
+          "careerStartDate": "1990-01-12"
+        }
+        ],
+        "languageKnown": "English",
+        "nationality": "British"
+      }
+      ]
+    }
+  ]
+}

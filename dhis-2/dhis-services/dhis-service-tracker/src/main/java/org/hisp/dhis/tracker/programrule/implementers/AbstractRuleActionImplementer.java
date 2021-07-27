@@ -56,9 +56,8 @@ import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import com.google.api.client.util.Lists;
 import com.google.common.collect.Maps;
 
-// TODO: Completely refactor the whole logic around implementers.
-// This was done while understanding the requirements,
-// so there is a lot of technical debt to remove.
+// TODO: Verify if we can remove checks on ProgramStage when Program Rule
+// validation is in place
 abstract public class AbstractRuleActionImplementer<T extends RuleAction>
 {
     /**
@@ -174,6 +173,48 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                 } ) );
     }
 
+    /**
+     * Filter the actions by the action class of the implementer
+     *
+     * @param effects a map of enrollments and effects
+     * @param bundle
+     * @return A map of actions by enrollment
+     */
+    @SuppressWarnings( "unchecked" )
+    public Map<String, List<EnrollmentActionRule>> getEnrollmentEffects(
+        Map<String, List<RuleEffect>> effects, TrackerBundle bundle )
+    {
+        return effects
+            .entrySet()
+            .stream()
+            .filter( entry -> getEnrollment( bundle, entry.getKey() ).isPresent() )
+            .collect( Collectors.toMap( Map.Entry::getKey,
+                e -> {
+                    Enrollment enrollment = getEnrollment( bundle, e.getKey() ).get();
+                    TrackedEntityInstance tei = bundle.getPreheat()
+                        .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
+
+                    List<Attribute> payloadTeiAttributes = getTrackedEntity( bundle, enrollment.getTrackedEntity() )
+                        .map( te -> te.getAttributes() )
+                        .orElse( Collections.emptyList() );
+
+                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(), payloadTeiAttributes,
+                        tei );
+
+                    List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
+                        .stream()
+                        .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
+                        .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
+                            getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
+                        .map( effect -> new EnrollmentActionRule( effect.ruleId(),
+                            enrollment.getEnrollment(), effect.data(),
+                            getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
+                            getContent( (T) effect.ruleAction() ), attributes ) )
+                        .collect( Collectors.toList() );
+                    return enrollmentActionRules;
+                } ) );
+    }
+
     private Set<DataValue> mergeDataValues( Set<DataValue> dataValues, ProgramStageInstance programStageInstance )
     {
         if ( programStageInstance == null )
@@ -224,48 +265,6 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
         mergedAttributes.addAll( attributes );
         mergedAttributes.addAll( enrollmentAttributes );
         return mergedAttributes;
-    }
-
-    /**
-     * Filter the actions by the action class of the implementer
-     *
-     * @param effects a map of enrollments and effects
-     * @param bundle
-     * @return A map of actions by enrollment
-     */
-    @SuppressWarnings( "unchecked" )
-    public Map<String, List<EnrollmentActionRule>> getEnrollmentEffects(
-        Map<String, List<RuleEffect>> effects, TrackerBundle bundle )
-    {
-        return effects
-            .entrySet()
-            .stream()
-            .filter( entry -> getEnrollment( bundle, entry.getKey() ).isPresent() )
-            .collect( Collectors.toMap( Map.Entry::getKey,
-                e -> {
-                    Enrollment enrollment = getEnrollment( bundle, e.getKey() ).get();
-                    TrackedEntityInstance tei = bundle.getPreheat()
-                        .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
-
-                    List<Attribute> payloadTeiAttributes = getTrackedEntity( bundle, enrollment.getTrackedEntity() )
-                        .map( te -> te.getAttributes() )
-                        .orElse( Collections.emptyList() );
-
-                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(), payloadTeiAttributes,
-                        tei );
-
-                    List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
-                        .stream()
-                        .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-                        .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
-                            getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
-                        .map( effect -> new EnrollmentActionRule( effect.ruleId(),
-                            enrollment.getEnrollment(), effect.data(),
-                            getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
-                            getContent( (T) effect.ruleAction() ), attributes ) )
-                        .collect( Collectors.toList() );
-                    return enrollmentActionRules;
-                } ) );
     }
 
     private boolean isDataElementPartOfProgramStage( String dataElementUid, ProgramStage programStage )

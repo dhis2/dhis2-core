@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 import static org.hisp.dhis.dxf2.metadata.AtomicMode.NONE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -38,6 +39,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
@@ -57,8 +59,6 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.option.OptionSet;
@@ -154,7 +154,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
         bundle.getPreheat().put( bundle.getPreheatIdentifier(), dataElementGroup );
 
-        assertTrue( bundle.getObjectMap().get( DataElementGroup.class ).contains( dataElementGroup ) );
+        assertTrue( StreamSupport.stream( bundle.getObjects( DataElementGroup.class ).spliterator(), false )
+            .anyMatch( dataElementGroup::equals ) );
         assertTrue( bundle.getPreheat().containsKey( PreheatIdentifier.UID, DataElementGroup.class,
             dataElementGroup.getUid() ) );
     }
@@ -175,38 +176,26 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertFalse( validate.isEmpty() );
 
-        List<ObjectReport> objectReports = validate.getObjectReports( DataElement.class );
-        assertFalse( objectReports.isEmpty() );
+        assertTrue( validate.hasErrorReports() );
 
-        for ( ObjectReport objectReport : objectReports )
-        {
-            for ( ErrorCode errorCode : objectReport.getErrorCodes() )
+        validate.forEachErrorReport( errorReport -> {
+            assertTrue( errorReport instanceof PreheatErrorReport );
+            PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
+            assertEquals( PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier() );
+
+            if ( preheatErrorReport.getValue() instanceof CategoryCombo )
             {
-                List<ErrorReport> errorReports = objectReport.getErrorReportsByCode().get( errorCode );
-
-                assertFalse( errorReports.isEmpty() );
-
-                for ( ErrorReport errorReport : errorReports )
-                {
-                    assertTrue( errorReport instanceof PreheatErrorReport );
-                    PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
-                    assertEquals( PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier() );
-
-                    if ( preheatErrorReport.getValue() instanceof CategoryCombo )
-                    {
-                        assertEquals( "p0KPaWEg3cf", preheatErrorReport.getObjectReference().getUid() );
-                    }
-                    else if ( preheatErrorReport.getValue() instanceof User )
-                    {
-                        assertEquals( "GOLswS44mh8", preheatErrorReport.getObjectReference().getUid() );
-                    }
-                    else if ( preheatErrorReport.getValue() instanceof OptionSet )
-                    {
-                        assertEquals( "pQYCiuosBnZ", preheatErrorReport.getObjectReference().getUid() );
-                    }
-                }
+                assertEquals( "p0KPaWEg3cf", preheatErrorReport.getObjectReference().getUid() );
             }
-        }
+            else if ( preheatErrorReport.getValue() instanceof User )
+            {
+                assertEquals( "GOLswS44mh8", preheatErrorReport.getObjectReference().getUid() );
+            }
+            else if ( preheatErrorReport.getValue() instanceof OptionSet )
+            {
+                assertEquals( "pQYCiuosBnZ", preheatErrorReport.getObjectReference().getUid() );
+            }
+        } );
     }
 
     @Test
@@ -232,40 +221,26 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertFalse( validate.getTypeReportMap().isEmpty() );
 
-        List<ObjectReport> objectReports = validate.getObjectReports( DataElement.class );
-        assertFalse( objectReports.isEmpty() );
+        assertTrue( validate.hasErrorReports() );
+        validate.forEachErrorReport( errorReport -> {
+            assertTrue( errorReport instanceof PreheatErrorReport );
+            PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
+            assertEquals( PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier() );
 
-        for ( ObjectReport objectReport : objectReports )
-        {
-            for ( ErrorCode errorCode : objectReport.getErrorCodes() )
+            if ( preheatErrorReport.getValue() instanceof CategoryCombo )
             {
-                List<ErrorReport> errorReports = objectReport.getErrorReportsByCode().get( errorCode );
-
-                assertFalse( errorReports.isEmpty() );
-
-                for ( ErrorReport errorReport : errorReports )
-                {
-                    assertTrue( errorReport instanceof PreheatErrorReport );
-                    PreheatErrorReport preheatErrorReport = (PreheatErrorReport) errorReport;
-                    assertEquals( PreheatIdentifier.UID, preheatErrorReport.getPreheatIdentifier() );
-
-                    if ( preheatErrorReport.getValue() instanceof CategoryCombo )
-                    {
-                        fail();
-                    }
-                    else if ( preheatErrorReport.getValue() instanceof User )
-                    {
-                        assertEquals( "GOLswS44mh8", preheatErrorReport.getObjectReference().getUid() );
-                    }
-                    else if ( preheatErrorReport.getValue() instanceof OptionSet )
-                    {
-                        fail();
-                    }
-                }
+                fail();
             }
-        }
+            else if ( preheatErrorReport.getValue() instanceof User )
+            {
+                assertEquals( "GOLswS44mh8", preheatErrorReport.getObjectReference().getUid() );
+            }
+            else if ( preheatErrorReport.getValue() instanceof OptionSet )
+            {
+                fail();
+            }
+        } );
     }
 
     @Test
@@ -283,10 +258,10 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
-        assertFalse( validate.getTypeReportMap().isEmpty() );
+        assertTrue( validate.hasErrorReports() );
 
-        assertEquals( 5, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5002 ).size() );
-        assertEquals( 3, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E4000 ).size() );
+        assertEquals( 5, validate.getErrorReportsCountByCode( DataElement.class, ErrorCode.E5002 ) );
+        assertEquals( 3, validate.getErrorReportsCountByCode( DataElement.class, ErrorCode.E4000 ) );
     }
 
     @Test
@@ -304,8 +279,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
-        assertFalse( validate.getTypeReportMap().isEmpty() );
-        assertEquals( 3, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5001 ).size() );
+        assertTrue( validate.hasErrorReports() );
+        assertEquals( 3, validate.getErrorReportsCountByCode( DataElement.class, ErrorCode.E5001 ) );
     }
 
     @Test
@@ -324,7 +299,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
-        assertEquals( 3, validate.getTypeReportMap( DataElement.class ).getObjectReports().size() );
+        assertEquals( 3, validate.getTypeReport( DataElement.class ).getObjectReportsCount() );
     }
 
     @Test
@@ -345,9 +320,9 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
-        assertEquals( 1, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5001 ).size() );
-        assertFalse( validate.getErrorReportsByCode( DataElement.class, ErrorCode.E4000 ).isEmpty() );
-        assertEquals( 0, bundle.getObjectMap().get( DataElement.class ).size() );
+        assertEquals( 1, validate.getErrorReportsCountByCode( DataElement.class, ErrorCode.E5001 ) );
+        assertNotEquals( 0, validate.getErrorReportsCountByCode( DataElement.class, ErrorCode.E4000 ) );
+        assertEquals( 0, bundle.getObjectsCount( DataElement.class ) );
     }
 
     @Test
@@ -366,8 +341,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
-        assertFalse( validate.getTypeReportMap( DataElement.class ).getObjectReports().isEmpty() );
-        assertEquals( 3, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5001 ).size() );
+        assertTrue( validate.getTypeReport( DataElement.class ).hasObjectReports() );
+        assertEquals( 3, validate.getErrorReportsCountByCode( DataElement.class, ErrorCode.E5001 ) );
     }
 
     @Test
@@ -386,8 +361,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
-        assertFalse( validate.getTypeReportMap( DataElement.class ).getObjectReports().isEmpty() );
-        assertEquals( 3, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5001 ).size() );
+        assertTrue( validate.getTypeReport( DataElement.class ).hasObjectReports() );
+        assertEquals( 3, validate.getErrorReportsCountByCode( DataElement.class, ErrorCode.E5001 ) );
     }
 
     @Test
@@ -406,8 +381,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
-        assertFalse( validate.getTypeReportMap( DataElement.class ).getObjectReports().isEmpty() );
-        assertEquals( 3, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5001 ).size() );
+        assertTrue( validate.getTypeReport( DataElement.class ).hasObjectReports() );
+        assertEquals( 3, validate.getErrorReportsCountByCode( DataElement.class, ErrorCode.E5001 ) );
     }
 
     @Test
@@ -572,7 +547,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
         objectBundleService.commit( bundle );
 
         metadata = renderService.fromMetadata(
@@ -585,7 +560,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
         objectBundleService.commit( bundle );
 
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
@@ -738,7 +713,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -786,7 +761,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -855,7 +830,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -885,8 +860,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
-        final List<ErrorReport> errorReports = validate.getErrorReports();
-        assertTrue( errorReports.isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -988,7 +962,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
 
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -1016,7 +990,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -1043,7 +1017,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -1084,7 +1058,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -1098,7 +1072,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -1140,9 +1114,9 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertFalse( validate.getErrorReports().isEmpty() );
-        assertEquals( "leftSide.description", validate.getErrorReports().get( 0 ).getErrorProperty() );
-        assertEquals( ErrorCode.E4001, validate.getErrorReports().get( 0 ).getErrorCode() );
+        assertEquals( 1, validate.getErrorReportsCount() );
+        assertTrue( validate.hasErrorReport( report -> "leftSide.description".equals( report.getErrorProperty() )
+            && ErrorCode.E4001 == report.getErrorCode() ) );
     }
 
     @Test
@@ -1160,9 +1134,9 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertFalse( validate.getErrorReports().isEmpty() );
-        assertEquals( "rightSide", validate.getErrorReports().get( 0 ).getErrorProperty() );
-        assertEquals( ErrorCode.E4000, validate.getErrorReports().get( 0 ).getErrorCode() );
+        assertEquals( 1, validate.getErrorReportsCount() );
+        assertTrue( validate.hasErrorReport( report -> "rightSide".equals( report.getErrorProperty() )
+            && ErrorCode.E4000 == report.getErrorCode() ) );
     }
 
     @Test
@@ -1186,7 +1160,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport objectBundleValidationReport = objectBundleValidationService.validate( bundle );
-        assertTrue( objectBundleValidationReport.getErrorReports().isEmpty() );
+        assertFalse( objectBundleValidationReport.hasErrorReports() );
         objectBundleService.commit( bundle );
 
         DataElement dataElementA = dataElementMap.get( "deabcdefghA" );
@@ -1245,7 +1219,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        assertFalse( objectBundleValidationService.validate( bundle ).hasErrorReports() );
         objectBundleService.commit( bundle );
 
         DataElement dataElementA = manager.get( DataElement.class, "deabcdefghA" );
@@ -1304,7 +1278,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        assertFalse( objectBundleValidationService.validate( bundle ).hasErrorReports() );
         objectBundleService.commit( bundle );
 
         DataElement dataElementE = manager.get( DataElement.class, "deabcdefghE" );
@@ -1334,7 +1308,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
         assertFalse( validate.isEmpty() );
-        assertEquals( 1, validate.getErrorReportsByCode( UserAuthorityGroup.class, ErrorCode.E5003 ).size() );
+        assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5003 ) );
     }
 
     @Test
@@ -1426,7 +1400,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        assertFalse( objectBundleValidationService.validate( bundle ).hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -1449,7 +1423,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -1463,8 +1437,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
-        List<ErrorReport> errorReports = validate.getErrorReports();
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -1544,7 +1517,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        assertFalse( objectBundleValidationService.validate( bundle ).hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -1568,7 +1541,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        assertFalse( objectBundleValidationService.validate( bundle ).hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -1595,7 +1568,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        assertFalse( objectBundleValidationService.validate( bundle ).hasErrorReports() );
         objectBundleService.commit( bundle );
     }
 
@@ -1615,7 +1588,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertEquals( 3, objectBundleValidationService.validate( bundle ).getErrorReports().size() );
+        assertEquals( 3, objectBundleValidationService.validate( bundle ).getErrorReportsCount() );
     }
 
     @Test
@@ -1632,7 +1605,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        assertFalse( objectBundleValidationService.validate( bundle ).hasErrorReports() );
         objectBundleService.commit( bundle );
 
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
@@ -1653,7 +1626,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
 
         bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        assertFalse( objectBundleValidationService.validate( bundle ).hasErrorReports() );
         objectBundleService.commit( bundle );
 
         organisationUnits = manager.getAll( OrganisationUnit.class );
@@ -1677,7 +1650,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        assertFalse( objectBundleValidationService.validate( bundle ).hasErrorReports() );
         objectBundleService.commit( bundle );
 
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
@@ -1698,7 +1671,7 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
 
         bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        assertFalse( objectBundleValidationService.validate( bundle ).hasErrorReports() );
         objectBundleService.commit( bundle );
 
         organisationUnits = manager.getAll( OrganisationUnit.class );

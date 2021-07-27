@@ -84,4 +84,11 @@ public class DefaultProgramStageSectionService
     {
         return programStageSectionStore.get( id );
     }
+
+    @Override
+    @Transactional( readOnly = true )
+    public ProgramStageSection getProgramStageSection( String uid )
+    {
+        return programStageSectionStore.getByUid( uid );
+    }
 }

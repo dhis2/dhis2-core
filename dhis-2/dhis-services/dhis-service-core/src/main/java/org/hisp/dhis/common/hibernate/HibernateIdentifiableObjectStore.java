@@ -45,6 +45,7 @@ import javax.persistence.criteria.Root;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
@@ -70,6 +71,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInfo;
+import org.hisp.dhis.util.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -157,8 +159,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             if ( clearSharing )
             {
                 identifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
-                identifiableObject.getSharing().resetUserGroupAccesses();
-                identifiableObject.getSharing().resetUserAccesses();
+                SharingUtils.resetAccessCollections( identifiableObject );
             }
 
             if ( identifiableObject.getCreatedBy() == null )
@@ -182,12 +183,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                 {
                     if ( aclService.defaultPublic( identifiableObject ) )
                     {
-                        identifiableObject.getSharing().setPublicAccess( AccessStringHelper.READ_WRITE );
+                        identifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
                     }
                 }
                 else if ( aclService.canMakePrivate( user, identifiableObject ) )
                 {
-                    identifiableObject.getSharing().setPublicAccess( AccessStringHelper.newInstance().build() );
+                    identifiableObject.setPublicAccess( AccessStringHelper.newInstance().build() );
                 }
             }
 
@@ -760,11 +761,22 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
-            .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> root.get( "uid" ).in( uids ) );
+        List<List<String>> uidPartitions = Lists.partition( new ArrayList<>( uids ), 20000 );
 
-        return getList( builder, jpaQueryParameters );
+        List<Function<Root<T>, Predicate>> sharingPredicates = getSharingPredicates( builder );
+
+        List<T> returnList = new ArrayList<>();
+
+        for ( List<String> partition : uidPartitions )
+        {
+            JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+                .addPredicates( sharingPredicates )
+                .addPredicate( root -> root.get( "uid" ).in( partition ) );
+
+            returnList.addAll( getList( builder, jpaQueryParameters ) );
+        }
+
+        return returnList;
     }
 
     @Override
@@ -1077,6 +1089,25 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         Set<String> groupIds = user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() );
 
         return getDataSharingPredicates( builder, user.getUid(), groupIds, access );
+    }
+
+    /**
+     * Remove given UserGroup UID from all sharing records in given tableName
+     */
+    @Override
+    public void removeUserGroupFromSharing( String userGroupUid, String tableName )
+    {
+        if ( !ObjectUtils.allNotNull( userGroupUid, tableName ) )
+        {
+            return;
+        }
+
+        String sql = String.format( "update %1$s set sharing = sharing #- '{userGroups, %2$s }'", tableName,
+            userGroupUid );
+
+        log.debug( "Executing query: " + sql );
+
+        jdbcTemplate.execute( sql );
     }
 
     /**

@@ -34,6 +34,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.tracker.TrackerType;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -73,5 +75,11 @@ public class Relationship implements TrackerDto
     public String getUid()
     {
         return relationship;
+    }
+
+    @Override
+    public TrackerType getTrackerType()
+    {
+        return TrackerType.RELATIONSHIP;
     }
 }

@@ -115,6 +115,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 //
                 persistComments( bundle.getPreheat(), convertedDto );
 
+                //
+                // Handle ownership records, if required
+                //
+                persistOwnership( bundle.getPreheat(), convertedDto );
+
                 updateDataValues( session, bundle.getPreheat(), trackerDto, convertedDto );
 
                 //
@@ -199,6 +204,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
      * Persists the comments for the given entity, if the entity has comments
      */
     protected abstract void persistComments( TrackerPreheat preheat, V entity );
+
+    /**
+     * Persists ownership records for the given entity
+     */
+    protected abstract void persistOwnership( TrackerPreheat preheat, V entity );
 
     /**
      * Execute the persistence of Data values linked to the entity being

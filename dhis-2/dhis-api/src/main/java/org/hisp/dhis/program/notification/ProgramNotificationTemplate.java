@@ -29,12 +29,11 @@ package org.hisp.dhis.program.notification;
 
 import java.util.Set;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.NotificationTemplateObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -52,7 +51,8 @@ import com.google.common.collect.Sets;
  */
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramNotificationTemplate
-    extends BaseIdentifiableObject implements NotificationTemplate, MetadataObject
+    extends NotificationTemplateObject
+    implements MetadataObject
 {
     private String subjectTemplate;
 
@@ -67,6 +67,8 @@ public class ProgramNotificationTemplate
     private Boolean notifyUsersInHierarchyOnly;
 
     private Boolean notifyParentOrganisationUnitOnly;
+
+    private boolean sendRepeatable;
 
     // -------------------------------------------------------------------------
     // Conditionally relevant properties
@@ -241,6 +243,18 @@ public class ProgramNotificationTemplate
     public void setNotifyParentOrganisationUnitOnly( Boolean notifyParentOrganisationUnitOnly )
     {
         this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSendRepeatable()
+    {
+        return sendRepeatable;
+    }
+
+    public void setSendRepeatable( boolean sendRepeatable )
+    {
+        this.sendRepeatable = sendRepeatable;
     }
 
     @Override

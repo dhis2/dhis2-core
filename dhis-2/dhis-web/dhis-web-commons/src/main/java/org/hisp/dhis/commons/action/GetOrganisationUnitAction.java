@@ -35,7 +35,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Lars Helge Overland
  */
-public class GetOrganisationUnitAction
+public class GetOrganisationUnitAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -78,6 +78,8 @@ public class GetOrganisationUnitAction
     @Override
     public String execute()
     {
+        canReadType( OrganisationUnit.class );
+
         if ( id != null )
         {
             organisationUnit = organisationUnitService.getOrganisationUnit( id );

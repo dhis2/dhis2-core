@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.synch;
 
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
@@ -41,7 +42,7 @@ public interface SynchronizationManager
      *
      * @return an {@link ImportSummary}.
      */
-    ImportSummary executeDataValuePush()
+    ImportConflicts executeDataValuePush()
         throws WebMessageParseException;
 
     /**

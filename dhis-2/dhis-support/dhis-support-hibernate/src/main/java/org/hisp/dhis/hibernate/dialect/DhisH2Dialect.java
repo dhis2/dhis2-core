@@ -37,6 +37,8 @@ import org.hibernate.type.StandardBasicTypes;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 
+import com.vladmihalcea.hibernate.type.array.StringArrayType;
+
 /**
  * @author Lars Helge Overland
  */
@@ -59,6 +61,8 @@ public class DhisH2Dialect extends H2Dialect
             new StandardSQLFunction( JsonbFunctions.HAS_USER_ID, StandardBasicTypes.BOOLEAN ) );
         registerFunction( JsonbFunctions.CHECK_USER_ACCESS,
             new StandardSQLFunction( JsonbFunctions.CHECK_USER_ACCESS, StandardBasicTypes.BOOLEAN ) );
+        registerFunction( "array_agg",
+            new StandardSQLFunction( "array_agg", StringArrayType.INSTANCE ) );
     }
 
     @Override

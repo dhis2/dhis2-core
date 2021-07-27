@@ -281,7 +281,7 @@ public class DefaultCollectionService
     @SuppressWarnings( "unchecked" )
     private List<? extends IdentifiableObject> getItems( Property property, Collection<String> itemCodes )
     {
-        return manager.get( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
+        return manager.getByUid( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
     }
 
     @SuppressWarnings( "unchecked" )

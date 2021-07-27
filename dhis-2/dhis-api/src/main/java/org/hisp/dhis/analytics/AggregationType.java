@@ -37,8 +37,7 @@ public enum AggregationType
     AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", true ),
     LAST( "last", true ), // Sum org unit
     LAST_AVERAGE_ORG_UNIT( "last_avg_org_unit", true ),
-    LAST_IN_PERIOD( "last_analytics_period", true ), // Sum org unit, last from
-                                                     // analytics period
+    LAST_IN_PERIOD( "last_analytics_period", true ), // Sum org unit
     LAST_IN_PERIOD_AVERAGE_ORG_UNIT( "last_analytics_period_avg_org_unit", true ),
     FIRST( "first", true ),
     FIRST_AVERAGE_ORG_UNIT( "first_avg_org_unit", true ),
@@ -53,7 +52,7 @@ public enum AggregationType
 
     private final String value;
 
-    private boolean aggregateable;
+    private boolean aggregatable;
 
     AggregationType( String value )
     {
@@ -63,7 +62,7 @@ public enum AggregationType
     AggregationType( String value, boolean aggregateable )
     {
         this.value = value;
-        this.aggregateable = aggregateable;
+        this.aggregatable = aggregateable;
     }
 
     public String getValue()
@@ -76,9 +75,9 @@ public enum AggregationType
         return this == AVERAGE_SUM_ORG_UNIT || this == AVERAGE;
     }
 
-    public boolean isAggregateable()
+    public boolean isAggregatable()
     {
-        return aggregateable;
+        return aggregatable;
     }
 
     public static AggregationType fromValue( String value )

@@ -33,6 +33,7 @@ import java.io.Serializable;
 
 import org.hisp.dhis.common.FontStyle;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -43,6 +44,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  *
  * @author Lars Helge Overland
  */
+@JsonIgnoreProperties( ignoreUnknown = true )
 @JacksonXmlRootElement( localName = "visualizationFontStyle", namespace = DXF_2_0 )
 public class VisualizationFontStyle
     implements Serializable
@@ -51,19 +53,19 @@ public class VisualizationFontStyle
 
     private FontStyle visualizationSubtitle;
 
-    private FontStyle horizontalAxisTitle;
+    private transient FontStyle horizontalAxisTitle;
 
-    private FontStyle verticalAxisTitle;
+    private transient FontStyle verticalAxisTitle;
 
-    private FontStyle targetLineLabel;
+    private transient FontStyle targetLineLabel;
 
-    private FontStyle baseLineLabel;
+    private transient FontStyle baseLineLabel;
 
-    private FontStyle seriesAxisLabel;
+    private transient FontStyle seriesAxisLabel;
 
-    private FontStyle categoryAxisLabel;
+    private transient FontStyle categoryAxisLabel;
 
-    private FontStyle legend;
+    private transient FontStyle legend;
 
     public VisualizationFontStyle()
     {

@@ -35,7 +35,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Lars Helge Overland
  */
-public class GetPeriodAction
+public class GetPeriodAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -74,10 +74,14 @@ public class GetPeriodAction
     @Override
     public String execute()
     {
+        canReadType( Period.class );
+
         if ( id != null )
         {
             period = periodService.getPeriod( id );
         }
+
+        canReadInstance( period, currentUserService.getCurrentUser() );
 
         return SUCCESS;
     }

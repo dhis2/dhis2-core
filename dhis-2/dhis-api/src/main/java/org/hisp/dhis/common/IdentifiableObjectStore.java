@@ -350,4 +350,9 @@ public interface IdentifiableObjectStore<T>
     List<T> getDataWriteAll( User user );
 
     List<T> getDataReadAll( int first, int max );
+
+    /**
+     * Remove given UserGroup UID from all sharing records in database
+     */
+    void removeUserGroupFromSharing( String userGroupUID, String tableName );
 }

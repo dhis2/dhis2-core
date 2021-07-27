@@ -112,13 +112,6 @@ public class RelationshipTrackerConverterService
             .collect( Collectors.toList() );
     }
 
-    @Override
-    public org.hisp.dhis.relationship.Relationship fromForRuleEngine( TrackerPreheat preheat,
-        Relationship relationship )
-    {
-        return from( preheat, relationship, null );
-    }
-
     private org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship fromRelationship,
         org.hisp.dhis.relationship.Relationship toRelationship )
     {

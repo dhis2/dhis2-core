@@ -339,12 +339,13 @@ public class JdbcEventStore implements EventStore
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
                 event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
 
+                ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
+
                 event.setProgram( rowSet.getString( "p_identifier" ) );
+                event.setProgramType( programType );
                 event.setProgramStage( rowSet.getString( "ps_identifier" ) );
                 event.setOrgUnit( rowSet.getString( "ou_identifier" ) );
                 event.setDeleted( rowSet.getBoolean( "psi_deleted" ) );
-
-                ProgramType programType = ProgramType.fromValue( rowSet.getString( "p_type" ) );
 
                 if ( programType != ProgramType.WITHOUT_REGISTRATION )
                 {
@@ -1413,7 +1414,7 @@ public class JdbcEventStore implements EventStore
     {
         StringBuilder sqlBuilder = new StringBuilder().append( " " );
 
-        if ( params.isPaging() )
+        if ( !params.isSkipPaging() )
         {
             sqlBuilder.append( "limit " ).append( params.getPageSizeWithDefault() ).append( " offset " )
                 .append( params.getOffset() ).append( " " );
@@ -1462,7 +1463,7 @@ public class JdbcEventStore implements EventStore
 
     private String getOrderQuery( EventSearchParams params )
     {
-        ArrayList<String> orderFields = new ArrayList<String>();
+        ArrayList<String> orderFields = new ArrayList<>();
 
         if ( params.getGridOrders() != null )
         {
@@ -1787,7 +1788,7 @@ public class JdbcEventStore implements EventStore
 
         if ( !idScheme.isAttribute() )
         {
-            List<DataElement> dataElements = manager.get( DataElement.class, deUids );
+            List<DataElement> dataElements = manager.getByUid( DataElement.class, deUids );
             dataElements.forEach( de -> dataElementUidToIdentifierCache.put( de.getUid(), de.getCode() ) );
         }
         else
@@ -1819,20 +1820,7 @@ public class JdbcEventStore implements EventStore
                 .collect( toList() );
             final String uids = Joiner.on( "," ).join( psiUids );
 
-            jdbcTemplate.execute( "DELETE FROM programstageinstancecomments where programstageinstanceid in "
-                + "(select programstageinstanceid from programstageinstance where uid in (" + uids + ") )" );
-
-            // remove link between comment and psi
-
-            jdbcTemplate.execute( "DELETE FROM trackedentitycomment t "
-                + "    where t.trackedentitycommentid in (SELECT psic.trackedentitycommentid "
-                + "                FROM programstageinstancecomments psic "
-                + "                WHERE psic.programstageinstanceid in "
-                + "                (select programstageinstanceid from programstageinstance where uid in (" + uids
-                + ")))" );
-
-            jdbcTemplate.execute( "DELETE FROM programstageinstance where uid in ( " + uids + ")" );
-
+            jdbcTemplate.execute( "UPDATE programstageinstance SET deleted = true where uid in ( " + uids + ")" );
         }
     }
 

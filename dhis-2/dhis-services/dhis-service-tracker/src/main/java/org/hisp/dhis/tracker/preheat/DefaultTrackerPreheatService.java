@@ -120,10 +120,4 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
             log.warn( message, e );
         }
     }
-
-    @Override
-    public void validate( TrackerImportParams params )
-    {
-        // TODO: Implement validation
-    }
 }

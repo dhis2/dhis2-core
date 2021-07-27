@@ -42,7 +42,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,7 +57,6 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -405,7 +403,7 @@ public class TrackedEntityInstanceServiceTest
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
             null, new ImportOptions().setImportStrategy( ImportStrategy.SYNC ), true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertEquals( 2, importSummary.getEnrollments().getImportSummaries().get( 0 ).getConflicts().size() );
+        assertEquals( 2, importSummary.getEnrollments().getImportSummaries().get( 0 ).getConflictCount() );
         assertEquals( trackedEntityInstance.getEnrollments().get( 0 ).getEnrollment(),
             importSummary.getEnrollments().getImportSummaries().get( 0 ).getReference() );
 
@@ -622,25 +620,13 @@ public class TrackedEntityInstanceServiceTest
         importOptions.setImportStrategy( ImportStrategy.UPDATE );
         ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( teis, importOptions );
 
-        assertEquals( importSummaries.getStatus(), ImportStatus.ERROR );
+        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
 
-        Set<ImportConflict> conflicts = importSummaries.getImportSummaries().get( 0 ).getConflicts();
-
-        assertEquals( conflicts.size(), 1 );
-
-        boolean conflictIsPresent = false;
-
-        for ( ImportConflict conflict : conflicts )
-        {
-            if ( conflict.getValue().equals( String.format(
-                "Value exceeds the character limit of 1200 characters: '%s...'", testValue.substring( 0, 25 ) ) ) )
-            {
-                conflictIsPresent = true;
-            }
-        }
-
-        assertTrue( conflictIsPresent );
-
+        ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
+        assertEquals( 1, importSummary.getConflictCount() );
+        assertEquals( String.format(
+            "Value exceeds the character limit of 1200 characters: '%s...'", testValue.substring( 0, 25 ) ),
+            importSummary.getConflicts().iterator().next().getValue() );
     }
 
     @Test

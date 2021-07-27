@@ -53,8 +53,6 @@ public class HibernateProgramMessageStore
     extends HibernateIdentifiableObjectStore<ProgramMessage>
     implements ProgramMessageStore
 {
-    private static final String TABLE_NAME = "ProgramMessage";
-
     public HibernateProgramMessageStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
@@ -108,7 +106,7 @@ public class HibernateProgramMessageStore
     {
         SqlHelper helper = new SqlHelper( true );
 
-        String hql = " select distinct pm from " + TABLE_NAME + " pm ";
+        String hql = " select distinct pm from ProgramMessage pm ";
 
         if ( params.hasProgramInstance() )
         {

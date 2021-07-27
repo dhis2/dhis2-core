@@ -83,6 +83,7 @@ public class HibernateValidationResultStore
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public void delete( ValidationResultsDeletionRequest request )
     {
         SqlHelper helper = new SqlHelper();

@@ -1,0 +1,2 @@
+event,status,program,programStage,enrollment,orgUnit,eventDate,dueDate,latitude,longitude,dataElement,value,storedBy,providedElsewhere,completedDate,completedBy,geometry
+ZjoPam9PF3O,ACTIVE,malaria_case,malaria_case,,OU_559,2020-08-24T00:00:00.000,2020-08-24,8.06311527044516,-11.4283223849698,F3ogKBuviRA,text,bjorn,false,,,'POINT (-11.4283223849698 8.06311527044516)'

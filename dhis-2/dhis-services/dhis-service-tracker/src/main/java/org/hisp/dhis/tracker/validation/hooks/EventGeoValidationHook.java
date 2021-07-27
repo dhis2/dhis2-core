@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.program.Program;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -47,30 +47,8 @@ public class EventGeoValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        Program program = context.getProgram( event.getProgram() );
-
-        if ( program == null )
-        {
-            return;
-        }
-
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-
-        programStage = (programStage == null && program.isWithoutRegistration())
-            ? program.getProgramStageByStage( 1 )
-            : programStage;
-        if ( programStage == null )
-        {
-            return;
-        }
-
-        ProgramStageInstance programStageInstance = context
-            .getProgramStageInstance( event.getEvent() );
-
-        if ( programStageInstance != null )
-        {
-            programStage = programStageInstance.getProgramStage();
-        }
+        checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
 
         if ( event.getGeometry() != null )
         {

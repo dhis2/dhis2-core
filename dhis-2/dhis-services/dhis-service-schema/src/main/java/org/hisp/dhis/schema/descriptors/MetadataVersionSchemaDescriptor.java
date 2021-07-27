@@ -53,8 +53,7 @@ public class MetadataVersionSchemaDescriptor
         Schema schema = new Schema( MetadataVersion.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "ALL", "F_METADATA_MANAGE" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "ALL", "F_METADATA_MANAGE" ) ) );
 
         return schema;
     }

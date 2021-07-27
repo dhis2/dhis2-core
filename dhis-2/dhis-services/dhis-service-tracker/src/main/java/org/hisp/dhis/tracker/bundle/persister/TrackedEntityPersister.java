@@ -113,4 +113,11 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     {
         return TrackerSideEffectDataBundle.builder().build();
     }
+
+    @Override
+    protected void persistOwnership( TrackerPreheat preheat, TrackedEntityInstance entity )
+    {
+        // DO NOTHING, Tei alone does not have ownership records
+
+    }
 }

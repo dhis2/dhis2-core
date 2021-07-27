@@ -83,10 +83,18 @@ public abstract class EventAnalyticsTest
     protected EventQueryParams createRequestParamsWithFilter( ProgramStage withProgramStage,
         ValueType withQueryItemValueType )
     {
+        return createRequestParamsWithFilter( withProgramStage, withQueryItemValueType, QueryOperator.GT, "10" );
+    }
+
+    protected EventQueryParams createRequestParamsWithFilter( ProgramStage withProgramStage,
+        ValueType withQueryItemValueType,
+        QueryOperator withOperator,
+        String withQueryFilter )
+    {
         EventQueryParams.Builder params = new EventQueryParams.Builder(
             createRequestParams( withProgramStage, withQueryItemValueType ) );
         QueryItem queryItem = params.build().getItems().get( 0 );
-        queryItem.addFilter( new QueryFilter( QueryOperator.GT, "10" ) );
+        queryItem.addFilter( new QueryFilter( withOperator, withQueryFilter ) );
 
         return params.build();
     }

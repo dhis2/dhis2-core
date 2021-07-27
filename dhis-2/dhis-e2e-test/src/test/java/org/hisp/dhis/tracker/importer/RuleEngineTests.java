@@ -30,19 +30,18 @@ package org.hisp.dhis.tracker.importer;
 
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.MessageConversationsActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -57,23 +56,29 @@ import static org.hamcrest.Matchers.*;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class RuleEngineTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
     private String trackerProgramId = "U5HE4IRrZ7S";
 
     private String eventProgramId = "uHi4GZJOD3n";
 
-    private TrackerActions trackerActions;
+    private MessageConversationsActions messageConversationsActions;
 
     @BeforeAll
     public void beforeAll()
     {
+        messageConversationsActions = new MessageConversationsActions();
 
-        trackerActions = new TrackerActions();
+        loginActions.loginAsSuperUser();
 
-        new LoginActions().loginAsSuperUser();
         new MetadataActions()
             .importAndValidateMetadata( new File( "src/test/resources/tracker/programs_with_program_rules.json" ) );
+    }
+
+    @BeforeEach
+    public void beforeEach()
+    {
+        loginActions.loginAsSuperUser();
     }
 
     @ParameterizedTest
@@ -151,7 +156,7 @@ public class RuleEngineTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 
         response.validateErrorReport()
-            .body( "errorCode", hasItem( "E1303" ) )
+            .body( "errorCode", hasItem( "E1301" ) )
             .body( "message", hasItem( stringContainsInOrder( "Mandatory DataElement", "is not present" ) ) );
     }
 
@@ -177,9 +182,9 @@ public class RuleEngineTests
             .body( "dataValues.value", contains( "AUTO_ASSIGNED_COMMENT" ) );
     }
 
-    @Disabled( "bug DHIS2-10127" )
     @Test
-    public void shouldSendNotification()
+    public void shouldSendProgramRuleNotification()
+        throws InterruptedException
     {
         JsonObject payload = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
 
@@ -195,17 +200,22 @@ public class RuleEngineTests
                 .addProperty( "value", "40" )
                 .build() );
 
+        loginActions.loginAsAdmin();
         ApiResponse response = new RestApiActions( "/messageConversations" ).get( "", new QueryParamsBuilder().add( "fields=*" ) );
 
         int size = response.getBody().getAsJsonArray( "messageConversations" ).size();
 
+        loginActions.loginAsSuperUser();
+
         trackerActions.postAndGetJobReport( payload )
             .validateSuccessfulImport();
 
-        new RestApiActions( "/messageConversations?fields=*" ).get( "", new QueryParamsBuilder().add( "fields=*" ) )
+        loginActions.loginAsAdmin();
+        messageConversationsActions.waitForNotification( size + 1 );
+        messageConversationsActions.get( "", new QueryParamsBuilder().add( "fields=*" ) )
             .validate()
             .statusCode( 200 )
-            .body( "messageConversations", arrayWithSize( size + 1 ) )
+            .body( "messageConversations", hasSize( size + 1 ) )
             .body( "messageConversations.subject", hasItem( "Program rule triggered" ) );
     }
 
@@ -254,8 +264,8 @@ public class RuleEngineTests
 
         response
             .validateWarningReport()
-            .body( "", hasSize( greaterThanOrEqualTo( 2 ) ) )
-            .body( "trackerType", hasItems( "EVENT", "ENROLLMENT" ) )
+            .body( "", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "trackerType", hasItems( "ENROLLMENT" ) )
             .body( "warningCode", everyItem( equalTo( "E1300" ) ) );
     }
 

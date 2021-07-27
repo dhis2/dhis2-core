@@ -27,30 +27,31 @@
  */
 package org.hisp.dhis.user;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
+@AllArgsConstructor
 @Component( "org.hisp.dhis.user.UserDeletionHandler" )
 public class UserDeletionHandler
     extends DeletionHandler
 {
     private final IdentifiableObjectManager idObjectManager;
 
-    public UserDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
+    private final JdbcTemplate jdbcTemplate;
 
-        this.idObjectManager = idObjectManager;
-    }
+    private static final DeletionVeto VETO = new DeletionVeto( User.class );
 
     @Override
     protected void register()
@@ -59,6 +60,7 @@ public class UserDeletionHandler
         whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
         whenDeleting( UserGroup.class, this::deleteUserGroup );
         whenVetoing( UserAuthorityGroup.class, this::allowDeleteUserAuthorityGroup );
+        whenVetoing( FileResource.class, this::allowDeleteFileResource );
     }
 
     private void deleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
@@ -101,5 +103,12 @@ public class UserDeletionHandler
             }
         }
         return ACCEPT;
+    }
+
+    private DeletionVeto allowDeleteFileResource( FileResource fileResource )
+    {
+        String sql = "SELECT COUNT(*) FROM userinfo where avatar=" + fileResource.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 }

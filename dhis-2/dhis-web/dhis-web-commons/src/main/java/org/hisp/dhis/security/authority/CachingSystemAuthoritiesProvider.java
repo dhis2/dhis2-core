@@ -29,6 +29,8 @@ package org.hisp.dhis.security.authority;
 
 import java.util.Collection;
 
+import org.hisp.dhis.security.SystemAuthoritiesProvider;
+
 /**
  * @author Torgeir Lorange Ostby
  * @version $Id: CachingSystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z

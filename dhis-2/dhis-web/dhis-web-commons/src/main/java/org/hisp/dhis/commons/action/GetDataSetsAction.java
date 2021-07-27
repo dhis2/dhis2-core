@@ -108,6 +108,8 @@ public class GetDataSetsAction
     public String execute()
         throws Exception
     {
+        canReadType( DataSet.class );
+
         if ( id != null )
         {
             dataSets = new ArrayList<>(
@@ -135,6 +137,9 @@ public class GetDataSetsAction
                 dataSets.retainAll( dataSetService.getUserDataWrite( user ) );
             }
         }
+
+        User currentUser = currentUserService.getCurrentUser();
+        dataSets.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         Collections.sort( dataSets );
 

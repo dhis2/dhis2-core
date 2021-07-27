@@ -31,10 +31,9 @@ import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.springframework.util.Assert.hasText;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.cache2k.Cache2kBuilder;
 
@@ -124,9 +123,9 @@ public class LocalCache<V> implements Cache<V>
     }
 
     @Override
-    public Collection<V> getAll()
+    public Stream<V> getAll()
     {
-        return new ArrayList<V>( cache2kInstance.asMap().values() );
+        return cache2kInstance.asMap().values().stream();
     }
 
     @Override
@@ -156,7 +155,7 @@ public class LocalCache<V> implements Cache<V>
     @Override
     public void invalidateAll()
     {
-        cache2kInstance.clear();
+        cache2kInstance.removeAll();
     }
 
     @Override

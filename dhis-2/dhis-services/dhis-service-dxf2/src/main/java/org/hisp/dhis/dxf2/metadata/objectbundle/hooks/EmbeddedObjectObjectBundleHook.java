@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.function.Consumer;
+
+import lombok.AllArgsConstructor;
 
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseAnalyticalObject;
@@ -45,27 +46,23 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
+@AllArgsConstructor
 public class EmbeddedObjectObjectBundleHook
-    extends AbstractObjectBundleHook
+    extends AbstractObjectBundleHook<IdentifiableObject>
 {
-    @Autowired
-    private DefaultAnalyticalObjectImportHandler analyticalObjectImportHandler;
+    private final DefaultAnalyticalObjectImportHandler analyticalObjectImportHandler;
 
-    @Autowired
-    private SchemaValidator schemaValidator;
+    private final SchemaValidator schemaValidator;
 
     @Override
-    public List<ErrorReport> validate( IdentifiableObject object, ObjectBundle bundle )
+    public void validate( IdentifiableObject object, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errors = new ArrayList<>();
-
         Class<? extends IdentifiableObject> klass = object.getClass();
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -77,37 +74,31 @@ public class EmbeddedObjectObjectBundleHook
 
                 if ( property.getPropertyType().equals( PropertyType.COMPLEX ) )
                 {
-                    List<ErrorReport> unformattedErrors = schemaValidator
-                        .validateEmbeddedObject( propertyObject, klass );
-                    errors.addAll( formatEmbeddedErrorReport( unformattedErrors, propertyName ) );
+                    schemaValidator.validateEmbeddedObject( propertyObject, klass )
+                        .forEach( unformattedError -> addReports
+                            .accept( formatEmbeddedErrorReport( unformattedError, propertyName ) ) );
                 }
                 else if ( property.getPropertyType().equals( PropertyType.COLLECTION ) )
                 {
                     Collection<?> collection = (Collection<?>) propertyObject;
                     for ( Object item : collection )
                     {
-                        List<ErrorReport> unformattedErrors = schemaValidator
-                            .validateEmbeddedObject( property.getItemKlass().cast( item ), klass );
-                        errors.addAll( formatEmbeddedErrorReport( unformattedErrors, propertyName ) );
+                        schemaValidator.validateEmbeddedObject( property.getItemKlass().cast( item ), klass )
+                            .forEach( unformattedError -> addReports
+                                .accept( formatEmbeddedErrorReport( unformattedError, propertyName ) ) );
                     }
                 }
             } );
-
-        return errors;
     }
 
-    private List<ErrorReport> formatEmbeddedErrorReport( List<ErrorReport> errors, String embeddedPropertyName )
+    private ErrorReport formatEmbeddedErrorReport( ErrorReport errorReport, String embeddedPropertyName )
     {
-        for ( ErrorReport errorReport : errors )
-        {
-            errorReport.setErrorProperty( embeddedPropertyName + "." + errorReport.getErrorProperty() );
-        }
-
-        return errors;
+        errorReport.setErrorProperty( embeddedPropertyName + "." + errorReport.getErrorProperty() );
+        return errorReport;
     }
 
     @Override
-    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
+    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
     {
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
@@ -122,7 +113,7 @@ public class EmbeddedObjectObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
@@ -137,7 +128,7 @@ public class EmbeddedObjectObjectBundleHook
         handleEmbeddedObjects( object, bundle, properties );
     }
 
-    private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, ObjectBundle bundle,
+    private void clearEmbeddedObjects( IdentifiableObject object, ObjectBundle bundle,
         Collection<Property> properties )
     {
         for ( Property property : properties )
@@ -158,7 +149,7 @@ public class EmbeddedObjectObjectBundleHook
         }
     }
 
-    private <T extends IdentifiableObject> void handleEmbeddedObjects( T object, ObjectBundle bundle,
+    private void handleEmbeddedObjects( IdentifiableObject object, ObjectBundle bundle,
         Collection<Property> properties )
     {
         for ( Property property : properties )

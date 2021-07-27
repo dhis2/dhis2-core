@@ -71,7 +71,7 @@ public class OrgUnitsRemovalTest
 
         new LoginActions().loginAsSuperUser();
 
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/metadata/orgunits/orgUnitDeletion.json" ) );
+        metadataActions.importAndValidateMetadata( new File( "src/test/resources/metadata/orgunits/ou_with_group_and_set.json" ) );
 
     }
 

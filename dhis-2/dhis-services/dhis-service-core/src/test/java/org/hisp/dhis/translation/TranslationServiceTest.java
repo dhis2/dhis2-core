@@ -30,6 +30,7 @@ package org.hisp.dhis.translation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -41,6 +42,7 @@ import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.mapping.*;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,6 +50,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -330,5 +335,55 @@ public class TranslationServiceTest
         assertEquals( "translated TargetLineLabel", updated.getDisplayTargetLineLabel() );
         assertEquals( "translated Title", updated.getDisplayTitle() );
         assertEquals( "translated SubTitle", updated.getDisplaySubtitle() );
+    }
+
+    @Test
+    public void testExternalMapLayerTranslations()
+    {
+        ExternalMapLayer map = new ExternalMapLayer();
+        map.setName( "Name" );
+        map.setUrl( "URL" );
+        map.setMapLayerPosition( MapLayerPosition.BASEMAP );
+        map.setImageFormat( ImageFormat.JPG );
+        map.setMapService( MapService.TMS );
+        manager.save( map );
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), "NAME",
+            "translated Name" ) );
+
+        manager.updateTranslations( map, translations );
+
+        ExternalMapLayer updatedMap = manager.get( ExternalMapLayer.class, map.getUid() );
+        assertEquals( "translated Name", updatedMap.getDisplayName() );
+
+    }
+
+    @Test
+    public void testNotificationTemplateTranslations()
+    {
+        ProgramNotificationTemplate template = createProgramNotificationTemplate( "", 0,
+            NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            Calendar.getInstance().getTime() );
+
+        manager.save( template );
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), "NAME",
+            "translated Name" ) );
+
+        translations.add( new Translation( locale.getLanguage(), "SUBJECT_TEMPLATE",
+            "translated SUBJECT TEMPLATE" ) );
+
+        translations.add( new Translation( locale.getLanguage(), "MESSAGE_TEMPLATE",
+            "translated MESSAGE TEMPLATE" ) );
+
+        manager.updateTranslations( template, translations );
+
+        template = manager.get( ProgramNotificationTemplate.class, template.getUid() );
+        assertEquals( "translated Name", template.getDisplayName() );
+        assertEquals( "translated SUBJECT TEMPLATE", template.getDisplaySubjectTemplate() );
+        assertEquals( "translated MESSAGE TEMPLATE", template.getDisplayMessageTemplate() );
+
     }
 }

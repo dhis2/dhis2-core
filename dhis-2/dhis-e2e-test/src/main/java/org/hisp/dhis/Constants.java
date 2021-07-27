@@ -33,9 +33,13 @@ package org.hisp.dhis;
  */
 public class Constants
 {
+    public static final String TRACKED_ENTITY_TYPE = "Q9GufDoplCL";
+
     public static String ORG_UNIT_GROUP_ID = "n9bh3KM5wmu";
 
     public static String SUPER_USER_ID = "PQD6wXJ2r5j";
+
+    public static String ADMIN_ID = "PQD6wXJ2r5k";
 
     public static String USER_GROUP_ID = "OPVIvvXzNTw";
 
@@ -46,6 +50,8 @@ public class Constants
     public static String EVENT_PROGRAM_STAGE_ID = "jKLB23QZS4I";
 
     public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ";
+
+    public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
 
     public static String[] ORG_UNIT_IDS = {
         "DiszpKrYNg8",

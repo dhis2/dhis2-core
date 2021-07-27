@@ -87,14 +87,14 @@ public class TrackerApiResponse
 
     public ValidatableResponse validateErrorReport()
     {
-        return validate().statusCode( 200 )
+        return validate().statusCode( Matchers.oneOf( 409, 200 ) )
             .body( "stats.ignored", greaterThanOrEqualTo( 1 ) )
             .body( "validationReport.errorReports", Matchers.notNullValue() )
             .rootPath( "validationReport.errorReports" );
     }
 
     public ValidatableResponse validateWarningReport() {
-        return validate().statusCode( 200 )
+        return validate().statusCode( Matchers.oneOf( 409, 200 ) )
             .body( "validationReport.warningReports", Matchers.notNullValue())
             .rootPath( "validationReport.warningReports");
     }

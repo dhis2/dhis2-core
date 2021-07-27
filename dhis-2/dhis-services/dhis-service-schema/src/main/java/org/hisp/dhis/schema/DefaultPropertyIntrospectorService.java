@@ -33,10 +33,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.schema.introspection.GistPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.HibernatePropertyIntrospector;
 import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.PropertyIntrospector;
@@ -51,7 +50,6 @@ import org.springframework.stereotype.Service;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Slf4j
 @Service( "org.hisp.dhis.schema.PropertyIntrospectorService" )
 public class DefaultPropertyIntrospectorService implements PropertyIntrospectorService
 {
@@ -65,7 +63,8 @@ public class DefaultPropertyIntrospectorService implements PropertyIntrospectorS
         this( new HibernatePropertyIntrospector( sessionFactory )
             .then( new JacksonPropertyIntrospector() )
             .then( new TranslatablePropertyIntrospector() )
-            .then( new PropertyPropertyIntrospector() ) );
+            .then( new PropertyPropertyIntrospector() )
+            .then( new GistPropertyIntrospector() ) );
     }
 
     public DefaultPropertyIntrospectorService( PropertyIntrospector introspector )

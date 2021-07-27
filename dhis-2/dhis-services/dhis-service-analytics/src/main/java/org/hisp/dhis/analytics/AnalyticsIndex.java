@@ -59,14 +59,14 @@ public class AnalyticsIndex
     /**
      * Index type.
      */
-    private String type;
+    private IndexType type;
 
     /**
      * @param table table name.
      * @param column column name.
      * @param type index type.
      */
-    public AnalyticsIndex( String table, List<String> columns, String type )
+    public AnalyticsIndex( String table, List<String> columns, IndexType type )
     {
         this.table = table;
         this.columns = columns;
@@ -123,7 +123,7 @@ public class AnalyticsIndex
         return columns;
     }
 
-    public String getType()
+    public IndexType getType()
     {
         return type;
     }

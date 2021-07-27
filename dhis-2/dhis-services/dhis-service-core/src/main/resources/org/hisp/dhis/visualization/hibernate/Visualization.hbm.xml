@@ -218,25 +218,38 @@
 
     <property name="outlierAnalysis" type="jbOutlierAnalysis"/>
 
-    <property name="legend" type="jbLegendDefinitions"/>
+    <property name="seriesKey" type="jbSeriesKey"/>
 
     <property name="axes" type="jbAxes"/>
+
+    <component name="legendDefinitions" class="org.hisp.dhis.visualization.LegendDefinitions">
+      <property name="legendDisplayStyle" length="40">
+        <type name="org.hibernate.type.EnumType">
+          <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStyle</param>
+          <param name="useNamed">true</param>
+          <param name="type">12</param>
+        </type>
+      </property>
+
+      <property name="legendDisplayStrategy" length="40">
+        <type name="org.hibernate.type.EnumType">
+          <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStrategy</param>
+          <param name="useNamed">true</param>
+          <param name="type">12</param>
+        </type>
+      </property>
+
+      <property name="showKey">
+        <column name="legendshowkey" default="false"/>
+      </property>
+
+      <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+                   foreign-key="fk_visualization_legendsetid"/>
+    </component>
 
     <property name="colorSet"/>
 
     <property name="percentStackedValues"/>
-
-    <property name="rangeAxisMaxValue"/>
-
-    <property name="rangeAxisMinValue"/>
-
-    <property name="rangeAxisSteps"/>
-
-    <property name="rangeAxisDecimals"/>
-
-    <property name="targetLineValue"/>
-
-    <property name="baseLineValue"/>
 
     <property name="title"/>
 
@@ -257,17 +270,6 @@
     <property name="hideLegend"/>
 
     <property name="noSpaceBetweenColumns"/>
-
-    <property name="targetLineLabel"/>
-
-    <property name="baseLineLabel"/>
-
-    <property name="domainAxisLabel"/>
-
-    <property name="rangeAxisLabel"/>
-
-    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
-      foreign-key="fk_visualization_legendsetid"/>
 
     <property name="showHierarchy"/>
 
@@ -306,22 +308,6 @@
     <property name="fontSize" length="40">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.common.FontSize</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-
-    <property name="legendDisplayStyle" length="40">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStyle</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-
-    <property name="legendDisplayStrategy" length="40">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStrategy</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>

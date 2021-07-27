@@ -59,23 +59,20 @@ public class ListMap<T, V>
         super( listMap );
     }
 
-    public List<V> putValue( T key, V value )
+    public void putValue( T key, V value )
     {
         List<V> list = this.get( key );
         list = list == null ? new ArrayList<>() : list;
         list.add( value );
         super.put( key, list );
-        return null;
     }
 
-    public List<V> putValues( T key, Collection<V> values )
+    public void putValues( T key, Collection<V> values )
     {
         for ( V value : values )
         {
             putValue( key, value );
         }
-
-        return null;
     }
 
     public void putValueMap( Map<T, V> map )
@@ -197,7 +194,7 @@ public class ListMap<T, V>
         {
             if ( b == null || b.isEmpty() )
             {
-                return new ListMap<T, V>();
+                return new ListMap<>();
             }
 
             return b;
@@ -207,7 +204,7 @@ public class ListMap<T, V>
             return a;
         }
 
-        ListMap<T, V> c = new ListMap<T, V>( a );
+        ListMap<T, V> c = new ListMap<>( a );
 
         for ( Map.Entry<T, List<V>> entry : b.entrySet() )
         {

@@ -93,7 +93,7 @@ public class DefaultSecurityService
 
     private static final int RESTORE_TOKEN_LENGTH_BYTES = 32;
 
-    private static final int LOGIN_MAX_FAILED_ATTEMPTS = 5;
+    private static final int LOGIN_MAX_FAILED_ATTEMPTS = 4;
 
     public static final int RECOVERY_LOCKOUT_MINS = 15;
 
@@ -228,7 +228,7 @@ public class DefaultSecurityService
             return false;
         }
 
-        return userFailedLoginAttemptCache.get( username ).orElse( 0 ) > LOGIN_MAX_FAILED_ATTEMPTS;
+        return userFailedLoginAttemptCache.get( username ).orElse( 0 ) >= LOGIN_MAX_FAILED_ATTEMPTS;
     }
 
     private boolean isBlockFailedLogins()

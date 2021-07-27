@@ -91,13 +91,13 @@ public class EventDateValidationHook
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
+        if ( actingUser.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        {
+            return;
+        }
+
         if ( (program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus()) )
         {
-            if ( actingUser.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
-            {
-                return;
-            }
-
             if ( event.getCompletedAt() == null )
             {
                 addErrorIfNull( event.getCompletedAt(), reporter, E1042, event );
@@ -129,7 +129,11 @@ public class EventDateValidationHook
             .map( Event::getOccurredAt )
             .orElseGet( event::getScheduledAt );
 
-        addErrorIfNull( referenceDate, reporter, E1046, event );
+        if ( referenceDate == null )
+        {
+            addError( reporter, E1046, event );
+            return;
+        }
 
         Period period = periodType.createPeriod( new Date() );
 

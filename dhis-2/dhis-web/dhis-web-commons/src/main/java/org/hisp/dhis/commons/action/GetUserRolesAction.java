@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.paging.ActionPagingSupport;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 
@@ -71,9 +72,14 @@ public class GetUserRolesAction
     public String execute()
         throws Exception
     {
+        canReadType( UserAuthorityGroup.class );
+
         userRoles = new ArrayList<>( userService.getAllUserAuthorityGroups() );
 
         userService.canIssueFilter( userRoles );
+
+        User currentUser = currentUserService.getCurrentUser();
+        userRoles.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         Collections.sort( userRoles );
 

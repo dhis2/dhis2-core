@@ -45,6 +45,12 @@ public class LimitStatement
     {
     }
 
+    /**
+     * Adds a SQL limit statement if one is set in the given paramsMap.
+     *
+     * @param paramsMap
+     * @return the limit SQL statement
+     */
     public static String maxLimit( final MapSqlParameterSource paramsMap )
     {
         if ( hasIntegerPresence( paramsMap, MAX_LIMIT ) )

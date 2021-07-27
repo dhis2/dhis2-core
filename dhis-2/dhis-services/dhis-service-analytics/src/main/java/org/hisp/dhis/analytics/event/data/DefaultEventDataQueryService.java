@@ -222,6 +222,17 @@ public class DefaultEventDataQueryService
             params.withAggregationType( AnalyticsAggregationType.fromAggregationType( request.getAggregationType() ) );
         }
 
+        if ( request.getOutputType() == EventOutputType.ENROLLMENT )
+        {
+            params.withStartEndDatesForPeriods( false );
+        }
+        else
+        {
+            params.withStartDate( request.getStartDate() );
+
+            params.withEndDate( request.getEndDate() );
+        }
+
         return params
             .withValue( getValueDimension( request.getValue() ) )
             .withSkipRounding( request.isSkipRounding() )
@@ -233,23 +244,25 @@ public class DefaultEventDataQueryService
             .withAggregateData( request.isAggregateData() )
             .withProgram( pr )
             .withProgramStage( ps )
-            .withStartDate( request.getStartDate() )
-            .withEndDate( request.getEndDate() )
             .withOrganisationUnitMode( request.getOuMode() )
             .withSkipMeta( request.isSkipMeta() )
             .withSkipData( request.isSkipData() )
             .withCompletedOnly( request.isCompletedOnly() )
             .withHierarchyMeta( request.isHierarchyMeta() )
             .withCoordinatesOnly( request.isCoordinatesOnly() )
+            .withCoordinateOuFallback( request.isCoordinateOuFallback() )
             .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
             .withDataIdScheme( request.getDataIdScheme() )
+            .withOutputIdScheme( request.getOutputIdScheme() )
             .withEventStatus( request.getEventStatus() )
             .withDisplayProperty( request.getDisplayProperty() )
             .withTimeField( request.getTimeField() )
             .withOrgUnitField( request.getOrgUnitField() )
             .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
+            .withFallbackCoordinateField( getFallbackCoordinateField( request.getFallbackCoordinateField() ) )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
+            .withPaging( request.isPaging() )
             .withProgramStatus( request.getProgramStatus() )
             .withApiVersion( request.getApiVersion() )
             .build();
@@ -315,9 +328,24 @@ public class DefaultEventDataQueryService
     @Override
     public String getCoordinateField( String coordinateField )
     {
+        return getCoordinateField( coordinateField, "psigeometry" );
+    }
+
+    @Override
+    public String getFallbackCoordinateField( String fallbackCoordinateField )
+    {
+        return fallbackCoordinateField == null ? "ougeometry" : fallbackCoordinateField;
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private String getCoordinateField( String coordinateField, String defaultEventCoordinateField )
+    {
         if ( coordinateField == null || EventQueryParams.EVENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            return "psigeometry";
+            return defaultEventCoordinateField;
         }
 
         if ( EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals( coordinateField ) )
@@ -341,10 +369,6 @@ public class DefaultEventDataQueryService
 
         throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7221, coordinateField ) );
     }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
 
     private QueryItem getQueryItem( String dimension, String filter, Program program, EventOutputType type )
     {

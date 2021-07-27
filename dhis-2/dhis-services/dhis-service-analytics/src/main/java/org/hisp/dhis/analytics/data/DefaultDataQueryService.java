@@ -419,8 +419,8 @@ public class DefaultDataQueryService
                 }
             }
 
-            periods = periods.stream().distinct().collect( Collectors.toList() ); // Remove
-                                                                                  // duplicates
+            // Remove duplicates
+            periods = periods.stream().distinct().collect( Collectors.toList() );
 
             if ( containsRelativePeriods )
             {

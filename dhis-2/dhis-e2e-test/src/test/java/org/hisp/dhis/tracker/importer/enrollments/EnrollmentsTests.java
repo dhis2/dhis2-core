@@ -30,12 +30,10 @@ package org.hisp.dhis.tracker.importer.enrollments;
 
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,16 +51,12 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
  */
 public class EnrollmentsTests
     extends
-    ApiTest
+    TrackerNtiApiTest
 {
-    private TrackerActions trackerActions;
-
     @BeforeAll
     public void beforeAll()
     {
-        trackerActions = new TrackerActions();
-
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
     }
 
     @ParameterizedTest

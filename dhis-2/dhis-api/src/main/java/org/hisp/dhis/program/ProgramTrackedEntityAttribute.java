@@ -63,12 +63,9 @@ public class ProgramTrackedEntityAttribute
 
     private Boolean allowFutureDate;
 
-    private Boolean renderOptionsAsRadio = false; // TODO: Remove, replaced by
-                                                  // renderType
+    // TODO: Remove, replaced by renderType
+    private Boolean renderOptionsAsRadio = false;
 
-    /**
-     * Represents how the client should render the TrackedEntityAttribute
-     */
     private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
     private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();

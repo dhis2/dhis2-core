@@ -87,6 +87,8 @@
 
     <property name="translations" type="jblTranslations"/>
 
+    <many-to-one name="image" class="org.hisp.dhis.fileresource.FileResource" column="image" foreign-key="fk_organisationUnit_fileresourceid" />
+
     <!-- Access properties -->
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_organisationunit_userid" />
 

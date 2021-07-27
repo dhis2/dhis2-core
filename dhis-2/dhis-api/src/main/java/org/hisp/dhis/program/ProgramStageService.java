@@ -88,4 +88,12 @@ public interface ProgramStageService
      * @return a list og ProgramStages.
      */
     List<ProgramStage> getProgramStagesByDataEntryForm( DataEntryForm dataEntryForm );
+
+    /**
+     * Retrieve all ProgramStages associated with the given Program.
+     *
+     * @param program the Program.
+     * @return a list og ProgramStages.
+     */
+    List<ProgramStage> getProgramStagesByProgram( Program program );
 }

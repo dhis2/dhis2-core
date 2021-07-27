@@ -55,11 +55,11 @@ public class TestCleanUp
         List<String> reverseOrderedKeys = new ArrayList<>( createdEntities.keySet() );
         Collections.reverse( reverseOrderedKeys );
 
-        Iterator iterator = reverseOrderedKeys.iterator();
+        Iterator<String> iterator = reverseOrderedKeys.iterator();
 
         while ( iterator.hasNext() )
         {
-            String key = (String) iterator.next();
+            String key = iterator.next();
             boolean deleted = deleteEntity( createdEntities.get( key ), key );
             if ( deleted )
             {
@@ -88,16 +88,15 @@ public class TestCleanUp
     {
         new LoginActions().loginAsSuperUser();
 
-        for ( String resource : resources
-        )
+        for ( String resource : resources )
         {
             List<String> entityIds = TestRunStorage.getCreatedEntities( resource );
 
-            Iterator iterator = entityIds.iterator();
+            Iterator<String> iterator = entityIds.iterator();
 
             while ( iterator.hasNext() )
             {
-                boolean deleted = deleteEntity( resource, (String) iterator.next() );
+                boolean deleted = deleteEntity( resource, iterator.next() );
                 if ( deleted )
                 {
                     iterator.remove();
@@ -109,10 +108,11 @@ public class TestCleanUp
 
     public void deleteCreatedEntities( LinkedHashMap<String, String> entitiesToDelete )
     {
-        Iterator iterator = entitiesToDelete.keySet().iterator();
+        Iterator<String> iterator = entitiesToDelete.keySet().iterator();
+
         while ( iterator.hasNext() )
         {
-            String key = (String) iterator.next();
+            String key = iterator.next();
 
             deleteEntity( entitiesToDelete.get( key ), key );
 
@@ -135,8 +135,10 @@ public class TestCleanUp
             return true;
         }
 
-        logger.warning( String
-            .format( "Entity from resource %s with id %s was not deleted. Status code: %s", resource, id, response.statusCode() ) );
+        logger.warning( String.format(
+            "Entity from resource %s with id %s was not deleted. Status code: %s",
+            resource, id, response.statusCode() ) );
+
         return false;
     }
 

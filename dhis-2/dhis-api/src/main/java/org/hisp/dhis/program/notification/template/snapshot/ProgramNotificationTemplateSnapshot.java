@@ -61,4 +61,6 @@ public class ProgramNotificationTemplateSnapshot extends IdentifiableObjectSnaps
 
     private Boolean notifyParentOrganisationUnitOnly;
 
+    private boolean sendRepeatable;
+
 }

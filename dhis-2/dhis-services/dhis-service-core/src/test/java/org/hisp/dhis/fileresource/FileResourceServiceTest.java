@@ -198,4 +198,35 @@ public class FileResourceServiceTest
         assertThat( event.getContentType(), is( "application/pdf" ) );
         assertThat( event.getDomain(), is( FileResourceDomain.DOCUMENT ) );
     }
+
+    @Test
+    public void verifySaveOrgUnitImageFile()
+    {
+        FileResource fileResource = new FileResource( "test.jpeg", MimeTypeUtils.IMAGE_JPEG.toString(), 1000, "md5",
+            FileResourceDomain.ORG_UNIT );
+
+        File file = new File( "" );
+
+        Map<ImageFileDimension, File> imageFiles = ImmutableMap.of( ImageFileDimension.LARGE, file );
+
+        when( imageProcessingService.createImages( fileResource, file ) ).thenReturn( imageFiles );
+
+        when( sessionFactory.getCurrentSession() ).thenReturn( session );
+
+        fileResource.setUid( "imageUid1" );
+
+        subject.saveFileResource( fileResource, file );
+
+        verify( fileResourceStore ).save( fileResource );
+        verify( session ).flush();
+
+        verify( fileEventPublisher, times( 1 ) ).publishEvent( imageFileSavedEventCaptor.capture() );
+
+        ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
+
+        assertThat( event.getFileResource(), is( "imageUid1" ) );
+        assertFalse( event.getImageFiles().isEmpty() );
+        assertThat( event.getImageFiles().size(), is( 1 ) );
+        assertThat( event.getImageFiles(), hasKey( ImageFileDimension.LARGE ) );
+    }
 }

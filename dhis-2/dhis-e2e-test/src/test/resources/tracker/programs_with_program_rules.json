@@ -1174,7 +1174,7 @@
         "id": "Xh9idCUkyaS"
       },
       "dataElement": {
-        "id": "z3Z4TD3oBCP"
+        "id": "inc5BJvr4W5"
       },
       "trackedEntityAttribute": {
         "id": "dIVt4l5vIOa"
@@ -1216,7 +1216,7 @@
         "id": "Xh9idCUkyaE"
       },
       "dataElement": {
-        "id": "z3Z4TD3oBCP"
+        "id": "inc5BJvr4W5"
       }
     },
     {
@@ -1240,6 +1240,9 @@
       "favorite": false,
       "programRule": {
         "id": "Xh9idCUkyaF"
+      },
+      "trackedEntityAttribute": {
+        "id": "dIVt4l5vIOa"
       },
       "favorites": [],
       "evaluationEnvironments": [

@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import java.util.Set;
 
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
@@ -45,57 +44,43 @@ import com.google.common.collect.Sets;
  * @author Halvdan Hoem Grelland
  */
 @Component
-public class ProgramNotificationTemplateObjectBundleHook
-    extends AbstractObjectBundleHook
+public class ProgramNotificationTemplateObjectBundleHook extends AbstractObjectBundleHook<ProgramNotificationTemplate>
 {
     private ImmutableMap<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>> RECIPIENT_TO_VALUETYPE_RESOLVER = new ImmutableMap.Builder<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>()
         .put( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE,
             template -> template.getRecipientProgramAttribute().getValueType() )
         .put( ProgramNotificationRecipient.DATA_ELEMENT, template -> template.getRecipientDataElement().getValueType() )
+        .put( ProgramNotificationRecipient.WEB_HOOK, template -> ValueType.URL )
         .build();
 
     private static final ImmutableMap<ValueType, Set<DeliveryChannel>> CHANNEL_MAPPER = new ImmutableMap.Builder<ValueType, Set<DeliveryChannel>>()
         .put( ValueType.PHONE_NUMBER, Sets.newHashSet( DeliveryChannel.SMS ) )
         .put( ValueType.EMAIL, Sets.newHashSet( DeliveryChannel.EMAIL ) )
+        .put( ValueType.URL, Sets.newHashSet( DeliveryChannel.HTTP ) )
         .build();
 
     @Override
-    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
+    public void preCreate( ProgramNotificationTemplate template, ObjectBundle bundle )
     {
-        if ( !ProgramNotificationTemplate.class.isInstance( object ) )
-            return;
-        ProgramNotificationTemplate template = (ProgramNotificationTemplate) object;
-
         preProcess( template );
     }
 
     @Override
-    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    public void preUpdate( ProgramNotificationTemplate template, ProgramNotificationTemplate persistedObject,
+        ObjectBundle bundle )
     {
-        if ( !ProgramNotificationTemplate.class.isInstance( object ) )
-            return;
-        ProgramNotificationTemplate template = (ProgramNotificationTemplate) object;
-
         preProcess( template );
     }
 
     @Override
-    public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
+    public void postCreate( ProgramNotificationTemplate template, ObjectBundle bundle )
     {
-        if ( !ProgramNotificationTemplate.class.isInstance( persistedObject ) )
-            return;
-        ProgramNotificationTemplate template = (ProgramNotificationTemplate) persistedObject;
-
         postProcess( template );
     }
 
     @Override
-    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    public void postUpdate( ProgramNotificationTemplate template, ObjectBundle bundle )
     {
-        if ( !ProgramNotificationTemplate.class.isInstance( persistedObject ) )
-            return;
-        ProgramNotificationTemplate template = (ProgramNotificationTemplate) persistedObject;
-
         postProcess( template );
     }
 
@@ -132,28 +117,16 @@ public class ProgramNotificationTemplateObjectBundleHook
 
     private void postProcess( ProgramNotificationTemplate template )
     {
-        if ( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE == template.getNotificationRecipient() )
-        {
-            resolveTemplateRecipients( template, ProgramNotificationRecipient.PROGRAM_ATTRIBUTE );
-        }
-
-        if ( ProgramNotificationRecipient.DATA_ELEMENT == template.getNotificationRecipient() )
-        {
-            resolveTemplateRecipients( template, ProgramNotificationRecipient.DATA_ELEMENT );
-        }
-    }
-
-    private void resolveTemplateRecipients( ProgramNotificationTemplate pnt, ProgramNotificationRecipient pnr )
-    {
-        Function<ProgramNotificationTemplate, ValueType> resolver = RECIPIENT_TO_VALUETYPE_RESOLVER.get( pnr );
+        ProgramNotificationRecipient pnr = template.getNotificationRecipient();
 
         ValueType valueType = null;
 
-        if ( resolver != null && (pnt.getRecipientProgramAttribute() != null || pnt.getRecipientDataElement() != null) )
+        if ( RECIPIENT_TO_VALUETYPE_RESOLVER.containsKey( pnr ) )
         {
-            valueType = resolver.apply( pnt );
+            Function<ProgramNotificationTemplate, ValueType> resolver = RECIPIENT_TO_VALUETYPE_RESOLVER.get( pnr );
+            valueType = resolver.apply( template );
         }
 
-        pnt.setDeliveryChannels( CHANNEL_MAPPER.getOrDefault( valueType, Sets.newHashSet() ) );
+        template.setDeliveryChannels( CHANNEL_MAPPER.getOrDefault( valueType, Sets.newHashSet() ) );
     }
 }

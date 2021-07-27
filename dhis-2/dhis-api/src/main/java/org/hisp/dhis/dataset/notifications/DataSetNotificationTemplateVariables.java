@@ -37,8 +37,7 @@ import org.hisp.dhis.notification.TemplateVariable;
  * Created by zubair on 04.07.17.
  */
 public enum DataSetNotificationTemplateVariables
-    implements
-    TemplateVariable
+    implements TemplateVariable
 {
     DATASET_NAME( "data_set_name" ),
     DATASET_DESCRIPTION( "data_description" ),
