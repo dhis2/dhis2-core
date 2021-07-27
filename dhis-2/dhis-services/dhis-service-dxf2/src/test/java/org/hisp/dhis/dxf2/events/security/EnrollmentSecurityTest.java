@@ -477,6 +477,30 @@ public class EnrollmentSecurityTest
         enrollmentService.getEnrollment( importSummary.getReference() );
     }
 
+    @Test
+    public void testAddEnrollmentToOrgUnitWithoutProgramAccess()
+    {
+        programA.setPublicAccess( AccessStringHelper.DEFAULT );
+        manager.updateNoAcl( programA );
+        Enrollment en = createEnrollment( programA.getUid(), maleA.getUid() );
+        en.setOrgUnit( organisationUnitB.getUid() );
+        ImportSummary importSummary = enrollmentService.addEnrollment(
+            en, ImportOptions.getDefaultImportOptions() );
+
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertEquals( "Program is not assigned to this Organisation Unit: " + organisationUnitB.getUid(),
+            importSummary.getDescription() );
+
+        programA.setPublicAccess( AccessStringHelper.DEFAULT );
+        programA.getOrganisationUnits().add( organisationUnitB );
+        manager.updateNoAcl( programA );
+
+        importSummary = enrollmentService.addEnrollment(
+            en, ImportOptions.getDefaultImportOptions() );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+    }
+
     private Enrollment createEnrollment( String program, String person )
     {
         Enrollment enrollment = new Enrollment();
