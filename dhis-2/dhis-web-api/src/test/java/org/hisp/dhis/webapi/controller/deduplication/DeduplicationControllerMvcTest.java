@@ -277,6 +277,23 @@ public class DeduplicationControllerMvcTest
     }
 
     @Test
+    public void shouldThrowGetPotentialDuplicateByTeiNotExistingTei()
+        throws Exception
+    {
+        String tei = "tei";
+
+        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( tei ) )
+            .thenReturn( null );
+
+        mockMvc.perform( get( ENDPOINT + "/tei/" + tei )
+            .content( "{}" )
+            .contentType( MediaType.APPLICATION_JSON )
+            .accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isNotFound() )
+            .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
+    }
+
+    @Test
     public void shouldThrowGetPotentialDuplicateByTeiMissingReadAccess()
         throws Exception
     {

@@ -125,6 +125,8 @@ public class DeduplicationController
         BadRequestException,
         HttpStatusCodeException
     {
+        canReadTei( tei );
+
         checkDeduplicationStatusRequestParam( status );
 
         List<PotentialDuplicate> potentialDuplicateList = deduplicationService.getPotentialDuplicateByTei( tei,
