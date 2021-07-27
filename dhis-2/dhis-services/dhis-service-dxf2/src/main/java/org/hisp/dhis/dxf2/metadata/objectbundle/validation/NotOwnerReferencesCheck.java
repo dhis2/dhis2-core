@@ -119,6 +119,14 @@ public class NotOwnerReferencesCheck implements ValidationCheck
     private void checkReference( IdentifiableObject object, PreheatIdentifier identifier,
         List<PreheatErrorReport> preheatErrorReports, Property p )
     {
+        // This is a temporary solution needed since we have overloaded the
+        // "user" object in IdObject will be removed when we complete move over
+        // to the new sharing payload.
+        if ( "user".equals( p.getName() ) )
+        {
+            return;
+        }
+
         IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
 
         if ( refObject != null )

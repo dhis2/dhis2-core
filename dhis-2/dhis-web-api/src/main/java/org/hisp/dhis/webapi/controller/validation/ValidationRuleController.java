@@ -29,14 +29,12 @@ package org.hisp.dhis.webapi.controller.validation;
 
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
-import java.io.IOException;
 import java.util.List;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.feedback.Status;
@@ -56,6 +54,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Lists;
 
@@ -100,8 +99,8 @@ public class ValidationRuleController
     }
 
     @PostMapping( value = "/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getExpressionDescription( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
+    @ResponseBody
+    public WebMessage getExpressionDescription( @RequestBody String expression )
     {
         I18n i18n = i18nManager.getI18n();
 
@@ -118,6 +117,6 @@ public class ValidationRuleController
                 .setDescription( expressionService.getExpressionDescription( expression, VALIDATION_RULE_EXPRESSION ) );
         }
 
-        webMessageService.sendJson( message, response );
+        return message;
     }
 }

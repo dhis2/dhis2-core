@@ -66,6 +66,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
@@ -331,6 +332,9 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private DhisBearerJwtTokenAuthenticationEntryPoint bearerTokenEntryPoint;
 
+        @Autowired
+        private SessionRegistry sessionRegistry;
+
         public void configure( AuthenticationManagerBuilder auth )
             throws Exception
         {
@@ -378,11 +382,16 @@ public class DhisWebApiWebSecurityConfig
                 .anyRequest().authenticated();
         }
 
+        /**
+         * This method configures almost everything security related to /api
+         * endpoints
+         */
         protected void configure( HttpSecurity http )
             throws Exception
         {
             String[] activeProfiles = getApplicationContext().getEnvironment().getActiveProfiles();
 
+            // Special handling if we are running in embedded Jetty mode
             if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
             {
                 // This config will redirect unauthorized requests to standard
@@ -390,6 +399,20 @@ public class DhisWebApiWebSecurityConfig
                 http.antMatcher( "/**" )
                     .authorizeRequests( this::configureAccessRestrictions )
                     .httpBasic();
+
+                /*
+                 * Setup session handling, this is configured in
+                 *
+                 * @see:DhisWebCommonsWebSecurityConfig when running in
+                 * non-embedded Jetty mode.
+                 */
+                http
+                    .sessionManagement()
+                    .sessionFixation().migrateSession()
+                    .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
+                    .enableSessionUrlRewriting( false )
+                    .maximumSessions( 10 )
+                    .sessionRegistry( sessionRegistry );
             }
             else
             {

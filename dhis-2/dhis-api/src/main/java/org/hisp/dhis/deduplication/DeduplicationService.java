@@ -49,5 +49,5 @@ public interface DeduplicationService
 
     void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
 
-    void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate );
+    boolean isAutoMergeable( PotentialDuplicate potentialDuplicate );
 }

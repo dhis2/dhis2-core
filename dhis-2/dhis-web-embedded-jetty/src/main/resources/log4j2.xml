@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="warn">
     <Appenders>
-        <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="* %-5p %d{ISO8601} %m (%F [%t])%n"/>
+        <Console name="console" target="SYSTEM_OUT" follow="true">
+            <PatternLayout
+                    pattern="%d{HH:mm:ss.SSS} %highlight{${LOG_LEVEL_PATTERN:-%5p}}{FATAL=red blink, ERROR=red, WARN=yellow bold, INFO=green, DEBUG=green bold, TRACE=blue} [%15.15t] %style{%-40.40C{1.}}{cyan} : %m%n%throwable"/>
         </Console>
     </Appenders>
     <Loggers>
@@ -17,6 +18,7 @@
         <Logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>
         <Logger name="org.apache.activemq" level="error" additivity="true"/>
         <Logger name="org.hibernate" level="error" additivity="true"/>
+        <Logger name="io.debezium.connector.postgresql.PostgresTaskContext" level="error" additivity="true"/>
 
         <Root level="WARN">
             <AppenderRef ref="console"/>
