@@ -46,7 +46,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.access.AccessDeniedException;
 
 /**
@@ -67,8 +66,6 @@ public class SharingControllerTest
 
     private MockHttpServletRequest request = new MockHttpServletRequest();
 
-    private MockHttpServletResponse response = new MockHttpServletResponse();
-
     @InjectMocks
     private SharingController sharingController;
 
@@ -85,7 +82,7 @@ public class SharingControllerTest
         when( aclService.isClassShareable( eq( OrganisationUnit.class ) ) ).thenReturn( true );
         doReturn( organisationUnit ).when( manager ).get( eq( OrganisationUnit.class ), eq( "kkSjhdhks" ) );
 
-        sharingController.postSharing( "organisationUnit", "kkSjhdhks", response, request );
+        sharingController.postSharing( "organisationUnit", "kkSjhdhks", request );
     }
 
     @Test( expected = AccessDeniedException.class )
@@ -99,7 +96,7 @@ public class SharingControllerTest
         when( aclService.isClassShareable( eq( Category.class ) ) ).thenReturn( true );
         when( manager.get( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
 
-        sharingController.postSharing( "category", "kkSjhdhks", response, request );
+        sharingController.postSharing( "category", "kkSjhdhks", request );
     }
 
     @Test( expected = WebMessageException.class )
@@ -115,7 +112,7 @@ public class SharingControllerTest
 
         try
         {
-            sharingController.postSharing( "category", "kkSjhdhks", response, request );
+            sharingController.postSharing( "category", "kkSjhdhks", request );
         }
         catch ( WebMessageException e )
         {
