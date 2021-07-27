@@ -28,8 +28,10 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.wildfly.common.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.junit.After;
 import org.junit.Test;
@@ -48,10 +50,12 @@ public class SmsGatewayControllerTest extends DhisControllerConvenienceTest
     @After
     public void tearDown()
     {
-        if ( uid != null )
+        JsonArray gateways = GET( "/gateways" ).content().getArray( "gateways" );
+        for ( JsonObject gateway : gateways.asList( JsonObject.class ) )
         {
-            assertStatus( HttpStatus.OK, DELETE( "/gateways/" + uid ) );
+            assertStatus( HttpStatus.OK, DELETE( "/gateways/" + gateway.getString( "uid" ).string() ) );
         }
+        assertTrue( GET( "/gateways" ).content().getArray( "gateways" ).isEmpty() );
     }
 
     @Test
@@ -105,7 +109,6 @@ public class SmsGatewayControllerTest extends DhisControllerConvenienceTest
 
         assertWebMessage( "OK", 200, "OK", "Gateway removed successfully",
             DELETE( "/gateways/" + uid ).content( HttpStatus.OK ) );
-        uid = null;
     }
 
     @Test

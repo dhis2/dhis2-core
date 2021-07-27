@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -100,7 +101,7 @@ public class DefaultGatewayAdministrationService
 
         for ( SmsGatewayConfig persisted : persistedConfigs )
         {
-            if ( persisted.equals( config ) )
+            if ( Objects.equals( persisted.getUid(), config.getUid() ) )
             {
                 persisted.setDefault( true );
             }
