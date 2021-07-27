@@ -52,4 +52,9 @@ public interface JsonTypeReport extends JsonObject
     {
         return getList( "errorReports", JsonErrorReport.class );
     }
+
+    default JsonList<JsonImportSummary> getImportSummaries()
+    {
+        return getList( "importSummaries", JsonImportSummary.class );
+    }
 }

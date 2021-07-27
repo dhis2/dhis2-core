@@ -142,13 +142,13 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
             () -> new HttpResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) );
     }
 
-    public static void assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
+    public static JsonWebMessage assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
         JsonResponse actual )
     {
-        assertWebMessage( httpStatus, httpStatusCode, status, message, actual.as( JsonWebMessage.class ) );
+        return assertWebMessage( httpStatus, httpStatusCode, status, message, actual.as( JsonWebMessage.class ) );
     }
 
-    public static void assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
+    public static JsonWebMessage assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
         JsonWebMessage actual )
     {
         assertTrue( "response appears to be something other than a WebMessage: " + actual.toString(),
@@ -157,5 +157,6 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
         assertEquals( "unexpected HTTP status", httpStatus, actual.getHttpStatus() );
         assertEquals( "unexpected status", status, actual.getStatus() );
         assertEquals( "unexpected message", message, actual.getMessage() );
+        return actual;
     }
 }
