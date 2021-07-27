@@ -95,6 +95,7 @@ import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityIn
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -105,6 +106,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
@@ -505,12 +507,15 @@ public class TrackedEntityInstanceController
     }
 
     @PutMapping( "/{tei}/potentialduplicate" )
+    @ResponseStatus( value = HttpStatus.OK )
     public void updatePotentialDuplicateFlag(
         @PathVariable String tei,
-        @RequestParam boolean flag )
+        @RequestParam String flag )
         throws OperationNotAllowedException,
-        NotFoundException
+        NotFoundException,
+        BadRequestException
     {
+        boolean isPotentialDuplicate = parseInputFlag( flag );
 
         User user = currentUserService.getCurrentUser();
 
@@ -526,9 +531,22 @@ public class TrackedEntityInstanceController
                 "You're not authorized to access the TrackedEntityInstance with id: " + tei );
         }
 
-        trackedEntityInstance.setPotentialDuplicate( flag );
+        trackedEntityInstance.setPotentialDuplicate( isPotentialDuplicate );
 
         instanceService.updateTrackedEntityInstance( trackedEntityInstance );
+    }
+
+    private boolean parseInputFlag(String flag )
+        throws BadRequestException
+    {
+        if ( "true".equalsIgnoreCase( flag ) || "false".equalsIgnoreCase( flag ) )
+        {
+            return Boolean.parseBoolean( flag );
+        }
+        else
+        {
+            throw new BadRequestException( "Flag must be true or false" );
+        }
     }
 
     // -------------------------------------------------------------------------

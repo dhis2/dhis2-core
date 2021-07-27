@@ -180,6 +180,21 @@ public class TrackedEntityInstanceControllerTest
     }
 
     @Test
+    public void shouldThrowInvalidPotentialDuplicateFlag()
+        throws Exception
+    {
+        String uid = "uid";
+
+        mockMvc.perform( put( ENDPOINT + "/" + uid + "/potentialduplicate" )
+            .contentType( MediaType.APPLICATION_JSON ).param( "flag", "invalid flag" )
+            .content( "{}" ) )
+            .andExpect( status().isBadRequest() )
+            .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
+
+        verify( instanceService, times( 0 ) ).updateTrackedEntityInstance( trackedEntityInstance );
+    }
+
+    @Test
     public void shouldThrowFlagPotentialDuplicateMissingTeiAccess()
         throws Exception
     {
