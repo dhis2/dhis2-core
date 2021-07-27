@@ -143,6 +143,7 @@ public class ImportReport
     @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
     public void setTypeReports( List<TypeReport> typeReports )
     {
+        typeReportMap.clear();
         if ( typeReports != null )
         {
             typeReports.forEach( tr -> typeReportMap.put( tr.getKlass(), tr ) );
