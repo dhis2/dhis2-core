@@ -109,7 +109,7 @@ public class HibernatePotentialDuplicateStore
     public List<PotentialDuplicate> getAllByTei( String tei, DeduplicationStatus status )
     {
         Query<PotentialDuplicate> query = getTypedQuery(
-            "from PotentialDuplicate pr where pr.status in (:status) and pr.teiA = :tei or pr.teiB = :tei" );
+            "from PotentialDuplicate pr where pr.status in (:status) and ( pr.teiA = :tei or pr.teiB = :tei )" );
 
         query.setParameter( "tei", tei );
 

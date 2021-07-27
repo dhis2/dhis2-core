@@ -137,6 +137,21 @@ public class DeduplicationServiceIntegrationTest
     }
 
     @Test
+    public void testGetPotentialDuplicateByTeiDifferentStatus()
+    {
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
+        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
+        deduplicationService.addPotentialDuplicate( potentialDuplicate );
+
+        PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiB );
+        potentialDuplicate1.setStatus( DeduplicationStatus.MERGED );
+        deduplicationService.addPotentialDuplicate( potentialDuplicate1 );
+
+        assertEquals( Collections.singletonList( potentialDuplicate ),
+            deduplicationService.getPotentialDuplicateByTei( teiB, DeduplicationStatus.INVALID ) );
+    }
+
+    @Test
     public void testGetAllPotentialDuplicates()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
