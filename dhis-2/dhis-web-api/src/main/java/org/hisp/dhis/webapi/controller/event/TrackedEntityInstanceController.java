@@ -536,7 +536,7 @@ public class TrackedEntityInstanceController
         instanceService.updateTrackedEntityInstance( trackedEntityInstance );
     }
 
-    private boolean parseInputFlag(String flag )
+    private boolean parseInputFlag( String flag )
         throws BadRequestException
     {
         if ( "true".equalsIgnoreCase( flag ) || "false".equalsIgnoreCase( flag ) )
