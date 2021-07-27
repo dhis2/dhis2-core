@@ -28,21 +28,26 @@
 package org.hisp.dhis.deduplication;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service( "org.hisp.dhis.deduplication.DeduplicationService" )
+@RequiredArgsConstructor
 public class DefaultDeduplicationService
     implements DeduplicationService
 {
-
     private final PotentialDuplicateStore potentialDuplicateStore;
 
-    public DefaultDeduplicationService( PotentialDuplicateStore potentialDuplicateStore )
-    {
-        this.potentialDuplicateStore = potentialDuplicateStore;
-    }
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Override
     @Transactional( readOnly = true )
@@ -99,6 +104,80 @@ public class DefaultDeduplicationService
     public void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
         potentialDuplicateStore.update( potentialDuplicate );
+    }
+
+    @Override
+    public boolean isAutoMergeable( PotentialDuplicate potentialDuplicate )
+    {
+        TrackedEntityInstance trackedEntityInstanceA = Optional.ofNullable( trackedEntityInstanceService
+            .getTrackedEntityInstance( potentialDuplicate.getTeiA() ) )
+            .orElseThrow( () -> new PotentialDuplicateException(
+                "No tracked entity instance found with id '" + potentialDuplicate.getTeiA() + "'." ) );
+
+        TrackedEntityInstance trackedEntityInstanceB = Optional.ofNullable( trackedEntityInstanceService
+            .getTrackedEntityInstance( potentialDuplicate.getTeiB() ) )
+            .orElseThrow( () -> new PotentialDuplicateException(
+                "No tracked entity instance found with id '" + potentialDuplicate.getTeiB() + "'." ) );
+
+        if ( enrolledSameProgram( trackedEntityInstanceA, trackedEntityInstanceB ) )
+            return false;
+
+        if ( !trackedEntityInstanceA.getTrackedEntityType().equals( trackedEntityInstanceB.getTrackedEntityType() ) )
+        {
+            return false;
+        }
+
+        if ( trackedEntityInstanceA.isDeleted() || trackedEntityInstanceB.isDeleted() )
+        {
+            return false;
+        }
+
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA = trackedEntityInstanceA
+            .getTrackedEntityAttributeValues();
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB = trackedEntityInstanceB
+            .getTrackedEntityAttributeValues();
+
+        return !sameAttributesAreEquals( trackedEntityAttributeValueA, trackedEntityAttributeValueB );
+    }
+
+    private boolean sameAttributesAreEquals( Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA,
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB )
+    {
+        if ( trackedEntityAttributeValueA.isEmpty() || trackedEntityAttributeValueB.isEmpty() )
+        {
+            return false;
+        }
+
+        for ( TrackedEntityAttributeValue teavA : trackedEntityAttributeValueA )
+        {
+            for ( TrackedEntityAttributeValue teavB : trackedEntityAttributeValueB )
+            {
+                if ( teavA.getAttribute().equals( teavB.getAttribute() )
+                    && !teavA.getValue().equals( teavB.getValue() ) )
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean enrolledSameProgram( TrackedEntityInstance trackedEntityInstanceA,
+        TrackedEntityInstance trackedEntityInstanceB )
+    {
+        if ( !trackedEntityInstanceA.getProgramInstances().isEmpty()
+            && !trackedEntityInstanceB.getProgramInstances().isEmpty() )
+        {
+            for ( ProgramInstance programInstanceA : trackedEntityInstanceA.getProgramInstances() )
+            {
+                for ( ProgramInstance programInstanceB : trackedEntityInstanceB.getProgramInstances() )
+                {
+                    if ( programInstanceA.getProgram().equals( programInstanceB.getProgram() ) )
+                        return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
