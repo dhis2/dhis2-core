@@ -27,10 +27,15 @@
  */
 package org.hisp.dhis.sharing;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.feedback.ErrorReport;
 
 @Data
 @Builder
@@ -39,14 +44,28 @@ import lombok.NoArgsConstructor;
 public class CascadeSharingParameters
 {
     /**
-     * TRUE: do not save anything, just return errors if any FALSE: save data if
-     * possible ( depends on atomic flag value )
+     * TRUE: do not save anything, just return errors if any
+     * <p>
+     * FALSE: save data if possible ( depends on atomic flag value )
      */
     private boolean dryRun = false;
 
     /**
-     * TRUE: Fail on errors, do not save anything. FALSE: Ignore errors, just
-     * save the valid data.
+     * TRUE: Fail on errors, do not save anything.
+     * <p>
+     * FALSE: Ignore errors, just save the valid data.
      */
     private boolean atomic = false;
+
+    /**
+     * TRUE: publicAccess from source object will be cascade shared to all
+     * children.
+     * <p>
+     * FALSE: ignore source object publicAccess.
+     */
+    private boolean sharePublicAccess = false;
+
+    List<ErrorReport> errorReports = new ArrayList<>();
+
+    List<String> summaryReports = new ArrayList<>();
 }

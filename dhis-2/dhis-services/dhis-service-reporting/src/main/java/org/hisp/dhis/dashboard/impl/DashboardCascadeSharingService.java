@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.dashboard.impl;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.NonNull;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.sharing.AbstractCascadeSharingService;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
@@ -61,20 +61,14 @@ public class DashboardCascadeSharingService
     @Transactional
     public List<ErrorReport> cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
         dashboard.getItems().forEach( dashboardItem -> {
             switch ( dashboardItem.getType() )
             {
             case VISUALIZATION:
-                errorReports.addAll( mergeSharing( dashboard, dashboardItem.getVisualization() ) );
-                errorReports.addAll(
-                    visualizationCascadeSharingService.cascadeSharing( dashboardItem.getVisualization(), parameters ) );
+                handleVisualization( dashboard, dashboardItem, parameters );
                 break;
             case MAP:
-                errorReports.addAll( mergeSharing( dashboard, dashboardItem.getMap() ) );
-                break;
-            case REPORT_TABLE:
+                mergeSharing( dashboard, dashboardItem.getMap(), parameters );
                 break;
             case EVENT_REPORT:
                 break;
@@ -89,11 +83,19 @@ public class DashboardCascadeSharingService
             }
         } );
 
-        if ( canUpdateSharing( parameters, errorReports ) )
+        if ( canUpdate( parameters ) )
         {
             manager.update( dashboard );
         }
 
-        return errorReports;
+        return parameters.getErrorReports();
+    }
+
+    private void handleVisualization( Dashboard dashboard, DashboardItem dashboardItem,
+        CascadeSharingParameters parameters )
+    {
+        dashboardItem.setVisualization( mergeSharing( dashboard,
+            dashboardItem.getVisualization(), parameters ) );
+        visualizationCascadeSharingService.cascadeSharing( dashboardItem.getVisualization(), parameters );
     }
 }

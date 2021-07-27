@@ -37,6 +37,7 @@ import java.util.List;
 import org.apache.commons.collections.SetUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -130,11 +131,13 @@ public class DashboardCascadeSharingTest
     @Test
     public void testCascadeShareVisualization()
     {
-        objectManager.save( dataElementA );
+        dataElementA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        objectManager.save( dataElementA, false );
 
         Visualization vzA = createVisualization( 'A' );
-        addDimensionItemToVisualization( vzA, dataElementA.getUid() );
-        visualizationService.save( vzA );
+        addDimensionItemToVisualization( vzA, dataElementA.getUid(), DimensionItemType.DATA_ELEMENT );
+        vzA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        objectManager.save( vzA, false );
 
         DashboardItem dashboardItemA = createDashboardItem( "A" );
         dashboardItemA.setVisualization( vzA );
@@ -158,12 +161,13 @@ public class DashboardCascadeSharingTest
     @Test
     public void testCascadeShareVisualizationError()
     {
-        objectManager.save( dataElementA );
+        dataElementA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        objectManager.save( dataElementA, false );
 
         Visualization vzA = createVisualization( 'A' );
-
-        addDimensionItemToVisualization( vzA, dataElementA.getUid() );
-        visualizationService.save( vzA );
+        vzA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        addDimensionItemToVisualization( vzA, dataElementA.getUid(), DimensionItemType.DATA_ELEMENT );
+        objectManager.save( vzA, false );
 
         DashboardItem dashboardItemA = createDashboardItem( "A" );
         dashboardItemA.setVisualization( vzA );
@@ -249,20 +253,21 @@ public class DashboardCascadeSharingTest
         assertFalse( aclService.canRead( userB, dashboardItemA.getMap() ) );
     }
 
-    private void addDimensionItemToVisualization( Visualization visualization, final String dimensionItem )
+    private void addDimensionItemToVisualization( Visualization visualization, final String dimensionItem,
+        DimensionItemType type )
     {
         final List<String> rowsDimensions = asList( "dx" );
-        final List<DimensionalItemObject> dimensionalItemObjects = asList(
-            baseDimensionalItemObjectStub( dimensionItem ) );
+        final List<DimensionalItemObject> dimensionalObjects = asList(
+            baseDimensionalItemObjectStub( dimensionItem, type ) );
 
         visualization.setRowDimensions( rowsDimensions );
-        visualization.setGridRows( asList( dimensionalItemObjects ) );
+        visualization.setGridColumns( asList( dimensionalObjects ) );
     }
 
-    private BaseDimensionalItemObject baseDimensionalItemObjectStub( final String dimensionItem )
+    private DimensionalItemObject baseDimensionalItemObjectStub( final String dimensionItem, DimensionItemType type )
     {
         final BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject( dimensionItem );
-        baseDimensionalItemObject.setDescription( "display " + dimensionItem );
+        baseDimensionalItemObject.setDimensionItemType( type );
         return baseDimensionalItemObject;
     }
 

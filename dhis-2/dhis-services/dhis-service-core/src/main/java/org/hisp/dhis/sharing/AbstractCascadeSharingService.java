@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.sharing;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -45,37 +44,41 @@ public abstract class AbstractCascadeSharingService
      * target object's sharing. Do nothing if target sharing object has
      * publicAccess enabled.
      */
-    protected <T extends IdentifiableObject> List<ErrorReport> mergeSharing( T source, T target )
+    protected <S extends IdentifiableObject, T extends IdentifiableObject> T mergeSharing( S source, T target,
+        CascadeSharingParameters parameters )
     {
         if ( AccessStringHelper.canRead( target.getSharing().getPublicAccess() ) )
         {
-            return Collections.emptyList();
+            return target;
         }
 
-        List<ErrorReport> errorReports = new ArrayList<>();
+        mergeAccessObject( source, User.class, source.getSharing().getUsers(),
+            target.getSharing().getUsers(), parameters );
+        mergeAccessObject( source, UserGroup.class, source.getSharing().getUserGroups(),
+            target.getSharing().getUserGroups(), parameters );
 
-        errorReports.addAll( mergeAccessObject( source, User.class, source.getSharing().getUsers(),
-            target.getSharing().getUsers() ) );
-        errorReports.addAll( mergeAccessObject( source, UserGroup.class, source.getSharing().getUserGroups(),
-            target.getSharing().getUserGroups() ) );
-
-        return errorReports;
+        return target;
     }
 
     /**
      * Merge {@link AccessObject} from source to target
      * {@code Map<String,AccessObject>}
      */
-    private <T extends AccessObject> List<ErrorReport> mergeAccessObject( IdentifiableObject sourceObject,
-        Class accessOwnerKlass, java.util.Map<String, T> source, java.util.Map<String, T> target )
+    private <T extends AccessObject> Map<String, T> mergeAccessObject( IdentifiableObject sourceObject,
+        Class accessOwnerKlass, Map<String, T> source, Map<String, T> target, CascadeSharingParameters parameters )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
+        if ( MapUtils.isEmpty( source ) )
+        {
+            return target;
+        }
+
         source.values().forEach( sourceAccess -> {
 
             if ( !AccessStringHelper.canRead( sourceAccess.getAccess() ) )
             {
-                errorReports.add( new ErrorReport( sourceObject.getClass(), ErrorCode.E3019, accessOwnerKlass,
-                    sourceAccess.getId(), sourceObject.getClass(), sourceObject.getId() ) );
+                parameters.getErrorReports()
+                    .add( new ErrorReport( sourceObject.getClass(), ErrorCode.E3019, accessOwnerKlass,
+                        sourceAccess.getId(), sourceObject.getClass(), sourceObject.getId() ) );
                 return;
             }
 
@@ -87,14 +90,15 @@ public abstract class AbstractCascadeSharingService
                 }
             }
 
+            sourceAccess.setAccess( AccessStringHelper.READ );
             target.put( sourceAccess.getId(), sourceAccess );
         } );
 
-        return errorReports;
+        return target;
     }
 
-    protected boolean canUpdateSharing( CascadeSharingParameters parameters, List<ErrorReport> errorReports )
+    protected boolean canUpdate( CascadeSharingParameters parameters )
     {
-        return !parameters.isDryRun() || (parameters.isAtomic() || errorReports.isEmpty());
+        return !parameters.isDryRun() || (parameters.isAtomic() || parameters.getErrorReports().isEmpty());
     }
 }

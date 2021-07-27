@@ -33,8 +33,7 @@ import java.util.List;
 import lombok.NonNull;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -64,39 +63,29 @@ public class VisualizationCascadeSharingService
 
         CachingMap<String, BaseIdentifiableObject> mapObjects = new CachingMap<>();
 
-        for ( DimensionalObject column : visualization.getColumns() )
+        List<IdentifiableObject> listUpdateObjects = new ArrayList<>();
+
+        visualization.getGridColumns().forEach( columns -> columns.forEach( item -> {
+            BaseIdentifiableObject dimensionObject = mapObjects.get( item.getDimensionItem(),
+                () -> manager.get( item.getDimensionItem() ) );
+
+            dimensionObject = mergeSharing( visualization, dimensionObject, parameters );
+
+            listUpdateObjects.add( dimensionObject );
+        } ) );
+
+        visualization.getGridRows().forEach( columns -> columns.forEach( item -> {
+            BaseIdentifiableObject dimensionObject = mapObjects.get( item.getDimensionItem(),
+                () -> manager.get( item.getDimensionItem() ) );
+
+            dimensionObject = mergeSharing( visualization, dimensionObject, parameters );
+
+            listUpdateObjects.add( dimensionObject );
+        } ) );
+
+        if ( canUpdate( parameters ) )
         {
-            for ( DimensionalItemObject item : column.getItems() )
-            {
-                BaseIdentifiableObject dimensionObject = mapObjects.get( item.getDimensionItem(),
-                    manager.get( item.getDimensionItem() ) );
-                errorReports.addAll( mergeSharing( visualization, dimensionObject ) );
-
-                if ( canUpdateSharing( parameters, errorReports ) )
-                {
-                    manager.update( dimensionObject );
-                }
-            }
-        }
-
-        for ( DimensionalObject row : visualization.getRows() )
-        {
-            for ( DimensionalItemObject item : row.getItems() )
-            {
-                BaseIdentifiableObject dimensionObject = mapObjects.get( item.getDimensionItem(),
-                    manager.get( item.getDimensionItem() ) );
-                errorReports.addAll( mergeSharing( visualization, dimensionObject ) );
-
-                if ( canUpdateSharing( parameters, errorReports ) )
-                {
-                    manager.update( dimensionObject );
-                }
-            }
-        }
-
-        if ( canUpdateSharing( parameters, errorReports ) )
-        {
-            manager.update( visualization );
+            manager.update( listUpdateObjects );
         }
 
         return errorReports;
