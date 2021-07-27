@@ -55,6 +55,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -270,6 +271,13 @@ public class CrudControllerAdvice
         HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.badRequest( exception.getMessage() ), response, request );
+    }
+
+    @ExceptionHandler( { ConflictException.class } )
+    public void handleConflictRequest( Exception exception, HttpServletResponse response,
+        HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.conflict( exception.getMessage() ), response, request );
     }
 
     @ExceptionHandler( MetadataVersionException.class )

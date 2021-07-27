@@ -60,6 +60,7 @@ import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -148,12 +149,14 @@ public class DeduplicationController
     }
 
     @PostMapping
+    @ResponseStatus( value = HttpStatus.OK )
     public PotentialDuplicate postPotentialDuplicate(
         @RequestBody PotentialDuplicate potentialDuplicate )
         throws HttpStatusCodeException,
         OperationNotAllowedException,
         ConflictException,
-        NotFoundException
+        NotFoundException,
+        BadRequestException
     {
         validatePotentialDuplicate( potentialDuplicate );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
@@ -161,6 +164,7 @@ public class DeduplicationController
     }
 
     @PutMapping( value = "/{id}" )
+    @ResponseStatus( value = HttpStatus.OK )
     public void updatePotentialDuplicate( @PathVariable String id, @RequestParam( value = "status" ) String status )
         throws NotFoundException,
         HttpStatusCodeException,
@@ -183,9 +187,9 @@ public class DeduplicationController
     {
         if ( deduplicationStatus == DeduplicationStatus.MERGED )
             throw new BadRequestException(
-                "Bad request. Can't update a potential duplicate to " + DeduplicationStatus.MERGED.name() );
+                "Can't update a potential duplicate to " + DeduplicationStatus.MERGED.name() );
         if ( potentialDuplicate.getStatus() == DeduplicationStatus.MERGED )
-            throw new BadRequestException( "Bad request. Can't update a potential duplicate that is already "
+            throw new BadRequestException( "Can't update a potential duplicate that is already "
                 + DeduplicationStatus.MERGED.name() );
     }
 
@@ -196,7 +200,7 @@ public class DeduplicationController
             .noneMatch( ds -> ds.name().equals( status.toUpperCase() ) ) )
         {
             throw new BadRequestException(
-                "Bad Request. Valid deduplication status are : " + Arrays.stream( DeduplicationStatus.values() )
+                "Valid deduplication status are : " + Arrays.stream( DeduplicationStatus.values() )
                     .map( Object::toString ).collect( Collectors.joining( "," ) ) );
         }
     }
@@ -211,7 +215,8 @@ public class DeduplicationController
     private void validatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
         throws OperationNotAllowedException,
         ConflictException,
-        NotFoundException
+        NotFoundException,
+        BadRequestException
     {
         checkValidAndCanReadTei( potentialDuplicate.getTeiA(), "teiA" );
 
@@ -232,17 +237,17 @@ public class DeduplicationController
 
     private void checkValidAndCanReadTei( String tei, String teiFieldName )
         throws OperationNotAllowedException,
-        ConflictException,
-        NotFoundException
+        NotFoundException,
+        BadRequestException
     {
         if ( tei == null )
         {
-            throw new ConflictException( "Missing required input property '" + teiFieldName + "'" );
+            throw new BadRequestException( "Missing required input property '" + teiFieldName + "'" );
         }
 
         if ( !CodeGenerator.isValidUid( tei ) )
         {
-            throw new ConflictException( "'" + tei + "' is not valid value for property '" + teiFieldName + "'" );
+            throw new BadRequestException( "'" + tei + "' is not valid value for property '" + teiFieldName + "'" );
         }
 
         canReadTei( tei );
