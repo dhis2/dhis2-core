@@ -177,33 +177,51 @@ public class WebTestConfiguration
         JobConfigurationService jobConfigurationService,
         MessageService messageService, LeaderManager leaderManager )
     {
-        return new AbstractSchedulingManager( jobService, jobConfigurationService, messageService, leaderManager )
-        {
-            @Override
-            public void schedule( JobConfiguration configuration )
-            {
-                // we don't run it
-            }
-
-            @Override
-            public void scheduleWithStartTime( JobConfiguration configuration, Date startTime )
-            {
-                // we don't run it
-            }
-
-            @Override
-            public void stop( JobConfiguration configuration )
-            {
-                // its either never started or we don't support stop (silent)
-            }
-
-            @Override
-            public boolean executeNow( JobConfiguration configuration )
-            {
-                execute( configuration );
-                return true;
-            }
-        };
+        return new TestSchedulingManager( jobService, jobConfigurationService, messageService, leaderManager );
     }
 
+    public static class TestSchedulingManager extends AbstractSchedulingManager
+    {
+        private boolean enabled;
+
+        public TestSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
+            MessageService messageService, LeaderManager leaderManager )
+        {
+            super( jobService, jobConfigurationService, messageService, leaderManager );
+        }
+
+        @Override
+        public void schedule( JobConfiguration configuration )
+        {
+            // we don't run it
+        }
+
+        @Override
+        public void scheduleWithStartTime( JobConfiguration configuration, Date startTime )
+        {
+            // we don't run it
+        }
+
+        @Override
+        public void stop( JobConfiguration configuration )
+        {
+            // its either never started or we don't support stop (silent)
+        }
+
+        @Override
+        public boolean executeNow( JobConfiguration configuration )
+        {
+            if ( enabled )
+            {
+                execute( configuration );
+            }
+            return true;
+        }
+
+        public void setEnabled( boolean enabled )
+        {
+
+            this.enabled = enabled;
+        }
+    }
 }
