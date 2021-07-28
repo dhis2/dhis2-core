@@ -41,15 +41,17 @@ import java.util.function.Predicate;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -61,7 +63,6 @@ import org.hisp.dhis.schema.descriptors.RelationshipSchemaDescriptor;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -71,6 +72,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -79,6 +81,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping( value = RelationshipSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class RelationshipController
 {
 
@@ -93,19 +96,6 @@ public class RelationshipController
     private final ProgramInstanceService programInstanceService;
 
     private final ProgramStageInstanceService programStageInstanceService;
-
-    private final WebMessageService webMessageService;
-
-    public RelationshipController( RelationshipService relationshipService,
-        TrackedEntityInstanceService trackedEntityInstanceService, ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService, WebMessageService webMessageService )
-    {
-        this.relationshipService = relationshipService;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.programInstanceService = programInstanceService;
-        this.programStageInstanceService = programStageInstanceService;
-        this.webMessageService = webMessageService;
-    }
 
     // -------------------------------------------------------------------------
     // READ
@@ -183,10 +173,11 @@ public class RelationshipController
     // -------------------------------------------------------------------------
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    public void postRelationshipJson(
+    @ResponseBody
+    public WebMessage postRelationshipJson(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
+        HttpServletRequest request )
         throws IOException
     {
         importOptions.setStrategy( strategy );
@@ -197,14 +188,15 @@ public class RelationshipController
             .filter( filterImportSummary( importOptions ) )
             .forEach( setImportSummaryHref( request ) );
 
-        webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+        return WebMessageUtils.importSummaries( importSummaries );
     }
 
     @PostMapping( value = "", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
-    public void postRelationshipXml(
+    @ResponseBody
+    public WebMessage postRelationshipXml(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
+        HttpServletRequest request )
         throws IOException
     {
         importOptions.setStrategy( strategy );
@@ -215,7 +207,7 @@ public class RelationshipController
             .filter( filterImportSummary( importOptions ) )
             .forEach( setImportSummaryHref( request ) );
 
-        webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+        return WebMessageUtils.importSummaries( importSummaries );
     }
 
     // -------------------------------------------------------------------------
@@ -223,31 +215,45 @@ public class RelationshipController
     // -------------------------------------------------------------------------
 
     @PutMapping( path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    public void updateRelationshipJson(
+    @ResponseBody
+    public WebMessage updateRelationshipJson(
         @PathVariable String id,
         ImportOptions importOptions,
         HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
+        Relationship relationship = relationshipService.getRelationshipByUid( id );
+
+        if ( relationship == null )
+        {
+            return notFound( "No relationship with id '" + id + "' was found." );
+        }
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = relationshipService.updateRelationshipJson( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return WebMessageUtils.importSummary( importSummary );
     }
 
     @PutMapping( path = "/{id}", consumes = MediaType.APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
-    public ImportConflicts updateRelationshipXml(
+    @ResponseBody
+    public WebMessage updateRelationshipXml(
         @PathVariable String id,
         ImportOptions importOptions,
         HttpServletRequest request )
         throws IOException
     {
+        Relationship relationship = relationshipService.getRelationshipByUid( id );
+
+        if ( relationship == null )
+        {
+            return notFound( "No relationship with id '" + id + "' was found." );
+        }
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = relationshipService.updateRelationshipXml( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        return importSummary;
+        return WebMessageUtils.importSummary( importSummary ).withPlainResponseBefore( DhisApiVersion.V37 );
     }
 
     // -------------------------------------------------------------------------
@@ -255,18 +261,18 @@ public class RelationshipController
     // -------------------------------------------------------------------------
 
     @DeleteMapping( value = "/{id}" )
-    public void deleteRelationship( @PathVariable String id, HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage deleteRelationship( @PathVariable String id, HttpServletRequest request,
+        HttpServletResponse response )
     {
         Relationship relationship = relationshipService.getRelationshipByUid( id );
 
         if ( relationship == null )
         {
-            throw new WebMessageException( notFound( "No relationship with id '" + id + "' was found." ) );
+            return notFound( "No relationship with id '" + id + "' was found." );
         }
 
-        webMessageService.send( WebMessageUtils.importSummary( relationshipService.deleteRelationship( id ) ), response,
-            request );
+        return WebMessageUtils.importSummary( relationshipService.deleteRelationship( id ) );
     }
 
     // -------------------------------------------------------------------------

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.DxfNamespaces;
@@ -41,7 +42,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "relationships", namespace = DxfNamespaces.DXF_2_0 )
 public class Relationships
 {
-    private List<Relationship> relationships;
+    private List<Relationship> relationships = new ArrayList<>();
 
     public Relationships()
     {
