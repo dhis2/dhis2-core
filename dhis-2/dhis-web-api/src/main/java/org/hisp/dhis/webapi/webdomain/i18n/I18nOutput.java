@@ -25,15 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.webapi.webdomain.i18n;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-
 import lombok.Data;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 
 /**
  * @author Morten Olav Hansen

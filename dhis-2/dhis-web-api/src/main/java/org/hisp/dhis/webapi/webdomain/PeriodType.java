@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.webdomain;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import lombok.Data;
 
@@ -38,7 +38,7 @@ import lombok.Data;
  * @author Morten Olav Hansen
  */
 @Data
-@JsonRootName( value = "periodType", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "periodType", namespace = DxfNamespaces.DXF_2_0 )
 public class PeriodType
 {
     @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
