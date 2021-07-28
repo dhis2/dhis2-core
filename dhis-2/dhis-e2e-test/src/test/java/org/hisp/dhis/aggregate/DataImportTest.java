@@ -95,7 +95,6 @@ public class DataImportTest
                 new QueryParamsBuilder().add( "importReportMode=FULL" ) );
 
         response.validate().statusCode( 200 )
-            .rootPath( "response" )
             .body( "status", equalTo( "SUCCESS" ) )
             .body( "conflicts", empty() )
             .body( "importCount", notNullValue() )
@@ -156,7 +155,6 @@ public class DataImportTest
         ApiResponse response = dataValueSetActions.post( importedPayload );
 
         response.validate().statusCode( 200 )
-            .rootPath( "response" )
             .body( "status", equalTo( "SUCCESS" ) )
             .body( "conflicts", empty() )
             .body( "importCount", notNullValue() )
