@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -99,7 +99,7 @@ public class SharingControllerTest
         sharingController.postSharing( "category", "kkSjhdhks", request );
     }
 
-    @Test( expected = WebMessageException.class )
+    @Test
     public void systemDefaultMetadata()
         throws Exception
     {
@@ -110,15 +110,8 @@ public class SharingControllerTest
         when( aclService.isClassShareable( eq( Category.class ) ) ).thenReturn( true );
         when( manager.get( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
 
-        try
-        {
-            sharingController.postSharing( "category", "kkSjhdhks", request );
-        }
-        catch ( WebMessageException e )
-        {
-            assertThat( e.getWebMessage().getMessage(),
-                containsString( "Sharing settings of system default metadata object" ) );
-            throw e;
-        }
+        WebMessage message = sharingController.postSharing( "category", "kkSjhdhks", request );
+        assertThat( message.getMessage(),
+            containsString( "Sharing settings of system default metadata object" ) );
     }
 }
