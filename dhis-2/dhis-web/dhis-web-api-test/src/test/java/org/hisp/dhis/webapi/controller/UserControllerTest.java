@@ -170,15 +170,15 @@ public class UserControllerTest extends DhisControllerConvenienceTest
         JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
 
         assertWebMessage( "OK", 200, "OK", null,
-            PUT( "/users/" + peter.getUid(), user.toString() ).content( HttpStatus.OK ) );
+            PUT( "/38/users/" + peter.getUid(), user.toString() ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPutJsonObject_Pre37()
+    public void testPutJsonObject_Pre38()
     {
-        JsonObject user = GET( "/36/users/{id}", peter.getUid() ).content();
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
 
-        JsonImportSummary summary = PUT( "/36/users/" + peter.getUid(), user.toString() )
+        JsonImportSummary summary = PUT( "/37/users/" + peter.getUid(), user.toString() )
             .content( HttpStatus.OK ).as( JsonImportSummary.class );
         assertEquals( "ImportReport", summary.getResponseType() );
         assertEquals( "OK", summary.getStatus() );
@@ -189,7 +189,7 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testPutXmlObject()
     {
-        HttpResponse response = PUT( "/users/" + peter.getUid(), Body( "<user></user>" ),
+        HttpResponse response = PUT( "/38/users/" + peter.getUid(), Body( "<user></user>" ),
             ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
         assertEquals( HttpStatus.CONFLICT, response.status() );
         String content = response.content( MediaType.APPLICATION_XML );
@@ -198,9 +198,9 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPutXmlObject_Pre37()
+    public void testPutXmlObject_Pre38()
     {
-        HttpResponse response = PUT( "/36/users/" + peter.getUid(), Body( "<user></user>" ),
+        HttpResponse response = PUT( "/37/users/" + peter.getUid(), Body( "<user></user>" ),
             ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
         assertEquals( HttpStatus.CONFLICT, response.status() );
         String content = response.content( MediaType.APPLICATION_XML );

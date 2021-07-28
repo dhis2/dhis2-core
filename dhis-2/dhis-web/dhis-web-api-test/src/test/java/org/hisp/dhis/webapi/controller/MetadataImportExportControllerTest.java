@@ -53,7 +53,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
     public void testPostJsonMetadata()
     {
         assertWebMessage( "OK", 200, "OK", null,
-            POST( "/metadata",
+            POST( "/38/metadata",
                 "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}]}" )
                     .content( HttpStatus.OK ) );
     }
@@ -62,7 +62,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
     public void testPostJsonMetadata_Empty()
     {
         assertWebMessage( "OK", 200, "OK", null,
-            POST( "/metadata", "{}" ).content( HttpStatus.OK ) );
+            POST( "/38/metadata", "{}" ).content( HttpStatus.OK ) );
     }
 
     @Test
@@ -77,7 +77,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
     @Test
     public void testPostJsonMetadata_Pre38()
     {
-        JsonObject report = POST( "/36/metadata",
+        JsonObject report = POST( "/37/metadata",
             "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}]}" )
                 .content( HttpStatus.OK );
         assertEquals( "OK", report.getString( "status" ).string() );
@@ -87,7 +87,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
     public void testPostCsvMetadata()
     {
         assertWebMessage( "OK", 200, "OK", null,
-            POST( "/metadata?classKey=ORGANISATION_UNIT", Body( "," ), ContentType( "application/csv" ) )
+            POST( "/38/metadata?classKey=ORGANISATION_UNIT", Body( "," ), ContentType( "application/csv" ) )
                 .content( HttpStatus.OK ) );
     }
 
@@ -102,7 +102,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
     @Test
     public void testPostCsvMetadata_Pre38()
     {
-        JsonObject report = POST( "/36/metadata?classKey=ORGANISATION_UNIT", Body( "," ),
+        JsonObject report = POST( "/37/metadata?classKey=ORGANISATION_UNIT", Body( "," ),
             ContentType( "application/csv" ) )
                 .content( HttpStatus.OK );
         assertEquals( "OK", report.getString( "status" ).string() );
@@ -112,7 +112,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
     public void testPostGmlMetadata()
     {
         assertWebMessage( "OK", 200, "OK", null,
-            POST( "/metadata/gml", Body( "<metadata></metadata>" ),
+            POST( "/38/metadata/gml", Body( "<metadata></metadata>" ),
                 ContentType( "application/xml" ) ).content( HttpStatus.OK ) );
     }
 
@@ -127,7 +127,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
     @Test
     public void testPostGmlMetadata_Pre38()
     {
-        JsonObject report = POST( "/36/metadata/gml", Body( "<metadata></metadata>" ),
+        JsonObject report = POST( "/37/metadata/gml", Body( "<metadata></metadata>" ),
             ContentType( "application/xml" ) ).content( HttpStatus.OK );
         assertEquals( "OK", report.getString( "status" ).string() );
         assertEquals( "ImportReport", report.getString( "responseType" ).string() );
@@ -136,7 +136,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
     @Test
     public void testPostXmlMetadata()
     {
-        HttpResponse response = POST( "/metadata", Body( "<metadata></metadata>" ),
+        HttpResponse response = POST( "/38/metadata", Body( "<metadata></metadata>" ),
             ContentType( "application/xml" ), Accept( "application/xml" ) );
         assertEquals( HttpStatus.OK, response.status() );
         assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<webMessage" ) );
@@ -154,7 +154,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
     @Test
     public void testPostXmlMetadata_Pre38()
     {
-        HttpResponse response = POST( "/36/metadata", Body( "<metadata></metadata>" ),
+        HttpResponse response = POST( "/37/metadata", Body( "<metadata></metadata>" ),
             ContentType( "application/xml" ), Accept( "application/xml" ) );
         assertEquals( HttpStatus.OK, response.status() );
         assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<importReport" ) );

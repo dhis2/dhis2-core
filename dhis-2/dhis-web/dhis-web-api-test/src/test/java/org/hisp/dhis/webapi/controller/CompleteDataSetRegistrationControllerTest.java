@@ -52,13 +52,13 @@ public class CompleteDataSetRegistrationControllerTest extends DhisControllerCon
     public void testPostCompleteRegistrationsJson()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
-            POST( "/completeDataSetRegistrations", "{}" ).content( HttpStatus.CONFLICT ) );
+            POST( "/38/completeDataSetRegistrations", "{}" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testPostCompleteRegistrationsJson_Pre37()
+    public void testPostCompleteRegistrationsJson_Pre38()
     {
-        JsonImportSummary summary = POST( "/36/completeDataSetRegistrations", "{}" )
+        JsonImportSummary summary = POST( "/37/completeDataSetRegistrations", "{}" )
             .content( HttpStatus.CONFLICT ).as( JsonImportSummary.class );
         assertEquals( "ImportSummary", summary.getResponseType() );
         assertEquals( "ERROR", summary.getStatus() );
@@ -67,7 +67,7 @@ public class CompleteDataSetRegistrationControllerTest extends DhisControllerCon
     @Test
     public void testPostCompleteRegistrationsXml()
     {
-        HttpResponse response = POST( "/completeDataSetRegistrations",
+        HttpResponse response = POST( "/38/completeDataSetRegistrations",
             Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),
             Accept( CONTENT_TYPE_XML ) );
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -76,9 +76,9 @@ public class CompleteDataSetRegistrationControllerTest extends DhisControllerCon
     }
 
     @Test
-    public void testPostCompleteRegistrationsXml_Pre37()
+    public void testPostCompleteRegistrationsXml_Pre38()
     {
-        HttpResponse response = POST( "/36/completeDataSetRegistrations",
+        HttpResponse response = POST( "/37/completeDataSetRegistrations",
             Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),
             Accept( CONTENT_TYPE_XML ) );
         assertEquals( HttpStatus.CONFLICT, response.status() );

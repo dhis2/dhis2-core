@@ -106,7 +106,7 @@ public class PredictionController
 
             WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.OK );
             webMessage.setResponse( predictionSummary );
-            return webMessage.withPlainResponseBefore( DhisApiVersion.V37 );
+            return webMessage.withPlainResponseBefore( DhisApiVersion.V38 );
         }
     }
 }

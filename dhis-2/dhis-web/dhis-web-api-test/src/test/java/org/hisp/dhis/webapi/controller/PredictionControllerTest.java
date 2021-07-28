@@ -45,13 +45,13 @@ public class PredictionControllerTest extends DhisControllerConvenienceTest
     public void testRunPredictors()
     {
         assertWebMessage( "OK", 200, "OK", null,
-            POST( "/predictions?startDate=2020-01-01&endDate=2021-01-01" ).content( HttpStatus.OK ) );
+            POST( "/38/predictions?startDate=2020-01-01&endDate=2021-01-01" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testRunPredictors_Pre37()
+    public void testRunPredictors_Pre38()
     {
-        JsonObject summary = POST( "/36/predictions?startDate=2020-01-01&endDate=2021-01-01" ).content( HttpStatus.OK );
+        JsonObject summary = POST( "/37/predictions?startDate=2020-01-01&endDate=2021-01-01" ).content( HttpStatus.OK );
         assertEquals( "SUCCESS", summary.getString( "status" ).string() );
         assertEquals( 0, summary.getNumber( "predictors" ).intValue() );
     }

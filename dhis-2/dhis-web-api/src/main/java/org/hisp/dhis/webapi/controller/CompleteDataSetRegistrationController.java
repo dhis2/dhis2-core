@@ -207,7 +207,7 @@ public class CompleteDataSetRegistrationController
         ImportSummary summary = registrationExchangeService
             .saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
-        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V37 );
+        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @PostMapping( consumes = CONTENT_TYPE_JSON, produces = CONTENT_TYPE_JSON )
@@ -223,7 +223,7 @@ public class CompleteDataSetRegistrationController
         ImportSummary summary = registrationExchangeService
             .saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
-        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V37 );
+        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     // -------------------------------------------------------------------------

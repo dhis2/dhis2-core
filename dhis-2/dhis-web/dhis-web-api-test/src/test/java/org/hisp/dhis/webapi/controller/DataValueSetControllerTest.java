@@ -59,13 +59,13 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     public void testPostJsonDataValueSet_Async()
     {
         assertWebMessage( "OK", 200, "OK", "Initiated dataValueImport",
-            POST( "/dataValueSets?async=true", "{}" ).content( HttpStatus.OK ) );
+            POST( "/38/dataValueSets?async=true", "{}" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPostJsonDataValueSet_Pre37()
+    public void testPostJsonDataValueSet_Pre38()
     {
-        JsonImportSummary summary = POST( "/36/dataValueSets/", "{}" ).content( HttpStatus.OK )
+        JsonImportSummary summary = POST( "/37/dataValueSets/", "{}" ).content( HttpStatus.OK )
             .as( JsonImportSummary.class );
         assertEquals( "ImportSummary", summary.getResponseType() );
         assertEquals( "SUCCESS", summary.getStatus() );
@@ -74,7 +74,7 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testPostAdxDataValueSet()
     {
-        String content = POST( "/dataValueSets/",
+        String content = POST( "/38/dataValueSets/",
             Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
             ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML );
         assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
@@ -91,9 +91,9 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPostAdxDataValueSet_Pre37()
+    public void testPostAdxDataValueSet_Pre38()
     {
-        HttpResponse response = POST( "/36/dataValueSets/", Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
+        HttpResponse response = POST( "/37/dataValueSets/", Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
             ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) );
         assertEquals( HttpStatus.OK, response.status() );
         assertTrue( response.content( APPLICATION_XML ).startsWith( "<importSummary " ) );
@@ -102,7 +102,7 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testPostDxf2DataValueSet()
     {
-        String content = POST( "/dataValueSets/",
+        String content = POST( "/38/dataValueSets/",
             Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
             ContentType( APPLICATION_XML ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML );
         assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
@@ -119,9 +119,9 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPostDxf2DataValueSet_Pre37()
+    public void testPostDxf2DataValueSet_Pre38()
     {
-        HttpResponse response = POST( "/36/dataValueSets/",
+        HttpResponse response = POST( "/37/dataValueSets/",
             Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
             ContentType( APPLICATION_XML ), Accept( CONTENT_TYPE_XML ) );
         assertEquals( HttpStatus.OK, response.status() );
@@ -132,7 +132,7 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     public void testPostCsvDataValueSet()
     {
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            POST( "/dataValueSets/", Body( "abc" ), ContentType( "application/csv" ) )
+            POST( "/38/dataValueSets/", Body( "abc" ), ContentType( "application/csv" ) )
                 .content( HttpStatus.OK ) );
     }
 
@@ -145,9 +145,9 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPostCsvDataValueSet_Pre37()
+    public void testPostCsvDataValueSet_Pre38()
     {
-        JsonImportSummary summary = POST( "/36/dataValueSets/", Body( "abc" ), ContentType( "application/csv" ) )
+        JsonImportSummary summary = POST( "/37/dataValueSets/", Body( "abc" ), ContentType( "application/csv" ) )
             .content( HttpStatus.OK ).as( JsonImportSummary.class );
         assertEquals( "ImportSummary", summary.getResponseType() );
         assertEquals( "SUCCESS", summary.getStatus() );

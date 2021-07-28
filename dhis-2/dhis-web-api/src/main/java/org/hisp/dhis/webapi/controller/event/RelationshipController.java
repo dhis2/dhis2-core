@@ -253,7 +253,7 @@ public class RelationshipController
         ImportSummary importSummary = relationshipService.updateRelationshipXml( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        return WebMessageUtils.importSummary( importSummary ).withPlainResponseBefore( DhisApiVersion.V37 );
+        return WebMessageUtils.importSummary( importSummary ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     // -------------------------------------------------------------------------

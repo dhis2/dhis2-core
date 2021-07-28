@@ -141,7 +141,7 @@ public class MetadataImportExportController
             return startAsyncMetadata( params, request, response );
         }
         ImportReport importReport = metadataImportService.importMetadata( params );
-        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V37 );
+        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @PostMapping( value = "", consumes = "application/csv" )
@@ -171,7 +171,7 @@ public class MetadataImportExportController
             return startAsyncMetadata( params, request, response );
         }
         ImportReport importReport = metadataImportService.importMetadata( params );
-        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V37 );
+        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @PostMapping( value = "/gml", consumes = MediaType.APPLICATION_XML_VALUE )
@@ -186,7 +186,7 @@ public class MetadataImportExportController
             return startAsyncGml( params, request, response );
         }
         ImportReport importReport = gmlImportService.importGml( request.getInputStream(), params );
-        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V37 );
+        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
@@ -204,7 +204,7 @@ public class MetadataImportExportController
             return startAsyncMetadata( params, request, response );
         }
         ImportReport importReport = metadataImportService.importMetadata( params );
-        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V37 );
+        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @GetMapping( "/csvImportClasses" )

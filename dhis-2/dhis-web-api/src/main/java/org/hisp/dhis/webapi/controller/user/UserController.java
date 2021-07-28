@@ -572,7 +572,7 @@ public class UserController
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
         return WebMessageUtils.importReport( updateUser( pvUid, parsed ) )
-            .withPlainResponseBefore( DhisApiVersion.V37 );
+            .withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @Override
@@ -585,7 +585,7 @@ public class UserController
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
         return WebMessageUtils.importReport( updateUser( pvUid, parsed ) )
-            .withPlainResponseBefore( DhisApiVersion.V37 );
+            .withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     protected ImportReport updateUser( String userUid, User parsedUserObject )
