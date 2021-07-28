@@ -66,6 +66,10 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
         ServerHttpResponse response )
     {
         WebMessage message = (WebMessage) body;
+        if ( isPlainResponse( request, message ) )
+        {
+            return ((WebMessage) body).getResponse();
+        }
         HttpStatus httpStatus = HttpStatus.resolve( message.getHttpStatusCode() );
         if ( httpStatus != null )
         {
@@ -76,14 +80,13 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
                     CacheControl.noCache().cachePrivate().getHeaderValue() );
             }
         }
+        return body;
+    }
+
+    private boolean isPlainResponse( ServerHttpRequest request, WebMessage message )
+    {
         DhisApiVersion plainBefore = message.getPlainResponseBefore();
-        if ( plainBefore == null )
-        {
-            return body;
-        }
         return plainBefore == DhisApiVersion.ALL
-            || DhisApiVersion.getVersionFromPath( request.getURI().getPath() ).lt( plainBefore )
-                ? message.getResponse()
-                : body;
+            || plainBefore != null && DhisApiVersion.getVersionFromPath( request.getURI().getPath() ).lt( plainBefore );
     }
 }
