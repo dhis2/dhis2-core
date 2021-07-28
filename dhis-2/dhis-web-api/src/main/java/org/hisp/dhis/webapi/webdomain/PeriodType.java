@@ -28,59 +28,36 @@
 package org.hisp.dhis.webapi.webdomain;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.period.PeriodType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.annotation.JsonRootName;
+
+import lombok.Data;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Olav Hansen
  */
-@JacksonXmlRootElement( localName = "periodType", namespace = DxfNamespaces.DXF_2_0 )
-public class PeriodTypeDto
+@Data
+@JsonRootName( value = "periodType", namespace = DxfNamespaces.DXF_2_0 )
+public class PeriodType
 {
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String name;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String isoDuration;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String isoFormat;
 
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final int frequencyOrder;
 
-    public PeriodTypeDto( PeriodType periodType )
+    public PeriodType( org.hisp.dhis.period.PeriodType periodType )
     {
         this.name = periodType.getName();
         this.frequencyOrder = periodType.getFrequencyOrder();
         this.isoDuration = periodType.getIso8601Duration();
         this.isoFormat = periodType.getIsoFormat();
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getName()
-    {
-        return name;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getIsoDuration()
-    {
-        return isoDuration;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getIsoFormat()
-    {
-        return isoFormat;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getFrequencyOrder()
-    {
-        return frequencyOrder;
     }
 }
