@@ -113,7 +113,6 @@ import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -197,9 +196,6 @@ public abstract class ChartFacadeController
 
     @Autowired
     protected QueryService queryService;
-
-    @Autowired
-    protected WebMessageService webMessageService;
 
     @Autowired
     protected HibernateCacheManager hibernateCacheManager;

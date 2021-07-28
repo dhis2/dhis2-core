@@ -69,7 +69,6 @@ import org.hisp.dhis.webapi.controller.event.webrequest.EnrollmentCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -115,9 +114,6 @@ public class EnrollmentController
 
     @Autowired
     protected ContextService contextService;
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     @Autowired
     private EnrollmentCriteriaMapper enrollmentCriteriaMapper;

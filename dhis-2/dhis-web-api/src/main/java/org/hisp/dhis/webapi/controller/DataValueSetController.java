@@ -76,7 +76,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -116,9 +115,6 @@ public class DataValueSetController
 
     @Autowired
     private SessionFactory sessionFactory;
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     // -------------------------------------------------------------------------
     // Get
