@@ -59,7 +59,7 @@ public class CompleteDataSetRegistrationControllerTest extends DhisControllerCon
     public void testPostCompleteRegistrationsJson_Pre38()
     {
         JsonImportSummary summary = POST( "/37/completeDataSetRegistrations", "{}" )
-            .content( HttpStatus.CONFLICT ).as( JsonImportSummary.class );
+            .content( HttpStatus.OK ).as( JsonImportSummary.class );
         assertEquals( "ImportSummary", summary.getResponseType() );
         assertEquals( "ERROR", summary.getStatus() );
     }
@@ -81,7 +81,7 @@ public class CompleteDataSetRegistrationControllerTest extends DhisControllerCon
         HttpResponse response = POST( "/37/completeDataSetRegistrations",
             Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),
             Accept( CONTENT_TYPE_XML ) );
-        assertEquals( HttpStatus.CONFLICT, response.status() );
+        assertEquals( HttpStatus.OK, response.status() );
         String content = response.content( MediaType.APPLICATION_XML );
         assertTrue( content.startsWith( "<importSummary " ) );
     }

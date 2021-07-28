@@ -202,7 +202,7 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     {
         HttpResponse response = PUT( "/37/users/" + peter.getUid(), Body( "<user></user>" ),
             ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
-        assertEquals( HttpStatus.CONFLICT, response.status() );
+        assertEquals( HttpStatus.OK, response.status() );
         String content = response.content( MediaType.APPLICATION_XML );
         assertTrue( content.startsWith( "<importReport " ) );
     }
