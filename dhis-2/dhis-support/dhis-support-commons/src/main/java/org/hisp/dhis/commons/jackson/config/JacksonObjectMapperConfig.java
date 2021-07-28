@@ -168,7 +168,6 @@ public class JacksonObjectMapperConfig
      */
     private static ObjectMapper configureMapper( ObjectMapper objectMapper, boolean autoDetectGetters )
     {
-
         SimpleModule module = new SimpleModule();
         module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );

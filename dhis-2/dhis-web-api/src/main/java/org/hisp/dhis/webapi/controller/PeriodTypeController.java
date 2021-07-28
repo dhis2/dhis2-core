@@ -27,25 +27,24 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.webapi.mvc.FieldFilterMappingJacksonValue;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.PeriodType;
 import org.hisp.dhis.webapi.webdomain.PeriodTypes;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,38 +56,19 @@ public class PeriodTypeController
 {
     private final PeriodService periodService;
 
-    private final ContextService contextService;
-
-    private final FieldFilterService fieldFilterService;
-
-    private final ObjectMapper jsonMapper;
-
-    public PeriodTypeController(
-        PeriodService periodService,
-        ContextService contextService,
-        FieldFilterService fieldFilterService,
-        ObjectMapper jsonMapper )
+    public PeriodTypeController( PeriodService periodService )
     {
         this.periodService = periodService;
-        this.contextService = contextService;
-        this.fieldFilterService = fieldFilterService;
-        this.jsonMapper = jsonMapper;
     }
 
     @GetMapping
-    public @ResponseBody PeriodTypes getPeriodTypes()
+    public HttpEntity<MappingJacksonValue> getPeriodTypes( @RequestParam( defaultValue = "*" ) Set<String> fields )
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         PeriodTypes periodTypes = new PeriodTypes( periodService.getAllPeriodTypes().stream()
             .map( PeriodType::new )
             .collect( Collectors.toList() ) );
 
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-        }
-
-        return periodTypes;
+        return ResponseEntity.ok( new FieldFilterMappingJacksonValue( periodTypes, fields ) );
     }
 
     @GetMapping( value = "/relativePeriodTypes", produces = { "application/json", "application/javascript" } )

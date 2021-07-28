@@ -25,40 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain;
+package org.hisp.dhis.commons.jackson.config.filter;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.commons.jackson.config.filter.FieldFilterMixin;
+import com.fasterxml.jackson.annotation.JsonFilter;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-import lombok.Data;
-
-/**
- * @author Morten Olav Hansen
- */
-@Data
-@JacksonXmlRootElement( localName = "periodType", namespace = DxfNamespaces.DXF_2_0 )
-public class PeriodType implements FieldFilterMixin
+@JsonFilter( "field-filter" )
+public interface FieldFilterMixin
 {
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String name;
-
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String isoDuration;
-
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String isoFormat;
-
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final int frequencyOrder;
-
-    public PeriodType( org.hisp.dhis.period.PeriodType periodType )
-    {
-        this.name = periodType.getName();
-        this.frequencyOrder = periodType.getFrequencyOrder();
-        this.isoDuration = periodType.getIso8601Duration();
-        this.isoFormat = periodType.getIsoFormat();
-    }
 }

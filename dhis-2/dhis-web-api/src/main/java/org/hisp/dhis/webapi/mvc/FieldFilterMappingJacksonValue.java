@@ -25,40 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain;
+package org.hisp.dhis.webapi.mvc;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.commons.jackson.config.filter.FieldFilterMixin;
+import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.commons.jackson.config.filter.FieldFilterSimpleBeanPropertyFilter;
+import org.springframework.http.converter.json.MappingJacksonValue;
 
-import lombok.Data;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
-/**
- * @author Morten Olav Hansen
- */
-@Data
-@JacksonXmlRootElement( localName = "periodType", namespace = DxfNamespaces.DXF_2_0 )
-public class PeriodType implements FieldFilterMixin
+public class FieldFilterMappingJacksonValue extends MappingJacksonValue
 {
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String name;
-
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String isoDuration;
-
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String isoFormat;
-
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final int frequencyOrder;
-
-    public PeriodType( org.hisp.dhis.period.PeriodType periodType )
+    public FieldFilterMappingJacksonValue( final Object value, Set<String> fieldFilters )
     {
-        this.name = periodType.getName();
-        this.frequencyOrder = periodType.getFrequencyOrder();
-        this.isoDuration = periodType.getIso8601Duration();
-        this.isoFormat = periodType.getIsoFormat();
+        super( value );
+        SimpleFilterProvider filterProvider = new SimpleFilterProvider();
+        filterProvider.addFilter( "field-filter", new FieldFilterSimpleBeanPropertyFilter( fieldFilters ) );
+
+        setFilters( filterProvider );
     }
 }
