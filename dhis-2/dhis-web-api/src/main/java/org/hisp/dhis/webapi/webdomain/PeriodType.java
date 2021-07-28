@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
+import lombok.Data;
+
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-import lombok.Data;
 
 /**
  * @author Morten Olav Hansen
