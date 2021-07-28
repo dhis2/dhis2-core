@@ -168,7 +168,6 @@ public class SystemSettingController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @ResponseBody
     public WebMessage setSystemSettingV29( @RequestBody Map<String, Object> settings )
-        throws WebMessageException
     {
         List<String> invalidKeys = settings.keySet().stream()
             .filter( ( key ) -> !SettingKey.getByName( key ).isPresent() ).collect( Collectors.toList() );

@@ -114,18 +114,23 @@ public interface JsonError extends JsonObject
                     printer.accept( objectReport.getErrorReports() );
                 }
             }
-            JsonList<JsonImportSummary> summaries = report.getImportSummaries();
-            if ( summaries.exists() )
+            addSummaries( str, report );
+        }
+        return str.toString();
+    }
+
+    static void addSummaries( StringBuilder str, JsonTypeReport report )
+    {
+        JsonList<JsonImportSummary> summaries = report.getImportSummaries();
+        if ( summaries.exists() )
+        {
+            for ( JsonImportSummary summary : summaries )
             {
-                for ( JsonImportSummary summary : summaries )
+                for ( JsonConflict conflict : summary.getConflicts() )
                 {
-                    for ( JsonConflict conflict : summary.getConflicts() )
-                    {
-                        str.append( "\n  " ).append( conflict.getObject() ).append( ' ' ).append( conflict.getValue() );
-                    }
+                    str.append( "\n  " ).append( conflict.getObject() ).append( ' ' ).append( conflict.getValue() );
                 }
             }
         }
-        return str.toString();
     }
 }

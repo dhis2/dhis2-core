@@ -77,14 +77,13 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
             }
         }
         DhisApiVersion plainBefore = message.getPlainResponseBefore();
-        if ( plainBefore != null )
+        if ( plainBefore == null )
         {
-            if ( plainBefore == DhisApiVersion.ALL
-                || DhisApiVersion.getVersionFromPath( request.getURI().getPath() ).lt( plainBefore ) )
-            {
-                return message.getResponse();
-            }
+            return body;
         }
-        return body;
+        return plainBefore == DhisApiVersion.ALL
+            || DhisApiVersion.getVersionFromPath( request.getURI().getPath() ).lt( plainBefore )
+                ? message.getResponse()
+                : body;
     }
 }

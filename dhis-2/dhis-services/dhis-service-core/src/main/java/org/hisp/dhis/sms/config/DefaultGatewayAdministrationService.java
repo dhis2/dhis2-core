@@ -101,14 +101,7 @@ public class DefaultGatewayAdministrationService
 
         for ( SmsGatewayConfig persisted : persistedConfigs )
         {
-            if ( Objects.equals( persisted.getUid(), config.getUid() ) )
-            {
-                persisted.setDefault( true );
-            }
-            else
-            {
-                persisted.setDefault( false );
-            }
+            persisted.setDefault( Objects.equals( persisted.getUid(), config.getUid() ) );
 
             updatedConfigs.add( persisted );
         }
