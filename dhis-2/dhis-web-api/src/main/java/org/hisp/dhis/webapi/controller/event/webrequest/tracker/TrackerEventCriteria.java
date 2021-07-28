@@ -104,6 +104,8 @@ public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private Set<String> filter;
 
+    private Set<String> enrollments;
+
     private IdSchemes idSchemes = new IdSchemes();
 
     @Override
