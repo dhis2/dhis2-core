@@ -52,14 +52,14 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     public void testPostJsonDataValueSet()
     {
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            POST( "/dataValueSets/", "{}" ).content( HttpStatus.OK ) );
+            POST( "/38/dataValueSets/", "{}" ).content( HttpStatus.OK ) );
     }
 
     @Test
     public void testPostJsonDataValueSet_Async()
     {
         assertWebMessage( "OK", 200, "OK", "Initiated dataValueImport",
-            POST( "/38/dataValueSets?async=true", "{}" ).content( HttpStatus.OK ) );
+            POST( "/dataValueSets?async=true", "{}" ).content( HttpStatus.OK ) );
     }
 
     @Test

@@ -94,8 +94,8 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
     @Test
     public void testPostCsvMetadata_Async()
     {
-        assertWebMessage( "OK", 200, "OK", null,
-            POST( "/metadata?async&classKey=ORGANISATION_UNIT", Body( "," ), ContentType( "application/csv" ) )
+        assertWebMessage( "OK", 200, "OK", "Initiated metadataImport",
+            POST( "/metadata?async=true&classKey=ORGANISATION_UNIT", Body( "," ), ContentType( "application/csv" ) )
                 .content( HttpStatus.OK ) );
     }
 

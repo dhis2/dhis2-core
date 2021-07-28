@@ -39,7 +39,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
 
@@ -219,7 +218,7 @@ public class RelationshipController
     public WebMessage updateRelationshipJson(
         @PathVariable String id,
         ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
+        HttpServletRequest request )
         throws IOException
     {
         Relationship relationship = relationshipService.getRelationshipByUid( id );
@@ -262,8 +261,7 @@ public class RelationshipController
 
     @DeleteMapping( value = "/{id}" )
     @ResponseBody
-    public WebMessage deleteRelationship( @PathVariable String id, HttpServletRequest request,
-        HttpServletResponse response )
+    public WebMessage deleteRelationship( @PathVariable String id )
     {
         Relationship relationship = relationshipService.getRelationshipByUid( id );
 

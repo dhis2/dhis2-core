@@ -182,7 +182,7 @@ public class WebTestConfiguration
 
     public static class TestSchedulingManager extends AbstractSchedulingManager
     {
-        private boolean enabled;
+        private boolean enabled = true;
 
         public TestSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
             MessageService messageService, LeaderManager leaderManager )

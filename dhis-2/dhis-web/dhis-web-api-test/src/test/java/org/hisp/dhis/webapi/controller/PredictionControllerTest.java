@@ -59,7 +59,7 @@ public class PredictionControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testRunPredictors_Async()
     {
-        assertWebMessage( "OK", 200, "OK", null,
-            POST( "/predictions?startDate=2020-01-01&endDate=2021-01-01" ).content( HttpStatus.OK ) );
+        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryPrediction",
+            POST( "/predictions?startDate=2020-01-01&endDate=2021-01-01&async=true" ).content( HttpStatus.OK ) );
     }
 }
