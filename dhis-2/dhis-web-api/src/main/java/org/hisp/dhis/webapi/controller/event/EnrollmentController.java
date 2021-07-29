@@ -41,7 +41,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -200,7 +199,7 @@ public class EnrollmentController
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postEnrollmentJson( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         importOptions.setStrategy( strategy );
@@ -228,22 +227,23 @@ public class EnrollmentController
 
                 if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
                 {
-                    response.setHeader( "Location", getResourcePath( request, importSummary ) );
+                    importSummaries( importSummaries )
+                        .setHttpStatus( HttpStatus.CREATED )
+                        .setLocation( "/api/" + "enrollments" + "/" + importSummary.getReference() );
                 }
             }
 
-            WebMessage webMessage = importSummaries( importSummaries );
-            webMessage.setHttpStatus( HttpStatus.CREATED );
-            return webMessage;
+            return importSummaries( importSummaries )
+                .setHttpStatus( HttpStatus.CREATED );
         }
         List<Enrollment> enrollments = enrollmentService.getEnrollmentsJson( inputStream );
-        return startAsyncImport( importOptions, enrollments, request, response );
+        return startAsyncImport( importOptions, enrollments, request );
     }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage postEnrollmentXml( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         importOptions.setStrategy( strategy );
@@ -271,14 +271,17 @@ public class EnrollmentController
 
                 if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
                 {
-                    response.setHeader( "Location", getResourcePath( request, importSummary ) );
+                    importSummaries( importSummaries )
+                        .setHttpStatus( HttpStatus.CREATED )
+                        .setLocation( "/api/" + "enrollments" + "/" + importSummary.getReference() );
                 }
             }
 
-            return importSummaries( importSummaries ).setHttpStatus( HttpStatus.CREATED );
+            return importSummaries( importSummaries )
+                .setHttpStatus( HttpStatus.CREATED );
         }
         List<Enrollment> enrollments = enrollmentService.getEnrollmentsXml( inputStream );
-        return startAsyncImport( importOptions, enrollments, request, response );
+        return startAsyncImport( importOptions, enrollments, request );
     }
 
     // -------------------------------------------------------------------------
@@ -385,18 +388,17 @@ public class EnrollmentController
      * @param importOptions the ImportOptions.
      * @param enrollments the enrollments to import.
      * @param request the HttpRequest.
-     * @param response the HttpResponse.
      */
     private WebMessage startAsyncImport( ImportOptions importOptions, List<Enrollment> enrollments,
-        HttpServletRequest request, HttpServletResponse response )
+        HttpServletRequest request )
     {
         JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
             ENROLLMENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
         taskExecutor
             .executeTask( new ImportEnrollmentsTask( enrollments, enrollmentService, importOptions, jobId ) );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + ENROLLMENT_IMPORT );
-        return jobConfigurationReport( jobId );
+        return jobConfigurationReport( jobId )
+            .setLocation( "/system/tasks/" + ENROLLMENT_IMPORT );
     }
 
     private Enrollment getEnrollment( String id )
@@ -410,10 +412,5 @@ public class EnrollmentController
         }
 
         return enrollment;
-    }
-
-    private String getResourcePath( HttpServletRequest request, ImportSummary importSummary )
-    {
-        return ContextUtils.getContextPath( request ) + "/api/" + "enrollments" + "/" + importSummary.getReference();
     }
 }

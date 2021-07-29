@@ -141,8 +141,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     @ResponseBody
     public WebMessage writeReportTableInterpretation( @PathVariable( "uid" ) String visualizationUid,
         @RequestParam( value = "pe", required = false ) String isoPeriod,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
-        HttpServletResponse response, HttpServletRequest request )
+        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text )
         throws WebMessageException
     {
         Visualization visualization = idObjectManager.get( Visualization.class, visualizationUid );
@@ -157,14 +156,13 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
             currentUserService.getCurrentUser() );
 
-        return createInterpretation( new Interpretation( visualization, period, orgUnit, text ), response );
+        return createInterpretation( new Interpretation( visualization, period, orgUnit, text ) );
     }
 
     @PostMapping( value = "/chart/{uid}", consumes = { "text/html", "text/plain" } )
     @ResponseBody
     public WebMessage writeChartInterpretation( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
-        HttpServletResponse response, HttpServletRequest request )
+        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text )
         throws WebMessageException
     {
         Visualization visualization = idObjectManager.get( Visualization.class, uid );
@@ -177,7 +175,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
             currentUserService.getCurrentUser() );
 
-        return createInterpretation( new Interpretation( visualization, orgUnit, text ), response );
+        return createInterpretation( new Interpretation( visualization, orgUnit, text ) );
     }
 
     @PostMapping( value = "/visualization/{uid}", consumes = { "text/html", "text/plain" } )
@@ -185,7 +183,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     public WebMessage writeVisualizationInterpretation( @PathVariable( "uid" )
     final String uid, @RequestParam( value = "ou", required = false )
     final String orgUnitUid, @RequestBody
-    final String text, final HttpServletResponse response )
+    final String text )
         throws WebMessageException
     {
         final Visualization visualization = idObjectManager.get( Visualization.class, uid );
@@ -198,13 +196,12 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         final OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
             currentUserService.getCurrentUser() );
 
-        return createInterpretation( new Interpretation( visualization, orgUnit, text ), response );
+        return createInterpretation( new Interpretation( visualization, orgUnit, text ) );
     }
 
     @PostMapping( value = "/map/{uid}", consumes = { "text/html", "text/plain" } )
     @ResponseBody
-    public WebMessage writeMapInterpretation( @PathVariable( "uid" ) String uid, @RequestBody String text,
-        HttpServletResponse response )
+    public WebMessage writeMapInterpretation( @PathVariable( "uid" ) String uid, @RequestBody String text )
     {
         Map map = idObjectManager.get( Map.class, uid );
 
@@ -213,14 +210,13 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             return conflict( "Map does not exist or is not accessible: " + uid );
         }
 
-        return createInterpretation( new Interpretation( map, text ), response );
+        return createInterpretation( new Interpretation( map, text ) );
     }
 
     @PostMapping( value = "/eventReport/{uid}", consumes = { "text/html", "text/plain" } )
     @ResponseBody
     public WebMessage writeEventReportInterpretation( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
-        HttpServletResponse response )
+        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text )
         throws WebMessageException
     {
         EventReport eventReport = idObjectManager.get( EventReport.class, uid );
@@ -233,14 +229,13 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventReport,
             currentUserService.getCurrentUser() );
 
-        return createInterpretation( new Interpretation( eventReport, orgUnit, text ), response );
+        return createInterpretation( new Interpretation( eventReport, orgUnit, text ) );
     }
 
     @PostMapping( value = "/eventChart/{uid}", consumes = { "text/html", "text/plain" } )
     @ResponseBody
     public WebMessage writeEventChartInterpretation( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text,
-        HttpServletResponse response )
+        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text )
         throws WebMessageException
     {
         EventChart eventChart = idObjectManager.get( EventChart.class, uid );
@@ -253,14 +248,13 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventChart,
             currentUserService.getCurrentUser() );
 
-        return createInterpretation( new Interpretation( eventChart, orgUnit, text ), response );
+        return createInterpretation( new Interpretation( eventChart, orgUnit, text ) );
     }
 
     @PostMapping( value = "/dataSetReport/{uid}", consumes = { "text/html", "text/plain" } )
     @ResponseBody
     public WebMessage writeDataSetReportInterpretation( @PathVariable( "uid" ) String dataSetUid,
-        @RequestParam( "pe" ) String isoPeriod, @RequestParam( "ou" ) String orgUnitUid, @RequestBody String text,
-        HttpServletResponse response )
+        @RequestParam( "pe" ) String isoPeriod, @RequestParam( "ou" ) String orgUnitUid, @RequestBody String text )
     {
         DataSet dataSet = idObjectManager.get( DataSet.class, dataSetUid );
 
@@ -283,7 +277,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             return conflict( "Organisation unit does not exist or is not accessible: " + orgUnitUid );
         }
 
-        return createInterpretation( new Interpretation( dataSet, period, orgUnit, text ), response );
+        return createInterpretation( new Interpretation( dataSet, period, orgUnit, text ) );
     }
 
     /**
@@ -320,13 +314,12 @@ public class InterpretationController extends AbstractCrudController<Interpretat
      * Saves the given interpretation, adds location header and returns a web
      * message response.
      */
-    private WebMessage createInterpretation( Interpretation interpretation, HttpServletResponse response )
+    private WebMessage createInterpretation( Interpretation interpretation )
     {
         interpretationService.saveInterpretation( interpretation );
 
-        response.addHeader( "Location", InterpretationSchemaDescriptor.API_ENDPOINT + "/" + interpretation.getUid() );
-
-        return created( "Interpretation created" );
+        return created( "Interpretation created" )
+            .setLocation( InterpretationSchemaDescriptor.API_ENDPOINT + "/" + interpretation.getUid() );
     }
 
     // -------------------------------------------------------------------------
@@ -395,10 +388,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         InterpretationComment comment = interpretationService.addInterpretationComment( uid, text );
 
-        String builder = InterpretationSchemaDescriptor.API_ENDPOINT + "/" + uid + "/comments/" + comment.getUid();
-
-        response.addHeader( "Location", builder );
-        return created( "Commented created" );
+        return created( "Commented created" )
+            .setLocation( InterpretationSchemaDescriptor.API_ENDPOINT + "/" + uid + "/comments/" + comment.getUid() );
     }
 
     @PutMapping( "/{uid}/comments/{cuid}" )

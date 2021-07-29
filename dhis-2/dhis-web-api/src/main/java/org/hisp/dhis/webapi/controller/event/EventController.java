@@ -789,9 +789,9 @@ public class EventController
     @PostMapping( consumes = "application/xml" )
     @ResponseBody
     public WebMessage postXmlEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
+        HttpServletRequest request, ImportOptions importOptions )
     {
-        return postEvent( strategy, response, request, importOptions, this::safeAddEventsXml, this::safeGetEventsXml );
+        return postEvent( strategy, request, importOptions, this::safeAddEventsXml, this::safeGetEventsXml );
     }
 
     @SneakyThrows
@@ -809,9 +809,9 @@ public class EventController
     @PostMapping( consumes = "application/json" )
     @ResponseBody
     public WebMessage postJsonEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
+        HttpServletRequest request, ImportOptions importOptions )
     {
-        return postEvent( strategy, response, request, importOptions, this::safeAddEventsJson,
+        return postEvent( strategy, request, importOptions, this::safeAddEventsJson,
             this::safeGetEventsJson );
     }
 
@@ -828,8 +828,7 @@ public class EventController
     }
 
     @SneakyThrows
-    private WebMessage postEvent( ImportStrategy strategy,
-        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions,
+    private WebMessage postEvent( ImportStrategy strategy, HttpServletRequest request, ImportOptions importOptions,
         BiFunction<InputStream, ImportOptions, ImportSummaries> eventAdder,
         Function<InputStream, List<Event>> eventConverter )
     {
@@ -858,20 +857,17 @@ public class EventController
                 ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
                 importSummary.setImportOptions( importOptions );
 
-                if ( !importOptions.isDryRun() )
+                if ( !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) )
                 {
-                    if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
-                    {
-                        response.setHeader( "Location",
-                            ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + importSummary.getReference() );
-                    }
+                    return importSummaries( importSummaries )
+                        .setLocation( RESOURCE_PATH + "/" + importSummary.getReference() );
                 }
             }
 
             return importSummaries( importSummaries );
         }
         List<Event> events = eventConverter.apply( inputStream );
-        return startAsyncImport( importOptions, events, request, response );
+        return startAsyncImport( importOptions, events, request );
     }
 
     @PostMapping( value = "/{uid}/note", consumes = "application/json" )
@@ -896,7 +892,7 @@ public class EventController
     @PostMapping( consumes = { "application/csv", "text/csv" } )
     @ResponseBody
     public WebMessage postCsvEvents( @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
-        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
+        HttpServletRequest request, ImportOptions importOptions )
         throws IOException,
         ParseException
     {
@@ -910,7 +906,7 @@ public class EventController
             importSummaries.setImportOptions( importOptions );
             return importSummaries( importSummaries );
         }
-        return startAsyncImport( importOptions, events.getEvents(), request, response );
+        return startAsyncImport( importOptions, events.getEvents(), request );
     }
 
     // -------------------------------------------------------------------------
@@ -1010,17 +1006,15 @@ public class EventController
      * @param importOptions the ImportOptions.
      * @param events the events to import.
      * @param request the HttpRequest.
-     * @param response the HttpResponse.
      */
-    private WebMessage startAsyncImport( ImportOptions importOptions, List<Event> events, HttpServletRequest request,
-        HttpServletResponse response )
+    private WebMessage startAsyncImport( ImportOptions importOptions, List<Event> events, HttpServletRequest request )
     {
         JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
             EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
         taskExecutor.executeTask( new ImportEventsTask( events, eventService, importOptions, jobId ) );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + EVENT_IMPORT );
-        return jobConfigurationReport( jobId );
+        return jobConfigurationReport( jobId )
+            .setLocation( "/system/tasks/" + EVENT_IMPORT );
     }
 
     private boolean fieldsContains( String match, List<String> fields )

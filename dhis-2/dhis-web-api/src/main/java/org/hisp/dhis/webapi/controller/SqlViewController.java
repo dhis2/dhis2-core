@@ -213,8 +213,8 @@ public class SqlViewController
 
     @PostMapping( "/{uid}/execute" )
     @ResponseBody
-    public WebMessage executeView( @PathVariable( "uid" ) String uid, @RequestParam( required = false ) Set<String> var,
-        HttpServletResponse response )
+    public WebMessage executeView( @PathVariable( "uid" ) String uid,
+        @RequestParam( required = false ) Set<String> var )
     {
         SqlView sqlView = sqlViewService.getSqlViewByUid( uid );
 
@@ -233,8 +233,8 @@ public class SqlViewController
         {
             return conflict( result );
         }
-        response.addHeader( "Location", SqlViewSchemaDescriptor.API_ENDPOINT + "/" + sqlView.getUid() );
-        return created( "SQL view created" );
+        return created( "SQL view created" )
+            .setLocation( SqlViewSchemaDescriptor.API_ENDPOINT + "/" + sqlView.getUid() );
     }
 
     @PostMapping( "/{uid}/refresh" )

@@ -30,6 +30,9 @@ package org.hisp.dhis.webapi.controller;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageResponse;
+import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -52,6 +55,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 @ControllerAdvice
 public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessageResponse>
 {
+    @Autowired
+    private ContextService contextService;
+
     @Override
     public boolean supports( MethodParameter returnType,
         Class<? extends HttpMessageConverter<?>> selectedConverterType )
@@ -79,6 +85,12 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
                 response.getHeaders().addIfAbsent( "Cache-Control",
                     CacheControl.noCache().cachePrivate().getHeaderValue() );
             }
+        }
+        String location = message.getLocation();
+        if ( location != null )
+        {
+            response.getHeaders().addIfAbsent( ContextUtils.HEADER_LOCATION,
+                contextService.getApiPath() + location );
         }
         return body;
     }

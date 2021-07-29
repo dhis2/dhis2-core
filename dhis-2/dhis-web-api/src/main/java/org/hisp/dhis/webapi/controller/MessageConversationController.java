@@ -237,21 +237,21 @@ public class MessageConversationController
     // --------------------------------------------------------------------------
 
     @Override
-    public WebMessage postXmlObject( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postXmlObject( HttpServletRequest request )
         throws Exception
     {
         MessageConversation messageConversation = renderService
             .fromXml( request.getInputStream(), MessageConversation.class );
-        return postObject( response, request, messageConversation );
+        return postObject( request, messageConversation );
     }
 
     @Override
-    public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postJsonObject( HttpServletRequest request )
         throws Exception
     {
         MessageConversation messageConversation = renderService
             .fromJson( request.getInputStream(), MessageConversation.class );
-        return postObject( response, request, messageConversation );
+        return postObject( request, messageConversation );
     }
 
     private Set<User> getUsersToMessageConversation( MessageConversation messageConversation, Set<User> users )
@@ -299,8 +299,7 @@ public class MessageConversationController
         return usersToMessageConversation;
     }
 
-    private WebMessage postObject( HttpServletResponse response, HttpServletRequest request,
-        MessageConversation messageConversation )
+    private WebMessage postObject( HttpServletRequest request, MessageConversation messageConversation )
         throws WebMessageException
     {
         Set<User> users = Sets.newHashSet( messageConversation.getUsers() );
@@ -344,9 +343,8 @@ public class MessageConversationController
 
         org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( id );
 
-        response
-            .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
-        return created( "Message conversation created" );
+        return created( "Message conversation created" )
+            .setLocation( MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
     }
 
     // --------------------------------------------------------------------------
@@ -360,7 +358,7 @@ public class MessageConversationController
         @RequestBody String message,
         @RequestParam( value = "internal", defaultValue = "false" ) boolean internal,
         @RequestParam( value = "attachments", required = false ) Set<String> attachments,
-        HttpServletRequest request, HttpServletResponse response )
+        HttpServletRequest request )
     {
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
@@ -406,9 +404,8 @@ public class MessageConversationController
 
         messageService.sendReply( conversation, message, metaData, internal, fileResources );
 
-        response
-            .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
-        return created( "Message conversation created" );
+        return created( "Message conversation created" )
+            .setLocation( MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
     }
 
     @PostMapping( "/{uid}/recipients" )

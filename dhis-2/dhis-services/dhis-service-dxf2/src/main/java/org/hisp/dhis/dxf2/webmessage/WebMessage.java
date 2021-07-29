@@ -99,6 +99,8 @@ public class WebMessage implements WebMessageResponse
 
     private DhisApiVersion plainResponseBefore;
 
+    private String location;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -235,6 +237,17 @@ public class WebMessage implements WebMessageResponse
     public WebMessage setResponse( WebMessageResponse response )
     {
         this.response = response;
+        return this;
+    }
+
+    public String getLocation()
+    {
+        return location;
+    }
+
+    public WebMessage setLocation( String location )
+    {
+        this.location = location;
         return this;
     }
 

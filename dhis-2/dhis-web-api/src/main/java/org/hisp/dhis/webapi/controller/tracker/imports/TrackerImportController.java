@@ -103,13 +103,10 @@ public class TrackerImportController
             .importReport( trackerImportReportRequest );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
-        response.setHeader( "Location", location );
 
         return ok( TRACKER_JOB_ADDED )
-            .setResponse(
-                TrackerJobWebMessageResponse.builder()
-                    .id( jobId ).location( location )
-                    .build() );
+            .setLocation( "/tracker/jobs/" + jobId )
+            .setResponse( TrackerJobWebMessageResponse.builder().id( jobId ).location( location ).build() );
     }
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, params = { "async=false" } )

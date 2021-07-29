@@ -83,7 +83,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -407,21 +406,21 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PostMapping( consumes = "application/json" )
     @ResponseBody
-    public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postJsonObject( HttpServletRequest request )
         throws Exception
     {
-        return postObject( response, deserializeJsonEntity( request, response ) );
+        return postObject( deserializeJsonEntity( request ) );
     }
 
     @PostMapping( consumes = { "application/xml", "text/xml" } )
     @ResponseBody
-    public WebMessage postXmlObject( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postXmlObject( HttpServletRequest request )
         throws Exception
     {
-        return postObject( response, deserializeXmlEntity( request ) );
+        return postObject( deserializeXmlEntity( request ) );
     }
 
-    private WebMessage postObject( HttpServletResponse response, T parsed )
+    private WebMessage postObject( T parsed )
         throws Exception
     {
         User user = currentUserService.getCurrentUser();
@@ -439,10 +438,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             .setImportReportMode( ImportReportMode.FULL ).setUser( user ).setImportStrategy( ImportStrategy.CREATE )
             .addObject( parsed );
 
-        return postObject( response, getObjectReport( importService.importMetadata( params ) ) );
+        return postObject( getObjectReport( importService.importMetadata( params ) ) );
     }
 
-    protected final WebMessage postObject( HttpServletResponse response, ObjectReport objectReport )
+    protected final WebMessage postObject( ObjectReport objectReport )
     {
         WebMessage webMessage = objectReport( objectReport );
 
@@ -452,7 +451,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
                 + objectReport.getUid();
 
             webMessage.setHttpStatus( HttpStatus.CREATED );
-            response.setHeader( ContextUtils.HEADER_LOCATION, location );
+            webMessage.setLocation( location );
             T entity = manager.get( getEntityClass(), objectReport.getUid() );
             postCreateEntity( entity );
         }
@@ -525,8 +524,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PutMapping( value = "/{uid}", consumes = MediaType.APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
+    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request )
         throws Exception
     {
         List<T> objects = getEntity( pvUid );
@@ -543,7 +541,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        T parsed = deserializeJsonEntity( request, response );
+        T parsed = deserializeJsonEntity( request );
         ((BaseIdentifiableObject) parsed).setUid( pvUid );
 
         preUpdateEntity( objects.get( 0 ), parsed );
@@ -895,7 +893,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // Hooks
     // --------------------------------------------------------------------------
 
-    protected T deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
+    protected T deserializeJsonEntity( HttpServletRequest request )
         throws IOException
     {
         return renderService.fromJson( request.getInputStream(), getEntityClass() );

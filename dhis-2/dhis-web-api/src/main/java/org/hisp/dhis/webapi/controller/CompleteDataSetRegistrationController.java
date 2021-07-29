@@ -81,7 +81,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -197,14 +196,13 @@ public class CompleteDataSetRegistrationController
     @PostMapping( consumes = CONTENT_TYPE_XML, produces = CONTENT_TYPE_XML )
     @ResponseBody
     public WebMessage postCompleteRegistrationsXml(
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         if ( importOptions.isAsync() )
         {
-            return asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_XML, request, response );
+            return asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_XML, request );
         }
-        response.setContentType( CONTENT_TYPE_XML );
         ImportSummary summary = registrationExchangeService
             .saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
@@ -214,12 +212,12 @@ public class CompleteDataSetRegistrationController
     @PostMapping( consumes = CONTENT_TYPE_JSON, produces = CONTENT_TYPE_JSON )
     @ResponseBody
     public WebMessage postCompleteRegistrationsJson(
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         if ( importOptions.isAsync() )
         {
-            return asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_JSON, request, response );
+            return asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_JSON, request );
         }
         ImportSummary summary = registrationExchangeService
             .saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
@@ -313,8 +311,7 @@ public class CompleteDataSetRegistrationController
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private WebMessage asyncImport( ImportOptions importOptions, String format, HttpServletRequest request,
-        HttpServletResponse response )
+    private WebMessage asyncImport( ImportOptions importOptions, String format, HttpServletRequest request )
         throws IOException
     {
         Pair<InputStream, Path> tmpFile = saveTmpFile( request.getInputStream() );
@@ -328,9 +325,8 @@ public class CompleteDataSetRegistrationController
                 format,
                 jobId ) );
 
-        response.setHeader( "Location",
-            ContextUtils.getRootPath( request ) + "/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT );
-        return jobConfigurationReport( jobId );
+        return jobConfigurationReport( jobId )
+            .setLocation( "/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT );
     }
 
     private Pair<InputStream, Path> saveTmpFile( InputStream in )

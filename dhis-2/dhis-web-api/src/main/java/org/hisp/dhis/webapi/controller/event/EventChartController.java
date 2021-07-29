@@ -95,10 +95,10 @@ public class EventChartController
     // --------------------------------------------------------------------------
 
     @Override
-    protected EventChart deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
+    protected EventChart deserializeJsonEntity( HttpServletRequest request )
         throws IOException
     {
-        EventChart eventChart = super.deserializeJsonEntity( request, response );
+        EventChart eventChart = super.deserializeJsonEntity( request );
         mergeEventChart( eventChart );
 
         return eventChart;

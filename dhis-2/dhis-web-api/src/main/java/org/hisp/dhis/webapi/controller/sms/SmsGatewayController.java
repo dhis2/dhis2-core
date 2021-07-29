@@ -169,8 +169,8 @@ public class SmsGatewayController
 
         gatewayAdminService.addGateway( config );
 
-        response.addHeader( "Location", "/gateways/" + config.getUid() );
-        return ok( "Gateway configuration added" );
+        return ok( "Gateway configuration added" )
+            .setLocation( "/gateways/" + config.getUid() );
     }
 
     // -------------------------------------------------------------------------

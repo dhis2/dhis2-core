@@ -377,27 +377,26 @@ public class TrackedEntityInstanceController
     @ResponseBody
     public WebMessage postTrackedEntityInstanceJson(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException,
         BadRequestException
     {
-        return postTrackedEntityInstance( strategy, importOptions, request, response,
-            MediaType.APPLICATION_JSON_VALUE );
+        return postTrackedEntityInstance( strategy, importOptions, request, MediaType.APPLICATION_JSON_VALUE );
     }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage postTrackedEntityInstanceXml(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException,
         BadRequestException
     {
-        return postTrackedEntityInstance( strategy, importOptions, request, response, MediaType.APPLICATION_XML_VALUE );
+        return postTrackedEntityInstance( strategy, importOptions, request, MediaType.APPLICATION_XML_VALUE );
     }
 
     private WebMessage postTrackedEntityInstance( ImportStrategy strategy, ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response, String mediaType )
+        HttpServletRequest request, String mediaType )
         throws IOException,
         BadRequestException
     {
@@ -421,15 +420,19 @@ public class TrackedEntityInstanceController
 
         if ( !importOptions.isAsync() )
         {
-            finalizeTrackedEntityInstancePostRequest( importOptions, request, response, importSummaries );
-            return importSummaries( importSummaries );
+            ImportSummary singleSummary = finalizeTrackedEntityInstancePostRequest( importOptions, request,
+                importSummaries );
+            return importSummaries( importSummaries )
+                .setLocation( singleSummary == null
+                    ? null
+                    : "/api/" + "trackedEntityInstances" + "/" + singleSummary.getReference() );
         }
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TEI_IMPORT );
-        return jobConfigurationReport( jobId );
+        return jobConfigurationReport( jobId )
+            .setLocation( "/system/tasks/" + TEI_IMPORT );
     }
 
-    private void finalizeTrackedEntityInstancePostRequest( ImportOptions importOptions, HttpServletRequest request,
-        HttpServletResponse response, ImportSummaries importSummaries )
+    private ImportSummary finalizeTrackedEntityInstancePostRequest( ImportOptions importOptions,
+        HttpServletRequest request, ImportSummaries importSummaries )
     {
 
         importSummaries.setImportOptions( importOptions );
@@ -451,9 +454,10 @@ public class TrackedEntityInstanceController
 
             if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
             {
-                response.setHeader( "Location", getResourcePath( request, importSummary ) );
+                return importSummary;
             }
         }
+        return null;
     }
 
     // -------------------------------------------------------------------------
@@ -542,12 +546,6 @@ public class TrackedEntityInstanceController
         final TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
         return instanceService.getTrackedEntityInstancesGrid( queryParams );
-    }
-
-    private String getResourcePath( HttpServletRequest request, ImportSummary importSummary )
-    {
-        return ContextUtils.getContextPath( request ) + "/api/" + "trackedEntityInstances" + "/"
-            + importSummary.getReference();
     }
 
     private TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
