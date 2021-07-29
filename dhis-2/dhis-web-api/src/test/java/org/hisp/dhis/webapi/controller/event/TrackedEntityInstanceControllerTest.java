@@ -97,6 +97,7 @@ public class TrackedEntityInstanceControllerTest
     private TrackedEntityInstance trackedEntityInstance;
 
     private final static String ENDPOINT = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT;
+
     private final static String PD_ENDPOINT = "/potentialDuplicate";
 
     @Before
