@@ -113,7 +113,6 @@ import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -198,9 +197,6 @@ public abstract class ReportTableFacadeController
 
     @Autowired
     protected QueryService queryService;
-
-    @Autowired
-    protected WebMessageService webMessageService;
 
     @Autowired
     protected HibernateCacheManager hibernateCacheManager;
@@ -375,9 +371,11 @@ public abstract class ReportTableFacadeController
     }
 
     @PutMapping( "/{uid}/translations" )
-    public void replaceTranslations(
+    @ResponseBody
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public WebMessage replaceTranslations(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request, HttpServletResponse response )
+        HttpServletRequest request )
         throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
@@ -385,7 +383,7 @@ public abstract class ReportTableFacadeController
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
+            return WebMessageUtils.notFound( ReportTable.class, pvUid );
         }
 
         Visualization persistedObject = entities.get( 0 );
@@ -438,20 +436,18 @@ public abstract class ReportTableFacadeController
 
         if ( typeReport.hasErrorReports() )
         {
-            WebMessage webMessage = WebMessageUtils.typeReport( typeReport );
-            webMessageService.send( webMessage, response, request );
-            return;
+            return WebMessageUtils.typeReport( typeReport );
         }
 
         manager.updateTranslations( persistedObject, object.getTranslations() );
         manager.update( persistedObject );
 
-        response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+        return null;
     }
 
     @PatchMapping( "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void partialUpdateObject(
+    public WebMessage partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
@@ -461,7 +457,7 @@ public abstract class ReportTableFacadeController
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
+            return WebMessageUtils.notFound( ReportTable.class, pvUid );
         }
 
         Visualization persistedObject = entities.get( 0 );
@@ -488,6 +484,7 @@ public abstract class ReportTableFacadeController
 
         patchService.apply( patch, persistedObject );
         manager.update( persistedObject );
+        return null;
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
@@ -613,7 +610,8 @@ public abstract class ReportTableFacadeController
     // --------------------------------------------------------------------------
 
     @PostMapping( consumes = "application/json" )
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         User user = currentUserService.getCurrentUser();
@@ -651,11 +649,12 @@ public abstract class ReportTableFacadeController
             webMessage.setStatus( Status.ERROR );
         }
 
-        webMessageService.send( webMessage, response, request );
+        return webMessage;
     }
 
     @PostMapping( consumes = { "application/xml", "text/xml" } )
-    public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postXmlObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         User user = currentUserService.getCurrentUser();
@@ -693,26 +692,23 @@ public abstract class ReportTableFacadeController
             webMessage.setStatus( Status.ERROR );
         }
 
-        webMessageService.send( webMessage, response, request );
+        return webMessage;
     }
 
     @PostMapping( "/{uid}/favorite" )
-    @ResponseStatus( HttpStatus.OK )
-    public void setAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public WebMessage setAsFavorite( @PathVariable( "uid" ) String pvUid )
     {
         if ( !getSchema().isFavoritable() )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+            return WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" );
         }
 
         List<Visualization> entity = (List<Visualization>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
+            return WebMessageUtils.notFound( ReportTable.class, pvUid );
         }
 
         Visualization object = entity.get( 0 );
@@ -722,26 +718,23 @@ public abstract class ReportTableFacadeController
         manager.updateNoAcl( object );
 
         String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
-        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+        return WebMessageUtils.ok( message );
     }
 
     @PostMapping( "/{uid}/subscriber" )
-    @ResponseStatus( HttpStatus.OK )
-    public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public WebMessage subscribe( @PathVariable( "uid" ) String pvUid )
     {
         if ( !getSchema().isSubscribable() )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
+            return WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" );
         }
 
         List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
+            return WebMessageUtils.notFound( ReportTable.class, pvUid );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -751,7 +744,7 @@ public abstract class ReportTableFacadeController
         manager.updateNoAcl( object );
 
         String message = String.format( "User '%s' subscribed to object '%s'", user.getUsername(), pvUid );
-        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+        return WebMessageUtils.ok( message );
     }
 
     // --------------------------------------------------------------------------
@@ -759,7 +752,8 @@ public abstract class ReportTableFacadeController
     // --------------------------------------------------------------------------
 
     @PutMapping( value = "/{uid}", consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+    @ResponseBody
+    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
     {
@@ -767,7 +761,7 @@ public abstract class ReportTableFacadeController
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            return WebMessageUtils.notFound( getEntityClass(), pvUid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -796,12 +790,13 @@ public abstract class ReportTableFacadeController
             webMessage.setStatus( Status.ERROR );
         }
 
-        webMessageService.send( webMessage, response, request );
+        return webMessage;
     }
 
     @PutMapping( value = "/{uid}", consumes = { MediaType.APPLICATION_XML_VALUE,
         MediaType.TEXT_XML_VALUE } )
-    public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+    @ResponseBody
+    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
     {
@@ -809,7 +804,7 @@ public abstract class ReportTableFacadeController
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
+            return WebMessageUtils.notFound( ReportTable.class, pvUid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -838,7 +833,7 @@ public abstract class ReportTableFacadeController
             webMessage.setStatus( Status.ERROR );
         }
 
-        webMessageService.send( webMessage, response, request );
+        return webMessage;
     }
 
     // --------------------------------------------------------------------------
@@ -846,16 +841,15 @@ public abstract class ReportTableFacadeController
     // --------------------------------------------------------------------------
 
     @DeleteMapping( "/{uid}" )
-    @ResponseStatus( HttpStatus.OK )
-    public void deleteObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
+    @ResponseBody
+    public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid )
         throws Exception
     {
         List<Visualization> objects = (List<Visualization>) getEntity( pvUid );
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
+            return WebMessageUtils.notFound( ReportTable.class, pvUid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -873,26 +867,23 @@ public abstract class ReportTableFacadeController
 
         ImportReport importReport = importService.importMetadata( params );
 
-        webMessageService.send( WebMessageUtils.objectReport( importReport ), response, request );
+        return WebMessageUtils.objectReport( importReport );
     }
 
     @DeleteMapping( "/{uid}/favorite" )
-    @ResponseStatus( HttpStatus.OK )
-    public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public WebMessage removeAsFavorite( @PathVariable( "uid" ) String pvUid )
     {
         if ( !getSchema().isFavoritable() )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+            return WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" );
         }
 
         List<Visualization> entity = (List<Visualization>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
+            return WebMessageUtils.notFound( ReportTable.class, pvUid );
         }
 
         Visualization object = entity.get( 0 );
@@ -902,26 +893,23 @@ public abstract class ReportTableFacadeController
         manager.updateNoAcl( object );
 
         String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );
-        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+        return WebMessageUtils.ok( message );
     }
 
     @DeleteMapping( "/{uid}/subscriber" )
-    @ResponseStatus( HttpStatus.OK )
-    public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public WebMessage unsubscribe( @PathVariable( "uid" ) String pvUid )
     {
         if ( !getSchema().isSubscribable() )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
+            return WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" );
         }
 
         List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
+            return WebMessageUtils.notFound( ReportTable.class, pvUid );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -931,7 +919,7 @@ public abstract class ReportTableFacadeController
         manager.updateNoAcl( object );
 
         String message = String.format( "User '%s' removed as subscriber of object '%s'", user.getUsername(), pvUid );
-        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+        return WebMessageUtils.ok( message );
     }
 
     // --------------------------------------------------------------------------

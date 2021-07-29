@@ -68,6 +68,7 @@ import org.hisp.dhis.dxf2.dataset.ExportParams;
 import org.hisp.dhis.dxf2.dataset.tasks.ImportCompleteDataSetRegistrationsTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -79,7 +80,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -89,6 +89,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
@@ -131,9 +132,6 @@ public class CompleteDataSetRegistrationController
 
     @Autowired
     private SessionFactory sessionFactory;
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     // -------------------------------------------------------------------------
     // GET
@@ -195,42 +193,37 @@ public class CompleteDataSetRegistrationController
     // POST
     // -------------------------------------------------------------------------
 
-    @PostMapping( consumes = CONTENT_TYPE_XML )
-    public void postCompleteRegistrationsXml(
+    @PostMapping( consumes = CONTENT_TYPE_XML, produces = CONTENT_TYPE_XML )
+    @ResponseBody
+    public WebMessage postCompleteRegistrationsXml(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         if ( importOptions.isAsync() )
         {
-            asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_XML, request, response );
+            return asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_XML, request, response );
         }
-        else
-        {
-            response.setContentType( CONTENT_TYPE_XML );
-            ImportSummary summary = registrationExchangeService
-                .saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
-            summary.setImportOptions( importOptions );
-            renderService.toXml( response.getOutputStream(), summary );
-        }
+        response.setContentType( CONTENT_TYPE_XML );
+        ImportSummary summary = registrationExchangeService
+            .saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
+        summary.setImportOptions( importOptions );
+        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
-    @PostMapping( consumes = CONTENT_TYPE_JSON )
-    public void postCompleteRegistrationsJson(
+    @PostMapping( consumes = CONTENT_TYPE_JSON, produces = CONTENT_TYPE_JSON )
+    @ResponseBody
+    public WebMessage postCompleteRegistrationsJson(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         if ( importOptions.isAsync() )
         {
-            asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_JSON, request, response );
+            return asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_JSON, request, response );
         }
-        else
-        {
-            response.setContentType( CONTENT_TYPE_JSON );
-            ImportSummary summary = registrationExchangeService
-                .saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
-            summary.setImportOptions( importOptions );
-            renderService.toJson( response.getOutputStream(), summary );
-        }
+        ImportSummary summary = registrationExchangeService
+            .saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
+        summary.setImportOptions( importOptions );
+        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     // -------------------------------------------------------------------------
@@ -319,7 +312,7 @@ public class CompleteDataSetRegistrationController
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void asyncImport( ImportOptions importOptions, String format, HttpServletRequest request,
+    private WebMessage asyncImport( ImportOptions importOptions, String format, HttpServletRequest request,
         HttpServletResponse response )
         throws IOException
     {
@@ -336,7 +329,7 @@ public class CompleteDataSetRegistrationController
 
         response.setHeader( "Location",
             ContextUtils.getRootPath( request ) + "/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT );
-        webMessageService.send( jobConfigurationReport( jobId ), response, request );
+        return jobConfigurationReport( jobId );
     }
 
     private Pair<InputStream, Path> saveTmpFile( InputStream in )

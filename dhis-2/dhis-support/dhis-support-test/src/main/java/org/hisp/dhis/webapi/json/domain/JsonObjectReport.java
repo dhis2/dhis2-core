@@ -47,6 +47,11 @@ public interface JsonObjectReport extends JsonObject
         return getNumber( "index" ).intValue();
     }
 
+    default String getUid()
+    {
+        return getString( "uid" ).string();
+    }
+
     default JsonList<JsonErrorReport> getErrorReports()
     {
         return getList( "errorReports", JsonErrorReport.class );

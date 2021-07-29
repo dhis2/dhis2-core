@@ -47,6 +47,7 @@ import java.util.zip.GZIPOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import org.apache.commons.lang3.StringUtils;
@@ -73,7 +74,6 @@ import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.report.EventRowService;
 import org.hisp.dhis.dxf2.events.report.EventRows;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -110,7 +110,6 @@ import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -136,6 +135,7 @@ import com.google.common.collect.Lists;
 @Controller
 @RequestMapping( value = EventController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequiredArgsConstructor
 public class EventController
 {
     public static final String RESOURCE_PATH = "/events";
@@ -158,8 +158,6 @@ public class EventController
 
     private final DataElementService dataElementService;
 
-    private final WebMessageService webMessageService;
-
     private final InputUtils inputUtils;
 
     private final RenderService renderService;
@@ -176,36 +174,7 @@ public class EventController
 
     private final RequestToSearchParamsMapper requestToSearchParamsMapper;
 
-    protected final TrackedEntityInstanceService entityInstanceService;
-
     private final ContextUtils contextUtils;
-
-    public EventController( CurrentUserService currentUserService, AsyncTaskExecutor taskExecutor,
-        EventService eventService, CsvEventService csvEventService, EventRowService eventRowService,
-        DataElementService dataElementService, WebMessageService webMessageService, InputUtils inputUtils,
-        RenderService renderService, ProgramStageInstanceService programStageInstanceService,
-        FileResourceService fileResourceService, FieldFilterService fieldFilterService, ContextService contextService,
-        SchemaService schemaService, TrackedEntityInstanceService entityInstanceService, ContextUtils contextUtils,
-        RequestToSearchParamsMapper requestToSearchParamsMapper )
-    {
-        this.currentUserService = currentUserService;
-        this.taskExecutor = taskExecutor;
-        this.eventService = eventService;
-        this.csvEventService = csvEventService;
-        this.eventRowService = eventRowService;
-        this.dataElementService = dataElementService;
-        this.webMessageService = webMessageService;
-        this.inputUtils = inputUtils;
-        this.renderService = renderService;
-        this.programStageInstanceService = programStageInstanceService;
-        this.fileResourceService = fileResourceService;
-        this.fieldFilterService = fieldFilterService;
-        this.contextService = contextService;
-        this.schemaService = schemaService;
-        this.entityInstanceService = entityInstanceService;
-        this.contextUtils = contextUtils;
-        this.requestToSearchParamsMapper = requestToSearchParamsMapper;
-    }
 
     private Schema schema;
 
@@ -816,10 +785,11 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @PostMapping( consumes = "application/xml" )
-    public void postXmlEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+    @ResponseBody
+    public WebMessage postXmlEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
     {
-        postEvent( strategy, response, request, importOptions, this::safeAddEventsXml, this::safeGetEventsXml );
+        return postEvent( strategy, response, request, importOptions, this::safeAddEventsXml, this::safeGetEventsXml );
     }
 
     @SneakyThrows
@@ -835,10 +805,12 @@ public class EventController
     }
 
     @PostMapping( consumes = "application/json" )
-    public void postJsonEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+    @ResponseBody
+    public WebMessage postJsonEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
     {
-        postEvent( strategy, response, request, importOptions, this::safeAddEventsJson, this::safeGetEventsJson );
+        return postEvent( strategy, response, request, importOptions, this::safeAddEventsJson,
+            this::safeGetEventsJson );
     }
 
     @SneakyThrows
@@ -854,7 +826,7 @@ public class EventController
     }
 
     @SneakyThrows
-    private void postEvent( ImportStrategy strategy,
+    private WebMessage postEvent( ImportStrategy strategy,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions,
         BiFunction<InputStream, ImportOptions, ImportSummaries> eventAdder,
         Function<InputStream, List<Event>> eventConverter )
@@ -894,24 +866,21 @@ public class EventController
                 }
             }
 
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+            return WebMessageUtils.importSummaries( importSummaries );
         }
-        else
-        {
-            List<Event> events = eventConverter.apply( inputStream );
-            startAsyncImport( importOptions, events, request, response );
-        }
+        List<Event> events = eventConverter.apply( inputStream );
+        return startAsyncImport( importOptions, events, request, response );
     }
 
     @PostMapping( value = "/{uid}/note", consumes = "application/json" )
-    public void postJsonEventForNote( @PathVariable( "uid" ) String uid,
-        HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
-        throws IOException,
-        WebMessageException
+    @ResponseBody
+    public WebMessage postJsonEventForNote( @PathVariable( "uid" ) String uid,
+        HttpServletRequest request, ImportOptions importOptions )
+        throws IOException
     {
         if ( !programStageInstanceService.programStageInstanceExists( uid ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
+            return WebMessageUtils.notFound( "Event not found for ID " + uid );
         }
 
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -919,11 +888,12 @@ public class EventController
         event.setEvent( uid );
 
         eventService.updateEventForNote( event );
-        webMessageService.send( WebMessageUtils.ok( "Event updated: " + uid ), response, request );
+        return WebMessageUtils.ok( "Event updated: " + uid );
     }
 
     @PostMapping( consumes = { "application/csv", "text/csv" } )
-    public void postCsvEvents( @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
+    @ResponseBody
+    public WebMessage postCsvEvents( @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
         HttpServletResponse response, HttpServletRequest request, ImportOptions importOptions )
         throws IOException,
         ParseException
@@ -936,12 +906,9 @@ public class EventController
         {
             ImportSummaries importSummaries = eventService.addEvents( events.getEvents(), importOptions, null );
             importSummaries.setImportOptions( importOptions );
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+            return WebMessageUtils.importSummaries( importSummaries );
         }
-        else
-        {
-            startAsyncImport( importOptions, events.getEvents(), request, response );
-        }
+        return startAsyncImport( importOptions, events.getEvents(), request, response );
     }
 
     // -------------------------------------------------------------------------
@@ -949,7 +916,8 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @PutMapping( value = "/{uid}", consumes = { "application/xml", "text/xml" } )
-    public void putXmlEvent( HttpServletResponse response, HttpServletRequest request,
+    @ResponseBody
+    public WebMessage putXmlEvent( HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions )
         throws IOException
     {
@@ -957,11 +925,12 @@ public class EventController
         Event updatedEvent = renderService.fromXml( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        updateEvent( updatedEvent, false, importOptions, request, response );
+        return updateEvent( updatedEvent, false, importOptions );
     }
 
     @PutMapping( value = "/{uid}", consumes = "application/json" )
-    public void putJsonEvent( HttpServletResponse response, HttpServletRequest request,
+    @ResponseBody
+    public WebMessage putJsonEvent( HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions )
         throws IOException
     {
@@ -969,47 +938,45 @@ public class EventController
         Event updatedEvent = renderService.fromJson( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        updateEvent( updatedEvent, false, importOptions, request, response );
+        return updateEvent( updatedEvent, false, importOptions );
     }
 
-    private void updateEvent( Event updatedEvent, boolean singleValue, ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
+    private WebMessage updateEvent( Event updatedEvent, boolean singleValue, ImportOptions importOptions )
     {
         ImportSummary importSummary = eventService.updateEvent( updatedEvent, singleValue, importOptions, false );
         importSummary.setImportOptions( importOptions );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return WebMessageUtils.importSummary( importSummary );
     }
 
     @PutMapping( value = "/{uid}/{dataElementUid}", consumes = "application/json" )
-    public void putJsonEventSingleValue( HttpServletResponse response, HttpServletRequest request,
+    @ResponseBody
+    public WebMessage putJsonEventSingleValue( HttpServletRequest request,
         @PathVariable( "uid" ) String uid, @PathVariable( "dataElementUid" ) String dataElementUid )
-        throws IOException,
-        WebMessageException
+        throws IOException
     {
         DataElement dataElement = dataElementService.getDataElement( dataElementUid );
 
         if ( dataElement == null )
         {
-            WebMessage webMsg = WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid );
-            webMessageService.send( webMsg, response, request );
+            return WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid );
         }
 
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         Event updatedEvent = renderService.fromJson( inputStream, Event.class );
         updatedEvent.setEvent( uid );
 
-        updateEvent( updatedEvent, true, null, request, response );
+        return updateEvent( updatedEvent, true, null );
     }
 
     @PutMapping( value = "/{uid}/eventDate", consumes = "application/json" )
-    public void putJsonEventForEventDate( HttpServletResponse response, HttpServletRequest request,
+    @ResponseBody
+    public WebMessage putJsonEventForEventDate( HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions )
-        throws IOException,
-        WebMessageException
+        throws IOException
     {
         if ( !programStageInstanceService.programStageInstanceExists( uid ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
+            return WebMessageUtils.notFound( "Event not found for ID " + uid );
         }
 
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -1017,7 +984,7 @@ public class EventController
         updatedEvent.setEvent( uid );
 
         eventService.updateEventForEventDate( updatedEvent );
-        webMessageService.send( WebMessageUtils.ok( "Event updated " + uid ), response, request );
+        return WebMessageUtils.ok( "Event updated " + uid );
     }
 
     // -------------------------------------------------------------------------
@@ -1025,11 +992,10 @@ public class EventController
     // -------------------------------------------------------------------------
 
     @DeleteMapping( "/{uid}" )
-    public void deleteEvent( HttpServletResponse response, HttpServletRequest request,
-        @PathVariable( "uid" ) String uid )
+    @ResponseBody
+    public WebMessage deleteEvent( @PathVariable( "uid" ) String uid )
     {
-        ImportSummary importSummary = eventService.deleteEvent( uid );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return WebMessageUtils.importSummary( eventService.deleteEvent( uid ) );
     }
 
     // -------------------------------------------------------------------------
@@ -1044,7 +1010,7 @@ public class EventController
      * @param request the HttpRequest.
      * @param response the HttpResponse.
      */
-    private void startAsyncImport( ImportOptions importOptions, List<Event> events, HttpServletRequest request,
+    private WebMessage startAsyncImport( ImportOptions importOptions, List<Event> events, HttpServletRequest request,
         HttpServletResponse response )
     {
         JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
@@ -1052,7 +1018,7 @@ public class EventController
         taskExecutor.executeTask( new ImportEventsTask( events, eventService, importOptions, jobId ) );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + EVENT_IMPORT );
-        webMessageService.send( jobConfigurationReport( jobId ), response, request );
+        return jobConfigurationReport( jobId );
     }
 
     private boolean fieldsContains( String match, List<String> fields )

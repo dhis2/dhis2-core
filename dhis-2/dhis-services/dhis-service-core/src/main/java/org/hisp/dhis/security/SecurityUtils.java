@@ -83,7 +83,13 @@ public class SecurityUtils
         Assert.notNull( userCredentials.getSecret(), "User must have a secret" );
 
         Totp totp = new Totp( userCredentials.getSecret() );
-
-        return totp.verify( code );
+        try
+        {
+            return totp.verify( code );
+        }
+        catch ( NumberFormatException ex )
+        {
+            return false;
+        }
     }
 }
