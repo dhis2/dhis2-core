@@ -72,6 +72,12 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
         ServerHttpResponse response )
     {
         WebMessage message = (WebMessage) body;
+        String location = message.getLocation();
+        if ( location != null )
+        {
+            response.getHeaders().addIfAbsent( ContextUtils.HEADER_LOCATION,
+                contextService.getApiPath() + location );
+        }
         if ( isPlainResponse( request, message ) )
         {
             return ((WebMessage) body).getResponse();
@@ -85,12 +91,6 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
                 response.getHeaders().addIfAbsent( "Cache-Control",
                     CacheControl.noCache().cachePrivate().getHeaderValue() );
             }
-        }
-        String location = message.getLocation();
-        if ( location != null )
-        {
-            response.getHeaders().addIfAbsent( ContextUtils.HEADER_LOCATION,
-                contextService.getApiPath() + location );
         }
         return body;
     }
