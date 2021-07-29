@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.mvc;
 
 import java.util.Set;
 
+import org.hisp.dhis.commons.jackson.config.filter.FieldFilterParser;
 import org.hisp.dhis.commons.jackson.config.filter.FieldFilterSimpleBeanPropertyFilter;
 import org.springframework.http.converter.json.MappingJacksonValue;
 
@@ -39,8 +40,10 @@ public class FieldFilterMappingJacksonValue extends MappingJacksonValue
     public FieldFilterMappingJacksonValue( final Object value, Set<String> fieldFilters )
     {
         super( value );
+
         SimpleFilterProvider filterProvider = new SimpleFilterProvider();
-        filterProvider.addFilter( "field-filter", new FieldFilterSimpleBeanPropertyFilter( fieldFilters ) );
+        filterProvider.addFilter( "field-filter",
+            new FieldFilterSimpleBeanPropertyFilter( FieldFilterParser.parse( fieldFilters ) ) );
 
         setFilters( filterProvider );
     }

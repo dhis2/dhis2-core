@@ -40,30 +40,17 @@ public class FieldFilterParser
 {
     public static Set<String> parse( Set<String> fields )
     {
-        return new HashSet<>( expandFields( fields ) );
-    }
-
-    private static Set<String> expandFields( Set<String> fields )
-    {
-        Set<String> output = new HashSet<>();
-
-        for ( String field : fields )
-        {
-            output.addAll( expandField( field ) );
-        }
-
-        return output;
+        return new HashSet<>( expandField( StringUtils.join( fields, "," ) ) );
     }
 
     private static Set<String> expandField( String field )
     {
         Set<String> output = new HashSet<>();
 
-        String[] tokens = field.split( "" );
         Stack<String> path = new Stack<>();
         StringBuilder builder = new StringBuilder();
 
-        for ( String token : tokens )
+        for ( String token : field.split( "" ) )
         {
             if ( isFieldSeparator( token ) )
             {
@@ -78,7 +65,7 @@ public class FieldFilterParser
             else if ( isBlockEnd( token ) )
             {
                 output.add( toFullPath( builder.toString(), path ) );
-                path.pop();
+                output.add( path.pop() );
 
                 builder = new StringBuilder();
             }
@@ -98,22 +85,22 @@ public class FieldFilterParser
 
     private static boolean isBlockStart( String token )
     {
-        return token != null && token.equals( "[" );
+        return token != null && StringUtils.containsAny( token, "[", "(" );
     }
 
     private static boolean isBlockEnd( String token )
     {
-        return token != null && token.equals( "]" );
+        return token != null && StringUtils.containsAny( token, "]", ")" );
     }
 
     private static boolean isFieldSeparator( String token )
     {
-        return token != null && token.equals( "," );
+        return token != null && StringUtils.containsAny( token, "," );
     }
 
     private static boolean isAlphanumeric( String token )
     {
-        return StringUtils.isAlphanumeric( token );
+        return StringUtils.isAlphanumeric( token ) || StringUtils.containsAny( token, "*" );
     }
 
     private static String toFullPath( String field, Stack<String> path )

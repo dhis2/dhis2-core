@@ -77,4 +77,22 @@ public class FieldFilterParserTest
         assertTrue( fields.contains( "group.group.group.id" ) );
         assertTrue( fields.contains( "group.group.group.name" ) );
     }
+
+    @Test
+    public void testOnlyBlockFilters()
+    {
+        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "group[id,name]" ) );
+
+        assertTrue( fields.contains( "group.id" ) );
+        assertTrue( fields.contains( "group.name" ) );
+    }
+
+    @Test
+    public void testOnlySpringBlockFilters()
+    {
+        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "group[id", "name]" ) );
+
+        assertTrue( fields.contains( "group.id" ) );
+        assertTrue( fields.contains( "group.name" ) );
+    }
 }
