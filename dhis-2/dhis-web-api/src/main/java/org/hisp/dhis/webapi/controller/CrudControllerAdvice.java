@@ -273,7 +273,7 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage handleConflictRequest( Exception exception )
     {
-        return WebMessageUtils.conflict( exception.getMessage() );
+        return conflict( exception.getMessage() );
     }
 
     @ExceptionHandler( MetadataVersionException.class )
