@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.commons.jackson.config.filter;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Stack;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Morten Olav Hansen
@@ -38,15 +40,85 @@ public class FieldFilterParser
 {
     public static Set<String> parse( Set<String> fields )
     {
+        return new HashSet<>( expandFields( fields ) );
+    }
+
+    private static Set<String> expandFields( Set<String> fields )
+    {
         Set<String> output = new HashSet<>();
 
-        fields.stream().filter( f -> !f.isEmpty() )
-            .map( f -> Arrays.asList( f.split( "," ) ) )
-            .forEach( f -> {
-                f.forEach( System.err::println );
-            } );
+        for ( String field : fields )
+        {
+            output.addAll( expandField( field ) );
+        }
 
         return output;
+    }
+
+    private static Set<String> expandField( String field )
+    {
+        Set<String> output = new HashSet<>();
+
+        String[] tokens = field.split( "" );
+        Stack<String> path = new Stack<>();
+        StringBuilder builder = new StringBuilder();
+
+        for ( String token : tokens )
+        {
+            if ( isFieldSeparator( token ) )
+            {
+                output.add( toFullPath( builder.toString(), path ) );
+                builder = new StringBuilder();
+            }
+            else if ( isBlockStart( token ) )
+            {
+                path.push( builder.toString() );
+                builder = new StringBuilder();
+            }
+            else if ( isBlockEnd( token ) )
+            {
+                output.add( toFullPath( builder.toString(), path ) );
+                path.pop();
+
+                builder = new StringBuilder();
+            }
+            else if ( isAlphanumeric( token ) )
+            {
+                builder.append( token );
+            }
+        }
+
+        if ( builder.length() > 0 )
+        {
+            output.add( builder.toString() );
+        }
+
+        return output;
+    }
+
+    private static boolean isBlockStart( String token )
+    {
+        return token != null && token.equals( "[" );
+    }
+
+    private static boolean isBlockEnd( String token )
+    {
+        return token != null && token.equals( "]" );
+    }
+
+    private static boolean isFieldSeparator( String token )
+    {
+        return token != null && token.equals( "," );
+    }
+
+    private static boolean isAlphanumeric( String token )
+    {
+        return StringUtils.isAlphanumeric( token );
+    }
+
+    private static String toFullPath( String field, Stack<String> path )
+    {
+        return path.size() == 0 ? field : StringUtils.join( path, "." ) + "." + field;
     }
 
     private FieldFilterParser()

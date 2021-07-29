@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.commons.jackson.config;
 
+import static org.junit.Assert.assertTrue;
+
+import java.util.Set;
+
 import org.hisp.dhis.commons.jackson.config.filter.FieldFilterParser;
 import org.junit.Test;
 
@@ -40,6 +44,37 @@ public class FieldFilterParserTest
     @Test
     public void testDepth0Filters()
     {
-        FieldFilterParser.parse( Sets.newHashSet( "name,id", "" ) );
+        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "id, name", "    abc" ) );
+
+        assertTrue( fields.contains( "id" ) );
+        assertTrue( fields.contains( "name" ) );
+        assertTrue( fields.contains( "abc" ) );
+    }
+
+    @Test
+    public void testDepth1Filters()
+    {
+        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "id,name,group[id,name]" ) );
+
+        assertTrue( fields.contains( "id" ) );
+        assertTrue( fields.contains( "name" ) );
+        assertTrue( fields.contains( "group.id" ) );
+        assertTrue( fields.contains( "group.name" ) );
+    }
+
+    @Test
+    public void testDepthXFilters()
+    {
+        Set<String> fields = FieldFilterParser
+            .parse( Sets.newHashSet( "id,name,group[id,name]", "group[id,name,group[id,name,group[id,name]]]" ) );
+
+        assertTrue( fields.contains( "id" ) );
+        assertTrue( fields.contains( "name" ) );
+        assertTrue( fields.contains( "group.id" ) );
+        assertTrue( fields.contains( "group.name" ) );
+        assertTrue( fields.contains( "group.group.id" ) );
+        assertTrue( fields.contains( "group.group.name" ) );
+        assertTrue( fields.contains( "group.group.group.id" ) );
+        assertTrue( fields.contains( "group.group.group.name" ) );
     }
 }
