@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,25 +48,26 @@ public class LegendSetController
 {
     @Override
     @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD') or hasRole('ALL')" )
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        super.postJsonObject( request, response );
+        return super.postJsonObject( request, response );
     }
 
     @Override
     @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD')  or hasRole('ALL')" )
-    public void putJsonObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+    public WebMessage putJsonObject( @PathVariable String uid, HttpServletRequest request,
+        HttpServletResponse response )
         throws Exception
     {
-        super.putJsonObject( uid, request, response );
+        return super.putJsonObject( uid, request, response );
     }
 
     @Override
     @PreAuthorize( "hasRole('F_LEGEND_SET_DELETE') or hasRole('ALL')" )
-    public void deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+    public WebMessage deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        super.deleteObject( uid, request, response );
+        return super.deleteObject( uid, request, response );
     }
 }

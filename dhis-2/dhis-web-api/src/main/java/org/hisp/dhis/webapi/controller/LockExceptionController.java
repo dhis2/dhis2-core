@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +42,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockException;
 import org.hisp.dhis.dataset.comparator.LockExceptionNameComparator;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
@@ -65,7 +65,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -105,9 +104,6 @@ public class LockExceptionController
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private WebMessageService webMessageService;
-
-    @Autowired
     private AclService aclService;
 
     @Autowired
@@ -126,8 +122,7 @@ public class LockExceptionController
     @GetMapping( produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getLockExceptions( @RequestParam( required = false ) String key,
         @RequestParam Map<String, String> rpParameters, HttpServletRequest request, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws WebMessageException
     {
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -193,8 +188,6 @@ public class LockExceptionController
 
     @GetMapping( value = "/combinations", produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getLockExceptionCombinations()
-        throws IOException,
-        WebMessageException
     {
 
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -222,10 +215,11 @@ public class LockExceptionController
     }
 
     @PostMapping
-    public void addLockException( @RequestParam( "ou" ) String organisationUnitId,
+    @ResponseBody
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public WebMessage addLockException( @RequestParam( "ou" ) String organisationUnitId,
         @RequestParam( "pe" ) String periodId,
-        @RequestParam( "ds" ) String dataSetId, HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException
+        @RequestParam( "ds" ) String dataSetId )
     {
         User user = userService.getCurrentUser();
 
@@ -235,7 +229,7 @@ public class LockExceptionController
 
         if ( dataSet == null || period == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( " DataSet or Period is invalid" ) );
+            return WebMessageUtils.conflict( " DataSet or Period is invalid" );
         }
 
         if ( !aclService.canUpdate( user, dataSet ) )
@@ -252,14 +246,14 @@ public class LockExceptionController
             String[] arrOrgUnitIds = organisationUnitId.substring( 1, organisationUnitId.length() - 1 ).split( "," );
             Collections.addAll( listOrgUnitIds, arrOrgUnitIds );
         }
-        else
+        else if ( !organisationUnitId.isEmpty() )
         {
             listOrgUnitIds.add( organisationUnitId );
         }
 
-        if ( listOrgUnitIds.size() == 0 )
+        if ( listOrgUnitIds.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( " OrganisationUnit ID is invalid." ) );
+            return WebMessageUtils.conflict( " OrganisationUnit ID is invalid." );
         }
 
         for ( String id : listOrgUnitIds )
@@ -268,8 +262,7 @@ public class LockExceptionController
 
             if ( organisationUnit == null )
             {
-                throw new WebMessageException(
-                    WebMessageUtils.conflict( "Can't find OrganisationUnit with id =" + id ) );
+                return WebMessageUtils.conflict( "Can't find OrganisationUnit with id =" + id );
             }
 
             if ( organisationUnit.getDataSets().contains( dataSet ) )
@@ -286,9 +279,9 @@ public class LockExceptionController
 
         if ( created )
         {
-            webMessageService.send( WebMessageUtils.created( "LockException created successfully." ), response,
-                request );
+            return WebMessageUtils.created( "LockException created successfully." );
         }
+        return null;
     }
 
     @DeleteMapping

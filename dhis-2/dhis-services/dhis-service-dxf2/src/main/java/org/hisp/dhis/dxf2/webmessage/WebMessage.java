@@ -29,11 +29,13 @@ package org.hisp.dhis.dxf2.webmessage;
 
 import javax.annotation.Nonnull;
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.springframework.http.HttpStatus;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -47,7 +49,7 @@ import com.google.common.base.MoreObjects;
 @JsonPropertyOrder( {
     "httpStatus", "httpStatusCode", "status", "code", "message", "devMessage", "response"
 } )
-public class WebMessage
+public class WebMessage implements WebMessageResponse
 {
     /**
      * Message status, currently two statuses are available: OK, ERROR. Default
@@ -55,37 +57,37 @@ public class WebMessage
      *
      * @see Status
      */
-    protected Status status = Status.OK;
+    private Status status = Status.OK;
 
     /**
      * Internal code for this message. Should be used to help with third party
      * clients which should not have to resort to string parsing of message to
      * know what is happening.
      */
-    protected Integer code;
+    private Integer code;
 
     /**
      * HTTP status.
      */
-    protected HttpStatus httpStatus = HttpStatus.OK;
+    private HttpStatus httpStatus = HttpStatus.OK;
 
     /**
      * The {@link ErrorCode} which describes a potential error. Only relevant
      * for {@link Status#ERROR}.
      */
-    protected ErrorCode errorCode;
+    private ErrorCode errorCode;
 
     /**
      * Non-technical message, should be simple and could possibly be used to
      * display message to an end-user.
      */
-    protected String message;
+    private String message;
 
     /**
      * Technical message that should explain as much details as possible, mainly
      * to be used for debugging.
      */
-    protected String devMessage;
+    private String devMessage;
 
     /**
      * When a simple text feedback is not enough, you can use this interface to
@@ -93,7 +95,9 @@ public class WebMessage
      *
      * @see WebMessageResponse
      */
-    protected WebMessageResponse response;
+    private WebMessageResponse response;
+
+    private DhisApiVersion plainResponseBefore;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -233,6 +237,18 @@ public class WebMessage
     {
         this.response = response;
         return this;
+    }
+
+    public WebMessage withPlainResponseBefore( DhisApiVersion version )
+    {
+        this.plainResponseBefore = version;
+        return this;
+    }
+
+    @JsonIgnore
+    public DhisApiVersion getPlainResponseBefore()
+    {
+        return plainResponseBefore;
     }
 
     @Override
