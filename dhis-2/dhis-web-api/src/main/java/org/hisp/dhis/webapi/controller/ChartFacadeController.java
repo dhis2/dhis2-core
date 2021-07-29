@@ -704,7 +704,6 @@ public abstract class ChartFacadeController
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage setAsFavorite( @PathVariable( "uid" ) String pvUid )
-        throws Exception
     {
         if ( !getSchema().isFavoritable() )
         {

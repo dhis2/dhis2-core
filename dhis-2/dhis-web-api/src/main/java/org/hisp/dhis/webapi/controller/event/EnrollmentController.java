@@ -236,8 +236,7 @@ public class EnrollmentController
             return importSummaries( importSummaries )
                 .setHttpStatus( HttpStatus.CREATED );
         }
-        List<Enrollment> enrollments = enrollmentService.getEnrollmentsJson( inputStream );
-        return startAsyncImport( importOptions, enrollments, request );
+        return startAsyncImport( importOptions, enrollmentService.getEnrollmentsJson( inputStream ) );
     }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
@@ -280,8 +279,7 @@ public class EnrollmentController
             return importSummaries( importSummaries )
                 .setHttpStatus( HttpStatus.CREATED );
         }
-        List<Enrollment> enrollments = enrollmentService.getEnrollmentsXml( inputStream );
-        return startAsyncImport( importOptions, enrollments, request );
+        return startAsyncImport( importOptions, enrollmentService.getEnrollmentsXml( inputStream ) );
     }
 
     // -------------------------------------------------------------------------
@@ -387,10 +385,8 @@ public class EnrollmentController
      *
      * @param importOptions the ImportOptions.
      * @param enrollments the enrollments to import.
-     * @param request the HttpRequest.
      */
-    private WebMessage startAsyncImport( ImportOptions importOptions, List<Enrollment> enrollments,
-        HttpServletRequest request )
+    private WebMessage startAsyncImport( ImportOptions importOptions, List<Enrollment> enrollments )
     {
         JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
             ENROLLMENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );

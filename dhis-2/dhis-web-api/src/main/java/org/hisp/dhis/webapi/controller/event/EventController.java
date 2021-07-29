@@ -866,8 +866,7 @@ public class EventController
 
             return importSummaries( importSummaries );
         }
-        List<Event> events = eventConverter.apply( inputStream );
-        return startAsyncImport( importOptions, events, request );
+        return startAsyncImport( importOptions, eventConverter.apply( inputStream ) );
     }
 
     @PostMapping( value = "/{uid}/note", consumes = "application/json" )
@@ -906,7 +905,7 @@ public class EventController
             importSummaries.setImportOptions( importOptions );
             return importSummaries( importSummaries );
         }
-        return startAsyncImport( importOptions, events.getEvents(), request );
+        return startAsyncImport( importOptions, events.getEvents() );
     }
 
     // -------------------------------------------------------------------------
@@ -1005,9 +1004,8 @@ public class EventController
      *
      * @param importOptions the ImportOptions.
      * @param events the events to import.
-     * @param request the HttpRequest.
      */
-    private WebMessage startAsyncImport( ImportOptions importOptions, List<Event> events, HttpServletRequest request )
+    private WebMessage startAsyncImport( ImportOptions importOptions, List<Event> events )
     {
         JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
             EVENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
