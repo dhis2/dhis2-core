@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummaries;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.scheduling.JobType.ENROLLMENT_IMPORT;
 
 import java.io.IOException;
@@ -54,7 +57,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -230,7 +232,7 @@ public class EnrollmentController
                 }
             }
 
-            WebMessage webMessage = WebMessageUtils.importSummaries( importSummaries );
+            WebMessage webMessage = importSummaries( importSummaries );
             webMessage.setHttpStatus( HttpStatus.CREATED );
             return webMessage;
         }
@@ -273,9 +275,7 @@ public class EnrollmentController
                 }
             }
 
-            WebMessage webMessage = WebMessageUtils.importSummaries( importSummaries );
-            webMessage.setHttpStatus( HttpStatus.CREATED );
-            return webMessage;
+            return importSummaries( importSummaries ).setHttpStatus( HttpStatus.CREATED );
         }
         List<Enrollment> enrollments = enrollmentService.getEnrollmentsXml( inputStream );
         return startAsyncImport( importOptions, enrollments, request, response );
@@ -292,7 +292,7 @@ public class EnrollmentController
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = enrollmentService.updateEnrollmentForNoteJson( id, inputStream );
-        return WebMessageUtils.importSummary( importSummary );
+        return importSummary( importSummary );
     }
 
     @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
@@ -305,7 +305,7 @@ public class EnrollmentController
         ImportSummary importSummary = enrollmentService.updateEnrollmentXml( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        return WebMessageUtils.importSummary( importSummary );
+        return importSummary( importSummary );
     }
 
     @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
@@ -318,7 +318,7 @@ public class EnrollmentController
         ImportSummary importSummary = enrollmentService.updateEnrollmentJson( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        return WebMessageUtils.importSummary( importSummary );
+        return importSummary( importSummary );
     }
 
     @PutMapping( "/{id}/cancelled" )
@@ -328,7 +328,7 @@ public class EnrollmentController
     {
         if ( !programInstanceService.programInstanceExists( id ) )
         {
-            return WebMessageUtils.notFound( "Enrollment not found for ID " + id );
+            return notFound( "Enrollment not found for ID " + id );
         }
 
         enrollmentService.cancelEnrollment( id );
@@ -342,7 +342,7 @@ public class EnrollmentController
     {
         if ( !programInstanceService.programInstanceExists( id ) )
         {
-            return WebMessageUtils.notFound( "Enrollment not found for ID " + id );
+            return notFound( "Enrollment not found for ID " + id );
         }
 
         enrollmentService.completeEnrollment( id );
@@ -356,7 +356,7 @@ public class EnrollmentController
     {
         if ( !programInstanceService.programInstanceExists( id ) )
         {
-            return WebMessageUtils.notFound( "Enrollment not found for ID " + id );
+            return notFound( "Enrollment not found for ID " + id );
         }
 
         enrollmentService.incompleteEnrollment( id );
@@ -372,7 +372,7 @@ public class EnrollmentController
     public WebMessage deleteEnrollment( @PathVariable String id )
     {
         ImportSummary importSummary = enrollmentService.deleteEnrollment( id );
-        return WebMessageUtils.importSummary( importSummary );
+        return importSummary( importSummary );
     }
 
     // -------------------------------------------------------------------------

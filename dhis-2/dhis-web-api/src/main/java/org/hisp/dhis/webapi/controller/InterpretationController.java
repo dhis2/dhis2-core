@@ -28,6 +28,9 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +46,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -147,7 +149,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( visualization == null )
         {
-            return WebMessageUtils.conflict( "Report table does not exist or is not accessible: " + visualizationUid );
+            return conflict( "Report table does not exist or is not accessible: " + visualizationUid );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
@@ -169,7 +171,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( visualization == null )
         {
-            return WebMessageUtils.conflict( "Chart does not exist or is not accessible: " + uid );
+            return conflict( "Chart does not exist or is not accessible: " + uid );
         }
 
         OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
@@ -190,7 +192,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( visualization == null )
         {
-            return WebMessageUtils.conflict( "Visualization does not exist or is not accessible: " + uid );
+            return conflict( "Visualization does not exist or is not accessible: " + uid );
         }
 
         final OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
@@ -208,7 +210,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( map == null )
         {
-            return WebMessageUtils.conflict( "Map does not exist or is not accessible: " + uid );
+            return conflict( "Map does not exist or is not accessible: " + uid );
         }
 
         return createInterpretation( new Interpretation( map, text ), response );
@@ -225,7 +227,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( eventReport == null )
         {
-            return WebMessageUtils.conflict( "Event report does not exist or is not accessible: " + uid );
+            return conflict( "Event report does not exist or is not accessible: " + uid );
         }
 
         OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventReport,
@@ -245,7 +247,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( eventChart == null )
         {
-            return WebMessageUtils.conflict( "Event chart does not exist or is not accessible: " + uid );
+            return conflict( "Event chart does not exist or is not accessible: " + uid );
         }
 
         OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventChart,
@@ -264,21 +266,21 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( dataSet == null )
         {
-            return WebMessageUtils.conflict( "Data set does not exist or is not accessible: " + dataSetUid );
+            return conflict( "Data set does not exist or is not accessible: " + dataSetUid );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
 
         if ( period == null )
         {
-            return WebMessageUtils.conflict( "Period identifier not valid: " + isoPeriod );
+            return conflict( "Period identifier not valid: " + isoPeriod );
         }
 
         OrganisationUnit orgUnit = idObjectManager.get( OrganisationUnit.class, orgUnitUid );
 
         if ( orgUnit == null )
         {
-            return WebMessageUtils.conflict( "Organisation unit does not exist or is not accessible: " + orgUnitUid );
+            return conflict( "Organisation unit does not exist or is not accessible: " + orgUnitUid );
         }
 
         return createInterpretation( new Interpretation( dataSet, period, orgUnit, text ), response );
@@ -301,7 +303,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             if ( unit == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Organisation unit does not exist or is not accessible: " + uid ) );
+                    conflict( "Organisation unit does not exist or is not accessible: " + uid ) );
             }
 
             return unit;
@@ -324,7 +326,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         response.addHeader( "Location", InterpretationSchemaDescriptor.API_ENDPOINT + "/" + interpretation.getUid() );
 
-        return WebMessageUtils.created( "Interpretation created" );
+        return created( "Interpretation created" );
     }
 
     // -------------------------------------------------------------------------
@@ -340,7 +342,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( interpretation == null )
         {
-            return WebMessageUtils.notFound( "Interpretation does not exist: " + uid );
+            return notFound( "Interpretation does not exist: " + uid );
         }
 
         if ( !currentUserService.getCurrentUser().equals( interpretation.getCreatedBy() )
@@ -362,7 +364,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( interpretation == null )
         {
-            return WebMessageUtils.notFound( "Interpretation does not exist: " + uid );
+            return notFound( "Interpretation does not exist: " + uid );
         }
 
         if ( !currentUserService.getCurrentUser().equals( interpretation.getCreatedBy() )
@@ -388,7 +390,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( interpretation == null )
         {
-            return WebMessageUtils.conflict( "Interpretation does not exist: " + uid );
+            return conflict( "Interpretation does not exist: " + uid );
         }
 
         InterpretationComment comment = interpretationService.addInterpretationComment( uid, text );
@@ -396,7 +398,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         String builder = InterpretationSchemaDescriptor.API_ENDPOINT + "/" + uid + "/comments/" + comment.getUid();
 
         response.addHeader( "Location", builder );
-        return WebMessageUtils.created( "Commented created" );
+        return created( "Commented created" );
     }
 
     @PutMapping( "/{uid}/comments/{cuid}" )
@@ -409,7 +411,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( interpretation == null )
         {
-            return WebMessageUtils.conflict( "Interpretation does not exist: " + uid );
+            return conflict( "Interpretation does not exist: " + uid );
         }
 
         for ( InterpretationComment comment : interpretation.getComments() )
@@ -440,7 +442,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( interpretation == null )
         {
-            return WebMessageUtils.conflict( "Interpretation does not exist: " + uid );
+            return conflict( "Interpretation does not exist: " + uid );
         }
 
         Iterator<InterpretationComment> iterator = interpretation.getComments().iterator();
@@ -477,14 +479,14 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( interpretation == null )
         {
-            return WebMessageUtils.conflict( "Interpretation does not exist: " + uid );
+            return conflict( "Interpretation does not exist: " + uid );
         }
 
         if ( interpretationService.likeInterpretation( interpretation.getId() ) )
         {
-            return WebMessageUtils.created( "Like added to interpretation" );
+            return created( "Like added to interpretation" );
         }
-        return WebMessageUtils.conflict( "Could not add like, user had already liked interpretation" );
+        return conflict( "Could not add like, user had already liked interpretation" );
     }
 
     @DeleteMapping( "/{uid}/like" )
@@ -495,14 +497,14 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
         if ( interpretation == null )
         {
-            return WebMessageUtils.conflict( "Interpretation does not exist: " + uid );
+            return conflict( "Interpretation does not exist: " + uid );
         }
 
         if ( interpretationService.unlikeInterpretation( interpretation.getId() ) )
         {
-            return WebMessageUtils.created( "Like removed from interpretation" );
+            return created( "Like removed from interpretation" );
         }
-        return WebMessageUtils.conflict( "Could not remove like, user had not previously liked interpretation" );
+        return conflict( "Could not remove like, user had not previously liked interpretation" );
     }
 
     // -------------------------------------------------------------------------

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -39,7 +41,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconData;
 import org.hisp.dhis.icon.IconService;
@@ -110,7 +111,7 @@ public class IconController
         if ( !icon.isPresent() )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( String.format( "Icon not found: '%s", iconKey ) ) );
+                notFound( String.format( "Icon not found: '%s", iconKey ) ) );
         }
 
         icon.get().setReference( String.format( "%s%s/%s/icon.%s", contextService.getApiPath(),
@@ -129,7 +130,7 @@ public class IconController
         if ( !icon.isPresent() )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( String.format( "Icon resource not found: '%s", iconKey ) ) );
+                notFound( String.format( "Icon resource not found: '%s", iconKey ) ) );
         }
 
         response.setHeader( "Cache-Control", CacheControl.maxAge( TTL, TimeUnit.DAYS ).getHeaderValue() );

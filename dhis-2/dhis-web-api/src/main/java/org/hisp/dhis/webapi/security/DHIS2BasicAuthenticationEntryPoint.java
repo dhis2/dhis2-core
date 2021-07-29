@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.security;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -34,7 +36,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -88,12 +89,12 @@ public class DHIS2BasicAuthenticationEntryPoint extends LoginUrlAuthenticationEn
             if ( acceptHeader.contains( MediaType.APPLICATION_XML_VALUE ) )
             {
                 response.setContentType( MediaType.APPLICATION_XML_VALUE );
-                renderService.toXml( response.getOutputStream(), WebMessageUtils.unauthorized( message ) );
+                renderService.toXml( response.getOutputStream(), unauthorized( message ) );
             }
             else
             {
                 response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-                renderService.toJson( response.getOutputStream(), WebMessageUtils.unauthorized( message ) );
+                renderService.toJson( response.getOutputStream(), unauthorized( message ) );
             }
 
             return;

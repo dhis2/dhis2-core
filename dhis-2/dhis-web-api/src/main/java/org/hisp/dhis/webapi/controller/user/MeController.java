@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.io.IOException;
@@ -50,7 +53,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.interpretation.InterpretationService;
@@ -260,7 +262,7 @@ public class MeController
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
+                conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
         }
 
         manager.update( currentUser );
@@ -351,14 +353,14 @@ public class MeController
 
         if ( !keyEnum.isPresent() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Key is not supported: " + key ) );
+            throw new WebMessageException( conflict( "Key is not supported: " + key ) );
         }
 
         Serializable value = userSettingService.getUserSetting( keyEnum.get(), currentUser );
 
         if ( value == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "User setting not found for key: " + key ) );
+            throw new WebMessageException( notFound( "User setting not found for key: " + key ) );
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
@@ -385,14 +387,14 @@ public class MeController
 
         if ( StringUtils.isEmpty( oldPassword ) || StringUtils.isEmpty( newPassword ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "OldPassword and newPassword must be provided" ) );
+            throw new WebMessageException( conflict( "OldPassword and newPassword must be provided" ) );
         }
 
         boolean valid = passwordManager.matches( oldPassword, currentUser.getUserCredentials().getPassword() );
 
         if ( !valid )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "OldPassword is incorrect" ) );
+            throw new WebMessageException( conflict( "OldPassword is incorrect" ) );
         }
 
         updatePassword( currentUser, newPassword );
@@ -471,7 +473,7 @@ public class MeController
         if ( password == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
+                conflict( "Required attribute 'password' missing or null." ) );
         }
 
         boolean valid = passwordManager.matches( password, currentUser.getUserCredentials().getPassword() );
@@ -488,7 +490,7 @@ public class MeController
         if ( password == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
+                conflict( "Required attribute 'password' missing or null." ) );
         }
 
         CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUsername(), password,
@@ -514,7 +516,7 @@ public class MeController
 
         if ( user == null || user.getUserCredentials() == null )
         {
-            throw new WebMessageException( WebMessageUtils.unauthorized( "Not authenticated" ) );
+            throw new WebMessageException( unauthorized( "Not authenticated" ) );
         }
 
         return user;
@@ -573,7 +575,7 @@ public class MeController
             }
             else
             {
-                throw new WebMessageException( WebMessageUtils.conflict( result.getErrorMessage() ) );
+                throw new WebMessageException( conflict( result.getErrorMessage() ) );
             }
         }
     }

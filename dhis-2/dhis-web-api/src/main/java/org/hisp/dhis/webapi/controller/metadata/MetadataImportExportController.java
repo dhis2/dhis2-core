@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.metadata;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.GML_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
@@ -58,7 +60,6 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -141,7 +142,7 @@ public class MetadataImportExportController
             return startAsyncMetadata( params, request, response );
         }
         ImportReport importReport = metadataImportService.importMetadata( params );
-        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @PostMapping( value = "", consumes = "application/csv" )
@@ -155,7 +156,7 @@ public class MetadataImportExportController
 
         if ( StringUtils.isEmpty( classKey ) || !CsvImportClass.classExists( classKey ) )
         {
-            return WebMessageUtils.conflict( "Cannot find Csv import class:  " + classKey );
+            return conflict( "Cannot find Csv import class:  " + classKey );
         }
 
         params.setCsvImportClass( CsvImportClass.valueOf( classKey ) );
@@ -171,7 +172,7 @@ public class MetadataImportExportController
             return startAsyncMetadata( params, request, response );
         }
         ImportReport importReport = metadataImportService.importMetadata( params );
-        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @PostMapping( value = "/gml", consumes = MediaType.APPLICATION_XML_VALUE )
@@ -186,7 +187,7 @@ public class MetadataImportExportController
             return startAsyncGml( params, request, response );
         }
         ImportReport importReport = gmlImportService.importGml( request.getInputStream(), params );
-        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
@@ -204,7 +205,7 @@ public class MetadataImportExportController
             return startAsyncMetadata( params, request, response );
         }
         ImportReport importReport = metadataImportService.importMetadata( params );
-        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @GetMapping( "/csvImportClasses" )

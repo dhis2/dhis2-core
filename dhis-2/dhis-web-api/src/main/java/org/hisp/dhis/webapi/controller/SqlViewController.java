@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
 import java.util.List;
 import java.util.Set;
 
@@ -35,7 +40,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
@@ -216,21 +220,21 @@ public class SqlViewController
 
         if ( sqlView == null )
         {
-            return WebMessageUtils.notFound( "SQL view does not exist: " + uid );
+            return notFound( "SQL view does not exist: " + uid );
         }
 
         if ( sqlView.isQuery() )
         {
-            return WebMessageUtils.conflict( "SQL view is a query, no view to create" );
+            return conflict( "SQL view is a query, no view to create" );
         }
 
         String result = sqlViewService.createViewTable( sqlView );
         if ( result != null )
         {
-            return WebMessageUtils.conflict( result );
+            return conflict( result );
         }
         response.addHeader( "Location", SqlViewSchemaDescriptor.API_ENDPOINT + "/" + sqlView.getUid() );
-        return WebMessageUtils.created( "SQL view created" );
+        return created( "SQL view created" );
     }
 
     @PostMapping( "/{uid}/refresh" )
@@ -241,14 +245,14 @@ public class SqlViewController
 
         if ( sqlView == null )
         {
-            return WebMessageUtils.notFound( "SQL view does not exist: " + uid );
+            return notFound( "SQL view does not exist: " + uid );
         }
 
         if ( !sqlViewService.refreshMaterializedView( sqlView ) )
         {
-            return WebMessageUtils.conflict( "View could not be refreshed" );
+            return conflict( "View could not be refreshed" );
         }
-        return WebMessageUtils.ok( "Materialized view refreshed" );
+        return ok( "Materialized view refreshed" );
     }
 
     private SqlView validateView( String uid )
@@ -258,7 +262,7 @@ public class SqlViewController
 
         if ( sqlView == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
+            throw new WebMessageException( notFound( "SQL view does not exist: " + uid ) );
         }
 
         return sqlView;

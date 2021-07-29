@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 
@@ -38,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.feedback.Status;
@@ -98,13 +99,13 @@ public class PredictorController extends AbstractCrudController<Predictor>
 
             predictionService.predict( predictor, startDate, endDate, predictionSummary );
 
-            return WebMessageUtils.ok( "Generated " + predictionSummary.getPredictions() + " predictions" );
+            return ok( "Generated " + predictionSummary.getPredictions() + " predictions" );
         }
         catch ( Exception ex )
         {
             log.error( "Unable to predict " + predictor.getName(), ex );
 
-            return WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() );
+            return conflict( "Unable to predict " + predictor.getName(), ex.getMessage() );
         }
     }
 
@@ -134,11 +135,11 @@ public class PredictorController extends AbstractCrudController<Predictor>
             {
                 log.error( "Unable to predict " + predictor.getName(), ex );
 
-                return WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() );
+                return conflict( "Unable to predict " + predictor.getName(), ex.getMessage() );
             }
         }
 
-        return WebMessageUtils.ok( "Generated " + count + " predictions" );
+        return ok( "Generated " + count + " predictions" );
     }
 
     @PostMapping( value = "/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )

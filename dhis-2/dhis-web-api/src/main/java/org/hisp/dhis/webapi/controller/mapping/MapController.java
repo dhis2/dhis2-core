@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller.mapping;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -44,7 +46,6 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSet;
@@ -135,7 +136,7 @@ public class MapController
 
         if ( map == null )
         {
-            return WebMessageUtils.notFound( "Map does not exist: " + uid );
+            return notFound( "Map does not exist: " + uid );
         }
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
@@ -190,19 +191,19 @@ public class MapController
 
         if ( map == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Map does not exist: " + uid ) );
+            throw new WebMessageException( notFound( "Map does not exist: " + uid ) );
         }
 
         if ( width != null && width < MAP_MIN_WIDTH )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Min map width is " + MAP_MIN_WIDTH + ": " + width ) );
+                conflict( "Min map width is " + MAP_MIN_WIDTH + ": " + width ) );
         }
 
         if ( height != null && height < MAP_MIN_HEIGHT )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Min map height is " + MAP_MIN_HEIGHT + ": " + height ) );
+                conflict( "Min map height is " + MAP_MIN_HEIGHT + ": " + height ) );
         }
 
         OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;

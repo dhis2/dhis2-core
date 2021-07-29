@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.sms;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,7 +39,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
@@ -100,7 +103,7 @@ public class SmsGatewayController
 
         if ( gateway == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "No gateway found" ) );
+            throw new WebMessageException( notFound( "No gateway found" ) );
         }
 
         generateOutput( response, gateway );
@@ -119,12 +122,12 @@ public class SmsGatewayController
 
         if ( gateway == null )
         {
-            return WebMessageUtils.notFound( "No gateway found" );
+            return notFound( "No gateway found" );
         }
 
         gatewayAdminService.setDefaultGateway( gateway );
 
-        return WebMessageUtils.ok( gateway.getName() + " is set to default" );
+        return ok( gateway.getName() + " is set to default" );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
@@ -136,19 +139,19 @@ public class SmsGatewayController
 
         if ( config == null )
         {
-            return WebMessageUtils.notFound( "No gateway found" );
+            return notFound( "No gateway found" );
         }
 
         SmsGatewayConfig updatedConfig = renderService.fromJson( request.getInputStream(), SmsGatewayConfig.class );
 
         if ( gatewayAdminService.hasDefaultGateway() && updatedConfig.isDefault() && !config.isDefault() )
         {
-            return WebMessageUtils.conflict( "Default gateway already exists" );
+            return conflict( "Default gateway already exists" );
         }
 
         gatewayAdminService.updateGateway( config, updatedConfig );
 
-        return WebMessageUtils.ok( String.format( "Gateway with uid: %s has been updated", uid ) );
+        return ok( String.format( "Gateway with uid: %s has been updated", uid ) );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
@@ -161,13 +164,13 @@ public class SmsGatewayController
 
         if ( config == null )
         {
-            return WebMessageUtils.conflict( "Cannot de-serialize SMS configurations" );
+            return conflict( "Cannot de-serialize SMS configurations" );
         }
 
         gatewayAdminService.addGateway( config );
 
         response.addHeader( "Location", "/gateways/" + config.getUid() );
-        return WebMessageUtils.ok( "Gateway configuration added" );
+        return ok( "Gateway configuration added" );
     }
 
     // -------------------------------------------------------------------------
@@ -183,12 +186,12 @@ public class SmsGatewayController
 
         if ( gateway == null )
         {
-            return WebMessageUtils.notFound( "No gateway found with id: " + uid );
+            return notFound( "No gateway found with id: " + uid );
         }
 
         gatewayAdminService.removeGatewayByUid( uid );
 
-        return WebMessageUtils.ok( "Gateway removed successfully" );
+        return ok( "Gateway removed successfully" );
     }
 
     private void generateOutput( HttpServletResponse response, Object value )

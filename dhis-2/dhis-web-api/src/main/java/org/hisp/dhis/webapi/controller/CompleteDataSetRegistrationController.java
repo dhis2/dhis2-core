@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
@@ -70,7 +72,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -207,7 +208,7 @@ public class CompleteDataSetRegistrationController
         ImportSummary summary = registrationExchangeService
             .saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
-        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V38 );
+        return importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @PostMapping( consumes = CONTENT_TYPE_JSON, produces = CONTENT_TYPE_JSON )
@@ -223,7 +224,7 @@ public class CompleteDataSetRegistrationController
         ImportSummary summary = registrationExchangeService
             .saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
-        return WebMessageUtils.importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V38 );
+        return importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     // -------------------------------------------------------------------------
@@ -246,21 +247,21 @@ public class CompleteDataSetRegistrationController
         if ( dataSets.size() != ds.size() )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Illegal data set identifier in this list: " + ds ) );
+                conflict( "Illegal data set identifier in this list: " + ds ) );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( pe );
 
         if ( period == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal period identifier: " + pe ) );
+            throw new WebMessageException( conflict( "Illegal period identifier: " + pe ) );
         }
 
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( ou );
 
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
+            throw new WebMessageException( conflict( "Illegal organisation unit identifier: " + ou ) );
         }
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
@@ -290,7 +291,7 @@ public class CompleteDataSetRegistrationController
         if ( lockedDataSets.size() != 0 )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Locked Data set(s) : " + StringUtils.join( lockedDataSets, ", " ) ) );
+                conflict( "Locked Data set(s) : " + StringUtils.join( lockedDataSets, ", " ) ) );
         }
 
         // ---------------------------------------------------------------------

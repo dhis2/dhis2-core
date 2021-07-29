@@ -28,6 +28,10 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 
 import java.io.IOException;
 import java.util.Date;
@@ -56,7 +60,6 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -264,7 +267,7 @@ public class UserController
 
         if ( user == null || user.getUserCredentials() == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "User not found: " + pvUid ) );
+            throw new WebMessageException( conflict( "User not found: " + pvUid ) );
         }
 
         User currentUser = currentUserService.getCurrentUser();
@@ -377,19 +380,19 @@ public class UserController
 
         if ( user == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "User not found: " + id ) );
+            throw new WebMessageException( conflict( "User not found: " + id ) );
         }
 
         if ( user.getUserCredentials() == null || !user.getUserCredentials().isInvitation() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "User account is not an invitation: " + id ) );
+            throw new WebMessageException( conflict( "User account is not an invitation: " + id ) );
         }
 
         String valid = securityService.validateRestore( user.getUserCredentials() );
 
         if ( valid != null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( valid ) );
+            throw new WebMessageException( conflict( valid ) );
         }
 
         boolean isInviteUsername = securityService.isInviteUsername( user.getUsername() );
@@ -401,7 +404,7 @@ public class UserController
             .sendRestoreOrInviteMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ),
                 restoreOptions ) )
         {
-            throw new WebMessageException( WebMessageUtils.error( "Failed to send invite message" ) );
+            throw new WebMessageException( error( "Failed to send invite message" ) );
         }
     }
 
@@ -418,7 +421,7 @@ public class UserController
         String valid = securityService.validateRestore( user.getUserCredentials() );
         if ( valid != null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( valid ) );
+            throw new WebMessageException( conflict( valid ) );
         }
         User currentUser = currentUserService.getCurrentUser();
         if ( !aclService.canUpdate( currentUser, user ) )
@@ -449,7 +452,7 @@ public class UserController
 
         if ( existingUser == null || existingUser.getUserCredentials() == null )
         {
-            return WebMessageUtils.conflict( "User not found: " + uid );
+            return conflict( "User not found: " + uid );
         }
 
         User currentUser = currentUserService.getCurrentUser();
@@ -463,22 +466,22 @@ public class UserController
 
         if ( auth == null || username == null )
         {
-            return WebMessageUtils.conflict( "Username must be specified" );
+            return conflict( "Username must be specified" );
         }
 
         if ( userService.getUserCredentialsByUsername( username ) != null )
         {
-            return WebMessageUtils.conflict( "Username already taken: " + username );
+            return conflict( "Username already taken: " + username );
         }
 
         if ( password == null )
         {
-            return WebMessageUtils.conflict( "Password must be specified" );
+            return conflict( "Password must be specified" );
         }
 
         if ( !ValidationUtils.passwordIsValid( password ) )
         {
-            return WebMessageUtils.conflict( "Password must have at least 8 characters, one digit, one uppercase" );
+            return conflict( "Password must have at least 8 characters, one digit, one uppercase" );
         }
 
         User userReplica = new User();
@@ -523,7 +526,7 @@ public class UserController
         }
 
         response.addHeader( "Location", UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid() );
-        return WebMessageUtils.created( "User replica created" );
+        return created( "User replica created" );
     }
 
     @PostMapping( "/{uid}/enabled" )
@@ -571,7 +574,7 @@ public class UserController
     {
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
-        return WebMessageUtils.importReport( updateUser( pvUid, parsed ) )
+        return importReport( updateUser( pvUid, parsed ) )
             .withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
@@ -584,7 +587,7 @@ public class UserController
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        return WebMessageUtils.importReport( updateUser( pvUid, parsed ) )
+        return importReport( updateUser( pvUid, parsed ) )
             .withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
@@ -596,7 +599,7 @@ public class UserController
         if ( users.isEmpty() )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( getEntityName() + " does not exist: " + userUid ) );
+                conflict( getEntityName() + " does not exist: " + userUid ) );
         }
 
         User currentUser = currentUserService.getCurrentUser();
@@ -625,7 +628,7 @@ public class UserController
         if ( !userService.canAddOrUpdateUser( groupsUids, currentUser )
             || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "You must have permissions to create user, " +
                     "or ability to manage at least one user group for the user." ) );
         }
@@ -682,7 +685,7 @@ public class UserController
         if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
     }
@@ -713,13 +716,13 @@ public class UserController
         if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
 
         if ( userService.isLastSuperUser( entity.getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Can not remove the last super user." ) );
+            throw new WebMessageException( conflict( "Can not remove the last super user." ) );
         }
     }
 
@@ -742,7 +745,7 @@ public class UserController
 
         if ( !userService.canAddOrUpdateUser( getUids( user.getGroups() ), currentUser ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
 
@@ -753,7 +756,7 @@ public class UserController
             if ( !userGroupService.canAddOrRemoveMember( uid, currentUser ) )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "You don't have permissions to add user to user group: " + uid ) );
+                    conflict( "You don't have permissions to add user to user group: " + uid ) );
             }
         }
     }
@@ -794,7 +797,7 @@ public class UserController
 
         if ( credentials == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "User credentials is not present" ) );
+            throw new WebMessageException( conflict( "User credentials is not present" ) );
         }
 
         credentials.setUserInfo( user );
@@ -803,7 +806,7 @@ public class UserController
 
         if ( validateMessage != null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( validateMessage ) );
+            throw new WebMessageException( conflict( validateMessage ) );
         }
     }
 
@@ -935,7 +938,7 @@ public class UserController
         if ( !userService.canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( userToModify.getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
     }

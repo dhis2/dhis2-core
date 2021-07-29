@@ -28,6 +28,9 @@
 package org.hisp.dhis.webapi.controller;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.io.IOException;
 
@@ -38,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
@@ -102,7 +104,7 @@ public class FileResourceController
 
         if ( fileResource == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
+            throw new WebMessageException( notFound( FileResource.class, uid ) );
         }
 
         FileResourceUtils.setImageFileDimensions( fileResource,
@@ -120,7 +122,7 @@ public class FileResourceController
 
         if ( fileResource == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
+            throw new WebMessageException( notFound( FileResource.class, uid ) );
         }
 
         FileResourceUtils.setImageFileDimensions( fileResource,
@@ -129,7 +131,7 @@ public class FileResourceController
         if ( !checkSharing( fileResource ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.unauthorized( "You don't have access to fileResource '" + uid
+                unauthorized( "You don't have access to fileResource '" + uid
                     + "' or this fileResource is not available from this endpoint" ) );
         }
 
@@ -145,7 +147,7 @@ public class FileResourceController
         catch ( IOException e )
         {
             log.error( "Could not retrieve file.", e );
-            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+            throw new WebMessageException( error( "Failed fetching the file from storage",
                 "There was an exception when trying to fetch the file from the storage backend. " +
                     "Depending on the provider the root cause could be network or file system related." ) );
         }

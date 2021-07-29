@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +45,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -150,12 +154,12 @@ public class UserSettingController
 
         if ( StringUtils.isEmpty( newValue ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "You need to specify a new value" ) );
+            throw new WebMessageException( conflict( "You need to specify a new value" ) );
         }
 
         userSettingService.saveUserSetting( userSettingKey, UserSettingKey.getAsRealClass( key, newValue ), user );
 
-        return WebMessageUtils.ok( "User setting saved" );
+        return ok( "User setting saved" );
     }
 
     @DeleteMapping( value = "/{key}" )
@@ -186,7 +190,7 @@ public class UserSettingController
 
         if ( !userSettingKey.isPresent() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "No user setting found with key: " + key ) );
+            throw new WebMessageException( notFound( "No user setting found with key: " + key ) );
         }
 
         return userSettingKey.get();
@@ -226,8 +230,8 @@ public class UserSettingController
 
         if ( user == null )
         {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "Could not find user '" + ObjectUtils.firstNonNull( uid, username ) + "'" ) );
+            throw new WebMessageException(
+                conflict( "Could not find user '" + ObjectUtils.firstNonNull( uid, username ) + "'" ) );
         }
         else
         {
@@ -237,7 +241,7 @@ public class UserSettingController
                 !currentUser.getUserCredentials().canModifyUser( user.getUserCredentials() ) )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.unauthorized( "You are not authorized to access user: " + user.getUsername() ) );
+                    unauthorized( "You are not authorized to access user: " + user.getUsername() ) );
             }
         }
 

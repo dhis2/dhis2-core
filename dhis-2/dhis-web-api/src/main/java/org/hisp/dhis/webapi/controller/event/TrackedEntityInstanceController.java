@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummaries;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
 
 import java.awt.*;
@@ -61,7 +67,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -220,25 +225,25 @@ public class TrackedEntityInstanceController
 
         if ( !trackerAccessErrors.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils
-                .unauthorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
+            throw new WebMessageException(
+                unauthorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
         }
 
         if ( attribute.size() == 0 )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Attribute not found for ID " + attributeId ) );
+            throw new WebMessageException( notFound( "Attribute not found for ID " + attributeId ) );
         }
 
         TrackedEntityAttributeValue value = attribute.get( 0 );
 
         if ( value == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Value not found for ID " + attributeId ) );
+            throw new WebMessageException( notFound( "Value not found for ID " + attributeId ) );
         }
 
         if ( value.getAttribute().getValueType() != ValueType.IMAGE )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Attribute must be of type image" ) );
+            throw new WebMessageException( conflict( "Attribute must be of type image" ) );
         }
 
         // ---------------------------------------------------------------------
@@ -249,8 +254,8 @@ public class TrackedEntityInstanceController
 
         if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
         {
-            throw new WebMessageException( WebMessageUtils
-                .notFound( "A data value file resource with id " + value.getValue() + " does not exist." ) );
+            throw new WebMessageException(
+                notFound( "A data value file resource with id " + value.getValue() + " does not exist." ) );
         }
 
         if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
@@ -261,7 +266,7 @@ public class TrackedEntityInstanceController
             // -----------------------------------------------------------------
 
             throw new WebMessageException(
-                WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
+                conflict( "The content is being processed and is not available yet. Try again later.",
                     "The content requested is in transit to the file store and will be available at a later time." ) );
         }
 
@@ -290,7 +295,7 @@ public class TrackedEntityInstanceController
         }
         catch ( IOException ex )
         {
-            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+            throw new WebMessageException( error( "Failed fetching the file from storage",
                 "There was an exception when trying to fetch the file from the storage backend." ) );
         }
     }
@@ -417,7 +422,7 @@ public class TrackedEntityInstanceController
         if ( !importOptions.isAsync() )
         {
             finalizeTrackedEntityInstancePostRequest( importOptions, request, response, importSummaries );
-            return WebMessageUtils.importSummaries( importSummaries );
+            return importSummaries( importSummaries );
         }
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TEI_IMPORT );
         return jobConfigurationReport( jobId );
@@ -468,7 +473,7 @@ public class TrackedEntityInstanceController
             inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        return WebMessageUtils.importSummary( importSummary );
+        return importSummary( importSummary );
     }
 
     @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -484,7 +489,7 @@ public class TrackedEntityInstanceController
             inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        return WebMessageUtils.importSummary( importSummary );
+        return importSummary( importSummary );
     }
 
     // -------------------------------------------------------------------------
@@ -496,7 +501,7 @@ public class TrackedEntityInstanceController
     public WebMessage deleteTrackedEntityInstance( @PathVariable String id )
     {
         ImportSummary importSummary = trackedEntityInstanceService.deleteTrackedEntityInstance( id );
-        return WebMessageUtils.importSummary( importSummary );
+        return importSummary( importSummary );
     }
 
     @PutMapping( "/{tei}/potentialduplicate" )

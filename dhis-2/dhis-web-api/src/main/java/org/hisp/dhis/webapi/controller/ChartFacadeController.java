@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
 import static org.hisp.dhis.visualization.ConversionHelper.convertToChartList;
 import static org.hisp.dhis.visualization.ConversionHelper.convertToVisualization;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
@@ -68,7 +74,6 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -384,7 +389,7 @@ public abstract class ChartFacadeController
 
         if ( entities.isEmpty() )
         {
-            return WebMessageUtils.notFound( Chart.class, pvUid );
+            return notFound( Chart.class, pvUid );
         }
 
         Visualization persistedObject = entities.get( 0 );
@@ -437,7 +442,7 @@ public abstract class ChartFacadeController
 
         if ( typeReport.hasErrorReports() )
         {
-            return WebMessageUtils.typeReport( typeReport );
+            return typeReport( typeReport );
         }
 
         manager.updateTranslations( persistedObject, object.getTranslations() );
@@ -458,7 +463,7 @@ public abstract class ChartFacadeController
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
+            throw new WebMessageException( notFound( Chart.class, pvUid ) );
         }
 
         Visualization persistedObject = entities.get( 0 );
@@ -501,13 +506,13 @@ public abstract class ChartFacadeController
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
+            throw new WebMessageException( notFound( Chart.class, pvUid ) );
         }
 
         if ( !getSchema().haveProperty( pvProperty ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
+                notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
         }
 
         Property property = getSchema().getProperty( pvProperty );
@@ -527,7 +532,7 @@ public abstract class ChartFacadeController
 
         if ( object == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
+            throw new WebMessageException( badRequest( "Unknown payload format." ) );
         }
 
         Object value = property.getGetterMethod().invoke( object );
@@ -546,7 +551,7 @@ public abstract class ChartFacadeController
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, uid ) );
+            throw new WebMessageException( notFound( Chart.class, uid ) );
         }
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
@@ -562,7 +567,7 @@ public abstract class ChartFacadeController
 
         if ( CollectionUtils.isEmpty( charts ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, uid ) );
+            throw new WebMessageException( notFound( Chart.class, uid ) );
         }
 
         handleLinksAndAccess( charts, fields, true, user );
@@ -634,7 +639,7 @@ public abstract class ChartFacadeController
 
         ImportReport importReport = importService.importMetadata( params );
         ObjectReport objectReport = getObjectReport( importReport );
-        WebMessage webMessage = WebMessageUtils.objectReport( objectReport );
+        WebMessage webMessage = objectReport( objectReport );
 
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
@@ -677,7 +682,7 @@ public abstract class ChartFacadeController
 
         ImportReport importReport = importService.importMetadata( params );
         ObjectReport objectReport = getObjectReport( importReport );
-        WebMessage webMessage = WebMessageUtils.objectReport( objectReport );
+        WebMessage webMessage = objectReport( objectReport );
 
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
@@ -703,15 +708,14 @@ public abstract class ChartFacadeController
     {
         if ( !getSchema().isFavoritable() )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+            return conflict( "Objects of this class cannot be set as favorite" );
         }
 
         List<Visualization> entity = (List<Visualization>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
+            return notFound( Chart.class, pvUid );
         }
 
         Visualization object = entity.get( 0 );
@@ -720,8 +724,7 @@ public abstract class ChartFacadeController
         object.setAsFavorite( user );
         manager.updateNoAcl( object );
 
-        String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
-        return WebMessageUtils.ok( message );
+        return ok( String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() ) );
     }
 
     @PostMapping( "/{uid}/subscriber" )
@@ -730,14 +733,14 @@ public abstract class ChartFacadeController
     {
         if ( !getSchema().isSubscribable() )
         {
-            return WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" );
+            return conflict( "Objects of this class cannot be subscribed to" );
         }
 
         List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            return WebMessageUtils.notFound( Chart.class, pvUid );
+            return notFound( Chart.class, pvUid );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -746,8 +749,7 @@ public abstract class ChartFacadeController
         object.subscribe( user );
         manager.updateNoAcl( object );
 
-        String message = String.format( "User '%s' subscribed to object '%s'", user.getUsername(), pvUid );
-        return WebMessageUtils.ok( message );
+        return ok( String.format( "User '%s' subscribed to object '%s'", user.getUsername(), pvUid ) );
     }
 
     // --------------------------------------------------------------------------
@@ -764,7 +766,7 @@ public abstract class ChartFacadeController
 
         if ( objects.isEmpty() )
         {
-            return WebMessageUtils.notFound( Chart.class, pvUid );
+            return notFound( Chart.class, pvUid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -786,7 +788,7 @@ public abstract class ChartFacadeController
             .addObject( visualization );
 
         ImportReport importReport = importService.importMetadata( params );
-        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
+        WebMessage webMessage = objectReport( importReport );
 
         if ( importReport.getStatus() != Status.OK )
         {
@@ -806,7 +808,7 @@ public abstract class ChartFacadeController
 
         if ( objects.isEmpty() )
         {
-            return WebMessageUtils.notFound( Chart.class, pvUid );
+            return notFound( Chart.class, pvUid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -828,7 +830,7 @@ public abstract class ChartFacadeController
             .addObject( visualization );
 
         ImportReport importReport = importService.importMetadata( params );
-        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
+        WebMessage webMessage = objectReport( importReport );
 
         if ( importReport.getStatus() != Status.OK )
         {
@@ -851,7 +853,7 @@ public abstract class ChartFacadeController
 
         if ( objects.isEmpty() )
         {
-            return WebMessageUtils.notFound( Chart.class, pvUid );
+            return notFound( Chart.class, pvUid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -869,7 +871,7 @@ public abstract class ChartFacadeController
 
         ImportReport importReport = importService.importMetadata( params );
 
-        return WebMessageUtils.objectReport( importReport );
+        return objectReport( importReport );
     }
 
     @DeleteMapping( "/{uid}/favorite" )
@@ -880,14 +882,14 @@ public abstract class ChartFacadeController
     {
         if ( !getSchema().isFavoritable() )
         {
-            return WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" );
+            return conflict( "Objects of this class cannot be set as favorite" );
         }
 
         List<Visualization> entity = (List<Visualization>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            return WebMessageUtils.notFound( Chart.class, pvUid );
+            return notFound( Chart.class, pvUid );
         }
 
         Visualization object = entity.get( 0 );
@@ -897,7 +899,7 @@ public abstract class ChartFacadeController
         manager.updateNoAcl( object );
 
         String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );
-        return WebMessageUtils.ok( message );
+        return ok( message );
     }
 
     @DeleteMapping( "/{uid}/subscriber" )
@@ -906,14 +908,14 @@ public abstract class ChartFacadeController
     {
         if ( !getSchema().isSubscribable() )
         {
-            return WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" );
+            return conflict( "Objects of this class cannot be subscribed to" );
         }
 
         List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            return WebMessageUtils.notFound( Chart.class, pvUid );
+            return notFound( Chart.class, pvUid );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -923,7 +925,7 @@ public abstract class ChartFacadeController
         manager.updateNoAcl( object );
 
         String message = String.format( "User '%s' removed as subscriber of object '%s'", user.getUsername(), pvUid );
-        return WebMessageUtils.ok( message );
+        return ok( message );
     }
 
     // --------------------------------------------------------------------------
@@ -968,7 +970,7 @@ public abstract class ChartFacadeController
             if ( rootNode.getChildren().isEmpty() || rootNode.getChildren().get( 0 ).getChildren().isEmpty() )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
+                    notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
             }
 
             response.setHeader( ContextUtils.HEADER_CACHE_CONTROL,
@@ -1064,7 +1066,7 @@ public abstract class ChartFacadeController
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
         }
 
         collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
@@ -1114,7 +1116,7 @@ public abstract class ChartFacadeController
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( Chart.class, pvUid ) );
+            throw new WebMessageException( notFound( Chart.class, pvUid ) );
         }
 
         collectionService.delCollectionItems( objects.get( 0 ), pvProperty,

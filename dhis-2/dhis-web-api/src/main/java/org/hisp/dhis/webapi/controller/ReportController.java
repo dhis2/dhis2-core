@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 import java.util.Date;
@@ -41,7 +43,6 @@ import net.sf.jasperreports.j2ee.servlets.ImageServlet;
 
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -100,7 +101,7 @@ public class ReportController
 
         if ( report == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Report not found for identifier: " + uid ) );
+            throw new WebMessageException( notFound( "Report not found for identifier: " + uid ) );
         }
 
         report.setDesignContent( designContent );
@@ -115,12 +116,12 @@ public class ReportController
 
         if ( report == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Report not found for identifier: " + uid ) );
+            throw new WebMessageException( notFound( "Report not found for identifier: " + uid ) );
         }
 
         if ( report.getDesignContent() == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Report has no design content: " + uid ) );
+            throw new WebMessageException( conflict( "Report has no design content: " + uid ) );
         }
 
         if ( report.isTypeHtml() )
@@ -207,7 +208,7 @@ public class ReportController
 
         if ( report == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Report not found for identifier: " + uid ) );
+            throw new WebMessageException( notFound( "Report not found for identifier: " + uid ) );
         }
 
         if ( organisationUnitUid == null && report.hasVisualization() && report.getVisualization().hasReportingParams()

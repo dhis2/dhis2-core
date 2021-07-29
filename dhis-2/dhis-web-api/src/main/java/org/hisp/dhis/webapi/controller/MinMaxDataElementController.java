@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import java.util.List;
 import java.util.Objects;
@@ -42,7 +44,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -173,12 +174,12 @@ public class MinMaxDataElementController
 
         if ( Objects.isNull( persisted ) )
         {
-            return WebMessageUtils.notFound( "Can not find MinMaxDataElement." );
+            return notFound( "Can not find MinMaxDataElement." );
         }
 
         minMaxService.deleteMinMaxDataElement( persisted );
 
-        return WebMessageUtils.ok( "MinMaxDataElement deleted." );
+        return ok( "MinMaxDataElement deleted." );
     }
 
     private void validate( MinMaxDataElement minMax )
@@ -187,7 +188,7 @@ public class MinMaxDataElementController
         if ( !ObjectUtils.allNonNull( minMax.getDataElement(), minMax.getSource(), minMax.getOptionCombo() ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Missing required parameters : Source, DataElement, OptionCombo." ) );
+                notFound( "Missing required parameters : Source, DataElement, OptionCombo." ) );
         }
     }
 
@@ -205,7 +206,7 @@ public class MinMaxDataElementController
         catch ( NullPointerException e )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Invalid required parameters: source, dataElement, optionCombo" ) );
+                notFound( "Invalid required parameters: source, dataElement, optionCombo" ) );
         }
     }
 }

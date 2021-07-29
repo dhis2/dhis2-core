@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,7 +48,6 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -262,7 +265,7 @@ public class MessageConversationController
             if ( organisationUnit == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Organisation Unit does not exist: " + ou.getUid() ) );
+                    conflict( "Organisation Unit does not exist: " + ou.getUid() ) );
             }
 
             usersToMessageConversation.addAll( organisationUnit.getUsers() );
@@ -274,7 +277,7 @@ public class MessageConversationController
 
             if ( user == null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + u.getUid() ) );
+                throw new WebMessageException( conflict( "User does not exist: " + u.getUid() ) );
             }
 
             usersToMessageConversation.add( user );
@@ -287,7 +290,7 @@ public class MessageConversationController
             if ( userGroup == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.notFound( "User Group does not exist: " + ug.getUid() ) );
+                    notFound( "User Group does not exist: " + ug.getUid() ) );
             }
 
             usersToMessageConversation.addAll( userGroup.getMembers() );
@@ -307,7 +310,7 @@ public class MessageConversationController
 
         if ( messageConversation.getUsers().isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "No recipients selected." ) );
+            throw new WebMessageException( conflict( "No recipients selected." ) );
         }
 
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
@@ -321,14 +324,14 @@ public class MessageConversationController
             if ( fileResource == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Attachment '" + fr.getUid() + "' not found." ) );
+                    conflict( "Attachment '" + fr.getUid() + "' not found." ) );
             }
 
             if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT )
                 || fileResource.isAssigned() )
             {
-                throw new WebMessageException( WebMessageUtils
-                    .conflict( "Attachment '" + fr.getUid() + "' is already used or not a valid attachment." ) );
+                throw new WebMessageException(
+                    conflict( "Attachment '" + fr.getUid() + "' is already used or not a valid attachment." ) );
             }
 
             fileResource.setAssigned( true );
@@ -343,7 +346,7 @@ public class MessageConversationController
 
         response
             .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
-        return WebMessageUtils.created( "Message conversation created" );
+        return created( "Message conversation created" );
     }
 
     // --------------------------------------------------------------------------
@@ -365,7 +368,7 @@ public class MessageConversationController
 
         if ( conversation == null )
         {
-            return WebMessageUtils.notFound( "Message conversation does not exist: " + uid );
+            return notFound( "Message conversation does not exist: " + uid );
         }
 
         if ( internal && !messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() ) )
@@ -386,14 +389,13 @@ public class MessageConversationController
 
             if ( fileResource == null )
             {
-                return WebMessageUtils.conflict( "Attachment '" + fileResourceUid + "' not found." );
+                return conflict( "Attachment '" + fileResourceUid + "' not found." );
             }
 
             if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT )
                 || fileResource.isAssigned() )
             {
-                return WebMessageUtils
-                    .conflict( "Attachment '" + fileResourceUid + "' is already used or not a valid attachment." );
+                return conflict( "Attachment '" + fileResourceUid + "' is already used or not a valid attachment." );
             }
 
             fileResource.setAssigned( true );
@@ -406,7 +408,7 @@ public class MessageConversationController
 
         response
             .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
-        return WebMessageUtils.created( "Message conversation created" );
+        return created( "Message conversation created" );
     }
 
     @PostMapping( "/{uid}/recipients" )
@@ -419,7 +421,7 @@ public class MessageConversationController
 
         if ( conversation == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Message conversation does not exist: " + uid ) );
+            throw new WebMessageException( notFound( "Message conversation does not exist: " + uid ) );
         }
 
         Set<User> additionalUsers = getUsersToMessageConversation( messageConversation,
@@ -448,7 +450,7 @@ public class MessageConversationController
 
         messageService.sendTicketMessage( subject, body, metaData );
 
-        return WebMessageUtils.created( "Feedback created" );
+        return created( "Feedback created" );
     }
 
     // --------------------------------------------------------------------------
@@ -923,7 +925,7 @@ public class MessageConversationController
 
         if ( message == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound(
+            throw new WebMessageException( notFound(
                 "No message found with id '" + msgUid + "' for message conversation with id '" + mcUid + "'" ) );
         }
 
@@ -933,12 +935,12 @@ public class MessageConversationController
         if ( fr == null || !attachmentExists )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "No messageattachment found with id '" + fileUid + "'" ) );
+                notFound( "No messageattachment found with id '" + fileUid + "'" ) );
         }
 
         if ( !fr.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Invalid messageattachment." ) );
+            throw new WebMessageException( conflict( "Invalid messageattachment." ) );
         }
 
         fileResourceUtils.configureFileResourceResponse( response, fr );
@@ -1057,7 +1059,7 @@ public class MessageConversationController
         if ( conversation == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( String.format( "No message conversation with uid '%s'", mcUid ) ) );
+                notFound( String.format( "No message conversation with uid '%s'", mcUid ) ) );
         }
 
         if ( !canReadMessageConversation( user, conversation ) )
@@ -1071,15 +1073,15 @@ public class MessageConversationController
 
         if ( messages.size() < 1 )
         {
-            throw new WebMessageException( WebMessageUtils
-                .notFound( String.format( "No message with uid '%s' in messageConversation '%s", msgUid, mcUid ) ) );
+            throw new WebMessageException(
+                notFound( String.format( "No message with uid '%s' in messageConversation '%s", msgUid, mcUid ) ) );
         }
 
         Message message = messages.get( 0 );
 
         if ( message.isInternal() && !configurationService.isUserInFeedbackRecipientUserGroup( user ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Not authorized to access this message" ) );
+            throw new WebMessageException( conflict( "Not authorized to access this message" ) );
         }
 
         return message;

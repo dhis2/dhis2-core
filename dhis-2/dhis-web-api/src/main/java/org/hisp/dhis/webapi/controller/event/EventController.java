@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummaries;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
 
 import java.io.IOException;
@@ -80,7 +86,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
@@ -247,8 +252,8 @@ public class EventController
 
         if ( attributeOptionCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
+            throw new WebMessageException(
+                conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
@@ -321,8 +326,8 @@ public class EventController
 
         if ( attributeOptionCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
+            throw new WebMessageException(
+                conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
@@ -394,8 +399,8 @@ public class EventController
 
         if ( attributeOptionCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
+            throw new WebMessageException(
+                conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
@@ -468,8 +473,8 @@ public class EventController
 
         if ( attributeOptionCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
+            throw new WebMessageException(
+                conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
@@ -684,7 +689,7 @@ public class EventController
 
         if ( event == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
+            throw new WebMessageException( notFound( "Event not found for ID " + uid ) );
         }
 
         event.setHref( ContextUtils.getRootPath( request ) + RESOURCE_PATH + "/" + uid );
@@ -702,7 +707,7 @@ public class EventController
 
         if ( event == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + eventUid ) );
+            throw new WebMessageException( notFound( "Event not found for ID " + eventUid ) );
         }
 
         DataElement dataElement = dataElementService.getDataElement( dataElementUid );
@@ -710,12 +715,12 @@ public class EventController
         if ( dataElement == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid ) );
+                notFound( "DataElement not found for ID " + dataElementUid ) );
         }
 
         if ( !dataElement.isFileType() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "DataElement must be of type file" ) );
+            throw new WebMessageException( conflict( "DataElement must be of type file" ) );
         }
 
         // ---------------------------------------------------------------------
@@ -735,7 +740,7 @@ public class EventController
 
         if ( uid == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "DataElement must be of type file" ) );
+            throw new WebMessageException( conflict( "DataElement must be of type file" ) );
         }
 
         FileResource fileResource = fileResourceService.getFileResource( uid );
@@ -743,7 +748,7 @@ public class EventController
         if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "A data value file resource with id " + uid + " does not exist." ) );
+                notFound( "A data value file resource with id " + uid + " does not exist." ) );
         }
 
         if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
@@ -753,13 +758,10 @@ public class EventController
             // underlying file content still not stored to external file store
             // -----------------------------------------------------------------
 
-            WebMessage webMessage = WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "The content is being processed and is not available yet. Try again later.",
-                "The content requested is in transit to the file store and will be available at a later time." );
-
-            webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
-
-            throw new WebMessageException( webMessage );
+                "The content requested is in transit to the file store and will be available at a later time." )
+                    .setResponse( new FileResourceWebMessageResponse( fileResource ) ) );
         }
 
         FileResourceUtils.setImageFileDimensions( fileResource,
@@ -775,7 +777,7 @@ public class EventController
         }
         catch ( IOException e )
         {
-            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+            throw new WebMessageException( error( "Failed fetching the file from storage",
                 "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related" ) );
         }
     }
@@ -866,7 +868,7 @@ public class EventController
                 }
             }
 
-            return WebMessageUtils.importSummaries( importSummaries );
+            return importSummaries( importSummaries );
         }
         List<Event> events = eventConverter.apply( inputStream );
         return startAsyncImport( importOptions, events, request, response );
@@ -880,7 +882,7 @@ public class EventController
     {
         if ( !programStageInstanceService.programStageInstanceExists( uid ) )
         {
-            return WebMessageUtils.notFound( "Event not found for ID " + uid );
+            return notFound( "Event not found for ID " + uid );
         }
 
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -888,7 +890,7 @@ public class EventController
         event.setEvent( uid );
 
         eventService.updateEventForNote( event );
-        return WebMessageUtils.ok( "Event updated: " + uid );
+        return ok( "Event updated: " + uid );
     }
 
     @PostMapping( consumes = { "application/csv", "text/csv" } )
@@ -906,7 +908,7 @@ public class EventController
         {
             ImportSummaries importSummaries = eventService.addEvents( events.getEvents(), importOptions, null );
             importSummaries.setImportOptions( importOptions );
-            return WebMessageUtils.importSummaries( importSummaries );
+            return importSummaries( importSummaries );
         }
         return startAsyncImport( importOptions, events.getEvents(), request, response );
     }
@@ -945,7 +947,7 @@ public class EventController
     {
         ImportSummary importSummary = eventService.updateEvent( updatedEvent, singleValue, importOptions, false );
         importSummary.setImportOptions( importOptions );
-        return WebMessageUtils.importSummary( importSummary );
+        return importSummary( importSummary );
     }
 
     @PutMapping( value = "/{uid}/{dataElementUid}", consumes = "application/json" )
@@ -958,7 +960,7 @@ public class EventController
 
         if ( dataElement == null )
         {
-            return WebMessageUtils.notFound( "DataElement not found for ID " + dataElementUid );
+            return notFound( "DataElement not found for ID " + dataElementUid );
         }
 
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -976,7 +978,7 @@ public class EventController
     {
         if ( !programStageInstanceService.programStageInstanceExists( uid ) )
         {
-            return WebMessageUtils.notFound( "Event not found for ID " + uid );
+            return notFound( "Event not found for ID " + uid );
         }
 
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -984,7 +986,7 @@ public class EventController
         updatedEvent.setEvent( uid );
 
         eventService.updateEventForEventDate( updatedEvent );
-        return WebMessageUtils.ok( "Event updated " + uid );
+        return ok( "Event updated " + uid );
     }
 
     // -------------------------------------------------------------------------
@@ -995,7 +997,7 @@ public class EventController
     @ResponseBody
     public WebMessage deleteEvent( @PathVariable( "uid" ) String uid )
     {
-        return WebMessageUtils.importSummary( eventService.deleteEvent( uid ) );
+        return importSummary( eventService.deleteEvent( uid ) );
     }
 
     // -------------------------------------------------------------------------

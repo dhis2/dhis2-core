@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -41,7 +42,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
@@ -105,7 +105,7 @@ public class TrackerImportController
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
         response.setHeader( "Location", location );
 
-        return WebMessageUtils.ok( TRACKER_JOB_ADDED )
+        return ok( TRACKER_JOB_ADDED )
             .setResponse(
                 TrackerJobWebMessageResponse.builder()
                     .id( jobId ).location( location )

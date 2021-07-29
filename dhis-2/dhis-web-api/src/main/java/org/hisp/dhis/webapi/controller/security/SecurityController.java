@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +39,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.security.SecurityUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -106,11 +108,11 @@ public class SecurityController
 
         if ( !SecurityUtils.verify( currentUser.getUserCredentials(), code ) )
         {
-            return WebMessageUtils.unauthorized( "2FA code not authenticated" );
+            return unauthorized( "2FA code not authenticated" );
         }
         else
         {
-            return WebMessageUtils.ok( "2FA code authenticated" );
+            return ok( "2FA code authenticated" );
         }
     }
 }
