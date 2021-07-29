@@ -237,7 +237,7 @@ public class UserSettingController
                 !currentUser.getUserCredentials().canModifyUser( user.getUserCredentials() ) )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.unathorized( "You are not authorized to access user: " + user.getUsername() ) );
+                    WebMessageUtils.unauthorized( "You are not authorized to access user: " + user.getUsername() ) );
             }
         }
 

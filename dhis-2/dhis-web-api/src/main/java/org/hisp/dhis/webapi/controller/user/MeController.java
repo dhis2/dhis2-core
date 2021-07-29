@@ -514,7 +514,7 @@ public class MeController
 
         if ( user == null || user.getUserCredentials() == null )
         {
-            throw new WebMessageException( WebMessageUtils.unathorized( "Not authenticated" ) );
+            throw new WebMessageException( WebMessageUtils.unauthorized( "Not authenticated" ) );
         }
 
         return user;

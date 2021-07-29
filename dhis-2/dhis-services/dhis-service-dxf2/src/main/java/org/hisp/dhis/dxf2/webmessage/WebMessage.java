@@ -103,13 +103,11 @@ public class WebMessage implements WebMessageResponse
     // Constructors
     // -------------------------------------------------------------------------
 
+    /**
+     * Only for deserialisation
+     */
     public WebMessage()
     {
-    }
-
-    public WebMessage( Status status )
-    {
-        this.status = status;
     }
 
     public WebMessage( Status status, HttpStatus httpStatus )
@@ -195,9 +193,10 @@ public class WebMessage implements WebMessageResponse
         return errorCode;
     }
 
-    public void setErrorCode( ErrorCode errorCode )
+    public WebMessage setErrorCode( ErrorCode errorCode )
     {
         this.errorCode = errorCode;
+        return this;
     }
 
     @JsonProperty

@@ -104,10 +104,10 @@ public class TrackedEntityInstanceSupportService
                 if ( program.getAccessLevel() == AccessLevel.CLOSED )
                 {
                     throw new WebMessageException(
-                        WebMessageUtils.unathorized( TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED ) );
+                        WebMessageUtils.unauthorized( TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED ) );
                 }
                 throw new WebMessageException(
-                    WebMessageUtils.unathorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
+                    WebMessageUtils.unauthorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
             }
 
             if ( trackedEntityInstanceParams.isIncludeProgramOwners() )

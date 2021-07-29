@@ -129,7 +129,7 @@ public class FileResourceController
         if ( !checkSharing( fileResource ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.unathorized( "You don't have access to fileResource '" + uid
+                WebMessageUtils.unauthorized( "You don't have access to fileResource '" + uid
                     + "' or this fileResource is not available from this endpoint" ) );
         }
 

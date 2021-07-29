@@ -106,7 +106,7 @@ public class SecurityController
 
         if ( !SecurityUtils.verify( currentUser.getUserCredentials(), code ) )
         {
-            return WebMessageUtils.unathorized( "2FA code not authenticated" );
+            return WebMessageUtils.unauthorized( "2FA code not authenticated" );
         }
         else
         {

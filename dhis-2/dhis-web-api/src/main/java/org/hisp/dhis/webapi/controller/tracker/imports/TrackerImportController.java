@@ -31,7 +31,6 @@ import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.R
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.io.IOException;
 import java.util.Deque;
 import java.util.Optional;
 
@@ -42,7 +41,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
@@ -66,6 +65,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -83,16 +83,14 @@ public class TrackerImportController
 
     private final TrackerImportService trackerImportService;
 
-    private final RenderService renderService;
-
     private final ContextService contextService;
 
     private final Notifier notifier;
 
-    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE )
-    public void asyncPostJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser,
+    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage asyncPostJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
-        throws IOException
     {
         String jobId = CodeGenerator.generateUid();
 
@@ -106,14 +104,12 @@ public class TrackerImportController
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
         response.setHeader( "Location", location );
-        response.setContentType( APPLICATION_JSON_VALUE );
 
-        renderService.toJson( response.getOutputStream(), new WebMessage()
-            .setMessage( TRACKER_JOB_ADDED )
+        return WebMessageUtils.ok( TRACKER_JOB_ADDED )
             .setResponse(
                 TrackerJobWebMessageResponse.builder()
                     .id( jobId ).location( location )
-                    .build() ) );
+                    .build() );
     }
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, params = { "async=false" } )

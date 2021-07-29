@@ -88,12 +88,12 @@ public class DHIS2BasicAuthenticationEntryPoint extends LoginUrlAuthenticationEn
             if ( acceptHeader.contains( MediaType.APPLICATION_XML_VALUE ) )
             {
                 response.setContentType( MediaType.APPLICATION_XML_VALUE );
-                renderService.toXml( response.getOutputStream(), WebMessageUtils.unathorized( message ) );
+                renderService.toXml( response.getOutputStream(), WebMessageUtils.unauthorized( message ) );
             }
             else
             {
                 response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-                renderService.toJson( response.getOutputStream(), WebMessageUtils.unathorized( message ) );
+                renderService.toJson( response.getOutputStream(), WebMessageUtils.unauthorized( message ) );
             }
 
             return;

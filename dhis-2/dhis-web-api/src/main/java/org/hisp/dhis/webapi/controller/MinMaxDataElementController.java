@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -41,7 +43,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -57,7 +58,6 @@ import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -149,11 +149,7 @@ public class MinMaxDataElementController
             minMaxService.updateMinMaxDataElement( persisted );
         }
 
-        WebMessage webMessage = new WebMessage();
-        webMessage.setHttpStatus( HttpStatus.CREATED );
-        webMessage.setStatus( Status.OK );
-
-        return webMessage;
+        return created();
     }
 
     // --------------------------------------------------------------------------

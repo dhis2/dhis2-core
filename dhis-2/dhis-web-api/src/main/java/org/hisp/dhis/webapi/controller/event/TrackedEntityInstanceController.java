@@ -221,7 +221,7 @@ public class TrackedEntityInstanceController
         if ( !trackerAccessErrors.isEmpty() )
         {
             throw new WebMessageException( WebMessageUtils
-                .unathorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
+                .unauthorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
         }
 
         if ( attribute.size() == 0 )

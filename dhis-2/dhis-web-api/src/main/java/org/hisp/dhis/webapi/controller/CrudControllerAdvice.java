@@ -166,7 +166,7 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage notAuthenticatedExceptionHandler( NotAuthenticatedException ex )
     {
-        return WebMessageUtils.unathorized( ex.getMessage() );
+        return WebMessageUtils.unauthorized( ex.getMessage() );
     }
 
     @ExceptionHandler( NotFoundException.class )
@@ -319,7 +319,7 @@ public class CrudControllerAdvice
         }
         else
         {
-            return WebMessageUtils.unathorized( ex.getMessage() );
+            return WebMessageUtils.unauthorized( ex.getMessage() );
         }
     }
 
