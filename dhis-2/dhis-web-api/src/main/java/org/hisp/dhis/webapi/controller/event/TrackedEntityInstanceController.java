@@ -59,6 +59,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
@@ -73,7 +74,6 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -89,7 +89,6 @@ import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceStrategyHandler;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -138,15 +137,11 @@ public class TrackedEntityInstanceController
 
     private final ContextService contextService;
 
-    private final WebMessageService webMessageService;
-
     private final CurrentUserService currentUserService;
 
     private final FileResourceService fileResourceService;
 
     private final TrackerAccessManager trackerAccessManager;
-
-    private final SchedulingManager schedulingManager;
 
     private final TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
 
@@ -375,27 +370,30 @@ public class TrackedEntityInstanceController
     // CREATE
     // -------------------------------------------------------------------------
 
-    @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void postTrackedEntityInstanceJson(
+    @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage postTrackedEntityInstanceJson(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException,
         BadRequestException
     {
-        postTrackedEntityInstance( strategy, importOptions, request, response, MediaType.APPLICATION_JSON_VALUE );
+        return postTrackedEntityInstance( strategy, importOptions, request, response,
+            MediaType.APPLICATION_JSON_VALUE );
     }
 
-    @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE )
-    public void postTrackedEntityInstanceXml(
+    @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
+    @ResponseBody
+    public WebMessage postTrackedEntityInstanceXml(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException,
         BadRequestException
     {
-        postTrackedEntityInstance( strategy, importOptions, request, response, MediaType.APPLICATION_XML_VALUE );
+        return postTrackedEntityInstance( strategy, importOptions, request, response, MediaType.APPLICATION_XML_VALUE );
     }
 
-    private void postTrackedEntityInstance( ImportStrategy strategy, ImportOptions importOptions,
+    private WebMessage postTrackedEntityInstance( ImportStrategy strategy, ImportOptions importOptions,
         HttpServletRequest request, HttpServletResponse response, String mediaType )
         throws IOException,
         BadRequestException
@@ -420,18 +418,15 @@ public class TrackedEntityInstanceController
 
         if ( !importOptions.isAsync() )
         {
-            finalizeTrackedEntityInstancePostRequest( importOptions, request, response, importSummaries, mediaType );
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+            finalizeTrackedEntityInstancePostRequest( importOptions, request, response, importSummaries );
+            return WebMessageUtils.importSummaries( importSummaries );
         }
-        else
-        {
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TEI_IMPORT );
-            webMessageService.send( jobConfigurationReport( jobId ), response, request );
-        }
+        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TEI_IMPORT );
+        return jobConfigurationReport( jobId );
     }
 
     private void finalizeTrackedEntityInstancePostRequest( ImportOptions importOptions, HttpServletRequest request,
-        HttpServletResponse response, ImportSummaries importSummaries, String mediaType )
+        HttpServletResponse response, ImportSummaries importSummaries )
     {
 
         importSummaries.setImportOptions( importOptions );
@@ -456,8 +451,6 @@ public class TrackedEntityInstanceController
                 response.setHeader( "Location", getResourcePath( request, importSummary ) );
             }
         }
-
-        response.setContentType( mediaType );
     }
 
     // -------------------------------------------------------------------------
@@ -465,10 +458,11 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_XML_VALUE )
-    public void updateTrackedEntityInstanceXml(
+    @ResponseBody
+    public WebMessage updateTrackedEntityInstanceXml(
         @PathVariable String id,
         @RequestParam( required = false ) String program,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -476,14 +470,15 @@ public class TrackedEntityInstanceController
             inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return WebMessageUtils.importSummary( importSummary );
     }
 
     @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void updateTrackedEntityInstanceJson(
+    @ResponseBody
+    public WebMessage updateTrackedEntityInstanceJson(
         @PathVariable String id,
         @RequestParam( required = false ) String program,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -491,7 +486,7 @@ public class TrackedEntityInstanceController
             inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return WebMessageUtils.importSummary( importSummary );
     }
 
     // -------------------------------------------------------------------------
@@ -499,11 +494,11 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @DeleteMapping( "/{id}" )
-    public void deleteTrackedEntityInstance( @PathVariable String id, HttpServletRequest request,
-        HttpServletResponse response )
+    @ResponseBody
+    public WebMessage deleteTrackedEntityInstance( @PathVariable String id )
     {
         ImportSummary importSummary = trackedEntityInstanceService.deleteTrackedEntityInstance( id );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return WebMessageUtils.importSummary( importSummary );
     }
 
     @PutMapping( "/{tei}/potentialDuplicate" )

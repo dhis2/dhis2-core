@@ -29,21 +29,19 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
@@ -59,9 +57,6 @@ public class DataIntegrityController
     @Autowired
     private SchedulingManager schedulingManager;
 
-    @Autowired
-    private WebMessageService webMessageService;
-
     public static final String RESOURCE_PATH = "/dataIntegrity";
 
     // --------------------------------------------------------------------------
@@ -70,7 +65,8 @@ public class DataIntegrityController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @PostMapping( DataIntegrityController.RESOURCE_PATH )
-    public void runAsyncDataIntegrity( HttpServletResponse response, HttpServletRequest request )
+    @ResponseBody
+    public WebMessage runAsyncDataIntegrity()
     {
         JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null,
             true );
@@ -79,6 +75,6 @@ public class DataIntegrityController
 
         schedulingManager.executeNow( jobConfiguration );
 
-        webMessageService.send( jobConfigurationReport( jobConfiguration ), response, request );
+        return jobConfigurationReport( jobConfiguration );
     }
 }

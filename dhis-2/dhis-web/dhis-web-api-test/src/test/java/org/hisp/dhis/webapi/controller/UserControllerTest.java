@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.webapi.WebClient.Accept;
 import static org.hisp.dhis.webapi.WebClient.Body;
+import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -44,10 +46,13 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
@@ -109,6 +114,114 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     {
         assertEquals( "Object not found for uid: does-not-exist",
             POST( "/users/does-not-exist/reset" ).error( HttpStatus.NOT_FOUND ).getMessage() );
+    }
+
+    @Test
+    public void testReplicateUser()
+    {
+        assertWebMessage( "Created", 201, "OK", "User replica created",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'Saf€sEcre1'}" )
+                .content() );
+    }
+
+    @Test
+    public void testReplicateUser_UserNameAlreadyTaken()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Username already taken: Peter",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'Peter','password':'Saf€sEcre1'}" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testReplicateUser_UserNotFound()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "User not found: notfoundid",
+            POST( "/users/notfoundid/replica", "{'username':'peter2','password':'Saf€sEcre1'}" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testReplicateUser_UserNameNotSpecified()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Username must be specified",
+            POST( "/users/" + peter.getUid() + "/replica", "{'password':'Saf€sEcre1'}" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testReplicateUser_PasswordNotSpecified()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Password must be specified",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2'}" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testReplicateUser_PasswordNotValid()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "Password must have at least 8 characters, one digit, one uppercase",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testPutJsonObject()
+    {
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+
+        assertWebMessage( "OK", 200, "OK", null,
+            PUT( "/38/users/" + peter.getUid(), user.toString() ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    public void testPutJsonObject_Pre38()
+    {
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+
+        JsonImportSummary summary = PUT( "/37/users/" + peter.getUid(), user.toString() )
+            .content( HttpStatus.OK ).as( JsonImportSummary.class );
+        assertEquals( "ImportReport", summary.getResponseType() );
+        assertEquals( "OK", summary.getStatus() );
+        assertEquals( 1, summary.getStats().getUpdated() );
+        assertEquals( peter.getUid(), summary.getTypeReports().get( 0 ).getObjectReports().get( 0 ).getUid() );
+    }
+
+    @Test
+    public void testPutXmlObject()
+    {
+        HttpResponse response = PUT( "/38/users/" + peter.getUid(), Body( "<user></user>" ),
+            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        String content = response.content( MediaType.APPLICATION_XML );
+        assertTrue( content.contains(
+            "<message>One more more errors occurred, please see full details in import report.</message>" ) );
+    }
+
+    @Test
+    public void testPutXmlObject_Pre38()
+    {
+        HttpResponse response = PUT( "/37/users/" + peter.getUid(), Body( "<user></user>" ),
+            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
+        assertEquals( HttpStatus.OK, response.status() );
+        String content = response.content( MediaType.APPLICATION_XML );
+        assertTrue( content.startsWith( "<importReport " ) );
+    }
+
+    @Test
+    public void testPostJsonObject()
+    {
+        assertWebMessage( "Created", 201, "OK", null,
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'HarryS'}}" )
+                .content( HttpStatus.CREATED ) );
+    }
+
+    @Test
+    public void testPostJsonInvite()
+    {
+        assertWebMessage( "Created", 201, "OK", null,
+            POST( "/users/invite",
+                "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'userCredentials':{'username':'HarryS'}}" )
+                    .content( HttpStatus.CREATED ) );
     }
 
     private String extractTokenFromEmailText( String message )

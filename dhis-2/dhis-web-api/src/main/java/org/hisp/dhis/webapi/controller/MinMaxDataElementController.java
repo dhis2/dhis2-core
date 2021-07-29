@@ -31,7 +31,8 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -56,7 +57,6 @@ import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -74,6 +74,7 @@ import com.google.common.collect.Lists;
 @Controller
 @RequestMapping( value = MinMaxDataElementSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class MinMaxDataElementController
 {
     private final ContextService contextService;
@@ -84,21 +85,7 @@ public class MinMaxDataElementController
 
     private final RenderService renderService;
 
-    private final WebMessageService webMessageService;
-
     private final IdentifiableObjectManager manager;
-
-    public MinMaxDataElementController( ContextService contextService, MinMaxDataElementService minMaxService,
-        WebMessageService webMessageService, FieldFilterService fieldFilterService, RenderService renderService,
-        IdentifiableObjectManager manager )
-    {
-        this.contextService = contextService;
-        this.minMaxService = minMaxService;
-        this.fieldFilterService = fieldFilterService;
-        this.renderService = renderService;
-        this.webMessageService = webMessageService;
-        this.manager = manager;
-    }
 
     // --------------------------------------------------------------------------
     // GET
@@ -139,7 +126,8 @@ public class MinMaxDataElementController
 
     @PostMapping( consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')" )
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postJsonObject( HttpServletRequest request )
         throws Exception
     {
         MinMaxDataElement minMax = renderService.fromJson( request.getInputStream(), MinMaxDataElement.class );
@@ -165,7 +153,7 @@ public class MinMaxDataElementController
         webMessage.setHttpStatus( HttpStatus.CREATED );
         webMessage.setStatus( Status.OK );
 
-        webMessageService.send( webMessage, response, request );
+        return webMessage;
     }
 
     // --------------------------------------------------------------------------
@@ -174,7 +162,8 @@ public class MinMaxDataElementController
 
     @DeleteMapping( consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_DELETE')" )
-    public void deleteObject( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage deleteObject( HttpServletRequest request )
         throws Exception
     {
         MinMaxDataElement minMax = renderService.fromJson( request.getInputStream(), MinMaxDataElement.class );
@@ -188,12 +177,12 @@ public class MinMaxDataElementController
 
         if ( Objects.isNull( persisted ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Can not find MinMaxDataElement." ) );
+            return WebMessageUtils.notFound( "Can not find MinMaxDataElement." );
         }
 
         minMaxService.deleteMinMaxDataElement( persisted );
 
-        webMessageService.send( WebMessageUtils.ok( "MinMaxDataElement deleted." ), response, request );
+        return WebMessageUtils.ok( "MinMaxDataElement deleted." );
     }
 
     private void validate( MinMaxDataElement minMax )

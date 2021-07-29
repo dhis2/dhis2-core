@@ -34,6 +34,7 @@ import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.DataElementActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -65,7 +66,7 @@ public class EventsDataValueValidationTests
 
     private SharingActions sharingActions;
 
-    private RestApiActions dataElementActions;
+    private DataElementActions dataElementActions;
 
     private String programId;
 
@@ -80,7 +81,7 @@ public class EventsDataValueValidationTests
     {
         programActions = new ProgramActions();
         sharingActions = new SharingActions();
-        dataElementActions = new RestApiActions( "/dataElements" );
+        dataElementActions = new DataElementActions();
 
         loginActions.loginAsSuperUser();
 
