@@ -103,6 +103,7 @@ import com.google.common.collect.Lists;
  */
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public abstract class AbstractCrudController<T extends IdentifiableObject> extends AbstractFullReadOnlyController<T>
+    implements ControllerHooks<T>
 {
 
     // --------------------------------------------------------------------------
@@ -904,51 +905,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         throws IOException
     {
         return renderService.fromXml( request.getInputStream(), getEntityClass() );
-    }
-
-    protected void preCreateEntity( T entity )
-        throws Exception
-    {
-    }
-
-    protected void postCreateEntity( T entity )
-    {
-    }
-
-    protected void preUpdateEntity( T entity, T newEntity )
-        throws Exception
-    {
-    }
-
-    protected void postUpdateEntity( T entity )
-    {
-    }
-
-    protected void preDeleteEntity( T entity )
-        throws Exception
-    {
-    }
-
-    protected void postDeleteEntity( String entityUid )
-    {
-    }
-
-    protected void prePatchEntity( T entity )
-        throws Exception
-    {
-    }
-
-    protected void postPatchEntity( T entity )
-    {
-    }
-
-    protected void preUpdateItems( T entity, IdentifiableObjects items )
-        throws Exception
-    {
-    }
-
-    protected void postUpdateItems( T entity, IdentifiableObjects items )
-    {
     }
 
     // --------------------------------------------------------------------------

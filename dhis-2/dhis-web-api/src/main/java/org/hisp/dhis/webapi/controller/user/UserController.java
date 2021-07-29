@@ -674,7 +674,7 @@ public class UserController
     // -------------------------------------------------------------------------
 
     @Override
-    protected void prePatchEntity( User entity )
+    public void prePatchEntity( User entity )
         throws Exception
     {
         User currentUser = currentUserService.getCurrentUser();
@@ -688,7 +688,7 @@ public class UserController
     }
 
     @Override
-    protected void postPatchEntity( User entity )
+    public void postPatchEntity( User entity )
     {
         UserCredentials credentials = entity.getUserCredentials();
 
@@ -705,7 +705,7 @@ public class UserController
     // -------------------------------------------------------------------------
 
     @Override
-    protected void preDeleteEntity( User entity )
+    public void preDeleteEntity( User entity )
         throws Exception
     {
         User currentUser = currentUserService.getCurrentUser();

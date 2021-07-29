@@ -404,19 +404,19 @@ public class OrganisationUnitController
     }
 
     @Override
-    protected void postCreateEntity( OrganisationUnit entity )
+    public void postCreateEntity( OrganisationUnit entity )
     {
         versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
     }
 
     @Override
-    protected void postUpdateEntity( OrganisationUnit entity )
+    public void postUpdateEntity( OrganisationUnit entity )
     {
         versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
     }
 
     @Override
-    protected void postDeleteEntity( String entityUID )
+    public void postDeleteEntity( String entityUID )
     {
         versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
     }

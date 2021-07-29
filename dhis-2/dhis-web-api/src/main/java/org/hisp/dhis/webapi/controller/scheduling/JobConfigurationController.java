@@ -109,14 +109,14 @@ public class JobConfigurationController
     }
 
     @Override
-    protected void preCreateEntity( JobConfiguration jobConfiguration )
+    public void preCreateEntity( JobConfiguration jobConfiguration )
         throws WebMessageException
     {
         checkConfigurable( jobConfiguration, HttpStatus.BAD_REQUEST, "Job %s must be configurable but was not." );
     }
 
     @Override
-    protected void prePatchEntity( JobConfiguration jobConfiguration )
+    public void prePatchEntity( JobConfiguration jobConfiguration )
         throws WebMessageException
     {
         checkConfigurable( jobConfiguration, HttpStatus.UNPROCESSABLE_ENTITY,
@@ -124,7 +124,7 @@ public class JobConfigurationController
     }
 
     @Override
-    protected void preUpdateEntity( JobConfiguration before, JobConfiguration after )
+    public void preUpdateEntity( JobConfiguration before, JobConfiguration after )
         throws WebMessageException
     {
         checkConfigurable( before, HttpStatus.UNPROCESSABLE_ENTITY, "Job %s is a system job that cannot be modified." );
@@ -132,7 +132,7 @@ public class JobConfigurationController
     }
 
     @Override
-    protected void preDeleteEntity( JobConfiguration jobConfiguration )
+    public void preDeleteEntity( JobConfiguration jobConfiguration )
         throws WebMessageException
     {
         checkConfigurable( jobConfiguration, HttpStatus.UNPROCESSABLE_ENTITY,
@@ -140,7 +140,7 @@ public class JobConfigurationController
     }
 
     @Override
-    protected void preUpdateItems( JobConfiguration jobConfiguration, IdentifiableObjects items )
+    public void preUpdateItems( JobConfiguration jobConfiguration, IdentifiableObjects items )
         throws Exception
     {
         checkConfigurable( jobConfiguration, HttpStatus.UNPROCESSABLE_ENTITY,
@@ -148,7 +148,7 @@ public class JobConfigurationController
     }
 
     @Override
-    protected void postPatchEntity( JobConfiguration jobConfiguration )
+    public void postPatchEntity( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isEnabled() )
         {

@@ -152,7 +152,7 @@ public class MapController
     }
 
     @Override
-    protected void preUpdateEntity( Map map, Map newMap )
+    public void preUpdateEntity( Map map, Map newMap )
     {
         map.getMapViews().clear();
 

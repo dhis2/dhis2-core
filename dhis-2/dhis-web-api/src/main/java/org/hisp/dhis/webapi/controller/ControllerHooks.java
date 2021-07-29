@@ -25,48 +25,72 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.user;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.schema.descriptors.UserGroupSchemaDescriptor;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjects;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Pre- and post- hooks for {@link IdentifiableObject} controllers that do
+ * nothing by default.
+ *
+ * @author Jan Bernitt
+ * @param <T> type of the object the hooks apply to
  */
-@Controller
-@RequestMapping( value = UserGroupSchemaDescriptor.API_ENDPOINT )
-public class UserGroupController
-    extends AbstractCrudController<UserGroup>
+public interface ControllerHooks<T extends IdentifiableObject>
 {
-    @Autowired
-    private Environment env;
-
-    @Override
-    public void postUpdateEntity( UserGroup entity )
+    default void preCreateEntity( T entity )
+        throws Exception
     {
-        hibernateCacheManager.clearCache();
+        // by default do nothing
     }
 
-    @Override
-    public void postDeleteEntity( String entityUid )
+    default void postCreateEntity( T entity )
     {
-        /*
-         * This function will caused error in
-         * SchemaBasedControllerTest.testCreateAndDeleteSchemaObjects because of
-         * H2 database being used. The test is instead covered in
-         * IdentifiableObjectManagerTest.testRemoveUserGroupFromSharing()
-         */
-        if ( SystemUtils.isTestRun( env.getActiveProfiles() ) )
-        {
-            return;
-        }
+        // by default do nothing
+    }
 
-        manager.removeUserGroupFromSharing( entityUid );
+    default void preUpdateEntity( T entity, T newEntity )
+        throws Exception
+    {
+        // by default do nothing
+    }
+
+    default void postUpdateEntity( T entity )
+    {
+        // by default do nothing
+    }
+
+    default void preDeleteEntity( T entity )
+        throws Exception
+    {
+        // by default do nothing
+    }
+
+    default void postDeleteEntity( String entityUid )
+    {
+        // by default do nothing
+    }
+
+    default void prePatchEntity( T entity )
+        throws Exception
+    {
+        // by default do nothing
+    }
+
+    default void postPatchEntity( T entity )
+    {
+        // by default do nothing
+    }
+
+    default void preUpdateItems( T entity, IdentifiableObjects items )
+        throws Exception
+    {
+        // by default do nothing
+    }
+
+    default void postUpdateItems( T entity, IdentifiableObjects items )
+    {
+        // by default do nothing
     }
 }

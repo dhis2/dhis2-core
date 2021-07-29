@@ -43,13 +43,13 @@ public class DataApprovalLevelController
     private DataApprovalLevelService dataApprovalLevelService;
 
     @Override
-    protected void preCreateEntity( DataApprovalLevel entity )
+    public void preCreateEntity( DataApprovalLevel entity )
     {
         dataApprovalLevelService.prepareAddDataApproval( entity );
     }
 
     @Override
-    protected void postDeleteEntity( String entityUID )
+    public void postDeleteEntity( String entityUID )
     {
         dataApprovalLevelService.postDeleteDataApprovalLevel();
     }
