@@ -97,6 +97,7 @@ public class TrackedEntityInstanceControllerTest
     private TrackedEntityInstance trackedEntityInstance;
 
     private final static String ENDPOINT = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT;
+    private final static String PD_ENDPOINT = "/potentialDuplicate";
 
     @Before
     public void setUp()
@@ -158,7 +159,7 @@ public class TrackedEntityInstanceControllerTest
 
         when( instanceService.getTrackedEntityInstance( uid ) ).thenReturn( new TrackedEntityInstance() );
 
-        mockMvc.perform( put( ENDPOINT + "/" + uid + "/potentialduplicate" )
+        mockMvc.perform( put( ENDPOINT + "/" + uid + PD_ENDPOINT )
             .contentType( MediaType.APPLICATION_JSON ).param( "flag", "true" )
             .content( "{}" ) )
             .andExpect( status().isOk() );
@@ -170,7 +171,7 @@ public class TrackedEntityInstanceControllerTest
 
         when( instanceService.getTrackedEntityInstance( uid ) ).thenReturn( new TrackedEntityInstance() );
 
-        mockMvc.perform( put( ENDPOINT + "/" + uid + "/potentialduplicate" )
+        mockMvc.perform( put( ENDPOINT + "/" + uid + PD_ENDPOINT )
             .contentType( MediaType.APPLICATION_JSON ).param( "flag", "false" )
             .content( "{}" ) )
             .andExpect( status().isOk() );
@@ -185,7 +186,7 @@ public class TrackedEntityInstanceControllerTest
     {
         String uid = "uid";
 
-        mockMvc.perform( put( ENDPOINT + "/" + uid + "/potentialduplicate" )
+        mockMvc.perform( put( ENDPOINT + "/" + uid + PD_ENDPOINT )
             .contentType( MediaType.APPLICATION_JSON ).param( "flag", "invalid flag" )
             .content( "{}" ) )
             .andExpect( status().isBadRequest() )
@@ -205,7 +206,7 @@ public class TrackedEntityInstanceControllerTest
         when( trackerAccessManager.canWrite( user, trackedEntityInstance ) )
             .thenReturn( Collections.singletonList( "Read error" ) );
 
-        mockMvc.perform( put( ENDPOINT + "/" + uid + "/potentialduplicate" )
+        mockMvc.perform( put( ENDPOINT + "/" + uid + PD_ENDPOINT )
             .contentType( MediaType.APPLICATION_JSON ).param( "flag", "true" )
             .content( "{}" ) )
             .andExpect( status().isForbidden() )
@@ -222,7 +223,7 @@ public class TrackedEntityInstanceControllerTest
 
         when( instanceService.getTrackedEntityInstance( uid ) ).thenReturn( null );
 
-        mockMvc.perform( put( ENDPOINT + "/" + uid + "/potentialduplicate" )
+        mockMvc.perform( put( ENDPOINT + "/" + uid + PD_ENDPOINT )
             .contentType( MediaType.APPLICATION_JSON ).param( "flag", "true" )
             .content( "{}" ) )
             .andExpect( status().isNotFound() )

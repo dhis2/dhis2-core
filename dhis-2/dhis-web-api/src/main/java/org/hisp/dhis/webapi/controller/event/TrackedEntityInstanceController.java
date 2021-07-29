@@ -506,7 +506,7 @@ public class TrackedEntityInstanceController
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
-    @PutMapping( "/{tei}/potentialduplicate" )
+    @PutMapping( "/{tei}/potentialDuplicate" )
     @ResponseStatus( value = HttpStatus.OK )
     public void updatePotentialDuplicateFlag(
         @PathVariable String tei,
@@ -539,7 +539,7 @@ public class TrackedEntityInstanceController
     private boolean parseInputFlag( String flag )
         throws BadRequestException
     {
-        if ( "true".equalsIgnoreCase( flag ) || "false".equalsIgnoreCase( flag ) )
+        if ( "true".equals( flag ) || "false".equals( flag ) )
         {
             return Boolean.parseBoolean( flag );
         }
