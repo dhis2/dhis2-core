@@ -90,79 +90,92 @@ public class DefaultLocationManager extends LogOnceLogger
     @PostConstruct
     public void init()
     {
-        
-        
-        
-        
-        String path = System.getProperty( systemProperty );
+        // check the most specific to the least specific  
+        // 1- context variable   
+        externalDir = getPathFromContext();        
+        //2- system property
+        if ( externalDir == null ) externalDir = getPathFromSysProperty();
+        //3- env variable
+        if ( externalDir == null ) externalDir = getPathFromEnvVariable();
+        //4- default value
+        if ( externalDir == null ) externalDir = getPathDefault();
+    }
+    // -------------------------------------------------------------------------
+    // LocationManager implementation
+    // -------------------------------------------------------------------------
+    private String getPathFromContext(){
+        String path = null;
+        try 
+        {
+            Context initCtx = new InitialContext();
+            Context envCtx = ( Context ) initCtx.lookup( "java:comp/env" );
+            path = ( String ) envCtx.lookup( this.contextVariable );
+        }
+        catch ( NamingException e ) 
+        {
+            log( log, Level.INFO, "Context variable " + contextVariable + " not set" );
+        }
+        if ( path != null )
+        {
+            log( log, Level.INFO, "Context variable " + contextVariable + " points to " + path );
 
+            if ( directoryIsValid( new File( path ) ) )
+            {
+                return path;
+            }
+        }
+        return null;
+    }
+
+    private String getPathFromSysProperty(){
+        String path = System.getProperty( systemProperty );
         if ( path != null )
         {
             log( log, Level.INFO, "System property " + systemProperty + " points to " + path );
 
             if ( directoryIsValid( new File( path ) ) )
             {
-                externalDir = path;
+                return path;
             }
         }
         else
         {
             log( log, Level.INFO, "System property " + systemProperty + " not set" );
-            try 
-            {
-                Context initCtx = new InitialContext();
-                Context envCtx = ( Context ) initCtx.lookup( "java:comp/env" );
-                path = ( String ) envCtx.lookup( this.contextVariable );
-            }
-            catch ( NamingException e ) 
-            {
-
-            }
-            if ( path != null )
-            {
-                log( log, Level.INFO, "Context variable " + contextVariable + " points to " + path );
-
-                if ( directoryIsValid( new File( path ) ) )
-                {
-                    externalDir = path;
-                }
-            }
-            else
-            {
-                log( log, Level.INFO, "Context variable " + contextVariable + " not set" );
-
-                path = System.getenv( environmentVariable );
-
-                if ( path != null )
-                {
-                    log( log, Level.INFO, "Environment variable " + environmentVariable + " points to " + path );
-
-                    if ( directoryIsValid( new File( path ) ) )
-                    {
-                        externalDir = path;
-                    }
-                }
-                else
-                {
-                    log( log, Level.INFO, "Environment variable " + environmentVariable + " not set" );
-
-                    path = DEFAULT_DHIS2_HOME;
-
-                    if ( directoryIsValid( new File( path ) ) )
-                    {
-                        externalDir = path;
-                        log( log, Level.INFO, "Home directory set to " + DEFAULT_DHIS2_HOME );
-
-                    }
-                }
-            }
         }
+        return null;
     }
 
-    // -------------------------------------------------------------------------
-    // LocationManager implementation
-    // -------------------------------------------------------------------------
+    private String getPathFromEnvVariable(){
+        String path = System.getenv( environmentVariable );
+        if ( path != null )
+        {
+            log( log, Level.INFO, "Environment variable " + environmentVariable + " points to " + path );
 
+            if ( directoryIsValid( new File( path ) ) )
+            {
+                return path;
+            }
+        }
+        else
+        {
+            log( log, Level.INFO, "Environment variable " + environmentVariable + " not set" );
+        }
+        return null;
+    }
+
+    private String getPathDefault(){
+        String path = DEFAULT_DHIS2_HOME;
+        if ( directoryIsValid( new File( path ) ) )
+        {
+            log( log, Level.INFO, "Home directory set to " + DEFAULT_DHIS2_HOME );
+            return path;
+        }
+        else
+        {
+            log( log, Level.ERROR, "No Home directory set, and " + DEFAULT_DHIS2_HOME + " is not a directory" );
+            return null;
+        }
+    }
     // -------------------------------------------------------------------------
     // InputStream
     // -------------------------------------------------------------------------
