@@ -160,12 +160,8 @@ public class LocaleController
 
         I18nLocale i18nLocale = localeService.addI18nLocale( language, country );
 
-        WebMessage webMessage = created( "Locale created successfully" );
-
-        response.setHeader( ContextUtils.HEADER_LOCATION,
-            contextService.getApiPath() + "/locales/" + i18nLocale.getUid() );
-
-        return webMessage;
+        return created( "Locale created successfully" )
+            .setLocation( "/locales/" + i18nLocale.getUid() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_DELETE')" )

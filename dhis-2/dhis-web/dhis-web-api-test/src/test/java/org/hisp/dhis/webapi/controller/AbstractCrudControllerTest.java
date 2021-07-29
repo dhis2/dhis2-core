@@ -188,8 +188,11 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testPostJsonObject()
     {
-        assertStatus( HttpStatus.CREATED,
-            POST( "/constants/", "{'name':'answer', 'value': 42}" ) );
+        HttpResponse response = POST( "/constants/", "{'name':'answer', 'value': 42}" );
+        assertWebMessage( "Created", 201, "OK", null,
+            response.content( HttpStatus.CREATED ) );
+        assertEquals( "http://localhost/constants/" + assertStatus( HttpStatus.CREATED, response ),
+            response.header( "Location" ) );
     }
 
     @Test

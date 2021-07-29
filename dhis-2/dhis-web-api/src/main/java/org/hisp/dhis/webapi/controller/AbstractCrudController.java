@@ -447,11 +447,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
-            String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/"
-                + objectReport.getUid();
-
             webMessage.setHttpStatus( HttpStatus.CREATED );
-            webMessage.setLocation( location );
+            webMessage.setLocation( getSchema().getRelativeApiEndpoint() + "/" + objectReport.getUid() );
             T entity = manager.get( getEntityClass(), objectReport.getUid() );
             postCreateEntity( entity );
         }
