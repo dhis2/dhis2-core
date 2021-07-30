@@ -68,7 +68,7 @@ public class PeriodTypeController
             .map( PeriodType::new )
             .collect( Collectors.toList() ) );
 
-        return ResponseEntity.ok( new FieldFilterMappingJacksonValue( periodTypes, fields ) );
+        return ResponseEntity.ok( new FieldFilterMappingJacksonValue( periodTypes, "periodTypes", fields ) );
     }
 
     @GetMapping( value = "/relativePeriodTypes", produces = { "application/json", "application/javascript" } )

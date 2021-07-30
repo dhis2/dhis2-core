@@ -43,12 +43,22 @@ public class FieldFilterParser
         return new HashSet<>( expandField( StringUtils.join( fields, "," ) ) );
     }
 
-    private static Set<String> expandField( String field )
+    public static Set<String> parseWithPrefix( Set<String> fields, String prefix )
+    {
+        return new HashSet<>( expandField( StringUtils.join( fields, "," ), prefix ) );
+    }
+
+    private static Set<String> expandField( String field, String prefix )
     {
         Set<String> output = new HashSet<>();
-
         Stack<String> path = new Stack<>();
         StringBuilder builder = new StringBuilder();
+
+        if ( prefix != null )
+        {
+            output.add( prefix );
+            path.push( prefix );
+        }
 
         for ( String token : field.split( "" ) )
         {
@@ -77,10 +87,15 @@ public class FieldFilterParser
 
         if ( builder.length() > 0 )
         {
-            output.add( builder.toString() );
+            output.add( toFullPath( builder.toString(), path ) );
         }
 
         return output;
+    }
+
+    private static Set<String> expandField( String field )
+    {
+        return expandField( field, null );
     }
 
     private static boolean isBlockStart( String token )

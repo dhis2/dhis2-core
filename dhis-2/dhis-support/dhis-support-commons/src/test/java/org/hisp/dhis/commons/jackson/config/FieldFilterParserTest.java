@@ -95,4 +95,22 @@ public class FieldFilterParserTest
         assertTrue( fields.contains( "group.id" ) );
         assertTrue( fields.contains( "group.name" ) );
     }
+
+    @Test
+    public void testParseWithPrefix1()
+    {
+        Set<String> fields = FieldFilterParser.parseWithPrefix( Sets.newHashSet( "a", "b" ), "prefix" );
+
+        assertTrue( fields.contains( "prefix.a" ) );
+        assertTrue( fields.contains( "prefix.b" ) );
+    }
+
+    @Test
+    public void testParseWithPrefix2()
+    {
+        Set<String> fields = FieldFilterParser.parseWithPrefix( Sets.newHashSet( "aaa[a],bbb[b]" ), "prefix" );
+
+        assertTrue( fields.contains( "prefix.aaa.a" ) );
+        assertTrue( fields.contains( "prefix.bbb.b" ) );
+    }
 }

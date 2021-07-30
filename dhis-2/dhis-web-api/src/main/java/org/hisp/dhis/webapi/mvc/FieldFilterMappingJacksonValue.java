@@ -37,14 +37,19 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 public class FieldFilterMappingJacksonValue extends MappingJacksonValue
 {
-    public FieldFilterMappingJacksonValue( final Object value, Set<String> fieldFilters )
+    public FieldFilterMappingJacksonValue( final Object value, String prefix, Set<String> fieldFilters )
     {
         super( value );
 
         SimpleFilterProvider filterProvider = new SimpleFilterProvider();
         filterProvider.addFilter( "field-filter",
-            new FieldFilterSimpleBeanPropertyFilter( FieldFilterParser.parse( fieldFilters ) ) );
+            new FieldFilterSimpleBeanPropertyFilter( FieldFilterParser.parseWithPrefix( fieldFilters, prefix ) ) );
 
         setFilters( filterProvider );
+    }
+
+    public FieldFilterMappingJacksonValue( final Object value, Set<String> fieldFilters )
+    {
+        this( value, null, fieldFilters );
     }
 }
