@@ -29,6 +29,9 @@ package org.hisp.dhis.commons.jackson.config.filter;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 
+/**
+ * @author Morten Olav Hansen
+ */
 @JsonFilter( "field-filter" )
 public interface FieldFilterMixin
 {
