@@ -31,7 +31,7 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -42,7 +42,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.visualization.Visualization;
 
 public class CascadeSharingTest
-    extends DhisSpringTest
+    extends DhisConvenienceTest
 {
     protected void addDimensionItemToVisualizationColumn( Visualization visualization, final String dimensionItem,
         DimensionItemType type )
