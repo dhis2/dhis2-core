@@ -94,8 +94,7 @@ public class DashboardCascadeSharingService
     private void handleVisualization( Dashboard dashboard, DashboardItem dashboardItem,
         CascadeSharingParameters parameters )
     {
-        dashboardItem.setVisualization( mergeSharing( dashboard,
-            dashboardItem.getVisualization(), parameters ) );
+        dashboardItem.setVisualization( mergeSharing( dashboard, dashboardItem.getVisualization(), parameters ) );
         visualizationCascadeSharingService.cascadeSharing( dashboardItem.getVisualization(), parameters );
     }
 }

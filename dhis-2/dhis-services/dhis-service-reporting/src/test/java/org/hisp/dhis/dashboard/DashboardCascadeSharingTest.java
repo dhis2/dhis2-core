@@ -56,7 +56,6 @@ import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,9 +64,6 @@ import com.google.common.collect.Lists;
 public class DashboardCascadeSharingTest
     extends DhisSpringTest
 {
-    @Autowired
-    private VisualizationService visualizationService;
-
     @Autowired
     private UserService _userService;
 
@@ -86,13 +82,13 @@ public class DashboardCascadeSharingTest
 
     private User userB;
 
-    private Sharing sharingUserA;
+    private Sharing sharingReadForUserA;
 
-    private Sharing sharingUserB;
+    private Sharing sharingReadForUserAB;
+
+    private Sharing sharingReadWriteForUserB;
 
     private Sharing sharingUserGroupA;
-
-    private DataElement dataElementA;
 
     private Dashboard dashboard;
 
@@ -105,17 +101,18 @@ public class DashboardCascadeSharingTest
 
         userGroupA = createUserGroup( 'A', SetUtils.EMPTY_SET );
 
-        sharingUserA = new Sharing();
-        sharingUserA.addUserAccess( new UserAccess( userA, AccessStringHelper.READ ) );
+        sharingReadForUserA = new Sharing();
+        sharingReadForUserA.addUserAccess( new UserAccess( userA, AccessStringHelper.READ ) );
 
-        sharingUserB = new Sharing();
-        sharingUserB.addUserAccess( new UserAccess( userB, AccessStringHelper.DEFAULT ) );
+        sharingReadWriteForUserB = new Sharing();
+        sharingReadWriteForUserB.addUserAccess( new UserAccess( userB, AccessStringHelper.READ_WRITE ) );
+
+        sharingReadForUserAB = new Sharing();
+        sharingReadForUserAB.addUserAccess( new UserAccess( userA, AccessStringHelper.READ ) );
+        sharingReadForUserAB.addUserAccess( new UserAccess( userB, AccessStringHelper.READ ) );
 
         sharingUserGroupA = new Sharing();
         sharingUserGroupA.addUserGroupAccess( new UserGroupAccess( userGroupA, AccessStringHelper.READ ) );
-
-        dataElementA = createDataElement( 'A' );
-        dataElementA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
 
         dashboard = new Dashboard();
         dashboard.setName( "dashboardA" );
@@ -125,28 +122,31 @@ public class DashboardCascadeSharingTest
     }
 
     /**
-     * Dashboard has sharingUserA Dashboard has visuallizationA visuallizationA
-     * has dataElementA Expected: vzA and dataElementA should be shared to userA
+     * Dashboard has sharingUserA and visualizationA
+     * <p>
+     * visualizationA has dataElementA
+     * <p>
+     * Expected: visualizationA and dataElementA should be shared to userA
      */
     @Test
     public void testCascadeShareVisualization()
     {
-        dataElementA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
-        objectManager.save( dataElementA, false );
+        DataElement dataElementA = createDEWithDefaultSharing( 'A' );
+        DataElement dataElementB = createDEWithDefaultSharing( 'B' );
 
-        Visualization vzA = createVisualization( 'A' );
-        addDimensionItemToVisualization( vzA, dataElementA.getUid(), DimensionItemType.DATA_ELEMENT );
-        vzA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
-        objectManager.save( vzA, false );
+        Visualization visualizationA = createVisualization( 'A' );
+        addDimensionItemToVisualizationRow( visualizationA, dataElementA.getUid(), DimensionItemType.DATA_ELEMENT );
+        addDimensionItemToVisualizationColumn( visualizationA, dataElementB.getUid(), DimensionItemType.DATA_ELEMENT );
+        visualizationA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        objectManager.save( visualizationA, false );
 
         DashboardItem dashboardItemA = createDashboardItem( "A" );
-        dashboardItemA.setVisualization( vzA );
-
+        dashboardItemA.setVisualization( visualizationA );
         objectManager.save( dashboardItemA, false );
 
         dashboard.getItems().clear();
         dashboard.getItems().add( dashboardItemA );
-        dashboard.setSharing( sharingUserA );
+        dashboard.setSharing( sharingReadForUserAB );
 
         objectManager.save( dashboard, false );
 
@@ -154,29 +154,38 @@ public class DashboardCascadeSharingTest
             new CascadeSharingParameters() );
         assertEquals( 0, errors.size() );
 
-        assertTrue( aclService.canRead( userA, dataElementA ) );
-        assertFalse( aclService.canRead( userB, dataElementA ) );
+        DataElement updatedDataElementA = objectManager.get( DataElement.class, dataElementA.getUid() );
+        DataElement updatedDataElementB = objectManager.get( DataElement.class, dataElementB.getUid() );
+
+        assertTrue( aclService.canRead( userA, visualizationA ) );
+        assertTrue( aclService.canRead( userB, visualizationA ) );
+        assertTrue( aclService.canRead( userA, updatedDataElementA ) );
+        assertTrue( aclService.canRead( userB, updatedDataElementB ) );
+
     }
 
     @Test
     public void testCascadeShareVisualizationError()
     {
+        DataElement dataElementA = createDataElement( 'A' );
         dataElementA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
         objectManager.save( dataElementA, false );
 
         Visualization vzA = createVisualization( 'A' );
         vzA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
-        addDimensionItemToVisualization( vzA, dataElementA.getUid(), DimensionItemType.DATA_ELEMENT );
+        addDimensionItemToVisualizationRow( vzA, dataElementA.getUid(), DimensionItemType.DATA_ELEMENT );
         objectManager.save( vzA, false );
 
         DashboardItem dashboardItemA = createDashboardItem( "A" );
         dashboardItemA.setVisualization( vzA );
 
         objectManager.save( dashboardItemA, false );
+        Sharing sharing = new Sharing();
+        sharing.addUserAccess( new UserAccess( userB, AccessStringHelper.DEFAULT ) );
 
         dashboard.getItems().clear();
         dashboard.getItems().add( dashboardItemA );
-        dashboard.setSharing( sharingUserB );
+        dashboard.setSharing( sharing );
 
         objectManager.save( dashboard, false );
 
@@ -187,7 +196,6 @@ public class DashboardCascadeSharingTest
 
         assertFalse( aclService.canRead( userB, vzA ) );
         assertFalse( aclService.canRead( userB, dataElementA ) );
-
     }
 
     /**
@@ -195,7 +203,7 @@ public class DashboardCascadeSharingTest
      * <p>
      * Dashboard has a MapA
      * <p>
-     * Expected: Map will be shared to userA
+     * Expected: MapA will be shared to userA
      */
     @Test
     public void testCascadeShareMap()
@@ -212,23 +220,32 @@ public class DashboardCascadeSharingTest
 
         dashboard.getItems().clear();
         dashboard.getItems().add( dashboardItemA );
-        dashboard.setSharing( sharingUserA );
+        dashboard.setSharing( sharingReadForUserA );
         objectManager.save( dashboard, false );
 
         List<ErrorReport> errors = dashboardCascadeSharingService.cascadeSharing( dashboard,
             new CascadeSharingParameters() );
         assertEquals( 0, errors.size() );
         assertTrue( aclService.canRead( userA, dashboardItemA.getMap() ) );
+        assertEquals( AccessStringHelper.READ,
+            dashboardItemA.getMap().getSharing().getUsers().get( userA.getUid() ).getAccess() );
         assertFalse( aclService.canRead( userB, dashboardItemA.getMap() ) );
     }
 
     /**
-     * Dashboard is shared to userB. But userB's access is set to
-     * DEFAULT('--------') Expected: return error with code E3019
+     * Dashboard is shared to userB.
+     * <p>
+     * But userB's access is DEFAULT('--------')
+     * <p>
+     * Expected: return error with code E3019
      */
     @Test
     public void testCascadeShareMapError()
     {
+        DataElement dataElementB = createDataElement( 'B' );
+        dataElementB.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        objectManager.save( dataElementB, false );
+
         MapView mapView = createMapView( "Test" );
         Map map = new Map();
         map.setName( "mapA" );
@@ -240,9 +257,12 @@ public class DashboardCascadeSharingTest
         DashboardItem dashboardItemA = createDashboardItem( "A" );
         dashboardItemA.setMap( map );
 
+        Sharing sharing = new Sharing();
+        sharing.addUserAccess( new UserAccess( userB, AccessStringHelper.DEFAULT ) );
+
         dashboard.getItems().clear();
         dashboard.getItems().add( dashboardItemA );
-        dashboard.setSharing( sharingUserB );
+        dashboard.setSharing( sharing );
         objectManager.save( dashboard, false );
 
         List<ErrorReport> errors = dashboardCascadeSharingService
@@ -253,7 +273,7 @@ public class DashboardCascadeSharingTest
         assertFalse( aclService.canRead( userB, dashboardItemA.getMap() ) );
     }
 
-    private void addDimensionItemToVisualization( Visualization visualization, final String dimensionItem,
+    private void addDimensionItemToVisualizationRow( Visualization visualization, final String dimensionItem,
         DimensionItemType type )
     {
         final List<String> rowsDimensions = asList( "dx" );
@@ -261,6 +281,17 @@ public class DashboardCascadeSharingTest
             baseDimensionalItemObjectStub( dimensionItem, type ) );
 
         visualization.setRowDimensions( rowsDimensions );
+        visualization.setGridRows( asList( dimensionalObjects ) );
+    }
+
+    private void addDimensionItemToVisualizationColumn( Visualization visualization, final String dimensionItem,
+        DimensionItemType type )
+    {
+        final List<String> columnsDimensions = asList( "dx" );
+        final List<DimensionalItemObject> dimensionalObjects = asList(
+            baseDimensionalItemObjectStub( dimensionItem, type ) );
+
+        visualization.setColumnDimensions( columnsDimensions );
         visualization.setGridColumns( asList( dimensionalObjects ) );
     }
 
@@ -277,5 +308,13 @@ public class DashboardCascadeSharingTest
         dashboardItem.setName( "dashboardItemA" );
         dashboardItem.setAutoFields();
         return dashboardItem;
+    }
+
+    private DataElement createDEWithDefaultSharing( char name )
+    {
+        DataElement dataElement = createDataElement( name );
+        dataElement.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        objectManager.save( dataElement, false );
+        return dataElement;
     }
 }
