@@ -25,9 +25,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dashboard;
+package org.hisp.dhis.sharing;
 
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -35,11 +34,10 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.apache.commons.collections.SetUtils;
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -47,8 +45,6 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.sharing.CascadeSharingParameters;
-import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
@@ -62,7 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.common.collect.Lists;
 
 public class DashboardCascadeSharingTest
-    extends DhisSpringTest
+    extends CascadeSharingTest
 {
     @Autowired
     private UserService _userService;
@@ -132,7 +128,9 @@ public class DashboardCascadeSharingTest
     public void testCascadeShareVisualization()
     {
         DataElement dataElementA = createDEWithDefaultSharing( 'A' );
+        objectManager.save( dataElementA );
         DataElement dataElementB = createDEWithDefaultSharing( 'B' );
+        objectManager.save( dataElementB );
 
         Visualization visualizationA = createVisualization( 'A' );
         addDimensionItemToVisualizationRow( visualizationA, dataElementA.getUid(), DimensionItemType.DATA_ELEMENT );
@@ -271,50 +269,5 @@ public class DashboardCascadeSharingTest
         assertEquals( ErrorCode.E3019, errors.get( 0 ).getErrorCode() );
 
         assertFalse( aclService.canRead( userB, dashboardItemA.getMap() ) );
-    }
-
-    private void addDimensionItemToVisualizationRow( Visualization visualization, final String dimensionItem,
-        DimensionItemType type )
-    {
-        final List<String> rowsDimensions = asList( "dx" );
-        final List<DimensionalItemObject> dimensionalObjects = asList(
-            baseDimensionalItemObjectStub( dimensionItem, type ) );
-
-        visualization.setRowDimensions( rowsDimensions );
-        visualization.setGridRows( asList( dimensionalObjects ) );
-    }
-
-    private void addDimensionItemToVisualizationColumn( Visualization visualization, final String dimensionItem,
-        DimensionItemType type )
-    {
-        final List<String> columnsDimensions = asList( "dx" );
-        final List<DimensionalItemObject> dimensionalObjects = asList(
-            baseDimensionalItemObjectStub( dimensionItem, type ) );
-
-        visualization.setColumnDimensions( columnsDimensions );
-        visualization.setGridColumns( asList( dimensionalObjects ) );
-    }
-
-    private DimensionalItemObject baseDimensionalItemObjectStub( final String dimensionItem, DimensionItemType type )
-    {
-        final BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject( dimensionItem );
-        baseDimensionalItemObject.setDimensionItemType( type );
-        return baseDimensionalItemObject;
-    }
-
-    private DashboardItem createDashboardItem( String name )
-    {
-        DashboardItem dashboardItem = new DashboardItem();
-        dashboardItem.setName( "dashboardItemA" );
-        dashboardItem.setAutoFields();
-        return dashboardItem;
-    }
-
-    private DataElement createDEWithDefaultSharing( char name )
-    {
-        DataElement dataElement = createDataElement( name );
-        dataElement.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
-        objectManager.save( dataElement, false );
-        return dataElement;
     }
 }
