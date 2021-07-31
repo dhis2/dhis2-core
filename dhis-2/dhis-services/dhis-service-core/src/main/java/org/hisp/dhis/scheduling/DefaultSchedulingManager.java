@@ -121,8 +121,10 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
         String jobId = configuration.getUid();
         JobType type = configuration.getJobType();
         CompletableFuture<Future<?>> cancellation = new CompletableFuture<>();
-        Runnable task = runIfPossible( configuration, cancellation, () -> execute( jobId ) );
-        Future<?> cancelable = scheduler.apply( task );
+        Runnable task = configuration.isInMemoryJob()
+            ? () -> execute( configuration )
+            : () -> execute( jobId );
+        Future<?> cancelable = scheduler.apply( runIfPossible( configuration, cancellation, task ) );
         Future<?> scheduledBefore = scheduled.put( type, cancelable );
         if ( scheduledBefore != null && !scheduledBefore.cancel( true ) )
         {

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -47,7 +48,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -81,23 +81,20 @@ public class DataSetReportController
     private ContextUtils contextUtils;
 
     @Autowired
-    WebMessageService webMessageService;
-
-    @Autowired
     IdentifiableObjectManager idObjectManager;
 
     @GetMapping( value = RESOURCE_PATH + "/custom", produces = "text/html;charset=UTF-8" )
     public @ResponseBody String getCustomDataSetReport( HttpServletResponse response,
-        @RequestParam String ds,
-        @RequestParam String pe,
         @RequestParam String ou,
+        @RequestParam String ds,
+        @RequestParam List<String> pe,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) boolean selectedUnitOnly )
         throws Exception
     {
         OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
         DataSet dataSet = getAndValidateDataSet( ds );
-        Period period = getAndValidatePeriod( pe );
+        List<Period> periods = getAndValidatePeriods( pe );
 
         if ( !dataSet.getFormType().isCustom() )
         {
@@ -108,43 +105,43 @@ public class DataSetReportController
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML,
             CacheStrategy.RESPECT_SYSTEM_SETTING );
 
-        return dataSetReportService.getCustomDataSetReport( dataSet, period, orgUnit, filter, selectedUnitOnly );
+        return dataSetReportService.getCustomDataSetReport( dataSet, periods, orgUnit, filter, selectedUnitOnly );
     }
 
     @GetMapping( value = RESOURCE_PATH, produces = "application/json" )
     public @ResponseBody List<Grid> getDataSetReportAsJson( HttpServletResponse response,
-        @RequestParam String ds,
-        @RequestParam String pe,
         @RequestParam String ou,
+        @RequestParam String ds,
+        @RequestParam List<String> pe,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) boolean selectedUnitOnly )
         throws Exception
     {
         OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
         DataSet dataSet = getAndValidateDataSet( ds );
-        Period period = getAndValidatePeriod( pe );
+        List<Period> periods = getAndValidatePeriods( pe );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
             CacheStrategy.RESPECT_SYSTEM_SETTING );
-        return dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
+        return dataSetReportService.getDataSetReportAsGrid( dataSet, periods, orgUnit, filter, selectedUnitOnly );
     }
 
     @GetMapping( RESOURCE_PATH + ".xls" )
     public void getDataSetReportAsExcel( HttpServletResponse response,
-        @RequestParam String ds,
-        @RequestParam String pe,
         @RequestParam String ou,
+        @RequestParam String ds,
+        @RequestParam List<String> pe,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) boolean selectedUnitOnly )
         throws Exception
     {
         OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
         DataSet dataSet = getAndValidateDataSet( ds );
-        Period period = getAndValidatePeriod( pe );
+        List<Period> periods = getAndValidatePeriods( pe );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL,
             CacheStrategy.RESPECT_SYSTEM_SETTING );
-        List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter,
+        List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, periods, orgUnit, filter,
             selectedUnitOnly );
         GridUtils.toXls( grids, response.getOutputStream() );
     }
@@ -152,7 +149,7 @@ public class DataSetReportController
     @GetMapping( RESOURCE_PATH + ".pdf" )
     public void getDataSetReportAsPdf( HttpServletResponse response,
         @RequestParam String ds,
-        @RequestParam String pe,
+        @RequestParam List<String> pe,
         @RequestParam String ou,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) boolean selectedUnitOnly )
@@ -160,10 +157,10 @@ public class DataSetReportController
     {
         OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
         DataSet dataSet = getAndValidateDataSet( ds );
-        Period period = getAndValidatePeriod( pe );
+        List<Period> periods = getAndValidatePeriods( pe );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING );
-        List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter,
+        List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, periods, orgUnit, filter,
             selectedUnitOnly );
         GridUtils.toPdf( grids, response.getOutputStream() );
     }
@@ -198,16 +195,23 @@ public class DataSetReportController
         return dataSet;
     }
 
-    private Period getAndValidatePeriod( String pe )
+    private List<Period> getAndValidatePeriods( List<String> pe )
         throws WebMessageException
     {
-        Period period = PeriodType.getPeriodFromIsoString( pe );
+        List<Period> periods = new ArrayList<>();
 
-        if ( period == null )
+        for ( String p : pe )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Period does not exist: " + pe ) );
+            Period period = PeriodType.getPeriodFromIsoString( p );
+
+            if ( period == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Period does not exist: " + pe ) );
+            }
+
+            periods.add( periodService.reloadPeriod( period ) );
         }
 
-        return periodService.reloadPeriod( period );
+        return periods;
     }
 }

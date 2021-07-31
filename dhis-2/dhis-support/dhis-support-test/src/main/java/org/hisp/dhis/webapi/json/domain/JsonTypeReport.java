@@ -37,10 +37,6 @@ import org.hisp.dhis.webapi.json.JsonObject;
  */
 public interface JsonTypeReport extends JsonObject
 {
-    default String getResponseType()
-    {
-        return getString( "responseType" ).string();
-    }
 
     default JsonStats getStats()
     {
@@ -55,5 +51,10 @@ public interface JsonTypeReport extends JsonObject
     default JsonList<JsonErrorReport> getErrorReports()
     {
         return getList( "errorReports", JsonErrorReport.class );
+    }
+
+    default JsonList<JsonImportSummary> getImportSummaries()
+    {
+        return getList( "importSummaries", JsonImportSummary.class );
     }
 }

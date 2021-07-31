@@ -52,7 +52,6 @@ import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -91,9 +90,6 @@ public class SchemaController
 
     @Autowired
     private ContextService contextService;
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     @GetMapping
     public @ResponseBody RootNode getSchemas()
@@ -143,7 +139,9 @@ public class SchemaController
 
     @RequestMapping( value = "/{type}", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public void validateSchema( @PathVariable String type, HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage validateSchema( @PathVariable String type, HttpServletRequest request,
+        HttpServletResponse response )
         throws IOException
     {
         Schema schema = getSchemaFromType( type );
@@ -156,8 +154,7 @@ public class SchemaController
         Object object = renderService.fromJson( request.getInputStream(), schema.getKlass() );
         List<ErrorReport> validationViolations = schemaValidator.validate( object );
 
-        WebMessage webMessage = WebMessageUtils.errorReports( validationViolations );
-        webMessageService.send( webMessage, response, request );
+        return WebMessageUtils.errorReports( validationViolations );
     }
 
     @GetMapping( "/{type}/{property}" )
