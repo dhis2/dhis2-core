@@ -39,10 +39,23 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectItem;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -50,6 +63,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.model.ParsedSqlStatement;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
@@ -353,9 +367,40 @@ public abstract class AbstractJdbcEventAnalyticsManager
         // Grid
         // ---------------------------------------------------------------------
 
+        String transformedSql = null;
         try
         {
-            getAggregatedEventData( grid, params, sql );
+            transformedSql = toInnerJoins( sql, false );
+            // if(sql.contains("Death"))
+            // {
+            // log.info("*************");
+            // log.info("begin");
+            // log.info(sql);
+            // log.info("end");
+            // log.info("*************");
+            //
+            // }
+            // else
+            // {
+            // log.info("*************");
+            // log.info("begin");
+            // log.info(sql);
+            // log.info("end");
+            // log.info("*************");
+            // }
+        }
+        catch ( Exception e )
+        {
+            // log.info("!!!!!!!!!!!!!!!!");
+            // log.info("begin");
+            // log.info(sql);
+            // log.info("end");
+            // log.info("!!!!!!!!!!!!!!!!");
+
+        }
+        try
+        {
+            getAggregatedEventData( grid, params, transformedSql == null ? sql : transformedSql );
         }
         catch ( BadSqlGrammarException ex )
         {
@@ -685,6 +730,224 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return ANALYTICS_TBL_ALIAS;
         }
+    }
+
+    private static String toInnerJoins( String selectSQL, boolean pretty )
+    {
+        String remainder = "";
+        int remainderIndex = selectSQL.indexOf( "and ((select count" );
+        if ( remainderIndex >= 0 )
+        {
+            remainder = selectSQL.substring( remainderIndex );
+            selectSQL = selectSQL.replace( remainder, "" );
+        }
+
+        remainderIndex = selectSQL.indexOf( "and (select count" );
+        if ( remainderIndex >= 0 )
+        {
+            remainder += selectSQL.substring( remainderIndex ).replace( ") limit 100001", "" );
+            selectSQL = selectSQL.replace( remainder, "" );
+        }
+
+        try
+        {
+            StringBuilder ret = new StringBuilder();
+            Statement select = CCJSqlParserUtil.parse( selectSQL );
+            ParsedSqlStatement parsedSqlStatement = toParsedSqlStatement( select );
+            ret.append( parsedSqlStatement.getSelectColumns() ).append( pretty ? "\n" : " " );
+            ret.append( parsedSqlStatement.getFrom() ).append( pretty ? "\n" : " " );
+            List<String> innerJoins = parsedSqlStatement.getInnerJoins();
+            for ( String innerJoin : innerJoins )
+            {
+                ret.append( innerJoin ).append( pretty ? "\n" : " " );
+            }
+            List<String> whereConditions = parsedSqlStatement.getWhereConditions();
+            for ( String where : whereConditions )
+            {
+                ret.append( where ).append( pretty ? "\n" : " " );
+            }
+            return ret + remainder;
+        }
+        catch ( JSQLParserException e )
+        {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    private static ParsedSqlStatement toParsedSqlStatement( Statement select )
+        throws JSQLParserException
+    {
+        ParsedSqlStatement parsedSqlStatement = new ParsedSqlStatement();
+
+        String where = ((PlainSelect) ((Select) select).getSelectBody()).getWhere().toString();
+        List<String> sqlList = new ArrayList<>();
+
+        String[] ands = where.split( "\\) AND" );
+
+        List<String> years = new ArrayList<>();
+        List<String> coalesceBasedFilterList = new ArrayList<>();
+        for ( String and : Arrays.stream( ands ).distinct().collect( Collectors.toList() ) )
+        {
+            String startDate = getDate( and.toLowerCase(), "<" );
+            if ( startDate != null && !startDate.trim().isEmpty() )
+            {
+                years.add( startDate );
+            }
+            String endDate = getDate( and.toLowerCase(), ">=" );
+            if ( endDate != null && !endDate.trim().isEmpty() )
+            {
+                years.add( endDate );
+            }
+
+            int iStart = and.toLowerCase().indexOf( "cast((" );
+            int iEnd = and.toLowerCase().indexOf( "limit 1" );
+            if ( iStart >= 0 && iEnd > iStart )
+            {
+                sqlList.add( and.substring( iStart + 6, iEnd ) );
+            }
+
+            iStart = and.indexOf( "(((" );
+            iEnd = and.indexOf( "> 0" );
+            if ( iStart >= 0 && iEnd > iStart )
+            {
+                sqlList.add( and.substring( iStart + 3, iEnd - 2 ) );
+            }
+
+            iStart = and.toLowerCase().indexOf( "coalesce((" );
+            iEnd = and.toLowerCase().indexOf( "limit 1" );
+            if ( iStart >= 0 && iEnd > iStart )
+            {
+                int valueIndex = and.indexOf( "'') = " );
+                sqlList.add( and.substring( iStart + 10, iEnd ) );
+
+                Statement s = CCJSqlParserUtil.parse( and.substring( iStart + 10, iEnd ) );
+                List<SelectItem> selectCols = ((PlainSelect) ((Select) s).getSelectBody()).getSelectItems();
+                Optional<SelectItem> columnName = selectCols.stream().findFirst();
+                if ( columnName.isPresent() )
+                {
+                    coalesceBasedFilterList.add( "and " + columnName.get().toString().replace( "\"", "" ) +
+                        "." + columnName.get() + and.substring( valueIndex + 3 ).replace( ")", "" ) );
+                }
+            }
+        }
+
+        List<String> tableNames = new ArrayList<>();
+        List<String> aliasList = new ArrayList<>();
+        List<String> psList = new ArrayList<>();
+        List<String> aliasBasedFilterList = new ArrayList<>();
+        for ( String sql : sqlList.stream().distinct().collect( Collectors.toList() ) )
+        {
+            Statement nestedSelect = CCJSqlParserUtil.parse( sql );
+
+            List<SelectItem> selectCols = ((PlainSelect) ((Select) nestedSelect).getSelectBody()).getSelectItems();
+            String alias = selectCols.get( 0 ).toString()
+                .replaceAll( "\"", "" ).replace( "count(", "" )
+                .replace( ")", "" );
+            aliasList.add( alias );
+
+            String nestedWhere = ((PlainSelect) ((Select) nestedSelect).getSelectBody()).getWhere().toString();
+
+            String[] nestedWhereElements = nestedWhere.split( "AND" );
+
+            aliasBasedFilterList.addAll( getAliasBasedFilterList( aliasList,
+                Arrays.stream( nestedWhereElements ).collect( Collectors.toList() ) ) );
+
+            psList.add( Arrays.stream( nestedWhereElements ).filter( el -> el.contains( "ps" ) )
+                .map( el -> "and " + alias + "." + el.trim() ).collect( Collectors.joining() ) );
+
+            String innerJoin = "inner join "
+                + ((Table) ((PlainSelect) ((Select) nestedSelect).getSelectBody()).getFromItem()).getName() +
+                " as " + alias + " on ax.pi = " + alias + ".pi";
+            tableNames.add( innerJoin );
+        }
+
+        List<SelectItem> mainSelectCols = ((PlainSelect) ((Select) select).getSelectBody()).getSelectItems();
+        parsedSqlStatement.setSelectColumns( "select " + mainSelectCols.stream()
+            .map( c -> {
+                if ( !c.toString().contains( ".pi" ) )
+                {
+                    return c.toString().replace( "pi", "ax.pi" );
+                }
+                else
+                {
+                    return c.toString();
+                }
+            } ).collect( Collectors.joining( "," ) ) );
+
+        String dailyCondition = getDailyCondition( aliasList.get( 0 ), mainSelectCols );
+
+        parsedSqlStatement.getWhereConditions()
+            .add( "where " + aliasList.get( 0 ) + "." + "\"" + aliasList.get( 0 ) + "\"" +
+                "is not null" );
+        parsedSqlStatement.getWhereConditions()
+            .add( "and " + aliasList.get( 0 ) + "." + Arrays.stream( ands ).filter( and -> and.contains( "uidlevel" ) )
+                .map( and -> and.replace( "(", "" ).replace( ")", "" ) ).collect( Collectors.joining() ) );
+
+        if ( dailyCondition != null && !dailyCondition.isEmpty() )
+        {
+            parsedSqlStatement.getWhereConditions().add( dailyCondition );
+        }
+
+        parsedSqlStatement.getWhereConditions().addAll( psList );
+        parsedSqlStatement.getWhereConditions().addAll( getYearlies( aliasList, years ) );
+        parsedSqlStatement.getWhereConditions().addAll( aliasBasedFilterList );
+        parsedSqlStatement.getWhereConditions().addAll( coalesceBasedFilterList );
+        parsedSqlStatement
+            .setFrom( "from " + (((PlainSelect) ((Select) select).getSelectBody()).getFromItem()).toString() );
+        parsedSqlStatement.getInnerJoins().addAll( tableNames.stream().distinct().collect( Collectors.toList() ) );
+        return parsedSqlStatement;
+    }
+
+    private static String getDailyCondition( String alias, List<SelectItem> mainSelectCols )
+    {
+        Optional<String> day = mainSelectCols.stream().filter( c -> c.toString().toLowerCase().contains( "daily" ) )
+            .map( c -> c.toString().toLowerCase().replace( "as daily", "" ).trim() ).findFirst();
+        return day.map( s -> "and " + alias + ".daily = " + s ).orElse( null );
+    }
+
+    private static List<String> getAliasBasedFilterList( List<String> aliasList, List<String> nestedWhereElements )
+    {
+        return aliasList.stream().map( al -> {
+            if ( nestedWhereElements.stream().anyMatch( nwe -> nwe.contains( "\"" + al + "\" =" ) ) )
+            {
+                return "and " + al + "." + nestedWhereElements.stream()
+                    .filter( nwe -> nwe.contains( "\"" + al + "\" =" ) ).collect( Collectors.joining() );
+            }
+            return "";
+        } ).filter( r -> !r.isEmpty() ).collect( Collectors.toList() );
+    }
+
+    private static List<String> getYearlies( List<String> aliasList, List<String> years )
+    {
+        return aliasList.stream().map( a -> "and " + a + ".yearly in('" +
+            years.stream().distinct().map( Object::toString ).collect( Collectors.joining( "','" ) )
+            + "')" ).collect( Collectors.toList() );
+    }
+
+    private static String getDate( String sqlSnippet, String delimiter )
+    {
+        String[] tokens = sqlSnippet.split( delimiter );
+        Optional<String> date = Arrays.stream( tokens ).filter( s -> !s.contains( "select" ) )
+            .filter( s -> s.contains( "as date" ) ).findFirst();
+
+        if ( date.isPresent() )
+            try
+            {
+                LocalDate ld = LocalDate.parse( date.map( s -> s.replace( "cast(", "" )
+                    .replace( "as date", "" ).replace( "'", "" ).trim() ).orElse( null ) );
+                if ( ld.getMonthValue() == 1 && ld.getDayOfYear() == 1 && "<".equals( delimiter ) )
+                {
+                    return null;
+                }
+                return Integer.toString( ld.getYear() );
+            }
+            catch ( DateTimeParseException e )
+            {
+                return null;
+            }
+
+        return null;
     }
 
     /**
