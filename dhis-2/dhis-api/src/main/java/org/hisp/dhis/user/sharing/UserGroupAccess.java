@@ -48,9 +48,13 @@ public class UserGroupAccess
         super( access, userGroup.getUid() );
     }
 
+    /**
+     * This is for backward compatibility with legacy
+     * {@link org.hisp.dhis.user.UserGroupAccess}
+     */
     public UserGroupAccess( org.hisp.dhis.user.UserGroupAccess userGroupAccess )
     {
-        super( userGroupAccess.getAccess(), userGroupAccess.getUid() );
+        super( userGroupAccess.getAccess(), userGroupAccess.getUserGroupUid() );
     }
 
     public UserGroupAccess( String access, String id )
@@ -60,18 +64,18 @@ public class UserGroupAccess
 
     public void setUserGroup( UserGroup userGroup )
     {
-        this.id = userGroup.getUid();
+        setId( userGroup.getUid() );
     }
 
     public org.hisp.dhis.user.UserGroupAccess toDtoObject()
     {
         org.hisp.dhis.user.UserGroupAccess userGroupAccess = new org.hisp.dhis.user.UserGroupAccess();
-        userGroupAccess.setUid( this.id );
-        userGroupAccess.setAccess( this.access );
+        userGroupAccess.setUid( getId() );
+        userGroupAccess.setAccess( getAccess() );
         UserGroup userGroup = new UserGroup();
-        userGroup.setUid( this.id );
+        userGroup.setUid( getId() );
         userGroupAccess.setUserGroup( userGroup );
-        userGroupAccess.setUid( this.id );
+        userGroupAccess.setUid( getId() );
 
         return userGroupAccess;
     }

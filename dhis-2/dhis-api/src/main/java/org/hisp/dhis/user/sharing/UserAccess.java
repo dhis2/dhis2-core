@@ -53,25 +53,29 @@ public class UserAccess
         super( access, user.getUid() );
     }
 
+    /**
+     * This is for backward compatibility with legacy
+     * {@link org.hisp.dhis.user.UserAccess}
+     */
     public UserAccess( org.hisp.dhis.user.UserAccess userAccess )
     {
-        super( userAccess.getAccess(), userAccess.getId() );
+        super( userAccess.getAccess(), userAccess.getUserUid() );
     }
 
     public void setUser( User user )
     {
-        this.id = user.getUid();
+        setId( user.getUid() );
     }
 
     public org.hisp.dhis.user.UserAccess toDtoObject()
     {
         org.hisp.dhis.user.UserAccess userAccess = new org.hisp.dhis.user.UserAccess();
-        userAccess.setUid( this.id );
-        userAccess.setAccess( this.access );
+        userAccess.setUid( getId() );
+        userAccess.setAccess( getAccess() );
         User user = new User();
-        user.setUid( this.id );
+        user.setUid( getId() );
         userAccess.setUser( user );
-        userAccess.setUid( this.id );
+        userAccess.setUid( getId() );
 
         return userAccess;
     }

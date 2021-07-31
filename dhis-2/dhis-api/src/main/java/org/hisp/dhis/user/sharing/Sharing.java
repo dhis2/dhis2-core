@@ -48,6 +48,7 @@ import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @Builder
@@ -64,12 +65,15 @@ public class Sharing
      * Uid of the User who owns the object
      */
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String owner;
 
     @JsonProperty( "public" )
+    @JacksonXmlProperty( localName = "public", namespace = DxfNamespaces.DXF_2_0 )
     private String publicAccess;
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean external;
 
     /**
@@ -77,6 +81,7 @@ public class Sharing
      */
     @Setter
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Map<String, UserAccess> users = new HashMap<>();
 
     public Map<String, UserAccess> getUsers()
@@ -94,6 +99,7 @@ public class Sharing
      */
     @Setter
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Map<String, UserGroupAccess> userGroups = new HashMap<>();
 
     public Map<String, UserGroupAccess> getUserGroups()
