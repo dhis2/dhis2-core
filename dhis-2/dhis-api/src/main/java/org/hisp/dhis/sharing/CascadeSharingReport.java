@@ -27,38 +27,36 @@
  */
 package org.hisp.dhis.sharing;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.feedback.ErrorReport;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class CascadeSharingParameters
+@NoArgsConstructor
+public class CascadeSharingReport
 {
-    /**
-     * TRUE: do not save anything, just return errors if any
-     * <p>
-     * FALSE: save data if possible ( depends on atomic flag value )
-     */
-    private boolean dryRun = false;
+    @JsonProperty
+    private List<ErrorReport> errorReports = new ArrayList<>();
 
-    /**
-     * TRUE: Fail on errors, do not save anything.
-     * <p>
-     * FALSE: Ignore errors, just save the valid data.
-     */
-    private boolean atomic = false;
+    @JsonProperty
+    private int countUpdatedDashBoardItems = 0;
 
-    /**
-     * TRUE: publicAccess from source object will be cascade shared to all
-     * children.
-     * <p>
-     * FALSE: ignore source object publicAccess.
-     */
-    private boolean sharePublicAccess = false;
+    @JsonProperty
+    private boolean updatePublicAccess = false;
 
-    private CascadeSharingReport report = new CascadeSharingReport();
+    @JsonProperty
+    private Map<Class, Map<Class, AccessObject>> updatedObjects = new HashMap<>();
+
 }

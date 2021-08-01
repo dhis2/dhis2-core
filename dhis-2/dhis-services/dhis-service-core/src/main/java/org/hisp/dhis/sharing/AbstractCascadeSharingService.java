@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.sharing;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.collections4.MapUtils;
@@ -34,8 +35,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 public abstract class AbstractCascadeSharingService
 {
@@ -52,9 +53,9 @@ public abstract class AbstractCascadeSharingService
             return target;
         }
 
-        mergeAccessObject( source, User.class, source.getSharing().getUsers(),
+        mergeAccessObject( source, target, UserAccess.class, source.getSharing().getUsers(),
             target.getSharing().getUsers(), parameters );
-        mergeAccessObject( source, UserGroup.class, source.getSharing().getUserGroups(),
+        mergeAccessObject( source, target, UserGroupAccess.class, source.getSharing().getUserGroups(),
             target.getSharing().getUserGroups(), parameters );
 
         return target;
@@ -65,7 +66,8 @@ public abstract class AbstractCascadeSharingService
      * {@code Map<String,AccessObject>}
      */
     private <T extends AccessObject> Map<String, T> mergeAccessObject( IdentifiableObject sourceObject,
-        Class accessOwnerKlass, Map<String, T> source, Map<String, T> target, CascadeSharingParameters parameters )
+        IdentifiableObject targetObject, Class<T> accessClass, Map<String, T> source,
+        Map<String, T> target, CascadeSharingParameters parameters )
     {
         if ( MapUtils.isEmpty( source ) )
         {
@@ -76,22 +78,27 @@ public abstract class AbstractCascadeSharingService
 
             if ( !AccessStringHelper.canRead( sourceAccess.getAccess() ) )
             {
-                parameters.getErrorReports()
-                    .add( new ErrorReport( sourceObject.getClass(), ErrorCode.E3019, accessOwnerKlass,
+                parameters.getReport().getErrorReports()
+                    .add( new ErrorReport( sourceObject.getClass(), ErrorCode.E3019, accessClass,
                         sourceAccess.getId(), sourceObject.getClass(), sourceObject.getId() ) );
                 return;
             }
 
-            if ( target.containsKey( sourceAccess.getId() ) )
+            T targetAccess = target.get( sourceAccess.getId() );
+
+            if ( targetAccess == null )
             {
-                if ( AccessStringHelper.canRead( target.get( sourceAccess.getId() ).getAccess() ) )
-                {
-                    return;
-                }
+                targetAccess = sourceAccess;
+                targetAccess.setAccess( AccessStringHelper.READ );
+            }
+            else if ( !AccessStringHelper.canRead( targetAccess.getAccess() ) )
+            {
+                targetAccess.setAccess( AccessStringHelper.READ );
             }
 
-            sourceAccess.setAccess( AccessStringHelper.READ );
-            target.put( sourceAccess.getId(), sourceAccess );
+            target.put( targetAccess.getId(), targetAccess );
+
+            updateReport( parameters.getReport(), targetObject.getClass(), targetAccess, accessClass );
         } );
 
         return target;
@@ -99,6 +106,19 @@ public abstract class AbstractCascadeSharingService
 
     protected boolean canUpdate( CascadeSharingParameters parameters )
     {
-        return !parameters.isDryRun() || (parameters.isAtomic() || parameters.getErrorReports().isEmpty());
+        return !parameters.isDryRun() || (parameters.isAtomic() || parameters.getReport().getErrorReports().isEmpty());
+    }
+
+    protected void updateReport( CascadeSharingReport report, Class clazz, AccessObject accessObject,
+        Class accessClass )
+    {
+        Map<Class, AccessObject> clazzReport = report.getUpdatedObjects().get( clazz );
+
+        if ( clazzReport == null )
+        {
+            clazzReport = new HashMap<>();
+        }
+
+        clazzReport.put( accessClass, accessObject );
     }
 }

@@ -88,7 +88,7 @@ public class DashboardCascadeSharingService
             manager.update( dashboard );
         }
 
-        return parameters.getErrorReports();
+        return parameters.getReport().getErrorReports();
     }
 
     private void handleVisualization( Dashboard dashboard, DashboardItem dashboardItem,
