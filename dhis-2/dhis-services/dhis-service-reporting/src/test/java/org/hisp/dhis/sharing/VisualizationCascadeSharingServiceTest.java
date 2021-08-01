@@ -31,12 +31,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.List;
-
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -103,9 +100,12 @@ public class VisualizationCascadeSharingServiceTest
         visualizationA.setSharing( sharingReadForUserA );
         objectManager.save( visualizationA, false );
 
-        List<ErrorReport> errors = cascadeSharingService.cascadeSharing( visualizationA,
+        CascadeSharingReport report = cascadeSharingService.cascadeSharing( visualizationA,
             new CascadeSharingParameters() );
-        assertEquals( 0, errors.size() );
+        assertEquals( 0, report.getErrorReports().size() );
+        assertEquals( 2, report.getUpdatedObjects().size() );
+        assertEquals( 1, report.getUpdatedObjects().get( DataElement.class ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( Indicator.class ).size() );
 
         DataElement updatedDataElementA = objectManager.get( DataElement.class, dataElementA.getUid() );
         Indicator indicator1 = objectManager.get( Indicator.class, indicator.getUid() );
@@ -116,5 +116,6 @@ public class VisualizationCascadeSharingServiceTest
         assertFalse( aclService.canRead( userB, visualizationA ) );
         assertFalse( aclService.canRead( userB, updatedDataElementA ) );
         assertFalse( aclService.canRead( userB, indicator1 ) );
+
     }
 }

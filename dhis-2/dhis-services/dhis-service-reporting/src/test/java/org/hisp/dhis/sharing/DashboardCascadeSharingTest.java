@@ -31,8 +31,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.List;
-
 import org.apache.commons.collections.SetUtils;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -40,7 +38,6 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -148,9 +145,9 @@ public class DashboardCascadeSharingTest
 
         objectManager.save( dashboard, false );
 
-        List<ErrorReport> errors = dashboardCascadeSharingService.cascadeSharing( dashboard,
+        CascadeSharingReport report = dashboardCascadeSharingService.cascadeSharing( dashboard,
             new CascadeSharingParameters() );
-        assertEquals( 0, errors.size() );
+        assertEquals( 0, report.getErrorReports().size() );
 
         DataElement updatedDataElementA = objectManager.get( DataElement.class, dataElementA.getUid() );
         DataElement updatedDataElementB = objectManager.get( DataElement.class, dataElementB.getUid() );
@@ -187,10 +184,10 @@ public class DashboardCascadeSharingTest
 
         objectManager.save( dashboard, false );
 
-        List<ErrorReport> errors = dashboardCascadeSharingService.cascadeSharing( dashboard,
+        CascadeSharingReport report = dashboardCascadeSharingService.cascadeSharing( dashboard,
             new CascadeSharingParameters() );
-        assertEquals( 1, errors.size() );
-        assertEquals( ErrorCode.E3019, errors.get( 0 ).getErrorCode() );
+        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( ErrorCode.E3019, report.getErrorReports().get( 0 ).getErrorCode() );
 
         assertFalse( aclService.canRead( userB, vzA ) );
         assertFalse( aclService.canRead( userB, dataElementA ) );
@@ -221,9 +218,9 @@ public class DashboardCascadeSharingTest
         dashboard.setSharing( sharingReadForUserA );
         objectManager.save( dashboard, false );
 
-        List<ErrorReport> errors = dashboardCascadeSharingService.cascadeSharing( dashboard,
+        CascadeSharingReport report = dashboardCascadeSharingService.cascadeSharing( dashboard,
             new CascadeSharingParameters() );
-        assertEquals( 0, errors.size() );
+        assertEquals( 0, report.getErrorReports().size() );
         assertTrue( aclService.canRead( userA, dashboardItemA.getMap() ) );
         assertEquals( AccessStringHelper.READ,
             dashboardItemA.getMap().getSharing().getUsers().get( userA.getUid() ).getAccess() );
@@ -263,10 +260,10 @@ public class DashboardCascadeSharingTest
         dashboard.setSharing( sharing );
         objectManager.save( dashboard, false );
 
-        List<ErrorReport> errors = dashboardCascadeSharingService
-            .cascadeSharing( dashboard, new CascadeSharingParameters() );
-        assertEquals( 1, errors.size() );
-        assertEquals( ErrorCode.E3019, errors.get( 0 ).getErrorCode() );
+        CascadeSharingReport report = dashboardCascadeSharingService.cascadeSharing( dashboard,
+            new CascadeSharingParameters() );
+        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( ErrorCode.E3019, report.getErrorReports().get( 0 ).getErrorCode() );
 
         assertFalse( aclService.canRead( userB, dashboardItemA.getMap() ) );
     }

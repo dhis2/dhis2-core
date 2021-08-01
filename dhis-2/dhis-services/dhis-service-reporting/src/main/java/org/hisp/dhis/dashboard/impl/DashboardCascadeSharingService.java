@@ -27,16 +27,14 @@
  */
 package org.hisp.dhis.dashboard.impl;
 
-import java.util.List;
-
 import lombok.NonNull;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.sharing.AbstractCascadeSharingService;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
+import org.hisp.dhis.sharing.CascadeSharingReport;
 import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
@@ -59,7 +57,7 @@ public class DashboardCascadeSharingService
 
     @Override
     @Transactional
-    public List<ErrorReport> cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters )
+    public CascadeSharingReport cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters )
     {
         dashboard.getItems().forEach( dashboardItem -> {
             switch ( dashboardItem.getType() )
@@ -88,7 +86,7 @@ public class DashboardCascadeSharingService
             manager.update( dashboard );
         }
 
-        return parameters.getReport().getErrorReports();
+        return parameters.getReport();
     }
 
     private void handleVisualization( Dashboard dashboard, DashboardItem dashboardItem,

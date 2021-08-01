@@ -27,12 +27,9 @@
  */
 package org.hisp.dhis.sharing;
 
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.feedback.ErrorReport;
 
 public interface CascadeSharingService<T extends IdentifiableObject>
 {
-    List<ErrorReport> cascadeSharing( T object, CascadeSharingParameters parameters );
+    CascadeSharingReport cascadeSharing( T object, CascadeSharingParameters parameters );
 }

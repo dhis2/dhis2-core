@@ -36,9 +36,9 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.sharing.AbstractCascadeSharingService;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
+import org.hisp.dhis.sharing.CascadeSharingReport;
 import org.hisp.dhis.sharing.CascadeSharingService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,10 +57,8 @@ public class VisualizationCascadeSharingService
 
     @Override
     @Transactional
-    public List<ErrorReport> cascadeSharing( Visualization visualization, CascadeSharingParameters parameters )
+    public CascadeSharingReport cascadeSharing( Visualization visualization, CascadeSharingParameters parameters )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
         CachingMap<String, BaseIdentifiableObject> mapObjects = new CachingMap<>();
 
         List<IdentifiableObject> listUpdateObjects = new ArrayList<>();
@@ -88,6 +86,6 @@ public class VisualizationCascadeSharingService
             manager.update( listUpdateObjects );
         }
 
-        return errorReports;
+        return parameters.getReport();
     }
 }

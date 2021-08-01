@@ -59,4 +59,17 @@ public class CascadeSharingReport
     @JsonProperty
     private Map<Class, Map<Class, AccessObject>> updatedObjects = new HashMap<>();
 
+    public void addUpdatedObject( Class accessClass, Class objectClass, AccessObject accessObject )
+    {
+        Map<Class, AccessObject> clazzReport = getUpdatedObjects().get( objectClass );
+
+        if ( clazzReport == null )
+        {
+            clazzReport = new HashMap<>();
+        }
+
+        clazzReport.put( accessClass, accessObject );
+        getUpdatedObjects().put( objectClass, clazzReport );
+    }
+
 }
