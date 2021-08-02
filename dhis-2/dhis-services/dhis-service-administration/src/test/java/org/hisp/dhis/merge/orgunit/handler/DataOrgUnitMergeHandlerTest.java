@@ -144,7 +144,7 @@ public class DataOrgUnitMergeHandlerTest
     }
 
     @Test
-    public void testMergeDataValues()
+    public void testMergeDataValuesLastUpdated()
     {
         addDataValues(
             createDataValue( deA, peA, ouA, cocA, cocA, "10", date( 2021, 1, 1 ), date( 2021, 1, 1 ) ),
@@ -161,6 +161,33 @@ public class DataOrgUnitMergeHandlerTest
             .addSource( ouB )
             .withTarget( ouC )
             .withDataValueMergeStrategy( DataMergeStrategy.LAST_UPDATED )
+            .build();
+
+        handler.mergeDataValues( request );
+
+        assertEquals( 0, getDataValueCount( ouA ) );
+        assertEquals( 0, getDataValueCount( ouB ) );
+        assertEquals( 2, getDataValueCount( ouC ) );
+    }
+
+    @Test
+    public void testMergeDataValuesSum()
+    {
+        addDataValues(
+            createDataValue( deA, peA, ouA, cocA, cocA, "10", date( 2021, 1, 1 ), date( 2021, 1, 1 ) ),
+            createDataValue( deA, peA, ouB, cocA, cocA, "11", date( 2021, 2, 1 ), date( 2021, 2, 1 ) ),
+            createDataValue( deB, peA, ouA, cocA, cocA, "12", date( 2021, 3, 1 ), date( 2021, 3, 1 ) ),
+            createDataValue( deB, peA, ouB, cocA, cocA, "13", date( 2021, 4, 1 ), date( 2021, 4, 1 ) ) );
+
+        assertEquals( 2, getDataValueCount( ouA ) );
+        assertEquals( 2, getDataValueCount( ouB ) );
+        assertEquals( 0, getDataValueCount( ouC ) );
+
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .addSource( ouA )
+            .addSource( ouB )
+            .withTarget( ouC )
+            .withDataValueMergeStrategy( DataMergeStrategy.SUM )
             .build();
 
         handler.mergeDataValues( request );
