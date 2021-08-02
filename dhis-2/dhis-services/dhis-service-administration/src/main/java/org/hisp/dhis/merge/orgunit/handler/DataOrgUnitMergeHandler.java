@@ -152,29 +152,33 @@ public class DataOrgUnitMergeHandler
 
     private String getMergeDataValuesAggregateSql( OrgUnitMergeRequest request )
     {
-        String aggregateFunction = request.getDataValueMergeStrategy().getAggregateFunction();
+        String aggFunc = request.getDataValueMergeStrategy().getAggregateFunction();
 
-        Preconditions.checkNotNull( aggregateFunction );
+        Preconditions.checkNotNull( aggFunc );
+
+        String aggStr = DataMergeStrategy.JOIN == request.getDataValueMergeStrategy()
+            ? String.format( "%s(value, '; ')::varchar", aggFunc )
+            : String.format( "%s(value::double precision)::varchar", aggFunc );
 
         // @formatter:off
         return String.format(
             // Delete existing target data values
             "delete from datavalue where sourceid = :target_id; " +
             // Insert target data values
-            "insert into datavalue (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, " +
+            "insert into datavalue (" +
+                "dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, " +
                 "value, storedby, created, lastupdated, comment, followup, deleted) " +
             "select dataelementid, periodid, %s as sourceid, categoryoptioncomboid, attributeoptioncomboid, " +
-                "%s(value::double precision)::varchar, 'merge-operation' as storedby, " +
-                "now() as created, now() as lastupdated, null as comment, false as followup, false as deleted " +
-            "from datavalue " +
-            "where dataelementid in (359596, 359597, 359598, 359599) " +
-                "and sourceid in (204879, 222662, 247038, 211254) " +
-                "and deleted is false " +
-                "and value ~ :numeric_regex " +
-                "group by dataelementid, periodid, categoryoptioncomboid, attributeoptioncomboid;" +
+                "%s as value, 'merge-operation' as storedby, now() as created, " +
+                "now() as lastupdated, null as comment, false as followup, false as deleted " +
+            "from datavalue dv " +
+            "where dv.sourceid in (:source_ids) " +
+                "and dv.deleted is false " +
+                "and dv.value ~ :numeric_regex " +
+                "group by dv.dataelementid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid;" +
              // Delete source data values
              "delete from datavalue where sourceid in (:source_ids);",
-             request.getTarget().getId(), aggregateFunction );
+             request.getTarget().getId(), aggStr );
         // @formatter:on
     }
 

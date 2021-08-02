@@ -38,8 +38,7 @@ public enum DataMergeStrategy
     AVERAGE( "avg" ),
     MIN( "min" ),
     MAX( "max" ),
-    BLANK( null ),
-    JOIN( null ),
+    JOIN( "string_agg" ),
     LAST_UPDATED( null ),
     DISCARD( null );
 
