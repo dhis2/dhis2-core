@@ -29,6 +29,7 @@ package org.hisp.dhis.dashboard.impl;
 
 import lombok.NonNull;
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -62,19 +63,25 @@ public class DashboardCascadeSharingService
         dashboard.getItems().forEach( dashboardItem -> {
             switch ( dashboardItem.getType() )
             {
-            case VISUALIZATION:
-                handleVisualization( dashboard, dashboardItem, parameters );
-                break;
             case MAP:
                 mergeSharing( dashboard, dashboardItem.getMap(), parameters );
                 break;
-            case EVENT_REPORT:
+            case VISUALIZATION:
+                handleVisualization( dashboard, dashboardItem, dashboardItem.getVisualization(), parameters );
                 break;
-            case REPORTS:
+            case CHART:
+                handleVisualization( dashboard, dashboardItem, dashboardItem.getChart(), parameters );
+                break;
+            case REPORT_TABLE:
+                handleVisualization( dashboard, dashboardItem, dashboardItem.getReportTable(), parameters );
+                break;
+            case EVENT_REPORT:
+                handleVisualization( dashboard, dashboardItem, dashboardItem.getEventReport(), parameters );
+                break;
+            case EVENT_CHART:
+                handleVisualization( dashboard, dashboardItem, dashboardItem.getEventChart(), parameters );
                 break;
             case RESOURCES:
-                break;
-            case APP:
                 break;
             default:
                 break;
@@ -89,10 +96,35 @@ public class DashboardCascadeSharingService
         return parameters.getReport();
     }
 
-    private void handleVisualization( Dashboard dashboard, DashboardItem dashboardItem,
+    private void handleVisualization( Dashboard dashboard, DashboardItem dashboardItem, Visualization visualization,
         CascadeSharingParameters parameters )
     {
+        if ( visualization == null )
+        {
+            return;
+        }
+
         dashboardItem.setVisualization( mergeSharing( dashboard, dashboardItem.getVisualization(), parameters ) );
         visualizationCascadeSharingService.cascadeSharing( dashboardItem.getVisualization(), parameters );
+    }
+
+    private void handleVisualization( Dashboard dashboard, DashboardItem dashboardItem,
+        IdentifiableObject identifiableObject, CascadeSharingParameters parameters )
+    {
+        if ( identifiableObject == null )
+        {
+            return;
+        }
+
+        Visualization visualization = manager.get( Visualization.class, identifiableObject.getUid() );
+
+        if ( visualization == null )
+        {
+            return;
+        }
+
+        dashboardItem.setVisualization( visualization );
+
+        handleVisualization( dashboard, dashboardItem, visualization, parameters );
     }
 }
