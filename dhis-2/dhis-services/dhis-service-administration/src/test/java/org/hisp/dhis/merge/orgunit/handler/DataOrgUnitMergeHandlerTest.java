@@ -28,6 +28,8 @@
 package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.stream.Stream;
 
@@ -232,6 +234,16 @@ public class DataOrgUnitMergeHandlerTest
         assertEquals( 0, getDataValueCount( ouA ) );
         assertEquals( 0, getDataValueCount( ouB ) );
         assertEquals( 2, getDataValueCount( ouC ) );
+    }
+
+    @Test
+    public void testDataMergeStrategy()
+    {
+        assertTrue( DataMergeStrategy.SUM.isAggregateFunction() );
+        assertTrue( DataMergeStrategy.JOIN.isAggregateFunction() );
+
+        assertFalse( DataMergeStrategy.DISCARD.isAggregateFunction() );
+        assertFalse( DataMergeStrategy.LAST_UPDATED.isAggregateFunction() );
     }
 
     @Test
