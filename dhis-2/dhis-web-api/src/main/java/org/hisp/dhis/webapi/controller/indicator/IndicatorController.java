@@ -36,12 +36,12 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -70,28 +70,20 @@ public class IndicatorController
     @ResponseBody
     public WebMessage getExpressionDescription( @RequestBody String expression )
     {
-        I18n i18n = i18nManager.getI18n();
-
-        String resolvedExpression = expression;
+        String resolvingExpression = expression;
 
         for ( ExpressionResolver resolver : resolvers.getExpressionResolvers() )
         {
-            resolvedExpression = resolver.resolve( resolvedExpression );
+            resolvingExpression = resolver.resolve( resolvingExpression );
         }
 
+        String resolvedExpression = resolvingExpression;
         ExpressionValidationOutcome result = expressionService.expressionIsValid( resolvedExpression,
             INDICATOR_EXPRESSION );
 
-        DescriptiveWebMessage message = new DescriptiveWebMessage();
-        message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
-        message.setMessage( i18n.getString( result.getKey() ) );
-
-        if ( result.isValid() )
-        {
-            message.setDescription(
-                expressionService.getExpressionDescription( resolvedExpression, INDICATOR_EXPRESSION ) );
-        }
-
-        return message;
+        return new DescriptiveWebMessage( result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK )
+            .setDescription( result::isValid,
+                () -> expressionService.getExpressionDescription( resolvedExpression, INDICATOR_EXPRESSION ) )
+            .setMessage( i18nManager.getI18n().getString( result.getKey() ) );
     }
 }

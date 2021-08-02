@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,7 +47,6 @@ import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormService;
 import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -151,6 +152,6 @@ public class PdfFormController
         ImportSummary summary = dataValueSetService.saveDataValueSetPdf( in, ImportOptions.getDefaultImportOptions(),
             jobId );
 
-        return WebMessageUtils.importSummary( summary );
+        return importSummary( summary );
     }
 }

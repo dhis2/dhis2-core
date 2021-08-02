@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
@@ -36,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -88,7 +89,7 @@ public class PushAnalysisController
         if ( pushAnalysis == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found" ) );
+                notFound( "Push analysis with uid " + uid + " was not found" ) );
         }
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE );
@@ -113,7 +114,7 @@ public class PushAnalysisController
         if ( pushAnalysis == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found" ) );
+                notFound( "Push analysis with uid " + uid + " was not found" ) );
         }
 
         JobConfiguration pushAnalysisJobConfiguration = new JobConfiguration( "pushAnalysisJob from controller",

@@ -48,19 +48,18 @@ public class LegendSetController
 {
     @Override
     @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD') or hasRole('ALL')" )
-    public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postJsonObject( HttpServletRequest request )
         throws Exception
     {
-        return super.postJsonObject( request, response );
+        return super.postJsonObject( request );
     }
 
     @Override
     @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD')  or hasRole('ALL')" )
-    public WebMessage putJsonObject( @PathVariable String uid, HttpServletRequest request,
-        HttpServletResponse response )
+    public WebMessage putJsonObject( @PathVariable String uid, HttpServletRequest request )
         throws Exception
     {
-        return super.putJsonObject( uid, request, response );
+        return super.putJsonObject( uid, request );
     }
 
     @Override

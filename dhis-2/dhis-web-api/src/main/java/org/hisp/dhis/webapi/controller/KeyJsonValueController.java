@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.util.Date;
@@ -37,7 +39,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
@@ -111,7 +112,7 @@ public class KeyJsonValueController
 
         service.deleteNamespace( namespace );
 
-        return WebMessageUtils.ok( "Namespace '" + namespace + "' deleted." );
+        return ok( "Namespace '" + namespace + "' deleted." );
     }
 
     /**
@@ -163,7 +164,7 @@ public class KeyJsonValueController
 
         service.addKeyJsonValue( entry );
 
-        return WebMessageUtils.created( "Key '" + key + "' created." );
+        return created( "Key '" + key + "' created." );
     }
 
     /**
@@ -180,7 +181,7 @@ public class KeyJsonValueController
 
         service.updateKeyJsonValue( entry );
 
-        return WebMessageUtils.ok( "Key '" + key + "' updated." );
+        return ok( "Key '" + key + "' updated." );
     }
 
     /**
@@ -194,7 +195,7 @@ public class KeyJsonValueController
         KeyJsonValue entry = getExistingEntry( namespace, key );
         service.deleteKeyJsonValue( entry );
 
-        return WebMessageUtils.ok( "Key '" + key + "' deleted from namespace '" + namespace + "'." );
+        return ok( "Key '" + key + "' deleted from namespace '" + namespace + "'." );
     }
 
     private KeyJsonValue getExistingEntry( String namespace, String key )
