@@ -42,10 +42,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -125,8 +123,6 @@ public class SmsMessageSenderTest
     private Set<User> users = new HashSet<>();
 
     private User sender;
-
-    private Map<String, SmsGatewayConfig> configMap = new HashMap<>();
 
     private String subject = "subject";
 
@@ -512,8 +508,6 @@ public class SmsMessageSenderTest
         smsGatewayConfig.setPassword( "" );
         smsGatewayConfig.setUrlTemplate( "" );
         smsGatewayConfig.setDefault( true );
-
-        configMap.put( gateway, smsGatewayConfig );
 
         OutboundMessage outboundMessageA = new OutboundMessage( subject, text, recipientsNormalized );
         OutboundMessage outboundMessageB = new OutboundMessage( subject, text, recipientsNonNormalized );
