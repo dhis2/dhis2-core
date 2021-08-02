@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
@@ -39,7 +41,6 @@ import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.schema.descriptors.ProgramRuleActionSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -66,7 +67,7 @@ public class ProgramRuleActionController
         this.programRuleEngineService = programRuleEngineService;
     }
 
-    @PostMapping( value = "/data/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/data/expression/description", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage getDataExpressionDescription( @RequestBody String condition, @RequestParam String programId )
     {

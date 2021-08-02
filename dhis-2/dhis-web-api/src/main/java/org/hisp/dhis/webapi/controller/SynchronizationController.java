@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 
@@ -92,13 +93,13 @@ public class SynchronizationController
         renderService.toJson( response.getOutputStream(), importReport );
     }
 
-    @GetMapping( value = "/availability", produces = "application/json" )
+    @GetMapping( value = "/availability", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody AvailabilityStatus remoteServerAvailable()
     {
         return synchronizationManager.isRemoteServerAvailable();
     }
 
-    @GetMapping( value = "/metadataRepo", produces = "application/json" )
+    @GetMapping( value = "/metadataRepo", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody String getMetadataRepoIndex()
     {
         return restTemplate.getForObject( SettingKey.METADATA_REPO_URL.getDefaultValue().toString(), String.class );
