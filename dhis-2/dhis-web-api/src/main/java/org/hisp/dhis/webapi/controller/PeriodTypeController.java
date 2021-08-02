@@ -27,24 +27,28 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.commons.jackson.config.filter.FieldFilterParser;
+import org.hisp.dhis.commons.jackson.config.filter.FieldFilterSimpleBeanPropertyFilter;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
-import org.hisp.dhis.webapi.mvc.FieldFilterMappingJacksonValue;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.PeriodType;
 import org.hisp.dhis.webapi.webdomain.PeriodTypes;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,19 +60,38 @@ public class PeriodTypeController
 {
     private final PeriodService periodService;
 
-    public PeriodTypeController( PeriodService periodService )
+    private final ObjectMapper jsonMapper;
+
+    public PeriodTypeController(
+        PeriodService periodService,
+        ObjectMapper jsonMapper )
     {
         this.periodService = periodService;
+        this.jsonMapper = jsonMapper;
     }
 
     @GetMapping
-    public HttpEntity<MappingJacksonValue> getPeriodTypes( @RequestParam( defaultValue = "*" ) Set<String> fields )
+    public @ResponseBody ResponseEntity<JsonNode> getPeriodTypes(
+        @RequestParam( defaultValue = "*" ) Set<String> fields )
+        throws IOException
     {
         PeriodTypes periodTypes = new PeriodTypes( periodService.getAllPeriodTypes().stream()
             .map( PeriodType::new )
             .collect( Collectors.toList() ) );
 
-        return ResponseEntity.ok( new FieldFilterMappingJacksonValue( periodTypes, "periodTypes", fields ) );
+        SimpleFilterProvider filterProvider = new SimpleFilterProvider();
+        filterProvider.addFilter( "field-filter",
+            new FieldFilterSimpleBeanPropertyFilter( FieldFilterParser.parseWithPrefix( fields, "periodTypes" ) ) );
+
+        JsonNode tree = jsonMapper.setFilterProvider( filterProvider ).valueToTree( periodTypes );
+
+        /*
+         * ObjectNode periodType = (ObjectNode) tree.get( "periodTypes" ).get( 0
+         * ); periodType.replace( "n", periodType.get( "name" ) );
+         * periodType.remove( "name" );
+         */
+
+        return ResponseEntity.ok( tree );
     }
 
     @GetMapping( value = "/relativePeriodTypes", produces = { "application/json", "application/javascript" } )
