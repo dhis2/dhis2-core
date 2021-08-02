@@ -34,7 +34,6 @@ import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -46,7 +45,6 @@ import org.hisp.dhis.predictor.PredictionTask;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -85,7 +83,7 @@ public class PredictionController
         @RequestParam( value = "predictor", required = false ) List<String> predictors,
         @RequestParam( value = "predictorGroup", required = false ) List<String> predictorGroups,
         @RequestParam( defaultValue = "false", required = false ) boolean async,
-        HttpServletRequest request, HttpServletResponse response )
+        HttpServletRequest request )
     {
         if ( async )
         {
@@ -95,18 +93,14 @@ public class PredictionController
             taskExecutor.executeTask(
                 new PredictionTask( startDate, endDate, predictors, predictorGroups, predictionService, jobId ) );
 
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + PREDICTOR );
-
-            return jobConfigurationReport( jobId );
+            return jobConfigurationReport( jobId )
+                .setLocation( "/system/tasks/" + PREDICTOR );
         }
-        else
-        {
-            PredictionSummary predictionSummary = predictionService.predictTask( startDate, endDate, predictors,
-                predictorGroups, null );
+        PredictionSummary predictionSummary = predictionService.predictTask( startDate, endDate, predictors,
+            predictorGroups, null );
 
-            WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.OK );
-            webMessage.setResponse( predictionSummary );
-            return webMessage.withPlainResponseBefore( DhisApiVersion.V38 );
-        }
+        return new WebMessage( Status.OK, HttpStatus.OK )
+            .setResponse( predictionSummary )
+            .withPlainResponseBefore( DhisApiVersion.V38 );
     }
 }

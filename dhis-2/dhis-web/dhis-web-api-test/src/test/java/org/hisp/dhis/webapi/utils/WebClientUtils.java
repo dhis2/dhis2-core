@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -102,6 +103,7 @@ public class WebClientUtils
                 assertEquals( msg, expected, actualStatus );
             }
         }
+        assertValidLocation( actual );
         return getCreatedId( actual );
     }
 
@@ -128,7 +130,21 @@ public class WebClientUtils
             String msg = actual.error( actualSeries ).summary();
             assertEquals( msg, expected, actualSeries );
         }
+        assertValidLocation( actual );
         return getCreatedId( actual );
+    }
+
+    public static void assertValidLocation( HttpResponse actual )
+    {
+        String location = actual.location();
+        if ( location == null )
+        {
+            return;
+        }
+        assertTrue( "Location header does not start with http or https",
+            location.startsWith( "http://" ) || location.startsWith( "https://" ) );
+        assertTrue( "Location header does contain multiple protocol parts",
+            location.indexOf( "http://", 4 ) < 0 && location.indexOf( "https://", 4 ) < 0 );
     }
 
     private static String getCreatedId( HttpResponse response )

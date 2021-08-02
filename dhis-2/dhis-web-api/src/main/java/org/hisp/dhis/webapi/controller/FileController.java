@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
 import java.io.IOException;
 import java.io.Writer;
 
@@ -36,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -96,7 +97,7 @@ public class FileController
         if ( content != null )
         {
             systemSettingManager.saveSystemSetting( SettingKey.CUSTOM_JS, content );
-            return WebMessageUtils.ok( "Custom script created" );
+            return ok( "Custom script created" );
         }
         return null;
     }
@@ -140,7 +141,7 @@ public class FileController
         if ( content != null )
         {
             systemSettingManager.saveSystemSetting( SettingKey.CUSTOM_CSS, content );
-            return WebMessageUtils.ok( "Custom style created" );
+            return ok( "Custom style created" );
         }
         return null;
     }

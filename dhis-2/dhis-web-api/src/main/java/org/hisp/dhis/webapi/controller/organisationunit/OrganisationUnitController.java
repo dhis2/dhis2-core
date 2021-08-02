@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.organisationunit;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -43,7 +44,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeQuery;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeService;
@@ -110,7 +110,7 @@ public class OrganisationUnitController
     {
         orgUnitSplitService.split( orgUnitSplitService.getFromQuery( query ) );
 
-        return WebMessageUtils.ok( "Organisation unit split" );
+        return ok( "Organisation unit split" );
     }
 
     @ResponseStatus( HttpStatus.OK )
@@ -120,7 +120,7 @@ public class OrganisationUnitController
     {
         orgUnitMergeService.merge( orgUnitMergeService.getFromQuery( query ) );
 
-        return WebMessageUtils.ok( "Organisation units merged" );
+        return ok( "Organisation units merged" );
     }
 
     @Override

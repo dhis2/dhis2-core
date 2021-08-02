@@ -64,22 +64,21 @@ public class IdentifiableObjectController
     }
 
     @Override
-    public WebMessage postXmlObject( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postXmlObject( HttpServletRequest request )
         throws Exception
     {
         throw new HttpRequestMethodNotSupportedException( "POST" );
     }
 
     @Override
-    public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postJsonObject( HttpServletRequest request )
         throws Exception
     {
         throw new HttpRequestMethodNotSupportedException( "POST" );
     }
 
     @Override
-    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
+    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request )
         throws Exception
     {
         throw new HttpRequestMethodNotSupportedException( "PUT" );

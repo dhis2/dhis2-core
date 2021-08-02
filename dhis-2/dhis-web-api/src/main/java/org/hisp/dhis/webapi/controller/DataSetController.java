@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,7 +72,6 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
@@ -180,7 +183,7 @@ public class DataSetController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + uid ) );
+            throw new WebMessageException( conflict( "Data set does not exist: " + uid ) );
         }
 
         Map<String, Integer> versionMap = new HashMap<>();
@@ -198,7 +201,7 @@ public class DataSetController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + uid ) );
+            throw new WebMessageException( conflict( "Data set does not exist: " + uid ) );
         }
 
         dataSet.increaseVersion();
@@ -217,7 +220,7 @@ public class DataSetController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + uid ) );
+            throw new WebMessageException( conflict( "Data set does not exist: " + uid ) );
         }
 
         List<CategoryCombo> categoryCombos = dataSet.getDataSetElements().stream()
@@ -250,7 +253,7 @@ public class DataSetController
 
         if ( dataSets.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
         }
 
         Period pe = periodService.getPeriod( period );
@@ -275,14 +278,14 @@ public class DataSetController
 
         if ( dataSets.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
         }
 
         OrganisationUnit ou = manager.get( OrganisationUnit.class, orgUnit );
 
         if ( ou == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Organisation unit does not exist: " + orgUnit ) );
+            throw new WebMessageException( notFound( "Organisation unit does not exist: " + orgUnit ) );
         }
 
         Period pe = PeriodType.getPeriodFromIsoString( period );
@@ -308,14 +311,14 @@ public class DataSetController
 
         if ( dataSets.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
         }
 
         OrganisationUnit ou = manager.get( OrganisationUnit.class, orgUnit );
 
         if ( ou == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Organisation unit does not exist: " + orgUnit ) );
+            throw new WebMessageException( notFound( "Organisation unit does not exist: " + orgUnit ) );
         }
 
         Period pe = PeriodType.getPeriodFromIsoString( period );
@@ -374,7 +377,7 @@ public class DataSetController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
         }
 
         DataEntryForm form = dataSet.getDataEntryForm();
@@ -405,7 +408,7 @@ public class DataSetController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
         }
 
         DataEntryForm form = dataSet.getDataEntryForm();
@@ -417,14 +420,14 @@ public class DataSetController
         }
         catch ( IOException e )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Failed to parse request", e.getMessage() ) );
+            throw new WebMessageException( badRequest( "Failed to parse request", e.getMessage() ) );
         }
 
         if ( form == null )
         {
             if ( !newForm.hasForm() )
             {
-                throw new WebMessageException( WebMessageUtils.badRequest( "Missing required parameter 'htmlCode'" ) );
+                throw new WebMessageException( badRequest( "Missing required parameter 'htmlCode'" ) );
             }
 
             newForm.setName( dataSet.getName() );
@@ -459,7 +462,7 @@ public class DataSetController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + pvUid ) );
+            throw new WebMessageException( notFound( "DataSet not found for uid: " + pvUid ) );
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dataSet, download );

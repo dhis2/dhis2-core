@@ -25,49 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security;
+package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
-
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.hisp.dhis.render.RenderService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController}
+ * using (mocked) REST requests.
+ *
+ * @author Jan Bernitt
  */
-public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint
+public class TrackerImportControllerTest extends DhisControllerConvenienceTest
 {
-    @Autowired
-    private RenderService renderService;
-
-    public Http401LoginUrlAuthenticationEntryPoint( String loginFormUrl )
+    @Test
+    public void testAsyncPostJsonTracker()
     {
-        super( loginFormUrl );
-    }
-
-    @Override
-    public void commence( HttpServletRequest request, HttpServletResponse response,
-        AuthenticationException authException )
-        throws IOException,
-        ServletException
-    {
-        if ( "XMLHttpRequest".equals( request.getHeader( "X-Requested-With" ) ) )
-        {
-            response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
-            response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-            renderService.toJson( response.getOutputStream(), unauthorized( "Unauthorized" ) );
-            return;
-        }
-
-        super.commence( request, response, authException );
+        assertWebMessage( "OK", 200, "OK", "Tracker job added",
+            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
     }
 }

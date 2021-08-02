@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 import java.util.ArrayList;
@@ -66,7 +68,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -182,7 +183,7 @@ public class DataAnalysisController
             .getOrganisationUnit( validationRulesAnalysisParams.getOu() );
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
+            throw new WebMessageException( badRequest( "No organisation unit defined" ) );
         }
 
         ValidationAnalysisParams params = validationService.newParamsBuilder( group, organisationUnit,
@@ -217,20 +218,20 @@ public class DataAnalysisController
         if ( validationRule == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Can't find ValidationRule with id =" + validationRuleId ) );
+                notFound( "Can't find ValidationRule with id =" + validationRuleId ) );
         }
 
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
         if ( organisationUnit == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Can't find OrganisationUnit with id =" + organisationUnitId ) );
+                notFound( "Can't find OrganisationUnit with id =" + organisationUnitId ) );
         }
 
         Period period = periodService.getPeriod( periodId );
         if ( period == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Can't find Period with id =" + periodId ) );
+            throw new WebMessageException( notFound( "Can't find Period with id =" + periodId ) );
         }
 
         CategoryOptionCombo attributeOptionCombo;
@@ -244,7 +245,7 @@ public class DataAnalysisController
             if ( attributeOptionCombo == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.notFound( "Can't find AttributeOptionCombo with id = " + attributeOptionComboId ) );
+                    notFound( "Can't find AttributeOptionCombo with id = " + attributeOptionComboId ) );
             }
         }
 
@@ -269,7 +270,7 @@ public class DataAnalysisController
             .getOrganisationUnit( stdDevOutlierAnalysisParams.getOu() );
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
+            throw new WebMessageException( badRequest( "No organisation unit defined" ) );
         }
 
         Collection<Period> periods = periodService
@@ -316,7 +317,7 @@ public class DataAnalysisController
             .getOrganisationUnit( params.getOu() );
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
+            throw new WebMessageException( badRequest( "No organisation unit defined" ) );
         }
 
         Collection<Period> periods = periodService
@@ -363,7 +364,7 @@ public class DataAnalysisController
             .getOrganisationUnit( params.getOu() );
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
+            throw new WebMessageException( badRequest( "No organisation unit defined" ) );
         }
 
         Collection<Period> periods = periodService

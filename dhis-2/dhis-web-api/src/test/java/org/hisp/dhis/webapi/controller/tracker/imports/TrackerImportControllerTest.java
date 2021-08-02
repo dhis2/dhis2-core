@@ -106,7 +106,6 @@ public class TrackerImportControllerTest
 
         // Controller under test
         final TrackerImportController controller = new TrackerImportController( importStrategy, trackerImportService,
-            renderService,
             new DefaultContextService(), notifier );
 
         mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();

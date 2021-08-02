@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.errorReports;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -154,7 +155,7 @@ public class SchemaController
         Object object = renderService.fromJson( request.getInputStream(), schema.getKlass() );
         List<ErrorReport> validationViolations = schemaValidator.validate( object );
 
-        return WebMessageUtils.errorReports( validationViolations );
+        return errorReports( validationViolations );
     }
 
     @GetMapping( "/{type}/{property}" )

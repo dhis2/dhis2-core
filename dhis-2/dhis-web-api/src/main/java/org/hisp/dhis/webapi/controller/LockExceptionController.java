@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +48,6 @@ import org.hisp.dhis.dataset.LockException;
 import org.hisp.dhis.dataset.comparator.LockExceptionNameComparator;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -141,7 +144,7 @@ public class LockExceptionController
             if ( lockException == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.notFound( "Cannot find LockException with key: " + key ) );
+                    notFound( "Cannot find LockException with key: " + key ) );
             }
 
             lockExceptions.add( lockException );
@@ -229,7 +232,7 @@ public class LockExceptionController
 
         if ( dataSet == null || period == null )
         {
-            return WebMessageUtils.conflict( " DataSet or Period is invalid" );
+            return conflict( " DataSet or Period is invalid" );
         }
 
         if ( !aclService.canUpdate( user, dataSet ) )
@@ -253,7 +256,7 @@ public class LockExceptionController
 
         if ( listOrgUnitIds.isEmpty() )
         {
-            return WebMessageUtils.conflict( " OrganisationUnit ID is invalid." );
+            return conflict( " OrganisationUnit ID is invalid." );
         }
 
         for ( String id : listOrgUnitIds )
@@ -262,7 +265,7 @@ public class LockExceptionController
 
             if ( organisationUnit == null )
             {
-                return WebMessageUtils.conflict( "Can't find OrganisationUnit with id =" + id );
+                return conflict( "Can't find OrganisationUnit with id =" + id );
             }
 
             if ( organisationUnit.getDataSets().contains( dataSet ) )
@@ -279,7 +282,7 @@ public class LockExceptionController
 
         if ( created )
         {
-            return WebMessageUtils.created( "LockException created successfully." );
+            return created( "LockException created successfully." );
         }
         return null;
     }
@@ -300,7 +303,7 @@ public class LockExceptionController
 
         if ( !ObjectUtils.allNonNull( dataSet, period ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "Can't find LockException with combination: dataSet=" + dataSetId + ", period=" + periodId ) );
         }
 

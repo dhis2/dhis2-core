@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.sms;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import java.io.IOException;
 import java.util.List;
@@ -36,7 +39,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.render.RenderService;
@@ -93,21 +95,21 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
     {
         if ( recipient == null || recipient.length() <= 0 )
         {
-            return WebMessageUtils.conflict( "Recipient must be specified" );
+            return conflict( "Recipient must be specified" );
         }
 
         if ( message == null || message.length() <= 0 )
         {
-            return WebMessageUtils.conflict( "Message must be specified" );
+            return conflict( "Message must be specified" );
         }
 
         OutboundMessageResponse status = smsSender.sendMessage( null, message, recipient );
 
         if ( status.isOk() )
         {
-            return WebMessageUtils.ok( "SMS sent" );
+            return ok( "SMS sent" );
         }
-        return WebMessageUtils.error( status.getDescription() );
+        return error( status.getDescription() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
@@ -122,9 +124,9 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
 
         if ( status.isOk() )
         {
-            return WebMessageUtils.ok( "SMS sent" );
+            return ok( "SMS sent" );
         }
-        return WebMessageUtils.error( status.getDescription() );
+        return error( status.getDescription() );
     }
 
     // -------------------------------------------------------------------------
@@ -145,7 +147,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
 
         outboundSmsService.delete( uid );
 
-        return WebMessageUtils.ok( "OutboundSms with " + uid + " deleted" );
+        return ok( "OutboundSms with " + uid + " deleted" );
     }
 
     @DeleteMapping( produces = "application/json" )
@@ -155,6 +157,6 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
     {
         ids.forEach( outboundSmsService::delete );
 
-        return WebMessageUtils.ok( "Objects deleted" );
+        return ok( "Objects deleted" );
     }
 }

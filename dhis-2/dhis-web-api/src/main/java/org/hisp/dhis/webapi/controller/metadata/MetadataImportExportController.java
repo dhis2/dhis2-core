@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.metadata;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.GML_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
@@ -38,7 +40,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AsyncTaskExecutor;
@@ -58,7 +59,6 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -69,7 +69,6 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -127,7 +126,7 @@ public class MetadataImportExportController
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage postJsonMetadata( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postJsonMetadata( HttpServletRequest request )
         throws IOException
     {
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
@@ -138,15 +137,15 @@ public class MetadataImportExportController
 
         if ( params.hasJobId() )
         {
-            return startAsyncMetadata( params, request, response );
+            return startAsyncMetadata( params );
         }
         ImportReport importReport = metadataImportService.importMetadata( params );
-        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @PostMapping( value = "", consumes = "application/csv" )
     @ResponseBody
-    public WebMessage postCsvMetadata( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postCsvMetadata( HttpServletRequest request )
         throws IOException
     {
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
@@ -155,7 +154,7 @@ public class MetadataImportExportController
 
         if ( StringUtils.isEmpty( classKey ) || !CsvImportClass.classExists( classKey ) )
         {
-            return WebMessageUtils.conflict( "Cannot find Csv import class:  " + classKey );
+            return conflict( "Cannot find Csv import class:  " + classKey );
         }
 
         params.setCsvImportClass( CsvImportClass.valueOf( classKey ) );
@@ -168,30 +167,30 @@ public class MetadataImportExportController
 
         if ( params.hasJobId() )
         {
-            return startAsyncMetadata( params, request, response );
+            return startAsyncMetadata( params );
         }
         ImportReport importReport = metadataImportService.importMetadata( params );
-        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @PostMapping( value = "/gml", consumes = MediaType.APPLICATION_XML_VALUE )
     @ResponseBody
-    public WebMessage postGmlMetadata( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postGmlMetadata( HttpServletRequest request )
         throws IOException
     {
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
 
         if ( params.hasJobId() )
         {
-            return startAsyncGml( params, request, response );
+            return startAsyncGml( params, request );
         }
         ImportReport importReport = gmlImportService.importGml( request.getInputStream(), params );
-        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
     @ResponseBody
-    public WebMessage postXmlMetadata( HttpServletRequest request, HttpServletResponse response )
+    public WebMessage postXmlMetadata( HttpServletRequest request )
         throws IOException
     {
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
@@ -201,10 +200,10 @@ public class MetadataImportExportController
 
         if ( params.hasJobId() )
         {
-            return startAsyncMetadata( params, request, response );
+            return startAsyncMetadata( params );
         }
         ImportReport importReport = metadataImportService.importMetadata( params );
-        return WebMessageUtils.importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @GetMapping( "/csvImportClasses" )
@@ -237,19 +236,17 @@ public class MetadataImportExportController
     // Helpers
     // ----------------------------------------------------------------------------------------------------------------------------------------
 
-    private WebMessage startAsyncMetadata( MetadataImportParams params, HttpServletRequest request,
-        HttpServletResponse response )
+    private WebMessage startAsyncMetadata( MetadataImportParams params )
     {
         MetadataAsyncImporter metadataImporter = metadataAsyncImporterFactory.getObject();
         metadataImporter.setParams( params );
         taskExecutor.executeTask( metadataImporter );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + METADATA_IMPORT );
-        return jobConfigurationReport( params.getId() );
+        return jobConfigurationReport( params.getId() )
+            .setLocation( "/system/tasks/" + METADATA_IMPORT );
     }
 
-    private WebMessage startAsyncGml( MetadataImportParams params, HttpServletRequest request,
-        HttpServletResponse response )
+    private WebMessage startAsyncGml( MetadataImportParams params, HttpServletRequest request )
         throws IOException
     {
         GmlAsyncImporter gmlImporter = gmlAsyncImporterFactory.getObject();
@@ -257,8 +254,8 @@ public class MetadataImportExportController
         gmlImporter.setParams( params );
         taskExecutor.executeTask( gmlImporter );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + GML_IMPORT );
-        return jobConfigurationReport( params.getId() );
+        return jobConfigurationReport( params.getId() )
+            .setLocation( "/system/tasks/" + GML_IMPORT );
     }
 
     private void setUserContext( User user, TranslateParams translateParams )
