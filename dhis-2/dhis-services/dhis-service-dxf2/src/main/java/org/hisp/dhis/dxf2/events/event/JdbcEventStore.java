@@ -92,6 +92,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -1161,6 +1162,12 @@ public class JdbcEventStore implements EventStore
         if ( params.isSynchronizationQuery() )
         {
             sqlBuilder.append( hlp.whereAnd() ).append( " psi.lastupdated > psi.lastsynchronized " );
+        }
+
+        if ( !CollectionUtils.isEmpty( params.getProgramInstances() ) )
+        {
+            sqlBuilder.append( hlp.whereAnd() )
+                .append( " (pi.uid in (" + getQuotedCommaDelimitedString( params.getProgramInstances() ) + "))" );
         }
 
         return sqlBuilder.toString();

@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.springframework.beans.BeanUtils.copyProperties;
 
 import java.io.IOException;
@@ -52,7 +54,6 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
@@ -73,9 +74,9 @@ import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -138,7 +139,7 @@ public class ChartController
     // Get data
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = { "/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/{uid}/data", "/{uid}/data.png" } )
     public void getChart(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -155,7 +156,7 @@ public class ChartController
 
         if ( chart == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Chart does not exist: " + uid ) );
+            throw new WebMessageException( notFound( "Chart does not exist: " + uid ) );
         }
 
         OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
@@ -170,7 +171,7 @@ public class ChartController
         ChartUtils.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
     }
 
-    @RequestMapping( value = { "/data", "/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/data", "/data.png" } )
     public void getChart(
         @RequestParam( value = "in" ) String indicatorUid,
         @RequestParam( value = "ou" ) String organisationUnitUid,
@@ -203,7 +204,7 @@ public class ChartController
         ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
 
-    @RequestMapping( value = { "/history/data", "/history/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/history/data", "/history/data.png" } )
     public void getHistoryChart(
         @RequestParam String de,
         @RequestParam String co,
@@ -220,35 +221,35 @@ public class ChartController
 
         if ( dataElement == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data element does not exist: " + de ) );
+            throw new WebMessageException( conflict( "Data element does not exist: " + de ) );
         }
 
         CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( co );
 
         if ( categoryOptionCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Category option combo does not exist: " + co ) );
+            throw new WebMessageException( conflict( "Category option combo does not exist: " + co ) );
         }
 
         CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( cp );
 
         if ( attributeOptionCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Category option combo does not exist: " + cp ) );
+            throw new WebMessageException( conflict( "Category option combo does not exist: " + cp ) );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( pe );
 
         if ( period == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Period does not exist: " + pe ) );
+            throw new WebMessageException( conflict( "Period does not exist: " + pe ) );
         }
 
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( ou );
 
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist: " + ou ) );
+            throw new WebMessageException( conflict( "Organisation unit does not exist: " + ou ) );
         }
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING,

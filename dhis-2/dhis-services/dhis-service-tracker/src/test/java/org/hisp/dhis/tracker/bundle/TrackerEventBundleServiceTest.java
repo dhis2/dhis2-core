@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.bundle;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
 import java.util.List;
@@ -84,7 +84,7 @@ public class TrackerEventBundleServiceTest extends TrackerTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertTrue( validationReport.getErrorReports().isEmpty() );
+        assertFalse( validationReport.hasErrorReports() );
 
         objectBundleService.commit( bundle );
     }

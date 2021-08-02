@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
 import java.util.List;
 import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -39,8 +44,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -56,13 +59,12 @@ import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.WebMessageService;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Lists;
@@ -73,6 +75,7 @@ import com.google.common.collect.Lists;
 @Controller
 @RequestMapping( value = MinMaxDataElementSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class MinMaxDataElementController
 {
     private final ContextService contextService;
@@ -83,21 +86,7 @@ public class MinMaxDataElementController
 
     private final RenderService renderService;
 
-    private final WebMessageService webMessageService;
-
     private final IdentifiableObjectManager manager;
-
-    public MinMaxDataElementController( ContextService contextService, MinMaxDataElementService minMaxService,
-        WebMessageService webMessageService, FieldFilterService fieldFilterService, RenderService renderService,
-        IdentifiableObjectManager manager )
-    {
-        this.contextService = contextService;
-        this.minMaxService = minMaxService;
-        this.fieldFilterService = fieldFilterService;
-        this.renderService = renderService;
-        this.webMessageService = webMessageService;
-        this.manager = manager;
-    }
 
     // --------------------------------------------------------------------------
     // GET
@@ -136,9 +125,10 @@ public class MinMaxDataElementController
     // POST
     // --------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
+    @PostMapping( consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')" )
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postJsonObject( HttpServletRequest request )
         throws Exception
     {
         MinMaxDataElement minMax = renderService.fromJson( request.getInputStream(), MinMaxDataElement.class );
@@ -160,20 +150,17 @@ public class MinMaxDataElementController
             minMaxService.updateMinMaxDataElement( persisted );
         }
 
-        WebMessage webMessage = new WebMessage();
-        webMessage.setHttpStatus( HttpStatus.CREATED );
-        webMessage.setStatus( Status.OK );
-
-        webMessageService.send( webMessage, response, request );
+        return created();
     }
 
     // --------------------------------------------------------------------------
     // DELETE
     // --------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.DELETE, consumes = "application/json" )
+    @DeleteMapping( consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_DELETE')" )
-    public void deleteObject( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage deleteObject( HttpServletRequest request )
         throws Exception
     {
         MinMaxDataElement minMax = renderService.fromJson( request.getInputStream(), MinMaxDataElement.class );
@@ -187,12 +174,12 @@ public class MinMaxDataElementController
 
         if ( Objects.isNull( persisted ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Can not find MinMaxDataElement." ) );
+            return notFound( "Can not find MinMaxDataElement." );
         }
 
         minMaxService.deleteMinMaxDataElement( persisted );
 
-        webMessageService.send( WebMessageUtils.ok( "MinMaxDataElement deleted." ), response, request );
+        return ok( "MinMaxDataElement deleted." );
     }
 
     private void validate( MinMaxDataElement minMax )
@@ -201,7 +188,7 @@ public class MinMaxDataElementController
         if ( !ObjectUtils.allNonNull( minMax.getDataElement(), minMax.getSource(), minMax.getOptionCombo() ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Missing required parameters : Source, DataElement, OptionCombo." ) );
+                notFound( "Missing required parameters : Source, DataElement, OptionCombo." ) );
         }
     }
 
@@ -219,7 +206,7 @@ public class MinMaxDataElementController
         catch ( NullPointerException e )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Invalid required parameters: source, dataElement, optionCombo" ) );
+                notFound( "Invalid required parameters: source, dataElement, optionCombo" ) );
         }
     }
 }

@@ -28,12 +28,15 @@
 package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,4 +142,21 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
             () -> new HttpResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) );
     }
 
+    public static JsonWebMessage assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
+        JsonResponse actual )
+    {
+        return assertWebMessage( httpStatus, httpStatusCode, status, message, actual.as( JsonWebMessage.class ) );
+    }
+
+    public static JsonWebMessage assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
+        JsonWebMessage actual )
+    {
+        assertTrue( "response appears to be something other than a WebMessage: " + actual.toString(),
+            actual.has( "httpStatusCode", "httpStatus", "status" ) );
+        assertEquals( "unexpected HTTP status code", httpStatusCode, actual.getHttpStatusCode() );
+        assertEquals( "unexpected HTTP status", httpStatus, actual.getHttpStatus() );
+        assertEquals( "unexpected status", status, actual.getStatus() );
+        assertEquals( "unexpected message", message, actual.getMessage() );
+        return actual;
+    }
 }

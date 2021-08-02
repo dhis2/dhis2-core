@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.io.IOException;
 import java.util.Date;
@@ -41,7 +42,6 @@ import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -59,9 +59,9 @@ import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -95,10 +95,10 @@ public class EventChartController
     // --------------------------------------------------------------------------
 
     @Override
-    protected EventChart deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
+    protected EventChart deserializeJsonEntity( HttpServletRequest request )
         throws IOException
     {
-        EventChart eventChart = super.deserializeJsonEntity( request, response );
+        EventChart eventChart = super.deserializeJsonEntity( request );
         mergeEventChart( eventChart );
 
         return eventChart;
@@ -108,7 +108,7 @@ public class EventChartController
     // Get data
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = { "/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/{uid}/data", "/{uid}/data.png" } )
     public void getChart(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "date", required = false ) Date date,
@@ -125,7 +125,7 @@ public class EventChartController
 
         if ( chart == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event chart does not exist: " + uid ) );
+            throw new WebMessageException( notFound( "Event chart does not exist: " + uid ) );
         }
 
         OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;

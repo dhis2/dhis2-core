@@ -27,17 +27,15 @@
  */
 package org.hisp.dhis.analytics.resolver;
 
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionGroup;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
@@ -47,7 +45,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.random.BeanRandomizer;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,11 +52,11 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
  * @author Luciano Fiandesio
+ * @author Dusan Bernat
  */
 public class CategoryOptionGroupResolverTest
 {
@@ -67,239 +64,164 @@ public class CategoryOptionGroupResolverTest
     private CategoryOptionGroupStore categoryOptionGroupStore;
 
     @Mock
-    private ExpressionService expressionService;
-
-    @Mock
     private CategoryOptionComboStore categoryOptionComboStore;
 
-    private ExpressionResolver resolver;
+    @Mock
+    private ExpressionService expressionService;
 
-    private BeanRandomizer beanRandomizer;
+    private ExpressionResolver resolver;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private String elem1;
+    private String uid1;
 
-    private String elem2;
+    private String uid2;
 
-    private String elem3;
+    private String uid3;
 
-    private int COCS_IN_COG = 2;
+    private CategoryOptionCombo coc1;
+
+    private CategoryOptionCombo coc2;
+
+    private CategoryOptionCombo coc3;
+
+    DimensionalItemId dimensionalItemId;
+
+    private static final String CATEGORY_OPTION_GROUP_PREFIX = "coGroup:";
 
     @Before
     public void setUp()
     {
-        elem1 = CodeGenerator.generateUid();
-        elem2 = CodeGenerator.generateUid();
-        elem3 = CodeGenerator.generateUid();
-        resolver = new CategoryOptionGroupResolver( categoryOptionGroupStore, categoryOptionComboStore,
-            expressionService );
-        beanRandomizer = new BeanRandomizer();
-    }
+        uid1 = CodeGenerator.generateUid();
 
-    /**
-     * case: #{DEUID.COGUID.AOCUID} resolves to: #{DEUID.COCUID1.AOCUID} +
-     * #{DEUID.COCUID2.AOCUID} + #{DEUID.COCUID3.AOCUID}
-     */
-    @Test
-    public void verifySecondElementIsCogThirdElementIsAoc()
-    {
-        DimensionalItemId dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, elem1,
-            elem2, elem3 );
+        uid2 = CodeGenerator.generateUid();
+
+        uid3 = CodeGenerator.generateUid();
 
         CategoryOptionGroup categoryOptionGroup = createCategoryOptionGroup( 'A' );
 
-        // #{DEUID.COGUID.AOCUID}
-        String exp = createIndicatorExp();
+        coc1 = createCategoryOptionCombo( 'X' );
 
-        when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
-            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+        coc2 = createCategoryOptionCombo( 'Y' );
 
-        when( categoryOptionGroupStore.getByUid( elem2 ) ).thenReturn( categoryOptionGroup );
+        coc3 = createCategoryOptionCombo( 'Z' );
 
-        List<CategoryOptionCombo> cocs = beanRandomizer.randomObjects( CategoryOptionCombo.class, COCS_IN_COG );
+        resolver = new CategoryOptionGroupResolver( expressionService, categoryOptionGroupStore,
+            categoryOptionComboStore );
 
-        when( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( categoryOptionGroup.getUid() ) )
-            .thenReturn( cocs );
-        when( categoryOptionComboStore.getByUid( elem3 ) )
-            .thenReturn( beanRandomizer.randomObject( CategoryOptionCombo.class ) );
+        when( categoryOptionGroupStore.getByUid( anyString() ) ).thenReturn( categoryOptionGroup );
 
-        String expression = resolver.resolve( exp );
-        // split resolved expression into a List of Strings
-        List<String> expressionList = Arrays.asList( expression.split( "\\+" ) );
-        assertEquals( COCS_IN_COG, expressionList.size() );
+        List<CategoryOptionCombo> cocList = new ArrayList<>();
 
-        collectionsHaveIdenticalValuesIgnoreOrder( expressionList, buildExpectedExpression( elem1, cocs, elem3 ) );
-    }
+        cocList.add( coc1 );
 
-    /**
-     * case: #{DEUID.COGUID.COG2UID} resolves to:
-     *
-     */
-    @Test
-    public void verifySecondElementIsCogThirdElementIsCog()
-    {
-        DimensionalItemId dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, elem1,
-            elem2, elem3 );
+        cocList.add( coc2 );
 
-        CategoryOptionGroup categoryOptionGroup1 = createCategoryOptionGroup( 'A' );
-        CategoryOptionGroup categoryOptionGroup2 = createCategoryOptionGroup( 'B' );
+        cocList.add( coc3 );
 
-        // #{DEUID.COGUID.COGUID}
-        String exp = createIndicatorExp();
-
-        when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
-            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
-
-        when( categoryOptionGroupStore.getByUid( elem2 ) ).thenReturn( categoryOptionGroup1 );
-        when( categoryOptionGroupStore.getByUid( elem3 ) ).thenReturn( categoryOptionGroup2 );
-
-        List<CategoryOptionCombo> cocs1 = beanRandomizer.randomObjects( CategoryOptionCombo.class, COCS_IN_COG );
-        List<CategoryOptionCombo> cocs2 = beanRandomizer.randomObjects( CategoryOptionCombo.class, COCS_IN_COG );
-
-        when( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( categoryOptionGroup1.getUid() ) )
-            .thenReturn( cocs1 );
-        when( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( categoryOptionGroup2.getUid() ) )
-            .thenReturn( cocs2 );
-
-        String expression = resolver.resolve( exp );
-        // split resolved expression into a List of Strings
-        List<String> expressionList = Arrays.asList( expression.split( "\\+" ) );
-        assertEquals( COCS_IN_COG * 2, expressionList.size() );
-
-        collectionsHaveIdenticalValuesIgnoreOrder( expressionList, buildExpectedExpression( elem1, cocs1, cocs2 ) );
-    }
-
-    /**
-     * case: #{DEUID.COGUID.COG2UID} resolves to:
-     *
-     */
-    @Test
-    public void verifySecondElementIsCocThirdElementIsCog()
-    {
-        DimensionalItemId dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, elem1,
-            elem2, elem3 );
-
-        CategoryOptionGroup categoryOptionGroup1 = createCategoryOptionGroup( 'A' );
-
-        // #{DEUID.COCUID.COGUID}
-        String exp = createIndicatorExp();
-
-        when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
-            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
-
-        when( categoryOptionGroupStore.getByUid( elem3 ) ).thenReturn( categoryOptionGroup1 );
-
-        List<CategoryOptionCombo> cocs1 = beanRandomizer.randomObjects( CategoryOptionCombo.class, COCS_IN_COG );
-
-        when( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( categoryOptionGroup1.getUid() ) )
-            .thenReturn( cocs1 );
-
-        String expression = resolver.resolve( exp );
-
-        // split resolved expression into a List of Strings
-        List<String> expressionList = Arrays.asList( expression.split( "\\+" ) );
-        assertEquals( COCS_IN_COG, expressionList.size() );
-
-        collectionsHaveIdenticalValuesIgnoreOrder( expressionList, buildExpectedExpression( elem1, elem2, cocs1 ) );
+        when( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( anyString() ) ).thenReturn( cocList );
     }
 
     @Test
-    public void verifySecondElementIsCocThirdElementIsAoc()
+    public void verifyExpressionIsResolvedProperly()
     {
-        DimensionalItemId dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, elem1,
-            elem2, elem3 );
+        // arrange
 
-        // #{DEUID.COCUID.AOCUID}
-        String exp = createIndicatorExp();
+        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
+            CATEGORY_OPTION_GROUP_PREFIX + uid2, uid3, 0, createIndicatorExpression() );
 
-        when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
+        String expression = createIndicatorExpression();
+
+        when( expressionService.getExpressionDimensionalItemIds( expression, INDICATOR_EXPRESSION ) )
             .thenReturn( Sets.newHashSet( dimensionalItemId ) );
 
-        String expression = resolver.resolve( exp );
+        // act
 
-        // split resolved expression into a List of Strings
-        List<String> expressionList = Arrays.asList( expression.split( "\\+" ) );
-        assertEquals( 1, expressionList.size() );
+        String resolvedExpression = resolver.resolve( expression );
 
-        // original expression is returned
-        collectionsHaveIdenticalValuesIgnoreOrder( expressionList, Lists.newArrayList( exp ) );
+        // assert
+
+        assertEquals( expectedResolvedIndicatorExpression( coc1.getUid(), coc2.getUid(), coc3.getUid() ),
+            resolvedExpression );
     }
 
     @Test
-    public void verifyExpressionIsNotDataElementOperand()
+    public void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
     {
-        DimensionalItemId dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT, elem1 );
+        // arrange
 
-        // #{DEUID}
-        String exp = "#{" + elem1 + "}";
+        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
+            CATEGORY_OPTION_GROUP_PREFIX + uid2, uid3, 0 );
 
-        when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
+        String expression = createIndicatorExpression();
+
+        when( expressionService.getExpressionDimensionalItemIds( expression, INDICATOR_EXPRESSION ) )
             .thenReturn( Sets.newHashSet( dimensionalItemId ) );
 
-        String expression = resolver.resolve( exp );
+        // act
 
-        // split resolved expression into a List of Strings
-        List<String> expressionList = Arrays.asList( expression.split( "\\+" ) );
-        assertEquals( 1, expressionList.size() );
+        String resolvedExpression = resolver.resolve( expression );
 
-        // original expression is returned
-        collectionsHaveIdenticalValuesIgnoreOrder( expressionList, Lists.newArrayList( exp ) );
+        // assert
+
+        assertEquals( expression, resolvedExpression );
     }
 
-    private void collectionsHaveIdenticalValuesIgnoreOrder( List<String> listA, List<String> listB )
+    @Test
+    public void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
     {
+        // arrange
 
-        for ( String s : listA )
-        {
-            assertTrue( listB.contains( s ) );
-        }
+        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
+            uid2, uid3, 0, createIndicatorExpression() );
+
+        String expression = createIndicatorExpression();
+
+        when( expressionService.getExpressionDimensionalItemIds( expression, INDICATOR_EXPRESSION ) )
+            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+
+        // act
+
+        String resolvedExpression = resolver.resolve( expression );
+
+        // assert
+
+        assertEquals( expression, resolvedExpression );
     }
 
-    private String createIndicatorExp()
+    @Test
+    public void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
     {
-        return String.format( "#{%s.%s.%s}", elem1, elem2, elem3 );
+        // arrange
+
+        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
+            uid2, uid3, 0, createIndicatorExpression() );
+
+        String expression = "lsdjflakjdflkajdslfhaglakujdhfg";
+
+        when( expressionService.getExpressionDimensionalItemIds( expression, INDICATOR_EXPRESSION ) )
+            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+
+        // act
+
+        String resolvedExpression = resolver.resolve( expression );
+
+        // assert
+
+        assertEquals( expression, resolvedExpression );
     }
 
-    private String buildOperand( String s1, String s2, String s3 )
+    private String createIndicatorExpression()
     {
-
-        return "#{" + s1 + "." + s2 + "." + s3 + "}";
+        return String.format( "#{%s.coGroup:%s.%s}", uid1, uid2, uid3 );
     }
 
-    private String buildOperand( String s1, String s2 )
+    private String expectedResolvedIndicatorExpression( String coc1_uid, String coc2_uid, String coc3_uid )
     {
-
-        return "#{" + s1 + "." + s2 + "}";
-    }
-
-    private List<String> buildExpectedExpression( String dataElementUid, List<CategoryOptionCombo> cocs, String aocUid )
-    {
-        List<String> expressionAsList = new ArrayList<>( cocs.size() );
-        for ( CategoryOptionCombo coc : cocs )
-        {
-            expressionAsList.add( buildOperand( dataElementUid, coc.getUid(), aocUid ) );
-        }
-        return expressionAsList;
-    }
-
-    private List<String> buildExpectedExpression( String dataElementUid, List<CategoryOptionCombo> cocs1,
-        List<CategoryOptionCombo> cocs2 )
-    {
-        return Stream.concat( cocs1.stream(), cocs2.stream() ).map( c -> buildOperand( dataElementUid, c.getUid() ) )
-            .collect( Collectors.toList() );
-
-    }
-
-    private List<String> buildExpectedExpression( String dataElementUid, String cocUid, List<CategoryOptionCombo> cocs )
-    {
-        List<String> expressionAsList = new ArrayList<>( cocs.size() );
-        for ( CategoryOptionCombo coc : cocs )
-        {
-            expressionAsList.add( buildOperand( dataElementUid, coc.getUid() ) );
-        }
-        expressionAsList.add( buildOperand( dataElementUid, cocUid ) );
-        return expressionAsList;
+        return String.format( "(#{%s.%s.%s}+#{%s.%s.%s}+#{%s.%s.%s})",
+            uid1, coc1_uid, uid3,
+            uid1, coc2_uid, uid3,
+            uid1, coc3_uid, uid3 );
     }
 }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -40,7 +42,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageBatch;
@@ -55,8 +56,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -88,7 +90,7 @@ public class ProgramMessageController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( method = RequestMethod.GET, produces = { "application/json" } )
+    @GetMapping( produces = { "application/json" } )
     public void getProgramMessages( @RequestParam( required = false ) Set<String> ou,
         @RequestParam( required = false ) String programInstance,
         @RequestParam( required = false ) String programStageInstance,
@@ -105,7 +107,7 @@ public class ProgramMessageController
         if ( programInstance == null && programStageInstance == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "ProgramInstance or ProgramStageInstance must be specified." ) );
+                conflict( "ProgramInstance or ProgramStageInstance must be specified." ) );
         }
 
         List<ProgramMessage> programMessages = programMessageService.getProgramMessages( params );
@@ -114,7 +116,7 @@ public class ProgramMessageController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/scheduled", method = RequestMethod.GET )
+    @GetMapping( "/scheduled" )
     public void getScheduledMessage( @RequestParam( required = false ) Date scheduledAt, HttpServletResponse response )
         throws IOException
     {
@@ -131,7 +133,7 @@ public class ProgramMessageController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/scheduled/sent", method = RequestMethod.GET )
+    @GetMapping( "/scheduled/sent" )
     public void getScheduledSentMessage(
         @RequestParam( required = false ) String programInstance,
         @RequestParam( required = false ) String programStageInstance,
@@ -154,7 +156,7 @@ public class ProgramMessageController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( method = RequestMethod.POST, consumes = { "application/json" }, produces = { "application/json" } )
+    @PostMapping( consumes = { "application/json" }, produces = { "application/json" } )
     public void saveMessages( HttpServletRequest request, HttpServletResponse response )
         throws IOException,
         WebMessageException

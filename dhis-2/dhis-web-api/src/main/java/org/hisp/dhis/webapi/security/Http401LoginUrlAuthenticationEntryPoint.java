@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.webapi.security;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+
 import java.io.IOException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -63,7 +64,7 @@ public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticat
         {
             response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
             response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-            renderService.toJson( response.getOutputStream(), WebMessageUtils.unathorized( "Unauthorized" ) );
+            renderService.toJson( response.getOutputStream(), unauthorized( "Unauthorized" ) );
             return;
         }
 

@@ -59,18 +59,18 @@ import org.hisp.dhis.user.UserCredentials;
 public class UniquenessCheck implements ObjectValidationCheck
 {
     @Override
-    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
     {
-        List<IdentifiableObject> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+        List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
 
         if ( objects.isEmpty() )
         {
             return;
         }
 
-        for ( IdentifiableObject object : objects )
+        for ( T object : objects )
         {
             List<ErrorReport> errorReports;
 

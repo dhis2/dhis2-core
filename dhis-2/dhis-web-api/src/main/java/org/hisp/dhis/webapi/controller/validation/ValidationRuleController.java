@@ -29,18 +29,15 @@ package org.hisp.dhis.webapi.controller.validation;
 
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
-import java.io.IOException;
 import java.util.List;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryParserException;
@@ -51,11 +48,13 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Lists;
 
@@ -99,25 +98,16 @@ public class ValidationRuleController
         return super.getEntityList( metadata, options, filters, orders );
     }
 
-    @RequestMapping( value = "/expression/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getExpressionDescription( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
+    @PostMapping( value = "/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage getExpressionDescription( @RequestBody String expression )
     {
-        I18n i18n = i18nManager.getI18n();
-
         ExpressionValidationOutcome result = expressionService.expressionIsValid( expression,
             VALIDATION_RULE_EXPRESSION );
 
-        DescriptiveWebMessage message = new DescriptiveWebMessage();
-        message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
-        message.setMessage( i18n.getString( result.getKey() ) );
-
-        if ( result.isValid() )
-        {
-            message
-                .setDescription( expressionService.getExpressionDescription( expression, VALIDATION_RULE_EXPRESSION ) );
-        }
-
-        webMessageService.sendJson( message, response );
+        return new DescriptiveWebMessage( result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK )
+            .setDescription( result::isValid,
+                () -> expressionService.getExpressionDescription( expression, VALIDATION_RULE_EXPRESSION ) )
+            .setMessage( i18nManager.getI18n().getString( result.getKey() ) );
     }
 }

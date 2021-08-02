@@ -100,7 +100,7 @@ public class RedisLeaderManager implements LeaderManager
             JobConfiguration leaderRenewalJobConfiguration = new JobConfiguration( CLUSTER_LEADER_RENEWAL,
                 JobType.LEADER_RENEWAL, null, true );
             leaderRenewalJobConfiguration.setLeaderOnlyJob( true );
-            schedulingManager.scheduleJobWithStartTime( leaderRenewalJobConfiguration, calendar.getTime() );
+            schedulingManager.scheduleWithStartTime( leaderRenewalJobConfiguration, calendar.getTime() );
         }
     }
 

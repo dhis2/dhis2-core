@@ -27,28 +27,29 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.feedback;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.ErrorReportContainer;
 import org.hisp.dhis.feedback.TypeReport;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ObjectBundleCommitReport
+public class ObjectBundleCommitReport implements ErrorReportContainer, Iterable<TypeReport>
 {
-    private Map<Class<?>, TypeReport> typeReportMap = new HashMap<>();
+    private final Map<Class<?>, TypeReport> typeReportMap;
 
     public ObjectBundleCommitReport()
     {
+        this( new HashMap<>() );
     }
 
     public ObjectBundleCommitReport( Map<Class<?>, TypeReport> typeReportMap )
@@ -60,28 +61,10 @@ public class ObjectBundleCommitReport
     // Utility Methods
     // -----------------------------------------------------------------------------------
 
-    public List<ErrorReport> getErrorReportsByCode( Class<?> klass, ErrorCode errorCode )
+    public int getErrorReportsCountByCode( Class<?> klass, ErrorCode errorCode )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
-        if ( !typeReportMap.containsKey( klass ) )
-        {
-            return errorReports;
-        }
-
-        List<ObjectReport> objectReports = typeReportMap.get( klass ).getObjectReports();
-
-        for ( ObjectReport objectReport : objectReports )
-        {
-            List<ErrorReport> byCode = objectReport.getErrorReportsByCode().get( errorCode );
-
-            if ( byCode != null )
-            {
-                errorReports.addAll( byCode );
-            }
-        }
-
-        return errorReports;
+        TypeReport report = typeReportMap.get( klass );
+        return report == null ? 0 : report.getErrorReportsCount( errorCode );
     }
 
     public void addTypeReport( TypeReport report )
@@ -91,14 +74,14 @@ public class ObjectBundleCommitReport
             return;
         }
 
-        if ( !typeReportMap.containsKey( report.getKlass() ) )
-        {
-            typeReportMap.put( report.getKlass(), report );
-            return;
-        }
-
-        TypeReport typeReport = typeReportMap.get( report.getKlass() );
-        typeReport.merge( typeReport );
+        typeReportMap.compute( report.getKlass(), ( key, value ) -> {
+            if ( value == null )
+            {
+                return report;
+            }
+            value.merge( report );
+            return value;
+        } );
     }
 
     // -----------------------------------------------------------------------------------
@@ -110,48 +93,45 @@ public class ObjectBundleCommitReport
         return typeReportMap.isEmpty();
     }
 
-    public boolean isEmpty( Class<?> klass )
+    @Override
+    public Iterator<TypeReport> iterator()
     {
-        return typeReportMap.containsKey( klass ) && typeReportMap.get( klass ).getObjectReportMap().isEmpty();
+        return typeReportMap.values().iterator();
     }
 
-    public Map<Class<?>, TypeReport> getTypeReportMap()
-    {
-        return typeReportMap;
-    }
-
-    public TypeReport getTypeReportMap( Class<?> klass )
+    public TypeReport getTypeReport( Class<?> klass )
     {
         return typeReportMap.get( klass );
     }
 
-    public List<ObjectReport> getObjectReports( Class<?> klass )
+    @Override
+    public int getErrorReportsCount()
     {
-        if ( !typeReportMap.containsKey( klass ) )
-        {
-            return Lists.newArrayList();
-        }
-
-        return typeReportMap.get( klass ).getObjectReports();
+        return typeReportMap.values().stream().mapToInt( TypeReport::getErrorReportsCount ).sum();
     }
 
-    public List<ErrorReport> getErrorReports( Class<?> klass )
+    @Override
+    public int getErrorReportsCount( ErrorCode errorCode )
     {
-        if ( !typeReportMap.containsKey( klass ) )
-        {
-            return Lists.newArrayList();
-        }
-
-        return new ArrayList<>( typeReportMap.get( klass ).getErrorReports() );
+        return typeReportMap.values().stream().mapToInt( report -> report.getErrorReportsCount( errorCode ) ).sum();
     }
 
-    public List<ErrorReport> getErrorReports()
+    @Override
+    public boolean hasErrorReports()
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
+        return typeReportMap.values().stream().anyMatch( TypeReport::hasErrorReports );
+    }
 
-        typeReportMap.values().forEach( typeReport -> errorReports.addAll( typeReport.getErrorReports() ) );
+    @Override
+    public boolean hasErrorReport( Predicate<ErrorReport> test )
+    {
+        return typeReportMap.values().stream().anyMatch( report -> report.hasErrorReport( test ) );
+    }
 
-        return errorReports;
+    @Override
+    public void forEachErrorReport( Consumer<ErrorReport> reportConsumer )
+    {
+        typeReportMap.values().forEach( report -> report.forEachErrorReport( reportConsumer ) );
     }
 
     @Override
@@ -161,4 +141,5 @@ public class ObjectBundleCommitReport
             .add( "typeReportMap", typeReportMap )
             .toString();
     }
+
 }

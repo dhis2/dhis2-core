@@ -25,21 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.TrackerTypeReport;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * @author Zubair Asghar
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.event.ProgramRuleActionController}
+ * using (mocked) REST requests.
+ *
+ * @author Jan Bernitt
  */
-public interface TrackerObjectDeletionService
+public class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest
 {
-    TrackerTypeReport deleteEnrollments( TrackerBundle bundle, TrackerType trackerType );
+    @Test
+    public void testGetDataExpressionDescription()
+    {
+        String pId = assertStatus( HttpStatus.CREATED,
+            POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
 
-    TrackerTypeReport deleteEvents( TrackerBundle bundle, TrackerType trackerType );
+        assertWebMessage( "OK", 200, "OK", "Valid",
+            POST( "/programRuleActions/data/expression/description?programId=" + pId, "70" ).content( HttpStatus.OK ) );
+    }
 
-    TrackerTypeReport deleteTrackedEntityInstances( TrackerBundle bundle, TrackerType trackerType );
-
-    TrackerTypeReport deleteRelationShips( TrackerBundle bundle, TrackerType trackerType );
+    @Test
+    public void testGetDataExpressionDescription_NoSuchProgram()
+    {
+        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+            POST( "/programRuleActions/data/expression/description?programId=xyz", "70" ).content( HttpStatus.OK ) );
+    }
 }

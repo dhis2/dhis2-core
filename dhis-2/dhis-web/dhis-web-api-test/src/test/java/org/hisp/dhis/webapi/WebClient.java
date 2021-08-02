@@ -39,6 +39,7 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.startWithMediaType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -46,6 +47,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -54,6 +56,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.WebClientUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
@@ -94,6 +97,21 @@ public interface WebClient
     static Header ContentType( MediaType mimeType )
     {
         return Header( "ContentType", mimeType );
+    }
+
+    static Header ContentType( String mimeType )
+    {
+        return Header( "ContentType", mimeType );
+    }
+
+    static Header Accept( MediaType mimeType )
+    {
+        return Header( "Accept", mimeType );
+    }
+
+    static Header Accept( String mimeType )
+    {
+        return Header( "Accept", mimeType );
     }
 
     static Body Body( String body )
@@ -188,7 +206,7 @@ public interface WebClient
                 Header header = (Header) c;
                 if ( header.name.equalsIgnoreCase( "ContentType" ) )
                 {
-                    contentMediaType = (MediaType) header.value;
+                    contentMediaType = WebClientUtils.asMediaType( header.value );
                 }
                 else
                 {
@@ -256,6 +274,25 @@ public interface WebClient
             return series() == Series.SUCCESSFUL;
         }
 
+        /**
+         * Access raw response body for non JSON responses
+         *
+         * @param contentType the expected content type
+         * @return raw content body in UTF-8 encoding
+         */
+        public String content( MediaType contentType )
+        {
+            if ( contentType.isCompatibleWith( MediaType.APPLICATION_JSON ) )
+            {
+                fail( "Use one of the other content() methods for JSON" );
+            }
+            String actualContentType = header( "Content-Type" );
+            String expected = contentType.toString();
+            assertTrue( String.format( "Expected %s but was: %s", expected, actualContentType ),
+                actualContentType.startsWith( expected ) );
+            return failOnException( () -> response.getContentAsString( StandardCharsets.UTF_8 ) );
+        }
+
         public JsonResponse content()
         {
             return content( Series.SUCCESSFUL );
@@ -276,20 +313,49 @@ public interface WebClient
         public JsonError error()
         {
             assertTrue( "not a client or server error", series().value() >= 4 );
-            return contentUnchecked().as( JsonError.class );
+            return errorInternal();
         }
 
         public JsonError error( HttpStatus expected )
         {
             assertStatus( expected, this );
-            return contentUnchecked().as( JsonError.class );
+            return errorInternal();
         }
 
         public JsonError error( Series expected )
         {
             // OBS! cannot use assertSeries as it uses this method
             assertEquals( expected, series() );
+            return errorInternal();
+        }
+
+        private JsonError errorInternal()
+        {
+            if ( !hasBody() )
+            {
+                String errorMessage = response.getErrorMessage();
+                if ( errorMessage != null )
+                {
+                    errorMessage = '"' + errorMessage + '"';
+                }
+                String error = String.format(
+                    "{\"status\": \"error\",\"httpStatus\":\"%s\",\"httpStatusCode\":%d, \"message\":%s}",
+                    status().name(), response.getStatus(), errorMessage );
+                return new JsonResponse( error ).as( JsonError.class );
+            }
             return contentUnchecked().as( JsonError.class );
+        }
+
+        private boolean hasBody()
+        {
+            try
+            {
+                return !response.getContentAsString( StandardCharsets.UTF_8 ).isEmpty();
+            }
+            catch ( UnsupportedEncodingException ex )
+            {
+                return true;
+            }
         }
 
         public JsonResponse contentUnchecked()

@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -39,7 +42,6 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -48,9 +50,9 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -75,7 +77,7 @@ public class DocumentController
     @Autowired
     private ContextUtils contextUtils;
 
-    @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data" )
     public void getDocumentContent( @PathVariable( "uid" ) String uid, HttpServletResponse response )
         throws Exception
     {
@@ -83,7 +85,7 @@ public class DocumentController
 
         if ( document == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Document not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "Document not found for uid: " + uid ) );
         }
 
         if ( document.isExternal() )
@@ -104,7 +106,7 @@ public class DocumentController
             }
             catch ( IOException e )
             {
-                throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+                throw new WebMessageException( error( "Failed fetching the file from storage",
                     "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related" ) );
             }
         }
@@ -121,7 +123,7 @@ public class DocumentController
             catch ( IOException e )
             {
                 log.error( "Could not retrieve file.", e );
-                throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+                throw new WebMessageException( error( "Failed fetching the file from storage",
                     "There was an exception when trying to fetch the file from the storage backend. " +
                         "Depending on the provider the root cause could be network or file system related." ) );
             }

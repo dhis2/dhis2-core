@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHook;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHooks;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.schema.SchemaService;
@@ -49,6 +49,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
+@AllArgsConstructor
 public class ValidationFactory
 {
     private final SchemaValidator schemaValidator;
@@ -59,21 +60,9 @@ public class ValidationFactory
 
     private final UserService userService;
 
+    private final ObjectBundleHooks objectBundleHooks;
+
     private final Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap;
-
-    private List<ObjectBundleHook> objectBundleHooks;
-
-    public ValidationFactory( SchemaValidator schemaValidator, SchemaService schemaService, AclService aclService,
-        UserService userService, List<ObjectBundleHook> objectBundleHooks,
-        Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap )
-    {
-        this.schemaValidator = schemaValidator;
-        this.schemaService = schemaService;
-        this.aclService = aclService;
-        this.userService = userService;
-        this.validatorMap = validatorMap;
-        this.objectBundleHooks = objectBundleHooks == null ? Collections.emptyList() : objectBundleHooks;
-    }
 
     /**
      * Run the validation checks against the bundle
@@ -85,8 +74,8 @@ public class ValidationFactory
      *
      * @return a {@see TypeReport} containing the outcome of the validation
      */
-    public TypeReport validateBundle( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects )
+    public <T extends IdentifiableObject> TypeReport validateBundle( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects )
     {
         ValidationContext ctx = getContext();
         TypeReport typeReport = new ValidationRunner( validatorMap.get( bundle.getImportMode() ) )
@@ -98,8 +87,8 @@ public class ValidationFactory
         return addStatistics( typeReport, bundle, persistedObjects, nonPersistedObjects );
     }
 
-    private TypeReport addStatistics( TypeReport typeReport, ObjectBundle bundle,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects )
+    private <T extends IdentifiableObject> TypeReport addStatistics( TypeReport typeReport, ObjectBundle bundle,
+        List<T> persistedObjects, List<T> nonPersistedObjects )
     {
         if ( bundle.getImportMode().isCreateAndUpdate() )
         {
@@ -131,13 +120,13 @@ public class ValidationFactory
      *        remove
      * @param bundle the {@see ObjectBundle}
      */
-    private void removeFromBundle( Class<? extends IdentifiableObject> klass, ValidationContext ctx,
+    private <T extends IdentifiableObject> void removeFromBundle( Class<T> klass, ValidationContext ctx,
         ObjectBundle bundle )
     {
-        List<IdentifiableObject> persisted = bundle.getObjects( klass, true );
+        List<T> persisted = bundle.getObjects( klass, true );
         persisted.removeAll( ctx.getMarkedForRemoval() );
 
-        List<IdentifiableObject> nonPersisted = bundle.getObjects( klass, false );
+        List<T> nonPersisted = bundle.getObjects( klass, false );
         nonPersisted.removeAll( ctx.getMarkedForRemoval() );
     }
 
@@ -156,8 +145,8 @@ public class ValidationFactory
             this.validators = validators;
         }
 
-        public TypeReport executeValidationChain( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-            List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+        public <T extends IdentifiableObject> TypeReport executeValidationChain( ObjectBundle bundle, Class<T> klass,
+            List<T> persistedObjects, List<T> nonPersistedObjects,
             ValidationContext ctx )
         {
             TypeReport typeReport = new TypeReport( klass );

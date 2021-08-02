@@ -33,7 +33,8 @@ import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTA
 
 import java.util.function.Consumer;
 
-import org.hisp.dhis.common.IdentifiableObject;
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -51,8 +52,9 @@ import org.springframework.stereotype.Component;
  * @author Stian Sandvold
  */
 @Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipTypeObjectBundleHook" )
+@AllArgsConstructor
 public class RelationshipTypeObjectBundleHook
-    extends AbstractObjectBundleHook
+    extends AbstractObjectBundleHook<RelationshipType>
 {
     private final TrackedEntityTypeService trackedEntityTypeService;
 
@@ -60,47 +62,22 @@ public class RelationshipTypeObjectBundleHook
 
     private final ProgramStageService programStageService;
 
-    public RelationshipTypeObjectBundleHook(
-        TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
-        ProgramStageService programStageService )
+    @Override
+    public void validate( RelationshipType object, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
-        this.trackedEntityTypeService = trackedEntityTypeService;
-        this.programService = programService;
-        this.programStageService = programStageService;
+        validateRelationshipType( object, addReports );
     }
 
     @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
+    public void preCreate( RelationshipType object, ObjectBundle bundle )
     {
-        if ( !(object instanceof RelationshipType) )
-        {
-            return;
-        }
-
-        validateRelationshipType( (RelationshipType) object, addReports );
+        handleRelationshipTypeReferences( object );
     }
 
     @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
+    public void preUpdate( RelationshipType object, RelationshipType persistedObject, ObjectBundle bundle )
     {
-        if ( !(object instanceof RelationshipType) )
-        {
-            return;
-        }
-
-        handleRelationshipTypeReferences( (RelationshipType) object );
-    }
-
-    @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
-    {
-        if ( !(object instanceof RelationshipType) )
-        {
-            return;
-        }
-
-        handleRelationshipTypeReferences( (RelationshipType) object );
+        handleRelationshipTypeReferences( object );
 
     }
 

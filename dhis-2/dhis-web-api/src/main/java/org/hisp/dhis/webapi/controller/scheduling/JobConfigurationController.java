@@ -50,7 +50,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -75,7 +74,7 @@ public class JobConfigurationController
         this.schedulingManager = schedulingManager;
     }
 
-    @RequestMapping( value = "/jobTypesExtended", method = RequestMethod.GET, produces = { "application/json",
+    @GetMapping( value = "/jobTypesExtended", produces = { "application/json",
         "application/javascript" } )
     public @ResponseBody Map<String, Map<String, Property>> getJobTypesExtended()
     {
@@ -88,8 +87,7 @@ public class JobConfigurationController
         return new JobTypes( jobConfigurationService.getJobTypeInfo() );
     }
 
-    @RequestMapping( value = "{uid}/execute", method = RequestMethod.GET, produces = { "application/json",
-        "application/javascript" } )
+    @GetMapping( value = "{uid}/execute", produces = { "application/json", "application/javascript" } )
     public ObjectReport executeJobConfiguration( @PathVariable( "uid" ) String uid )
         throws WebMessageException
     {
@@ -99,7 +97,7 @@ public class JobConfigurationController
 
         ObjectReport objectReport = new ObjectReport( JobConfiguration.class, 0 );
 
-        boolean success = schedulingManager.executeJob( jobConfiguration );
+        boolean success = schedulingManager.executeNow( jobConfiguration );
 
         if ( !success )
         {
@@ -154,12 +152,12 @@ public class JobConfigurationController
     {
         if ( !jobConfiguration.isEnabled() )
         {
-            schedulingManager.stopJob( jobConfiguration );
+            schedulingManager.stop( jobConfiguration );
         }
         jobConfigurationService.refreshScheduling( jobConfiguration );
         if ( jobConfiguration.getJobStatus() != DISABLED )
         {
-            schedulingManager.scheduleJob( jobConfiguration );
+            schedulingManager.schedule( jobConfiguration );
         }
     }
 

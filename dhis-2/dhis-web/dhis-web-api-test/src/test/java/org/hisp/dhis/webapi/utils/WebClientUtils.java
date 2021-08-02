@@ -28,7 +28,9 @@
 package org.hisp.dhis.webapi.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +47,7 @@ import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonObjectReport;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
+import org.springframework.http.MediaType;
 
 /**
  * Helpers needed when testing with {@link org.hisp.dhis.webapi.WebClient} and
@@ -100,6 +103,7 @@ public class WebClientUtils
                 assertEquals( msg, expected, actualStatus );
             }
         }
+        assertValidLocation( actual );
         return getCreatedId( actual );
     }
 
@@ -126,7 +130,21 @@ public class WebClientUtils
             String msg = actual.error( actualSeries ).summary();
             assertEquals( msg, expected, actualSeries );
         }
+        assertValidLocation( actual );
         return getCreatedId( actual );
+    }
+
+    public static void assertValidLocation( HttpResponse actual )
+    {
+        String location = actual.location();
+        if ( location == null )
+        {
+            return;
+        }
+        assertTrue( "Location header does not start with http or https",
+            location.startsWith( "http://" ) || location.startsWith( "https://" ) );
+        assertTrue( "Location header does contain multiple protocol parts",
+            location.indexOf( "http://", 4 ) < 0 && location.indexOf( "https://", 4 ) < 0 );
     }
 
     private static String getCreatedId( HttpResponse response )
@@ -139,10 +157,9 @@ public class WebClientUtils
             {
                 return report.getString( "uid" ).string();
             }
-            String location = response.location();
-            return location == null ? null : location.substring( location.lastIndexOf( '/' ) + 1 );
         }
-        return null;
+        String location = response.location();
+        return location == null ? null : location.substring( location.lastIndexOf( '/' ) + 1 );
     }
 
     /**
@@ -233,6 +250,25 @@ public class WebClientUtils
             }
         }
         return null;
+    }
+
+    public static MediaType asMediaType( Object value )
+    {
+        if ( value == null || value instanceof MediaType )
+        {
+            return (MediaType) value;
+        }
+        String mediaType = value.toString();
+        int typeSubtypeDivider = mediaType.indexOf( '/' );
+        int charsetIndex = mediaType.indexOf( "; charset=" );
+        if ( charsetIndex > 0 )
+        {
+            return new MediaType( mediaType.substring( 0, typeSubtypeDivider ),
+                mediaType.substring( typeSubtypeDivider + 1, charsetIndex ),
+                Charset.forName( mediaType.substring( charsetIndex + 10 ) ) );
+        }
+        return new MediaType( mediaType.substring( 0, typeSubtypeDivider ),
+            mediaType.substring( typeSubtypeDivider + 1 ) );
     }
 
     private WebClientUtils()

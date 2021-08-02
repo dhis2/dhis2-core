@@ -190,6 +190,8 @@ public class EventSearchParams
      */
     private Date skipChangedBefore;
 
+    private Set<String> programInstances;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -720,6 +722,17 @@ public class EventSearchParams
     public EventSearchParams setSkipChangedBefore( Date skipChangedBefore )
     {
         this.skipChangedBefore = skipChangedBefore;
+        return this;
+    }
+
+    public Set<String> getProgramInstances()
+    {
+        return programInstances;
+    }
+
+    public EventSearchParams setProgramInstances( Set<String> programInstances )
+    {
+        this.programInstances = programInstances;
         return this;
     }
 
