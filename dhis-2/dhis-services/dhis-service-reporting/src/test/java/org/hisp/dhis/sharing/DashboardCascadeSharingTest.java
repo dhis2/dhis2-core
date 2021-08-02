@@ -95,16 +95,20 @@ public class DashboardCascadeSharingTest
         userGroupA = createUserGroup( 'A', SetUtils.EMPTY_SET );
 
         sharingReadForUserA = new Sharing();
+        sharingReadForUserA.setPublicAccess( AccessStringHelper.DEFAULT );
         sharingReadForUserA.addUserAccess( new UserAccess( userA, AccessStringHelper.READ ) );
 
         sharingReadWriteForUserB = new Sharing();
+        sharingReadWriteForUserB.setPublicAccess( AccessStringHelper.DEFAULT );
         sharingReadWriteForUserB.addUserAccess( new UserAccess( userB, AccessStringHelper.READ_WRITE ) );
 
         sharingReadForUserAB = new Sharing();
+        sharingReadForUserAB.setPublicAccess( AccessStringHelper.DEFAULT );
         sharingReadForUserAB.addUserAccess( new UserAccess( userA, AccessStringHelper.READ ) );
         sharingReadForUserAB.addUserAccess( new UserAccess( userB, AccessStringHelper.READ ) );
 
         sharingUserGroupA = new Sharing();
+        sharingUserGroupA.setPublicAccess( AccessStringHelper.DEFAULT );
         sharingUserGroupA.addUserGroupAccess( new UserGroupAccess( userGroupA, AccessStringHelper.READ ) );
 
         dashboard = new Dashboard();
@@ -176,6 +180,7 @@ public class DashboardCascadeSharingTest
 
         objectManager.save( dashboardItemA, false );
         Sharing sharing = new Sharing();
+        sharing.setPublicAccess( AccessStringHelper.DEFAULT );
         sharing.addUserAccess( new UserAccess( userB, AccessStringHelper.DEFAULT ) );
 
         dashboard.getItems().clear();
@@ -228,6 +233,39 @@ public class DashboardCascadeSharingTest
     }
 
     /**
+     * Dashboard has publicAccess READ
+     * <p>
+     * Expected any user can read Dashboard's Map
+     */
+    @Test
+    public void testCascadeSharePublicAccess()
+    {
+        MapView mapView = createMapView( "Test" );
+        Map map = new Map();
+        map.setName( "mapA" );
+        map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        map.setMapViews( Lists.newArrayList( mapView ) );
+        objectManager.save( map, false );
+
+        DashboardItem dashboardItemA = createDashboardItem( "A" );
+        dashboardItemA.setMap( map );
+
+        Sharing sharing = Sharing.builder().publicAccess( AccessStringHelper.READ ).build();
+
+        dashboard.getItems().clear();
+        dashboard.getItems().add( dashboardItemA );
+        dashboard.setSharing( sharing );
+        objectManager.save( dashboard, false );
+
+        CascadeSharingReport report = dashboardCascadeSharingService.cascadeSharing( dashboard,
+            new CascadeSharingParameters() );
+
+        assertEquals( 0, report.getErrorReports().size() );
+        assertTrue( aclService.canRead( userA, dashboardItemA.getMap() ) );
+        assertTrue( aclService.canRead( userB, dashboardItemA.getMap() ) );
+    }
+
+    /**
      * Dashboard is shared to userB.
      * <p>
      * But userB's access is DEFAULT('--------')
@@ -253,6 +291,7 @@ public class DashboardCascadeSharingTest
         dashboardItemA.setMap( map );
 
         Sharing sharing = new Sharing();
+        sharing.setPublicAccess( AccessStringHelper.DEFAULT );
         sharing.addUserAccess( new UserAccess( userB, AccessStringHelper.DEFAULT ) );
 
         dashboard.getItems().clear();

@@ -53,10 +53,8 @@ public class CascadeSharingParameters
     private boolean atomic = false;
 
     /**
-     * TRUE: publicAccess from source object will be cascade shared to all
-     * children.
-     * <p>
-     * FALSE: ignore source object publicAccess.
+     * If publicAccess is updated in one of the target objects then this flag
+     * will set to TRUE.
      */
     private boolean sharePublicAccess = false;
 

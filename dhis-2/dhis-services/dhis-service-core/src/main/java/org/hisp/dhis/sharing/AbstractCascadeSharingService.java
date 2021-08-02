@@ -56,6 +56,27 @@ public abstract class AbstractCascadeSharingService
             target.getSharing().getUsers(), parameters );
         mergeAccessObject( source, target, UserGroupAccess.class, source.getSharing().getUserGroups(),
             target.getSharing().getUserGroups(), parameters );
+        target = mergePublicAccess( source.getSharing().getPublicAccess(), target, parameters );
+
+        return target;
+    }
+
+    /**
+     * Enable READ permission for target's publicAccess only if source's
+     * publicAccess has READ enabled
+     */
+    private <T extends IdentifiableObject> T mergePublicAccess( String sourcePublicAccess, T target,
+        CascadeSharingParameters parameters )
+    {
+        if ( !AccessStringHelper.isEnabled( sourcePublicAccess, AccessStringHelper.Permission.READ )
+            || AccessStringHelper.isEnabled( target.getSharing().getPublicAccess(),
+                AccessStringHelper.Permission.READ ) )
+        {
+            return target;
+        }
+
+        target.getSharing().setPublicAccess( AccessStringHelper.READ );
+        parameters.setSharePublicAccess( true );
 
         return target;
     }
