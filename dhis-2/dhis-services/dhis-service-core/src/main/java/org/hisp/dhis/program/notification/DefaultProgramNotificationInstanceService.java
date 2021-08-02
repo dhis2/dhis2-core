@@ -32,12 +32,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,8 +56,9 @@ public class DefaultProgramNotificationInstanceService
 
     private final ProgramStageInstanceService programStageInstanceService;
 
-    public DefaultProgramNotificationInstanceService(ProgramNotificationInstanceStore notificationInstanceStore,
-                                                     ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService) {
+    public DefaultProgramNotificationInstanceService( ProgramNotificationInstanceStore notificationInstanceStore,
+        ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService )
+    {
 
         checkNotNull( notificationInstanceStore );
         checkNotNull( programInstanceService );
@@ -84,7 +85,8 @@ public class DefaultProgramNotificationInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<ProgramNotificationInstance> getProgramNotificationInstances(ProgramNotificationInstanceParam programNotificationInstanceParam)
+    public List<ProgramNotificationInstance> getProgramNotificationInstances(
+        ProgramNotificationInstanceParam programNotificationInstanceParam )
     {
         return notificationInstanceStore.getProgramNotificationInstances( programNotificationInstanceParam );
     }

@@ -82,13 +82,13 @@ public class HibernateProgramNotificationInstanceStore
     }
 
     @Override
-    public List<ProgramNotificationInstance> getProgramNotificationInstances(ProgramNotificationInstanceParam params)
+    public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramNotificationInstanceParam params )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<ProgramNotificationInstance> jpaParameters = newJpaParameters()
-                .addPredicates( getPredicates( params, builder ) )
-                .addOrder( root -> builder.desc( root.get( "created" ) ) );
+            .addPredicates( getPredicates( params, builder ) )
+            .addOrder( root -> builder.desc( root.get( "created" ) ) );
 
         if ( params.hasPaging() )
         {
@@ -96,33 +96,34 @@ public class HibernateProgramNotificationInstanceStore
         }
         else
         {
-            jpaParameters.setFirstResult( ProgramNotificationInstanceParam.DEFAULT_PAGE ).setMaxResults( ProgramNotificationInstanceParam.DEFAULT_PAGE_SIZE );
+            jpaParameters.setFirstResult( ProgramNotificationInstanceParam.DEFAULT_PAGE )
+                .setMaxResults( ProgramNotificationInstanceParam.DEFAULT_PAGE_SIZE );
         }
 
         return getList( builder, jpaParameters );
     }
 
     private List<Function<Root<ProgramNotificationInstance>, Predicate>> getPredicates(
-            ProgramNotificationInstanceParam params, CriteriaBuilder builder )
+        ProgramNotificationInstanceParam params, CriteriaBuilder builder )
     {
         List<Function<Root<ProgramNotificationInstance>, Predicate>> predicates = new ArrayList<>();
 
         if ( params.hasProgramStageInstance() )
         {
             predicates.add( root -> builder.equal( root.get( "programStageInstance" ),
-                    params.getProgramStageInstance() ) );
+                params.getProgramStageInstance() ) );
         }
 
         if ( params.hasProgramInstance() )
         {
             predicates.add( root -> builder.equal( root.get( "programInstance" ),
-                    params.getProgramInstance() ) );
+                params.getProgramInstance() ) );
         }
 
         if ( params.hasProgramInstance() )
         {
             predicates.add( root -> builder.equal( root.get( "scheduledAt" ),
-                    params.getProgramInstance() ) );
+                params.getProgramInstance() ) );
         }
 
         return predicates;
