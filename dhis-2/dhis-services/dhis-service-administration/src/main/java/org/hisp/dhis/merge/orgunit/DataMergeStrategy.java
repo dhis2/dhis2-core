@@ -28,19 +28,35 @@
 package org.hisp.dhis.merge.orgunit;
 
 /**
- * Enum for merge strategies.
+ * Enum for data merge strategies.
  *
  * @author Lars Helge Overland
  */
 public enum DataMergeStrategy
 {
-    /**
-     * Use last updated source data records.
-     */
-    LAST_UPDATED,
+    SUM( "sum" ),
+    AVERAGE( "avg" ),
+    MIN( "min" ),
+    MAX( "max" ),
+    BLANK( null ),
+    JOIN( null ),
+    LAST_UPDATED( null ),
+    DISCARD( null );
 
-    /**
-     * Discard source data records.
-     */
-    DISCARD
+    private final String aggregateFunction;
+
+    DataMergeStrategy( String aggregateFunction )
+    {
+        this.aggregateFunction = aggregateFunction;
+    }
+
+    public boolean isAggregateFunction()
+    {
+        return aggregateFunction != null;
+    }
+
+    public String getAggregateFunction()
+    {
+        return aggregateFunction;
+    }
 }

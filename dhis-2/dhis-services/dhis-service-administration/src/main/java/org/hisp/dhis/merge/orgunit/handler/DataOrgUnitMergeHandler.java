@@ -41,12 +41,15 @@ import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.merge.orgunit.DataMergeStrategy;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
+import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Merge handler for data entities.
@@ -72,6 +75,10 @@ public class DataOrgUnitMergeHandler
 
     private final MinMaxDataElementService minMaxDataElementService;
 
+    // -------------------------------------------------------------------------
+    // Data values
+    // -------------------------------------------------------------------------
+
     public void mergeDataValueAudits( OrgUnitMergeRequest request )
     {
         request.getSources().forEach( ou -> dataValueAuditService.deleteDataValueAudits( ou ) );
@@ -80,15 +87,32 @@ public class DataOrgUnitMergeHandler
     @Transactional
     public void mergeDataValues( OrgUnitMergeRequest request )
     {
-        final String sql = DataMergeStrategy.DISCARD == request.getDataValueMergeStrategy()
-            ? getMergeDataValuesDiscardSql()
-            : getMergeDataValuesLastUpdatedSql( request );
+        final String sql = getMergeDataValuesSql( request );
 
         final SqlParameterSource params = new MapSqlParameterSource()
             .addValue( "source_ids", getIdentifiers( request.getSources() ) )
-            .addValue( "target_id", request.getTarget().getId() );
+            .addValue( "target_id", request.getTarget().getId() )
+            .addValue( "numeric_regex", MathUtils.NUMERIC_REGEXP );
 
         jdbcTemplate.update( sql, params );
+    }
+
+    private String getMergeDataValuesSql( OrgUnitMergeRequest request )
+    {
+        DataMergeStrategy strategy = request.getDataValueMergeStrategy();
+
+        if ( DataMergeStrategy.DISCARD == strategy )
+        {
+            return getMergeDataValuesDiscardSql();
+        }
+        if ( strategy.isAggregateFunction() )
+        {
+            return getMergeDataValuesAggregateSql( request );
+        }
+        else
+        {
+            return getMergeDataValuesLastUpdatedSql( request );
+        }
     }
 
     private String getMergeDataValuesDiscardSql()
@@ -116,7 +140,7 @@ public class DataOrgUnitMergeHandler
             "insert into datavalue (" +
                 "dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, " +
                 "value, storedby, created, lastupdated, comment, followup, deleted) " +
-            "select dataelementid, periodid, %s, categoryoptioncomboid, attributeoptioncomboid, " +
+            "select dataelementid, periodid, %s as sourceid, categoryoptioncomboid, attributeoptioncomboid, " +
                 "value, storedby, created, lastupdated, comment, followup, false " +
             "from dv_rank " +
             "where dv_rank.lastupdated_rank = 1; " +
@@ -125,6 +149,38 @@ public class DataOrgUnitMergeHandler
             request.getTarget().getId() );
         // @formatter:on
     }
+
+    private String getMergeDataValuesAggregateSql( OrgUnitMergeRequest request )
+    {
+        String aggregateFunction = request.getDataValueMergeStrategy().getAggregateFunction();
+
+        Preconditions.checkNotNull( aggregateFunction );
+
+        // @formatter:off
+        return String.format(
+            // Delete existing target data values
+            "delete from datavalue where sourceid = :target_id; " +
+            // Insert target data values
+            "insert into datavalue (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, " +
+                "value, storedby, created, lastupdated, comment, followup, deleted) " +
+            "select dataelementid, periodid, %s as sourceid, categoryoptioncomboid, attributeoptioncomboid, " +
+                "%s(value::double precision)::varchar, 'merge-operation' as storedby, " +
+                "now() as created, now() as lastupdated, null as comment, false as followup, false as deleted " +
+            "from datavalue " +
+            "where dataelementid in (359596, 359597, 359598, 359599) " +
+                "and sourceid in (204879, 222662, 247038, 211254) " +
+                "and deleted is false " +
+                "and value ~ :numeric_regex " +
+                "group by dataelementid, periodid, categoryoptioncomboid, attributeoptioncomboid;" +
+             // Delete source data values
+             "delete from datavalue where sourceid in (:source_ids);",
+             request.getTarget().getId(), aggregateFunction );
+        // @formatter:on
+    }
+
+    // -------------------------------------------------------------------------
+    // Data approvals
+    // -------------------------------------------------------------------------
 
     public void mergeDataApprovalAudits( OrgUnitMergeRequest request )
     {
@@ -170,7 +226,7 @@ public class DataOrgUnitMergeHandler
                 "dataapprovalid, dataapprovallevelid, workflowid, periodid, " +
                 "organisationunitid, attributeoptioncomboid, accepted, created, creator) " +
             "select nextval('hibernate_sequence'), dataapprovallevelid, workflowid, periodid, " +
-                "%s, attributeoptioncomboid, accepted, created, creator " +
+                "%s as organisationunitid, attributeoptioncomboid, accepted, created, creator " +
             "from da_rank " +
             "where da_rank.lastcreated_rank = 1; " +
             // Delete source data approvals
@@ -178,6 +234,10 @@ public class DataOrgUnitMergeHandler
             request.getTarget().getId() );
         // @formatter:on
     }
+
+    // -------------------------------------------------------------------------
+    // Various objects
+    // -------------------------------------------------------------------------
 
     public void mergeLockExceptions( OrgUnitMergeRequest request )
     {
