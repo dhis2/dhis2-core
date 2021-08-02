@@ -22,6 +22,8 @@
 
     <property name="inactive" column="inactive"/>
 
+    <property name="potentialDuplicate" column="potentialDuplicate"/>
+
     <property name="deleted" column="deleted"/>
 
     <property name="lastSynchronized" column="lastsynchronized" type="timestamp" not-null="false"/>

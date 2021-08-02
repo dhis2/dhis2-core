@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.cache;
 
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -116,6 +117,6 @@ public class CappedLocalCacheTest
     {
         testRegion.put( "x", "y" );
         testRegion.put( "a", "b" );
-        assertContainsOnly( testRegion.getAll(), "y", "b" );
+        assertContainsOnly( testRegion.getAll().collect( toList() ), "y", "b" );
     }
 }

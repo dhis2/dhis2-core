@@ -25,22 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.cacheinvalidation;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
 
 /**
- * This interface is an abstraction for the actual execution of jobs based on a
- * job configuration.
+ * Startup routine responsible for starting the Debezium engine service. The
+ * {@link DebeziumPreStartupRoutine} is called first so that the
+ * {@link TableNameToEntityMapping} is already been initialized, see
+ * {@link TableNameToEntityMapping#init}
  *
- * @author Henning Håkonsen
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface JobInstance
+@Slf4j
+@Profile( { "!test", "!test-h2" } )
+@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
+public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine
 {
-    /**
-     * This method will try to execute the actual job. It will verify a set of
-     * parameters, such as no other jobs of the same JobType is running. If the
-     * JobConfiguration is disabled it will not run.
-     *
-     * @param jobConfiguration the configuration of the job.
-     */
-    void execute( JobConfiguration jobConfiguration );
+    @Autowired
+    private DebeziumService debeziumService;
+
+    public void execute()
+        throws InterruptedException
+    {
+        debeziumService.startDebeziumEngine();
+    }
 }

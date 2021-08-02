@@ -62,16 +62,7 @@ public class ProgramStageActions extends RestApiActions
 
     public void setValidationStrategy( String programStageId, String strategy )
     {
-        JsonObject operation = JsonObjectBuilder.jsonObject()
-            .addProperty( "op", "add" )
-            .addProperty( "path", "/validationStrategy" )
-            .addProperty( "value", strategy )
-            .build();
-
-        JsonArray body = new JsonArray();
-        body.add( operation );
-
-        this.patch( programStageId, body )
+        this.patch( programStageId, "add", "/validationStrategy", strategy )
             .validate().statusCode( 200 );
 
         this.get( programStageId )

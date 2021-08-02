@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.errorReports;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -52,11 +53,11 @@ import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -69,7 +70,7 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = "/schemas", method = RequestMethod.GET )
+@RequestMapping( "/schemas" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SchemaController
 {
@@ -91,10 +92,7 @@ public class SchemaController
     @Autowired
     private ContextService contextService;
 
-    @Autowired
-    private WebMessageService webMessageService;
-
-    @RequestMapping
+    @GetMapping
     public @ResponseBody RootNode getSchemas()
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -116,7 +114,7 @@ public class SchemaController
         return rootNode;
     }
 
-    @RequestMapping( value = "/{type}", method = RequestMethod.GET )
+    @GetMapping( "/{type}" )
     public @ResponseBody RootNode getSchema( @PathVariable String type )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -142,7 +140,9 @@ public class SchemaController
 
     @RequestMapping( value = "/{type}", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public void validateSchema( @PathVariable String type, HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage validateSchema( @PathVariable String type, HttpServletRequest request,
+        HttpServletResponse response )
         throws IOException
     {
         Schema schema = getSchemaFromType( type );
@@ -155,11 +155,10 @@ public class SchemaController
         Object object = renderService.fromJson( request.getInputStream(), schema.getKlass() );
         List<ErrorReport> validationViolations = schemaValidator.validate( object );
 
-        WebMessage webMessage = WebMessageUtils.errorReports( validationViolations );
-        webMessageService.send( webMessage, response, request );
+        return errorReports( validationViolations );
     }
 
-    @RequestMapping( value = "/{type}/{property}", method = RequestMethod.GET )
+    @GetMapping( "/{type}/{property}" )
     public @ResponseBody Property getSchemaProperty( @PathVariable String type, @PathVariable String property )
     {
         Schema schema = getSchemaFromType( type );

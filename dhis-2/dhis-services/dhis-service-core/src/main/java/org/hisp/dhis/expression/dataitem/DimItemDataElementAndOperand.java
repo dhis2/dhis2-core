@@ -54,7 +54,7 @@ public class DimItemDataElementAndOperand
                 ctx.uid0.getText(),
                 ctx.uid1 == null ? null : ctx.uid1.getText(),
                 ctx.uid2 == null ? null : ctx.uid2.getText(),
-                visitor.getPeriodOffset() );
+                visitor.getPeriodOffset(), ctx.getText() );
         }
         else
         {

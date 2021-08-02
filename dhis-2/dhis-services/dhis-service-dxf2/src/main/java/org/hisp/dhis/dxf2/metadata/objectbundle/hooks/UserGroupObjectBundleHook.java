@@ -27,19 +27,16 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserGroupObjectBundleHook extends AbstractObjectBundleHook
+public class UserGroupObjectBundleHook extends AbstractObjectBundleHook<UserGroup>
 {
     @Override
-    public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
+    public void preUpdate( UserGroup object, UserGroup persistedObject, ObjectBundle bundle )
     {
-        if ( !UserGroup.class.isInstance( persistedObject ) )
-            return;
         handleCreatedUserProperty( object, persistedObject, bundle );
     }
 
@@ -48,17 +45,9 @@ public class UserGroupObjectBundleHook extends AbstractObjectBundleHook
      * {@link UserGroup} ), the new object will always has User = NULL. So we
      * need to get this from persisted UserGroup, otherwise it will always be
      * set to current User when updating.
-     *
-     * @param object
-     * @param persistedObject
-     * @param <T>
      */
-    private <T extends IdentifiableObject> void handleCreatedUserProperty( T object, T persistedObject,
-        ObjectBundle bundle )
+    private void handleCreatedUserProperty( UserGroup userGroup, UserGroup persistedUserGroup, ObjectBundle bundle )
     {
-        UserGroup userGroup = (UserGroup) object;
-        UserGroup persistedUserGroup = (UserGroup) persistedObject;
-
         userGroup.setCreatedBy( persistedUserGroup.getCreatedBy() );
         bundle.getPreheat().put( bundle.getPreheatIdentifier(), persistedUserGroup.getCreatedBy() );
     }

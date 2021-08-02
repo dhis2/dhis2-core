@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.DefaultSecurityService.RECOVERY_LOCKOUT_MINS;
 
 import java.io.IOException;
@@ -45,8 +50,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.RecaptchaResponse;
@@ -65,7 +70,6 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -73,9 +77,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -104,8 +110,6 @@ public class AccountController
 
     private final SystemSettingManager systemSettingManager;
 
-    private final WebMessageService webMessageService;
-
     private final PasswordValidationService passwordValidationService;
 
     private final ObjectMapper jsonMapper;
@@ -117,7 +121,6 @@ public class AccountController
         PasswordManager passwordManager,
         SecurityService securityService,
         SystemSettingManager systemSettingManager,
-        WebMessageService webMessageService,
         PasswordValidationService passwordValidationService,
         ObjectMapper jsonMapper )
     {
@@ -127,21 +130,19 @@ public class AccountController
         this.passwordManager = passwordManager;
         this.securityService = securityService;
         this.systemSettingManager = systemSettingManager;
-        this.webMessageService = webMessageService;
         this.passwordValidationService = passwordValidationService;
         this.jsonMapper = jsonMapper;
     }
 
-    @RequestMapping( value = "/recovery", method = RequestMethod.POST )
-    public void recoverAccount(
-        @RequestParam String username,
-        HttpServletRequest request,
-        HttpServletResponse response )
+    @PostMapping( "/recovery" )
+    @ResponseBody
+    public WebMessage recoverAccount( @RequestParam String username,
+        HttpServletRequest request )
         throws WebMessageException
     {
         if ( !systemSettingManager.accountRecoveryEnabled() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Account recovery is not enabled" ) );
+            return conflict( "Account recovery is not enabled" );
         }
 
         handleRecoveryLock( username );
@@ -150,26 +151,26 @@ public class AccountController
 
         if ( credentials == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + username ) );
+            return conflict( "User does not exist: " + username );
         }
 
         String validRestore = securityService.validateRestore( credentials );
 
         if ( validRestore != null )
         {
-            throw new WebMessageException( WebMessageUtils.error( "Failed to validate recovery attempt" ) );
+            return error( "Failed to validate recovery attempt" );
         }
 
         if ( !securityService
             .sendRestoreOrInviteMessage( credentials, ContextUtils.getContextPath( request ),
                 RestoreOptions.RECOVER_PASSWORD_OPTION ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Account could not be recovered" ) );
+            return conflict( "Account could not be recovered" );
         }
 
         log.info( "Recovery message sent for user: " + username );
 
-        webMessageService.send( WebMessageUtils.ok( "Recovery message sent" ), response, request );
+        return ok( "Recovery message sent" );
     }
 
     private void handleRecoveryLock( String username )
@@ -177,8 +178,8 @@ public class AccountController
     {
         if ( securityService.isRecoveryLocked( username ) )
         {
-            throw new WebMessageException( WebMessageUtils
-                .forbidden( "The account recovery operation for the given user is temporarily locked due to too " +
+            throw new WebMessageException(
+                forbidden( "The account recovery operation for the given user is temporarily locked due to too " +
                     "many calls to this endpoint in the last '" + RECOVERY_LOCKOUT_MINS + "' minutes. Username:" +
                     username ) );
         }
@@ -188,38 +189,33 @@ public class AccountController
         }
     }
 
-    @RequestMapping( value = "/restore", method = RequestMethod.POST )
-    public void restoreAccount(
-        @RequestParam String token,
-        @RequestParam String password,
-        HttpServletRequest request,
-        HttpServletResponse response )
-        throws WebMessageException
+    @PostMapping( "/restore" )
+    @ResponseBody
+    public WebMessage restoreAccount( @RequestParam String token, @RequestParam String password )
     {
         String[] idAndRestoreToken = securityService.decodeEncodedTokens( token );
         String idToken = idAndRestoreToken[0];
-        String restoreToken = idAndRestoreToken[1];
 
         UserCredentials credentials = userService.getUserCredentialsByIdToken( idToken );
 
-        if ( credentials == null )
+        if ( credentials == null || idAndRestoreToken.length < 2 )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Account recovery failed" ) );
+            return conflict( "Account recovery failed" );
         }
-
+        String restoreToken = idAndRestoreToken[1];
         if ( !systemSettingManager.accountRecoveryEnabled() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Account recovery is not enabled" ) );
+            return conflict( "Account recovery is not enabled" );
         }
 
         if ( !ValidationUtils.passwordIsValid( password ) )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Password is not specified or invalid" ) );
+            return badRequest( "Password is not specified or invalid" );
         }
 
         if ( password.trim().equals( credentials.getUsername() ) )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Password cannot be equal to username" ) );
+            return badRequest( "Password cannot be equal to username" );
         }
 
         CredentialsInfo credentialsInfo;
@@ -229,8 +225,7 @@ public class AccountController
         // be terminated.
         if ( user == null )
         {
-            throw new WebMessageException(
-                WebMessageUtils.error( String.format( "No user found for username: %s", credentials.getUsername() ) ) );
+            return error( String.format( "No user found for username: %s", credentials.getUsername() ) );
         }
         else
         {
@@ -243,7 +238,7 @@ public class AccountController
 
         if ( !result.isValid() )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( result.getErrorMessage() ) );
+            return badRequest( result.getErrorMessage() );
         }
 
         boolean restoreSuccess = securityService.restore( credentials, restoreToken, password,
@@ -251,16 +246,17 @@ public class AccountController
 
         if ( !restoreSuccess )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Account could not be restored" ) );
+            return badRequest( "Account could not be restored" );
         }
 
         log.info( "Account restored for user: " + credentials.getUsername() );
 
-        webMessageService.send( WebMessageUtils.ok( "Account restored" ), response, request );
+        return ok( "Account restored" );
     }
 
-    @RequestMapping( method = RequestMethod.POST )
-    public void createAccount(
+    @PostMapping
+    @ResponseBody
+    public WebMessage createAccount(
         @RequestParam String username,
         @RequestParam String firstName,
         @RequestParam String surname,
@@ -271,10 +267,8 @@ public class AccountController
         @RequestParam( required = false ) String inviteUsername,
         @RequestParam( required = false ) String inviteToken,
         @RequestParam( value = "g-recaptcha-response", required = false ) String recapResponse,
-        HttpServletRequest request,
-        HttpServletResponse response )
-        throws WebMessageException,
-        IOException
+        HttpServletRequest request )
+        throws IOException
     {
         UserCredentials credentials = null;
         String restoreToken = null;
@@ -294,14 +288,14 @@ public class AccountController
 
             if ( credentials == null )
             {
-                throw new WebMessageException( WebMessageUtils.badRequest( "Invitation link not valid" ) );
+                return badRequest( "Invitation link not valid" );
             }
 
             boolean canRestore = securityService.canRestore( credentials, restoreToken, RestoreType.INVITE );
 
             if ( !canRestore )
             {
-                throw new WebMessageException( WebMessageUtils.badRequest( "Invitation code not valid" ) );
+                return badRequest( "Invitation code not valid" );
             }
 
             RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
@@ -310,7 +304,7 @@ public class AccountController
 
             if ( !email.equals( credentials.getUserInfo().getEmail() ) )
             {
-                throw new WebMessageException( WebMessageUtils.badRequest( "Email don't match invited email" ) );
+                return badRequest( "Email don't match invited email" );
             }
         }
         else
@@ -319,7 +313,7 @@ public class AccountController
 
             if ( !allowed )
             {
-                throw new WebMessageException( WebMessageUtils.badRequest( "User self registration is not allowed" ) );
+                return badRequest( "User self registration is not allowed" );
             }
         }
 
@@ -344,58 +338,58 @@ public class AccountController
 
         if ( username == null || username.trim().length() > MAX_LENGTH )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "User name is not specified or invalid" ) );
+            return badRequest( "User name is not specified or invalid" );
         }
 
         UserCredentials usernameAlreadyTakenCredentials = userService.getUserCredentialsByUsername( username );
 
         if ( canChooseUsername && usernameAlreadyTakenCredentials != null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "User name is already taken" ) );
+            return badRequest( "User name is already taken" );
         }
 
         if ( firstName == null || firstName.trim().length() > MAX_LENGTH )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "First name is not specified or invalid" ) );
+            return badRequest( "First name is not specified or invalid" );
         }
 
         if ( surname == null || surname.trim().length() > MAX_LENGTH )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Last name is not specified or invalid" ) );
+            return badRequest( "Last name is not specified or invalid" );
         }
 
         if ( password == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Password is not specified" ) );
+            return badRequest( "Password is not specified" );
         }
 
         PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
 
         if ( !result.isValid() )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( result.getErrorMessage() ) );
+            return badRequest( result.getErrorMessage() );
         }
 
         if ( email == null || !ValidationUtils.emailIsValid( email ) )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Email is not specified or invalid" ) );
+            return badRequest( "Email is not specified or invalid" );
         }
 
         if ( phoneNumber == null || phoneNumber.trim().length() > MAX_PHONE_NO_LENGTH )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Phone number is not specified or invalid" ) );
+            return badRequest( "Phone number is not specified or invalid" );
         }
 
         if ( employer == null || employer.trim().length() > MAX_LENGTH )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Employer is not specified or invalid" ) );
+            return badRequest( "Employer is not specified or invalid" );
         }
 
         if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
         {
             if ( recapResponse == null )
             {
-                throw new WebMessageException( WebMessageUtils.badRequest( "Please verify that you are not a robot" ) );
+                return badRequest( "Please verify that you are not a robot" );
             }
 
             // ---------------------------------------------------------------------
@@ -408,8 +402,7 @@ public class AccountController
             if ( !recaptchaResponse.success() )
             {
                 log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-                throw new WebMessageException(
-                    WebMessageUtils.badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() ) );
+                return badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
             }
         }
 
@@ -425,7 +418,7 @@ public class AccountController
             {
                 log.info( "Invite restore failed for: " + inviteUsername );
 
-                throw new WebMessageException( WebMessageUtils.badRequest( "Unable to create invited user account" ) );
+                return badRequest( "Unable to create invited user account" );
             }
 
             User user = credentials.getUserInfo();
@@ -484,10 +477,10 @@ public class AccountController
 
         authenticate( username, password, authorities, request );
 
-        webMessageService.send( WebMessageUtils.ok( "Account created" ), response, request );
+        return ok( "Account created" );
     }
 
-    @RequestMapping( value = "/password", method = RequestMethod.POST )
+    @PostMapping( "/password" )
     public void updatePassword(
         @RequestParam String oldPassword,
         @RequestParam String password,
@@ -561,7 +554,7 @@ public class AccountController
         ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
-    @RequestMapping( value = "/username", method = RequestMethod.GET )
+    @GetMapping( "/username" )
     public void validateUserNameGet( @RequestParam String username, HttpServletResponse response )
         throws IOException
     {
@@ -570,7 +563,7 @@ public class AccountController
         ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
-    @RequestMapping( value = "/validateUsername", method = RequestMethod.POST )
+    @PostMapping( "/validateUsername" )
     public void validateUserNameGetPost( @RequestParam String username, HttpServletResponse response )
         throws IOException
     {
@@ -579,7 +572,7 @@ public class AccountController
         ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
-    @RequestMapping( value = "/password", method = RequestMethod.GET )
+    @GetMapping( "/password" )
     public void validatePasswordGet( @RequestParam String password, HttpServletResponse response )
         throws IOException
     {
@@ -588,7 +581,7 @@ public class AccountController
         ContextUtils.okResponse( response, jsonMapper.writeValueAsString( result ) );
     }
 
-    @RequestMapping( value = "/validatePassword", method = RequestMethod.POST )
+    @PostMapping( "/validatePassword" )
     public void validatePasswordPost( @RequestParam String password, HttpServletResponse response )
         throws IOException
     {

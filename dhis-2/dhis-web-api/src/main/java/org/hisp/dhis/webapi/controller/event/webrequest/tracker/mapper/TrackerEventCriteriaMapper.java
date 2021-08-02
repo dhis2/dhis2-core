@@ -49,5 +49,6 @@ public interface TrackerEventCriteriaMapper
     @Mapping( source = "updatedAfter", target = "lastUpdatedStartDate" )
     @Mapping( source = "updatedBefore", target = "lastUpdatedEndDate" )
     @Mapping( source = "updatedWithin", target = "lastUpdatedDuration" )
+    @Mapping( source = "enrollments", target = "programInstances" )
     EventCriteria toEventCriteria( TrackerEventCriteria from );
 }

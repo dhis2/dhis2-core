@@ -27,170 +27,234 @@
  */
 package org.hisp.dhis.deduplication;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
 
-import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.mock.MockCurrentUserService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
+@RunWith( MockitoJUnitRunner.class )
 public class DeduplicationServiceTest
-    extends IntegrationTestBase
 {
+    @InjectMocks
+    private DefaultDeduplicationService deduplicationService;
 
-    @Autowired
-    private DeduplicationService deduplicationService;
+    @Mock
+    private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private PotentialDuplicateStore potentialDuplicateStore;
+    @Mock
+    private TrackedEntityInstance trackedEntityInstanceA;
 
-    @Autowired
-    private UserService userService;
+    @Mock
+    private TrackedEntityInstance trackedEntityInstanceB;
 
-    private CurrentUserService currentUserService;
+    @Mock
+    private ProgramInstance programInstanceA;
 
-    @Override
-    public void setUpTest()
+    @Mock
+    private ProgramInstance programInstanceB;
+
+    private PotentialDuplicate potentialDuplicate;
+
+    private static final String teiA = "trackedentA";
+
+    private static final String teiB = "trackedentB";
+
+    private static final String sexUid = "sexAttributUid";
+
+    private static final String sexName = "sex";
+
+    private static final String firstNameUid = "nameAttributUid";
+
+    private static final String firstName = "firstName";
+
+    private static final String teavSex = "Male";
+
+    private static final String teavSexFirstName = "John";
+
+    @Before
+    public void setUp()
     {
-        super.userService = this.userService;
-        User user = createUser( "testUser" );
-        currentUserService = new MockCurrentUserService( user );
-        setDependency( potentialDuplicateStore, "currentUserService", currentUserService );
+        potentialDuplicate = new PotentialDuplicate( teiA, teiB );
+
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) ).thenReturn( trackedEntityInstanceA );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) ).thenReturn( trackedEntityInstanceB );
+
+        String uidPerson = "uidPerson";
+
+        TrackedEntityType trackedEntityPerson = new TrackedEntityType();
+        trackedEntityPerson.setName( "Person" );
+        trackedEntityPerson.setUid( uidPerson );
+
+        when( trackedEntityInstanceA.getTrackedEntityType() ).thenReturn( trackedEntityPerson );
+        when( trackedEntityInstanceB.getTrackedEntityType() ).thenReturn( trackedEntityPerson );
+
+        setUpPrograms();
+
+        setAttributeValues();
+    }
+
+    private void setUpPrograms()
+    {
+        when( trackedEntityInstanceA.getProgramInstances() )
+            .thenReturn( new HashSet<>( Collections.singletonList( programInstanceA ) ) );
+        when( trackedEntityInstanceB.getProgramInstances() )
+            .thenReturn( new HashSet<>( Collections.singletonList( programInstanceB ) ) );
+
+        Program programA = new Program();
+        programA.setUid( "progrAUid" );
+        programA.setDescription( "programADescr" );
+        programA.setName( "programAName" );
+
+        Program programB = new Program();
+        programB.setUid( "progrBrUid" );
+        programB.setDescription( "programBDescr" );
+        programB.setName( "programBName" );
+
+        when( programInstanceA.getProgram() )
+            .thenReturn( programA );
+        when( programInstanceB.getProgram() )
+            .thenReturn( programB );
+    }
+
+    private void setAttributeValues()
+    {
+        TrackedEntityAttributeValue sexAttributeValueA = getTrackedEntityAttributeValue( sexUid, sexName,
+            trackedEntityInstanceA );
+        sexAttributeValueA.setValue( teavSex );
+        TrackedEntityAttributeValue nameAttributeValueA = getTrackedEntityAttributeValue( firstNameUid, firstName,
+            trackedEntityInstanceA );
+        nameAttributeValueA.setValue( teavSexFirstName );
+
+        TrackedEntityAttributeValue sexAttributeValueB = getTrackedEntityAttributeValue( sexUid, sexName,
+            trackedEntityInstanceB );
+        sexAttributeValueB.setValue( teavSex );
+        TrackedEntityAttributeValue nameAttributeValueB = getTrackedEntityAttributeValue( firstNameUid, firstName,
+            trackedEntityInstanceB );
+        nameAttributeValueB.setValue( teavSexFirstName );
+
+        when( trackedEntityInstanceA.getTrackedEntityAttributeValues() )
+            .thenReturn( new HashSet<>( Arrays.asList( sexAttributeValueA, nameAttributeValueA ) ) );
+
+        when( trackedEntityInstanceB.getTrackedEntityAttributeValues() )
+            .thenReturn( new HashSet<>( Arrays.asList( sexAttributeValueB, nameAttributeValueB ) ) );
     }
 
     @Test
-    public void testAddPotentialDuplicate()
+    public void shouldBeAutoMergeable()
     {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( "ABCDEF12345" );
-        long id = deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
-        assertNotNull( id );
-
-        assertEquals( potentialDuplicate, deduplicationService.getPotentialDuplicateById( id ) );
+        assertTrue( deduplicationService.isAutoMergeable( potentialDuplicate ) );
     }
 
     @Test
-    public void testGetPotentialDuplicateByUid()
+    public void shouldNotBeAutoMergeableDifferentTrackedEntityType()
     {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( "ABCDEF12345" );
-        long id = deduplicationService.addPotentialDuplicate( potentialDuplicate );
+        String uidOther = "uidOther";
 
-        assertNotNull( id );
-        assertEquals( potentialDuplicate,
-            deduplicationService.getPotentialDuplicateByUid( potentialDuplicate.getUid() ) );
+        TrackedEntityType trackedEntityOther = new TrackedEntityType();
+        trackedEntityOther.setName( "Other" );
+        trackedEntityOther.setUid( uidOther );
+
+        when( trackedEntityInstanceB.getTrackedEntityType() ).thenReturn( trackedEntityOther );
+
+        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
     }
 
     @Test
-    public void testGetAllPotentialDuplicates()
+    public void shouldNotBeAutoMergeableDeletedTrackedEntityInstance()
     {
-        PotentialDuplicate pd1 = new PotentialDuplicate( "ABCDEFGHIJ1" );
-        PotentialDuplicate pd2 = new PotentialDuplicate( "ABCDEFGHIJ2" );
-        PotentialDuplicate pd3 = new PotentialDuplicate( "ABCDEFGHIJ3" );
+        when( trackedEntityInstanceA.isDeleted() ).thenReturn( true );
 
-        deduplicationService.addPotentialDuplicate( pd1 );
-        deduplicationService.addPotentialDuplicate( pd2 );
-        deduplicationService.addPotentialDuplicate( pd3 );
+        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
 
-        List<PotentialDuplicate> list = deduplicationService.getAllPotentialDuplicates();
+        when( trackedEntityInstanceA.isDeleted() ).thenReturn( false );
+        when( trackedEntityInstanceB.isDeleted() ).thenReturn( true );
 
-        assertEquals( 3, list.size() );
-        assertTrue( list.contains( pd1 ) );
-        assertTrue( list.contains( pd2 ) );
-        assertTrue( list.contains( pd3 ) );
+        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
     }
 
     @Test
-    public void testExistsOneTei()
+    public void shouldNotBeAutoMergeableWithSameProgram()
     {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( "ABCDEF12345" );
-        deduplicationService.addPotentialDuplicate( potentialDuplicate );
+        Program program = new Program();
+        program.setUid( "progrUid" );
+        program.setDescription( "programDescr" );
+        program.setName( "programName" );
 
-        assertTrue( deduplicationService.exists( potentialDuplicate ) );
+        when( programInstanceA.getProgram() ).thenReturn( program );
+        when( programInstanceB.getProgram() ).thenReturn( program );
+
+        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
     }
 
     @Test
-    public void testExistsTwoTeis()
+    public void shouldNotBeAutoMergeableDifferentAttributeValues()
     {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( "ABCDEFGHIJ1", "ABCDEFGHIJ2" );
-        deduplicationService.addPotentialDuplicate( potentialDuplicate );
+        TrackedEntityAttributeValue sexAttributeValueB = getTrackedEntityAttributeValue( sexUid, sexName,
+            trackedEntityInstanceB );
+        sexAttributeValueB.setValue( teavSex );
+        TrackedEntityAttributeValue nameAttributeValueB = getTrackedEntityAttributeValue( firstNameUid, firstName,
+            trackedEntityInstanceB );
+        nameAttributeValueB.setValue( "Jimmy" );
 
-        assertTrue( deduplicationService.exists( potentialDuplicate ) );
+        when( trackedEntityInstanceB.getTrackedEntityAttributeValues() )
+            .thenReturn( new HashSet<>( Arrays.asList( sexAttributeValueB, nameAttributeValueB ) ) );
+
+        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
     }
 
     @Test
-    public void testExistsTwoTeisReverse()
+    public void shouldtBeAutoMergeableAttributeValuesIsEmpty()
     {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( "ABCDEFGHIJ1", "ABCDEFGHIJ2" );
-        PotentialDuplicate potentialDuplicateReverse = new PotentialDuplicate( "ABCDEFGHIJ2", "ABCDEFGHIJ1" );
-        deduplicationService.addPotentialDuplicate( potentialDuplicate );
+        when( trackedEntityInstanceB.getTrackedEntityAttributeValues() )
+            .thenReturn( new HashSet<>() );
 
-        assertTrue( deduplicationService.exists( potentialDuplicateReverse ) );
+        assertTrue( deduplicationService.isAutoMergeable( potentialDuplicate ) );
     }
 
-    @Test
-    public void testGetAllPotentialDuplicatedByQuery()
+    @Test( expected = PotentialDuplicateException.class )
+    public void shouldThrowMissingTeiA()
     {
-        PotentialDuplicate pd1 = new PotentialDuplicate( "ABCDEFGHIJ1" );
-        PotentialDuplicate pd2 = new PotentialDuplicate( "ABCDEFGHIJ1", "ABCDEFGHIJ2" );
-        PotentialDuplicate pd3 = new PotentialDuplicate( "ABCDEFGHIJ3" );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) ).thenReturn( null );
 
-        PotentialDuplicateQuery query = new PotentialDuplicateQuery();
-
-        deduplicationService.addPotentialDuplicate( pd1 );
-        deduplicationService.addPotentialDuplicate( pd2 );
-        deduplicationService.addPotentialDuplicate( pd3 );
-
-        query.setTeis( Arrays.asList( "ABCDEFGHIJ1" ) );
-
-        List<PotentialDuplicate> list = deduplicationService.getAllPotentialDuplicates( query );
-
-        assertEquals( 2, list.size() );
-        assertTrue( list.contains( pd1 ) );
-        assertTrue( list.contains( pd2 ) );
+        deduplicationService.isAutoMergeable( potentialDuplicate );
     }
 
-    @Test
-    public void testCountPotentialDuplicates()
+    @Test( expected = PotentialDuplicateException.class )
+    public void shouldThrowMissingTeiAB()
     {
-        PotentialDuplicate pd1 = new PotentialDuplicate( "ABCDEFGHIJ1" );
-        PotentialDuplicate pd2 = new PotentialDuplicate( "ABCDEFGHIJ1", "ABCDEFGHIJ2" );
-        PotentialDuplicate pd3 = new PotentialDuplicate( "ABCDEFGHIJ3" );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) ).thenReturn( null );
 
-        PotentialDuplicateQuery query = new PotentialDuplicateQuery();
-
-        deduplicationService.addPotentialDuplicate( pd1 );
-        deduplicationService.addPotentialDuplicate( pd2 );
-        deduplicationService.addPotentialDuplicate( pd3 );
-
-        query.setTeis( Arrays.asList( "ABCDEFGHIJ1" ) );
-
-        int count = deduplicationService.countPotentialDuplicates( query );
-
-        assertEquals( 2, count );
-
-        query.setTeis( Arrays.asList( "ABCDEFGHIJ2" ) );
-        count = deduplicationService.countPotentialDuplicates( query );
-
-        assertEquals( 1, count );
+        deduplicationService.isAutoMergeable( potentialDuplicate );
     }
 
-    @Test
-    public void testMarkPotentialDuplicateInvalid()
+    private TrackedEntityAttributeValue getTrackedEntityAttributeValue( String uid, String name,
+        TrackedEntityInstance trackedEntityInstance )
     {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( "ABCDEFGHIJ1", "ABCDEFGHIJ2" );
-        deduplicationService.addPotentialDuplicate( potentialDuplicate );
+        TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
+        attributeValue.setEntityInstance( trackedEntityInstance );
+        TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+        trackedEntityAttribute.setUid( uid );
+        trackedEntityAttribute.setName( name );
 
-        assertEquals( DeduplicationStatus.OPEN, potentialDuplicate.getStatus() );
+        attributeValue.setAttribute( trackedEntityAttribute );
 
-        deduplicationService.markPotentialDuplicateInvalid( potentialDuplicate );
-
-        assertEquals( DeduplicationStatus.INVALID, potentialDuplicate.getStatus() );
+        return attributeValue;
     }
-
 }

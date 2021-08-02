@@ -27,26 +27,27 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.system.util.LocaleUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebLocale;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,9 +78,6 @@ public class LocaleController
 
     @Autowired
     private I18nLocaleService localeService;
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -129,7 +127,7 @@ public class LocaleController
 
         if ( locale == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Cannot find Locale with uid: " + uid ) );
+            throw new WebMessageException( notFound( "Cannot find Locale with uid: " + uid ) );
         }
 
         return locale;
@@ -137,14 +135,13 @@ public class LocaleController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_ADD')" )
     @PostMapping( value = "/dbLocales" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public void addLocale( @RequestParam String country, @RequestParam String language,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public WebMessage addLocale( @RequestParam String country, @RequestParam String language,
+        HttpServletResponse response )
     {
         if ( StringUtils.isEmpty( country ) || StringUtils.isEmpty( language ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Invalid country or language code." ) );
+            return conflict( "Invalid country or language code." );
         }
 
         String localeCode = LocaleUtils.getLocaleString( language, country, null );
@@ -157,18 +154,14 @@ public class LocaleController
 
             if ( i18nLocale != null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Locale code existed." ) );
+                return conflict( "Locale code existed." );
             }
         }
 
         I18nLocale i18nLocale = localeService.addI18nLocale( language, country );
 
-        WebMessage webMessage = WebMessageUtils.created( "Locale created successfully" );
-
-        response.setHeader( ContextUtils.HEADER_LOCATION,
-            contextService.getApiPath() + "/locales/" + i18nLocale.getUid() );
-
-        webMessageService.send( webMessage, response, request );
+        return created( "Locale created successfully" )
+            .setLocation( "/locales/" + i18nLocale.getUid() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_DELETE')" )
@@ -181,7 +174,7 @@ public class LocaleController
 
         if ( i18nLocale == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Cannot find Locale with uid " + uid ) );
+            throw new WebMessageException( notFound( "Cannot find Locale with uid " + uid ) );
         }
 
         localeService.deleteI18nLocale( i18nLocale );

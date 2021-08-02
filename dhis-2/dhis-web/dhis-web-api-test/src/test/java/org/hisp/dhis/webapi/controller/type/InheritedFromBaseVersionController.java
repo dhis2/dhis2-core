@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
@@ -44,7 +45,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @ApiVersion( DhisApiVersion.V32 )
 public class InheritedFromBaseVersionController extends BaseWithVersionController
 {
-    @RequestMapping
+    @GetMapping
     public void test( HttpServletResponse response )
         throws IOException
     {

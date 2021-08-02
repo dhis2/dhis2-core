@@ -46,8 +46,8 @@ import javax.jms.TextMessage;
 
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -80,7 +80,7 @@ public class TrackerRuleEngineMessageManagerTest
     private TextMessage textMessage;
 
     @Mock
-    private SchedulingManager schedulingManager;
+    private AsyncTaskExecutor taskExecutor;
 
     @Mock
     private TrackerRuleEngineThread trackerRuleEngineThread;
@@ -122,17 +122,17 @@ public class TrackerRuleEngineMessageManagerTest
 
         when( textMessage.getText() ).thenReturn( "text" );
         when( objectFactory.getObject() ).thenReturn( trackerRuleEngineThread );
-        doNothing().when( schedulingManager ).executeJob( any( Runnable.class ) );
+        doNothing().when( taskExecutor ).executeTask( any( Runnable.class ) );
 
         when( renderService.fromJson( anyString(), eq( TrackerSideEffectDataBundle.class ) ) ).thenReturn( null );
         trackerRuleEngineMessageManager.consume( textMessage );
 
-        verify( schedulingManager, times( 0 ) ).executeJob( any( Runnable.class ) );
+        verify( taskExecutor, times( 0 ) ).executeTask( any( Runnable.class ) );
 
         doReturn( bundle ).when( renderService ).fromJson( anyString(), eq( TrackerSideEffectDataBundle.class ) );
         trackerRuleEngineMessageManager.consume( textMessage );
 
-        Mockito.verify( schedulingManager ).executeJob( runnableArgumentCaptor.capture() );
+        Mockito.verify( taskExecutor ).executeTask( runnableArgumentCaptor.capture() );
 
         assertTrue( runnableArgumentCaptor.getValue() instanceof TrackerRuleEngineThread );
     }

@@ -28,15 +28,17 @@
 package org.hisp.dhis.deduplication.hibernate;
 
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deduplication.PotentialDuplicate;
-import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
-import org.hisp.dhis.deduplication.PotentialDuplicateStore;
+import org.hisp.dhis.deduplication.*;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -58,32 +60,74 @@ public class HibernatePotentialDuplicateStore
     @Override
     public int getCountByQuery( PotentialDuplicateQuery query )
     {
-        if ( query.getTeis() != null && query.getTeis().size() > 0 )
-        {
+        String queryString = "select count(*) from PotentialDuplicate pr where pr.status in (:status)";
+
+        return Optional.ofNullable( query.getTeis() ).filter( teis -> !teis.isEmpty() ).map( teis -> {
             Query<Long> hibernateQuery = getTypedQuery(
-                "select count(*) from PotentialDuplicate pr where pr.teiA in (:uids)  or pr.teiB in (:uids)" );
-            hibernateQuery.setParameterList( "uids", query.getTeis() );
+                queryString + " and pr.teiA in (:uids) or pr.teiB in (:uids)" );
+
+            hibernateQuery.setParameterList( "uids", teis );
+
+            setStatusParameter( query.getStatus(), hibernateQuery );
+
             return hibernateQuery.getSingleResult().intValue();
-        }
-        else
-        {
-            return getCount();
-        }
+        } ).orElseGet( () -> {
+
+            Query<Long> hibernateQuery = getTypedQuery( queryString );
+
+            setStatusParameter( query.getStatus(), hibernateQuery );
+
+            return hibernateQuery.getSingleResult().intValue();
+        } );
     }
 
     @Override
     public List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query )
     {
-        if ( query.getTeis() != null && query.getTeis().size() > 0 )
-        {
+        String queryString = "from PotentialDuplicate pr where pr.status in (:status)";
+
+        return Optional.ofNullable( query.getTeis() ).filter( teis -> !teis.isEmpty() ).map( teis -> {
             Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
-                "from PotentialDuplicate pr where pr.teiA in (:uids)  or pr.teiB in (:uids)" );
-            hibernateQuery.setParameterList( "uids", query.getTeis() );
+                queryString + " and pr.teiA in (:uids) or pr.teiB in (:uids)" );
+
+            hibernateQuery.setParameterList( "uids", teis );
+
+            setStatusParameter( query.getStatus(), hibernateQuery );
+
             return hibernateQuery.getResultList();
+        } ).orElseGet( () -> {
+
+            Query<PotentialDuplicate> hibernateQuery = getTypedQuery( queryString );
+
+            setStatusParameter( query.getStatus(), hibernateQuery );
+
+            return hibernateQuery.getResultList();
+        } );
+    }
+
+    @Override
+    public List<PotentialDuplicate> getAllByTei( String tei, DeduplicationStatus status )
+    {
+        Query<PotentialDuplicate> query = getTypedQuery(
+            "from PotentialDuplicate pr where pr.status in (:status) and ( pr.teiA = :tei or pr.teiB = :tei )" );
+
+        query.setParameter( "tei", tei );
+
+        setStatusParameter( status, query );
+
+        return query.getResultList();
+    }
+
+    private void setStatusParameter( DeduplicationStatus status, Query<?> hibernateQuery )
+    {
+        if ( status == DeduplicationStatus.ALL )
+        {
+            hibernateQuery.setParameterList( "status", Arrays.stream( DeduplicationStatus.values() )
+                .filter( s -> s != DeduplicationStatus.ALL ).collect( Collectors.toSet() ) );
         }
         else
         {
-            return getAll();
+            hibernateQuery.setParameterList( "status", Collections.singletonList( status ) );
         }
     }
 
@@ -91,26 +135,16 @@ public class HibernatePotentialDuplicateStore
     @SuppressWarnings( "unchecked" )
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
-        NativeQuery<BigInteger> query;
-        if ( potentialDuplicate.getTeiA() == null )
-        {
-            return false;
-        }
+        if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
+            throw new PotentialDuplicateException(
+                "Can't search for pair of potential duplicates: teiA and teiB must not be null" );
 
-        if ( potentialDuplicate.getTeiB() == null )
-        {
-            query = getSession().createNativeQuery( "select count(potentialduplicateid) from potentialduplicate pd " +
-                "where pd.teiA = :teia limit 1" );
-            query.setParameter( "teia", potentialDuplicate.getTeiA() );
-        }
-        else
-        {
-            query = getSession().createNativeQuery( "select count(potentialduplicateid) from potentialduplicate pd " +
-                "where (pd.teiA = :teia and pd.teiB = :teib) or (pd.teiA = :teib and pd.teiB = :teia) limit 1" );
+        NativeQuery<BigInteger> query = getSession()
+            .createNativeQuery( "select count(potentialduplicateid) from potentialduplicate pd " +
+                "where (pd.teiA = :teia and pd.teiB = :teib) or (pd.teiA = :teib and pd.teiB = :teia)" );
 
-            query.setParameter( "teia", potentialDuplicate.getTeiA() );
-            query.setParameter( "teib", potentialDuplicate.getTeiB() );
-        }
+        query.setParameter( "teia", potentialDuplicate.getTeiA() );
+        query.setParameter( "teib", potentialDuplicate.getTeiB() );
 
         return query.getSingleResult().intValue() != 0;
     }

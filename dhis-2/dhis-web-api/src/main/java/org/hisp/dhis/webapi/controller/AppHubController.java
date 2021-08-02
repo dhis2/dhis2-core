@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -38,7 +40,6 @@ import org.hisp.dhis.apphub.WebApp;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -100,7 +101,7 @@ public class AppHubController
         {
             String message = i18nManager.getI18n().getString( status.getMessage() );
 
-            throw new WebMessageException( WebMessageUtils.conflict( message ) );
+            throw new WebMessageException( conflict( message ) );
         }
     }
 }
