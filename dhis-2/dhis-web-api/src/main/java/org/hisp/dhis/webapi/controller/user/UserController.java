@@ -28,6 +28,10 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 
 import java.io.IOException;
 import java.util.Date;
@@ -46,6 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -53,8 +58,8 @@ import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -262,7 +267,7 @@ public class UserController
 
         if ( user == null || user.getUserCredentials() == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "User not found: " + pvUid ) );
+            throw new WebMessageException( conflict( "User not found: " + pvUid ) );
         }
 
         User currentUser = currentUserService.getCurrentUser();
@@ -281,57 +286,61 @@ public class UserController
 
     @Override
     @PostMapping( consumes = { "application/xml", "text/xml" } )
-    public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postXmlObject( HttpServletRequest request )
         throws Exception
     {
-        postObject( request, response, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
+        return postObject( renderService.fromXml( request.getInputStream(), getEntityClass() ) );
     }
 
     @Override
     @PostMapping( consumes = "application/json" )
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postJsonObject( HttpServletRequest request )
         throws Exception
     {
-        postObject( request, response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
+        return postObject( renderService.fromJson( request.getInputStream(), getEntityClass() ) );
     }
 
-    private void postObject( HttpServletRequest request, HttpServletResponse response, User user )
+    private WebMessage postObject( User user )
         throws WebMessageException
     {
         User currentUser = currentUserService.getCurrentUser();
 
         validateCreateUser( user, currentUser );
 
-        postObject( request, response, getObjectReport( createUser( user, currentUser ) ) );
+        return postObject( getObjectReport( createUser( user, currentUser ) ) );
     }
 
     @PostMapping( value = INVITE_PATH, consumes = "application/json" )
-    public void postJsonInvite( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postJsonInvite( HttpServletRequest request )
         throws Exception
     {
-        postInvite( request, response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
+        return postInvite( request, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
     }
 
     @PostMapping( value = INVITE_PATH, consumes = { "application/xml", "text/xml" } )
-    public void postXmlInvite( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postXmlInvite( HttpServletRequest request )
         throws Exception
     {
-        postInvite( request, response, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
+        return postInvite( request, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
     }
 
-    private void postInvite( HttpServletRequest request, HttpServletResponse response, User user )
+    private WebMessage postInvite( HttpServletRequest request, User user )
         throws WebMessageException
     {
         User currentUser = currentUserService.getCurrentUser();
 
         validateInviteUser( user, currentUser );
 
-        postObject( request, response, inviteUser( user, currentUser, request ) );
+        return postObject( inviteUser( user, currentUser, request ) );
     }
 
     @PostMapping( value = BULK_INVITE_PATH, consumes = "application/json" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void postJsonInvites( HttpServletRequest request, HttpServletResponse response )
+    public void postJsonInvites( HttpServletRequest request )
         throws Exception
     {
         postInvites( request, renderService.fromJson( request.getInputStream(), Users.class ) );
@@ -340,7 +349,7 @@ public class UserController
     @PostMapping( value = BULK_INVITE_PATH, consumes = { "application/xml",
         "text/xml" } )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void postXmlInvites( HttpServletRequest request, HttpServletResponse response )
+    public void postXmlInvites( HttpServletRequest request )
         throws Exception
     {
         postInvites( request, renderService.fromXml( request.getInputStream(), Users.class ) );
@@ -371,19 +380,19 @@ public class UserController
 
         if ( user == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "User not found: " + id ) );
+            throw new WebMessageException( conflict( "User not found: " + id ) );
         }
 
         if ( user.getUserCredentials() == null || !user.getUserCredentials().isInvitation() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "User account is not an invitation: " + id ) );
+            throw new WebMessageException( conflict( "User account is not an invitation: " + id ) );
         }
 
         String valid = securityService.validateRestore( user.getUserCredentials() );
 
         if ( valid != null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( valid ) );
+            throw new WebMessageException( conflict( valid ) );
         }
 
         boolean isInviteUsername = securityService.isInviteUsername( user.getUsername() );
@@ -395,7 +404,7 @@ public class UserController
             .sendRestoreOrInviteMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ),
                 restoreOptions ) )
         {
-            throw new WebMessageException( WebMessageUtils.error( "Failed to send invite message" ) );
+            throw new WebMessageException( error( "Failed to send invite message" ) );
         }
     }
 
@@ -412,7 +421,7 @@ public class UserController
         String valid = securityService.validateRestore( user.getUserCredentials() );
         if ( valid != null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( valid ) );
+            throw new WebMessageException( conflict( valid ) );
         }
         User currentUser = currentUserService.getCurrentUser();
         if ( !aclService.canUpdate( currentUser, user ) )
@@ -433,7 +442,8 @@ public class UserController
     @SuppressWarnings( "unchecked" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_REPLICATE_USER')" )
     @PostMapping( "/{uid}/replica" )
-    public void replicateUser( @PathVariable String uid,
+    @ResponseBody
+    public WebMessage replicateUser( @PathVariable String uid,
         HttpServletRequest request, HttpServletResponse response )
         throws IOException,
         WebMessageException
@@ -442,7 +452,7 @@ public class UserController
 
         if ( existingUser == null || existingUser.getUserCredentials() == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "User not found: " + uid ) );
+            return conflict( "User not found: " + uid );
         }
 
         User currentUser = currentUserService.getCurrentUser();
@@ -456,23 +466,22 @@ public class UserController
 
         if ( auth == null || username == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Username must be specified" ) );
+            return conflict( "Username must be specified" );
         }
 
         if ( userService.getUserCredentialsByUsername( username ) != null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Username already taken: " + username ) );
+            return conflict( "Username already taken: " + username );
         }
 
         if ( password == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Password must be specified" ) );
+            return conflict( "Password must be specified" );
         }
 
         if ( !ValidationUtils.passwordIsValid( password ) )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Password must have at least 8 characters, one digit, one uppercase" ) );
+            return conflict( "Password must have at least 8 characters, one digit, one uppercase" );
         }
 
         User userReplica = new User();
@@ -516,8 +525,8 @@ public class UserController
                 userReplica ) );
         }
 
-        response.addHeader( "Location", UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid() );
-        webMessageService.send( WebMessageUtils.created( "User replica created" ), response, request );
+        return created( "User replica created" )
+            .setLocation( UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid() );
     }
 
     @PostMapping( "/{uid}/enabled" )
@@ -557,31 +566,28 @@ public class UserController
     // -------------------------------------------------------------------------
 
     @Override
-    @PutMapping( value = "/{uid}", consumes = { "application/xml", "text/xml" } )
-    public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+    @PutMapping( value = "/{uid}", consumes = { "application/xml", "text/xml" }, produces = "application/xml" )
+    @ResponseBody
+    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
     {
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
-        ImportReport importReport = updateUser( pvUid, parsed );
-
-        response.setContentType( "application/xml" );
-        renderService.toXml( response.getOutputStream(), importReport );
+        return importReport( updateUser( pvUid, parsed ) )
+            .withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     @Override
-    @PutMapping( value = "/{uid}", consumes = "application/json" )
-    public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
+    @PutMapping( value = "/{uid}", consumes = "application/json", produces = "application/json" )
+    @ResponseBody
+    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request )
         throws Exception
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        ImportReport importReport = updateUser( pvUid, parsed );
-
-        response.setContentType( "application/json" );
-        renderService.toJson( response.getOutputStream(), importReport );
+        return importReport( updateUser( pvUid, parsed ) )
+            .withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     protected ImportReport updateUser( String userUid, User parsedUserObject )
@@ -592,7 +598,7 @@ public class UserController
         if ( users.isEmpty() )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( getEntityName() + " does not exist: " + userUid ) );
+                conflict( getEntityName() + " does not exist: " + userUid ) );
         }
 
         User currentUser = currentUserService.getCurrentUser();
@@ -621,7 +627,7 @@ public class UserController
         if ( !userService.canAddOrUpdateUser( groupsUids, currentUser )
             || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "You must have permissions to create user, " +
                     "or ability to manage at least one user group for the user." ) );
         }
@@ -678,7 +684,7 @@ public class UserController
         if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
     }
@@ -709,13 +715,13 @@ public class UserController
         if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
 
         if ( userService.isLastSuperUser( entity.getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Can not remove the last super user." ) );
+            throw new WebMessageException( conflict( "Can not remove the last super user." ) );
         }
     }
 
@@ -738,7 +744,7 @@ public class UserController
 
         if ( !userService.canAddOrUpdateUser( getUids( user.getGroups() ), currentUser ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
 
@@ -749,7 +755,7 @@ public class UserController
             if ( !userGroupService.canAddOrRemoveMember( uid, currentUser ) )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "You don't have permissions to add user to user group: " + uid ) );
+                    conflict( "You don't have permissions to add user to user group: " + uid ) );
             }
         }
     }
@@ -790,7 +796,7 @@ public class UserController
 
         if ( credentials == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "User credentials is not present" ) );
+            throw new WebMessageException( conflict( "User credentials is not present" ) );
         }
 
         credentials.setUserInfo( user );
@@ -799,7 +805,7 @@ public class UserController
 
         if ( validateMessage != null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( validateMessage ) );
+            throw new WebMessageException( conflict( validateMessage ) );
         }
     }
 
@@ -931,7 +937,7 @@ public class UserController
         if ( !userService.canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( userToModify.getUserCredentials() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
     }

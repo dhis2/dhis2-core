@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -175,13 +174,6 @@ public class RelationshipControllerTest
     {
         when( relationshipService.getRelationshipByUid( REL_ID ) ).thenReturn( relationship );
         mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ).andExpect( status().isOk() );
-    }
-
-    @Test( expected = NestedServletException.class )
-    public void testDeleteRelationshipNotPresent()
-        throws Exception
-    {
-        mockMvc.perform( delete( ENDPOINT + "/" + REL_ID ) ).andExpect( status().isConflict() );
     }
 
     @Test

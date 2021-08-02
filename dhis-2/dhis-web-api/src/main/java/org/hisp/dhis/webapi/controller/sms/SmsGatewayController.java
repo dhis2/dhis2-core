@@ -27,21 +27,24 @@
  */
 package org.hisp.dhis.webapi.controller.sms;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -50,6 +53,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -67,9 +71,6 @@ public class SmsGatewayController
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     @Autowired
     private RenderService renderService;
@@ -102,7 +103,7 @@ public class SmsGatewayController
 
         if ( gateway == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "No gateway found" ) );
+            throw new WebMessageException( notFound( "No gateway found" ) );
         }
 
         generateOutput( response, gateway );
@@ -114,62 +115,62 @@ public class SmsGatewayController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @PutMapping( "/default/{uid}" )
-    public void setDefault( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage setDefault( @PathVariable String uid )
     {
         SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );
 
         if ( gateway == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "No gateway found" ) );
+            return notFound( "No gateway found" );
         }
 
         gatewayAdminService.setDefaultGateway( gateway );
 
-        webMessageService.send( WebMessageUtils.ok( gateway.getName() + " is set to default" ), response, request );
+        return ok( gateway.getName() + " is set to default" );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @PutMapping( "/{uid}" )
-    public void updateGateway( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException,
-        IOException
+    public WebMessage updateGateway( @PathVariable String uid, HttpServletRequest request )
+        throws IOException
     {
         SmsGatewayConfig config = gatewayAdminService.getByUid( uid );
 
         if ( config == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "No gateway found" ) );
+            return notFound( "No gateway found" );
         }
 
         SmsGatewayConfig updatedConfig = renderService.fromJson( request.getInputStream(), SmsGatewayConfig.class );
 
-        if ( gatewayAdminService.hasDefaultGateway() && updatedConfig.isDefault() )
+        if ( gatewayAdminService.hasDefaultGateway() && updatedConfig.isDefault() && !config.isDefault() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Default gateway already exists" ) );
+            return conflict( "Default gateway already exists" );
         }
 
         gatewayAdminService.updateGateway( config, updatedConfig );
 
-        webMessageService.send( WebMessageUtils.ok( String.format( "Gateway with uid: %s has been updated", uid ) ),
-            response, request );
+        return ok( String.format( "Gateway with uid: %s has been updated", uid ) );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @PostMapping
-    public void addGateway( HttpServletRequest request, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+    @ResponseBody
+    public WebMessage addGateway( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
     {
         SmsGatewayConfig config = renderService.fromJson( request.getInputStream(), SmsGatewayConfig.class );
 
         if ( config == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Cannot de-serialize SMS configurations" ) );
+            return conflict( "Cannot de-serialize SMS configurations" );
         }
 
         gatewayAdminService.addGateway( config );
-        webMessageService.send( WebMessageUtils.ok( "Gateway configuration added" ), response, request );
+
+        return ok( "Gateway configuration added" )
+            .setLocation( "/gateways/" + config.getUid() );
     }
 
     // -------------------------------------------------------------------------
@@ -178,19 +179,19 @@ public class SmsGatewayController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @DeleteMapping( "/{uid}" )
-    public void removeGateway( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage removeGateway( @PathVariable String uid )
     {
         SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );
 
         if ( gateway == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "No gateway found with id: " + uid ) );
+            return notFound( "No gateway found with id: " + uid );
         }
 
         gatewayAdminService.removeGatewayByUid( uid );
 
-        webMessageService.send( WebMessageUtils.ok( "Gateway removed successfully" ), response, request );
+        return ok( "Gateway removed successfully" );
     }
 
     private void generateOutput( HttpServletResponse response, Object value )

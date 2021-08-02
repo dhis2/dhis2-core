@@ -27,17 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller.sms;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import java.io.IOException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.render.RenderService;
@@ -46,7 +47,6 @@ import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -54,6 +54,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -67,21 +68,17 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
 {
     private final MessageSender smsSender;
 
-    private final WebMessageService webMessageService;
-
     private final RenderService renderService;
 
     private final OutboundSmsService outboundSmsService;
 
     public SmsOutboundController(
         @Qualifier( "smsMessageSender" ) MessageSender smsSender,
-        WebMessageService webMessageService,
         RenderService renderService,
         CurrentUserService currentUserService,
         OutboundSmsService outboundSmsService )
     {
         this.smsSender = smsSender;
-        this.webMessageService = webMessageService;
         this.renderService = renderService;
         this.currentUserService = currentUserService;
         this.outboundSmsService = outboundSmsService;
@@ -93,37 +90,33 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @PostMapping( produces = { "application/json" } )
-    public void sendSMSMessage( @RequestParam String recipient, @RequestParam String message,
-        HttpServletResponse response, HttpServletRequest request )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage sendSMSMessage( @RequestParam String recipient, @RequestParam String message )
     {
         if ( recipient == null || recipient.length() <= 0 )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Recipient must be specified" ) );
+            return conflict( "Recipient must be specified" );
         }
 
         if ( message == null || message.length() <= 0 )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Message must be specified" ) );
+            return conflict( "Message must be specified" );
         }
 
         OutboundMessageResponse status = smsSender.sendMessage( null, message, recipient );
 
         if ( status.isOk() )
         {
-            webMessageService.send( WebMessageUtils.ok( "SMS sent" ), response, request );
+            return ok( "SMS sent" );
         }
-        else
-        {
-            throw new WebMessageException( WebMessageUtils.error( status.getDescription() ) );
-        }
+        return error( status.getDescription() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @PostMapping( consumes = { "application/json" }, produces = { "application/json" } )
-    public void sendSMSMessage( HttpServletResponse response, HttpServletRequest request )
-        throws WebMessageException,
-        IOException
+    @ResponseBody
+    public WebMessage sendSMSMessage( HttpServletRequest request )
+        throws IOException
     {
         OutboundSms sms = renderService.fromJson( request.getInputStream(), OutboundSms.class );
 
@@ -131,12 +124,9 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
 
         if ( status.isOk() )
         {
-            webMessageService.send( WebMessageUtils.ok( "SMS sent" ), response, request );
+            return ok( "SMS sent" );
         }
-        else
-        {
-            throw new WebMessageException( WebMessageUtils.error( status.getDescription() ) );
-        }
+        return error( status.getDescription() );
     }
 
     // -------------------------------------------------------------------------
@@ -145,29 +135,28 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
 
     @DeleteMapping( value = "/{uid}", produces = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteOutboundMessage( @PathVariable String uid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage deleteOutboundMessage( @PathVariable String uid )
     {
         OutboundSms sms = outboundSmsService.get( uid );
 
         if ( sms == null )
         {
-            throw new WebMessageException( notFound( "No OutboundSms with id '" + uid + "' was found." ) );
+            return notFound( "No OutboundSms with id '" + uid + "' was found." );
         }
 
         outboundSmsService.delete( uid );
 
-        webMessageService.send( WebMessageUtils.ok( "OutboundSms with " + uid + " deleted" ), response, request );
+        return ok( "OutboundSms with " + uid + " deleted" );
     }
 
     @DeleteMapping( produces = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteOutboundMessages( @RequestParam List<String> ids, HttpServletRequest request,
-        HttpServletResponse response )
+    @ResponseBody
+    public WebMessage deleteOutboundMessages( @RequestParam List<String> ids )
     {
         ids.forEach( outboundSmsService::delete );
 
-        webMessageService.send( WebMessageUtils.ok( "Objects deleted" ), response, request );
+        return ok( "Objects deleted" );
     }
 }

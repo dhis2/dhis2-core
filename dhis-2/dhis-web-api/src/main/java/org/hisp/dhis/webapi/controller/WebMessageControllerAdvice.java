@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageResponse;
+import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -48,8 +53,11 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  * @author Jan Bernitt
  */
 @ControllerAdvice
-public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage>
+public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessageResponse>
 {
+    @Autowired
+    private ContextService contextService;
+
     @Override
     public boolean supports( MethodParameter returnType,
         Class<? extends HttpMessageConverter<?>> selectedConverterType )
@@ -58,11 +66,23 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
     }
 
     @Override
-    public WebMessage beforeBodyWrite( WebMessage body, MethodParameter returnType, MediaType selectedContentType,
+    public WebMessageResponse beforeBodyWrite( WebMessageResponse body, MethodParameter returnType,
+        MediaType selectedContentType,
         Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request,
         ServerHttpResponse response )
     {
-        HttpStatus httpStatus = HttpStatus.resolve( body.getHttpStatusCode() );
+        WebMessage message = (WebMessage) body;
+        String location = message.getLocation();
+        if ( location != null )
+        {
+            response.getHeaders().addIfAbsent( ContextUtils.HEADER_LOCATION,
+                contextService.getApiPath() + location );
+        }
+        if ( isPlainResponse( request, message ) )
+        {
+            return ((WebMessage) body).getResponse();
+        }
+        HttpStatus httpStatus = HttpStatus.resolve( message.getHttpStatusCode() );
         if ( httpStatus != null )
         {
             response.setStatusCode( httpStatus );
@@ -73,5 +93,12 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
             }
         }
         return body;
+    }
+
+    private boolean isPlainResponse( ServerHttpRequest request, WebMessage message )
+    {
+        DhisApiVersion plainBefore = message.getPlainResponseBefore();
+        return plainBefore == DhisApiVersion.ALL
+            || plainBefore != null && DhisApiVersion.getVersionFromPath( request.getURI().getPath() ).lt( plainBefore );
     }
 }

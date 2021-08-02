@@ -28,6 +28,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
 import java.io.IOException;
@@ -54,7 +60,6 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -78,8 +83,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -123,9 +126,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     protected MetadataExportService exportService;
 
     @Autowired
-    protected WebMessageService webMessageService;
-
-    @Autowired
     protected HibernateCacheManager hibernateCacheManager;
 
     @Autowired
@@ -151,9 +151,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     protected SharingService sharingService;
 
     @PutMapping( value = "/{uid}/translations" )
-    public void replaceTranslations(
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    @ResponseBody
+    public WebMessage replaceTranslations(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request, HttpServletResponse response )
+        HttpServletRequest request )
         throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
@@ -161,7 +163,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            return notFound( getEntityClass(), pvUid );
         }
 
         T persistedObject = entities.get( 0 );
@@ -212,15 +214,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( typeReport.hasErrorReports() )
         {
-            WebMessage webMessage = WebMessageUtils.typeReport( typeReport );
-            webMessageService.send( webMessage, response, request );
-            return;
+            return typeReport( typeReport );
         }
 
         validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
         manager.updateTranslations( persistedObject, object.getTranslations() );
-
-        response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+        return null;
     }
 
     // --------------------------------------------------------------------------
@@ -239,7 +238,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
         }
 
         T persistedObject = entities.get( 0 );
@@ -267,7 +266,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
         if ( mapper == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
+            throw new WebMessageException( badRequest( "Unknown payload format." ) );
         }
         return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
     }
@@ -286,13 +285,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
         }
 
         if ( !getSchema().haveProperty( pvProperty ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
+                notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
         }
 
         Property property = getSchema().getProperty( pvProperty );
@@ -312,7 +311,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( object == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
+            throw new WebMessageException( badRequest( "Unknown payload format." ) );
         }
 
         prePatchEntity( persistedObject );
@@ -339,11 +338,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
      */
     @ResponseBody
     @PatchMapping( path = "/{uid}", consumes = { "application/json-patch+json" } )
-    public void partialUpdateObject(
+    public WebMessage patchObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request,
-        HttpServletResponse response )
+        HttpServletRequest request )
         throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
@@ -351,7 +349,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            return notFound( getEntityClass(), pvUid );
         }
 
         final T persistedObject = entities.get( 0 );
@@ -387,7 +385,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             .addObject( patchedObject );
 
         ImportReport importReport = importService.importMetadata( params );
-        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
+        WebMessage webMessage = objectReport( importReport );
 
         if ( importReport.getStatus() == Status.OK )
         {
@@ -399,7 +397,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             webMessage.setStatus( Status.ERROR );
         }
 
-        webMessageService.send( webMessage, response, request );
+        return webMessage;
     }
 
     // --------------------------------------------------------------------------
@@ -407,20 +405,22 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // --------------------------------------------------------------------------
 
     @PostMapping( consumes = "application/json" )
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postJsonObject( HttpServletRequest request )
         throws Exception
     {
-        postObject( request, response, deserializeJsonEntity( request, response ) );
+        return postObject( deserializeJsonEntity( request ) );
     }
 
     @PostMapping( consumes = { "application/xml", "text/xml" } )
-    public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postXmlObject( HttpServletRequest request )
         throws Exception
     {
-        postObject( request, response, deserializeXmlEntity( request ) );
+        return postObject( deserializeXmlEntity( request ) );
     }
 
-    private void postObject( HttpServletRequest request, HttpServletResponse response, T parsed )
+    private WebMessage postObject( T parsed )
         throws Exception
     {
         User user = currentUserService.getCurrentUser();
@@ -438,21 +438,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             .setImportReportMode( ImportReportMode.FULL ).setUser( user ).setImportStrategy( ImportStrategy.CREATE )
             .addObject( parsed );
 
-        postObject( request, response, getObjectReport( importService.importMetadata( params ) ) );
+        return postObject( getObjectReport( importService.importMetadata( params ) ) );
     }
 
-    protected final void postObject( HttpServletRequest request, HttpServletResponse response,
-        ObjectReport objectReport )
+    protected final WebMessage postObject( ObjectReport objectReport )
     {
-        WebMessage webMessage = WebMessageUtils.objectReport( objectReport );
+        WebMessage webMessage = objectReport( objectReport );
 
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
-            String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/"
-                + objectReport.getUid();
-
             webMessage.setHttpStatus( HttpStatus.CREATED );
-            response.setHeader( ContextUtils.HEADER_LOCATION, location );
+            webMessage.setLocation( getSchema().getRelativeApiEndpoint() + "/" + objectReport.getUid() );
             T entity = manager.get( getEntityClass(), objectReport.getUid() );
             postCreateEntity( entity );
         }
@@ -461,7 +457,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             webMessage.setStatus( Status.ERROR );
         }
 
-        webMessageService.send( webMessage, response, request );
+        return webMessage;
     }
 
     private ObjectReport getObjectReport( ImportReport importReport )
@@ -470,22 +466,19 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     @PostMapping( value = "/{uid}/favorite" )
-    @ResponseStatus( HttpStatus.OK )
-    public void setAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public WebMessage setAsFavorite( @PathVariable( "uid" ) String pvUid )
     {
         if ( !getSchema().isFavoritable() )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+            return conflict( "Objects of this class cannot be set as favorite" );
         }
 
         List<T> entity = getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            return notFound( getEntityClass(), pvUid );
         }
 
         T object = entity.get( 0 );
@@ -494,28 +487,23 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         object.setAsFavorite( user );
         manager.updateNoAcl( object );
 
-        String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
-        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+        return ok( String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() ) );
     }
 
     @PostMapping( value = "/{uid}/subscriber" )
-    @ResponseStatus( HttpStatus.OK )
-    @SuppressWarnings( "unchecked" )
-    public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public WebMessage subscribe( @PathVariable( "uid" ) String pvUid )
     {
         if ( !getSchema().isSubscribable() )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
+            return conflict( "Objects of this class cannot be subscribed to" );
         }
-
+        @SuppressWarnings( "unchecked" )
         List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            return notFound( getEntityClass(), pvUid );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -524,8 +512,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         object.subscribe( user );
         manager.updateNoAcl( object );
 
-        String message = String.format( "User '%s' subscribed to object '%s'", user.getUsername(), pvUid );
-        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+        return ok( String.format( "User '%s' subscribed to object '%s'", user.getUsername(), pvUid ) );
     }
 
     // --------------------------------------------------------------------------
@@ -533,15 +520,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // --------------------------------------------------------------------------
 
     @PutMapping( value = "/{uid}", consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
+    @ResponseBody
+    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request )
         throws Exception
     {
         List<T> objects = getEntity( pvUid );
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            return notFound( getEntityClass(), pvUid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -551,7 +538,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        T parsed = deserializeJsonEntity( request, response );
+        T parsed = deserializeJsonEntity( request );
         ((BaseIdentifiableObject) parsed).setUid( pvUid );
 
         preUpdateEntity( objects.get( 0 ), parsed );
@@ -569,7 +556,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
 
         ImportReport importReport = importService.importMetadata( params );
-        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
+        WebMessage webMessage = objectReport( importReport );
 
         if ( importReport.getStatus() == Status.OK )
         {
@@ -581,11 +568,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             webMessage.setStatus( Status.ERROR );
         }
 
-        webMessageService.send( webMessage, response, request );
+        return webMessage;
     }
 
     @PutMapping( value = "/{uid}", consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE } )
-    public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+    @ResponseBody
+    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
     {
@@ -593,7 +581,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            return notFound( getEntityClass(), pvUid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -615,7 +603,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             .addObject( parsed );
 
         ImportReport importReport = importService.importMetadata( params );
-        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
+        WebMessage webMessage = objectReport( importReport );
 
         if ( importReport.getStatus() == Status.OK )
         {
@@ -627,7 +615,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             webMessage.setStatus( Status.ERROR );
         }
 
-        webMessageService.send( webMessage, response, request );
+        return webMessage;
     }
 
     // --------------------------------------------------------------------------
@@ -635,8 +623,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // --------------------------------------------------------------------------
 
     @DeleteMapping( value = "/{uid}" )
-    @ResponseStatus( HttpStatus.OK )
-    public void deleteObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+    @ResponseBody
+    public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
     {
@@ -644,7 +632,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            return notFound( getEntityClass(), pvUid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -666,26 +654,23 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         postDeleteEntity( pvUid );
 
-        webMessageService.send( WebMessageUtils.objectReport( importReport ), response, request );
+        return objectReport( importReport );
     }
 
     @DeleteMapping( value = "/{uid}/favorite" )
-    @ResponseStatus( HttpStatus.OK )
-    public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public WebMessage removeAsFavorite( @PathVariable( "uid" ) String pvUid )
     {
         if ( !getSchema().isFavoritable() )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+            return conflict( "Objects of this class cannot be set as favorite" );
         }
 
         List<T> entity = getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            return notFound( getEntityClass(), pvUid );
         }
 
         T object = entity.get( 0 );
@@ -694,28 +679,24 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         object.removeAsFavorite( user );
         manager.updateNoAcl( object );
 
-        String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );
-        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+        return ok( String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() ) );
     }
 
     @DeleteMapping( value = "/{uid}/subscriber" )
-    @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
     @SuppressWarnings( "unchecked" )
-    public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws Exception
+    public WebMessage unsubscribe( @PathVariable( "uid" ) String pvUid )
     {
         if ( !getSchema().isSubscribable() )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
+            return conflict( "Objects of this class cannot be subscribed to" );
         }
 
         List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            return notFound( getEntityClass(), pvUid );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -724,8 +705,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         object.unsubscribe( user );
         manager.updateNoAcl( object );
 
-        String message = String.format( "User '%s' removed as subscriber of object '%s'", user.getUsername(), pvUid );
-        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+        return ok( String.format( "User '%s' removed as subscriber of object '%s'", user.getUsername(), pvUid ) );
     }
 
     // --------------------------------------------------------------------------
@@ -809,7 +789,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         List<T> objects = getEntity( pvUid );
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
         }
 
         T object = objects.get( 0 );
@@ -865,7 +845,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         List<T> objects = getEntity( pvUid );
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
         }
 
         IdentifiableObjects items = new IdentifiableObjects();
@@ -874,16 +854,16 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     @PutMapping( value = "/{uid}/sharing", consumes = "application/json" )
-    public void setSharing( @PathVariable( "uid" ) String uid, HttpServletRequest request,
-        HttpServletResponse response )
-        throws WebMessageException,
-        IOException
+    @ResponseBody
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public WebMessage setSharing( @PathVariable( "uid" ) String uid, HttpServletRequest request )
+        throws IOException
     {
         T entity = manager.get( getEntityClass(), uid );
 
         if ( entity == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), uid ) );
+            return notFound( getEntityClass(), uid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -901,19 +881,16 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( typeReport.hasErrorReports() )
         {
-            WebMessage webMessage = WebMessageUtils.typeReport( typeReport );
-            webMessageService.send( webMessage, response, request );
-            return;
+            return typeReport( typeReport );
         }
-
-        response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+        return null;
     }
 
     // --------------------------------------------------------------------------
     // Hooks
     // --------------------------------------------------------------------------
 
-    protected T deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
+    protected T deserializeJsonEntity( HttpServletRequest request )
         throws IOException
     {
         return renderService.fromJson( request.getInputStream(), getEntityClass() );
@@ -975,46 +952,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // --------------------------------------------------------------------------
 
     /**
-     * Serializes an object, tries to guess output format using this order.
-     *
-     * @param request HttpServletRequest from current session
-     * @param response HttpServletResponse from current session
-     * @param object Object to serialize
-     */
-    protected void serialize( HttpServletRequest request, HttpServletResponse response, Object object )
-        throws IOException
-    {
-        String type = request.getHeader( "Accept" );
-        type = !StringUtils.isEmpty( type ) ? type : request.getContentType();
-        type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
-
-        // allow type to be overridden by path extension
-        if ( request.getPathInfo().endsWith( ".json" ) )
-        {
-            type = MediaType.APPLICATION_JSON_VALUE;
-        }
-        else if ( request.getPathInfo().endsWith( ".xml" ) )
-        {
-            type = MediaType.APPLICATION_XML_VALUE;
-        }
-
-        if ( isCompatibleWith( type, MediaType.APPLICATION_JSON ) )
-        {
-            renderService.toJson( response.getOutputStream(), object );
-        }
-        else if ( isCompatibleWith( type, MediaType.APPLICATION_XML ) )
-        {
-            renderService.toXml( response.getOutputStream(), object );
-        }
-    }
-
-    /**
      * Deserializes a payload from the request, handles JSON/XML payloads
      *
      * @param request HttpServletRequest from current session
      * @return Parsed entity or null if invalid type
      */
-    protected T deserialize( HttpServletRequest request )
+    private T deserialize( HttpServletRequest request )
         throws IOException
     {
         String type = request.getContentType();
@@ -1048,7 +991,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
      * @param request HttpServletRequest from current session
      * @return true if JSON compatible
      */
-    protected boolean isJson( HttpServletRequest request )
+    private boolean isJson( HttpServletRequest request )
     {
         String type = request.getContentType();
         type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
@@ -1068,7 +1011,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
      * @param request HttpServletRequest from current session
      * @return true if XML compatible
      */
-    protected boolean isXml( HttpServletRequest request )
+    private boolean isXml( HttpServletRequest request )
     {
         String type = request.getContentType();
         type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
@@ -1082,7 +1025,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return isCompatibleWith( type, MediaType.APPLICATION_XML );
     }
 
-    protected boolean isCompatibleWith( String type, MediaType mediaType )
+    private boolean isCompatibleWith( String type, MediaType mediaType )
     {
         try
         {
