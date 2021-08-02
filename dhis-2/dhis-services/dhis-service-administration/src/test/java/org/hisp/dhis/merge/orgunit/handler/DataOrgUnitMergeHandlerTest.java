@@ -154,7 +154,7 @@ public class DataOrgUnitMergeHandlerTest
     }
 
     @Test
-    public void testMergeDataValuesLastUpdated()
+    public void testMergeDataValuesLastUpdatedStrategy()
     {
         addDataValues(
             createDataValue( deA, peA, ouA, cocA, cocA, "10", date( 2021, 1, 1 ), date( 2021, 1, 1 ) ),
@@ -181,13 +181,13 @@ public class DataOrgUnitMergeHandlerTest
     }
 
     @Test
-    public void testMergeDataValuesSum()
+    public void testMergeDataValuesSumStrategy()
     {
         addDataValues(
-            createDataValue( deA, peA, ouA, cocA, cocA, "20", date( 2021, 1, 1 ), date( 2021, 1, 1 ) ),
-            createDataValue( deA, peA, ouB, cocA, cocA, "21", date( 2021, 2, 1 ), date( 2021, 2, 1 ) ),
-            createDataValue( deB, peA, ouA, cocA, cocA, "22", date( 2021, 3, 1 ), date( 2021, 3, 1 ) ),
-            createDataValue( deB, peA, ouB, cocA, cocA, "23", date( 2021, 4, 1 ), date( 2021, 4, 1 ) ) );
+            createDataValue( deA, peA, ouA, cocA, cocA, "20", date( 2020, 1, 1 ), date( 2020, 1, 1 ) ),
+            createDataValue( deA, peA, ouB, cocA, cocA, "21", date( 2020, 2, 1 ), date( 2020, 2, 1 ) ),
+            createDataValue( deB, peA, ouA, cocA, cocA, "22", date( 2020, 3, 1 ), date( 2020, 3, 1 ) ),
+            createDataValue( deB, peA, ouB, cocA, cocA, "23", date( 2020, 4, 1 ), date( 2020, 4, 1 ) ) );
 
         assertEquals( 2, getDataValueCount( ouA ) );
         assertEquals( 2, getDataValueCount( ouB ) );
@@ -208,13 +208,13 @@ public class DataOrgUnitMergeHandlerTest
     }
 
     @Test
-    public void testMergeDataValuesJoin()
+    public void testMergeDataValuesJoinStrategy()
     {
         addDataValues(
-            createDataValue( deC, peA, ouA, cocA, cocA, "Blue color", date( 2021, 1, 1 ), date( 2021, 1, 1 ) ),
-            createDataValue( deC, peA, ouB, cocA, cocA, "Tall tree", date( 2021, 2, 1 ), date( 2021, 2, 1 ) ),
-            createDataValue( deD, peA, ouA, cocA, cocA, "Red bike", date( 2021, 3, 1 ), date( 2021, 3, 1 ) ),
-            createDataValue( deD, peA, ouB, cocA, cocA, "Long stick", date( 2021, 4, 1 ), date( 2021, 4, 1 ) ) );
+            createDataValue( deC, peA, ouA, cocA, cocA, "Blue color", date( 2019, 1, 1 ), date( 2019, 1, 1 ) ),
+            createDataValue( deC, peA, ouB, cocA, cocA, "Tall tree", date( 2019, 2, 1 ), date( 2019, 2, 1 ) ),
+            createDataValue( deD, peA, ouA, cocA, cocA, "Red bike", date( 2019, 3, 1 ), date( 2019, 3, 1 ) ),
+            createDataValue( deD, peA, ouB, cocA, cocA, "Long stick", date( 2019, 4, 1 ), date( 2019, 4, 1 ) ) );
 
         assertEquals( 2, getDataValueCount( ouA ) );
         assertEquals( 2, getDataValueCount( ouB ) );
