@@ -102,11 +102,6 @@ import com.google.common.collect.Lists;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public abstract class AbstractCrudController<T extends IdentifiableObject> extends AbstractFullReadOnlyController<T>
 {
-
-    // --------------------------------------------------------------------------
-    // Dependencies
-    // --------------------------------------------------------------------------
-
     @Autowired
     protected SchemaValidator schemaValidator;
 
@@ -363,7 +358,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         prePatchEntity( persistedObject );
 
         final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
-        final T patchedObject = (T) jsonPatchManager.apply( patch, persistedObject );
+        final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
 
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
