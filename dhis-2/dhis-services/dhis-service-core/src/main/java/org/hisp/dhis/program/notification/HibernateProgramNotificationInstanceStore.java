@@ -27,12 +27,17 @@
  */
 package org.hisp.dhis.program.notification;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
@@ -74,5 +79,52 @@ public class HibernateProgramNotificationInstanceStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "programStageInstance" ), programStageInstance ) ) );
+    }
+
+    @Override
+    public List<ProgramNotificationInstance> getProgramNotificationInstances(ProgramNotificationInstanceParam params)
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<ProgramNotificationInstance> jpaParameters = newJpaParameters()
+                .addPredicates( getPredicates( params, builder ) )
+                .addOrder( root -> builder.desc( root.get( "created" ) ) );
+
+        if ( params.hasPaging() )
+        {
+            jpaParameters.setFirstResult( params.getPage() ).setMaxResults( params.getPageSize() );
+        }
+        else
+        {
+            jpaParameters.setFirstResult( ProgramNotificationInstanceParam.DEFAULT_PAGE ).setMaxResults( ProgramNotificationInstanceParam.DEFAULT_PAGE_SIZE );
+        }
+
+        return getList( builder, jpaParameters );
+    }
+
+    private List<Function<Root<ProgramNotificationInstance>, Predicate>> getPredicates(
+            ProgramNotificationInstanceParam params, CriteriaBuilder builder )
+    {
+        List<Function<Root<ProgramNotificationInstance>, Predicate>> predicates = new ArrayList<>();
+
+        if ( params.hasProgramStageInstance() )
+        {
+            predicates.add( root -> builder.equal( root.get( "programStageInstance" ),
+                    params.getProgramStageInstance() ) );
+        }
+
+        if ( params.hasProgramInstance() )
+        {
+            predicates.add( root -> builder.equal( root.get( "programInstance" ),
+                    params.getProgramInstance() ) );
+        }
+
+        if ( params.hasProgramInstance() )
+        {
+            predicates.add( root -> builder.equal( root.get( "scheduledAt" ),
+                    params.getProgramInstance() ) );
+        }
+
+        return predicates;
     }
 }

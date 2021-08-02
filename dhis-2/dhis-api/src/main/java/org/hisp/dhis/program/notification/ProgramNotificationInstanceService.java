@@ -56,4 +56,9 @@ public interface ProgramNotificationInstanceService
      * (ProgramStageInstance)
      */
     List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance );
+
+
+    List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramNotificationInstanceParam programNotificationInstanceParam );
+
+    void validateQueryParameters( ProgramNotificationInstanceParam param );
 }

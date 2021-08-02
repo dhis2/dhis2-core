@@ -43,4 +43,6 @@ public interface ProgramNotificationInstanceStore
     List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramInstance programInstance );
 
     List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance );
+
+    List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramNotificationInstanceParam programNotificationInstanceParam );
 }
