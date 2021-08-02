@@ -91,8 +91,7 @@ public class DataOrgUnitMergeHandler
 
         final SqlParameterSource params = new MapSqlParameterSource()
             .addValue( "source_ids", getIdentifiers( request.getSources() ) )
-            .addValue( "target_id", request.getTarget().getId() )
-            .addValue( "numeric_regex", MathUtils.NUMERIC_REGEXP );
+            .addValue( "target_id", request.getTarget().getId() );
 
         jdbcTemplate.update( sql, params );
     }
@@ -152,13 +151,17 @@ public class DataOrgUnitMergeHandler
 
     private String getMergeDataValuesAggregateSql( OrgUnitMergeRequest request )
     {
-        String aggFunc = request.getDataValueMergeStrategy().getAggregateFunction();
+        String aggFunction = request.getDataValueMergeStrategy().getAggregateFunction();
 
-        Preconditions.checkNotNull( aggFunc );
+        Preconditions.checkNotNull( aggFunction );
 
-        String aggStr = DataMergeStrategy.JOIN == request.getDataValueMergeStrategy()
-            ? String.format( "%s(value, '; ')::varchar", aggFunc )
-            : String.format( "%s(value::double precision)::varchar", aggFunc );
+        String aggExpression = DataMergeStrategy.JOIN == request.getDataValueMergeStrategy()
+            ? String.format( "%s(value, '; ')::varchar", aggFunction )
+            : String.format( "%s(value::double precision)::varchar", aggFunction );
+
+        String numericFilter = DataMergeStrategy.JOIN == request.getDataValueMergeStrategy()
+            ? ""
+            : String.format( "and value ~* '%s' ", MathUtils.NUMERIC_LENIENT_REGEXP );
 
         // @formatter:off
         return String.format(
@@ -171,14 +174,14 @@ public class DataOrgUnitMergeHandler
             "select dataelementid, periodid, %s as sourceid, categoryoptioncomboid, attributeoptioncomboid, " +
                 "%s as value, 'merge-operation' as storedby, now() as created, " +
                 "now() as lastupdated, null as comment, false as followup, false as deleted " +
-            "from datavalue dv " +
-            "where dv.sourceid in (:source_ids) " +
-                "and dv.deleted is false " +
-                "and dv.value ~ :numeric_regex " +
-                "group by dv.dataelementid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid;" +
+            "from datavalue " +
+            "where sourceid in (:source_ids) " +
+                "and deleted is false " +
+                "%s " +
+                "group by dataelementid, periodid, categoryoptioncomboid, attributeoptioncomboid; " +
              // Delete source data values
              "delete from datavalue where sourceid in (:source_ids);",
-             request.getTarget().getId(), aggStr );
+             request.getTarget().getId(), aggExpression, numericFilter );
         // @formatter:on
     }
 

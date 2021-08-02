@@ -32,9 +32,11 @@ import static org.junit.Assert.assertEquals;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalService;
@@ -92,6 +94,10 @@ public class DataOrgUnitMergeHandlerTest
 
     private DataElement deB;
 
+    private DataElement deC;
+
+    private DataElement deD;
+
     private CategoryOptionCombo cocA;
 
     private Period peA;
@@ -117,8 +123,12 @@ public class DataOrgUnitMergeHandlerTest
 
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
+        deC = createDataElement( 'C', ValueType.TEXT, AggregationType.NONE );
+        deD = createDataElement( 'D', ValueType.TEXT, AggregationType.NONE );
         idObjectManager.save( deA );
         idObjectManager.save( deB );
+        idObjectManager.save( deC );
+        idObjectManager.save( deD );
 
         PeriodType monthly = periodService.getPeriodTypeByClass( MonthlyPeriodType.class );
         peA = monthly.createPeriod( "202101" );
@@ -201,10 +211,10 @@ public class DataOrgUnitMergeHandlerTest
     public void testMergeDataValuesJoin()
     {
         addDataValues(
-            createDataValue( deA, peA, ouA, cocA, cocA, "Blue color", date( 2021, 1, 1 ), date( 2021, 1, 1 ) ),
-            createDataValue( deA, peA, ouB, cocA, cocA, "Tall tree", date( 2021, 2, 1 ), date( 2021, 2, 1 ) ),
-            createDataValue( deB, peA, ouA, cocA, cocA, "Red bike", date( 2021, 3, 1 ), date( 2021, 3, 1 ) ),
-            createDataValue( deB, peA, ouB, cocA, cocA, "Long stick", date( 2021, 4, 1 ), date( 2021, 4, 1 ) ) );
+            createDataValue( deC, peA, ouA, cocA, cocA, "Blue color", date( 2021, 1, 1 ), date( 2021, 1, 1 ) ),
+            createDataValue( deC, peA, ouB, cocA, cocA, "Tall tree", date( 2021, 2, 1 ), date( 2021, 2, 1 ) ),
+            createDataValue( deD, peA, ouA, cocA, cocA, "Red bike", date( 2021, 3, 1 ), date( 2021, 3, 1 ) ),
+            createDataValue( deD, peA, ouB, cocA, cocA, "Long stick", date( 2021, 4, 1 ), date( 2021, 4, 1 ) ) );
 
         assertEquals( 2, getDataValueCount( ouA ) );
         assertEquals( 2, getDataValueCount( ouB ) );
