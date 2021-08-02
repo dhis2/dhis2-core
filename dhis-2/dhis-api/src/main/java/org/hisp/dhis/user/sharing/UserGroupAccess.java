@@ -54,7 +54,7 @@ public class UserGroupAccess
      */
     public UserGroupAccess( org.hisp.dhis.user.UserGroupAccess userGroupAccess )
     {
-        super( userGroupAccess.getAccess(), userGroupAccess.getUserGroupUid() );
+        super( userGroupAccess.getAccess(), userGroupAccess.getUid() );
     }
 
     public UserGroupAccess( String access, String id )

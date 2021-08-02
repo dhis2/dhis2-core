@@ -59,7 +59,7 @@ public class UserAccess
      */
     public UserAccess( org.hisp.dhis.user.UserAccess userAccess )
     {
-        super( userAccess.getAccess(), userAccess.getUserUid() );
+        super( userAccess.getAccess(), userAccess.getUid() );
     }
 
     public void setUser( User user )
