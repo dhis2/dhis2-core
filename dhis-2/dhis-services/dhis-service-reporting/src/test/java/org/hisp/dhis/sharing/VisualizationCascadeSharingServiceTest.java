@@ -59,7 +59,7 @@ public class VisualizationCascadeSharingServiceTest
     private AclService aclService;
 
     @Autowired
-    private CascadeSharingService<Visualization> cascadeSharingService;
+    private CascadeSharingService cascadeSharingService;
 
     private User userA;
 

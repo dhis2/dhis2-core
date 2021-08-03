@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.visualization;
+package org.hisp.dhis.dashboard.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,23 +36,63 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.sharing.AbstractCascadeSharingService;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
 import org.hisp.dhis.sharing.CascadeSharingReport;
 import org.hisp.dhis.sharing.CascadeSharingService;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class VisualizationCascadeSharingService
-    extends AbstractCascadeSharingService
-    implements CascadeSharingService<Visualization>
+public class DefaultCascadeSharingService
+    extends AbstractCascadeSharingService implements CascadeSharingService
 {
     private final IdentifiableObjectManager manager;
 
-    public VisualizationCascadeSharingService( @NonNull IdentifiableObjectManager manager )
+    public DefaultCascadeSharingService( @NonNull IdentifiableObjectManager manager )
     {
         this.manager = manager;
+    }
+
+    @Override
+    @Transactional
+    public CascadeSharingReport cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters )
+    {
+        dashboard.getItems().forEach( dashboardItem -> {
+            switch ( dashboardItem.getType() )
+            {
+            case MAP:
+                mergeSharing( dashboard, dashboardItem.getMap(), parameters );
+                break;
+            case VISUALIZATION:
+                handleVisualization( dashboard, dashboardItem, dashboardItem.getVisualization(), parameters );
+                break;
+            case CHART:
+                handleVisualization( dashboard, dashboardItem, dashboardItem.getChart(), parameters );
+                break;
+            case REPORT_TABLE:
+                handleVisualization( dashboard, dashboardItem, dashboardItem.getReportTable(), parameters );
+                break;
+            case EVENT_REPORT:
+                handleVisualization( dashboard, dashboardItem, dashboardItem.getEventReport(), parameters );
+                break;
+            case EVENT_CHART:
+                handleVisualization( dashboard, dashboardItem, dashboardItem.getEventChart(), parameters );
+                break;
+            default:
+                break;
+            }
+        } );
+
+        if ( canUpdate( parameters ) )
+        {
+            manager.update( dashboard );
+        }
+
+        return parameters.getReport();
     }
 
     @Override
@@ -87,5 +127,37 @@ public class VisualizationCascadeSharingService
         }
 
         return parameters.getReport();
+    }
+
+    private void handleVisualization( Dashboard dashboard, DashboardItem dashboardItem, Visualization visualization,
+        CascadeSharingParameters parameters )
+    {
+        if ( visualization == null )
+        {
+            return;
+        }
+
+        dashboardItem.setVisualization( mergeSharing( dashboard, dashboardItem.getVisualization(), parameters ) );
+        cascadeSharing( dashboardItem.getVisualization(), parameters );
+    }
+
+    private void handleVisualization( Dashboard dashboard, DashboardItem dashboardItem,
+        IdentifiableObject identifiableObject, CascadeSharingParameters parameters )
+    {
+        if ( identifiableObject == null )
+        {
+            return;
+        }
+
+        Visualization visualization = manager.get( Visualization.class, identifiableObject.getUid() );
+
+        if ( visualization == null )
+        {
+            return;
+        }
+
+        dashboardItem.setVisualization( visualization );
+
+        handleVisualization( dashboard, dashboardItem, visualization, parameters );
     }
 }

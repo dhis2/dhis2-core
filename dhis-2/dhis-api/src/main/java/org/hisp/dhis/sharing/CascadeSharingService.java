@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.sharing;
 
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.visualization.Visualization;
 
-public interface CascadeSharingService<T extends IdentifiableObject>
+public interface CascadeSharingService
 {
-    CascadeSharingReport cascadeSharing( T object, CascadeSharingParameters parameters );
+    CascadeSharingReport cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters );
+
+    CascadeSharingReport cascadeSharing( Visualization visualization, CascadeSharingParameters parameters );
 }

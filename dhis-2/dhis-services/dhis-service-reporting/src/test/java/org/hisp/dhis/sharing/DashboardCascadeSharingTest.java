@@ -64,7 +64,7 @@ public class DashboardCascadeSharingTest
     private AclService aclService;
 
     @Autowired
-    private CascadeSharingService<Dashboard> dashboardCascadeSharingService;
+    private CascadeSharingService dashboardCascadeSharingService;
 
     @Autowired
     private IdentifiableObjectManager objectManager;

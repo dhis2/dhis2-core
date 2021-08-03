@@ -46,16 +46,19 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
+import org.hisp.dhis.sharing.CascadeSharingParameters;
+import org.hisp.dhis.sharing.CascadeSharingReport;
+import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationType;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -68,8 +71,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class DashboardController
     extends AbstractCrudController<Dashboard>
 {
-    @Autowired
-    private DashboardService dashboardService;
+    private final DashboardService dashboardService;
+
+    private final CascadeSharingService cascadeSharingService;
+
+    public DashboardController( DashboardService dashboardService, CascadeSharingService cascadeSharingService )
+    {
+        this.dashboardService = dashboardService;
+        this.cascadeSharingService = cascadeSharingService;
+    }
 
     // -------------------------------------------------------------------------
     // Search
@@ -109,6 +119,21 @@ public class DashboardController
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dashboard, download );
+    }
+
+    @PostMapping( "cascadeSharing/{uid}" )
+    public @ResponseBody CascadeSharingReport cascadeSharing( @PathVariable( "uid" ) String dashboardId,
+        CascadeSharingParameters parameters )
+        throws WebMessageException
+    {
+        Dashboard dashboard = dashboardService.getDashboard( dashboardId );
+
+        if ( dashboard == null )
+        {
+            throw new WebMessageException( notFound( "Dashboard not found for uid: " + dashboardId ) );
+        }
+
+        return cascadeSharingService.cascadeSharing( dashboard, parameters );
     }
 
     /**
