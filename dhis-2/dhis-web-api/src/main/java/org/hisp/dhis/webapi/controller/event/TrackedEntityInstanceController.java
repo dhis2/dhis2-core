@@ -41,7 +41,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -89,8 +88,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
-import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
@@ -99,7 +96,6 @@ import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityIn
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -110,7 +106,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
@@ -508,36 +503,6 @@ public class TrackedEntityInstanceController
     {
         ImportSummary importSummary = trackedEntityInstanceService.deleteTrackedEntityInstance( id );
         return importSummary( importSummary );
-    }
-
-    @PutMapping( "/{tei}/potentialDuplicate" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public void updatePotentialDuplicateFlag(
-        @PathVariable String tei,
-        @RequestParam String flag )
-        throws OperationNotAllowedException,
-        NotFoundException,
-        BadRequestException
-    {
-        boolean isPotentialDuplicate = parseInputFlag( flag );
-
-        User user = currentUserService.getCurrentUser();
-
-        org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = Optional.ofNullable( instanceService
-            .getTrackedEntityInstance( tei ) )
-            .orElseThrow( () -> new NotFoundException( "No tracked entity instance found with id '" + tei + "'." ) );
-
-        List<String> trackerAccessErrors = trackerAccessManager.canWrite( user, trackedEntityInstance );
-
-        if ( !trackerAccessErrors.isEmpty() )
-        {
-            throw new OperationNotAllowedException(
-                "You're not authorized to access the TrackedEntityInstance with id: " + tei );
-        }
-
-        trackedEntityInstance.setPotentialDuplicate( isPotentialDuplicate );
-
-        instanceService.updateTrackedEntityInstance( trackedEntityInstance );
     }
 
     private boolean parseInputFlag( String flag )
