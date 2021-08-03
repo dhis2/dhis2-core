@@ -30,7 +30,6 @@ package org.hisp.dhis.program.notification;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -98,20 +97,22 @@ public class DefaultProgramNotificationInstanceService
     {
         if ( params.hasProgramInstance() )
         {
-            Optional.of( params.getProgramInstance() )
-                .filter( pi -> programInstanceService.programInstanceExists( pi.getUid() ) )
-                .orElseThrow( () -> new IllegalQueryException(
-                    String.format( "Program instance %s does not exist", params.getProgramInstance().getUid() ) ) );
+            if ( !programInstanceService.programInstanceExists( params.getProgramInstance().getUid() ) )
+            {
+                throw new IllegalQueryException(
+                    String.format( "Program instance %s does not exist", params.getProgramInstance().getUid() ) );
+            }
 
         }
 
         if ( params.hasProgramStageInstance() )
         {
-            Optional.of( params.getProgramStageInstance() )
-                .filter( psi -> programStageInstanceService.programStageInstanceExists( psi.getUid() ) )
-                .orElseThrow( () -> new IllegalQueryException(
+            if ( !programStageInstanceService.programStageInstanceExists( params.getProgramStageInstance().getUid() ) )
+            {
+                throw new IllegalQueryException(
                     String.format( "Program stage instance %s does not exist",
-                        params.getProgramStageInstance().getUid() ) ) );
+                        params.getProgramStageInstance().getUid() ) );
+            }
         }
     }
 
