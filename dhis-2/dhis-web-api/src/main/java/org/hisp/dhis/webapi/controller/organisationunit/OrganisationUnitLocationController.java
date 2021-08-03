@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.organisationunit;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -69,7 +71,7 @@ public class OrganisationUnitLocationController
     /**
      * Get Organisation Units within a distance from a location
      */
-    @GetMapping( value = "/withinRange", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/withinRange", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getEntitiesWithinRange(
         @RequestParam Double longitude,
         @RequestParam Double latitude,
@@ -120,7 +122,7 @@ public class OrganisationUnitLocationController
      * Get lowest level Org Units that includes the location in their polygon
      * shape.
      */
-    @GetMapping( value = "/orgUnitByLocation", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/orgUnitByLocation", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getParentByLocation(
         @RequestParam Double longitude,
         @RequestParam Double latitude,
@@ -148,7 +150,7 @@ public class OrganisationUnitLocationController
     /**
      * Check if the location lies within the organisation unit boundary
      */
-    @GetMapping( value = "/locationWithinOrgUnitBoundary", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/locationWithinOrgUnitBoundary", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void checkLocationWithinOrgUnit( @RequestParam String orgUnitUid,
         @RequestParam Double longitude, @RequestParam Double latitude, HttpServletResponse response )
         throws Exception

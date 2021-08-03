@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.category;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.io.IOException;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -66,7 +67,7 @@ public class CategoryComboController
 
         if ( categoryCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "CategoryCombo not found for uid: " + pvUid ) );
+            throw new WebMessageException( notFound( "CategoryCombo not found for uid: " + pvUid ) );
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, categoryCombo,

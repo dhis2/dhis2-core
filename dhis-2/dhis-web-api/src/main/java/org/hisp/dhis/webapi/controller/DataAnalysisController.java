@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,7 +69,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -91,7 +93,6 @@ import org.hisp.dhis.webapi.webdomain.ValidationResultView;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -162,7 +163,7 @@ public class DataAnalysisController
     @Autowired
     private FollowupAnalysisService followupAnalysisService;
 
-    @PostMapping( value = "/validationRules", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/validationRules", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody List<ValidationResultView> performValidationRulesAnalysis(
         @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams,
@@ -182,7 +183,7 @@ public class DataAnalysisController
             .getOrganisationUnit( validationRulesAnalysisParams.getOu() );
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
+            throw new WebMessageException( badRequest( "No organisation unit defined" ) );
         }
 
         ValidationAnalysisParams params = validationService.newParamsBuilder( group, organisationUnit,
@@ -217,20 +218,20 @@ public class DataAnalysisController
         if ( validationRule == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Can't find ValidationRule with id =" + validationRuleId ) );
+                notFound( "Can't find ValidationRule with id =" + validationRuleId ) );
         }
 
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
         if ( organisationUnit == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Can't find OrganisationUnit with id =" + organisationUnitId ) );
+                notFound( "Can't find OrganisationUnit with id =" + organisationUnitId ) );
         }
 
         Period period = periodService.getPeriod( periodId );
         if ( period == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Can't find Period with id =" + periodId ) );
+            throw new WebMessageException( notFound( "Can't find Period with id =" + periodId ) );
         }
 
         CategoryOptionCombo attributeOptionCombo;
@@ -244,7 +245,7 @@ public class DataAnalysisController
             if ( attributeOptionCombo == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.notFound( "Can't find AttributeOptionCombo with id = " + attributeOptionComboId ) );
+                    notFound( "Can't find AttributeOptionCombo with id = " + attributeOptionComboId ) );
             }
         }
 
@@ -256,7 +257,7 @@ public class DataAnalysisController
         return validationService.getValidationRuleExpressionDetails( params );
     }
 
-    @PostMapping( value = "/stdDevOutlier", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/stdDevOutlier", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody List<DeflatedDataValue> performStdDevOutlierAnalysis(
         @RequestBody DataAnalysisParams stdDevOutlierAnalysisParams,
@@ -269,7 +270,7 @@ public class DataAnalysisController
             .getOrganisationUnit( stdDevOutlierAnalysisParams.getOu() );
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
+            throw new WebMessageException( badRequest( "No organisation unit defined" ) );
         }
 
         Collection<Period> periods = periodService
@@ -303,7 +304,7 @@ public class DataAnalysisController
         return deflatedValuesListToResponse( dataValues );
     }
 
-    @PostMapping( value = "/minMaxOutlier", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/minMaxOutlier", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody List<DeflatedDataValue> performMinMaxOutlierAnalysis(
         @RequestBody DataAnalysisParams params,
@@ -316,7 +317,7 @@ public class DataAnalysisController
             .getOrganisationUnit( params.getOu() );
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
+            throw new WebMessageException( badRequest( "No organisation unit defined" ) );
         }
 
         Collection<Period> periods = periodService
@@ -351,7 +352,7 @@ public class DataAnalysisController
         return deflatedValuesListToResponse( dataValues );
     }
 
-    @PostMapping( value = "/followup", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/followup", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody List<DeflatedDataValue> performFollowupAnalysis( @RequestBody DataAnalysisParams params,
         HttpSession session )
@@ -363,7 +364,7 @@ public class DataAnalysisController
             .getOrganisationUnit( params.getOu() );
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "No organisation unit defined" ) );
+            throw new WebMessageException( badRequest( "No organisation unit defined" ) );
         }
 
         Collection<Period> periods = periodService
@@ -391,14 +392,14 @@ public class DataAnalysisController
         return deflatedValuesListToResponse( dataValues );
     }
 
-    @GetMapping( value = "/followup", produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/followup", produces = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody FollowupAnalysisResponse performFollowupAnalysis( FollowupAnalysisRequest request )
     {
         return followupAnalysisService.getFollowupDataValues( request );
     }
 
-    @PostMapping( value = "/followup/mark", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/followup/mark", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public @ResponseBody void markDataValues( @RequestBody UpdateFollowUpForDataValuesRequest params )
     {

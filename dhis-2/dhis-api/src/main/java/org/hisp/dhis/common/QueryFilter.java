@@ -31,6 +31,7 @@ import static org.hisp.dhis.analytics.QueryKey.NV;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -136,7 +137,18 @@ public class QueryFilter
                 return "null";
             }
         }
+        else if ( QueryOperator.IN.equals( operator ) )
+        {
+            return getFilterItems( encodedFilter ).stream()
+                .map( this::quote )
+                .collect( Collectors.joining( ",", "(", ")" ) );
+        }
         return "'" + encodedFilter + "'";
+    }
+
+    private String quote( String filterItem )
+    {
+        return "'" + filterItem + "'";
     }
 
     /**

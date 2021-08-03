@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.dataelement;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +46,6 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.DataElementGroupSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -88,7 +89,7 @@ public class DataElementGroupController
 
         if ( dataElementGroups.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataElementGroup not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "DataElementGroup not found for uid: " + uid ) );
         }
 
         WebMetadata metadata = new WebMetadata();
@@ -127,7 +128,7 @@ public class DataElementGroupController
 
         if ( dataElementGroups.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataElementGroup not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "DataElementGroup not found for uid: " + uid ) );
         }
 
         WebMetadata metadata = new WebMetadata();
@@ -172,7 +173,7 @@ public class DataElementGroupController
         if ( dataElementGroup == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "DataElementGroup not found for uid: " + dataElementGroupId ) );
+                notFound( "DataElementGroup not found for uid: " + dataElementGroupId ) );
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dataElementGroup,

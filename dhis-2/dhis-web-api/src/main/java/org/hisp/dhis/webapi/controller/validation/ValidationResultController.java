@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.validation;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.util.List;
@@ -35,7 +36,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
@@ -144,7 +144,7 @@ public class ValidationResultController
         if ( result == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Validation result with id " + id + " was not found" ) );
+                notFound( "Validation result with id " + id + " was not found" ) );
         }
     }
 }

@@ -27,15 +27,19 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
 import java.util.List;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
@@ -208,57 +212,47 @@ public class SqlViewController
     // -------------------------------------------------------------------------
 
     @PostMapping( "/{uid}/execute" )
-    public void executeView( @PathVariable( "uid" ) String uid, @RequestParam( required = false ) Set<String> var,
-        HttpServletResponse response, HttpServletRequest request )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage executeView( @PathVariable( "uid" ) String uid,
+        @RequestParam( required = false ) Set<String> var )
     {
         SqlView sqlView = sqlViewService.getSqlViewByUid( uid );
 
         if ( sqlView == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
+            return notFound( "SQL view does not exist: " + uid );
         }
 
         if ( sqlView.isQuery() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "SQL view is a query, no view to create" ) );
+            return conflict( "SQL view is a query, no view to create" );
         }
 
         String result = sqlViewService.createViewTable( sqlView );
-
         if ( result != null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( result ) );
+            return conflict( result );
         }
-        else
-        {
-            response.addHeader( "Location", SqlViewSchemaDescriptor.API_ENDPOINT + "/" + sqlView.getUid() );
-            webMessageService.send( WebMessageUtils.created( "SQL view created" ), response, request );
-        }
+        return created( "SQL view created" )
+            .setLocation( SqlViewSchemaDescriptor.API_ENDPOINT + "/" + sqlView.getUid() );
     }
 
     @PostMapping( "/{uid}/refresh" )
-    public void refreshMaterializedView( @PathVariable( "uid" ) String uid,
-        HttpServletResponse response, HttpServletRequest request )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage refreshMaterializedView( @PathVariable( "uid" ) String uid )
     {
         SqlView sqlView = sqlViewService.getSqlViewByUid( uid );
 
         if ( sqlView == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
+            return notFound( "SQL view does not exist: " + uid );
         }
 
-        boolean result = sqlViewService.refreshMaterializedView( sqlView );
-
-        if ( !result )
+        if ( !sqlViewService.refreshMaterializedView( sqlView ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "View could not be refreshed" ) );
+            return conflict( "View could not be refreshed" );
         }
-        else
-        {
-            webMessageService.send( WebMessageUtils.ok( "Materialized view refreshed" ), response, request );
-        }
+        return ok( "Materialized view refreshed" );
     }
 
     private SqlView validateView( String uid )
@@ -268,7 +262,7 @@ public class SqlViewController
 
         if ( sqlView == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
+            throw new WebMessageException( notFound( "SQL view does not exist: " + uid ) );
         }
 
         return sqlView;

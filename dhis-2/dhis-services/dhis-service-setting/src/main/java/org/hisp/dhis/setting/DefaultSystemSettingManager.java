@@ -142,7 +142,7 @@ public class DefaultSystemSettingManager
 
         if ( setting == null && !translation.isEmpty() )
         {
-            throw new IllegalStateException( "No entry found for key: " + key );
+            throw new IllegalStateException( "No entry found for key: " + key.getName() );
         }
         else if ( setting != null )
         {

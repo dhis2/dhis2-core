@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.option;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
@@ -65,7 +66,7 @@ public class OptionSetController
 
         if ( optionSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "OptionSet not found for uid: " + pvUid ) );
+            throw new WebMessageException( notFound( "OptionSet not found for uid: " + pvUid ) );
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, optionSet, download );

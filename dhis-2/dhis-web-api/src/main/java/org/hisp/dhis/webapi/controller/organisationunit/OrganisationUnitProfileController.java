@@ -60,7 +60,7 @@ public class OrganisationUnitProfileController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ORG_UNIT_PROFILE_ADD')" )
-    @PostMapping( consumes = "application/json" )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveProfile( @RequestBody OrgUnitProfile profile )
         throws WebMessageException

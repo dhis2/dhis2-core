@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Date;
 import java.util.List;
@@ -38,11 +41,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
@@ -50,7 +51,7 @@ import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
 import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -98,13 +99,13 @@ public class PredictorController extends AbstractCrudController<Predictor>
 
             predictionService.predict( predictor, startDate, endDate, predictionSummary );
 
-            return WebMessageUtils.ok( "Generated " + predictionSummary.getPredictions() + " predictions" );
+            return ok( "Generated " + predictionSummary.getPredictions() + " predictions" );
         }
         catch ( Exception ex )
         {
             log.error( "Unable to predict " + predictor.getName(), ex );
 
-            return WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() );
+            return conflict( "Unable to predict " + predictor.getName(), ex.getMessage() );
         }
     }
 
@@ -134,50 +135,34 @@ public class PredictorController extends AbstractCrudController<Predictor>
             {
                 log.error( "Unable to predict " + predictor.getName(), ex );
 
-                return WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() );
+                return conflict( "Unable to predict " + predictor.getName(), ex.getMessage() );
             }
         }
 
-        return WebMessageUtils.ok( "Generated " + count + " predictions" );
+        return ok( "Generated " + count + " predictions" );
     }
 
-    @PostMapping( value = "/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/expression/description", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage getExpressionDescription( @RequestBody String expression )
     {
-        I18n i18n = i18nManager.getI18n();
-
         ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, PREDICTOR_EXPRESSION );
 
-        DescriptiveWebMessage message = new DescriptiveWebMessage();
-        message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
-        message.setMessage( i18n.getString( result.getKey() ) );
-
-        if ( result.isValid() )
-        {
-            message.setDescription( expressionService.getExpressionDescription( expression, PREDICTOR_EXPRESSION ) );
-        }
-
-        return message;
+        return new DescriptiveWebMessage( result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK )
+            .setDescription( result::isValid,
+                () -> expressionService.getExpressionDescription( expression, PREDICTOR_EXPRESSION ) )
+            .setMessage( i18nManager.getI18n().getString( result.getKey() ) );
     }
 
-    @PostMapping( value = "/skipTest/description", produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/skipTest/description", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage getSkipTestDescription( @RequestBody String expression )
     {
-        I18n i18n = i18nManager.getI18n();
-
         ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, PREDICTOR_SKIP_TEST );
 
-        DescriptiveWebMessage message = new DescriptiveWebMessage();
-        message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
-        message.setMessage( i18n.getString( result.getKey() ) );
-
-        if ( result.isValid() )
-        {
-            message.setDescription( expressionService.getExpressionDescription( expression, PREDICTOR_SKIP_TEST ) );
-        }
-
-        return message;
+        return new DescriptiveWebMessage( result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK )
+            .setDescription( result::isValid,
+                () -> expressionService.getExpressionDescription( expression, PREDICTOR_SKIP_TEST ) )
+            .setMessage( i18nManager.getI18n().getString( result.getKey() ) );
     }
 }
