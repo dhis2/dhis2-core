@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -40,7 +41,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -84,7 +84,7 @@ public class TrackerOwnershipController
     // 2. Break the glass and override ownership.
     // -------------------------------------------------------------------------
 
-    @PutMapping( value = "/transfer", produces = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/transfer", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage updateTrackerProgramOwner( @RequestParam String trackedEntityInstance,
         @RequestParam String program,
@@ -96,7 +96,7 @@ public class TrackerOwnershipController
         return ok( "Ownership transferred" );
     }
 
-    @PostMapping( value = "/override", produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/override", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage overrideOwnershipAccess( @RequestParam String trackedEntityInstance, @RequestParam String reason,
         @RequestParam String program )

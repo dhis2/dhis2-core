@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 import java.util.Locale;
@@ -100,25 +101,25 @@ public class LocaleController
         return webLocales;
     }
 
-    @GetMapping( value = "/languages", produces = "application/json" )
+    @GetMapping( value = "/languages", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody Map<String, String> getAvailableLanguages()
     {
         return localeService.getAvailableLanguages();
     }
 
-    @GetMapping( value = "/countries", produces = "application/json" )
+    @GetMapping( value = "/countries", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody Map<String, String> getAvailableCountries()
     {
         return localeService.getAvailableCountries();
     }
 
-    @GetMapping( value = "/dbLocales", produces = "application/json" )
+    @GetMapping( value = "/dbLocales", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<I18nLocale> getDbLocalesWithId()
     {
         return localeService.getAllI18nLocales();
     }
 
-    @GetMapping( value = "/dbLocales/{uid}", produces = "application/json" )
+    @GetMapping( value = "/dbLocales/{uid}", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody I18nLocale getObject( @PathVariable( "uid" ) String uid, HttpServletResponse response )
         throws Exception
     {

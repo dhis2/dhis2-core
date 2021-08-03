@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -71,7 +72,7 @@ public class TokenController
         this.tokenCache = cacheProvider.createGoogleAccessTokenCache();
     }
 
-    @GetMapping( value = "/google", produces = "application/json" )
+    @GetMapping( value = "/google", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody GoogleAccessToken getEarthEngineToken( HttpServletResponse response )
         throws WebMessageException,
         ExecutionException

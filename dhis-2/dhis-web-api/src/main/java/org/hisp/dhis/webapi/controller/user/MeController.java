@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -83,7 +84,6 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -177,7 +177,7 @@ public class MeController
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
             new FieldFilterParams( Collections.singletonList( user ), fields ) );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
 
         RootNode rootNode = NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
@@ -211,7 +211,7 @@ public class MeController
                     .collect( Collectors.toList() ) ) );
         }
 
-        nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
+        nodeService.serialize( rootNode, APPLICATION_JSON_VALUE, response.getOutputStream() );
     }
 
     private boolean fieldsContains( String key, List<String> fields )
@@ -240,10 +240,10 @@ public class MeController
 
         RootNode rootNode = userControllerUtils.getUserDataApprovalWorkflows( user );
 
-        nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
+        nodeService.serialize( rootNode, APPLICATION_JSON_VALUE, response.getOutputStream() );
     }
 
-    @PutMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "", consumes = APPLICATION_JSON_VALUE )
     public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -275,8 +275,9 @@ public class MeController
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
             new FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ), "application/json",
+        response.setContentType( APPLICATION_JSON_VALUE );
+        nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ),
+            APPLICATION_JSON_VALUE,
             response.getOutputStream() );
     }
 
@@ -292,7 +293,7 @@ public class MeController
             throw new NotAuthenticatedException();
         }
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), currentUser.getUserCredentials().getAllAuthorities() );
     }
@@ -311,7 +312,7 @@ public class MeController
 
         boolean hasAuthority = currentUser.getUserCredentials().isAuthorized( authority );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), hasAuthority );
     }
@@ -331,7 +332,7 @@ public class MeController
         Map<String, Serializable> userSettings = userSettingService.getUserSettingsWithFallbackByUserAsMap(
             currentUser, USER_SETTING_KEYS, true );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), userSettings );
     }
@@ -363,7 +364,7 @@ public class MeController
             throw new WebMessageException( notFound( "User setting not found for key: " + key ) );
         }
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), value );
     }
@@ -417,7 +418,7 @@ public class MeController
         return validatePasswordInternal( password, getCurrentUserOrThrow() );
     }
 
-    @PostMapping( value = "/verifyPassword", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/verifyPassword", consumes = APPLICATION_JSON_VALUE )
     public @ResponseBody RootNode verifyPasswordJson( @RequestBody Map<String, String> body,
         HttpServletResponse response )
         throws WebMessageException
@@ -452,13 +453,13 @@ public class MeController
         interpretationService.updateCurrentUserLastChecked();
     }
 
-    @GetMapping( value = "/dataApprovalLevels", produces = { "application/json", "text/*" } )
+    @GetMapping( value = "/dataApprovalLevels", produces = { APPLICATION_JSON_VALUE, "text/*" } )
     public void getApprovalLevels( HttpServletResponse response )
         throws IOException
     {
         List<DataApprovalLevel> approvalLevels = approvalLevelService
             .getUserDataApprovalLevels( currentUserService.getCurrentUser() );
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), approvalLevels );
     }
