@@ -200,6 +200,14 @@ public class SqlStringProcessor
             "sixmonthly", "sixmonthlyapril", "sixmonthlynov",
             "financialapril", "financialjuly", "financialoct", "financialnov" };
 
+        parsedSqlStatement.getWhereConditions()
+            .add( "where " + aliasList.get( 0 ) + "." + "\"" + aliasList.get( 0 ) + "\"" +
+                "is not null" );
+        parsedSqlStatement.getWhereConditions()
+            .add( "and " + aliasList.get( 0 ) + "." + Arrays.stream( ands ).filter( and -> and.contains( "uidlevel" ) )
+                .map( and -> and.replace( "(", "" ).replace( ")", "" ) ).collect( Collectors.joining() ) );
+        parsedSqlStatement.getWhereConditions().addAll( psList );
+        parsedSqlStatement.getWhereConditions().addAll( getYearlies( aliasList, years ) );
         for ( String timeCondition : timeConditions )
         {
             String condition = getTimeCondition( aliasList.get( 0 ), mainSelectCols, timeCondition );
@@ -208,16 +216,6 @@ public class SqlStringProcessor
                 parsedSqlStatement.getWhereConditions().add( condition );
             }
         }
-
-        parsedSqlStatement.getWhereConditions()
-            .add( "where " + aliasList.get( 0 ) + "." + "\"" + aliasList.get( 0 ) + "\"" +
-                "is not null" );
-        parsedSqlStatement.getWhereConditions()
-            .add( "and " + aliasList.get( 0 ) + "." + Arrays.stream( ands ).filter( and -> and.contains( "uidlevel" ) )
-                .map( and -> and.replace( "(", "" ).replace( ")", "" ) ).collect( Collectors.joining() ) );
-
-        parsedSqlStatement.getWhereConditions().addAll( psList );
-        parsedSqlStatement.getWhereConditions().addAll( getYearlies( aliasList, years ) );
         parsedSqlStatement.getWhereConditions().addAll( aliasBasedFilterList );
         parsedSqlStatement.getWhereConditions().addAll( coalesceBasedFilterList );
         parsedSqlStatement
@@ -228,10 +226,16 @@ public class SqlStringProcessor
 
     private static String getTimeCondition( String alias, List<SelectItem> mainSelectCols, String period )
     {
-        Optional<String> day = mainSelectCols.stream()
-            .filter( c -> c.toString().toLowerCase().contains( " " + period ) )
-            .map( c -> c.toString().toLowerCase().replace( "as " + period, "" ).trim() ).findFirst();
-        return day.map( s -> "and " + alias + "." + period + " = " + s ).orElse( null );
+        for ( SelectItem item : mainSelectCols )
+        {
+            String col = item.toString();
+            if ( (col.toLowerCase() + ":").contains( " " + period + ":" ) )
+            {
+                String el = col.toLowerCase().replace( "as " + period, "" ).trim();
+                return "and " + alias + "." + period + " = " + col.substring( 0, el.length() );
+            }
+        }
+        return null;
     }
 
     private static List<String> getAliasBasedFilterList( List<String> aliasList, List<String> nestedWhereElements )

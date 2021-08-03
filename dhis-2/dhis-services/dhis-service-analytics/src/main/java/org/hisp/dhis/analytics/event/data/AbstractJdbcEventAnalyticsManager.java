@@ -361,7 +361,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         catch ( Exception e )
         {
-            log.info( sql );
+            log.debug( sql );
         }
 
         try
@@ -372,13 +372,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             catch ( BadSqlGrammarException ex )
             {
-                log.info( sql );
                 getAggregatedEventData( grid, params, sql );
             }
         }
         catch ( BadSqlGrammarException ex )
         {
-            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
+            log.debug( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
         }
         catch ( DataAccessResourceFailureException ex )
         {
