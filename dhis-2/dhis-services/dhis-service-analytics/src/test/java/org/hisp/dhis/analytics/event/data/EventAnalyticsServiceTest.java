@@ -179,10 +179,6 @@ public class EventAnalyticsServiceTest
             .withProgram( programA )
             .build();
 
-        // The params
-        Map<String, EventQueryParams> eventQueryParams = new HashMap<>();
-        eventQueryParams.put( "events_2017", events_2017_params );
-
         // The results
         Map<String, Double> events_2017_keyValue = new HashMap<>();
         events_2017_keyValue.put( "ouabcdefghA", 6.0 );
@@ -234,14 +230,6 @@ public class EventAnalyticsServiceTest
             .withEndDate( getDate( 2017, 12, 31 ) )
             .withProgram( aProgram )
             .build();
-
-        // The params
-        Map<String, EventQueryParams> eventQueryParams = new HashMap<>();
-        eventQueryParams.put( "events_2017", events_2017_params );
-
-        // The results
-        Map<String, Double> events_2017_keyValue = new HashMap<>();
-        events_2017_keyValue.put( "ouabcdefghA", 6.0 );
 
         // When
         Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( events_2017_params );
