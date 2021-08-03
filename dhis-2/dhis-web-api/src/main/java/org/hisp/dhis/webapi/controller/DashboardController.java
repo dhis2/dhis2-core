@@ -54,6 +54,7 @@ import org.hisp.dhis.visualization.VisualizationType;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,15 +72,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class DashboardController
     extends AbstractCrudController<Dashboard>
 {
-    private final DashboardService dashboardService;
+    @Autowired
+    private DashboardService dashboardService;
 
-    private final CascadeSharingService cascadeSharingService;
-
-    public DashboardController( DashboardService dashboardService, CascadeSharingService cascadeSharingService )
-    {
-        this.dashboardService = dashboardService;
-        this.cascadeSharingService = cascadeSharingService;
-    }
+    @Autowired
+    private CascadeSharingService cascadeSharingService;
 
     // -------------------------------------------------------------------------
     // Search
