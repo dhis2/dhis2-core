@@ -33,8 +33,11 @@ import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -44,18 +47,7 @@ import org.hisp.dhis.visualization.Visualization;
 public abstract class CascadeSharingTest
     extends DhisSpringTest
 {
-    protected void addDimensionItemToVisualizationColumn( Visualization visualization, final String dimensionItem,
-        DimensionItemType type )
-    {
-        final List<String> columnsDimensions = asList( "dx" );
-        final List<DimensionalItemObject> dimensionalObjects = asList(
-            baseDimensionalItemObjectStub( dimensionItem, type ) );
-
-        visualization.setColumnDimensions( columnsDimensions );
-        visualization.setGridColumns( asList( dimensionalObjects ) );
-    }
-
-    protected DimensionalItemObject baseDimensionalItemObjectStub( final String dimensionItem, DimensionItemType type )
+    protected DimensionalItemObject baseDimensionalItemObject( final String dimensionItem, DimensionItemType type )
     {
         final BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject( dimensionItem );
         baseDimensionalItemObject.setDimensionItemType( type );
@@ -65,7 +57,7 @@ public abstract class CascadeSharingTest
     protected DashboardItem createDashboardItem( String name )
     {
         DashboardItem dashboardItem = new DashboardItem();
-        dashboardItem.setName( "dashboardItemA" );
+        dashboardItem.setName( "dashboardItem" + name );
         dashboardItem.setAutoFields();
         return dashboardItem;
     }
@@ -80,11 +72,34 @@ public abstract class CascadeSharingTest
     protected void addDimensionItemToVisualizationRow( Visualization visualization, final String dimensionItem,
         DimensionItemType type )
     {
-        final List<String> rowsDimensions = asList( "dx" );
-        final List<DimensionalItemObject> dimensionalObjects = asList(
-            baseDimensionalItemObjectStub( dimensionItem, type ) );
+        final List<String> rowsDimensions = asList( DimensionalObject.DATA_X_DIM_ID );
+
+        final DimensionalObject dimensionalObject = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID,
+            DimensionType.DATA_X,
+            asList( baseDimensionalItemObject( dimensionItem, type ) ) );
 
         visualization.setRowDimensions( rowsDimensions );
-        visualization.setGridRows( asList( dimensionalObjects ) );
+
+        visualization.getRows().add( dimensionalObject );
     }
+
+    protected void addDimensionItemToVisualizationColumn( Visualization visualization, final String dimensionItem,
+        DimensionItemType type )
+    {
+        final List<String> columnsDimensions = asList( DimensionalObject.DATA_X_DIM_ID );
+
+        final DimensionalObject dimensionalObject = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID,
+            DimensionType.DATA_X,
+            asList( baseDimensionalItemObject( dimensionItem, type ) ) );
+
+        visualization.setColumnDimensions( columnsDimensions );
+
+        visualization.getColumns().add( dimensionalObject );
+    }
+
+    protected Sharing defaultSharing()
+    {
+        return Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build();
+    }
+
 }

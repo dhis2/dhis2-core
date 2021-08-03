@@ -32,6 +32,7 @@ import java.util.List;
 
 import lombok.NonNull;
 
+import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -42,7 +43,6 @@ import org.hisp.dhis.sharing.AbstractCascadeSharingService;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
 import org.hisp.dhis.sharing.CascadeSharingReport;
 import org.hisp.dhis.sharing.CascadeSharingService;
-import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,19 +68,13 @@ public class DefaultCascadeSharingService
                 mergeSharing( dashboard, dashboardItem.getMap(), parameters );
                 break;
             case VISUALIZATION:
-                handleVisualization( dashboard, dashboardItem, dashboardItem.getVisualization(), parameters );
-                break;
-            case CHART:
-                handleVisualization( dashboard, dashboardItem, dashboardItem.getChart(), parameters );
-                break;
-            case REPORT_TABLE:
-                handleVisualization( dashboard, dashboardItem, dashboardItem.getReportTable(), parameters );
+                handleAnalyticalObject( dashboard, dashboardItem, dashboardItem.getVisualization(), parameters );
                 break;
             case EVENT_REPORT:
-                handleVisualization( dashboard, dashboardItem, dashboardItem.getEventReport(), parameters );
+                handleAnalyticalObject( dashboard, dashboardItem, dashboardItem.getEventReport(), parameters );
                 break;
             case EVENT_CHART:
-                handleVisualization( dashboard, dashboardItem, dashboardItem.getEventChart(), parameters );
+                handleAnalyticalObject( dashboard, dashboardItem, dashboardItem.getEventChart(), parameters );
                 break;
             default:
                 break;
@@ -97,26 +91,27 @@ public class DefaultCascadeSharingService
 
     @Override
     @Transactional
-    public CascadeSharingReport cascadeSharing( Visualization visualization, CascadeSharingParameters parameters )
+    public CascadeSharingReport cascadeSharing( BaseAnalyticalObject baseAnalyticalObject,
+        CascadeSharingParameters parameters )
     {
         CachingMap<String, BaseIdentifiableObject> mapObjects = new CachingMap<>();
 
         List<IdentifiableObject> listUpdateObjects = new ArrayList<>();
 
-        visualization.getGridColumns().forEach( columns -> columns.forEach( item -> {
+        baseAnalyticalObject.getColumns().forEach( column -> column.getItems().forEach( item -> {
             BaseIdentifiableObject dimensionObject = mapObjects.get( item.getDimensionItem(),
                 () -> manager.get( item.getDimensionItem() ) );
 
-            dimensionObject = mergeSharing( visualization, dimensionObject, parameters );
+            dimensionObject = mergeSharing( baseAnalyticalObject, dimensionObject, parameters );
 
             listUpdateObjects.add( dimensionObject );
         } ) );
 
-        visualization.getGridRows().forEach( columns -> columns.forEach( item -> {
+        baseAnalyticalObject.getRows().forEach( row -> row.getItems().forEach( item -> {
             BaseIdentifiableObject dimensionObject = mapObjects.get( item.getDimensionItem(),
                 () -> manager.get( item.getDimensionItem() ) );
 
-            dimensionObject = mergeSharing( visualization, dimensionObject, parameters );
+            dimensionObject = mergeSharing( baseAnalyticalObject, dimensionObject, parameters );
 
             listUpdateObjects.add( dimensionObject );
         } ) );
@@ -129,35 +124,24 @@ public class DefaultCascadeSharingService
         return parameters.getReport();
     }
 
-    private void handleVisualization( Dashboard dashboard, DashboardItem dashboardItem, Visualization visualization,
+    private void handleAnalyticalObject( Dashboard dashboard, DashboardItem dashboardItem,
+        BaseAnalyticalObject analyticalObject,
         CascadeSharingParameters parameters )
     {
-        if ( visualization == null )
+        if ( analyticalObject == null )
         {
             return;
         }
 
-        dashboardItem.setVisualization( mergeSharing( dashboard, dashboardItem.getVisualization(), parameters ) );
-        cascadeSharing( dashboardItem.getVisualization(), parameters );
-    }
+        BaseAnalyticalObject mergedObject = mergeSharing( dashboard, analyticalObject, parameters );
 
-    private void handleVisualization( Dashboard dashboard, DashboardItem dashboardItem,
-        IdentifiableObject identifiableObject, CascadeSharingParameters parameters )
-    {
-        if ( identifiableObject == null )
+        if ( canUpdate( parameters ) )
         {
-            return;
+            manager.update( mergedObject );
         }
 
-        Visualization visualization = manager.get( Visualization.class, identifiableObject.getUid() );
+        cascadeSharing( analyticalObject, parameters );
 
-        if ( visualization == null )
-        {
-            return;
-        }
-
-        dashboardItem.setVisualization( visualization );
-
-        handleVisualization( dashboard, dashboardItem, visualization, parameters );
+        parameters.getReport().increaseCountDashboardItem();
     }
 }

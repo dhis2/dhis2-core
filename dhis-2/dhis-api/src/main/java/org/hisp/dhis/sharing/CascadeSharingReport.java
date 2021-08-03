@@ -72,4 +72,8 @@ public class CascadeSharingReport
         getUpdatedObjects().put( objectClass, clazzReport );
     }
 
+    public void increaseCountDashboardItem()
+    {
+        countUpdatedDashBoardItems++;
+    }
 }

@@ -32,12 +32,20 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -45,6 +53,8 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Lists;
 
 public class VisualizationCascadeSharingServiceTest
     extends CascadeSharingTest
@@ -99,6 +109,7 @@ public class VisualizationCascadeSharingServiceTest
         addDimensionItemToVisualizationColumn( visualizationA, indicator.getUid(), DimensionItemType.INDICATOR );
         visualizationA.setSharing( sharingReadForUserA );
         objectManager.save( visualizationA, false );
+        visualizationA.populateAnalyticalProperties();
 
         CascadeSharingReport report = cascadeSharingService.cascadeSharing( visualizationA,
             new CascadeSharingParameters() );
@@ -116,6 +127,67 @@ public class VisualizationCascadeSharingServiceTest
         assertFalse( aclService.canRead( userB, visualizationA ) );
         assertFalse( aclService.canRead( userB, updatedDataElementA ) );
         assertFalse( aclService.canRead( userB, indicator1 ) );
+
+    }
+
+    public void testCascadeSharingEventReport()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+        OrganisationUnit ouC = createOrganisationUnit( 'C' );
+        objectManager.save( ouA );
+        objectManager.save( ouB );
+        objectManager.save( ouC );
+
+        EventReport eventReport = new EventReport();
+        eventReport.setAutoFields();
+
+        DataElement deA = createDataElement( 'A' );
+        deA.setSharing( defaultSharing() );
+        objectManager.save( deA, false );
+
+        LegendSet lsA = createLegendSet( 'A' );
+        lsA.setSharing( defaultSharing() );
+        objectManager.save( deA, false );
+
+        ProgramStage psA = createProgramStage( 'A', 1 );
+        psA.setSharing( defaultSharing() );
+        objectManager.save( psA, false );
+
+        TrackedEntityDataElementDimension teDeDim = new TrackedEntityDataElementDimension( deA, lsA, psA, "EQ:1" );
+
+        eventReport.addTrackedEntityDataElementDimension( teDeDim );
+        eventReport.getOrganisationUnits().addAll( Lists.newArrayList( ouA, ouB, ouC ) );
+
+        eventReport.getColumnDimensions().add( deA.getUid() );
+        eventReport.getRowDimensions().add( DimensionalObject.ORGUNIT_DIM_ID );
+
+        eventReport.setSharing( defaultSharing() );
+        objectManager.save( eventReport, false );
+
+        Visualization visualizationA = createVisualization( 'A' );
+
+        eventReport.populateAnalyticalProperties();
+
+        assertEquals( 1, eventReport.getColumns().size() );
+        assertEquals( 1, eventReport.getRows().size() );
+
+        DimensionalObject dim = eventReport.getColumns().get( 0 );
+
+        assertEquals( lsA, dim.getLegendSet() );
+        assertEquals( psA, dim.getProgramStage() );
+
+        // Add eventReport to dashboard
+
+        Sharing sharing = defaultSharing();
+        sharing.addUserAccess( new UserAccess( userA, AccessStringHelper.READ_WRITE ) );
+
+        DashboardItem dashboardItem = createDashboardItem( "A" );
+        dashboardItem.setEventReport( eventReport );
+        Dashboard dashboard = new Dashboard();
+        dashboard.setSharing( sharing );
+
+        dashboard.getItems().add( dashboardItem );
 
     }
 }
