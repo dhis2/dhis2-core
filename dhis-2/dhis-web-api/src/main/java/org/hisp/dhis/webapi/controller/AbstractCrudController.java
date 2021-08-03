@@ -35,6 +35,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -337,7 +340,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
      * removed.
      */
     @ResponseBody
-    @PatchMapping( path = "/{uid}", consumes = { "application/json-patch+json" } )
+    @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json" )
     public WebMessage patchObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
@@ -366,7 +369,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         prePatchEntity( persistedObject );
 
         final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
-        final T patchedObject = (T) jsonPatchManager.apply( patch, persistedObject );
+        final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
 
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
@@ -404,7 +407,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // POST
     // --------------------------------------------------------------------------
 
-    @PostMapping( consumes = "application/json" )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request )
         throws Exception
@@ -412,7 +415,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return postObject( deserializeJsonEntity( request ) );
     }
 
-    @PostMapping( consumes = { "application/xml", "text/xml" } )
+    @PostMapping( consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage postXmlObject( HttpServletRequest request )
         throws Exception
@@ -519,7 +522,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // PUT
     // --------------------------------------------------------------------------
 
-    @PutMapping( value = "/{uid}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request )
         throws Exception
@@ -571,7 +574,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return webMessage;
     }
 
-    @PutMapping( value = "/{uid}", consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE } )
+    @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -712,7 +715,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // Identifiable object collections add, delete
     // --------------------------------------------------------------------------
 
-    @PostMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -724,7 +727,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    @PostMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
+    @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -745,7 +748,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         postUpdateItems( object, items );
     }
 
-    @PutMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -757,7 +760,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    @PutMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
+    @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -801,7 +804,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         postUpdateItems( object, items );
     }
 
-    @DeleteMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -813,7 +816,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    @DeleteMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
+    @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -853,7 +856,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         deleteCollectionItems( pvProperty, objects.get( 0 ), items );
     }
 
-    @PutMapping( value = "/{uid}/sharing", consumes = "application/json" )
+    @PutMapping( value = "/{uid}/sharing", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public WebMessage setSharing( @PathVariable( "uid" ) String uid, HttpServletRequest request )
@@ -961,16 +964,16 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         throws IOException
     {
         String type = request.getContentType();
-        type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
+        type = !StringUtils.isEmpty( type ) ? type : APPLICATION_JSON_VALUE;
 
         // allow type to be overridden by path extension
         if ( request.getPathInfo().endsWith( ".json" ) )
         {
-            type = MediaType.APPLICATION_JSON_VALUE;
+            type = APPLICATION_JSON_VALUE;
         }
         else if ( request.getPathInfo().endsWith( ".xml" ) )
         {
-            type = MediaType.APPLICATION_XML_VALUE;
+            type = APPLICATION_XML_VALUE;
         }
 
         if ( isCompatibleWith( type, MediaType.APPLICATION_JSON ) )
@@ -994,12 +997,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     private boolean isJson( HttpServletRequest request )
     {
         String type = request.getContentType();
-        type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
+        type = !StringUtils.isEmpty( type ) ? type : APPLICATION_JSON_VALUE;
 
         // allow type to be overridden by path extension
         if ( request.getPathInfo().endsWith( ".json" ) )
         {
-            type = MediaType.APPLICATION_JSON_VALUE;
+            type = APPLICATION_JSON_VALUE;
         }
 
         return isCompatibleWith( type, MediaType.APPLICATION_JSON );
@@ -1014,12 +1017,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     private boolean isXml( HttpServletRequest request )
     {
         String type = request.getContentType();
-        type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
+        type = !StringUtils.isEmpty( type ) ? type : APPLICATION_JSON_VALUE;
 
         // allow type to be overridden by path extension
         if ( request.getPathInfo().endsWith( ".xml" ) )
         {
-            type = MediaType.APPLICATION_XML_VALUE;
+            type = APPLICATION_XML_VALUE;
         }
 
         return isCompatibleWith( type, MediaType.APPLICATION_XML );

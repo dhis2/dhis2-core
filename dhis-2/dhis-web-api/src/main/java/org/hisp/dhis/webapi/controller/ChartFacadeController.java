@@ -37,6 +37,9 @@ import static org.hisp.dhis.visualization.ConversionHelper.convertToChartList;
 import static org.hisp.dhis.visualization.ConversionHelper.convertToVisualization;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 import static org.hisp.dhis.webapi.utils.PaginationUtils.getPaginationData;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -614,7 +617,7 @@ public abstract class ChartFacadeController
     // POST
     // --------------------------------------------------------------------------
 
-    @PostMapping( consumes = "application/json" )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
@@ -657,7 +660,7 @@ public abstract class ChartFacadeController
         return webMessage;
     }
 
-    @PostMapping( consumes = { "application/xml", "text/xml" } )
+    @PostMapping( consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage postXmlObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
@@ -755,7 +758,7 @@ public abstract class ChartFacadeController
     // PUT
     // --------------------------------------------------------------------------
 
-    @PutMapping( value = "/{uid}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -797,7 +800,7 @@ public abstract class ChartFacadeController
         return webMessage;
     }
 
-    @PutMapping( value = "/{uid}", consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE } )
+    @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -983,7 +986,7 @@ public abstract class ChartFacadeController
         }
     }
 
-    @PostMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -1001,7 +1004,7 @@ public abstract class ChartFacadeController
             Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
-    @PostMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
+    @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -1019,7 +1022,7 @@ public abstract class ChartFacadeController
             Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
-    @PutMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -1035,7 +1038,7 @@ public abstract class ChartFacadeController
             identifiableObjects.getIdentifiableObjects() );
     }
 
-    @PutMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
+    @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -1072,7 +1075,7 @@ public abstract class ChartFacadeController
             Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
     }
 
-    @DeleteMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     public void deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1087,7 +1090,7 @@ public abstract class ChartFacadeController
             Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
-    @DeleteMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
+    @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     public void deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1327,16 +1330,16 @@ public abstract class ChartFacadeController
     {
         String type = request.getHeader( "Accept" );
         type = !StringUtils.isEmpty( type ) ? type : request.getContentType();
-        type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
+        type = !StringUtils.isEmpty( type ) ? type : APPLICATION_JSON_VALUE;
 
         // allow type to be overridden by path extension
         if ( request.getPathInfo().endsWith( ".json" ) )
         {
-            type = MediaType.APPLICATION_JSON_VALUE;
+            type = APPLICATION_JSON_VALUE;
         }
         else if ( request.getPathInfo().endsWith( ".xml" ) )
         {
-            type = MediaType.APPLICATION_XML_VALUE;
+            type = APPLICATION_XML_VALUE;
         }
 
         if ( isCompatibleWith( type, MediaType.APPLICATION_JSON ) )
@@ -1359,16 +1362,16 @@ public abstract class ChartFacadeController
         throws IOException
     {
         String type = request.getContentType();
-        type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
+        type = !StringUtils.isEmpty( type ) ? type : APPLICATION_JSON_VALUE;
 
         // allow type to be overridden by path extension
         if ( request.getPathInfo().endsWith( ".json" ) )
         {
-            type = MediaType.APPLICATION_JSON_VALUE;
+            type = APPLICATION_JSON_VALUE;
         }
         else if ( request.getPathInfo().endsWith( ".xml" ) )
         {
-            type = MediaType.APPLICATION_XML_VALUE;
+            type = APPLICATION_XML_VALUE;
         }
 
         if ( isCompatibleWith( type, MediaType.APPLICATION_JSON ) )
@@ -1392,12 +1395,12 @@ public abstract class ChartFacadeController
     protected boolean isJson( HttpServletRequest request )
     {
         String type = request.getContentType();
-        type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
+        type = !StringUtils.isEmpty( type ) ? type : APPLICATION_JSON_VALUE;
 
         // allow type to be overridden by path extension
         if ( request.getPathInfo().endsWith( ".json" ) )
         {
-            type = MediaType.APPLICATION_JSON_VALUE;
+            type = APPLICATION_JSON_VALUE;
         }
 
         return isCompatibleWith( type, MediaType.APPLICATION_JSON );
@@ -1412,12 +1415,12 @@ public abstract class ChartFacadeController
     protected boolean isXml( HttpServletRequest request )
     {
         String type = request.getContentType();
-        type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
+        type = !StringUtils.isEmpty( type ) ? type : APPLICATION_JSON_VALUE;
 
         // allow type to be overridden by path extension
         if ( request.getPathInfo().endsWith( ".xml" ) )
         {
-            type = MediaType.APPLICATION_XML_VALUE;
+            type = APPLICATION_XML_VALUE;
         }
 
         return isCompatibleWith( type, MediaType.APPLICATION_XML );

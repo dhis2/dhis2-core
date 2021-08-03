@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Set;
 
@@ -95,7 +96,7 @@ public class EmailController
         return emailResponseHandler( emailResponse );
     }
 
-    @PostMapping( value = "/notification", consumes = "application/json" )
+    @PostMapping( value = "/notification", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage sendSystemNotificationEmail( @RequestBody Email email )
         throws WebMessageException
@@ -115,7 +116,7 @@ public class EmailController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SEND_EMAIL')" )
-    @PostMapping( value = "/notification", produces = "application/json" )
+    @PostMapping( value = "/notification", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage sendEmailNotification( @RequestParam Set<String> recipients, @RequestParam String message,
         @RequestParam( defaultValue = "DHIS 2" ) String subject )
