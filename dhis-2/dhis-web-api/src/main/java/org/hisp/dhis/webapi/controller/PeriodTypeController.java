@@ -27,18 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.commons.jackson.filter.FieldFilterParser;
-import org.hisp.dhis.commons.jackson.filter.FieldFilterSimpleBeanPropertyFilter;
+import org.hisp.dhis.commons.jackson.filter.FieldFilterManager;
+import org.hisp.dhis.commons.jackson.filter.FieldFilterParams;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.PeriodType;
-import org.hisp.dhis.webapi.webdomain.PeriodTypes;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,9 +45,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -60,38 +57,28 @@ public class PeriodTypeController
 {
     private final PeriodService periodService;
 
-    private final ObjectMapper jsonMapper;
+    private final FieldFilterManager fieldFilterManager;
 
     public PeriodTypeController(
         PeriodService periodService,
-        ObjectMapper jsonMapper )
+        FieldFilterManager fieldFilterManager )
     {
         this.periodService = periodService;
-        this.jsonMapper = jsonMapper;
+        this.fieldFilterManager = fieldFilterManager;
     }
 
     @GetMapping
-    public @ResponseBody ResponseEntity<JsonNode> getPeriodTypes(
+    public @ResponseBody ResponseEntity<List<ObjectNode>> getPeriodTypes(
         @RequestParam( defaultValue = "*" ) Set<String> fields )
-        throws IOException
     {
-        PeriodTypes periodTypes = new PeriodTypes( periodService.getAllPeriodTypes().stream()
+        List<PeriodType> periodTypes = periodService.getAllPeriodTypes().stream()
             .map( PeriodType::new )
-            .collect( Collectors.toList() ) );
+            .collect( Collectors.toList() );
 
-        SimpleFilterProvider filterProvider = new SimpleFilterProvider();
-        filterProvider.addFilter( "field-filter",
-            new FieldFilterSimpleBeanPropertyFilter( FieldFilterParser.parseWithPrefix( fields, "periodTypes" ) ) );
+        FieldFilterParams params = new FieldFilterParams( periodTypes, fields );
+        List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
 
-        JsonNode tree = jsonMapper.setFilterProvider( filterProvider ).valueToTree( periodTypes );
-
-        /*
-         * ObjectNode periodType = (ObjectNode) tree.get( "periodTypes" ).get( 0
-         * ); periodType.replace( "n", periodType.get( "name" ) );
-         * periodType.remove( "name" );
-         */
-
-        return ResponseEntity.ok( tree );
+        return ResponseEntity.ok( objectNodes );
     }
 
     @GetMapping( value = "/relativePeriodTypes", produces = { "application/json", "application/javascript" } )
