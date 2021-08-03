@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.webdomain;
 import lombok.Data;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.commons.jackson.config.filter.FieldFilterMixin;
+import org.hisp.dhis.commons.jackson.filter.FieldFilterMixin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;

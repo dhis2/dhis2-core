@@ -32,8 +32,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.commons.jackson.config.filter.FieldFilterParser;
-import org.hisp.dhis.commons.jackson.config.filter.FieldFilterSimpleBeanPropertyFilter;
+import org.hisp.dhis.commons.jackson.filter.FieldFilterParser;
+import org.hisp.dhis.commons.jackson.filter.FieldFilterSimpleBeanPropertyFilter;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;

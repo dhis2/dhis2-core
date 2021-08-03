@@ -29,8 +29,8 @@ package org.hisp.dhis.webapi.mvc;
 
 import java.util.Set;
 
-import org.hisp.dhis.commons.jackson.config.filter.FieldFilterParser;
-import org.hisp.dhis.commons.jackson.config.filter.FieldFilterSimpleBeanPropertyFilter;
+import org.hisp.dhis.commons.jackson.filter.FieldFilterParser;
+import org.hisp.dhis.commons.jackson.filter.FieldFilterSimpleBeanPropertyFilter;
 import org.springframework.http.converter.json.MappingJacksonValue;
 
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;

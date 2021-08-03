@@ -31,7 +31,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
 
-import org.hisp.dhis.commons.jackson.config.filter.FieldFilterParser;
+import org.hisp.dhis.commons.jackson.filter.FieldFilterParser;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
