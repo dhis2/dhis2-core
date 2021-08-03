@@ -37,6 +37,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
@@ -66,11 +68,18 @@ public class ProgarmNotificationInstanceController
 
     private final ProgramNotificationInstanceService programNotificationInstanceService;
 
+    private final ProgramInstanceService programInstanceService;
+
+    private final ProgramStageInstanceService programStageInstanceService;
+
     public ProgarmNotificationInstanceController( RenderService renderService,
-        ProgramNotificationInstanceService programNotificationInstanceService )
+        ProgramNotificationInstanceService programNotificationInstanceService,
+        ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService )
     {
         this.renderService = renderService;
         this.programNotificationInstanceService = programNotificationInstanceService;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
     }
 
     // -------------------------------------------------------------------------
@@ -95,8 +104,8 @@ public class ProgarmNotificationInstanceController
         }
 
         ProgramNotificationInstanceParam params = ProgramNotificationInstanceParam.builder()
-            .programInstance( programInstance )
-            .programStageInstance( programStageInstance )
+            .programInstance( programInstanceService.getProgramInstance( programInstance ) )
+            .programStageInstance( programStageInstanceService.getProgramStageInstance( programStageInstance ) )
             .pageSize( pageSize )
             .page( page )
             .scheduledAt( scheduledAt ).build();

@@ -98,18 +98,20 @@ public class DefaultProgramNotificationInstanceService
     {
         if ( params.hasProgramInstance() )
         {
-            Optional.of( params.getProgramInstance() ).filter( programInstanceService::programInstanceExists )
+            Optional.of( params.getProgramInstance() )
+                .filter( pi -> programInstanceService.programInstanceExists( pi.getUid() ) )
                 .orElseThrow( () -> new IllegalQueryException(
-                    String.format( "Program instance %s does not exist", params.getProgramInstance() ) ) );
+                    String.format( "Program instance %s does not exist", params.getProgramInstance().getUid() ) ) );
 
         }
 
         if ( params.hasProgramStageInstance() )
         {
             Optional.of( params.getProgramStageInstance() )
-                .filter( programStageInstanceService::programStageInstanceExists )
+                .filter( psi -> programStageInstanceService.programStageInstanceExists( psi.getUid() ) )
                 .orElseThrow( () -> new IllegalQueryException(
-                    String.format( "Program stage instance %s does not exist", params.getProgramStageInstance() ) ) );
+                    String.format( "Program stage instance %s does not exist",
+                        params.getProgramStageInstance().getUid() ) ) );
         }
     }
 

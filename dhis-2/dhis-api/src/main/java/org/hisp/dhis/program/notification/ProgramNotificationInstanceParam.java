@@ -34,6 +34,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+
 /**
  * @author Zubair Asghar
  */
@@ -48,9 +51,9 @@ public class ProgramNotificationInstanceParam
 
     public static final int DEFAULT_PAGE = 1;
 
-    private String programInstance;
+    private ProgramInstance programInstance;
 
-    private String programStageInstance;
+    private ProgramStageInstance programStageInstance;
 
     private Date scheduledAt;
 
