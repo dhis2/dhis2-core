@@ -30,6 +30,9 @@ package org.hisp.dhis.analytics.event.data.model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Dusan Bernat
+ */
 public class ParsedSqlStatement
 {
     private List<String> innerJoins = new ArrayList<>();
