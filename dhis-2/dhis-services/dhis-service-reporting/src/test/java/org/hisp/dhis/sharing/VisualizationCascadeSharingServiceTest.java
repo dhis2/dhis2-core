@@ -130,6 +130,7 @@ public class VisualizationCascadeSharingServiceTest
 
     }
 
+    @Test
     public void testCascadeSharingEventReport()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
@@ -178,7 +179,6 @@ public class VisualizationCascadeSharingServiceTest
         assertEquals( psA, dim.getProgramStage() );
 
         // Add eventReport to dashboard
-
         Sharing sharing = defaultSharing();
         sharing.addUserAccess( new UserAccess( userA, AccessStringHelper.READ_WRITE ) );
 
