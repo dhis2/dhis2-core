@@ -35,6 +35,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
@@ -83,11 +85,18 @@ public class ProgarmNotificationInstanceController
         @RequestParam( required = false ) Date scheduledAt,
         @RequestParam( required = false ) Integer page, @RequestParam( required = false ) Integer pageSize,
         HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+        throws IOException,
+        WebMessageException
     {
+        if ( programInstance == null && programStageInstance == null )
+        {
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "ProgramInstance or ProgramStageInstance must be specified" ) );
+        }
+
         ProgramNotificationInstanceParam params = ProgramNotificationInstanceParam.builder()
             .programInstance( programInstance )
-            .programInstance( programStageInstance )
+            .programStageInstance( programStageInstance )
             .pageSize( pageSize )
             .page( page )
             .scheduledAt( scheduledAt ).build();

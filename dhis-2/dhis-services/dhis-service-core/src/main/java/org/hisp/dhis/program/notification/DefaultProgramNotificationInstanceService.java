@@ -30,6 +30,7 @@ package org.hisp.dhis.program.notification;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -95,28 +96,20 @@ public class DefaultProgramNotificationInstanceService
     @Transactional( readOnly = true )
     public void validateQueryParameters( ProgramNotificationInstanceParam params )
     {
-        String violation = null;
-
-        if ( !params.hasProgramInstance() && !params.hasProgramStageInstance() )
+        if ( params.hasProgramInstance() )
         {
-            violation = "Program instance or program stage instance must be provided";
+            Optional.of( params.getProgramInstance() ).filter( programInstanceService::programInstanceExists )
+                .orElseThrow( () -> new IllegalQueryException(
+                    String.format( "Program instance %s does not exist", params.getProgramInstance() ) ) );
+
         }
 
-        if ( !programInstanceService.programInstanceExists( params.getProgramInstance() ) )
+        if ( params.hasProgramStageInstance() )
         {
-            violation = String.format( "Program instance %s does not exist", params.getProgramInstance() );
-        }
-
-        if ( !programStageInstanceService.programStageInstanceExists( params.getProgramStageInstance() ) )
-        {
-            violation = String.format( "Program stage instance %s does not exist", params.getProgramStageInstance() );
-        }
-
-        if ( violation != null )
-        {
-            log.warn( "Parameter validation failed: " + violation );
-
-            throw new IllegalQueryException( violation );
+            Optional.of( params.getProgramStageInstance() )
+                .filter( programStageInstanceService::programStageInstanceExists )
+                .orElseThrow( () -> new IllegalQueryException(
+                    String.format( "Program stage instance %s does not exist", params.getProgramStageInstance() ) ) );
         }
     }
 
