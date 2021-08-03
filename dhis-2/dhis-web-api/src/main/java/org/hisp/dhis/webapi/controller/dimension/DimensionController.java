@@ -32,6 +32,7 @@ import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.node.AbstractNode;
@@ -239,7 +239,7 @@ public class DimensionController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Data set not found: " + uid ) );
+            throw new WebMessageException( notFound( "Data set not found: " + uid ) );
         }
 
         List<DimensionalObject> dimensions = new ArrayList<>();

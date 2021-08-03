@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.service;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,7 +41,6 @@ import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -104,10 +105,10 @@ public class TrackedEntityInstanceSupportService
                 if ( program.getAccessLevel() == AccessLevel.CLOSED )
                 {
                     throw new WebMessageException(
-                        WebMessageUtils.unathorized( TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED ) );
+                        unauthorized( TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED ) );
                 }
                 throw new WebMessageException(
-                    WebMessageUtils.unathorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
+                    unauthorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
             }
 
             if ( trackedEntityInstanceParams.isIncludeProgramOwners() )

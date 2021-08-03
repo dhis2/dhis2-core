@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,7 +49,6 @@ import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
@@ -157,7 +159,7 @@ public class AppController
         {
             String message = i18nManager.getI18n().getString( status.getMessage() );
 
-            throw new WebMessageException( WebMessageUtils.conflict( message ) );
+            throw new WebMessageException( conflict( message ) );
         }
     }
 
@@ -182,7 +184,7 @@ public class AppController
 
         if ( application == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "App '" + app + "' not found." ) );
+            throw new WebMessageException( notFound( "App '" + app + "' not found." ) );
         }
 
         if ( application.isBundled() )
@@ -203,7 +205,7 @@ public class AppController
         if ( application.getAppState() == AppStatus.DELETION_IN_PROGRESS )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "App '" + app + "' deletion is still in progress." ) );
+                conflict( "App '" + app + "' deletion is still in progress." ) );
         }
 
         log.debug( String.format( "App page name: '%s'", pageName ) );
@@ -269,12 +271,12 @@ public class AppController
         App appToDelete = appManager.getApp( app );
         if ( appToDelete == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "App does not exist: " + app ) );
+            throw new WebMessageException( notFound( "App does not exist: " + app ) );
         }
 
         if ( appToDelete.getAppState() == AppStatus.DELETION_IN_PROGRESS )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "App is already being deleted: " + app ) );
+            throw new WebMessageException( conflict( "App is already being deleted: " + app ) );
         }
 
         appManager.markAppToDelete( appToDelete );
@@ -293,7 +295,7 @@ public class AppController
 
         if ( config == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "No config specified" ) );
+            throw new WebMessageException( conflict( "No config specified" ) );
         }
     }
 

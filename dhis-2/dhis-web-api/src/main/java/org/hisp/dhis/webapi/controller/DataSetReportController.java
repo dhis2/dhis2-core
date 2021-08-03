@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -41,7 +43,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datasetreport.DataSetReportService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -99,7 +100,7 @@ public class DataSetReportController
         if ( !dataSet.getFormType().isCustom() )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Data set form type must be 'custom': " + dataSet.getFormType() ) );
+                conflict( "Data set form type must be 'custom': " + dataSet.getFormType() ) );
         }
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML,
@@ -176,7 +177,7 @@ public class DataSetReportController
 
         if ( orgUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist: " + ou ) );
+            throw new WebMessageException( conflict( "Organisation unit does not exist: " + ou ) );
         }
 
         return orgUnit;
@@ -189,7 +190,7 @@ public class DataSetReportController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + ds ) );
+            throw new WebMessageException( conflict( "Data set does not exist: " + ds ) );
         }
 
         return dataSet;
@@ -206,7 +207,7 @@ public class DataSetReportController
 
             if ( period == null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Period does not exist: " + pe ) );
+                throw new WebMessageException( conflict( "Period does not exist: " + pe ) );
             }
 
             periods.add( periodService.reloadPeriod( period ) );

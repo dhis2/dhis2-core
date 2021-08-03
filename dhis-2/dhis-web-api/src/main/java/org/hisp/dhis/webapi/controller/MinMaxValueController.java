@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +39,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.minmax.MinMaxValueParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -96,13 +97,13 @@ public class MinMaxValueController
 
         if ( dataSets == null || dataSets.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( " No datasets defined" ) );
+            throw new WebMessageException( conflict( " No datasets defined" ) );
         }
 
         OrganisationUnit organisationUnit = this.organisationUnitService.getOrganisationUnit( organisationUnitId );
         if ( organisationUnitId == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( " No valid organisation unit" ) );
+            throw new WebMessageException( conflict( " No valid organisation unit" ) );
         }
 
         Collection<DataElement> dataElements = new HashSet<>();
@@ -129,13 +130,13 @@ public class MinMaxValueController
 
         if ( dataSetIds == null || dataSetIds.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( " No datasets defined" ) );
+            throw new WebMessageException( conflict( " No datasets defined" ) );
         }
 
         OrganisationUnit organisationUnit = this.organisationUnitService.getOrganisationUnit( organisationUnitId );
         if ( organisationUnitId == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( " No valid organisation unit" ) );
+            throw new WebMessageException( conflict( " No valid organisation unit" ) );
         }
 
         Collection<DataElement> dataElements = new HashSet<>();

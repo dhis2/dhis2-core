@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.utils;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +43,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -147,7 +149,7 @@ public class FileResourceUtils
         }
         catch ( IOException e )
         {
-            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+            throw new WebMessageException( error( "Failed fetching the file from storage",
                 "There was an exception when trying to fetch the file from the storage backend. "
                     + "Depending on the provider the root cause could be network or file system related." ) );
         }
@@ -171,7 +173,7 @@ public class FileResourceUtils
 
         if ( contentLength <= 0 )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Could not read file or file is empty." ) );
+            throw new WebMessageException( conflict( "Could not read file or file is empty." ) );
         }
 
         ByteSource bytes = new MultipartFileByteSource( file );

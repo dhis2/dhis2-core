@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.springframework.http.CacheControl.noCache;
 
 import java.util.ArrayList;
@@ -50,7 +51,6 @@ import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -351,7 +351,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             if ( rootNode.getChildren().isEmpty() || rootNode.getChildren().get( 0 ).getChildren().isEmpty() )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
+                    notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
             }
 
             cachePrivate( response );
@@ -374,7 +374,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), uid ) );
+            throw new WebMessageException( notFound( getEntityClass(), uid ) );
         }
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),

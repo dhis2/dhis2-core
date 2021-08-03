@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramService;
@@ -92,7 +93,7 @@ public class TrackerOwnershipController
         trackerOwnershipAccessManager.transferOwnership(
             trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance ),
             programService.getProgram( program ), organisationUnitService.getOrganisationUnit( ou ), false, false );
-        return WebMessageUtils.ok( "Ownership transferred" );
+        return ok( "Ownership transferred" );
     }
 
     @PostMapping( value = "/override", produces = MediaType.APPLICATION_JSON_VALUE )
@@ -104,6 +105,6 @@ public class TrackerOwnershipController
             trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance ),
             programService.getProgram( program ), currentUserService.getCurrentUser(), reason );
 
-        return WebMessageUtils.ok( "Temporary Ownership granted" );
+        return ok( "Temporary Ownership granted" );
     }
 }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -40,7 +42,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageBatch;
@@ -106,7 +107,7 @@ public class ProgramMessageController
         if ( programInstance == null && programStageInstance == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "ProgramInstance or ProgramStageInstance must be specified." ) );
+                conflict( "ProgramInstance or ProgramStageInstance must be specified." ) );
         }
 
         List<ProgramMessage> programMessages = programMessageService.getProgramMessages( params );

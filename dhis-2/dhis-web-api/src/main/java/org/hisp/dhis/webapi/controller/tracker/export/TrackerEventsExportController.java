@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -43,7 +44,6 @@ import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.schema.SchemaService;
@@ -155,7 +155,7 @@ public class TrackerEventsExportController
 
         if ( event == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event not found for ID " + uid ) );
+            throw new WebMessageException( notFound( "Event not found for ID " + uid ) );
         }
 
         event.setHref( getUri( uid, request ) );

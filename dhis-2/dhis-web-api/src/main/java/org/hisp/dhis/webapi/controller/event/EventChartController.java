@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.io.IOException;
 import java.util.Date;
@@ -41,7 +42,6 @@ import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -95,10 +95,10 @@ public class EventChartController
     // --------------------------------------------------------------------------
 
     @Override
-    protected EventChart deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
+    protected EventChart deserializeJsonEntity( HttpServletRequest request )
         throws IOException
     {
-        EventChart eventChart = super.deserializeJsonEntity( request, response );
+        EventChart eventChart = super.deserializeJsonEntity( request );
         mergeEventChart( eventChart );
 
         return eventChart;
@@ -125,7 +125,7 @@ public class EventChartController
 
         if ( chart == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event chart does not exist: " + uid ) );
+            throw new WebMessageException( notFound( "Event chart does not exist: " + uid ) );
         }
 
         OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;

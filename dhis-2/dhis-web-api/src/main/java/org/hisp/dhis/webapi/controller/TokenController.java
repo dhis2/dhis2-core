@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.time.LocalDateTime;
@@ -40,7 +41,6 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.GoogleAccessToken;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -83,7 +83,7 @@ public class TokenController
 
         if ( !tokenOptional.isPresent() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Token not available" ) );
+            throw new WebMessageException( conflict( "Token not available" ) );
         }
 
         GoogleAccessToken token = tokenOptional.get();
