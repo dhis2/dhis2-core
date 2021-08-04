@@ -103,7 +103,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         String key = generateKey( template, programInstance );
 
-        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
+        String date = StringUtils.unwrap( ruleEffect.ruleAction().data(), '\'' );
 
         if ( !isDateValid( date ) )
         {
@@ -157,7 +157,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         String key = generateKey( template, pi );
 
-        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
+        String date = StringUtils.unwrap( ruleEffect.ruleAction().data(), '\'' );
 
         if ( !isDateValid( date ) )
         {
