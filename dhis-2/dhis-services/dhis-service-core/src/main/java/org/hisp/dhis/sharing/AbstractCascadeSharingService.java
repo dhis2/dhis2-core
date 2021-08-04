@@ -31,8 +31,6 @@ import java.util.Map;
 
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -43,84 +41,65 @@ public abstract class AbstractCascadeSharingService
      * Merge UserAccesses and UserGroupAccess of source object's sharing to
      * target object's sharing. Do nothing if target sharing object has
      * publicAccess enabled.
+     *
+     * @return the updated target object or NULL if no need to update.
      */
-    protected <S extends IdentifiableObject, T extends IdentifiableObject> T mergeSharing( S source, T target,
+    protected <S extends IdentifiableObject, T extends IdentifiableObject> boolean mergeSharing( S source, T target,
         CascadeSharingParameters parameters )
     {
         if ( AccessStringHelper.canRead( target.getSharing().getPublicAccess() ) )
         {
-            return target;
+            return false;
         }
 
-        mergeAccessObject( source, target, UserAccess.class, source.getSharing().getUsers(),
-            target.getSharing().getUsers(), parameters );
-        mergeAccessObject( source, target, UserGroupAccess.class, source.getSharing().getUserGroups(),
-            target.getSharing().getUserGroups(), parameters );
-        target = mergePublicAccess( source.getSharing().getPublicAccess(), target, parameters );
-
-        return target;
-    }
-
-    /**
-     * Enable READ permission for target's publicAccess only if source's
-     * publicAccess has READ enabled
-     */
-    private <T extends IdentifiableObject> T mergePublicAccess( String sourcePublicAccess, T target,
-        CascadeSharingParameters parameters )
-    {
-        if ( !AccessStringHelper.isEnabled( sourcePublicAccess, AccessStringHelper.Permission.READ )
-            || AccessStringHelper.isEnabled( target.getSharing().getPublicAccess(),
-                AccessStringHelper.Permission.READ ) )
-        {
-            return target;
-        }
-
-        target.getSharing().setPublicAccess( AccessStringHelper.READ );
-        parameters.setSharePublicAccess( true );
-
-        return target;
+        return mergeAccessObject( target.getClass(), UserAccess.class, source.getSharing().getUsers(),
+            target.getSharing().getUsers(), parameters )
+            || mergeAccessObject( target.getClass(), UserGroupAccess.class, source.getSharing().getUserGroups(),
+                target.getSharing().getUserGroups(), parameters );
     }
 
     /**
      * Merge {@link AccessObject} from source to target
      * {@code Map<String,AccessObject>}
      */
-    private <T extends AccessObject> Map<String, T> mergeAccessObject( IdentifiableObject sourceObject,
-        IdentifiableObject targetObject, Class<T> accessClass, Map<String, T> source,
+    private <T extends AccessObject> boolean mergeAccessObject( Class targetObjectClass, Class<T> accessClass,
+        Map<String, T> source,
         Map<String, T> target, CascadeSharingParameters parameters )
     {
         if ( MapUtils.isEmpty( source ) )
         {
-            return target;
+            return false;
         }
 
-        source.values().forEach( sourceAccess -> {
+        boolean shouldUpdate = false;
 
+        for ( T sourceAccess : source.values() )
+        {
             if ( !AccessStringHelper.canRead( sourceAccess.getAccess() ) )
             {
-                parameters.getReport().getErrorReports()
-                    .add( new ErrorReport( sourceObject.getClass(), ErrorCode.E3019, accessClass,
-                        sourceAccess.getId(), sourceObject.getClass(), sourceObject.getId() ) );
-                return;
+                continue;
             }
 
             T targetAccess = target.get( sourceAccess.getId() );
 
+            if ( targetAccess != null && AccessStringHelper.canRead( targetAccess.getAccess() ) )
+            {
+                continue;
+            }
+
             if ( targetAccess == null )
             {
                 targetAccess = sourceAccess;
-                targetAccess.setAccess( AccessStringHelper.READ );
             }
-            else if ( !AccessStringHelper.canRead( targetAccess.getAccess() ) )
-            {
-                targetAccess.setAccess( AccessStringHelper.READ );
-            }
+
+            targetAccess.setAccess( AccessStringHelper.READ );
 
             target.put( targetAccess.getId(), targetAccess );
-            parameters.getReport().addUpdatedObject( accessClass, targetObject.getClass(), targetAccess );
-        } );
+            parameters.getReport().addUpdatedObject( accessClass, targetObjectClass, targetAccess );
+            shouldUpdate = true;
+        }
 
-        return target;
+        return shouldUpdate;
     }
 
     protected boolean canUpdate( CascadeSharingParameters parameters )

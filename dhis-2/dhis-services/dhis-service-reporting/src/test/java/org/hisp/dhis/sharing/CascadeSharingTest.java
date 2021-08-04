@@ -27,22 +27,14 @@
  */
 package org.hisp.dhis.sharing;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.visualization.Visualization;
 
 public abstract class CascadeSharingTest
     extends DhisSpringTest
@@ -67,34 +59,6 @@ public abstract class CascadeSharingTest
         DataElement dataElement = createDataElement( name );
         dataElement.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
         return dataElement;
-    }
-
-    protected void addDimensionItemToVisualizationRow( Visualization visualization, final String dimensionItem,
-        DimensionItemType type )
-    {
-        final List<String> rowsDimensions = asList( DimensionalObject.DATA_X_DIM_ID );
-
-        final DimensionalObject dimensionalObject = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID,
-            DimensionType.DATA_X,
-            asList( baseDimensionalItemObject( dimensionItem, type ) ) );
-
-        visualization.setRowDimensions( rowsDimensions );
-
-        visualization.getRows().add( dimensionalObject );
-    }
-
-    protected void addDimensionItemToVisualizationColumn( Visualization visualization, final String dimensionItem,
-        DimensionItemType type )
-    {
-        final List<String> columnsDimensions = asList( DimensionalObject.DATA_X_DIM_ID );
-
-        final DimensionalObject dimensionalObject = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID,
-            DimensionType.DATA_X,
-            asList( baseDimensionalItemObject( dimensionItem, type ) ) );
-
-        visualization.setColumnDimensions( columnsDimensions );
-
-        visualization.getColumns().add( dimensionalObject );
     }
 
     protected Sharing defaultSharing()

@@ -32,12 +32,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.collections.SetUtils;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -134,8 +132,8 @@ public class DashboardCascadeSharingTest
         objectManager.save( dataElementB );
 
         Visualization visualizationA = createVisualization( 'A' );
-        addDimensionItemToVisualizationRow( visualizationA, dataElementA.getUid(), DimensionItemType.DATA_ELEMENT );
-        addDimensionItemToVisualizationColumn( visualizationA, dataElementB.getUid(), DimensionItemType.DATA_ELEMENT );
+        visualizationA.addDataDimensionItem( dataElementA );
+        visualizationA.addDataDimensionItem( dataElementB );
         visualizationA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
         objectManager.save( visualizationA, false );
 
@@ -172,7 +170,7 @@ public class DashboardCascadeSharingTest
 
         Visualization vzA = createVisualization( 'A' );
         vzA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
-        addDimensionItemToVisualizationRow( vzA, dataElementA.getUid(), DimensionItemType.DATA_ELEMENT );
+        vzA.addDataDimensionItem( dataElementA );
         objectManager.save( vzA, false );
 
         DashboardItem dashboardItemA = createDashboardItem( "A" );
@@ -191,8 +189,7 @@ public class DashboardCascadeSharingTest
 
         CascadeSharingReport report = dashboardCascadeSharingService.cascadeSharing( dashboard,
             new CascadeSharingParameters() );
-        assertEquals( 1, report.getErrorReports().size() );
-        assertEquals( ErrorCode.E3019, report.getErrorReports().get( 0 ).getErrorCode() );
+        assertEquals( 0, report.getUpdatedObjects().size() );
 
         assertFalse( aclService.canRead( userB, vzA ) );
         assertFalse( aclService.canRead( userB, dataElementA ) );
@@ -233,9 +230,10 @@ public class DashboardCascadeSharingTest
     }
 
     /**
-     * Dashboard has publicAccess READ
+     * Dashboard has publicAccess READ and not shared to any User or UserGroup.
      * <p>
-     * Expected any user can read Dashboard's Map
+     * Expected cascade sharing for PublicAccess is not supported, so user can't
+     * access dashboardItem's objects.
      */
     @Test
     public void testCascadeSharePublicAccess()
@@ -261,16 +259,15 @@ public class DashboardCascadeSharingTest
             new CascadeSharingParameters() );
 
         assertEquals( 0, report.getErrorReports().size() );
-        assertTrue( aclService.canRead( userA, dashboardItemA.getMap() ) );
-        assertTrue( aclService.canRead( userB, dashboardItemA.getMap() ) );
+        assertFalse( aclService.canRead( userA, dashboardItemA.getMap() ) );
+        assertFalse( aclService.canRead( userB, dashboardItemA.getMap() ) );
     }
 
     /**
      * Dashboard is shared to userB.
      * <p>
-     * But userB's access is DEFAULT('--------')
-     * <p>
-     * Expected: return error with code E3019
+     * But userB's access is DEFAULT('--------') Expected: no objects being
+     * updated.
      */
     @Test
     public void testCascadeShareMapError()
@@ -301,8 +298,7 @@ public class DashboardCascadeSharingTest
 
         CascadeSharingReport report = dashboardCascadeSharingService.cascadeSharing( dashboard,
             new CascadeSharingParameters() );
-        assertEquals( 1, report.getErrorReports().size() );
-        assertEquals( ErrorCode.E3019, report.getErrorReports().get( 0 ).getErrorCode() );
+        assertEquals( 0, report.getUpdatedObjects().size() );
 
         assertFalse( aclService.canRead( userB, dashboardItemA.getMap() ) );
     }

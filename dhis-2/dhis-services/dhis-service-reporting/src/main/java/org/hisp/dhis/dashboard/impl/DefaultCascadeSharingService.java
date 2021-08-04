@@ -32,13 +32,18 @@ import java.util.List;
 
 import lombok.NonNull;
 
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryDimension;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.dashboard.DashboardItem;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
+import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.sharing.AbstractCascadeSharingService;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
 import org.hisp.dhis.sharing.CascadeSharingReport;
@@ -65,56 +70,39 @@ public class DefaultCascadeSharingService
             switch ( dashboardItem.getType() )
             {
             case MAP:
-                mergeSharing( dashboard, dashboardItem.getMap(), parameters );
+                handleMapObject( dashboard, dashboardItem.getMap(), parameters );
                 break;
             case VISUALIZATION:
-                handleAnalyticalObject( dashboard, dashboardItem, dashboardItem.getVisualization(), parameters );
+                handleAnalyticalObject( dashboard, dashboardItem.getVisualization(), parameters );
                 break;
             case EVENT_REPORT:
-                handleAnalyticalObject( dashboard, dashboardItem, dashboardItem.getEventReport(), parameters );
+                handleAnalyticalObject( dashboard, dashboardItem.getEventReport(), parameters );
                 break;
             case EVENT_CHART:
-                handleAnalyticalObject( dashboard, dashboardItem, dashboardItem.getEventChart(), parameters );
+                handleAnalyticalObject( dashboard, dashboardItem.getEventChart(), parameters );
                 break;
             default:
                 break;
             }
         } );
 
-        if ( canUpdate( parameters ) )
-        {
-            manager.update( dashboard );
-        }
-
         return parameters.getReport();
     }
 
     @Override
     @Transactional
-    public CascadeSharingReport cascadeSharing( BaseAnalyticalObject baseAnalyticalObject,
+    public CascadeSharingReport cascadeSharing( BaseAnalyticalObject sourceObject,
         CascadeSharingParameters parameters )
     {
-        CachingMap<String, BaseIdentifiableObject> mapObjects = new CachingMap<>();
-
         List<IdentifiableObject> listUpdateObjects = new ArrayList<>();
 
-        baseAnalyticalObject.getColumns().forEach( column -> column.getItems().forEach( item -> {
-            BaseIdentifiableObject dimensionObject = mapObjects.get( item.getDimensionItem(),
-                () -> manager.get( item.getDimensionItem() ) );
+        handleIdentifiableObjects( sourceObject, sourceObject.getDataElements(), listUpdateObjects, parameters );
 
-            dimensionObject = mergeSharing( baseAnalyticalObject, dimensionObject, parameters );
+        handleIdentifiableObjects( sourceObject, sourceObject.getIndicators(), listUpdateObjects, parameters );
 
-            listUpdateObjects.add( dimensionObject );
-        } ) );
+        handleCategoryDimension( sourceObject, listUpdateObjects, parameters );
 
-        baseAnalyticalObject.getRows().forEach( row -> row.getItems().forEach( item -> {
-            BaseIdentifiableObject dimensionObject = mapObjects.get( item.getDimensionItem(),
-                () -> manager.get( item.getDimensionItem() ) );
-
-            dimensionObject = mergeSharing( baseAnalyticalObject, dimensionObject, parameters );
-
-            listUpdateObjects.add( dimensionObject );
-        } ) );
+        handleDataElementGroupSetDimensions( sourceObject, listUpdateObjects, parameters );
 
         if ( canUpdate( parameters ) )
         {
@@ -124,8 +112,15 @@ public class DefaultCascadeSharingService
         return parameters.getReport();
     }
 
-    private void handleAnalyticalObject( Dashboard dashboard, DashboardItem dashboardItem,
-        BaseAnalyticalObject analyticalObject,
+    private void handleMapObject( Dashboard dashboard, Map map, CascadeSharingParameters parameters )
+    {
+        if ( mergeSharing( dashboard, map, parameters ) )
+        {
+            manager.update( map );
+        }
+    }
+
+    private <T extends BaseAnalyticalObject> void handleAnalyticalObject( Dashboard dashboard, T analyticalObject,
         CascadeSharingParameters parameters )
     {
         if ( analyticalObject == null )
@@ -133,15 +128,106 @@ public class DefaultCascadeSharingService
             return;
         }
 
-        BaseAnalyticalObject mergedObject = mergeSharing( dashboard, analyticalObject, parameters );
+        if ( !mergeSharing( dashboard, analyticalObject, parameters ) )
+        {
+            return;
+        }
 
         if ( canUpdate( parameters ) )
         {
-            manager.update( mergedObject );
+            manager.update( analyticalObject );
         }
 
         cascadeSharing( analyticalObject, parameters );
 
         parameters.getReport().increaseCountDashboardItem();
+    }
+
+    private void handleCategoryDimension( BaseAnalyticalObject sourceObject, List<IdentifiableObject> listUpdateObjects,
+        CascadeSharingParameters parameters )
+    {
+        List<CategoryDimension> catDimensions = sourceObject.getCategoryDimensions();
+
+        if ( CollectionUtils.isEmpty( catDimensions ) )
+        {
+            return;
+        }
+
+        catDimensions.forEach( catDimension -> {
+            Category category = catDimension.getDimension();
+
+            if ( category != null && mergeSharing( sourceObject, category, parameters ) )
+            {
+                listUpdateObjects.add( category );
+            }
+
+            List<CategoryOption> catOptions = catDimension.getItems();
+
+            if ( CollectionUtils.isEmpty( catOptions ) )
+            {
+                return;
+            }
+
+            catOptions.forEach( catOption -> {
+                if ( mergeSharing( sourceObject, catOption, parameters ) )
+                {
+                    listUpdateObjects.add( catOption );
+                }
+            } );
+
+        } );
+    }
+
+    private void handleDataElementGroupSetDimensions( BaseAnalyticalObject sourceObject,
+        List<IdentifiableObject> listUpdateObjects,
+        CascadeSharingParameters parameters )
+    {
+        List<DataElementGroupSetDimension> deGroupSetDimensions = sourceObject
+            .getDataElementGroupSetDimensions();
+
+        if ( CollectionUtils.isEmpty( deGroupSetDimensions ) )
+        {
+            return;
+        }
+
+        deGroupSetDimensions.forEach( deGroupSetDimension -> {
+            DataElementGroupSet deGroupSet = deGroupSetDimension.getDimension();
+
+            if ( deGroupSet != null && mergeSharing( sourceObject, deGroupSet, parameters ) )
+            {
+                listUpdateObjects.add( deGroupSet );
+            }
+
+            List<DataElementGroup> deGroups = deGroupSetDimension.getItems();
+
+            if ( CollectionUtils.isEmpty( deGroups ) )
+            {
+                return;
+            }
+
+            deGroups.forEach( deGroup -> {
+                if ( mergeSharing( sourceObject, deGroup, parameters ) )
+                {
+                    listUpdateObjects.add( deGroup );
+                }
+            } );
+        } );
+    }
+
+    private void handleIdentifiableObjects( final BaseAnalyticalObject sourceObject,
+        final List<? extends IdentifiableObject> targetObjects, List<IdentifiableObject> listUpdateObjects,
+        CascadeSharingParameters parameters )
+    {
+        if ( CollectionUtils.isEmpty( targetObjects ) )
+        {
+            return;
+        }
+
+        targetObjects.forEach( object -> {
+            if ( mergeSharing( sourceObject, object, parameters ) )
+            {
+                listUpdateObjects.add( object );
+            }
+        } );
     }
 }
