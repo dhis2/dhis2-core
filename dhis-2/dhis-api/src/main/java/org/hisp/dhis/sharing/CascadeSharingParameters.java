@@ -59,4 +59,14 @@ public class CascadeSharingParameters
     private boolean sharePublicAccess = false;
 
     private CascadeSharingReport report = new CascadeSharingReport();
+
+    public CascadeSharingReport getReport()
+    {
+        if ( report == null )
+        {
+            report = new CascadeSharingReport();
+        }
+
+        return report;
+    }
 }

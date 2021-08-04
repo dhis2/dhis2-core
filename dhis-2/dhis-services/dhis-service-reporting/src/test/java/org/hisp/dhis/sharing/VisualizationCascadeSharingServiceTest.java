@@ -42,6 +42,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
@@ -140,8 +141,9 @@ public class VisualizationCascadeSharingServiceTest
         objectManager.save( ouB );
         objectManager.save( ouC );
 
-        EventReport eventReport = new EventReport();
-        eventReport.setAutoFields();
+        Program programA = createProgram( 'A' );
+        programA.setSharing( defaultSharing() );
+        objectManager.save( programA, false );
 
         DataElement deA = createDataElement( 'A' );
         deA.setSharing( defaultSharing() );
@@ -149,13 +151,18 @@ public class VisualizationCascadeSharingServiceTest
 
         LegendSet lsA = createLegendSet( 'A' );
         lsA.setSharing( defaultSharing() );
-        objectManager.save( deA, false );
+        objectManager.save( lsA, false );
 
         ProgramStage psA = createProgramStage( 'A', 1 );
         psA.setSharing( defaultSharing() );
         objectManager.save( psA, false );
 
         TrackedEntityDataElementDimension teDeDim = new TrackedEntityDataElementDimension( deA, lsA, psA, "EQ:1" );
+
+        EventReport eventReport = new EventReport();
+        eventReport.setName( "eventReportA" );
+        eventReport.setAutoFields();
+        eventReport.setProgram( programA );
 
         eventReport.addTrackedEntityDataElementDimension( teDeDim );
         eventReport.getOrganisationUnits().addAll( Lists.newArrayList( ouA, ouB, ouC ) );
@@ -185,9 +192,27 @@ public class VisualizationCascadeSharingServiceTest
         DashboardItem dashboardItem = createDashboardItem( "A" );
         dashboardItem.setEventReport( eventReport );
         Dashboard dashboard = new Dashboard();
+        dashboard.setName( "dashboardA" );
         dashboard.setSharing( sharing );
 
         dashboard.getItems().add( dashboardItem );
+        dashboard.setSharing( sharingReadForUserA );
+        objectManager.save( dashboard, false );
+
+        CascadeSharingReport report = cascadeSharingService
+            .cascadeSharing( dashboard, CascadeSharingParameters.builder().build() );
+
+        assertEquals( 0, report.getErrorReports().size() );
+        assertEquals( 4, report.getUpdatedObjects().size() );
+        assertEquals( 1, report.getUpdatedObjects().get( DataElement.class ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( LegendSet.class ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( ProgramStage.class ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( Visualization.class ).size() );
+
+        assertTrue( aclService.canRead( userA, visualizationA ) );
+        assertTrue( aclService.canRead( userA, deA ) );
+        assertTrue( aclService.canRead( userA, lsA ) );
+        assertTrue( aclService.canRead( userA, psA ) );
 
     }
 }

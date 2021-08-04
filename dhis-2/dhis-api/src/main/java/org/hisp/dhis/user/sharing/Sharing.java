@@ -164,7 +164,7 @@ public class Sharing
     {
         if ( userAccess != null )
         {
-            this.users.put( userAccess.getId(), userAccess );
+            getUsers().put( userAccess.getId(), userAccess );
         }
     }
 
