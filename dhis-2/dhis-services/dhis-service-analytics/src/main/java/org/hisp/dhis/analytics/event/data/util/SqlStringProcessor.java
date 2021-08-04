@@ -48,7 +48,7 @@ import org.hisp.dhis.analytics.event.data.model.ParsedSqlStatement;
 /**
  * @author Dusan Bernat
  */
-public class SqlStringProcessor
+public final class SqlStringProcessor
 {
     public static String toInnerJoins( String selectSQL, boolean pretty )
     {
