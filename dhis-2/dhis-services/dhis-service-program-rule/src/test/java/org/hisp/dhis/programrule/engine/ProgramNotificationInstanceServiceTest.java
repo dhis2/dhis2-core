@@ -125,7 +125,7 @@ public class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
         programRuleAction = createProgramRuleAction( 'A' );
         programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SCHEDULEMESSAGE );
         programRuleAction.setTemplateUid( programNotificationTemplate.getUid() );
-        programRuleAction.setData( "2020-12-12" );
+        programRuleAction.setData( "'2020-12-12'" );
         manager.save( programRuleAction );
 
         programRule.getProgramRuleActions().add( programRuleAction );
