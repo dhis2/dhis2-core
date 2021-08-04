@@ -361,7 +361,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         catch ( Exception e )
         {
-            log.debug( sql );
+            log.info( sql );
         }
 
         try
@@ -372,6 +372,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             catch ( BadSqlGrammarException ex )
             {
+                log.info( sql );
                 getAggregatedEventData( grid, params, sql );
             }
         }
