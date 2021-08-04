@@ -187,6 +187,7 @@
     <commons-codec.version>1.14</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.5</commons-email.version>
+    <jsqlparser.version>1.4</jsqlparser.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.5</micrometer-spring-legacy.version>
@@ -2361,6 +2362,12 @@
         <version>${validation-api.version}</version>
       </dependency>
 
+      <!-- jsql parser-->
+      <dependency>
+        <groupId>com.github.jsqlparser</groupId>
+        <artifactId>jsqlparser</artifactId>
+        <version>${jsqlparser.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

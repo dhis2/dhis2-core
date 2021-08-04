@@ -377,7 +377,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         catch ( BadSqlGrammarException ex )
         {
-            log.debug( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
+            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
         }
         catch ( DataAccessResourceFailureException ex )
         {
