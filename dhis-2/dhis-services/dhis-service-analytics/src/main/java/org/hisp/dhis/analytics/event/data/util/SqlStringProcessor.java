@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Table;
@@ -49,6 +50,7 @@ import org.hisp.dhis.calendar.DateUnitType;
 /**
  * @author Dusan Bernat
  */
+@Slf4j
 public class SqlStringProcessor
 {
     private static final String PREFIX_ORG_UNIT_LEVEL = "uidlevel";
@@ -161,7 +163,7 @@ public class SqlStringProcessor
         }
         catch ( JSQLParserException e )
         {
-            e.printStackTrace();
+            log.debug( e.getMessage() );
         }
         return "";
     }
