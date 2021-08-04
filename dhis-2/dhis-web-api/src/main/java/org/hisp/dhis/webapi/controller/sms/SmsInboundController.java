@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.sms;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.Date;
@@ -87,7 +88,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
     // POST
     // -------------------------------------------------------------------------
 
-    @PostMapping( produces = { "application/json" } )
+    @PostMapping( produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
     public WebMessage receiveSMSMessage( @RequestParam String originator,
@@ -111,7 +112,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
         return ok( "Received SMS: " + smsId );
     }
 
-    @PostMapping( consumes = { "application/json" }, produces = { "application/json" } )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
     public WebMessage receiveSMSMessage( HttpServletRequest request )
@@ -126,7 +127,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
         return ok( "Received SMS: " + smsId );
     }
 
-    @PostMapping( value = "/import", produces = "application/json" )
+    @PostMapping( value = "/import", produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
     public WebMessage importUnparsedSMSMessages()
@@ -145,7 +146,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
     // DELETE
     // -------------------------------------------------------------------------
 
-    @DeleteMapping( value = "/{uid}", produces = "application/json" )
+    @DeleteMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
     public WebMessage deleteInboundMessage( @PathVariable String uid )
@@ -162,7 +163,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
         return ok( "IncomingSms with " + uid + " deleted" );
     }
 
-    @DeleteMapping( produces = "application/json" )
+    @DeleteMapping( produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
     public WebMessage deleteInboundMessages( @RequestParam List<String> ids )

@@ -31,19 +31,18 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.common.ImportSummary;
@@ -68,17 +67,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.dataformat.csv.CsvFactory;
-import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -120,8 +112,8 @@ public class SystemController
     // UID Generator
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = { "/uid", "/id" }, produces = {
-        MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
+    @GetMapping( value = { "/uid", "/id" }, produces = { MediaType.APPLICATION_JSON_VALUE,
+        MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody CodeList getUid(
         @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
@@ -130,7 +122,7 @@ public class SystemController
         return generateCodeList( Math.min( limit, 10000 ), CodeGenerator::generateUid );
     }
 
-    @GetMapping( value = { "/uid", "/id" }, produces = { "application/csv" } )
+    @GetMapping( value = { "/uid", "/id" }, produces = "application/csv" )
     public void getUidCsv(
         @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
@@ -155,7 +147,7 @@ public class SystemController
         csvGenerator.flush();
     }
 
-    @GetMapping( value = "/uuid", produces = { MediaType.APPLICATION_JSON_VALUE,
+    @GetMapping( value = "/uuid", produces = { APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody CodeList getUuid(
         @RequestParam( required = false, defaultValue = "1" ) Integer limit,
@@ -171,7 +163,7 @@ public class SystemController
     // Tasks
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/tasks", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/tasks", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getTasksJson( HttpServletResponse response )
         throws IOException
     {
@@ -181,7 +173,7 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
     }
 
-    @GetMapping( value = "/tasks/{jobType}", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/tasks/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -195,7 +187,7 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @GetMapping( value = "/tasks/{jobType}/{jobId}", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/tasks/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getTaskJsonByUid( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
@@ -214,7 +206,7 @@ public class SystemController
     // Tasks summary
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/taskSummaries/{jobType}", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/taskSummaries/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -230,7 +222,7 @@ public class SystemController
         response.setContentType( CONTENT_TYPE_JSON );
     }
 
-    @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
@@ -249,9 +241,7 @@ public class SystemController
     private void handleSummary( HttpServletResponse response, Object summary )
         throws IOException
     {
-        if ( summary != null && ImportSummary.class.isInstance( summary ) ) // TODO
-                                                                            // improve
-                                                                            // this
+        if ( summary instanceof ImportSummary )
         {
             ImportSummary importSummary = (ImportSummary) summary;
             renderService.toJson( response.getOutputStream(), importSummary );
@@ -266,7 +256,7 @@ public class SystemController
     // Various
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/info", produces = { "application/json", "application/javascript" } )
+    @GetMapping( value = "/info", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody SystemInfo getSystemInfo(
         HttpServletRequest request,
         HttpServletResponse response )
@@ -301,13 +291,13 @@ public class SystemController
         return "pong";
     }
 
-    @GetMapping( value = "/flags", produces = { "application/json" } )
+    @GetMapping( value = "/flags", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<StyleObject> getFlags()
     {
         return getFlagObjects();
     }
 
-    @GetMapping( value = "/styles", produces = { "application/json" } )
+    @GetMapping( value = "/styles", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<StyleObject> getStyles()
     {
         return styleManager.getStyles();

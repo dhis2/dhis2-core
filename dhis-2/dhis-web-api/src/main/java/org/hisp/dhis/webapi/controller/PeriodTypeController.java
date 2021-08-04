@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -81,7 +83,7 @@ public class PeriodTypeController
         return ResponseEntity.ok( objectNodes );
     }
 
-    @GetMapping( value = "/relativePeriodTypes", produces = { "application/json", "application/javascript" } )
+    @GetMapping( value = "/relativePeriodTypes", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody RelativePeriodEnum[] getRelativePeriodTypes()
     {
         return RelativePeriodEnum.values();
