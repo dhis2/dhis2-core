@@ -43,6 +43,7 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -144,10 +145,19 @@ public class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
         programRuleEngineService.evaluateEnrollmentAndRunEffects( programInstance.getId() );
 
         List<ProgramNotificationInstance> programNotificationInstances = programNotificationInstanceService
-            .getProgramNotificationInstances( programInstance );
+            .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
+                .programInstance( programInstance ).build() );
 
         assertFalse( programNotificationInstances.isEmpty() );
         assertSame( programInstance, programNotificationInstances.get( 0 ).getProgramInstance() );
+
+        ProgramNotificationInstanceParam param = ProgramNotificationInstanceParam.builder()
+            .programInstance( programInstance ).build();
+
+        List<ProgramNotificationInstance> instances = programNotificationInstanceService
+            .getProgramNotificationInstances( param );
+
+        assertFalse( instances.isEmpty() );
     }
 
     @Test
@@ -156,7 +166,8 @@ public class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
         programRuleEngineService.evaluateEnrollmentAndRunEffects( programInstanceB.getId() );
 
         List<ProgramNotificationInstance> programNotificationInstances = programNotificationInstanceService
-            .getProgramNotificationInstances( programInstanceB );
+            .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
+                .programInstance( programInstanceB ).build() );
 
         assertFalse( programNotificationInstances.isEmpty() );
         assertSame( programInstanceB, programNotificationInstances.get( 0 ).getProgramInstance() );
@@ -164,7 +175,8 @@ public class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
         programNotificationInstanceService.delete( programNotificationInstances.get( 0 ) );
 
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
-            .getProgramNotificationInstances( programInstanceB );
+            .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
+                .programInstance( programInstanceB ).build() );
 
         assertTrue( instances.isEmpty() );
     }

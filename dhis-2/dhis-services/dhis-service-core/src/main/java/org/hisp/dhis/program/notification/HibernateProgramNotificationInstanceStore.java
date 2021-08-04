@@ -38,8 +38,6 @@ import javax.persistence.criteria.Root;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -63,25 +61,6 @@ public class HibernateProgramNotificationInstanceStore
     }
 
     @Override
-    public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramInstance programInstance )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "programInstance" ), programInstance ) ) );
-    }
-
-    @Override
-    public List<ProgramNotificationInstance> getProgramNotificationInstances(
-        ProgramStageInstance programStageInstance )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "programStageInstance" ), programStageInstance ) ) );
-    }
-
-    @Override
     public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramNotificationInstanceParam params )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
@@ -93,11 +72,6 @@ public class HibernateProgramNotificationInstanceStore
         if ( params.hasPaging() )
         {
             jpaParameters.setFirstResult( params.getPage() ).setMaxResults( params.getPageSize() );
-        }
-        else
-        {
-            jpaParameters.setFirstResult( ProgramNotificationInstanceParam.DEFAULT_PAGE )
-                .setMaxResults( ProgramNotificationInstanceParam.DEFAULT_PAGE_SIZE );
         }
 
         return getList( builder, jpaParameters );

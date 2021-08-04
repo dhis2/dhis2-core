@@ -34,9 +34,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,21 +64,6 @@ public class DefaultProgramNotificationInstanceService
         this.notificationInstanceStore = notificationInstanceStore;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramInstance programInstance )
-    {
-        return notificationInstanceStore.getProgramNotificationInstances( programInstance );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramNotificationInstance> getProgramNotificationInstances(
-        ProgramStageInstance programStageInstance )
-    {
-        return notificationInstanceStore.getProgramNotificationInstances( programStageInstance );
     }
 
     @Override
