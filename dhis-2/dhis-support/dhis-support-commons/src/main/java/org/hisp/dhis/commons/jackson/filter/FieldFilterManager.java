@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
@@ -64,18 +63,10 @@ public class FieldFilterManager
             ObjectNode objectNode = objectMapper.valueToTree( object );
 
             // TODO apply transformations
-            objectNode.replace( "n", objectNode.get( "name" ) );
-            objectNode.remove( "name" );
-
             objectNodes.add( objectNode );
         }
 
         return objectNodes;
-    }
-
-    public ArrayNode toArrayNode( Class<?> wrapper, FieldFilterParams params )
-    {
-        return null;
     }
 
     private SimpleFilterProvider getSimpleFilterProvider( FieldFilterParams params )

@@ -30,6 +30,7 @@ package org.hisp.dhis.commons.jackson.filter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -79,7 +80,7 @@ public class FieldFilterParser
 
                 builder = new StringBuilder();
             }
-            else if ( isAlphanumeric( token ) )
+            else if ( isAlphanumericOrSpecial( token ) )
             {
                 builder.append( token );
             }
@@ -113,9 +114,10 @@ public class FieldFilterParser
         return token != null && StringUtils.containsAny( token, "," );
     }
 
-    private static boolean isAlphanumeric( String token )
+    private static boolean isAlphanumericOrSpecial( String token )
     {
-        return StringUtils.isAlphanumeric( token ) || StringUtils.containsAny( token, "*" );
+        return StringUtils.isAlphanumeric( token )
+            || StringUtils.containsAny( token, "*", ":", ";", "{", "}", "~", "!" );
     }
 
     private static String toFullPath( String field, Stack<String> path )
