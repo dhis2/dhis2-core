@@ -28,9 +28,13 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonNode;
+import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -94,4 +98,34 @@ public class SharingControllerTest extends DhisControllerConvenienceTest
                 .content( HttpStatus.CONFLICT ) );
     }
 
+    @Test
+    public void testGetSharing()
+    {
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups", "{'name':'test'}" ) );
+
+        JsonObject sharing = GET( "/sharing?type=userGroup&id=" + groupId ).content( HttpStatus.OK );
+        JsonObject meta = sharing.getObject( "meta" );
+        assertTrue( meta.getBoolean( "allowPublicAccess" ).booleanValue() );
+        assertFalse( meta.getBoolean( "allowExternalAccess" ).booleanValue() );
+        JsonObject object = sharing.getObject( "object" );
+        assertEquals( groupId, object.getString( "id" ).string() );
+        assertEquals( "test", object.getString( "name" ).string() );
+        assertEquals( "test", object.getString( "displayName" ).string() );
+        assertEquals( "rw------", object.getString( "publicAccess" ).string() );
+        assertFalse( object.getBoolean( "externalAccess" ).booleanValue() );
+        assertEquals( "admin admin", object.getObject( "user" ).getString( "name" ).string() );
+        assertEquals( 0, object.getArray( "userGroupAccesses" ).size() );
+        assertEquals( 0, object.getArray( "userAccesses" ).size() );
+    }
+
+    @Test
+    public void testSearchUserGroups()
+    {
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups", "{'name':'test'}" ) );
+
+        JsonObject matches = GET( "/sharing/search?key=" + groupId ).content( HttpStatus.OK );
+        assertTrue( matches.has( "userGroups", "users" ) );
+        assertEquals( 0, matches.getArray( "userGroups" ).size() );
+        assertEquals( 0, matches.getArray( "users" ).size() );
+    }
 }

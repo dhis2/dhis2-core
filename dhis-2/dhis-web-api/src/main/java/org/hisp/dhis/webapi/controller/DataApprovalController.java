@@ -152,8 +152,7 @@ public class DataApprovalController
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam( required = false ) String aoc,
-        HttpServletResponse response )
+        @RequestParam( required = false ) String aoc )
         throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
@@ -383,8 +382,7 @@ public class DataApprovalController
         @RequestParam( required = false ) Set<String> ds,
         @RequestParam( required = false ) Set<String> wf,
         @RequestParam String pe,
-        @RequestParam( required = false ) String ou,
-        HttpServletResponse response )
+        @RequestParam( required = false ) String ou )
         throws IOException,
         WebMessageException
     {

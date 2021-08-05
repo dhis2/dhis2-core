@@ -181,8 +181,7 @@ public class DataSetController
     @ResponseBody
     @ResponseStatus( HttpStatus.OK )
     public Map<String, Integer> getVersion( @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> parameters,
-        HttpServletResponse response )
+        @RequestParam Map<String, String> parameters )
         throws Exception
     {
         DataSet dataSet = manager.get( DataSet.class, uid );
@@ -274,7 +273,7 @@ public class DataSetController
         @RequestParam( value = "pe", required = false ) String period,
         @RequestParam( value = "categoryOptions", required = false ) String categoryOptions,
         @RequestParam( required = false ) boolean metaData,
-        TranslateParams translateParams, HttpServletResponse response )
+        TranslateParams translateParams )
         throws IOException,
         WebMessageException
     {
