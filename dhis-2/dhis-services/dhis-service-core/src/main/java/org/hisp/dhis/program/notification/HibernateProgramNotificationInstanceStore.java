@@ -78,7 +78,7 @@ public class HibernateProgramNotificationInstanceStore
     }
 
     @Override
-    public int countProgramNotificationInstances( ProgramNotificationInstanceParam params )
+    public Long countProgramNotificationInstances( ProgramNotificationInstanceParam params )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -86,7 +86,7 @@ public class HibernateProgramNotificationInstanceStore
             .addPredicates( getPredicates( params, builder ) )
             .addOrder( root -> builder.desc( root.get( "created" ) ) );
 
-        return getCount( builder, jpaParameters ).intValue();
+        return getCount( builder, jpaParameters );
     }
 
     private List<Function<Root<ProgramNotificationInstance>, Predicate>> getPredicates(

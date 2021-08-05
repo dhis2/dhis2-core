@@ -75,7 +75,7 @@ public class DefaultProgramNotificationInstanceService
     }
 
     @Override
-    public int countProgramNotificationInstances( ProgramNotificationInstanceParam params )
+    public Long countProgramNotificationInstances( ProgramNotificationInstanceParam params )
     {
         return notificationInstanceStore.countProgramNotificationInstances( params );
     }

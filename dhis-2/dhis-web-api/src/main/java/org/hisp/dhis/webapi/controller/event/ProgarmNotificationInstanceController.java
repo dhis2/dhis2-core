@@ -31,21 +31,16 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescriptor;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -54,8 +49,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Zubair Asghar
@@ -99,12 +92,12 @@ public class ProgarmNotificationInstanceController
 
     @PreAuthorize( "hasRole('ALL')" )
     @GetMapping( produces = { "application/json" } )
-    public @ResponseBody RootNode getScheduledMessage(
+    public @ResponseBody PagingWrapper<ProgramNotificationInstance> getScheduledMessage(
         @RequestParam( required = false ) String programInstance,
         @RequestParam( required = false ) String programStageInstance,
         @RequestParam( required = false ) Date scheduledAt,
         @RequestParam( required = false ) boolean skipPaging,
-        @RequestParam( required = false, defaultValue = "1" ) int page,
+        @RequestParam( required = false, defaultValue = "0" ) int page,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize )
         throws WebMessageException
     {
@@ -112,13 +105,6 @@ public class ProgarmNotificationInstanceController
         {
             throw new WebMessageException(
                 WebMessageUtils.conflict( "ProgramInstance or ProgramStageInstance must be specified" ) );
-        }
-
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
         }
 
         ProgramNotificationInstanceParam params = ProgramNotificationInstanceParam.builder()
@@ -129,13 +115,15 @@ public class ProgarmNotificationInstanceController
             .pageSize( pageSize )
             .scheduledAt( scheduledAt ).build();
 
-        Pager pager = null;
+        PagingWrapper<ProgramNotificationInstance> instancePagingWrapper = new PagingWrapper<>();
 
         if ( !skipPaging )
         {
-            int total = programNotificationInstanceService.countProgramNotificationInstances( params );
+            long total = programNotificationInstanceService.countProgramNotificationInstances( params );
 
-            pager = new Pager( page, total, pageSize );
+            instancePagingWrapper = instancePagingWrapper.withPager(
+                PagingWrapper.Pager.builder().page( page ).pageSize( pageSize )
+                    .total( total ).build() );
         }
 
         programNotificationInstanceService.validateQueryParameters( params );
@@ -143,19 +131,6 @@ public class ProgarmNotificationInstanceController
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances( params );
 
-        RootNode rootNode = NodeUtils.createMetadata();
-
-        if ( pager != null )
-        {
-            rootNode.addChild( NodeUtils.createPager( pager ) );
-        }
-
-        CollectionNode programNotificationInstances = rootNode
-            .addChild( new CollectionNode( "programNotificationInstances", true ) );
-        programNotificationInstances
-            .addChildren( fieldFilterService.toCollectionNode( ProgramNotificationInstance.class,
-                new FieldFilterParams( instances, fields ) ).getChildren() );
-
-        return rootNode;
+        return instancePagingWrapper.withInstances( instances );
     }
 }

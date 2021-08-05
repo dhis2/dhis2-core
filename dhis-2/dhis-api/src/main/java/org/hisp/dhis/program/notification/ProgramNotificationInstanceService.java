@@ -45,7 +45,7 @@ public interface ProgramNotificationInstanceService
     List<ProgramNotificationInstance> getProgramNotificationInstances(
         ProgramNotificationInstanceParam programNotificationInstanceParam );
 
-    int countProgramNotificationInstances( ProgramNotificationInstanceParam params );
+    Long countProgramNotificationInstances( ProgramNotificationInstanceParam params );
 
     void validateQueryParameters( ProgramNotificationInstanceParam param );
 }
