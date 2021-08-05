@@ -31,8 +31,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
@@ -97,16 +95,9 @@ public class ProgarmNotificationInstanceController
         @RequestParam( required = false ) String programStageInstance,
         @RequestParam( required = false ) Date scheduledAt,
         @RequestParam( required = false ) boolean skipPaging,
-        @RequestParam( required = false, defaultValue = "0" ) int page,
+        @RequestParam( required = false, defaultValue = "1" ) int page,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize )
-        throws WebMessageException
     {
-        if ( programInstance == null && programStageInstance == null )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "ProgramInstance or ProgramStageInstance must be specified" ) );
-        }
-
         ProgramNotificationInstanceParam params = ProgramNotificationInstanceParam.builder()
             .programInstance( programInstanceService.getProgramInstance( programInstance ) )
             .programStageInstance( programStageInstanceService.getProgramStageInstance( programStageInstance ) )

@@ -71,7 +71,11 @@ public class HibernateProgramNotificationInstanceStore
 
         if ( !params.isSkipPaging() )
         {
-            jpaParameters.setFirstResult( params.getPage() ).setMaxResults( params.getPageSize() );
+            jpaParameters
+                .setFirstResult(
+                    params.getPage() != null ? params.getPage() : ProgramNotificationInstanceParam.DEFAULT_PAGE )
+                .setMaxResults( params.getPageSize() != null ? params.getPageSize()
+                    : ProgramNotificationInstanceParam.DEFAULT_PAGE_SIZE );
         }
 
         return getList( builder, jpaParameters );
