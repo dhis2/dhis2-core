@@ -40,14 +40,18 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sharing.AbstractCascadeSharingService;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
 import org.hisp.dhis.sharing.CascadeSharingReport;
 import org.hisp.dhis.sharing.CascadeSharingService;
+import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,6 +106,8 @@ public class DefaultCascadeSharingService
 
         handleCategoryDimension( sourceObject, listUpdateObjects, parameters );
 
+        handleDataElementDimensions( sourceObject, listUpdateObjects, parameters );
+
         handleDataElementGroupSetDimensions( sourceObject, listUpdateObjects, parameters );
 
         if ( canUpdate( parameters ) )
@@ -141,6 +147,43 @@ public class DefaultCascadeSharingService
         cascadeSharing( analyticalObject, parameters );
 
         parameters.getReport().increaseCountDashboardItem();
+    }
+
+    private void handleDataElementDimensions( BaseAnalyticalObject sourceObject,
+        List<IdentifiableObject> listUpdateObjects,
+        CascadeSharingParameters parameters )
+    {
+        List<TrackedEntityDataElementDimension> deDimensions = sourceObject
+            .getDataElementDimensions();
+
+        if ( CollectionUtils.isEmpty( deDimensions ) )
+        {
+            return;
+        }
+
+        deDimensions.forEach( deDimension -> {
+            DataElement dataElement = deDimension.getDataElement();
+
+            if ( dataElement != null && mergeSharing( sourceObject, dataElement, parameters ) )
+            {
+                listUpdateObjects.add( dataElement );
+            }
+
+            LegendSet legendSet = deDimension.getLegendSet();
+
+            if ( legendSet != null && mergeSharing( sourceObject, legendSet, parameters ) )
+            {
+                listUpdateObjects.add( legendSet );
+            }
+
+            ProgramStage programStage = deDimension.getProgramStage();
+
+            if ( programStage != null && mergeSharing( sourceObject, programStage, parameters ) )
+            {
+                listUpdateObjects.add( programStage );
+            }
+
+        } );
     }
 
     private void handleCategoryDimension( BaseAnalyticalObject sourceObject, List<IdentifiableObject> listUpdateObjects,

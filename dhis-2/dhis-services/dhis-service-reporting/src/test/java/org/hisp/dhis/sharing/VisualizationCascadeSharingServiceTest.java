@@ -31,7 +31,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -40,7 +39,6 @@ import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -53,8 +51,6 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Lists;
 
 public class VisualizationCascadeSharingServiceTest
     extends CascadeSharingTest
@@ -77,6 +73,8 @@ public class VisualizationCascadeSharingServiceTest
 
     private Sharing sharingReadForUserA;
 
+    private Indicator indicatorA;
+
     @Override
     public void setUpTest()
     {
@@ -89,23 +87,23 @@ public class VisualizationCascadeSharingServiceTest
         sharingReadForUserA.setPublicAccess( AccessStringHelper.DEFAULT );
         sharingReadForUserA.addUserAccess( new UserAccess( userA, AccessStringHelper.READ ) );
         createAndInjectAdminUser();
+
+        IndicatorType indicatorType = createIndicatorType( 'A' );
+        objectManager.save( indicatorType );
+        indicatorA = createIndicator( 'A', indicatorType );
+        indicatorA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        objectManager.save( indicatorA, false );
     }
 
     @Test
     public void testCascadeIndicatorAndDataElement()
     {
-        IndicatorType indicatorType = createIndicatorType( 'A' );
-        objectManager.save( indicatorType );
-        Indicator indicator = createIndicator( 'A', indicatorType );
-        indicator.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
-        objectManager.save( indicator, false );
-
         DataElement dataElementA = createDEWithDefaultSharing( 'A' );
         objectManager.save( dataElementA, false );
 
         Visualization visualizationA = createVisualization( 'A' );
         visualizationA.addDataDimensionItem( dataElementA );
-        visualizationA.addDataDimensionItem( indicator );
+        visualizationA.addDataDimensionItem( indicatorA );
         visualizationA.setSharing( sharingReadForUserA );
         objectManager.save( visualizationA, false );
         visualizationA.populateAnalyticalProperties();
@@ -118,27 +116,20 @@ public class VisualizationCascadeSharingServiceTest
         assertEquals( 1, report.getUpdatedObjects().get( Indicator.class ).size() );
 
         DataElement updatedDataElementA = objectManager.get( DataElement.class, dataElementA.getUid() );
-        Indicator indicator1 = objectManager.get( Indicator.class, indicator.getUid() );
+        Indicator updatedIndicatorA = objectManager.get( Indicator.class, indicatorA.getUid() );
 
         assertTrue( aclService.canRead( userA, visualizationA ) );
         assertTrue( aclService.canRead( userA, updatedDataElementA ) );
-        assertTrue( aclService.canRead( userA, indicator1 ) );
+        assertTrue( aclService.canRead( userA, updatedIndicatorA ) );
         assertFalse( aclService.canRead( userB, visualizationA ) );
         assertFalse( aclService.canRead( userB, updatedDataElementA ) );
-        assertFalse( aclService.canRead( userB, indicator1 ) );
+        assertFalse( aclService.canRead( userB, updatedIndicatorA ) );
 
     }
 
     @Test
     public void testCascadeSharingEventReport()
     {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrganisationUnit ouC = createOrganisationUnit( 'C' );
-        objectManager.save( ouA );
-        objectManager.save( ouB );
-        objectManager.save( ouC );
-
         Program programA = createProgram( 'A' );
         programA.setSharing( defaultSharing() );
         objectManager.save( programA, false );
@@ -161,27 +152,10 @@ public class VisualizationCascadeSharingServiceTest
         eventReport.setName( "eventReportA" );
         eventReport.setAutoFields();
         eventReport.setProgram( programA );
-
         eventReport.addTrackedEntityDataElementDimension( teDeDim );
-        eventReport.getOrganisationUnits().addAll( Lists.newArrayList( ouA, ouB, ouC ) );
-
-        eventReport.getColumnDimensions().add( deA.getUid() );
-        eventReport.getRowDimensions().add( DimensionalObject.ORGUNIT_DIM_ID );
-
         eventReport.setSharing( defaultSharing() );
+
         objectManager.save( eventReport, false );
-
-        Visualization visualizationA = createVisualization( 'A' );
-
-        eventReport.populateAnalyticalProperties();
-
-        assertEquals( 1, eventReport.getColumns().size() );
-        assertEquals( 1, eventReport.getRows().size() );
-
-        DimensionalObject dim = eventReport.getColumns().get( 0 );
-
-        assertEquals( lsA, dim.getLegendSet() );
-        assertEquals( psA, dim.getProgramStage() );
 
         // Add eventReport to dashboard
         Sharing sharing = defaultSharing();
@@ -201,18 +175,16 @@ public class VisualizationCascadeSharingServiceTest
             .cascadeSharing( dashboard, CascadeSharingParameters.builder().build() );
 
         assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( 2, report.getUpdatedObjects().size() );
+        assertEquals( 4, report.getUpdatedObjects().size() );
         assertEquals( 1, report.getUpdatedObjects().get( DataElement.class ).size() );
-        // assertEquals( 1, report.getUpdatedObjects().get( LegendSet.class
-        // ).size() );
-        // assertEquals( 1, report.getUpdatedObjects().get( ProgramStage.class
-        // ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( Visualization.class ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( LegendSet.class ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( ProgramStage.class ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( EventReport.class ).size() );
 
-        assertTrue( aclService.canRead( userA, visualizationA ) );
+        assertTrue( aclService.canRead( userA, eventReport ) );
         assertTrue( aclService.canRead( userA, deA ) );
-        // assertTrue( aclService.canRead( userA, lsA ) );
-        // assertTrue( aclService.canRead( userA, psA ) );
+        assertTrue( aclService.canRead( userA, lsA ) );
+        assertTrue( aclService.canRead( userA, psA ) );
 
     }
 }
