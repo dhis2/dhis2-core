@@ -72,12 +72,7 @@ public class ProgramNotificationInstanceParam
     {
         return programStageInstance != null;
     }
-
-    public boolean hasPaging()
-    {
-        return page != null && pageSize != null;
-    }
-
+    
     public boolean hasScheduledAt()
     {
         return scheduledAt != null;
