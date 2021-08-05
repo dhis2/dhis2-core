@@ -72,7 +72,7 @@ public class ProgramNotificationInstanceParam
     {
         return programStageInstance != null;
     }
-    
+
     public boolean hasScheduledAt()
     {
         return scheduledAt != null;
