@@ -140,7 +140,7 @@ public class GeoFeatureController
             .body( features );
     }
 
-    @GetMapping( produces = { "application/javascript" } )
+    @GetMapping( produces = "application/javascript" )
     public void getGeoFeaturesJsonP(
         @RequestParam( required = false ) String ou,
         @RequestParam( required = false ) String oug,

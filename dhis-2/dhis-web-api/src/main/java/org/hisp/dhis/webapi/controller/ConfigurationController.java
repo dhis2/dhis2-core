@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
@@ -379,7 +381,7 @@ public class ConfigurationController
         return (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
     }
 
-    @GetMapping( value = "/corsWhitelist", produces = "application/json" )
+    @GetMapping( value = "/corsWhitelist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody Set<String> getCorsWhitelist( Model model, HttpServletRequest request )
     {
         return configurationService.getConfiguration().getCorsWhitelist();
@@ -387,7 +389,7 @@ public class ConfigurationController
 
     @SuppressWarnings( "unchecked" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( value = "/corsWhitelist", consumes = "application/json" )
+    @PostMapping( value = "/corsWhitelist", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void setCorsWhitelist( @RequestBody String input )
         throws IOException

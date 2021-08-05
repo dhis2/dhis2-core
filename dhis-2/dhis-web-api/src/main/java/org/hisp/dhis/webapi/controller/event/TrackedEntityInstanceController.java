@@ -35,6 +35,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -100,7 +102,6 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -375,7 +376,7 @@ public class TrackedEntityInstanceController
     // CREATE
     // -------------------------------------------------------------------------
 
-    @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postTrackedEntityInstanceJson(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
@@ -383,10 +384,10 @@ public class TrackedEntityInstanceController
         throws IOException,
         BadRequestException
     {
-        return postTrackedEntityInstance( strategy, importOptions, request, MediaType.APPLICATION_JSON_VALUE );
+        return postTrackedEntityInstance( strategy, importOptions, request, APPLICATION_JSON_VALUE );
     }
 
-    @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
+    @PostMapping( value = "", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage postTrackedEntityInstanceXml(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
@@ -394,7 +395,7 @@ public class TrackedEntityInstanceController
         throws IOException,
         BadRequestException
     {
-        return postTrackedEntityInstance( strategy, importOptions, request, MediaType.APPLICATION_XML_VALUE );
+        return postTrackedEntityInstance( strategy, importOptions, request, APPLICATION_XML_VALUE );
     }
 
     private WebMessage postTrackedEntityInstance( ImportStrategy strategy, ImportOptions importOptions,
@@ -466,7 +467,7 @@ public class TrackedEntityInstanceController
     // UPDATE
     // -------------------------------------------------------------------------
 
-    @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_XML_VALUE )
+    @PutMapping( value = "/{id}", consumes = APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage updateTrackedEntityInstanceXml(
         @PathVariable String id,
@@ -482,7 +483,7 @@ public class TrackedEntityInstanceController
         return importSummary( importSummary );
     }
 
-    @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{id}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage updateTrackedEntityInstanceJson(
         @PathVariable String id,

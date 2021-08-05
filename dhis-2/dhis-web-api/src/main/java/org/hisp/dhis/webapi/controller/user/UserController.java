@@ -32,6 +32,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
 import java.util.Date;
@@ -285,7 +288,7 @@ public class UserController
     // -------------------------------------------------------------------------
 
     @Override
-    @PostMapping( consumes = { "application/xml", "text/xml" } )
+    @PostMapping( consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage postXmlObject( HttpServletRequest request )
         throws Exception
@@ -294,7 +297,7 @@ public class UserController
     }
 
     @Override
-    @PostMapping( consumes = "application/json" )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request )
         throws Exception
@@ -312,7 +315,7 @@ public class UserController
         return postObject( getObjectReport( createUser( user, currentUser ) ) );
     }
 
-    @PostMapping( value = INVITE_PATH, consumes = "application/json" )
+    @PostMapping( value = INVITE_PATH, consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonInvite( HttpServletRequest request )
         throws Exception
@@ -320,7 +323,7 @@ public class UserController
         return postInvite( request, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
     }
 
-    @PostMapping( value = INVITE_PATH, consumes = { "application/xml", "text/xml" } )
+    @PostMapping( value = INVITE_PATH, consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage postXmlInvite( HttpServletRequest request )
         throws Exception
@@ -338,7 +341,7 @@ public class UserController
         return postObject( inviteUser( user, currentUser, request ) );
     }
 
-    @PostMapping( value = BULK_INVITE_PATH, consumes = "application/json" )
+    @PostMapping( value = BULK_INVITE_PATH, consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void postJsonInvites( HttpServletRequest request )
         throws Exception
@@ -346,8 +349,8 @@ public class UserController
         postInvites( request, renderService.fromJson( request.getInputStream(), Users.class ) );
     }
 
-    @PostMapping( value = BULK_INVITE_PATH, consumes = { "application/xml",
-        "text/xml" } )
+    @PostMapping( value = BULK_INVITE_PATH, consumes = { APPLICATION_XML_VALUE,
+        TEXT_XML_VALUE } )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void postXmlInvites( HttpServletRequest request )
         throws Exception
@@ -566,7 +569,8 @@ public class UserController
     // -------------------------------------------------------------------------
 
     @Override
-    @PutMapping( value = "/{uid}", consumes = { "application/xml", "text/xml" }, produces = "application/xml" )
+    @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE,
+        TEXT_XML_VALUE }, produces = APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -579,7 +583,7 @@ public class UserController
     }
 
     @Override
-    @PutMapping( value = "/{uid}", consumes = "application/json", produces = "application/json" )
+    @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request )
         throws Exception

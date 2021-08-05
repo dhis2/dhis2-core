@@ -35,6 +35,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -554,7 +557,7 @@ public class EventController
         return rootNode;
     }
 
-    @GetMapping( produces = { "application/xml", "application/xml+gzip", "text/xml" } )
+    @GetMapping( produces = { APPLICATION_XML_VALUE, "application/xml+gzip", TEXT_XML_VALUE } )
     public @ResponseBody RootNode getXmlEvents(
         EventCriteria eventCriteria, @RequestParam Map<String, String> parameters, Model model,
         HttpServletResponse response,
@@ -786,7 +789,7 @@ public class EventController
     // Create
     // -------------------------------------------------------------------------
 
-    @PostMapping( consumes = "application/xml" )
+    @PostMapping( consumes = APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage postXmlEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletRequest request, ImportOptions importOptions )
@@ -806,7 +809,7 @@ public class EventController
         return eventService.addEventsXml( inputStream, importOptions );
     }
 
-    @PostMapping( consumes = "application/json" )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         HttpServletRequest request, ImportOptions importOptions )
@@ -869,7 +872,7 @@ public class EventController
         return startAsyncImport( importOptions, eventConverter.apply( inputStream ) );
     }
 
-    @PostMapping( value = "/{uid}/note", consumes = "application/json" )
+    @PostMapping( value = "/{uid}/note", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonEventForNote( @PathVariable( "uid" ) String uid,
         HttpServletRequest request, ImportOptions importOptions )
@@ -912,7 +915,7 @@ public class EventController
     // Update
     // -------------------------------------------------------------------------
 
-    @PutMapping( value = "/{uid}", consumes = { "application/xml", "text/xml" } )
+    @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage putXmlEvent( HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions )
@@ -925,7 +928,7 @@ public class EventController
         return updateEvent( updatedEvent, false, importOptions );
     }
 
-    @PutMapping( value = "/{uid}", consumes = "application/json" )
+    @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage putJsonEvent( HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions )
@@ -945,7 +948,7 @@ public class EventController
         return importSummary( importSummary );
     }
 
-    @PutMapping( value = "/{uid}/{dataElementUid}", consumes = "application/json" )
+    @PutMapping( value = "/{uid}/{dataElementUid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage putJsonEventSingleValue( HttpServletRequest request,
         @PathVariable( "uid" ) String uid, @PathVariable( "dataElementUid" ) String dataElementUid )
@@ -965,7 +968,7 @@ public class EventController
         return updateEvent( updatedEvent, true, null );
     }
 
-    @PutMapping( value = "/{uid}/eventDate", consumes = "application/json" )
+    @PutMapping( value = "/{uid}/eventDate", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage putJsonEventForEventDate( HttpServletRequest request,
         @PathVariable( "uid" ) String uid, ImportOptions importOptions )

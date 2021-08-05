@@ -63,7 +63,7 @@ public class OutlierDetectionController
 
     private final ContextUtils contextUtils;
 
-    @GetMapping( value = "/outlierDetection", produces = { APPLICATION_JSON_VALUE } )
+    @GetMapping( value = "/outlierDetection", produces = APPLICATION_JSON_VALUE )
     public OutlierDetectionResponse getOutliersJson( OutlierDetectionQuery query )
     {
         OutlierDetectionRequest request = outlierService.getFromQuery( query );
@@ -71,7 +71,7 @@ public class OutlierDetectionController
         return outlierService.getOutlierValues( request );
     }
 
-    @GetMapping( value = "/outlierDetection", produces = { CONTENT_TYPE_CSV } )
+    @GetMapping( value = "/outlierDetection", produces = CONTENT_TYPE_CSV )
     public void getOutliersCsv( OutlierDetectionQuery query,
         HttpServletResponse response )
         throws IOException

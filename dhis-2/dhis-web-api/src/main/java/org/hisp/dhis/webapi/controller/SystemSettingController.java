@@ -166,7 +166,7 @@ public class SystemSettingController
         }
     }
 
-    @PostMapping( consumes = { ContextUtils.CONTENT_TYPE_JSON } )
+    @PostMapping( consumes = ContextUtils.CONTENT_TYPE_JSON )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @ResponseBody
     public WebMessage setSystemSettingV29( @RequestBody Map<String, Object> settings )

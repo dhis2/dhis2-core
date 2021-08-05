@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
@@ -41,7 +43,6 @@ import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.schema.descriptors.ProgramRuleSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,7 +64,7 @@ public class ProgramRuleController
 
     private final ProgramRuleEngineService programRuleEngineService;
 
-    @PostMapping( value = "/condition/description", produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/condition/description", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage validateCondition( @RequestBody String condition, @RequestParam String programId )
     {
