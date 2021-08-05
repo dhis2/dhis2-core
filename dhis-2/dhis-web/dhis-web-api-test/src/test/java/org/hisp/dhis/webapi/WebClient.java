@@ -346,7 +346,7 @@ public interface WebClient
             return contentUnchecked().as( JsonError.class );
         }
 
-        private boolean hasBody()
+        public boolean hasBody()
         {
             try
             {

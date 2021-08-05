@@ -59,7 +59,7 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -109,12 +109,10 @@ public class AppController
     // -------------------------------------------------------------------------
 
     @GetMapping( produces = ContextUtils.CONTENT_TYPE_JSON )
-    public void getApps( @RequestParam( required = false ) String key,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+    public ResponseEntity<List<App>> getApps( @RequestParam( required = false ) String key )
     {
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        String contextPath = ContextUtils.getContextPath( request );
+        String contextPath = contextService.getContextPath();
 
         List<App> apps = new ArrayList<>();
 
@@ -124,8 +122,7 @@ public class AppController
 
             if ( app == null )
             {
-                response.sendError( HttpServletResponse.SC_NOT_FOUND );
-                return;
+                return ResponseEntity.notFound().build();
             }
 
             apps.add( app );
@@ -138,9 +135,7 @@ public class AppController
         {
             apps = appManager.getApps( contextPath );
         }
-
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        renderService.toJson( response.getOutputStream(), apps );
+        return ResponseEntity.ok( apps );
     }
 
     @PostMapping

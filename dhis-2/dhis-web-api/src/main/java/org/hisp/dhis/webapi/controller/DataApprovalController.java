@@ -69,7 +69,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
@@ -136,9 +135,6 @@ public class DataApprovalController
     private CategoryService categoryService;
 
     @Autowired
-    private RenderService renderService;
-
-    @Autowired
     private FieldFilterService fieldFilterService;
 
     @Autowired
@@ -148,16 +144,17 @@ public class DataApprovalController
     // Get
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = APPROVALS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public void getApprovalPermissions(
+    @GetMapping( value = APPROVALS_PATH, produces = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseBody
+    @ResponseStatus( HttpStatus.OK )
+    public DataApprovalPermissions getApprovalPermissions(
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String wf,
         @RequestParam String pe,
         @RequestParam String ou,
         @RequestParam( required = false ) String aoc,
         HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws WebMessageException
     {
         DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
         Period period = getAndValidatePeriod( pe );
@@ -170,22 +167,21 @@ public class DataApprovalController
         DataApprovalPermissions permissions = status.getPermissions();
         permissions.setState( status.getState().toString() );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        renderService.toJson( response.getOutputStream(), status.getPermissions() );
+        return status.getPermissions();
     }
 
     @GetMapping( value = { MULTIPLE_APPROVALS_PATH,
-        APPROVALS_PATH + "/approvals" }, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public void getMultipleApprovalPermissions(
+        APPROVALS_PATH + "/approvals" }, produces = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseBody
+    @ResponseStatus( HttpStatus.OK )
+    public List<ApprovalStatusDto> getMultipleApprovalPermissions(
         @RequestParam Set<String> wf,
         @RequestParam( required = false ) Set<String> pe,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam Set<String> ou,
-        @RequestParam( required = false ) Set<String> aoc,
-        HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        @RequestParam( required = false ) Set<String> aoc )
+        throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( null, wf );
 
@@ -287,8 +283,7 @@ public class DataApprovalController
             approvalStatuses.add( approvalStatus );
         }
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        renderService.toJson( response.getOutputStream(), approvalStatuses );
+        return approvalStatuses;
     }
 
     @GetMapping( value = STATUS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON )
@@ -300,8 +295,7 @@ public class DataApprovalController
         @RequestParam Set<String> ou,
         @RequestParam( required = false ) boolean children,
         HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws WebMessageException
     {
         List<String> fields = new ArrayList<>( contextService.getParameterValues( "fields" ) );
 
@@ -382,8 +376,10 @@ public class DataApprovalController
     }
 
     @GetMapping( value = APPROVALS_PATH
-        + "/categoryOptionCombos", produces = ContextUtils.CONTENT_TYPE_JSON )
-    public void getApprovalByCategoryOptionCombos(
+        + "/categoryOptionCombos", produces = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseBody
+    @ResponseStatus( HttpStatus.OK )
+    public List<Map<String, Object>> getApprovalByCategoryOptionCombos(
         @RequestParam( required = false ) Set<String> ds,
         @RequestParam( required = false ) Set<String> wf,
         @RequestParam String pe,
@@ -442,9 +438,7 @@ public class DataApprovalController
 
             list.add( item );
         }
-
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        renderService.toJson( response.getOutputStream(), list );
+        return list;
     }
 
     // -------------------------------------------------------------------------
