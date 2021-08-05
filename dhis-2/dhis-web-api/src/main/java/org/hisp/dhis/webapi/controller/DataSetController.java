@@ -30,6 +30,10 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
+import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -90,7 +94,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -262,7 +265,7 @@ public class DataSetController
             dataElementIdScheme );
     }
 
-    @GetMapping( value = "/{uid}/form", produces = "application/json" )
+    @GetMapping( value = "/{uid}/form", produces = APPLICATION_JSON_VALUE )
     public void getFormJson(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnit,
@@ -295,7 +298,7 @@ public class DataSetController
         renderService.toJson( response.getOutputStream(), form );
     }
 
-    @GetMapping( value = "/{uid}/form", produces = { "application/xml", "text/xml" } )
+    @GetMapping( value = "/{uid}/form", produces = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     public void getFormXml(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnit,
@@ -366,7 +369,7 @@ public class DataSetController
     }
 
     @RequestMapping( value = { "/{uid}/customDataEntryForm", "/{uid}/form" }, method = { RequestMethod.PUT,
-        RequestMethod.POST }, consumes = "text/html" )
+        RequestMethod.POST }, consumes = TEXT_HTML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCustomDataEntryFormHtml( @PathVariable( "uid" ) String uid,
         @RequestBody String formContent,
@@ -398,7 +401,7 @@ public class DataSetController
         dataSetService.updateDataSet( dataSet );
     }
 
-    @PostMapping( value = "/{uid}/form", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/{uid}/form", consumes = APPLICATION_JSON_VALUE )
     @ApiVersion( value = DhisApiVersion.ALL )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCustomDataEntryFormJson( @PathVariable( "uid" ) String uid, HttpServletRequest request )

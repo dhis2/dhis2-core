@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -72,7 +73,7 @@ public class SecurityController
     @Autowired
     private ObjectMapper jsonMapper;
 
-    @GetMapping( value = "/qr", produces = "application/json" )
+    @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
     public void getQrCode( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
@@ -91,11 +92,11 @@ public class SecurityController
         map.put( "url", url );
 
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
-        response.setContentType( "application/json" );
+        response.setContentType( APPLICATION_JSON_VALUE );
         jsonMapper.writeValue( response.getOutputStream(), map );
     }
 
-    @GetMapping( value = "/authenticate", produces = "application/json" )
+    @GetMapping( value = "/authenticate", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage authenticate2FA( @RequestParam String code )
     {

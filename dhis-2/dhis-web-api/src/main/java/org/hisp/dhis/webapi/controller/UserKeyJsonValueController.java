@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.List;
@@ -80,7 +81,7 @@ public class UserKeyJsonValueController
      * Returns a JSON array of strings representing the different namespaces
      * used. If no namespaces exist, an empty array is returned.
      */
-    @GetMapping( value = "", produces = "application/json" )
+    @GetMapping( value = "", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
     {
         setNoStore( response );
@@ -92,7 +93,7 @@ public class UserKeyJsonValueController
      * Returns a JSON array of strings representing the different keys used in a
      * given namespace. If no namespaces exist, an empty array is returned.
      */
-    @GetMapping( value = "/{namespace}", produces = "application/json" )
+    @GetMapping( value = "/{namespace}", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<String> getKeys( @PathVariable String namespace, HttpServletResponse response )
         throws WebMessageException
     {
@@ -123,7 +124,7 @@ public class UserKeyJsonValueController
      * Retrieves the value of the KeyJsonValue represented by the given key and
      * namespace from the current user.
      */
-    @GetMapping( value = "/{namespace}/{key}", produces = "application/json" )
+    @GetMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody String getUserKeyJsonValue(
         @PathVariable String namespace,
         @PathVariable String key, HttpServletResponse response )
@@ -147,7 +148,7 @@ public class UserKeyJsonValueController
      * Creates a new KeyJsonValue Object on the current user with the key,
      * namespace and value supplied.
      */
-    @PostMapping( value = "/{namespace}/{key}", produces = "application/json", consumes = "application/json" )
+    @PostMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage addUserKeyJsonValue(
         @PathVariable String namespace,
@@ -183,7 +184,7 @@ public class UserKeyJsonValueController
     /**
      * Update a key.
      */
-    @PutMapping( value = "/{namespace}/{key}", produces = "application/json", consumes = "application/json" )
+    @PutMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage updateUserKeyJsonValue(
         @PathVariable String namespace,
@@ -214,7 +215,7 @@ public class UserKeyJsonValueController
     /**
      * Delete a key.
      */
-    @DeleteMapping( value = "/{namespace}/{key}", produces = "application/json" )
+    @DeleteMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage deleteUserKeyJsonValue(
         @PathVariable String namespace,

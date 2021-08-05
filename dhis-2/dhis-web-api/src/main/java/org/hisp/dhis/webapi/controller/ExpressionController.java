@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
@@ -39,7 +40,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -61,7 +61,7 @@ public class ExpressionController
     private I18nManager i18nManager;
 
     @ResponseBody
-    @GetMapping( value = "/description", produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/description", produces = APPLICATION_JSON_VALUE )
     public WebMessage getExpressionDescription( @RequestParam String expression )
     {
         ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, INDICATOR_EXPRESSION );

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
@@ -38,7 +40,6 @@ import org.hisp.dhis.schema.descriptors.ProgramIndicatorSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -59,7 +60,7 @@ public class ProgramIndicatorController
     @Autowired
     private I18nManager i18nManager;
 
-    @PostMapping( value = "/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/expression/description", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage getExpressionDescription( @RequestBody String expression )
     {
@@ -78,7 +79,7 @@ public class ProgramIndicatorController
         }
     }
 
-    @PostMapping( value = "/filter/description", produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/filter/description", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage validateFilter( @RequestBody String expression )
     {

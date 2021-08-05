@@ -31,6 +31,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -125,7 +126,7 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = { "/uid", "/id" }, produces = {
-        MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
+        APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode getUid( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
         throws IOException,
@@ -147,7 +148,7 @@ public class SystemController
         return rootNode;
     }
 
-    @GetMapping( value = { "/uid", "/id" }, produces = { "application/csv" } )
+    @GetMapping( value = { "/uid", "/id" }, produces = "application/csv" )
     public void getUidCsv( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
         throws IOException,
@@ -173,7 +174,7 @@ public class SystemController
         csvGenerator.flush();
     }
 
-    @GetMapping( value = "/uuid", produces = { MediaType.APPLICATION_JSON_VALUE,
+    @GetMapping( value = "/uuid", produces = { APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode getUuid( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
@@ -200,7 +201,7 @@ public class SystemController
     // Tasks
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/tasks", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/tasks", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getTasksJson( HttpServletResponse response )
         throws IOException
     {
@@ -210,7 +211,7 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
     }
 
-    @GetMapping( value = "/tasks/{jobType}", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/tasks/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -224,7 +225,7 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @GetMapping( value = "/tasks/{jobType}/{jobId}", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/tasks/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getTaskJsonByUid( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
@@ -243,7 +244,7 @@ public class SystemController
     // Tasks summary
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/taskSummaries/{jobType}", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/taskSummaries/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -259,7 +260,7 @@ public class SystemController
         response.setContentType( CONTENT_TYPE_JSON );
     }
 
-    @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
@@ -295,7 +296,7 @@ public class SystemController
     // Various
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/info", produces = { "application/json", "application/javascript" } )
+    @GetMapping( value = "/info", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request,
         HttpServletResponse response )
     {
@@ -337,13 +338,13 @@ public class SystemController
         return "pong";
     }
 
-    @GetMapping( value = "/flags", produces = { "application/json" } )
+    @GetMapping( value = "/flags", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<StyleObject> getFlags()
     {
         return getFlagObjects();
     }
 
-    @GetMapping( value = "/styles", produces = { "application/json" } )
+    @GetMapping( value = "/styles", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<StyleObject> getStyles()
     {
         return styleManager.getStyles();

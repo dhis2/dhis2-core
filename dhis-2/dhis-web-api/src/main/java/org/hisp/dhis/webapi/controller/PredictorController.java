@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Date;
 import java.util.List;
@@ -51,7 +52,6 @@ import org.hisp.dhis.predictor.PredictorService;
 import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -142,7 +142,7 @@ public class PredictorController extends AbstractCrudController<Predictor>
         return ok( "Generated " + count + " predictions" );
     }
 
-    @PostMapping( value = "/expression/description", produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/expression/description", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage getExpressionDescription( @RequestBody String expression )
     {
@@ -154,7 +154,7 @@ public class PredictorController extends AbstractCrudController<Predictor>
             .setMessage( i18nManager.getI18n().getString( result.getKey() ) );
     }
 
-    @PostMapping( value = "/skipTest/description", produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/skipTest/description", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage getSkipTestDescription( @RequestBody String expression )
     {

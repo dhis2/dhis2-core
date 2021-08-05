@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.metadata.version;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -272,7 +274,7 @@ public class MetadataVersionController
     // endpoint to download metadata
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @GetMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
-        + "/{versionName}/data", produces = "application/json" )
+        + "/{versionName}/data", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody String downloadVersion( @PathVariable( "versionName" ) String versionName )
         throws MetadataVersionException,
         BadRequestException
