@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.sms;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.Date;
@@ -40,7 +43,6 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -86,7 +88,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
     // POST
     // -------------------------------------------------------------------------
 
-    @PostMapping( produces = { "application/json" } )
+    @PostMapping( produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
     public WebMessage receiveSMSMessage( @RequestParam String originator,
@@ -96,21 +98,21 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
     {
         if ( originator == null || originator.length() <= 0 )
         {
-            return WebMessageUtils.conflict( "Originator must be specified" );
+            return conflict( "Originator must be specified" );
         }
 
         if ( message == null || message.length() <= 0 )
         {
-            return WebMessageUtils.conflict( "Message must be specified" );
+            return conflict( "Message must be specified" );
         }
 
         long smsId = incomingSMSService.save( message, originator, gateway, receivedTime,
             getUserByPhoneNumber( originator, message ) );
 
-        return WebMessageUtils.ok( "Received SMS: " + smsId );
+        return ok( "Received SMS: " + smsId );
     }
 
-    @PostMapping( consumes = { "application/json" }, produces = { "application/json" } )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
     public WebMessage receiveSMSMessage( HttpServletRequest request )
@@ -122,10 +124,10 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
 
         long smsId = incomingSMSService.save( sms );
 
-        return WebMessageUtils.ok( "Received SMS: " + smsId );
+        return ok( "Received SMS: " + smsId );
     }
 
-    @PostMapping( value = "/import", produces = "application/json" )
+    @PostMapping( value = "/import", produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
     public WebMessage importUnparsedSMSMessages()
@@ -137,14 +139,14 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
             incomingSMSService.update( sms );
         }
 
-        return WebMessageUtils.ok( "Import successful" );
+        return ok( "Import successful" );
     }
 
     // -------------------------------------------------------------------------
     // DELETE
     // -------------------------------------------------------------------------
 
-    @DeleteMapping( value = "/{uid}", produces = "application/json" )
+    @DeleteMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
     public WebMessage deleteInboundMessage( @PathVariable String uid )
@@ -158,17 +160,17 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
 
         incomingSMSService.delete( uid );
 
-        return WebMessageUtils.ok( "IncomingSms with " + uid + " deleted" );
+        return ok( "IncomingSms with " + uid + " deleted" );
     }
 
-    @DeleteMapping( produces = "application/json" )
+    @DeleteMapping( produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
     public WebMessage deleteInboundMessages( @RequestParam List<String> ids )
     {
         ids.forEach( incomingSMSService::delete );
 
-        return WebMessageUtils.ok( "Objects deleted" );
+        return ok( "Objects deleted" );
     }
 
     // -------------------------------------------------------------------------
@@ -199,7 +201,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
 
             // No user belong to this phone number
             throw new WebMessageException(
-                WebMessageUtils.conflict( "User's phone number is not registered in the system" ) );
+                conflict( "User's phone number is not registered in the system" ) );
         }
 
         return users.iterator().next();
@@ -212,7 +214,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
         {
             // current user does not belong to this number
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Originator's number does not match user's Phone number" ) );
+                conflict( "Originator's number does not match user's Phone number" ) );
         }
 
         return currentUser;

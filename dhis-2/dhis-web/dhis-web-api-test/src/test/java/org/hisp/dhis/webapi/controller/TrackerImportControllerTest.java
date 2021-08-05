@@ -25,27 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
+package org.hisp.dhis.webapi.controller;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
-public class TrackerEnrollmentCriteriaTest
+/**
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController}
+ * using (mocked) REST requests.
+ *
+ * @author Jan Bernitt
+ */
+public class TrackerImportControllerTest extends DhisControllerConvenienceTest
 {
-
     @Test
-    public void testFieldTranslation()
+    public void testAsyncPostJsonTracker()
     {
-        TrackerEnrollmentCriteria trackerEnrollmentCriteria = new TrackerEnrollmentCriteria();
-
-        assertThat(
-            trackerEnrollmentCriteria.translateField( "created", true ),
-            is( "created" ) );
-
-        assertThat( trackerEnrollmentCriteria.translateField( "createdAt", false ),
-            is( "created" ) );
-
+        assertWebMessage( "OK", 200, "OK", "Tracker job added",
+            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
     }
 }

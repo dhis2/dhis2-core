@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -49,7 +52,6 @@ import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -113,7 +115,7 @@ public class SystemSettingController
 
         if ( !setting.isPresent() )
         {
-            return WebMessageUtils.conflict( "Key is not supported: " + key );
+            return conflict( "Key is not supported: " + key );
         }
 
         value = ObjectUtils.firstNonNull( value, valuePayload );
@@ -131,7 +133,7 @@ public class SystemSettingController
 
         systemSettingManager.saveSystemSetting( setting, valueObject );
 
-        return WebMessageUtils.ok( "System setting '" + key + "' set to value '" + valueObject + "'." );
+        return ok( "System setting '" + key + "' set to value '" + valueObject + "'." );
     }
 
     private WebMessage saveSystemSettingTranslation( String key, String locale, String value, SettingKey setting )
@@ -142,10 +144,10 @@ public class SystemSettingController
         }
         catch ( IllegalStateException e )
         {
-            return WebMessageUtils.conflict( e.getMessage() );
+            return conflict( e.getMessage() );
         }
 
-        return WebMessageUtils.ok( "Translation for system setting '" + key +
+        return ok( "Translation for system setting '" + key +
             "' and locale: '" + locale + "' set to: '" + value + "'" );
     }
 
@@ -154,17 +156,17 @@ public class SystemSettingController
     {
         if ( key == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Key must be specified" ) );
+            throw new WebMessageException( conflict( "Key must be specified" ) );
         }
 
         if ( value == null && valuePayload == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Value must be specified as query param or as payload" ) );
+                conflict( "Value must be specified as query param or as payload" ) );
         }
     }
 
-    @PostMapping( consumes = { ContextUtils.CONTENT_TYPE_JSON } )
+    @PostMapping( consumes = ContextUtils.CONTENT_TYPE_JSON )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @ResponseBody
     public WebMessage setSystemSettingV29( @RequestBody Map<String, Object> settings )
@@ -174,7 +176,7 @@ public class SystemSettingController
 
         if ( !invalidKeys.isEmpty() )
         {
-            return WebMessageUtils.conflict( "Key(s) is not supported: " + StringUtils.join( invalidKeys, ", " ) );
+            return conflict( "Key(s) is not supported: " + StringUtils.join( invalidKeys, ", " ) );
         }
 
         for ( Entry<String, Object> entry : settings.entrySet() )
@@ -184,7 +186,7 @@ public class SystemSettingController
             systemSettingManager.saveSystemSetting( SettingKey.getByName( key ).get(), valueObject );
         }
 
-        return WebMessageUtils.ok( "System settings imported" );
+        return ok( "System settings imported" );
     }
 
     // -------------------------------------------------------------------------
@@ -336,7 +338,7 @@ public class SystemSettingController
 
         if ( !setting.isPresent() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Key is not supported: " + key ) );
+            throw new WebMessageException( conflict( "Key is not supported: " + key ) );
         }
 
         if ( StringUtils.isNotEmpty( locale ) )

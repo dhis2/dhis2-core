@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummaries;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
@@ -52,7 +54,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -63,7 +64,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -187,7 +187,7 @@ public class RelationshipController
             .filter( filterImportSummary( importOptions ) )
             .forEach( setImportSummaryHref( request ) );
 
-        return WebMessageUtils.importSummaries( importSummaries );
+        return importSummaries( importSummaries );
     }
 
     @PostMapping( value = "", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
@@ -206,14 +206,14 @@ public class RelationshipController
             .filter( filterImportSummary( importOptions ) )
             .forEach( setImportSummaryHref( request ) );
 
-        return WebMessageUtils.importSummaries( importSummaries );
+        return importSummaries( importSummaries );
     }
 
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
 
-    @PutMapping( path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
+    @PutMapping( path = "/{id}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage updateRelationshipJson(
         @PathVariable String id,
@@ -231,10 +231,10 @@ public class RelationshipController
         ImportSummary importSummary = relationshipService.updateRelationshipJson( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        return WebMessageUtils.importSummary( importSummary );
+        return importSummary( importSummary );
     }
 
-    @PutMapping( path = "/{id}", consumes = MediaType.APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
+    @PutMapping( path = "/{id}", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage updateRelationshipXml(
         @PathVariable String id,
@@ -252,7 +252,7 @@ public class RelationshipController
         ImportSummary importSummary = relationshipService.updateRelationshipXml( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        return WebMessageUtils.importSummary( importSummary ).withPlainResponseBefore( DhisApiVersion.V38 );
+        return importSummary( importSummary ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     // -------------------------------------------------------------------------
@@ -270,7 +270,7 @@ public class RelationshipController
             return notFound( "No relationship with id '" + id + "' was found." );
         }
 
-        return WebMessageUtils.importSummary( relationshipService.deleteRelationship( id ) );
+        return importSummary( relationshipService.deleteRelationship( id ) );
     }
 
     // -------------------------------------------------------------------------

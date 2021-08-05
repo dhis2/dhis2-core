@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.scheduling;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Map;
 
@@ -74,20 +75,20 @@ public class JobConfigurationController
         this.schedulingManager = schedulingManager;
     }
 
-    @GetMapping( value = "/jobTypesExtended", produces = { "application/json",
+    @GetMapping( value = "/jobTypesExtended", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     public @ResponseBody Map<String, Map<String, Property>> getJobTypesExtended()
     {
         return jobConfigurationService.getJobParametersSchema();
     }
 
-    @GetMapping( value = "/jobTypes", produces = "application/json" )
+    @GetMapping( value = "/jobTypes", produces = APPLICATION_JSON_VALUE )
     public JobTypes getJobTypeInfo()
     {
         return new JobTypes( jobConfigurationService.getJobTypeInfo() );
     }
 
-    @GetMapping( value = "{uid}/execute", produces = { "application/json", "application/javascript" } )
+    @GetMapping( value = "{uid}/execute", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public ObjectReport executeJobConfiguration( @PathVariable( "uid" ) String uid )
         throws WebMessageException
     {

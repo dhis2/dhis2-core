@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,7 +50,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -71,7 +75,6 @@ import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroupAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.comparator.SharingUserGroupAccessNameComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -117,7 +120,7 @@ public class SharingController
     // Resources
     // -------------------------------------------------------------------------
 
-    @GetMapping( produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( produces = APPLICATION_JSON_VALUE )
     public void getSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response )
         throws IOException,
         WebMessageException
@@ -126,7 +129,7 @@ public class SharingController
 
         if ( !aclService.isShareable( type ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Type " + type + " is not supported." ) );
+            throw new WebMessageException( conflict( "Type " + type + " is not supported." ) );
         }
 
         Class<? extends IdentifiableObject> klass = aclService.classForType( type );
@@ -135,7 +138,7 @@ public class SharingController
         if ( object == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Object of type " + type + " with ID " + id + " was not found." ) );
+                notFound( "Object of type " + type + " with ID " + id + " was not found." ) );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -220,12 +223,12 @@ public class SharingController
 
         sharing.getObject().getUserGroupAccesses().sort( SharingUserGroupAccessNameComparator.INSTANCE );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), sharing );
     }
 
-    @PutMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage putSharing( @RequestParam String type, @RequestParam String id,
         HttpServletRequest request )
@@ -234,7 +237,7 @@ public class SharingController
         return postSharing( type, id, request );
     }
 
-    @PostMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postSharing( @RequestParam String type, @RequestParam String id, HttpServletRequest request )
         throws Exception
@@ -245,19 +248,19 @@ public class SharingController
 
         if ( sharingClass == null || !aclService.isClassShareable( sharingClass ) )
         {
-            return WebMessageUtils.conflict( "Type " + type + " is not supported." );
+            return conflict( "Type " + type + " is not supported." );
         }
 
         BaseIdentifiableObject object = (BaseIdentifiableObject) manager.get( sharingClass, id );
 
         if ( object == null )
         {
-            return WebMessageUtils.notFound( "Object of type " + type + " with ID " + id + " was not found." );
+            return notFound( "Object of type " + type + " with ID " + id + " was not found." );
         }
 
         if ( (object instanceof SystemDefaultMetadataObject) && ((SystemDefaultMetadataObject) object).isDefault() )
         {
-            return WebMessageUtils.conflict(
+            return conflict(
                 "Sharing settings of system default metadata object of type " + type + " cannot be modified." );
         }
 
@@ -272,7 +275,7 @@ public class SharingController
 
         if ( !AccessStringHelper.isValid( sharing.getObject().getPublicAccess() ) )
         {
-            return WebMessageUtils.conflict( "Invalid public access string: " + sharing.getObject().getPublicAccess() );
+            return conflict( "Invalid public access string: " + sharing.getObject().getPublicAccess() );
         }
 
         // ---------------------------------------------------------------------
@@ -317,8 +320,7 @@ public class SharingController
 
             if ( !AccessStringHelper.isValid( sharingUserGroupAccess.getAccess() ) )
             {
-                return WebMessageUtils
-                    .conflict( "Invalid user group access string: " + sharingUserGroupAccess.getAccess() );
+                return conflict( "Invalid user group access string: " + sharingUserGroupAccess.getAccess() );
             }
 
             if ( !schema.isDataShareable() )
@@ -349,7 +351,7 @@ public class SharingController
 
             if ( !AccessStringHelper.isValid( sharingUserAccess.getAccess() ) )
             {
-                return WebMessageUtils.conflict( "Invalid user access string: " + sharingUserAccess.getAccess() );
+                return conflict( "Invalid user access string: " + sharingUserAccess.getAccess() );
             }
 
             if ( !schema.isDataShareable() )
@@ -381,10 +383,10 @@ public class SharingController
 
         log.info( sharingToString( object ) );
 
-        return WebMessageUtils.ok( "Access control set" );
+        return ok( "Access control set" );
     }
 
-    @GetMapping( value = "/search", produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/search", produces = APPLICATION_JSON_VALUE )
     public void searchUserGroups( @RequestParam String key, @RequestParam( required = false ) Integer pageSize,
         HttpServletResponse response )
         throws IOException,
@@ -392,7 +394,7 @@ public class SharingController
     {
         if ( key == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Search key not specified" ) );
+            throw new WebMessageException( conflict( "Search key not specified" ) );
         }
 
         int max = pageSize != null ? pageSize : Paging.DEFAULT_PAGE_SIZE;
@@ -404,7 +406,7 @@ public class SharingController
         output.put( "userGroups", userGroupAccesses );
         output.put( "users", userAccesses );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), output );
     }

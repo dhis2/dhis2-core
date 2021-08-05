@@ -27,13 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.email.Email;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.email.EmailService;
@@ -84,7 +88,7 @@ public class EmailController
 
         if ( !currentUserService.getCurrentUser().hasEmail() )
         {
-            return WebMessageUtils.conflict( "Could not send test email, no email configured for current user" );
+            return conflict( "Could not send test email, no email configured for current user" );
         }
 
         OutboundMessageResponse emailResponse = emailService.sendTestEmail();
@@ -92,7 +96,7 @@ public class EmailController
         return emailResponseHandler( emailResponse );
     }
 
-    @PostMapping( value = "/notification", consumes = "application/json" )
+    @PostMapping( value = "/notification", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage sendSystemNotificationEmail( @RequestBody Email email )
         throws WebMessageException
@@ -103,8 +107,7 @@ public class EmailController
 
         if ( !systemNotificationEmailValid )
         {
-            return WebMessageUtils
-                .conflict( "Could not send email, system notification email address not set or not valid" );
+            return conflict( "Could not send email, system notification email address not set or not valid" );
         }
 
         OutboundMessageResponse emailResponse = emailService.sendSystemEmail( email );
@@ -113,7 +116,7 @@ public class EmailController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SEND_EMAIL')" )
-    @PostMapping( value = "/notification", produces = "application/json" )
+    @PostMapping( value = "/notification", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage sendEmailNotification( @RequestParam Set<String> recipients, @RequestParam String message,
         @RequestParam( defaultValue = "DHIS 2" ) String subject )
@@ -136,11 +139,11 @@ public class EmailController
         {
             String msg = !StringUtils.isEmpty( emailResponse.getDescription() ) ? emailResponse.getDescription()
                 : EmailResponse.SENT.getResponseMessage();
-            return WebMessageUtils.ok( msg );
+            return ok( msg );
         }
         String msg = !StringUtils.isEmpty( emailResponse.getDescription() ) ? emailResponse.getDescription()
             : EmailResponse.FAILED.getResponseMessage();
-        return WebMessageUtils.error( msg );
+        return error( msg );
     }
 
     private void checkEmailSettings()
@@ -148,7 +151,7 @@ public class EmailController
     {
         if ( !emailService.emailConfigured() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( SMTP_ERROR ) );
+            throw new WebMessageException( conflict( SMTP_ERROR ) );
         }
     }
 }

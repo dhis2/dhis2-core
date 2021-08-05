@@ -27,6 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+
 import java.beans.PropertyEditorSupport;
 import java.util.Date;
 
@@ -45,7 +54,6 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
@@ -111,91 +119,91 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage illegalQueryExceptionHandler( IllegalQueryException ex )
     {
-        return WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() );
+        return conflict( ex.getMessage(), ex.getErrorCode() );
     }
 
     @ExceptionHandler( QueryRuntimeException.class )
     @ResponseBody
     public WebMessage queryRuntimeExceptionHandler( QueryRuntimeException ex )
     {
-        return WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() );
+        return conflict( ex.getMessage(), ex.getErrorCode() );
     }
 
     @ExceptionHandler( DeleteNotAllowedException.class )
     @ResponseBody
     public WebMessage deleteNotAllowedExceptionHandler( DeleteNotAllowedException ex )
     {
-        return WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() );
+        return conflict( ex.getMessage(), ex.getErrorCode() );
     }
 
     @ExceptionHandler( InvalidIdentifierReferenceException.class )
     @ResponseBody
     public WebMessage invalidIdentifierReferenceExceptionHandler( InvalidIdentifierReferenceException ex )
     {
-        return WebMessageUtils.conflict( ex.getMessage() );
+        return conflict( ex.getMessage() );
     }
 
     @ExceptionHandler( { DataApprovalException.class, AdxException.class, IllegalStateException.class } )
     @ResponseBody
     public WebMessage dataApprovalExceptionHandler( Exception ex )
     {
-        return WebMessageUtils.conflict( ex.getMessage() );
+        return conflict( ex.getMessage() );
     }
 
     @ExceptionHandler( { JsonParseException.class, MetadataImportException.class, MetadataExportException.class } )
     @ResponseBody
     public WebMessage jsonParseExceptionHandler( Exception ex )
     {
-        return WebMessageUtils.conflict( ex.getMessage() );
+        return conflict( ex.getMessage() );
     }
 
     @ExceptionHandler( { QueryParserException.class, QueryException.class } )
     @ResponseBody
     public WebMessage queryExceptionHandler( Exception ex )
     {
-        return WebMessageUtils.conflict( ex.getMessage() );
+        return conflict( ex.getMessage() );
     }
 
     @ExceptionHandler( FieldFilterException.class )
     @ResponseBody
     public WebMessage fieldFilterExceptionHandler( FieldFilterException ex )
     {
-        return WebMessageUtils.conflict( ex.getMessage() );
+        return conflict( ex.getMessage() );
     }
 
     @ExceptionHandler( NotAuthenticatedException.class )
     @ResponseBody
     public WebMessage notAuthenticatedExceptionHandler( NotAuthenticatedException ex )
     {
-        return WebMessageUtils.unathorized( ex.getMessage() );
+        return unauthorized( ex.getMessage() );
     }
 
     @ExceptionHandler( NotFoundException.class )
     @ResponseBody
     public WebMessage notFoundExceptionHandler( NotFoundException ex )
     {
-        return WebMessageUtils.notFound( ex.getMessage() );
+        return notFound( ex.getMessage() );
     }
 
     @ExceptionHandler( ConstraintViolationException.class )
     @ResponseBody
     public WebMessage constraintViolationExceptionHandler( ConstraintViolationException ex )
     {
-        return WebMessageUtils.error( getExceptionMessage( ex ) );
+        return error( getExceptionMessage( ex ) );
     }
 
     @ExceptionHandler( MaintenanceModeException.class )
     @ResponseBody
     public WebMessage maintenanceModeExceptionHandler( MaintenanceModeException ex )
     {
-        return WebMessageUtils.serviceUnavailable( ex.getMessage() );
+        return serviceUnavailable( ex.getMessage() );
     }
 
     @ExceptionHandler( AccessDeniedException.class )
     @ResponseBody
     public WebMessage accessDeniedExceptionHandler( AccessDeniedException ex )
     {
-        return WebMessageUtils.forbidden( ex.getMessage() );
+        return forbidden( ex.getMessage() );
     }
 
     @ExceptionHandler( WebMessageException.class )
@@ -209,42 +217,42 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage httpStatusCodeExceptionHandler( HttpStatusCodeException ex )
     {
-        return WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() );
+        return createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() );
     }
 
     @ExceptionHandler( HttpClientErrorException.class )
     @ResponseBody
     public WebMessage httpClientErrorExceptionHandler( HttpClientErrorException ex )
     {
-        return WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() );
+        return createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() );
     }
 
     @ExceptionHandler( HttpServerErrorException.class )
     @ResponseBody
     public WebMessage httpServerErrorExceptionHandler( HttpServerErrorException ex )
     {
-        return WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() );
+        return createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() );
     }
 
     @ExceptionHandler( HttpRequestMethodNotSupportedException.class )
     @ResponseBody
     public WebMessage httpRequestMethodNotSupportedExceptionHandler( HttpRequestMethodNotSupportedException ex )
     {
-        return WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.METHOD_NOT_ALLOWED );
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.METHOD_NOT_ALLOWED );
     }
 
     @ExceptionHandler( HttpMediaTypeNotAcceptableException.class )
     @ResponseBody
     public WebMessage httpMediaTypeNotAcceptableExceptionHandler( HttpMediaTypeNotAcceptableException ex )
     {
-        return WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.NOT_ACCEPTABLE );
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.NOT_ACCEPTABLE );
     }
 
     @ExceptionHandler( HttpMediaTypeNotSupportedException.class )
     @ResponseBody
     public WebMessage httpMediaTypeNotSupportedExceptionHandler( HttpMediaTypeNotSupportedException ex )
     {
-        return WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.UNSUPPORTED_MEDIA_TYPE );
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.UNSUPPORTED_MEDIA_TYPE );
     }
 
     @ExceptionHandler( ServletException.class )
@@ -258,35 +266,35 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage handleBadRequest( Exception exception )
     {
-        return WebMessageUtils.badRequest( exception.getMessage() );
+        return badRequest( exception.getMessage() );
     }
 
     @ExceptionHandler( { ConflictException.class } )
     @ResponseBody
     public WebMessage handleConflictRequest( Exception exception )
     {
-        return WebMessageUtils.conflict( exception.getMessage() );
+        return conflict( exception.getMessage() );
     }
 
     @ExceptionHandler( MetadataVersionException.class )
     @ResponseBody
     public WebMessage handleMetaDataVersionException( MetadataVersionException metadataVersionException )
     {
-        return WebMessageUtils.error( metadataVersionException.getMessage() );
+        return error( metadataVersionException.getMessage() );
     }
 
     @ExceptionHandler( MetadataSyncException.class )
     @ResponseBody
     public WebMessage handleMetaDataSyncException( MetadataSyncException metadataSyncException )
     {
-        return WebMessageUtils.error( metadataSyncException.getMessage() );
+        return error( metadataSyncException.getMessage() );
     }
 
     @ExceptionHandler( DhisVersionMismatchException.class )
     @ResponseBody
     public WebMessage handleDhisVersionMismatchException( DhisVersionMismatchException versionMismatchException )
     {
-        return WebMessageUtils.forbidden( versionMismatchException.getMessage() );
+        return forbidden( versionMismatchException.getMessage() );
     }
 
     @ExceptionHandler( MetadataImportConflictException.class )
@@ -295,21 +303,16 @@ public class CrudControllerAdvice
     {
         if ( conflictException.getMetadataSyncSummary() == null )
         {
-            return WebMessageUtils.conflict( conflictException.getMessage() );
+            return conflict( conflictException.getMessage() );
         }
-        else
-        {
-            WebMessage message = new WebMessage( Status.ERROR, HttpStatus.CONFLICT );
-            message.setResponse( conflictException.getMetadataSyncSummary() );
-            return message;
-        }
+        return conflict( null ).setResponse( conflictException.getMetadataSyncSummary() );
     }
 
     @ExceptionHandler( OperationNotAllowedException.class )
     @ResponseBody
     public WebMessage handleOperationNotAllowedException( OperationNotAllowedException ex )
     {
-        return WebMessageUtils.forbidden( ex.getMessage() );
+        return forbidden( ex.getMessage() );
     }
 
     @ExceptionHandler( OAuth2AuthenticationException.class )
@@ -322,13 +325,10 @@ public class CrudControllerAdvice
             BearerTokenError bearerTokenError = (BearerTokenError) error;
             HttpStatus status = ((BearerTokenError) error).getHttpStatus();
 
-            return WebMessageUtils.createWebMessage( bearerTokenError.getErrorCode(),
+            return createWebMessage( bearerTokenError.getErrorCode(),
                 bearerTokenError.getDescription(), Status.ERROR, status );
         }
-        else
-        {
-            return WebMessageUtils.unathorized( ex.getMessage() );
-        }
+        return unauthorized( ex.getMessage() );
     }
 
     /**
@@ -339,7 +339,7 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage defaultExceptionHandler( Exception ex )
     {
-        return WebMessageUtils.error( getExceptionMessage( ex ) );
+        return error( getExceptionMessage( ex ) );
     }
 
     private String getExceptionMessage( Exception ex )

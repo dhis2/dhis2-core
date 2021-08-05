@@ -27,10 +27,19 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
 import static org.hisp.dhis.visualization.ConversionHelper.convertToReportTableList;
 import static org.hisp.dhis.visualization.ConversionHelper.convertToVisualization;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 import static org.hisp.dhis.webapi.utils.PaginationUtils.getPaginationData;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -67,7 +76,6 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -383,7 +391,7 @@ public abstract class ReportTableFacadeController
 
         if ( entities.isEmpty() )
         {
-            return WebMessageUtils.notFound( ReportTable.class, pvUid );
+            return notFound( ReportTable.class, pvUid );
         }
 
         Visualization persistedObject = entities.get( 0 );
@@ -436,7 +444,7 @@ public abstract class ReportTableFacadeController
 
         if ( typeReport.hasErrorReports() )
         {
-            return WebMessageUtils.typeReport( typeReport );
+            return typeReport( typeReport );
         }
 
         manager.updateTranslations( persistedObject, object.getTranslations() );
@@ -457,7 +465,7 @@ public abstract class ReportTableFacadeController
 
         if ( entities.isEmpty() )
         {
-            return WebMessageUtils.notFound( ReportTable.class, pvUid );
+            return notFound( ReportTable.class, pvUid );
         }
 
         Visualization persistedObject = entities.get( 0 );
@@ -501,13 +509,13 @@ public abstract class ReportTableFacadeController
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
+            throw new WebMessageException( notFound( ReportTable.class, pvUid ) );
         }
 
         if ( !getSchema().haveProperty( pvProperty ) )
         {
-            throw new WebMessageException( WebMessageUtils
-                .notFound( "Property " + pvProperty + " does not exist on " + ReportTable.class.getName() ) );
+            throw new WebMessageException(
+                notFound( "Property " + pvProperty + " does not exist on " + ReportTable.class.getName() ) );
         }
 
         Property property = getSchema().getProperty( pvProperty );
@@ -527,7 +535,7 @@ public abstract class ReportTableFacadeController
 
         if ( object == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
+            throw new WebMessageException( badRequest( "Unknown payload format." ) );
         }
 
         Object value = property.getGetterMethod().invoke( object );
@@ -546,7 +554,7 @@ public abstract class ReportTableFacadeController
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, uid ) );
+            throw new WebMessageException( notFound( ReportTable.class, uid ) );
         }
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
@@ -562,7 +570,7 @@ public abstract class ReportTableFacadeController
 
         if ( CollectionUtils.isEmpty( reportTables ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, uid ) );
+            throw new WebMessageException( notFound( ReportTable.class, uid ) );
         }
 
         handleLinksAndAccess( reportTables, fields, true, user );
@@ -609,7 +617,7 @@ public abstract class ReportTableFacadeController
     // POST
     // --------------------------------------------------------------------------
 
-    @PostMapping( consumes = "application/json" )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
@@ -634,7 +642,7 @@ public abstract class ReportTableFacadeController
 
         ImportReport importReport = importService.importMetadata( params );
         ObjectReport objectReport = getObjectReport( importReport );
-        WebMessage webMessage = WebMessageUtils.objectReport( objectReport );
+        WebMessage webMessage = objectReport( objectReport );
 
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
@@ -652,7 +660,7 @@ public abstract class ReportTableFacadeController
         return webMessage;
     }
 
-    @PostMapping( consumes = { "application/xml", "text/xml" } )
+    @PostMapping( consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage postXmlObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
@@ -677,7 +685,7 @@ public abstract class ReportTableFacadeController
 
         ImportReport importReport = importService.importMetadata( params );
         ObjectReport objectReport = getObjectReport( importReport );
-        WebMessage webMessage = WebMessageUtils.objectReport( objectReport );
+        WebMessage webMessage = objectReport( objectReport );
 
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
@@ -701,14 +709,14 @@ public abstract class ReportTableFacadeController
     {
         if ( !getSchema().isFavoritable() )
         {
-            return WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" );
+            return conflict( "Objects of this class cannot be set as favorite" );
         }
 
         List<Visualization> entity = (List<Visualization>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            return WebMessageUtils.notFound( ReportTable.class, pvUid );
+            return notFound( ReportTable.class, pvUid );
         }
 
         Visualization object = entity.get( 0 );
@@ -718,7 +726,7 @@ public abstract class ReportTableFacadeController
         manager.updateNoAcl( object );
 
         String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
-        return WebMessageUtils.ok( message );
+        return ok( message );
     }
 
     @PostMapping( "/{uid}/subscriber" )
@@ -727,14 +735,14 @@ public abstract class ReportTableFacadeController
     {
         if ( !getSchema().isSubscribable() )
         {
-            return WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" );
+            return conflict( "Objects of this class cannot be subscribed to" );
         }
 
         List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            return WebMessageUtils.notFound( ReportTable.class, pvUid );
+            return notFound( ReportTable.class, pvUid );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -744,14 +752,14 @@ public abstract class ReportTableFacadeController
         manager.updateNoAcl( object );
 
         String message = String.format( "User '%s' subscribed to object '%s'", user.getUsername(), pvUid );
-        return WebMessageUtils.ok( message );
+        return ok( message );
     }
 
     // --------------------------------------------------------------------------
     // PUT
     // --------------------------------------------------------------------------
 
-    @PutMapping( value = "/{uid}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
         HttpServletResponse response )
@@ -761,7 +769,7 @@ public abstract class ReportTableFacadeController
 
         if ( objects.isEmpty() )
         {
-            return WebMessageUtils.notFound( getEntityClass(), pvUid );
+            return notFound( getEntityClass(), pvUid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -783,7 +791,7 @@ public abstract class ReportTableFacadeController
             .addObject( visualization );
 
         ImportReport importReport = importService.importMetadata( params );
-        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
+        WebMessage webMessage = objectReport( importReport );
 
         if ( importReport.getStatus() != Status.OK )
         {
@@ -793,7 +801,7 @@ public abstract class ReportTableFacadeController
         return webMessage;
     }
 
-    @PutMapping( value = "/{uid}", consumes = { MediaType.APPLICATION_XML_VALUE,
+    @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE,
         MediaType.TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
@@ -804,7 +812,7 @@ public abstract class ReportTableFacadeController
 
         if ( objects.isEmpty() )
         {
-            return WebMessageUtils.notFound( ReportTable.class, pvUid );
+            return notFound( ReportTable.class, pvUid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -826,7 +834,7 @@ public abstract class ReportTableFacadeController
             .addObject( visualization );
 
         ImportReport importReport = importService.importMetadata( params );
-        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
+        WebMessage webMessage = objectReport( importReport );
 
         if ( importReport.getStatus() != Status.OK )
         {
@@ -849,7 +857,7 @@ public abstract class ReportTableFacadeController
 
         if ( objects.isEmpty() )
         {
-            return WebMessageUtils.notFound( ReportTable.class, pvUid );
+            return notFound( ReportTable.class, pvUid );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -867,7 +875,7 @@ public abstract class ReportTableFacadeController
 
         ImportReport importReport = importService.importMetadata( params );
 
-        return WebMessageUtils.objectReport( importReport );
+        return objectReport( importReport );
     }
 
     @DeleteMapping( "/{uid}/favorite" )
@@ -876,14 +884,14 @@ public abstract class ReportTableFacadeController
     {
         if ( !getSchema().isFavoritable() )
         {
-            return WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" );
+            return conflict( "Objects of this class cannot be set as favorite" );
         }
 
         List<Visualization> entity = (List<Visualization>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            return WebMessageUtils.notFound( ReportTable.class, pvUid );
+            return notFound( ReportTable.class, pvUid );
         }
 
         Visualization object = entity.get( 0 );
@@ -893,7 +901,7 @@ public abstract class ReportTableFacadeController
         manager.updateNoAcl( object );
 
         String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );
-        return WebMessageUtils.ok( message );
+        return ok( message );
     }
 
     @DeleteMapping( "/{uid}/subscriber" )
@@ -902,14 +910,14 @@ public abstract class ReportTableFacadeController
     {
         if ( !getSchema().isSubscribable() )
         {
-            return WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" );
+            return conflict( "Objects of this class cannot be subscribed to" );
         }
 
         List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
 
         if ( entity.isEmpty() )
         {
-            return WebMessageUtils.notFound( ReportTable.class, pvUid );
+            return notFound( ReportTable.class, pvUid );
         }
 
         SubscribableObject object = entity.get( 0 );
@@ -919,7 +927,7 @@ public abstract class ReportTableFacadeController
         manager.updateNoAcl( object );
 
         String message = String.format( "User '%s' removed as subscriber of object '%s'", user.getUsername(), pvUid );
-        return WebMessageUtils.ok( message );
+        return ok( message );
     }
 
     // --------------------------------------------------------------------------
@@ -964,7 +972,7 @@ public abstract class ReportTableFacadeController
             if ( rootNode.getChildren().isEmpty() || rootNode.getChildren().get( 0 ).getChildren().isEmpty() )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
+                    notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
             }
 
             response.setHeader( ContextUtils.HEADER_CACHE_CONTROL,
@@ -978,7 +986,7 @@ public abstract class ReportTableFacadeController
         }
     }
 
-    @PostMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -996,7 +1004,7 @@ public abstract class ReportTableFacadeController
             Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
-    @PostMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
+    @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -1014,7 +1022,7 @@ public abstract class ReportTableFacadeController
             Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
-    @PutMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -1030,7 +1038,7 @@ public abstract class ReportTableFacadeController
             identifiableObjects.getIdentifiableObjects() );
     }
 
-    @PutMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
+    @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -1058,14 +1066,14 @@ public abstract class ReportTableFacadeController
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
+            throw new WebMessageException( notFound( ReportTable.class, pvUid ) );
         }
 
         collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
             Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
     }
 
-    @DeleteMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
@@ -1081,7 +1089,7 @@ public abstract class ReportTableFacadeController
             identifiableObjects.getIdentifiableObjects() );
     }
 
-    @DeleteMapping( value = "/{uid}/{property}", consumes = MediaType.APPLICATION_XML_VALUE )
+    @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
@@ -1111,7 +1119,7 @@ public abstract class ReportTableFacadeController
 
         if ( objects.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
+            throw new WebMessageException( notFound( ReportTable.class, pvUid ) );
         }
 
         collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
@@ -1314,16 +1322,16 @@ public abstract class ReportTableFacadeController
     {
         String type = request.getHeader( "Accept" );
         type = !StringUtils.isEmpty( type ) ? type : request.getContentType();
-        type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
+        type = !StringUtils.isEmpty( type ) ? type : APPLICATION_JSON_VALUE;
 
         // allow type to be overridden by path extension
         if ( request.getPathInfo().endsWith( ".json" ) )
         {
-            type = MediaType.APPLICATION_JSON_VALUE;
+            type = APPLICATION_JSON_VALUE;
         }
         else if ( request.getPathInfo().endsWith( ".xml" ) )
         {
-            type = MediaType.APPLICATION_XML_VALUE;
+            type = APPLICATION_XML_VALUE;
         }
 
         if ( isCompatibleWith( type, MediaType.APPLICATION_JSON ) )
@@ -1346,16 +1354,16 @@ public abstract class ReportTableFacadeController
         throws IOException
     {
         String type = request.getContentType();
-        type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
+        type = !StringUtils.isEmpty( type ) ? type : APPLICATION_JSON_VALUE;
 
         // allow type to be overridden by path extension
         if ( request.getPathInfo().endsWith( ".json" ) )
         {
-            type = MediaType.APPLICATION_JSON_VALUE;
+            type = APPLICATION_JSON_VALUE;
         }
         else if ( request.getPathInfo().endsWith( ".xml" ) )
         {
-            type = MediaType.APPLICATION_XML_VALUE;
+            type = APPLICATION_XML_VALUE;
         }
 
         if ( isCompatibleWith( type, MediaType.APPLICATION_JSON ) )
@@ -1379,12 +1387,12 @@ public abstract class ReportTableFacadeController
     protected boolean isJson( HttpServletRequest request )
     {
         String type = request.getContentType();
-        type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
+        type = !StringUtils.isEmpty( type ) ? type : APPLICATION_JSON_VALUE;
 
         // allow type to be overridden by path extension
         if ( request.getPathInfo().endsWith( ".json" ) )
         {
-            type = MediaType.APPLICATION_JSON_VALUE;
+            type = APPLICATION_JSON_VALUE;
         }
 
         return isCompatibleWith( type, MediaType.APPLICATION_JSON );
@@ -1399,12 +1407,12 @@ public abstract class ReportTableFacadeController
     protected boolean isXml( HttpServletRequest request )
     {
         String type = request.getContentType();
-        type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
+        type = !StringUtils.isEmpty( type ) ? type : APPLICATION_JSON_VALUE;
 
         // allow type to be overridden by path extension
         if ( request.getPathInfo().endsWith( ".xml" ) )
         {
-            type = MediaType.APPLICATION_XML_VALUE;
+            type = APPLICATION_XML_VALUE;
         }
 
         return isCompatibleWith( type, MediaType.APPLICATION_XML );

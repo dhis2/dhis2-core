@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummaries;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
 import java.util.List;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
@@ -40,7 +44,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.util.CategoryUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.maintenance.MaintenanceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -214,10 +217,10 @@ public class MaintenanceController
 
         if ( categoryCombo == null )
         {
-            return WebMessageUtils.conflict( "CategoryCombo does not exist: " + uid );
+            return conflict( "CategoryCombo does not exist: " + uid );
         }
 
-        return WebMessageUtils.importSummaries( categoryUtils.addAndPruneOptionCombos( categoryCombo ) );
+        return importSummaries( categoryUtils.addAndPruneOptionCombos( categoryCombo ) );
     }
 
     @RequestMapping( value = { "/cacheClear", "/cache" }, method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -238,12 +241,12 @@ public class MaintenanceController
 
         if ( organisationUnit == null )
         {
-            return WebMessageUtils.conflict( "Organisation unit does not exist: " + uid );
+            return conflict( "Organisation unit does not exist: " + uid );
         }
 
         return maintenanceService.pruneData( organisationUnit )
-            ? WebMessageUtils.ok( "Data was pruned successfully" )
-            : WebMessageUtils.conflict( "Data could not be pruned" );
+            ? ok( "Data was pruned successfully" )
+            : conflict( "Data could not be pruned" );
     }
 
     @RequestMapping( value = "/dataPruning/dataElements/{uid}", method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -255,12 +258,12 @@ public class MaintenanceController
 
         if ( dataElement == null )
         {
-            return WebMessageUtils.conflict( "Data element does not exist: " + uid );
+            return conflict( "Data element does not exist: " + uid );
         }
 
         return maintenanceService.pruneData( dataElement )
-            ? WebMessageUtils.ok( "Data was pruned successfully" )
-            : WebMessageUtils.conflict( "Data could not be pruned" );
+            ? ok( "Data was pruned successfully" )
+            : conflict( "Data could not be pruned" );
     }
 
     @GetMapping( "/appReload" )
@@ -269,7 +272,7 @@ public class MaintenanceController
     public WebMessage appReload()
     {
         appManager.reloadApps();
-        return WebMessageUtils.ok( "Apps reloaded" );
+        return ok( "Apps reloaded" );
     }
 
     @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )

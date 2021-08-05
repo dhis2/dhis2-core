@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -50,7 +54,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.interpretation.InterpretationService;
@@ -81,7 +84,6 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -175,7 +177,7 @@ public class MeController
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
             new FieldFilterParams( Collections.singletonList( user ), fields ) );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
 
         RootNode rootNode = NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
@@ -209,7 +211,7 @@ public class MeController
                     .collect( Collectors.toList() ) ) );
         }
 
-        nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
+        nodeService.serialize( rootNode, APPLICATION_JSON_VALUE, response.getOutputStream() );
     }
 
     private boolean fieldsContains( String key, List<String> fields )
@@ -238,10 +240,10 @@ public class MeController
 
         RootNode rootNode = userControllerUtils.getUserDataApprovalWorkflows( user );
 
-        nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
+        nodeService.serialize( rootNode, APPLICATION_JSON_VALUE, response.getOutputStream() );
     }
 
-    @PutMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "", consumes = APPLICATION_JSON_VALUE )
     public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -260,7 +262,7 @@ public class MeController
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
+                conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
         }
 
         manager.update( currentUser );
@@ -273,8 +275,9 @@ public class MeController
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
             new FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ), "application/json",
+        response.setContentType( APPLICATION_JSON_VALUE );
+        nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ),
+            APPLICATION_JSON_VALUE,
             response.getOutputStream() );
     }
 
@@ -290,7 +293,7 @@ public class MeController
             throw new NotAuthenticatedException();
         }
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), currentUser.getUserCredentials().getAllAuthorities() );
     }
@@ -309,7 +312,7 @@ public class MeController
 
         boolean hasAuthority = currentUser.getUserCredentials().isAuthorized( authority );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), hasAuthority );
     }
@@ -329,7 +332,7 @@ public class MeController
         Map<String, Serializable> userSettings = userSettingService.getUserSettingsWithFallbackByUserAsMap(
             currentUser, USER_SETTING_KEYS, true );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), userSettings );
     }
@@ -351,17 +354,17 @@ public class MeController
 
         if ( !keyEnum.isPresent() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Key is not supported: " + key ) );
+            throw new WebMessageException( conflict( "Key is not supported: " + key ) );
         }
 
         Serializable value = userSettingService.getUserSetting( keyEnum.get(), currentUser );
 
         if ( value == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "User setting not found for key: " + key ) );
+            throw new WebMessageException( notFound( "User setting not found for key: " + key ) );
         }
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), value );
     }
@@ -385,14 +388,14 @@ public class MeController
 
         if ( StringUtils.isEmpty( oldPassword ) || StringUtils.isEmpty( newPassword ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "OldPassword and newPassword must be provided" ) );
+            throw new WebMessageException( conflict( "OldPassword and newPassword must be provided" ) );
         }
 
         boolean valid = passwordManager.matches( oldPassword, currentUser.getUserCredentials().getPassword() );
 
         if ( !valid )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "OldPassword is incorrect" ) );
+            throw new WebMessageException( conflict( "OldPassword is incorrect" ) );
         }
 
         updatePassword( currentUser, newPassword );
@@ -415,7 +418,7 @@ public class MeController
         return validatePasswordInternal( password, getCurrentUserOrThrow() );
     }
 
-    @PostMapping( value = "/verifyPassword", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/verifyPassword", consumes = APPLICATION_JSON_VALUE )
     public @ResponseBody RootNode verifyPasswordJson( @RequestBody Map<String, String> body,
         HttpServletResponse response )
         throws WebMessageException
@@ -450,13 +453,13 @@ public class MeController
         interpretationService.updateCurrentUserLastChecked();
     }
 
-    @GetMapping( value = "/dataApprovalLevels", produces = { "application/json", "text/*" } )
+    @GetMapping( value = "/dataApprovalLevels", produces = { APPLICATION_JSON_VALUE, "text/*" } )
     public void getApprovalLevels( HttpServletResponse response )
         throws IOException
     {
         List<DataApprovalLevel> approvalLevels = approvalLevelService
             .getUserDataApprovalLevels( currentUserService.getCurrentUser() );
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
         renderService.toJson( response.getOutputStream(), approvalLevels );
     }
@@ -471,7 +474,7 @@ public class MeController
         if ( password == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
+                conflict( "Required attribute 'password' missing or null." ) );
         }
 
         boolean valid = passwordManager.matches( password, currentUser.getUserCredentials().getPassword() );
@@ -488,7 +491,7 @@ public class MeController
         if ( password == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
+                conflict( "Required attribute 'password' missing or null." ) );
         }
 
         CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUsername(), password,
@@ -514,7 +517,7 @@ public class MeController
 
         if ( user == null || user.getUserCredentials() == null )
         {
-            throw new WebMessageException( WebMessageUtils.unathorized( "Not authenticated" ) );
+            throw new WebMessageException( unauthorized( "Not authenticated" ) );
         }
 
         return user;
@@ -573,7 +576,7 @@ public class MeController
             }
             else
             {
-                throw new WebMessageException( WebMessageUtils.conflict( result.getErrorMessage() ) );
+                throw new WebMessageException( conflict( result.getErrorMessage() ) );
             }
         }
     }

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
 import static org.springframework.http.CacheControl.noCache;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -58,7 +59,6 @@ import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -90,7 +90,7 @@ public abstract class AbstractGistReadOnlyController<T extends IdentifiableObjec
     // GET Gist
     // --------------------------------------------------------------------------
 
-    @GetMapping( value = "/{uid}/gist", produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/{uid}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
         @PathVariable( "uid" ) String uid,
         HttpServletRequest request, HttpServletResponse response )
@@ -100,7 +100,7 @@ public abstract class AbstractGistReadOnlyController<T extends IdentifiableObjec
             .withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
     }
 
-    @GetMapping( value = "/gist", produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
         HttpServletRequest request, HttpServletResponse response )
     {
@@ -108,7 +108,7 @@ public abstract class AbstractGistReadOnlyController<T extends IdentifiableObjec
             getSchema() );
     }
 
-    @GetMapping( value = "/{uid}/{property}/gist", produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
         @PathVariable( "uid" ) String uid,
         @PathVariable( "property" ) String property,

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +59,6 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
@@ -195,7 +196,7 @@ public class DataApprovalController
             if ( startDate == null || endDate == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Must have either pe or both startDate and endDate." ) );
+                    conflict( "Must have either pe or both startDate and endDate." ) );
             }
         }
         else
@@ -203,7 +204,7 @@ public class DataApprovalController
             if ( startDate != null || endDate != null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Cannot have both pe and startDate or endDate." ) );
+                    conflict( "Cannot have both pe and startDate or endDate." ) );
             }
 
             periods = new ArrayList<>();
@@ -610,7 +611,7 @@ public class DataApprovalController
             if ( dataSet.getWorkflow() == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "DataSet does not have an approval workflow: " + dataSet.getUid() ) );
+                    conflict( "DataSet does not have an approval workflow: " + dataSet.getUid() ) );
             }
         }
 
@@ -640,7 +641,7 @@ public class DataApprovalController
 
         if ( periods.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Approvals must have periods" ) );
+            throw new WebMessageException( conflict( "Approvals must have periods" ) );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -703,13 +704,13 @@ public class DataApprovalController
 
             if ( dataSet == null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + ds ) );
+                throw new WebMessageException( conflict( "Data set does not exist: " + ds ) );
             }
 
             if ( dataSet.getWorkflow() == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Data set does not have an approval workflow: " + ds ) );
+                    conflict( "Data set does not have an approval workflow: " + ds ) );
             }
 
             return dataSet.getWorkflow();
@@ -721,7 +722,7 @@ public class DataApprovalController
             if ( workflow == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Data approval workflow does not exist: " + wf ) );
+                    conflict( "Data approval workflow does not exist: " + wf ) );
             }
 
             return workflow;
@@ -729,7 +730,7 @@ public class DataApprovalController
         else
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Either data set or data approval workflow must be specified" ) );
+                conflict( "Either data set or data approval workflow must be specified" ) );
         }
     }
 
@@ -766,7 +767,7 @@ public class DataApprovalController
         if ( workflows.isEmpty() )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Either data sets or data approval workflows must be specified" ) );
+                conflict( "Either data sets or data approval workflows must be specified" ) );
         }
 
         return workflows;
@@ -779,7 +780,7 @@ public class DataApprovalController
 
         if ( period == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal period identifier: " + pe ) );
+            throw new WebMessageException( conflict( "Illegal period identifier: " + pe ) );
         }
 
         return period;
@@ -792,7 +793,7 @@ public class DataApprovalController
 
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist: " + ou ) );
+            throw new WebMessageException( conflict( "Organisation unit does not exist: " + ou ) );
         }
 
         return organisationUnit;
@@ -806,7 +807,7 @@ public class DataApprovalController
         if ( dataApprovalLevel == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Approval level not found for org unit: " + unit.getUid() ) );
+                conflict( "Approval level not found for org unit: " + unit.getUid() ) );
         }
 
         return dataApprovalLevel;
@@ -822,7 +823,7 @@ public class DataApprovalController
             if ( optionCombo == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Attribute option combo does not exist: " + aoc ) );
+                    conflict( "Attribute option combo does not exist: " + aoc ) );
             }
 
             return optionCombo;

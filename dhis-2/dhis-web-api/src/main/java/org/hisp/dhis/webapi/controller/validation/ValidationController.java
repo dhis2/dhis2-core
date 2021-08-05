@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.validation;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
 import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletResponse;
@@ -39,7 +42,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -95,21 +97,21 @@ public class ValidationController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + ds ) );
+            throw new WebMessageException( conflict( "Data set does not exist: " + ds ) );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( pe );
 
         if ( period == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Period does not exist: " + pe ) );
+            throw new WebMessageException( conflict( "Period does not exist: " + pe ) );
         }
 
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ou );
 
         if ( orgUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist: " + ou ) );
+            throw new WebMessageException( conflict( "Organisation unit does not exist: " + ou ) );
         }
 
         CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( aoc );
@@ -145,6 +147,6 @@ public class ValidationController
 
         schedulingManager.executeNow( validationResultNotification );
 
-        return WebMessageUtils.ok( "Initiated validation result notification" );
+        return ok( "Initiated validation result notification" );
     }
 }
