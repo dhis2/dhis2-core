@@ -29,8 +29,10 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonArray;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -45,7 +47,8 @@ public class AppControllerTest extends DhisControllerConvenienceTest
     public void testGetApps()
     {
         HttpResponse response = GET( "/apps" );
-        assertEquals( "[]", response.content( HttpStatus.OK ).toString() );
+        JsonArray apps = response.content( HttpStatus.OK );
+        assertTrue( apps.isArray() );
     }
 
     @Test
