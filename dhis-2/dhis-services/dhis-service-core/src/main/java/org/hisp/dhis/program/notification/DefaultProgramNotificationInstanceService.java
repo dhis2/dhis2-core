@@ -75,6 +75,12 @@ public class DefaultProgramNotificationInstanceService
     }
 
     @Override
+    public int countProgramNotificationInstances( ProgramNotificationInstanceParam params )
+    {
+        return notificationInstanceStore.countProgramNotificationInstances( params );
+    }
+
+    @Override
     @Transactional( readOnly = true )
     public void validateQueryParameters( ProgramNotificationInstanceParam params )
     {

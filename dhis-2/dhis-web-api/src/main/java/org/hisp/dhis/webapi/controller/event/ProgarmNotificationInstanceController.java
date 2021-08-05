@@ -27,29 +27,35 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.Preset;
+import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Zubair Asghar
@@ -64,22 +70,27 @@ public class ProgarmNotificationInstanceController
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final RenderService renderService;
-
     private final ProgramNotificationInstanceService programNotificationInstanceService;
 
     private final ProgramInstanceService programInstanceService;
 
     private final ProgramStageInstanceService programStageInstanceService;
 
-    public ProgarmNotificationInstanceController( RenderService renderService,
+    private final ContextService contextService;
+
+    private final FieldFilterService fieldFilterService;
+
+    public ProgarmNotificationInstanceController(
         ProgramNotificationInstanceService programNotificationInstanceService,
-        ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService )
+        ProgramInstanceService programInstanceService,
+        ProgramStageInstanceService programStageInstanceService, ContextService contextService,
+        FieldFilterService fieldFilterService )
     {
-        this.renderService = renderService;
         this.programNotificationInstanceService = programNotificationInstanceService;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
+        this.contextService = contextService;
+        this.fieldFilterService = fieldFilterService;
     }
 
     // -------------------------------------------------------------------------
@@ -88,14 +99,14 @@ public class ProgarmNotificationInstanceController
 
     @PreAuthorize( "hasRole('ALL')" )
     @GetMapping( produces = { "application/json" } )
-    public void getScheduledMessage(
+    public @ResponseBody RootNode getScheduledMessage(
         @RequestParam( required = false ) String programInstance,
         @RequestParam( required = false ) String programStageInstance,
         @RequestParam( required = false ) Date scheduledAt,
-        @RequestParam( required = false ) Integer page, @RequestParam( required = false ) Integer pageSize,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false, defaultValue = "1" ) int page,
+        @RequestParam( required = false, defaultValue = "50" ) int pageSize )
+        throws WebMessageException
     {
         if ( programInstance == null && programStageInstance == null )
         {
@@ -103,18 +114,48 @@ public class ProgarmNotificationInstanceController
                 WebMessageUtils.conflict( "ProgramInstance or ProgramStageInstance must be specified" ) );
         }
 
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
         ProgramNotificationInstanceParam params = ProgramNotificationInstanceParam.builder()
             .programInstance( programInstanceService.getProgramInstance( programInstance ) )
             .programStageInstance( programStageInstanceService.getProgramStageInstance( programStageInstance ) )
-            .pageSize( pageSize )
+            .skipPaging( skipPaging )
             .page( page )
+            .pageSize( pageSize )
             .scheduledAt( scheduledAt ).build();
+
+        Pager pager = null;
+
+        if ( !skipPaging )
+        {
+            int total = programNotificationInstanceService.countProgramNotificationInstances( params );
+
+            pager = new Pager( page, total, pageSize );
+        }
 
         programNotificationInstanceService.validateQueryParameters( params );
 
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances( params );
 
-        renderService.toJson( response.getOutputStream(), instances );
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( pager != null )
+        {
+            rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+
+        CollectionNode programNotificationInstances = rootNode
+            .addChild( new CollectionNode( "programNotificationInstances", true ) );
+        programNotificationInstances
+            .addChildren( fieldFilterService.toCollectionNode( ProgramNotificationInstance.class,
+                new FieldFilterParams( instances, fields ) ).getChildren() );
+
+        return rootNode;
     }
 }

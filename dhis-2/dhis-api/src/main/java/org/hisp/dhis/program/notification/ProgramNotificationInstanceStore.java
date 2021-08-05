@@ -40,4 +40,6 @@ public interface ProgramNotificationInstanceStore
 {
     List<ProgramNotificationInstance> getProgramNotificationInstances(
         ProgramNotificationInstanceParam programNotificationInstanceParam );
+
+    int countProgramNotificationInstances( ProgramNotificationInstanceParam params );
 }

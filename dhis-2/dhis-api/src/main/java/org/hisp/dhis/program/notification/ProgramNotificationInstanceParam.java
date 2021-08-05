@@ -61,6 +61,8 @@ public class ProgramNotificationInstanceParam
 
     private Integer pageSize;
 
+    private boolean skipPaging;
+
     public boolean hasProgramInstance()
     {
         return programInstance != null;

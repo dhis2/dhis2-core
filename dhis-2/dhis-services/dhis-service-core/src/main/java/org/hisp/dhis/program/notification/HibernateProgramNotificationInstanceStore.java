@@ -69,12 +69,24 @@ public class HibernateProgramNotificationInstanceStore
             .addPredicates( getPredicates( params, builder ) )
             .addOrder( root -> builder.desc( root.get( "created" ) ) );
 
-        if ( params.hasPaging() )
+        if ( !params.isSkipPaging() )
         {
             jpaParameters.setFirstResult( params.getPage() ).setMaxResults( params.getPageSize() );
         }
 
         return getList( builder, jpaParameters );
+    }
+
+    @Override
+    public int countProgramNotificationInstances( ProgramNotificationInstanceParam params )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<ProgramNotificationInstance> jpaParameters = newJpaParameters()
+            .addPredicates( getPredicates( params, builder ) )
+            .addOrder( root -> builder.desc( root.get( "created" ) ) );
+
+        return getCount( builder, jpaParameters ).intValue();
     }
 
     private List<Function<Root<ProgramNotificationInstance>, Predicate>> getPredicates(
