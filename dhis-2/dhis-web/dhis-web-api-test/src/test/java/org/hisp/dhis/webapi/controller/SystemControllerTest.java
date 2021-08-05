@@ -47,7 +47,7 @@ public class SystemControllerTest extends DhisControllerConvenienceTest
     public void testGetTasksJson()
     {
         JsonObject tasks = GET( "/system/tasks" ).content( HttpStatus.OK );
-        assertEmptyJsonObjectMembers( tasks,
+        assertObjectMembers( tasks,
             "CONTINUOUS_ANALYTICS_TABLE", "DATA_SYNC", "TRACKER_PROGRAMS_DATA_SYNC", "EVENT_PROGRAMS_DATA_SYNC",
             "FILE_RESOURCE_CLEANUP", "IMAGE_PROCESSING", "META_DATA_SYNC", "SMS_SEND", "SEND_SCHEDULED_MESSAGE",
             "PROGRAM_NOTIFICATIONS", "VALIDATION_RESULTS_NOTIFICATION", "CREDENTIALS_EXPIRY_ALERT", "MONITORING",
@@ -86,13 +86,12 @@ public class SystemControllerTest extends DhisControllerConvenienceTest
         assertEquals( 0, summary.size() );
     }
 
-    private static void assertEmptyJsonObjectMembers( JsonObject root, String... members )
+    private static void assertObjectMembers( JsonObject root, String... members )
     {
         for ( String member : members )
         {
             JsonObject memberObj = root.getObject( member );
             assertTrue( member + " is not an object", memberObj.isObject() );
-            assertEquals( 0, memberObj.size() );
         }
     }
 }

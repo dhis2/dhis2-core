@@ -33,7 +33,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -121,8 +120,7 @@ public class SharingController
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Sharing> getSharing( @RequestParam String type, @RequestParam String id )
-        throws IOException,
-        WebMessageException
+        throws WebMessageException
     {
         type = getSharingType( type );
 
@@ -386,8 +384,7 @@ public class SharingController
     @GetMapping( value = "/search", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Map<String, Object>> searchUserGroups( @RequestParam String key,
         @RequestParam( required = false ) Integer pageSize )
-        throws IOException,
-        WebMessageException
+        throws WebMessageException
     {
         if ( key == null )
         {
