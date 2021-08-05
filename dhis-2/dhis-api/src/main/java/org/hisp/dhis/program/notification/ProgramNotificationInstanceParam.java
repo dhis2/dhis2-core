@@ -47,10 +47,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 @NoArgsConstructor
 public class ProgramNotificationInstanceParam
 {
-    public static final int DEFAULT_PAGE_SIZE = 50;
-
-    public static final int DEFAULT_PAGE = 0;
-
     private ProgramInstance programInstance;
 
     private ProgramStageInstance programStageInstance;

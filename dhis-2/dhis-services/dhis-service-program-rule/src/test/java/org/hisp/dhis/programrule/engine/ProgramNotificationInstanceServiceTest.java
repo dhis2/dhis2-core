@@ -146,13 +146,13 @@ public class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
 
         List<ProgramNotificationInstance> programNotificationInstances = programNotificationInstanceService
             .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
-                .programInstance( programInstance ).build() );
+                .programInstance( programInstance ).skipPaging( true ).build() );
 
         assertFalse( programNotificationInstances.isEmpty() );
         assertSame( programInstance, programNotificationInstances.get( 0 ).getProgramInstance() );
 
         ProgramNotificationInstanceParam param = ProgramNotificationInstanceParam.builder()
-            .programInstance( programInstance ).build();
+            .programInstance( programInstance ).skipPaging( true ).build();
 
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances( param );
@@ -167,7 +167,7 @@ public class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
 
         List<ProgramNotificationInstance> programNotificationInstances = programNotificationInstanceService
             .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
-                .programInstance( programInstanceB ).build() );
+                .programInstance( programInstanceB ).skipPaging( true ).build() );
 
         assertFalse( programNotificationInstances.isEmpty() );
         assertSame( programInstanceB, programNotificationInstances.get( 0 ).getProgramInstance() );
@@ -176,7 +176,7 @@ public class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
 
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
-                .programInstance( programInstanceB ).build() );
+                .programInstance( programInstanceB ).skipPaging( true ).build() );
 
         assertTrue( instances.isEmpty() );
     }
