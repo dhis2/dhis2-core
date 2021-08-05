@@ -95,7 +95,7 @@ public class ProgarmNotificationInstanceController
         @RequestParam( required = false ) String programStageInstance,
         @RequestParam( required = false ) Date scheduledAt,
         @RequestParam( required = false ) boolean skipPaging,
-        @RequestParam( required = false, defaultValue = "1" ) int page,
+        @RequestParam( required = false, defaultValue = "0" ) int page,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize )
     {
         ProgramNotificationInstanceParam params = ProgramNotificationInstanceParam.builder()
