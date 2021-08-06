@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *  Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *  Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *  Neither the name of the HISP project nor the names of its contributors may
- *   be used to endorse or promote products derived from this software without
- *   specific prior written permission.
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -26,17 +27,17 @@
  */
 package org.hisp.dhis.commons.jackson.filter;
 
-import com.google.common.collect.ForwardingMap;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import com.google.common.collect.ForwardingMap;
 
 /**
  * Maps out fieldName => children (if any), used for constructing a tree like
  * structure of field filters. Allows sub-trees to be skipped if a transformer
  * requires it, for example '::pluck(id)' which replaces part of the tree with a
  * property "plucked" from an array of objects.
- * 
+ *
  * @author Morten Olav Hansen
  */
 public class FieldFilterNode extends ForwardingMap<String, FieldFilterNode>
