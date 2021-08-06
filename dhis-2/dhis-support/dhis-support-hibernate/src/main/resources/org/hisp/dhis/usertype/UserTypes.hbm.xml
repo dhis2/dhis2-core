@@ -131,7 +131,7 @@
     <param name="clazz">org.hisp.dhis.common.ValueTypeOptions</param>
   </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.ApiKeyAttrributeJsonBinaryType" name="jbApiKeyAttributesList">
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.ApiKeyAttributeJsonBinaryType" name="jbApiKeyAttributesList">
     <param name="clazz">org.hisp.dhis.security.apikey.ApiTokenAttribute</param>
   </typedef>
 
