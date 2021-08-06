@@ -179,6 +179,7 @@ public class DefaultEventAnalyticsService
         // ---------------------------------------------------------------------
 
         securityManager.decideAccessEventQuery( params );
+        params = securityManager.withUserConstraints( params );
 
         params = securityManager.withUserConstraints( params );
 
