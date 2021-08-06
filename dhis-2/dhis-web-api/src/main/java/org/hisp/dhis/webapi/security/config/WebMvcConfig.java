@@ -46,12 +46,7 @@ import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
-import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.ExcelMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.JsonPMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.PdfMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.*;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -152,6 +147,12 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         return new DefaultNodeService();
     }
 
+    @Bean
+    public RenderServiceMessageConverter renderServiceMessageConverter()
+    {
+        return new RenderServiceMessageConverter();
+    }
+
     @Override
     public void configureMessageConverters(
         List<HttpMessageConverter<?>> converters )
@@ -171,8 +172,13 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         converters.add( new ByteArrayHttpMessageConverter() );
         converters.add( new FormHttpMessageConverter() );
 
-        converters.add( new MappingJackson2HttpMessageConverter( jsonMapper ) );
-        converters.add( new MappingJackson2XmlHttpMessageConverter( xmlMapper ) );
+        /*
+         * converters.add( new MappingJackson2HttpMessageConverter( jsonMapper )
+         * ); converters.add( new MappingJackson2XmlHttpMessageConverter(
+         * xmlMapper ) );
+         */
+
+        converters.add( renderServiceMessageConverter() );
     }
 
     @Override
