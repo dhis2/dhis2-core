@@ -46,8 +46,8 @@ import org.springframework.stereotype.Service;
 /**
  * Processes API token authentication requests, looks for the 'Authorization'
  * header containing an API token. If the token is found, the request will be
- * authenticated if token has not expires, or if the request constraint rules
- * are not matching.
+ * authenticated only if the token is not expired and the request constraint rules
+ * are matching.
  */
 @Slf4j
 @Service
