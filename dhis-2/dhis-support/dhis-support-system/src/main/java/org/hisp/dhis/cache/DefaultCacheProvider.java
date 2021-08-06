@@ -115,7 +115,8 @@ public class DefaultCacheProvider
         userGroupNameCache,
         userDisplayNameCache,
         programWebHookNotificationTemplateCache,
-        programStageWebHookNotificationTemplateCache
+        programStageWebHookNotificationTemplateCache,
+        apiTokensCache,
     }
 
     private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -476,5 +477,16 @@ public class DefaultCacheProvider
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_500 ) ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createApiKeyCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.apiTokensCache.name() )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 }

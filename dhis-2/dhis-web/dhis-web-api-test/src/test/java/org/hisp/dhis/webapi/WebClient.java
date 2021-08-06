@@ -89,7 +89,12 @@ public interface WebClient
         return new Header( name, value );
     }
 
-    static Header JwtToken( String token )
+    static Header ApiTokenHeader( String token )
+    {
+        return Header( "Authorization", "ApiToken " + token );
+    }
+
+    static Header JwtTokenHeader( String token )
     {
         return Header( "Authorization", "Bearer " + token );
     }
