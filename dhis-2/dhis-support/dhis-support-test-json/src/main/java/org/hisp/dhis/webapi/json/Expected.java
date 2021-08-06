@@ -25,27 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
+package org.hisp.dhis.webapi.json;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import org.junit.Test;
-
-public class TrackerEnrollmentCriteriaTest
+/**
+ * Used to mark members in {@link JsonObject} that are expected to exist.
+ *
+ * This can only be applied to methods without parameters.
+ *
+ * @author Jan Bernitt
+ */
+@Target( ElementType.METHOD )
+@Retention( RetentionPolicy.RUNTIME )
+public @interface Expected
 {
-
-    @Test
-    public void testFieldTranslation()
-    {
-        TrackerEnrollmentCriteria trackerEnrollmentCriteria = new TrackerEnrollmentCriteria();
-
-        assertThat(
-            trackerEnrollmentCriteria.translateField( "created", true ),
-            is( "created" ) );
-
-        assertThat( trackerEnrollmentCriteria.translateField( "createdAt", false ),
-            is( "created" ) );
-
-    }
+    /**
+     * @return Can be set to {@code true} to allow {@link JsonValue}s either
+     *         being set or being a JSON {@code null} value. Default value is
+     *         {@code false}.
+     */
+    boolean nullable() default false;
 }
