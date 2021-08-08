@@ -29,10 +29,8 @@ package org.hisp.dhis.analytics.event.data.sql.transform.provider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -45,6 +43,7 @@ import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
+import org.hisp.dhis.analytics.event.data.sql.transform.FunctionXt;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 
 /**
@@ -52,78 +51,70 @@ import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.Pred
  */
 public class SqlCoalesceEventValueExpressionProvider
 {
-    public Function<String, List<PredicateElement>> getProvider()
+    public FunctionXt<String, List<PredicateElement>> getProvider()
     {
         List<PredicateElement> predicateElementList = new ArrayList<>();
 
         return sqlStatement -> {
-            try
+            Statement select = CCJSqlParserUtil.parse( sqlStatement );
+            select.accept( new StatementVisitorAdapter()
             {
-                Statement select = CCJSqlParserUtil.parse( sqlStatement );
-                select.accept( new StatementVisitorAdapter()
+                @Override
+                public void visit( Select select )
                 {
-                    @Override
-                    public void visit( Select select )
+                    select.getSelectBody().accept( new SelectVisitorAdapter()
                     {
-                        select.getSelectBody().accept( new SelectVisitorAdapter()
+                        @Override
+                        public void visit( PlainSelect plainSelect )
                         {
-                            @Override
-                            public void visit( PlainSelect plainSelect )
+                            StringBuilder sbAlias = new StringBuilder();
+                            StringBuilder sbEventValue = new StringBuilder();
+
+                            plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
                             {
-                                StringBuilder sbAlias = new StringBuilder();
-                                StringBuilder sbEventValue = new StringBuilder();
-
-                                plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
+                                @Override
+                                public void visit( EqualsTo expr )
                                 {
-                                    @Override
-                                    public void visit( EqualsTo expr )
+                                    if ( expr.getLeftExpression().toString().contains( "coalesce" ) )
                                     {
-                                        if ( expr.getLeftExpression().toString().contains( "coalesce" ) )
+                                        sbEventValue.append( expr.getRightExpression().toString() );
+                                        expr.getLeftExpression().accept( new ExpressionVisitorAdapter()
                                         {
-                                            sbEventValue.append( expr.getRightExpression().toString() );
-                                            expr.getLeftExpression().accept( new ExpressionVisitorAdapter()
+                                            @Override
+                                            public void visit( SubSelect subSelect )
                                             {
-                                                @Override
-                                                public void visit( SubSelect subSelect )
+                                                subSelect.getSelectBody().accept( new SelectVisitorAdapter()
                                                 {
-                                                    subSelect.getSelectBody().accept( new SelectVisitorAdapter()
+                                                    @Override
+                                                    public void visit( PlainSelect plainSelect )
                                                     {
-                                                        @Override
-                                                        public void visit( PlainSelect plainSelect )
-                                                        {
-                                                            plainSelect.getSelectItems()
-                                                                .forEach( i -> i.accept( new SelectItemVisitorAdapter()
+                                                        plainSelect.getSelectItems()
+                                                            .forEach( i -> i.accept( new SelectItemVisitorAdapter()
+                                                            {
+                                                                @Override
+                                                                public void visit( SelectExpressionItem item )
                                                                 {
-                                                                    @Override
-                                                                    public void visit( SelectExpressionItem item )
-                                                                    {
-                                                                        sbAlias.append( item.getExpression().toString()
-                                                                            .replaceAll( "\"", "" ) );
-                                                                    }
-                                                                } ) );
-                                                        }
-                                                    } );
-                                                }
-                                            } );
-                                            predicateElementList
-                                                .add( new PredicateElement( sbAlias + ".\"" + sbAlias + "\"",
-                                                    sbEventValue.toString(),
-                                                    "=", "and" ) );
+                                                                    sbAlias.append( item.getExpression().toString()
+                                                                        .replaceAll( "\"", "" ) );
+                                                                }
+                                                            } ) );
+                                                    }
+                                                } );
+                                            }
+                                        } );
+                                        predicateElementList
+                                            .add( new PredicateElement( sbAlias + ".\"" + sbAlias + "\"",
+                                                sbEventValue.toString(),
+                                                "=", "and" ) );
 
-                                        }
                                     }
-                                } );
-                            }
-                        } );
-                    }
-                } );
-
-                return predicateElementList.stream().distinct().collect( Collectors.toList() );
-            }
-            catch ( JSQLParserException e )
-            {
-                throw new RuntimeException( sqlStatement );
-            }
+                                }
+                            } );
+                        }
+                    } );
+                }
+            } );
+            return predicateElementList.stream().distinct().collect( Collectors.toList() );
         };
     }
 }

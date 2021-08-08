@@ -25,37 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.sql.transform.provider;
+package org.hisp.dhis.analytics.event.data.sql.transform;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Function;
 
-import org.hisp.dhis.analytics.event.data.sql.transform.FunctionXt;
-import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
+import lombok.SneakyThrows;
+import net.sf.jsqlparser.JSQLParserException;
 
 /**
  * @author Dusan Bernat
  */
-public class SqlWhereElementProvider
+@FunctionalInterface
+public interface FunctionXt<T, R> extends Function<T, R>
 {
-    public FunctionXt<String, List<PredicateElement>> getProvider()
+    @Override
+    @SneakyThrows
+    default R apply( final T elem )
     {
-        return sqlStatement -> {
-
-            List<PredicateElement> predicateElementList = new ArrayList<>();
-
-            predicateElementList.add( new SqlUidLevelExpressionProvider().getProvider().apply( sqlStatement ) );
-            predicateElementList.addAll( new SqlIsNotNullExpressionProvider().getProvider().apply( sqlStatement ) );
-            predicateElementList
-                .addAll( new SqlProgramStageExpressionProvider().getProvider().apply( sqlStatement ) );
-            predicateElementList.addAll( new SqlYearlyExpressionProvider().getProvider().apply( sqlStatement ) );
-            predicateElementList.addAll( new SqlPeriodExpressionProvider().getProvider().apply( sqlStatement ) );
-            predicateElementList
-                .addAll( new SqlEventValueExpressionProvider().getProvider().apply( sqlStatement ) );
-            predicateElementList
-                .addAll( new SqlCoalesceEventValueExpressionProvider().getProvider().apply( sqlStatement ) );
-
-            return predicateElementList;
-        };
+        return applyThrows( elem );
     }
+
+    R applyThrows( T elem )
+        throws JSQLParserException;
 }

@@ -29,9 +29,7 @@ package org.hisp.dhis.analytics.event.data.sql.transform.provider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Table;
@@ -45,6 +43,7 @@ import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
+import org.hisp.dhis.analytics.event.data.sql.transform.FunctionXt;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.TableElement;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.inner_join.InnerJoinElement;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.inner_join.OnElement;
@@ -54,87 +53,80 @@ import org.hisp.dhis.analytics.event.data.sql.transform.model.element.inner_join
  */
 public class SqlInnerJoinElementProvider
 {
-    public Function<String, List<InnerJoinElement>> getProvider()
+    public FunctionXt<String, List<InnerJoinElement>> getProvider()
     {
         return sqlStatement -> {
 
             List<InnerJoinElement> innerJoinElementList = new ArrayList<>();
 
-            try
+            Statement select = CCJSqlParserUtil.parse( sqlStatement );
+            select.accept( new StatementVisitorAdapter()
             {
-                Statement select = CCJSqlParserUtil.parse( sqlStatement );
-                select.accept( new StatementVisitorAdapter()
+                @Override
+                public void visit( Select select )
                 {
-                    @Override
-                    public void visit( Select select )
+                    select.getSelectBody().accept( new SelectVisitorAdapter()
                     {
-                        select.getSelectBody().accept( new SelectVisitorAdapter()
+                        @Override
+                        public void visit( PlainSelect plainSelect )
                         {
-                            @Override
-                            public void visit( PlainSelect plainSelect )
+                            plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
                             {
-                                plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
+                                @Override
+                                public void visit( SubSelect subSelect )
                                 {
-                                    @Override
-                                    public void visit( SubSelect subSelect )
+                                    subSelect.getSelectBody().accept( new SelectVisitorAdapter()
                                     {
-                                        subSelect.getSelectBody().accept( new SelectVisitorAdapter()
+                                        @Override
+                                        public void visit( PlainSelect plainSelect )
                                         {
-                                            @Override
-                                            public void visit( PlainSelect plainSelect )
+                                            StringBuilder sbAlias = new StringBuilder();
+
+                                            StringBuilder sbTableName = new StringBuilder();
+
+                                            plainSelect.getFromItem().accept( new FromItemVisitorAdapter()
                                             {
-                                                StringBuilder sbAlias = new StringBuilder();
+                                                @Override
+                                                public void visit( Table table )
+                                                {
+                                                    if ( sbTableName.length() > 0 )
+                                                    {
+                                                        throw new RuntimeException(
+                                                            "where nested select statement has more then one table" );
+                                                    }
+                                                    sbTableName.append( table.getName() );
+                                                }
+                                            } );
 
-                                                StringBuilder sbTableName = new StringBuilder();
-
-                                                plainSelect.getFromItem().accept( new FromItemVisitorAdapter()
+                                            plainSelect.getSelectItems()
+                                                .forEach( i -> i.accept( new SelectItemVisitorAdapter()
                                                 {
                                                     @Override
-                                                    public void visit( Table table )
+                                                    public void visit( SelectExpressionItem item )
                                                     {
-                                                        if ( sbTableName.length() > 0 )
+                                                        if ( sbAlias.length() > 0 )
                                                         {
                                                             throw new RuntimeException(
-                                                                "where nested select statement has more then one table" );
+                                                                "where nested select statement has more then one column" );
                                                         }
-                                                        sbTableName.append( table.getName() );
+
+                                                        sbAlias.append( item.getExpression().toString()
+                                                            .replaceAll( "\"", "" ) );
                                                     }
-                                                } );
-
-                                                plainSelect.getSelectItems()
-                                                    .forEach( i -> i.accept( new SelectItemVisitorAdapter()
-                                                    {
-                                                        @Override
-                                                        public void visit( SelectExpressionItem item )
-                                                        {
-                                                            if ( sbAlias.length() > 0 )
-                                                            {
-                                                                throw new RuntimeException(
-                                                                    "where nested select statement has more then one column" );
-                                                            }
-
-                                                            sbAlias.append( item.getExpression().toString()
-                                                                .replaceAll( "\"", "" ) );
-                                                        }
-                                                    } ) );
-                                                innerJoinElementList.add(
-                                                    new InnerJoinElement( new TableElement( sbTableName.toString(),
-                                                        sbAlias.toString().replace( "count(", "" ).replace( ")", "" ) ),
-                                                        new OnElement( "ax.pi", sbAlias + ".pi" ) ) );
-                                            }
-                                        } );
-                                    }
-                                } );
-                            }
-                        } );
-                    }
-                } );
-                return innerJoinElementList;
-            }
-            catch ( JSQLParserException e )
-            {
-                throw new RuntimeException( sqlStatement );
-            }
+                                                } ) );
+                                            innerJoinElementList.add(
+                                                new InnerJoinElement( new TableElement( sbTableName.toString(),
+                                                    sbAlias.toString().replace( "count(", "" ).replace( ")", "" ) ),
+                                                    new OnElement( "ax.pi", sbAlias + ".pi" ) ) );
+                                        }
+                                    } );
+                                }
+                            } );
+                        }
+                    } );
+                }
+            } );
+            return innerJoinElementList;
         };
     }
 }

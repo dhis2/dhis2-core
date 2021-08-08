@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data.sql.transform.provider;
 
-import java.util.function.Function;
-
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
@@ -40,13 +37,14 @@ import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.analytics.event.data.sql.transform.FunctionXt;
 
 /**
  * @author Dusan Bernat
  */
 public class SqlNeedTransformationValueProvider
 {
-    public Function<String, Boolean> getProvider()
+    public FunctionXt<String, Boolean> getProvider()
     {
         return sqlStatement -> {
 
@@ -59,38 +57,31 @@ public class SqlNeedTransformationValueProvider
 
             booleanWrapper.value = false;
 
-            try
+            Statement select = CCJSqlParserUtil.parse( selectAndRemainder.getLeft() );
+            select.accept( new StatementVisitorAdapter()
             {
-                Statement select = CCJSqlParserUtil.parse( selectAndRemainder.getLeft() );
-                select.accept( new StatementVisitorAdapter()
+                @Override
+                public void visit( Select select )
                 {
-                    @Override
-                    public void visit( Select select )
+                    select.getSelectBody().accept( new SelectVisitorAdapter()
                     {
-                        select.getSelectBody().accept( new SelectVisitorAdapter()
+                        @Override
+                        public void visit( PlainSelect plainSelect )
                         {
-                            @Override
-                            public void visit( PlainSelect plainSelect )
+                            plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
                             {
-                                plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
+                                @Override
+                                public void visit( SubSelect subSelect )
                                 {
-                                    @Override
-                                    public void visit( SubSelect subSelect )
-                                    {
-                                        booleanWrapper.value = true;
-                                    }
-                                } );
-                            }
-                        } );
-                    }
-                } );
+                                    booleanWrapper.value = true;
+                                }
+                            } );
+                        }
+                    } );
+                }
+            } );
 
-                return booleanWrapper.value;
-            }
-            catch ( JSQLParserException e )
-            {
-                throw new RuntimeException( e.getMessage() );
-            }
+            return booleanWrapper.value;
         };
     }
 

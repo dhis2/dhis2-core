@@ -31,10 +31,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -46,6 +44,7 @@ import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 
+import org.hisp.dhis.analytics.event.data.sql.transform.FunctionXt;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.inner_join.InnerJoinElement;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 import org.hisp.dhis.calendar.DateUnitType;
@@ -55,73 +54,66 @@ import org.hisp.dhis.calendar.DateUnitType;
  */
 public class SqlPeriodExpressionProvider
 {
-    public Function<String, List<PredicateElement>> getProvider()
+    public FunctionXt<String, List<PredicateElement>> getProvider()
     {
         List<PredicateElement> periods = new ArrayList<>();
 
         SqlInnerJoinElementProvider sqlInnerJoinElementProvider = new SqlInnerJoinElementProvider();
 
         return sqlStatement -> {
-            try
-            {
-                Statement select = CCJSqlParserUtil.parse( sqlStatement );
+            Statement select = CCJSqlParserUtil.parse( sqlStatement );
 
-                List<InnerJoinElement> innerJoinElementList = sqlInnerJoinElementProvider.getProvider()
-                    .apply( sqlStatement );
-                StringBuilder sbPeriodColumn = new StringBuilder();
-                StringBuilder sbPeriodValue = new StringBuilder();
-                select.accept( new StatementVisitorAdapter()
+            List<InnerJoinElement> innerJoinElementList = sqlInnerJoinElementProvider.getProvider()
+                .apply( sqlStatement );
+            StringBuilder sbPeriodColumn = new StringBuilder();
+            StringBuilder sbPeriodValue = new StringBuilder();
+            select.accept( new StatementVisitorAdapter()
+            {
+                @Override
+                public void visit( Select select )
                 {
-                    @Override
-                    public void visit( Select select )
+                    select.getSelectBody().accept( new SelectVisitorAdapter()
                     {
-                        select.getSelectBody().accept( new SelectVisitorAdapter()
+                        @Override
+                        public void visit( PlainSelect plainSelect )
                         {
-                            @Override
-                            public void visit( PlainSelect plainSelect )
+                            plainSelect.getSelectItems().forEach( i -> i.accept( new SelectItemVisitorAdapter()
                             {
-                                plainSelect.getSelectItems().forEach( i -> i.accept( new SelectItemVisitorAdapter()
+                                @Override
+                                public void visit( SelectExpressionItem item )
                                 {
-                                    @Override
-                                    public void visit( SelectExpressionItem item )
+                                    if ( Arrays.stream( DateUnitType.values() )
+                                        .anyMatch(
+                                            v -> v.getName().equalsIgnoreCase( item.getAlias().getName() ) ) )
                                     {
-                                        if ( Arrays.stream( DateUnitType.values() )
-                                            .anyMatch(
-                                                v -> v.getName().equalsIgnoreCase( item.getAlias().getName() ) ) )
+                                        sbPeriodColumn.append( item.getAlias().getName() );
+
+                                        item.getExpression().accept( new ExpressionVisitorAdapter()
                                         {
-                                            sbPeriodColumn.append( item.getAlias().getName() );
-
-                                            item.getExpression().accept( new ExpressionVisitorAdapter()
+                                            @Override
+                                            public void visit( StringValue value )
                                             {
-                                                @Override
-                                                public void visit( StringValue value )
-                                                {
-                                                    sbPeriodValue.append( value.toString() );
-                                                }
-                                            } );
-                                        }
+                                                sbPeriodValue.append( value.toString() );
+                                            }
+                                        } );
                                     }
-                                } ) );
-                            }
-                        } );
-                    }
-                } );
-
-                if ( !sbPeriodColumn.toString().isEmpty() && !sbPeriodValue.toString().isEmpty() )
-                {
-                    Optional<InnerJoinElement> element = innerJoinElementList.stream().findFirst();
-
-                    element.ifPresent( innerJoinElement -> periods.add(
-                        new PredicateElement( innerJoinElement.getTableElement().getAlias() + "." + sbPeriodColumn,
-                            sbPeriodValue.toString(), "=", "and" ) ) );
+                                }
+                            } ) );
+                        }
+                    } );
                 }
+            } );
 
-                return periods.stream().distinct().collect( Collectors.toList() );
-            }
-            catch ( JSQLParserException e )
+            if ( !sbPeriodColumn.toString().isEmpty() && !sbPeriodValue.toString().isEmpty() )
             {
-                throw new RuntimeException( sqlStatement );
+                Optional<InnerJoinElement> element = innerJoinElementList.stream().findFirst();
+
+                element.ifPresent( innerJoinElement -> periods.add(
+                    new PredicateElement( innerJoinElement.getTableElement().getAlias() + "." + sbPeriodColumn,
+                        sbPeriodValue.toString(), "=", "and" ) ) );
             }
+
+            return periods.stream().distinct().collect( Collectors.toList() );
         };
     }
 }

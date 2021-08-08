@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.analytics.event.data.sql.transform.provider;
 
-import java.util.function.Function;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.analytics.event.data.sql.transform.FunctionXt;
 
 /**
  * @author Dusan Bernat
@@ -46,7 +45,7 @@ public class SqlSelectStatementReminderProvider
 
     private static final String LIMIT_TOKEN_1 = ") limit 100001";
 
-    public Function<String, Pair<String, String>> getProvider()
+    public FunctionXt<String, Pair<String, String>> getProvider()
     {
         return sqlStatement -> {
 

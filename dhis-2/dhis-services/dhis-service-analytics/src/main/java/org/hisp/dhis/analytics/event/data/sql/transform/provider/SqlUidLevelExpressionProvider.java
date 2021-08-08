@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data.sql.transform.provider;
 
-import java.util.function.Function;
-
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -39,6 +36,7 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 
+import org.hisp.dhis.analytics.event.data.sql.transform.FunctionXt;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 
 /**
@@ -46,7 +44,7 @@ import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.Pred
  */
 public class SqlUidLevelExpressionProvider
 {
-    public Function<String, PredicateElement> getProvider()
+    public FunctionXt<String, PredicateElement> getProvider()
     {
         return sqlStatement -> {
 
@@ -54,48 +52,40 @@ public class SqlUidLevelExpressionProvider
             StringBuilder sbRight = new StringBuilder();
             StringBuilder sbExpression = new StringBuilder();
 
-            try
+            Statement select = CCJSqlParserUtil.parse( sqlStatement );
+
+            select.accept( new StatementVisitorAdapter()
             {
-
-                Statement select = CCJSqlParserUtil.parse( sqlStatement );
-
-                select.accept( new StatementVisitorAdapter()
+                @Override
+                public void visit( Select select )
                 {
-                    @Override
-                    public void visit( Select select )
+                    select.getSelectBody().accept( new SelectVisitorAdapter()
                     {
-                        select.getSelectBody().accept( new SelectVisitorAdapter()
+                        @Override
+                        public void visit( PlainSelect plainSelect )
                         {
-                            @Override
-                            public void visit( PlainSelect plainSelect )
+                            plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
                             {
-                                plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
+                                @Override
+                                public void visit( EqualsTo expr )
                                 {
-                                    @Override
-                                    public void visit( EqualsTo expr )
+                                    if ( expr.getLeftExpression().toString().contains( "uidlevel" ) )
                                     {
-                                        if ( expr.getLeftExpression().toString().contains( "uidlevel" ) )
-                                        {
-                                            sbLeft.append( "ax." ).append( expr.getLeftExpression() );
+                                        sbLeft.append( "ax." ).append( expr.getLeftExpression() );
 
-                                            sbRight.append( expr.getRightExpression() );
+                                        sbRight.append( expr.getRightExpression() );
 
-                                            sbExpression.append( "=" );
-                                        }
+                                        sbExpression.append( "=" );
                                     }
-                                } );
-                            }
-                        } );
-                    }
-                } );
+                                }
+                            } );
+                        }
+                    } );
+                }
+            } );
 
-                return new PredicateElement( sbLeft.toString(), sbRight.toString(), sbExpression.toString(), "" );
+            return new PredicateElement( sbLeft.toString(), sbRight.toString(), sbExpression.toString(), "" );
 
-            }
-            catch ( JSQLParserException e )
-            {
-                throw new RuntimeException( sqlStatement );
-            }
         };
     }
 }

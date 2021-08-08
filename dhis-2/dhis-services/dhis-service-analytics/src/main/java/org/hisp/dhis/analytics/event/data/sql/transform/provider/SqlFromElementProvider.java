@@ -29,9 +29,7 @@ package org.hisp.dhis.analytics.event.data.sql.transform.provider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
@@ -41,6 +39,7 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 
+import org.hisp.dhis.analytics.event.data.sql.transform.FunctionXt;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.TableElement;
 
 /**
@@ -48,42 +47,35 @@ import org.hisp.dhis.analytics.event.data.sql.transform.model.element.TableEleme
  */
 public class SqlFromElementProvider
 {
-    public Function<String, List<TableElement>> getProvider()
+    public FunctionXt<String, List<TableElement>> getProvider()
     {
         return sqlStatement -> {
             List<TableElement> tableElementList = new ArrayList<>();
-            try
+            Statement select = CCJSqlParserUtil.parse( sqlStatement );
+            select.accept( new StatementVisitorAdapter()
             {
-                Statement select = CCJSqlParserUtil.parse( sqlStatement );
-                select.accept( new StatementVisitorAdapter()
+                @Override
+                public void visit( Select select )
                 {
-                    @Override
-                    public void visit( Select select )
+                    select.getSelectBody().accept( new SelectVisitorAdapter()
                     {
-                        select.getSelectBody().accept( new SelectVisitorAdapter()
+                        @Override
+                        public void visit( PlainSelect plainSelect )
                         {
-                            @Override
-                            public void visit( PlainSelect plainSelect )
+                            plainSelect.getFromItem().accept( new FromItemVisitorAdapter()
                             {
-                                plainSelect.getFromItem().accept( new FromItemVisitorAdapter()
+                                @Override
+                                public void visit( Table table )
                                 {
-                                    @Override
-                                    public void visit( Table table )
-                                    {
-                                        tableElementList
-                                            .add( new TableElement( table.getName(), table.getAlias().toString() ) );
-                                    }
-                                } );
-                            }
-                        } );
-                    }
-                } );
-                return tableElementList;
-            }
-            catch ( JSQLParserException e )
-            {
-                throw new RuntimeException( e.getMessage() );
-            }
+                                    tableElementList
+                                        .add( new TableElement( table.getName(), table.getAlias().toString() ) );
+                                }
+                            } );
+                        }
+                    } );
+                }
+            } );
+            return tableElementList;
         };
     }
 }

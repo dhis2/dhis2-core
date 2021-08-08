@@ -30,9 +30,7 @@ package org.hisp.dhis.analytics.event.data.sql.transform.provider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.StringValue;
@@ -45,6 +43,7 @@ import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 
+import org.hisp.dhis.analytics.event.data.sql.transform.FunctionXt;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.ColumnElement;
 
 /**
@@ -52,61 +51,54 @@ import org.hisp.dhis.analytics.event.data.sql.transform.model.element.ColumnElem
  */
 public class SqlSelectElementProvider
 {
-    public Function<String, List<ColumnElement>> getProvider()
+    public FunctionXt<String, List<ColumnElement>> getProvider()
     {
         return sqlStatement -> {
 
             List<ColumnElement> columnElementList = new ArrayList<>();
-            try
+            Statement select = CCJSqlParserUtil.parse( sqlStatement );
+            select.accept( new StatementVisitorAdapter()
             {
-                Statement select = CCJSqlParserUtil.parse( sqlStatement );
-                select.accept( new StatementVisitorAdapter()
+                @Override
+                public void visit( Select select )
                 {
-                    @Override
-                    public void visit( Select select )
+                    select.getSelectBody().accept( new SelectVisitorAdapter()
                     {
-                        select.getSelectBody().accept( new SelectVisitorAdapter()
+                        @Override
+                        public void visit( PlainSelect plainSelect )
                         {
-                            @Override
-                            public void visit( PlainSelect plainSelect )
+                            plainSelect.getSelectItems().forEach( i -> i.accept( new SelectItemVisitorAdapter()
                             {
-                                plainSelect.getSelectItems().forEach( i -> i.accept( new SelectItemVisitorAdapter()
+                                @Override
+                                public void visit( SelectExpressionItem item )
                                 {
-                                    @Override
-                                    public void visit( SelectExpressionItem item )
+
+                                    item.getExpression().accept( new ExpressionVisitorAdapter()
                                     {
-
-                                        item.getExpression().accept( new ExpressionVisitorAdapter()
+                                        @Override
+                                        public void visit( StringValue value )
                                         {
-                                            @Override
-                                            public void visit( StringValue value )
-                                            {
-                                                columnElementList.add(
-                                                    new ColumnElement( value.toString(), item.getAlias().getName() ) );
-                                            }
+                                            columnElementList.add(
+                                                new ColumnElement( value.toString(), item.getAlias().getName() ) );
+                                        }
 
-                                            @Override
-                                            public void visit( net.sf.jsqlparser.expression.Function function )
-                                            {
-                                                Optional<Expression> expr = function.getParameters().getExpressions()
-                                                    .stream().findFirst();
-                                                expr.ifPresent( expression -> columnElementList
-                                                    .add( new ColumnElement( function.getName() + "(ax." +
-                                                        expression + ")", item.getAlias().getName() ) ) );
-                                            }
-                                        } );
-                                    }
-                                } ) );
-                            }
-                        } );
-                    }
-                } );
-                return columnElementList;
-            }
-            catch ( JSQLParserException e )
-            {
-                throw new RuntimeException( sqlStatement );
-            }
+                                        @Override
+                                        public void visit( net.sf.jsqlparser.expression.Function function )
+                                        {
+                                            Optional<Expression> expr = function.getParameters().getExpressions()
+                                                .stream().findFirst();
+                                            expr.ifPresent( expression -> columnElementList
+                                                .add( new ColumnElement( function.getName() + "(ax." +
+                                                    expression + ")", item.getAlias().getName() ) ) );
+                                        }
+                                    } );
+                                }
+                            } ) );
+                        }
+                    } );
+                }
+            } );
+            return columnElementList;
         };
     }
 }

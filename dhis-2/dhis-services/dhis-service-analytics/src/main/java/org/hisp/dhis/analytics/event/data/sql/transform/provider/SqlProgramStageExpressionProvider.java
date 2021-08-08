@@ -29,10 +29,8 @@ package org.hisp.dhis.analytics.event.data.sql.transform.provider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -45,6 +43,7 @@ import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
+import org.hisp.dhis.analytics.event.data.sql.transform.FunctionXt;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 
 /**
@@ -52,90 +51,83 @@ import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.Pred
  */
 public class SqlProgramStageExpressionProvider
 {
-    public Function<String, List<PredicateElement>> getProvider()
+    public FunctionXt<String, List<PredicateElement>> getProvider()
     {
         List<PredicateElement> predicateElementList = new ArrayList<>();
 
         return sqlStatement -> {
 
-            try
+            Statement select = CCJSqlParserUtil.parse( sqlStatement );
+
+            select.accept( new StatementVisitorAdapter()
             {
-                Statement select = CCJSqlParserUtil.parse( sqlStatement );
-
-                select.accept( new StatementVisitorAdapter()
+                @Override
+                public void visit( Select select )
                 {
-                    @Override
-                    public void visit( Select select )
+                    select.getSelectBody().accept( new SelectVisitorAdapter()
                     {
-                        select.getSelectBody().accept( new SelectVisitorAdapter()
+                        @Override
+                        public void visit( PlainSelect plainSelect )
                         {
-                            @Override
-                            public void visit( PlainSelect plainSelect )
+                            plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
                             {
-                                plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
+                                @Override
+                                public void visit( SubSelect subSelect )
                                 {
-                                    @Override
-                                    public void visit( SubSelect subSelect )
+                                    subSelect.getSelectBody().accept( new SelectVisitorAdapter()
                                     {
-                                        subSelect.getSelectBody().accept( new SelectVisitorAdapter()
+                                        @Override
+                                        public void visit( PlainSelect plainSelect )
                                         {
-                                            @Override
-                                            public void visit( PlainSelect plainSelect )
-                                            {
-                                                StringBuilder sbAlias = new StringBuilder();
+                                            StringBuilder sbAlias = new StringBuilder();
 
-                                                StringBuilder sbPsValue = new StringBuilder();
+                                            StringBuilder sbPsValue = new StringBuilder();
 
-                                                plainSelect.getSelectItems()
-                                                    .forEach( i -> i.accept( new SelectItemVisitorAdapter()
-                                                    {
-                                                        @Override
-                                                        public void visit( SelectExpressionItem item )
-                                                        {
-                                                            if ( sbAlias.length() > 0 )
-                                                            {
-                                                                throw new RuntimeException(
-                                                                    "where nested select statement has more then one column" );
-                                                            }
-
-                                                            sbAlias.append( item.getExpression().toString()
-                                                                .replaceAll( "\"", "" )
-                                                                .replace( "count(", "" )
-                                                                .replace( ")", "" ) );
-                                                        }
-                                                    } ) );
-
-                                                plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
+                                            plainSelect.getSelectItems()
+                                                .forEach( i -> i.accept( new SelectItemVisitorAdapter()
                                                 {
                                                     @Override
-                                                    public void visit( EqualsTo expr )
+                                                    public void visit( SelectExpressionItem item )
                                                     {
-                                                        if ( "ps"
-                                                            .equalsIgnoreCase( expr.getLeftExpression().toString() ) )
+                                                        if ( sbAlias.length() > 0 )
                                                         {
-                                                            sbPsValue.append( expr.getRightExpression() );
+                                                            throw new RuntimeException(
+                                                                "where nested select statement has more then one column" );
                                                         }
+
+                                                        sbAlias.append( item.getExpression().toString()
+                                                            .replaceAll( "\"", "" )
+                                                            .replace( "count(", "" )
+                                                            .replace( ")", "" ) );
                                                     }
-                                                } );
+                                                } ) );
 
-                                                predicateElementList.add( new PredicateElement( sbAlias + ".ps",
-                                                    sbPsValue.toString(),
-                                                    "=", "and" ) );
-                                            }
-                                        } );
-                                    }
-                                } );
-                            }
-                        } );
-                    }
-                } );
+                                            plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
+                                            {
+                                                @Override
+                                                public void visit( EqualsTo expr )
+                                                {
+                                                    if ( "ps"
+                                                        .equalsIgnoreCase( expr.getLeftExpression().toString() ) )
+                                                    {
+                                                        sbPsValue.append( expr.getRightExpression() );
+                                                    }
+                                                }
+                                            } );
 
-                return predicateElementList.stream().distinct().collect( Collectors.toList() );
-            }
-            catch ( JSQLParserException e )
-            {
-                throw new RuntimeException( sqlStatement );
-            }
+                                            predicateElementList.add( new PredicateElement( sbAlias + ".ps",
+                                                sbPsValue.toString(),
+                                                "=", "and" ) );
+                                        }
+                                    } );
+                                }
+                            } );
+                        }
+                    } );
+                }
+            } );
+
+            return predicateElementList.stream().distinct().collect( Collectors.toList() );
         };
     }
 }

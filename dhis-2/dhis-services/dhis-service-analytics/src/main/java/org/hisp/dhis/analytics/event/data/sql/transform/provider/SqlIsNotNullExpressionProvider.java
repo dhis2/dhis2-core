@@ -30,9 +30,9 @@ package org.hisp.dhis.analytics.event.data.sql.transform.provider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.analytics.event.data.sql.transform.FunctionXt;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.inner_join.InnerJoinElement;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 
@@ -41,13 +41,13 @@ import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.Pred
  */
 public class SqlIsNotNullExpressionProvider
 {
-    public Function<String, List<PredicateElement>> getProvider()
+    public FunctionXt<String, List<PredicateElement>> getProvider()
     {
         SqlInnerJoinElementProvider sqlInnerJoinElementProvider = new SqlInnerJoinElementProvider();
 
         List<PredicateElement> predicateElementList = new ArrayList<>();
 
-        return ( sqlStatement ) -> {
+        return sqlStatement -> {
             List<InnerJoinElement> innerJoinElementList = sqlInnerJoinElementProvider.getProvider()
                 .apply( sqlStatement );
 
