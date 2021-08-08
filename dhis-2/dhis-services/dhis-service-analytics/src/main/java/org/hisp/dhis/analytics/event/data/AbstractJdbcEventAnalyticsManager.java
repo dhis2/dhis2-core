@@ -358,6 +358,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
         try
         {
             transformedSql = SqlStringProcessor.toInnerJoins( sql, false );
+            if ( transformedSql == null )
+            {
+                log.info( sql );
+            }
         }
         catch ( Exception e )
         {
