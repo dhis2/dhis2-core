@@ -70,19 +70,8 @@ public class SqlEventValueExpressionProvider
                             @Override
                             public void visit( PlainSelect plainSelect )
                             {
-
                                 plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
                                 {
-                                    // @Override
-                                    // public void visit(EqualsTo expr)
-                                    // {
-                                    // if(
-                                    // expr.getLeftExpression().toString().contains("coalesce"))
-                                    // {
-                                    // System.out.println(expr.toString());
-                                    // }
-                                    // }
-
                                     @Override
                                     public void visit( SubSelect subSelect )
                                     {
