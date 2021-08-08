@@ -31,6 +31,9 @@ import java.util.function.Function;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlSelectStatementReminderStringBuilder
 {
     private final String sqlStatement;

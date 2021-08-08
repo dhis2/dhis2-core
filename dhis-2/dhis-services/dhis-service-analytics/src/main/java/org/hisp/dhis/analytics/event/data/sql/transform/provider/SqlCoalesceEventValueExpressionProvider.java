@@ -47,6 +47,9 @@ import net.sf.jsqlparser.statement.select.SubSelect;
 
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlCoalesceEventValueExpressionProvider
 {
     public Function<String, List<PredicateElement>> getProvider()
@@ -109,73 +112,6 @@ public class SqlCoalesceEventValueExpressionProvider
 
                                         }
                                     }
-
-                                    // @Override
-                                    // public void visit(SubSelect subSelect)
-                                    // {
-                                    // subSelect.getSelectBody().accept( new
-                                    // SelectVisitorAdapter()
-                                    // {
-                                    // @Override
-                                    // public void visit(PlainSelect
-                                    // plainSelect)
-                                    // {
-                                    // StringBuilder sbAlias = new
-                                    // StringBuilder();
-                                    // StringBuilder sbEventValue = new
-                                    // StringBuilder();
-                                    // plainSelect.getSelectItems().forEach( i
-                                    // ->
-                                    // i.accept( new SelectItemVisitorAdapter()
-                                    // {
-                                    // @Override
-                                    // public void visit(SelectExpressionItem
-                                    // item)
-                                    // {
-                                    // if(sbAlias.length() > 0 )
-                                    // {
-                                    // throw new RuntimeException("where nested
-                                    // select statement has more then one
-                                    // column");
-                                    // }
-                                    //
-                                    // sbAlias.append(
-                                    // item.getExpression().toString()
-                                    // .replaceAll("\"", "")
-                                    // .replace("count(", "")
-                                    // .replace(")", ""));
-                                    // }
-                                    // }));
-                                    //
-                                    // plainSelect.getWhere().accept( new
-                                    // ExpressionVisitorAdapter()
-                                    // {
-                                    // @Override
-                                    // public void visit(EqualsTo expr)
-                                    // {
-                                    // if(
-                                    // sbAlias.toString().equalsIgnoreCase(expr.getLeftExpression().toString()
-                                    // .replace("\"", "")) )
-                                    // {
-                                    // sbEventValue.append(
-                                    // expr.getRightExpression() );
-                                    // }
-                                    // }
-                                    //
-                                    //
-                                    // });
-                                    //
-                                    // if( !sbEventValue.toString().isEmpty() )
-                                    // {
-                                    // predicateElementList.add(new
-                                    // PredicateElement(sbAlias + ".\"" +
-                                    // sbAlias + "\"",
-                                    // sbEventValue.toString(),
-                                    // "=", "and"));
-                                    // }
-                                    // }
-                                    // });
-                                    // }
                                 } );
                             }
                         } );

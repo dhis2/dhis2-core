@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin.InnerJoinElement;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlInnerJoinStringBuilder
 {
     private final String sqlStatement;

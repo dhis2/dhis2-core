@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlWhereStringBuilder
 {
     private final String sqlStatement;

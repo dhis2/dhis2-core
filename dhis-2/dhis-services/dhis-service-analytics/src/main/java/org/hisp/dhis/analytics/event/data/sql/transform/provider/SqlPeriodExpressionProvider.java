@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data.sql.transform.provider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -49,6 +50,9 @@ import org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin.
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 import org.hisp.dhis.calendar.DateUnitType;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlPeriodExpressionProvider
 {
     public Function<String, List<PredicateElement>> getProvider()
@@ -104,10 +108,11 @@ public class SqlPeriodExpressionProvider
 
                 if ( !sbPeriodColumn.toString().isEmpty() && !sbPeriodValue.toString().isEmpty() )
                 {
-                    periods.addAll( innerJoinElementList.stream()
-                        .map( ij -> new PredicateElement( ij.getTableElement().getAlias() + "." + sbPeriodColumn,
-                            sbPeriodValue.toString(), "=", "and" ) )
-                        .collect( Collectors.toList() ) );
+                    Optional<InnerJoinElement> element = innerJoinElementList.stream().findFirst();
+
+                    element.ifPresent( innerJoinElement -> periods.add(
+                        new PredicateElement( innerJoinElement.getTableElement().getAlias() + "." + sbPeriodColumn,
+                            sbPeriodValue.toString(), "=", "and" ) ) );
                 }
 
                 return periods.stream().distinct().collect( Collectors.toList() );

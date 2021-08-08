@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.TableElement;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlFromStringBuilder
 {
     private final String sqlStatement;

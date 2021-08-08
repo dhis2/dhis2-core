@@ -47,6 +47,9 @@ import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.ColumnElement;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlSelectElementProvider
 {
     public Function<String, List<ColumnElement>> getProvider()

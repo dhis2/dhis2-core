@@ -27,30 +27,22 @@
  */
 package org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.TableElement;
 
+/**
+ * @author Dusan Bernat
+ */
+@AllArgsConstructor
 public class InnerJoinElement
 {
+    @Getter
     private final TableElement tableElement;
 
+    @Getter
     private final OnElement onElement;
-
-    public InnerJoinElement( TableElement tableElement, OnElement onElement )
-    {
-        this.tableElement = tableElement;
-
-        this.onElement = onElement;
-    }
-
-    public TableElement getTableElement()
-    {
-        return tableElement;
-    }
-
-    public OnElement getOnElement()
-    {
-        return onElement;
-    }
 
     @Override
     public boolean equals( Object o )

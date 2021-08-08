@@ -32,6 +32,9 @@ import java.util.function.Function;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlSelectStatementReminderProvider
 {
 
@@ -40,8 +43,6 @@ public class SqlSelectStatementReminderProvider
     private static final String NESTED_SELECT_TOKEN_IN_WHERE_1 = "and (select count";
 
     private static final String NESTED_SELECT_TOKEN_IN_WHERE_2 = "and ((select count";
-
-    private static final String NESTED_SELECT_TOKEN_IN_WHERE_3 = "and (((select count";
 
     private static final String LIMIT_TOKEN_1 = ") limit 100001";
 
@@ -62,13 +63,6 @@ public class SqlSelectStatementReminderProvider
             if ( remainderIndex >= 0 )
             {
                 remainder += sqlStatement.substring( remainderIndex ).replace( LIMIT_TOKEN_1, EMPTY );
-                sql = sqlStatement.replace( remainder, EMPTY );
-            }
-
-            remainderIndex = sqlStatement.indexOf( NESTED_SELECT_TOKEN_IN_WHERE_3 );
-            if ( remainderIndex >= 0 )
-            {
-                remainder += sqlStatement.substring( remainderIndex );
                 sql = sqlStatement.replace( remainder, EMPTY );
             }
 

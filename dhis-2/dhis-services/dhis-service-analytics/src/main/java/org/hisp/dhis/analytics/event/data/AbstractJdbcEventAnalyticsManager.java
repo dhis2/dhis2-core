@@ -358,27 +358,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
         try
         {
             transformedSql = SqlStringProcessor.toInnerJoins( sql, false );
-            if ( transformedSql == null )
-            {
-                log.info( sql );
-            }
         }
         catch ( Exception e )
         {
-            log.info( sql );
+            log.debug( sql );
         }
 
         try
         {
-            try
-            {
-                getAggregatedEventData( grid, params, transformedSql == null ? sql : transformedSql );
-            }
-            catch ( BadSqlGrammarException ex )
-            {
-                log.info( sql );
-                getAggregatedEventData( grid, params, sql );
-            }
+            getAggregatedEventData( grid, params, sql, transformedSql );
         }
         catch ( BadSqlGrammarException ex )
         {
@@ -391,6 +379,23 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
 
         return grid;
+    }
+
+    private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql, String transformedSql )
+    {
+        try
+        {
+            getAggregatedEventData( grid, params, transformedSql == null ? sql : transformedSql );
+        }
+        catch ( BadSqlGrammarException ex )
+        {
+            if ( transformedSql == null )
+            {
+                throw ex;
+            }
+            log.debug( transformedSql );
+            getAggregatedEventData( grid, params, sql );
+        }
     }
 
     private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )

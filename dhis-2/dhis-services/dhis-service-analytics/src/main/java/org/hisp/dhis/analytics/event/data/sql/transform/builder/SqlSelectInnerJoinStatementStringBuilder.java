@@ -34,6 +34,9 @@ import org.hisp.dhis.analytics.event.data.sql.transform.provider.SqlSelectElemen
 import org.hisp.dhis.analytics.event.data.sql.transform.provider.SqlSelectStatementReminderProvider;
 import org.hisp.dhis.analytics.event.data.sql.transform.provider.SqlWhereElementProvider;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlSelectInnerJoinStatementStringBuilder
 {
     private final SqlSelectStringBuilder sqlSelectStringBuilder;
@@ -74,21 +77,24 @@ public class SqlSelectInnerJoinStatementStringBuilder
     {
 
         StringBuilder sb = new StringBuilder();
-        String newLine = pretty ? "\n" : "";
 
         String select = sqlSelectStringBuilder.setProvider( new SqlSelectElementProvider()
             .getProvider() )
             .build();
+
         appendWithNewLine( select, pretty, sb );
 
         String from = sqlFromStringBuilder.setProvider( new SqlFromElementProvider().getProvider() ).build();
+
         appendWithNewLine( from, pretty, sb );
 
         String innerJoin = sqlInnerJoinStringBuilder.setProvider( new SqlInnerJoinElementProvider().getProvider() )
             .build();
+
         appendWithNewLine( innerJoin, pretty, sb );
 
         String where = sqlWhereStringBuilder.setProvider( new SqlWhereElementProvider().getProvider() ).build();
+
         appendWithNewLine( where, pretty, sb );
 
         appendWithNewLine( "\n" + remainder, pretty, sb );

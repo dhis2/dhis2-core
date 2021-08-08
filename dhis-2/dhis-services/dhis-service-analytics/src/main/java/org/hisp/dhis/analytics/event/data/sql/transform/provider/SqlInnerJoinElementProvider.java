@@ -49,6 +49,9 @@ import org.hisp.dhis.analytics.event.data.sql.transform.model.element.TableEleme
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin.InnerJoinElement;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin.OnElement;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlInnerJoinElementProvider
 {
     public Function<String, List<InnerJoinElement>> getProvider()

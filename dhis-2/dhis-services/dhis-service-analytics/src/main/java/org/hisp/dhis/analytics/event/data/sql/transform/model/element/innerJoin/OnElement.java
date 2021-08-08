@@ -27,25 +27,18 @@
  */
 package org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+/**
+ * @author Dusan Bernat
+ */
+@AllArgsConstructor
 public class OnElement
 {
+    @Getter
     private final String leftExpression;
 
+    @Getter
     private final String rightExpression;
-
-    public OnElement( String leftExpression, String rightExpression )
-    {
-        this.leftExpression = leftExpression;
-        this.rightExpression = rightExpression;
-    }
-
-    public String getLeftExpression()
-    {
-        return leftExpression;
-    }
-
-    public String getRightExpression()
-    {
-        return rightExpression;
-    }
 }

@@ -33,6 +33,9 @@ import java.util.function.Function;
 
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlWhereElementProvider
 {
     public Function<String, List<PredicateElement>> getProvider()

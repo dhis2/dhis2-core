@@ -41,6 +41,9 @@ import net.sf.jsqlparser.statement.select.SubSelect;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlNeedTransformationValueProvider
 {
     public Function<String, Boolean> getProvider()

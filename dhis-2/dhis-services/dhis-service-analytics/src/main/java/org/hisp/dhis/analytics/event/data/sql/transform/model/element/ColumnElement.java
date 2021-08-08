@@ -27,25 +27,19 @@
  */
 package org.hisp.dhis.analytics.event.data.sql.transform.model.element;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+/**
+ * @author Dusan Bernat
+ */
+@AllArgsConstructor
 public class ColumnElement
 {
+    @Getter
     private final String name;
 
+    @Getter
     private final String alias;
 
-    public ColumnElement( String name, String alias )
-    {
-        this.name = name;
-        this.alias = alias;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public String getAlias()
-    {
-        return alias;
-    }
 }

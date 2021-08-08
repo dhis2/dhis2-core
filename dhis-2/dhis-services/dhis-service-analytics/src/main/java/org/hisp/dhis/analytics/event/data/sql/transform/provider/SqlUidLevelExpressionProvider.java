@@ -41,6 +41,9 @@ import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlUidLevelExpressionProvider
 {
     public Function<String, PredicateElement> getProvider()

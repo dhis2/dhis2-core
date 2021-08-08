@@ -36,6 +36,9 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin.InnerJoinElement;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlIsNotNullExpressionProvider
 {
     public Function<String, List<PredicateElement>> getProvider()

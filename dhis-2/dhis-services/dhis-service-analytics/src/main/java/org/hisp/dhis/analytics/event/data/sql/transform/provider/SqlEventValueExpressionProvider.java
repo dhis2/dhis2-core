@@ -47,6 +47,9 @@ import net.sf.jsqlparser.statement.select.SubSelect;
 
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 
+/**
+ * @author Dusan Bernat
+ */
 public class SqlEventValueExpressionProvider
 {
     public Function<String, List<PredicateElement>> getProvider()
