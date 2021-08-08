@@ -27,48 +27,30 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.Arrays;
-import java.util.List;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
+import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_CONTAINS_RESERVED_WORD;
 
-import org.apache.commons.lang.StringUtils;
-import org.springframework.stereotype.Component;
+import java.util.List;
 
 /**
  * Created by zubair on 16.03.17.
  */
-@Component( "org.hisp.dhis.user.PasswordDictionaryValidationRule" )
-public class PasswordDictionaryValidationRule
-    implements PasswordValidationRule
+public class PasswordDictionaryValidationRule implements PasswordValidationRule
 {
-    public static final String ERROR = "Password must not have any generic word";
-
-    public static final String I18_ERROR = "password_dictionary_validation";
-
-    private static final List<String> DICTIONARY = Arrays.asList( "user", "admin", "system", "administrator",
+    private static final List<String> DICTIONARY = asList( "user", "admin", "system", "administrator",
         "username", "password", "login", "manager" );
 
     @Override
-    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
+    public PasswordValidationResult validate( CredentialsInfo credentials )
     {
-        return true;
-    }
-
-    @Override
-    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
-    {
-        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
-        {
-            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
-        }
-
         for ( String reserved : DICTIONARY )
         {
-            if ( StringUtils.containsIgnoreCase( credentialsInfo.getPassword(), reserved ) )
+            if ( containsIgnoreCase( credentials.getPassword(), reserved ) )
             {
-                return new PasswordValidationResult( ERROR, I18_ERROR, false );
+                return new PasswordValidationResult( PASSWORD_CONTAINS_RESERVED_WORD );
             }
         }
-
-        return new PasswordValidationResult( true );
+        return PasswordValidationResult.VALID;
     }
 }

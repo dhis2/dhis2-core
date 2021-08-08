@@ -31,10 +31,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerValidationHookTimerReport;
@@ -49,6 +49,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class DefaultTrackerValidationService
     implements TrackerValidationService
 {
@@ -56,11 +57,14 @@ public class DefaultTrackerValidationService
 
     private List<TrackerValidationHook> ruleEngineValidationHooks = new ArrayList<>();
 
+    private final TrackerValidationHookService trackerValidationHookService;
+
     @Autowired( required = false )
     public void setValidationHooks( List<TrackerValidationHook> validationHooks )
     {
-        this.validationHooks = TrackerImportValidationConfig.sortValidationHooks( validationHooks );
-        this.ruleEngineValidationHooks = TrackerImportValidationConfig.getRuleEngineValidationHooks( validationHooks );
+        this.validationHooks = trackerValidationHookService.sortValidationHooks( validationHooks );
+        this.ruleEngineValidationHooks = trackerValidationHookService
+            .getRuleEngineValidationHooks( validationHooks );
     }
 
     @Override
@@ -121,16 +125,16 @@ public class DefaultTrackerValidationService
     private void removeInvalidObjects( TrackerBundle bundle, ValidationErrorReporter reporter )
     {
         bundle.setEvents( bundle.getEvents().stream().filter(
-            e -> !reporter.isInvalid( TrackerType.EVENT, e.getEvent() ) )
+            e -> !reporter.isInvalid( e ) )
             .collect( Collectors.toList() ) );
         bundle.setEnrollments( bundle.getEnrollments().stream().filter(
-            e -> !reporter.isInvalid( TrackerType.ENROLLMENT, e.getEnrollment() ) )
+            e -> !reporter.isInvalid( e ) )
             .collect( Collectors.toList() ) );
         bundle.setTrackedEntities( bundle.getTrackedEntities().stream().filter(
-            e -> !reporter.isInvalid( TrackerType.TRACKED_ENTITY, e.getTrackedEntity() ) )
+            e -> !reporter.isInvalid( e ) )
             .collect( Collectors.toList() ) );
         bundle.setRelationships( bundle.getRelationships().stream().filter(
-            e -> !reporter.isInvalid( TrackerType.RELATIONSHIP, e.getRelationship() ) )
+            e -> !reporter.isInvalid( e ) )
             .collect( Collectors.toList() ) );
     }
 }

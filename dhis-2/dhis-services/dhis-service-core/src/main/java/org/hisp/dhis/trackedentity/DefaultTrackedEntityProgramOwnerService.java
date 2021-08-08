@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -338,6 +339,18 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Long> teiIds, Program program )
     {
         return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwners( teiIds, program.getId() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUidsUsingId( List<Long> teiIds,
+        Program program )
+    {
+        if ( teiIds.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+        return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwnersUids( teiIds, program.getId() );
     }
 
 }

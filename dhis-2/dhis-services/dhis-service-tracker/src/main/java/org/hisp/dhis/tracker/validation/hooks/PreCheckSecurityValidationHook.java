@@ -34,10 +34,6 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -68,18 +64,10 @@ public class PreCheckSecurityValidationHook
         TrackedEntity trackedEntity )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( trackedEntity );
 
         checkNotNull( context.getBundle().getUser(), USER_CANT_BE_NULL );
         checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
         checkNotNull( trackedEntity.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
-
-        if ( strategy.isUpdateOrDelete() )
-        {
-            TrackedEntityInstance trackedEntityInstance = context
-                .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
-            accessManager.checkOrgUnitInCaptureScope( reporter, trackedEntityInstance.getOrganisationUnit() );
-        }
 
         accessManager.checkOrgUnitInCaptureScope( reporter, context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
     }
@@ -88,17 +76,10 @@ public class PreCheckSecurityValidationHook
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
 
         checkNotNull( validationContext.getBundle().getUser(), USER_CANT_BE_NULL );
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
         checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
-
-        if ( strategy.isUpdateOrDelete() )
-        {
-            ProgramInstance pi = validationContext.getProgramInstance( enrollment.getEnrollment() );
-            accessManager.checkOrgUnitInCaptureScope( reporter, pi.getOrganisationUnit() );
-        }
 
         accessManager
             .checkOrgUnitInCaptureScope( reporter, validationContext.getOrganisationUnit( enrollment.getOrgUnit() ) );
@@ -108,17 +89,10 @@ public class PreCheckSecurityValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategy strategy = validationContext.getStrategy( event );
 
         checkNotNull( validationContext.getBundle().getUser(), USER_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
         checkNotNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
-
-        if ( strategy.isUpdateOrDelete() )
-        {
-            ProgramStageInstance psi = validationContext.getProgramStageInstance( event.getEvent() );
-            accessManager.checkOrgUnitInCaptureScope( reporter, psi.getOrganisationUnit() );
-        }
 
         accessManager
             .checkOrgUnitInCaptureScope( reporter, validationContext.getOrganisationUnit( event.getOrgUnit() ) );

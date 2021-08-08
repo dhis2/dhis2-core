@@ -43,6 +43,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -106,6 +107,7 @@ public class DefaultCalendarService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Calendar getSystemCalendar()
     {
         String calendarKey = (String) settingManager.getSystemSetting( SettingKey.CALENDAR );
@@ -128,6 +130,7 @@ public class DefaultCalendarService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DateFormat getSystemDateFormat()
     {
         String dateFormatKey = (String) settingManager.getSystemSetting( SettingKey.DATE_FORMAT );

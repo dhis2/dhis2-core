@@ -57,7 +57,7 @@ public class ArtemisManager
     }
 
     @PostConstruct
-    public void startAmqp()
+    public void startArtemis()
         throws Exception
     {
         if ( ArtemisMode.EMBEDDED == artemisConfigData.getMode() )
@@ -68,7 +68,7 @@ public class ArtemisManager
     }
 
     @PreDestroy
-    public void stopAmqp()
+    public void stopArtemis()
         throws Exception
     {
         if ( embeddedActiveMQ == null )

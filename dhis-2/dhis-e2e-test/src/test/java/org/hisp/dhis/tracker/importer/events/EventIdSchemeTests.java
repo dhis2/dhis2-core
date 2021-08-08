@@ -28,20 +28,17 @@
 
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -58,7 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventIdSchemeTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
 
     private static final String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
@@ -79,8 +76,6 @@ public class EventIdSchemeTests
 
     private AttributeActions attributeActions;
 
-    private TrackerActions trackerActions;
-
     private String orgUnitId;
 
     private static Stream<Arguments> provideIdSchemeArguments()
@@ -99,9 +94,8 @@ public class EventIdSchemeTests
         orgUnitActions = new OrgUnitActions();
         programActions = new ProgramActions();
         attributeActions = new AttributeActions();
-        trackerActions = new TrackerActions();
 
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
 
         setupData();
     }
@@ -189,13 +183,13 @@ public class EventIdSchemeTests
 
     public JsonObject addAttributeValuePayload( JsonObject json, String attributeId, String attributeValue )
     {
-        JsonObjectBuilder.jsonObject(json)
+        JsonObjectBuilder.jsonObject( json )
             .addArray( "attributeValues", JsonObjectBuilder.jsonObject()
                 .addProperty( "value", attributeValue )
                 .addObject( "attribute", new JsonObjectBuilder().addProperty( "id", attributeId ) )
                 .build() );
 
-        return json ;
+        return json;
 
     }
 }

@@ -30,18 +30,17 @@ package org.hisp.dhis.tracker.bundle.persister;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 
 import org.hibernate.Session;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleHook;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -61,16 +60,19 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
 
     private final TrackerSideEffectConverterService sideEffectConverterService;
 
-    public EnrollmentPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService,
+    private final TrackerOwnershipManager trackerOwnershipManager;
+
+    public EnrollmentPersister( ReservedValueService reservedValueService,
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentConverter,
         TrackedEntityCommentService trackedEntityCommentService,
-        TrackerSideEffectConverterService sideEffectConverterService )
+        TrackerSideEffectConverterService sideEffectConverterService, TrackerOwnershipManager trackerOwnershipManager )
     {
-        super( bundleHooks, reservedValueService );
+        super( reservedValueService );
 
         this.enrollmentConverter = enrollmentConverter;
         this.trackedEntityCommentService = trackedEntityCommentService;
         this.sideEffectConverterService = sideEffectConverterService;
+        this.trackerOwnershipManager = trackerOwnershipManager;
     }
 
     @Override
@@ -146,16 +148,12 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
     }
 
     @Override
-    protected void runPostCreateHooks( TrackerBundle bundle )
+    protected void persistOwnership( TrackerPreheat preheat, ProgramInstance entity )
     {
-        bundle.getEnrollments()
-            .forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Enrollment.class, o, bundle ) ) );
-    }
-
-    @Override
-    protected void runPreCreateHooks( TrackerBundle bundle )
-    {
-        bundle.getEnrollments()
-            .forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( Enrollment.class, o, bundle ) ) );
+        if ( isNew( preheat, entity.getUid() ) )
+        {
+            trackerOwnershipManager.assignOwnership( entity.getEntityInstance(), entity.getProgram(),
+                entity.getOrganisationUnit(), false, true );
+        }
     }
 }

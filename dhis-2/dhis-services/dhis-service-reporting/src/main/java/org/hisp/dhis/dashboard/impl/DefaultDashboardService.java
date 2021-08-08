@@ -197,18 +197,21 @@ public class DefaultDashboardService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes )
     {
-        return this.search( query, maxTypes, null, null );
+        return search( query, maxTypes, null, null );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DashboardSearchResult search( Set<DashboardItemType> maxTypes )
     {
-        return this.search( maxTypes, null, null );
+        return search( maxTypes, null, null );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DashboardItem addItemContent( String dashboardUid, DashboardItemType type, String contentUid )
     {
         Dashboard dashboard = getDashboard( dashboardUid );
@@ -457,7 +460,7 @@ public class DefaultDashboardService
     public List<DashboardItem> getEventChartDashboardItems( EventChart eventChart )
     {
         return dashboardItemStore.getEventChartDashboardItems( eventChart );
-    };
+    }
 
     @Override
     @Transactional( readOnly = true )

@@ -27,24 +27,18 @@
  */
 package org.hisp.dhis.user;
 
+import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_ALREADY_USED_BEFORE;
+
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
 /**
  * Created by zubair on 08.03.17.
  */
-@Component( "org.hisp.dhis.user.PasswordHistoryValidationRule" )
 public class PasswordHistoryValidationRule implements PasswordValidationRule
 {
     private static final int HISTORY_LIMIT = 24;
-
-    public static final String ERROR = "Password must not be one of the previous %d passwords";
-
-    public static final String I18_ERROR = "password_history_validation";
 
     private final PasswordEncoder passwordEncoder;
 
@@ -52,7 +46,6 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
 
     private final CurrentUserService currentUserService;
 
-    @Autowired
     public PasswordHistoryValidationRule( PasswordEncoder passwordEncoder, UserService userService,
         CurrentUserService currentUserService )
     {
@@ -62,42 +55,37 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
     }
 
     @Override
-    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
+    public PasswordValidationResult validate( CredentialsInfo credentials )
     {
-        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
+        if ( !isRuleApplicable( credentials ) )
         {
-            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+            return PasswordValidationResult.VALID;
         }
 
-        UserCredentials userCredentials = userService.getUserCredentialsByUsername( credentialsInfo.getUsername() );
+        UserCredentials userCredentials = userService.getUserCredentialsByUsername( credentials.getUsername() );
 
         List<String> previousPasswords = userCredentials.getPreviousPasswords();
-
         for ( String encodedPassword : previousPasswords )
         {
-            final boolean match = passwordEncoder.matches( credentialsInfo.getPassword(), encodedPassword );
-
-            if ( match )
+            if ( passwordEncoder.matches( credentials.getPassword(), encodedPassword ) )
             {
-                return new PasswordValidationResult( String.format( ERROR, HISTORY_LIMIT ), I18_ERROR, false );
+                return new PasswordValidationResult( PASSWORD_ALREADY_USED_BEFORE, HISTORY_LIMIT );
             }
         }
 
         // remove one item from password history if size exceeds HISTORY_LIMIT
         if ( previousPasswords.size() == HISTORY_LIMIT )
         {
-            userCredentials.getPreviousPasswords().remove( 0 );
-
+            previousPasswords.remove( 0 );
             userService.updateUserCredentials( userCredentials );
         }
 
-        return new PasswordValidationResult( true );
+        return PasswordValidationResult.VALID;
     }
 
-    @Override
-    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
+    private boolean isRuleApplicable( CredentialsInfo credentials )
     {
-        UserCredentials userCredentials = userService.getUserCredentialsByUsername( credentialsInfo.getUsername() );
+        UserCredentials userCredentials = userService.getUserCredentialsByUsername( credentials.getUsername() );
 
         if ( !userService.credentialsNonExpired( userCredentials ) )
         {
@@ -105,7 +93,7 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
         }
 
         // no need to check password history in case of new user
-        return !credentialsInfo.isNewUser() &&
-            currentUserService.getCurrentUsername().equals( credentialsInfo.getUsername() );
+        return !credentials.isNewUser() &&
+            currentUserService.getCurrentUsername().equals( credentials.getUsername() );
     }
 }

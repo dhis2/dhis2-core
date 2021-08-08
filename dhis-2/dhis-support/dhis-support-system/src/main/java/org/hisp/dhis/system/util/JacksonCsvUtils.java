@@ -30,7 +30,7 @@ package org.hisp.dhis.system.util;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;

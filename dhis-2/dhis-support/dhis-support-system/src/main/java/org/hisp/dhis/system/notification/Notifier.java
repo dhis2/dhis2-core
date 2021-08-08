@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.system.notification;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Deque;
 import java.util.Map;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -54,13 +52,11 @@ public interface Notifier
 
     Notifier update( JobConfiguration id, NotificationLevel level, String message, boolean completed );
 
-    Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> getNotifications();
+    Map<JobType, Map<String, Deque<Notification>>> getNotifications();
 
-    List<Notification> getLastNotificationsByJobType( JobType jobType, String lastId );
+    Deque<Notification> getNotificationsByJobId( JobType jobType, String jobId );
 
-    List<Notification> getNotificationsByJobId( JobType jobType, String jobId );
-
-    Map<String, LinkedList<Notification>> getNotificationsByJobType( JobType jobType );
+    Map<String, Deque<Notification>> getNotificationsByJobType( JobType jobType );
 
     Notifier clear( JobConfiguration id );
 
@@ -68,9 +64,7 @@ public interface Notifier
 
     Notifier addJobSummary( JobConfiguration id, NotificationLevel level, Object jobSummary, Class<?> jobSummaryType );
 
-    Object getJobSummariesForJobType( JobType jobType );
-
-    Object getJobSummary( JobType jobType );
+    Map<String, Object> getJobSummariesForJobType( JobType jobType );
 
     Object getJobSummaryByJobId( JobType jobType, String jobId );
 }

@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.dataelement;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
@@ -52,15 +52,17 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.program.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,6 +74,7 @@ import com.google.common.collect.Sets;
  */
 @Slf4j
 @Service( "org.hisp.dhis.category.CategoryService" )
+@RequiredArgsConstructor
 public class DefaultCategoryService
     implements CategoryService
 {
@@ -97,32 +100,8 @@ public class DefaultCategoryService
 
     private final AclService aclService;
 
-    public DefaultCategoryService( CategoryStore categoryStore, CategoryOptionStore categoryOptionStore,
-        CategoryComboStore categoryComboStore, CategoryOptionComboStore categoryOptionComboStore,
-        CategoryOptionGroupStore categoryOptionGroupStore, CategoryOptionGroupSetStore categoryOptionGroupSetStore,
-        IdentifiableObjectManager idObjectManager, CurrentUserService currentUserService, AclService aclService )
-    {
-
-        checkNotNull( categoryStore );
-        checkNotNull( categoryOptionStore );
-        checkNotNull( categoryComboStore );
-        checkNotNull( categoryOptionComboStore );
-        checkNotNull( categoryOptionGroupStore );
-        checkNotNull( categoryOptionGroupSetStore );
-        checkNotNull( idObjectManager );
-        checkNotNull( currentUserService );
-        checkNotNull( aclService );
-
-        this.categoryStore = categoryStore;
-        this.categoryOptionStore = categoryOptionStore;
-        this.categoryComboStore = categoryComboStore;
-        this.categoryOptionComboStore = categoryOptionComboStore;
-        this.categoryOptionGroupStore = categoryOptionGroupStore;
-        this.categoryOptionGroupSetStore = categoryOptionGroupSetStore;
-        this.idObjectManager = idObjectManager;
-        this.currentUserService = currentUserService;
-        this.aclService = aclService;
-    }
+    @Qualifier( "jdbcCategoryOptionOrgUnitAssociationsStore" )
+    private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
     // -------------------------------------------------------------------------
     // Category
@@ -502,12 +481,6 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryOptionCombo getCategoryOptionCombo( IdentifiableProperty property, String id )
-    {
-        return idObjectManager.getObject( CategoryOptionCombo.class, property, id );
-    }
-
-    @Override
     @Transactional( readOnly = true )
     public List<CategoryOptionCombo> getAllCategoryOptionCombos()
     {
@@ -664,9 +637,9 @@ public class DefaultCategoryService
 
     @Override
     @Transactional( readOnly = true )
-    public CategoryOptionCombo getCategoryOptionComboAcl( IdentifiableProperty property, String id )
+    public CategoryOptionCombo getCategoryOptionComboAcl( IdScheme idScheme, String id )
     {
-        CategoryOptionCombo coc = idObjectManager.getObject( CategoryOptionCombo.class, property, id );
+        CategoryOptionCombo coc = idObjectManager.getObject( CategoryOptionCombo.class, idScheme, id );
 
         if ( coc != null )
         {
@@ -897,5 +870,11 @@ public class DefaultCategoryService
     public List<CategoryOptionGroupSet> getAttributeCategoryOptionGroupSetsNoAcl()
     {
         return categoryOptionGroupSetStore.getCategoryOptionGroupSetsNoAcl( DataDimensionType.ATTRIBUTE, true );
+    }
+
+    @Override
+    public IdentifiableObjectAssociations getCategoryOptionOrganisationUnitsAssociations( Set<String> uids )
+    {
+        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociations( uids );
     }
 }

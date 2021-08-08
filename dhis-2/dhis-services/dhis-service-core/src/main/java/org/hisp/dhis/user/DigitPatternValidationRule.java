@@ -27,42 +27,22 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.regex.Pattern;
+import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_DIGIT;
 
-import org.apache.commons.lang.StringUtils;
-import org.springframework.stereotype.Component;
+import java.util.regex.Pattern;
 
 /**
  * Created by zubair on 08.03.17.
  */
-@Component( "org.hisp.dhis.user.DigitPatternValidationRule" )
 public class DigitPatternValidationRule implements PasswordValidationRule
 {
     private static final Pattern DIGIT_PATTERN = Pattern.compile( ".*\\d.*" );
 
-    public static final String ERROR = "Password must have at least one digit";
-
-    private static final String I18_ERROR = "password_digit_validation";
-
     @Override
-    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
+    public PasswordValidationResult validate( CredentialsInfo credentials )
     {
-        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
-        {
-            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
-        }
-
-        if ( !DIGIT_PATTERN.matcher( credentialsInfo.getPassword() ).matches() )
-        {
-            return new PasswordValidationResult( ERROR, I18_ERROR, false );
-        }
-
-        return new PasswordValidationResult( true );
-    }
-
-    @Override
-    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
-    {
-        return true;
+        return !DIGIT_PATTERN.matcher( credentials.getPassword() ).matches()
+            ? new PasswordValidationResult( PASSWORD_MUST_HAVE_DIGIT )
+            : PasswordValidationResult.VALID;
     }
 }

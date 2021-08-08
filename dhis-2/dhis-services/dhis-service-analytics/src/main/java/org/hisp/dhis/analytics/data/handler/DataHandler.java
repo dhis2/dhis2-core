@@ -63,6 +63,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValueObject;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.hasPeriod;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isPeriodInPeriods;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.getPeriodOffsetRow;
+import static org.hisp.dhis.analytics.util.ReportRatesHelper.getCalculatedTarget;
 import static org.hisp.dhis.common.DataDimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DataDimensionItemType.DATA_ELEMENT_OPERAND;
 import static org.hisp.dhis.common.DataDimensionItemType.INDICATOR;
@@ -95,7 +96,6 @@ import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
 import static org.hisp.dhis.commons.util.DebugUtils.getStackTrace;
 import static org.hisp.dhis.commons.util.SystemUtils.getCpuCores;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType.values;
-import static org.hisp.dhis.period.DailyPeriodType.NAME;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.hisp.dhis.setting.SettingKey.DATABASE_SERVER_CPUS;
@@ -131,6 +131,7 @@ import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
+import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -172,7 +173,7 @@ public class DataHandler
 
     private final ConstantService constantService;
 
-    private final ExpressionResolver resolver;
+    private final ExpressionResolvers resolvers;
 
     private final ExpressionService expressionService;
 
@@ -189,14 +190,14 @@ public class DataHandler
     private DataAggregator dataAggregator;
 
     public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
-        ConstantService constantService, ExpressionResolver resolver, ExpressionService expressionService,
+        ConstantService constantService, ExpressionResolvers resolvers, ExpressionService expressionService,
         QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
         AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService )
     {
         checkNotNull( eventAnalyticsService );
         checkNotNull( rawAnalyticsManager );
         checkNotNull( constantService );
-        checkNotNull( resolver );
+        checkNotNull( resolvers );
         checkNotNull( expressionService );
         checkNotNull( queryPlanner );
         checkNotNull( queryValidator );
@@ -207,7 +208,7 @@ public class DataHandler
         this.eventAnalyticsService = eventAnalyticsService;
         this.rawAnalyticsManager = rawAnalyticsManager;
         this.constantService = constantService;
-        this.resolver = resolver;
+        this.resolvers = resolvers;
         this.expressionService = expressionService;
         this.queryPlanner = queryPlanner;
         this.queryValidator = queryValidator;
@@ -655,67 +656,6 @@ public class DataHandler
         }
     }
 
-    /**
-     * Use number of days for daily data sets as target, as query periods might
-     * often span/contain different numbers of days.
-     *
-     * @param periodIndex the index of the period in the "dataRow".
-     * @param timeUnits the time unit size found in the current DataQueryParams.
-     *        See {@link #getTimeUnits(DataQueryParams)}.
-     * @param dataRow the current dataRow, based on the key map built by
-     *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams)).
-     * @param target the current value of the respective key ("dataRow"). See
-     *        {@link #getAggregatedCompletenessTargetMap(DataQueryParams).
-     * @param queryPt the filter period in the current "dataRow". See
-     *        {@link PeriodType#getPeriodTypeFromIsoString}.
-     * @param dataSetPt the dataset period.
-     * @param filterPeriods the filter "pe" in the params.
-     *
-     * @return the calculate target
-     */
-    private Double getCalculatedTarget( Integer periodIndex, int timeUnits, List<String> dataRow, Double target,
-        PeriodType queryPt, PeriodType dataSetPt, List<DimensionalItemObject> filterPeriods )
-    {
-        if ( dataSetPt.equalsName( NAME ) )
-        {
-            boolean hasPeriodInDimension = periodIndex != -1;
-
-            // If we enter here, it means there is a "pe" in the dimension
-            // parameter.
-            if ( hasPeriodInDimension )
-            {
-                final Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
-
-                target = target * period.getDaysInPeriod() * timeUnits;
-            }
-            else
-            {
-                // If we reach here, it means that we should have a "pe"
-                // dimension in the filter
-                // parameter.
-                final List<DimensionalItemObject> periods = filterPeriods;
-
-                if ( isNotEmpty( periods ) )
-                {
-                    int totalOfDayInPeriod = 0;
-
-                    for ( final DimensionalItemObject itemObject : periods )
-                    {
-                        final Period period = (Period) itemObject;
-                        totalOfDayInPeriod += period.getDaysInPeriod();
-                    }
-
-                    target += target * totalOfDayInPeriod;
-                }
-            }
-        }
-        else
-        {
-            target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
-        }
-        return target;
-    }
-
     private Double getReportRate( ReportingRateMetric metric, Double target, Double actual )
     {
         Double value = 0d;
@@ -950,8 +890,12 @@ public class DataHandler
     {
         for ( Indicator indicator : indicators )
         {
-            indicator.setNumerator( resolver.resolve( indicator.getNumerator() ) );
-            indicator.setDenominator( resolver.resolve( indicator.getDenominator() ) );
+            for ( ExpressionResolver resolver : resolvers.getExpressionResolvers() )
+            {
+                indicator.setNumerator( resolver.resolve( indicator.getNumerator() ) );
+
+                indicator.setDenominator( resolver.resolve( indicator.getDenominator() ) );
+            }
         }
 
         return indicators;
@@ -1028,7 +972,8 @@ public class DataHandler
                 else
                 {
                     result.put( join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP ),
-                        new DimensionItemObjectValue( dimensionalItem, (Double) row.get( valueIndex ) ) );
+                        new DimensionItemObjectValue(
+                            dimensionalItem, ((Number) row.get( valueIndex )).doubleValue() ) );
                 }
             }
         }

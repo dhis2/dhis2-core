@@ -36,10 +36,13 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.Compression;
+import org.hisp.dhis.message.FakeMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
@@ -54,6 +57,7 @@ import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -86,6 +90,9 @@ public class MvcTestConfig implements WebMvcConfigurer
 
     @Autowired
     private UserSettingService userSettingService;
+
+    @Autowired
+    private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
     @Bean
     public CustomRequestMappingHandlerMapping requestMappingHandlerMapping()
@@ -134,6 +141,9 @@ public class MvcTestConfig implements WebMvcConfigurer
         .put( "csv", parseMediaType( "application/csv" ) )
         .put( "csv.gz", parseMediaType( "application/csv+gzip" ) )
         .put( "csv.zip", parseMediaType( "application/csv+zip" ) )
+        .put( "adx.xml", parseMediaType( "application/adx+xml" ) )
+        .put( "adx.xml.gz", parseMediaType( "application/adx+xml+gzip" ) )
+        .put( "adx.xml.zip", parseMediaType( "application/adx+xml+zip" ) )
         .put( "geojson", parseMediaType( "application/json+geojson" ) )
         .build();
 
@@ -187,6 +197,7 @@ public class MvcTestConfig implements WebMvcConfigurer
     public void addArgumentResolvers( List<HandlerMethodArgumentResolver> resolvers )
     {
         resolvers.add( dhisApiVersionHandlerMethodArgumentResolver() );
+        resolvers.add( currentUserHandlerMethodArgumentResolver );
     }
 
     @Bean
@@ -197,4 +208,10 @@ public class MvcTestConfig implements WebMvcConfigurer
         return expressionHandler;
     }
 
+    @Bean
+    @Primary
+    public MessageSender fakeMessageSender()
+    {
+        return new FakeMessageSender();
+    }
 }

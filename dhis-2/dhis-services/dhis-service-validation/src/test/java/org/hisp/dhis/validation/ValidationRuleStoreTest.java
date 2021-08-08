@@ -147,7 +147,7 @@ public class ValidationRuleStoreTest
     @Test
     public void testGetAllFormValidationRules()
     {
-        ValidationRule ruleA = addValidationRule( 'A', equal_to, expressionA, expressionB, periodType, true );
+        addValidationRule( 'A', equal_to, expressionA, expressionB, periodType, true );
         ValidationRule ruleB = addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
 
         assertContainsOnly( validationRuleStore.getAllFormValidationRules(), ruleB );
@@ -188,11 +188,11 @@ public class ValidationRuleStoreTest
         assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates() );
 
         // Add template
-        ValidationNotificationTemplate template = addValidationNotificationTemplate( 'A', ruleA );
+        addValidationNotificationTemplate( 'A', ruleA );
         assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates(), ruleA );
 
         // Add one more
-        template = addValidationNotificationTemplate( 'B', ruleB );
+        addValidationNotificationTemplate( 'B', ruleB );
         assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates(), ruleA, ruleB );
     }
 
@@ -202,7 +202,7 @@ public class ValidationRuleStoreTest
         ValidationRule ruleA = addValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         ValidationRule ruleB = addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
 
-        ValidationRuleGroup groupA = addValidationRuleGroup( 'A', ruleA );
+        addValidationRuleGroup( 'A', ruleA );
 
         assertContainsOnly( validationRuleStore.getValidationRulesWithoutGroups(), ruleB );
     }

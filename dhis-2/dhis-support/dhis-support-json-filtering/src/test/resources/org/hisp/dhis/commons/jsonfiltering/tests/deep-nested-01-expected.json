@@ -1,0 +1,70 @@
+{
+  "companyList": [
+    {
+      "companySubGroupNames": [
+        {
+          "companySubGrpGivenNames": [
+            {
+              "id": 1.1,
+              "name": "smart branch name",
+              "totalrevenue": 134
+            },
+            {
+              "id": 1.2,
+              "name": "smart branch name 2",
+              "totalrevenue": 133456
+            }
+          ]
+        },
+        {}
+      ],
+      "directorsDetails": [
+        {
+          "experience": [
+            {
+              "careerStartDate": "1989-01-12",
+              "years": 12
+            }
+          ],
+          "languageKnown": "English",
+          "nationality": "Americans",
+          "position": "nasal1"
+        }
+      ],
+      "type": "Private"
+    },
+    {
+      "companySubGroupNames": [
+        {
+          "companySubGrpGivenNames": [
+            {
+              "id": "13.1.1",
+              "name": "smart branch name known",
+              "totalrevenue": 14567
+            },
+            {
+              "id": "13.1.2",
+              "name": "smart branch name 2 known",
+              "totalrevenue": 134656
+            }
+          ]
+        },
+        {}
+      ],
+      "directorsDetails": [
+        {
+          "experience": [
+            {
+              "careerStartDate": "1990-01-12",
+              "years": 12
+            }
+          ],
+          "languageKnown": "English",
+          "nationality": "British",
+          "position": "narain"
+        }
+      ],
+      "type": "Private"
+    }
+  ]
+}

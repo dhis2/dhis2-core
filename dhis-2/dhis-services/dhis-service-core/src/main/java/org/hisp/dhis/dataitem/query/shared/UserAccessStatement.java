@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasNonBlankStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_GROUP_UIDS;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_UID;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_AND;
@@ -81,7 +81,7 @@ public class UserAccessStatement
             .append( userAccessCondition( column, access ) )
             .append( " ) " ); // Grouping clauses closing
 
-        if ( hasStringNonBlankPresence( paramsMap, USER_GROUP_UIDS ) )
+        if ( hasNonBlankStringPresence( paramsMap, USER_GROUP_UIDS ) )
         {
             conditions.append( " or (" + userGroupAccessCondition( column, access ) + ")" );
         }
@@ -129,7 +129,7 @@ public class UserAccessStatement
             .append( ")" ) // Table 2 conditions end
             .append( " )" ); // Grouping clauses closing
 
-        if ( hasStringNonBlankPresence( paramsMap, USER_GROUP_UIDS ) )
+        if ( hasNonBlankStringPresence( paramsMap, USER_GROUP_UIDS ) )
         {
             conditions.append( " or (" );
 

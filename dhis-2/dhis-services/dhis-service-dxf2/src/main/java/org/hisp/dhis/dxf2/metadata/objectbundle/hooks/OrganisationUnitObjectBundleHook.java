@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.hibernate.Session;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -45,18 +44,13 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
+public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<OrganisationUnit>
 {
     @Override
-    public void preCommit( ObjectBundle objectBundle )
+    public void preCommit( ObjectBundle bundle )
     {
-        sortOrganisationUnits( objectBundle );
-    }
-
-    private void sortOrganisationUnits( ObjectBundle bundle )
-    {
-        List<IdentifiableObject> nonPersistedObjects = bundle.getObjects( OrganisationUnit.class, false );
-        List<IdentifiableObject> persistedObjects = bundle.getObjects( OrganisationUnit.class, true );
+        List<OrganisationUnit> nonPersistedObjects = bundle.getObjects( OrganisationUnit.class, false );
+        List<OrganisationUnit> persistedObjects = bundle.getObjects( OrganisationUnit.class, true );
 
         nonPersistedObjects.sort( new OrganisationUnitParentCountComparator() );
         persistedObjects.sort( new OrganisationUnitParentCountComparator() );
@@ -65,17 +59,12 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public void postCommit( ObjectBundle bundle )
     {
-        if ( !bundle.getObjectMap().containsKey( OrganisationUnit.class ) )
-        {
-            return;
-        }
-
-        List<IdentifiableObject> objects = bundle.getObjectMap().get( OrganisationUnit.class );
+        Iterable<OrganisationUnit> objects = bundle.getObjects( OrganisationUnit.class );
         Map<String, Map<String, Object>> objectReferences = bundle.getObjectReferences( OrganisationUnit.class );
 
         Session session = sessionFactory.getCurrentSession();
 
-        for ( IdentifiableObject identifiableObject : objects )
+        for ( OrganisationUnit identifiableObject : objects )
         {
             identifiableObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), identifiableObject );
             Map<String, Object> objectReferenceMap = objectReferences
@@ -87,7 +76,7 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
                 continue;
             }
 
-            OrganisationUnit organisationUnit = (OrganisationUnit) identifiableObject;
+            OrganisationUnit organisationUnit = identifiableObject;
             OrganisationUnit parentRef = (OrganisationUnit) objectReferenceMap.get( "parent" );
             OrganisationUnit parent = bundle.getPreheat().get( bundle.getPreheatIdentifier(), parentRef );
 
@@ -97,49 +86,32 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
+    public void preCreate( OrganisationUnit object, ObjectBundle bundle )
     {
         setSRID( object );
     }
 
     @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
+    public void preUpdate( OrganisationUnit object, OrganisationUnit persistedObject, ObjectBundle bundle )
     {
         setSRID( object );
     }
 
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public void validate( OrganisationUnit organisationUnit, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
-        if ( object == null || !object.getClass().isAssignableFrom( OrganisationUnit.class ) )
-        {
-            return new ArrayList<>();
-        }
-
-        OrganisationUnit organisationUnit = (OrganisationUnit) object;
-
-        List<ErrorReport> errors = new ArrayList<>();
-
         if ( organisationUnit.getClosedDate() != null
             && organisationUnit.getClosedDate().before( organisationUnit.getOpeningDate() ) )
         {
-            errors.add( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013, organisationUnit.getClosedDate(),
-                organisationUnit
-                    .getOpeningDate() ) );
+            addReports
+                .accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013, organisationUnit.getClosedDate(),
+                    organisationUnit.getOpeningDate() ) );
         }
-
-        return errors;
     }
 
-    private void setSRID( IdentifiableObject object )
+    private void setSRID( OrganisationUnit organisationUnit )
     {
-        if ( !(object instanceof OrganisationUnit) )
-        {
-            return;
-        }
-
-        OrganisationUnit organisationUnit = (OrganisationUnit) object;
-
         if ( organisationUnit.getGeometry() != null )
         {
             organisationUnit.getGeometry().setSRID( GeoUtils.SRID );

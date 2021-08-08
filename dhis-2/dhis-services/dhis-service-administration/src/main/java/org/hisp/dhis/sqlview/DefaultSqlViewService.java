@@ -39,6 +39,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -53,7 +54,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -221,7 +221,6 @@ public class DefaultSqlViewService
 
     private String getFilterQuery( SqlHelper sqlHelper, String columnName, String operator, String value )
     {
-
         String query = StringUtils.EMPTY;
 
         query += sqlHelper.whereAnd() + " " + columnName + " " + QueryUtils.parseFilterOperator( operator, value );
@@ -337,8 +336,8 @@ public class DefaultSqlViewService
 
         final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
         final String sql = sqlView.getSqlQuery().replaceAll( "\\r|\\n", " " ).toLowerCase();
-        final boolean ignoreSqlViewTableProtection = config
-            .isDisabled( ConfigurationKey.SYSTEM_SQL_VIEW_TABLE_PROTECTION );
+        final boolean ignoreSqlViewTableProtection = config.isDisabled(
+            ConfigurationKey.SYSTEM_SQL_VIEW_TABLE_PROTECTION );
         final Set<String> allowedVariables = variables == null ? STANDARD_VARIABLES
             : Sets.union( variables.keySet(), STANDARD_VARIABLES );
 

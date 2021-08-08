@@ -39,11 +39,8 @@ import org.springframework.stereotype.Component;
 public class ProgramIndicatorGroupDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
 
-    private ProgramIndicatorService programIndicatorService;
+    private final ProgramIndicatorService programIndicatorService;
 
     public ProgramIndicatorGroupDeletionHandler( ProgramIndicatorService programIndicatorService )
     {
@@ -51,18 +48,13 @@ public class ProgramIndicatorGroupDeletionHandler
         this.programIndicatorService = programIndicatorService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return ProgramIndicatorGroup.class.getName();
+        whenDeleting( ProgramIndicator.class, this::deleteProgramIndicator );
     }
 
-    @Override
-    public void deleteProgramIndicator( ProgramIndicator programIndicator )
+    private void deleteProgramIndicator( ProgramIndicator programIndicator )
     {
         for ( ProgramIndicatorGroup group : programIndicator.getGroups() )
         {

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -48,7 +48,7 @@ import org.hisp.dhis.util.ObjectUtils;
  */
 public class TrackerReportUtils
 {
-    public static String formatMessage( TrackerErrorCode errorCode, String... arguments )
+    public static String formatMessage( TrackerErrorCode errorCode, Object... arguments )
     {
         return format( errorCode.getMessage(), arguments );
     }

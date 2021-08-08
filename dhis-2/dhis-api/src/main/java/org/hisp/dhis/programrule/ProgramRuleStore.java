@@ -59,10 +59,10 @@ public interface ProgramRuleStore
     /**
      * Returns all {@link ProgramRule} by program.
      *
-     * @param programIds
+     * @param programStageIds
      * @return ProgramRule list
      */
-    List<ProgramRule> getByProgram( Set<String> programIds );
+    List<ProgramRule> getByProgramStage( Set<String> programStageIds );
 
     /**
      * Get validation by {@link Program}

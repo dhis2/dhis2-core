@@ -53,14 +53,13 @@ public class TrackedEntityDataElementDimensionDeletionHandler
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return TrackedEntityDataElementDimension.class.getSimpleName();
+        whenDeleting( LegendSet.class, this::deleteLegendSet );
     }
 
-    @Override
     @SuppressWarnings( "unchecked" )
-    public void deleteLegendSet( LegendSet legendSet )
+    private void deleteLegendSet( LegendSet legendSet )
     {
         // TODO Move this get-method to service layer
 

@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
 import java.util.Collection;
@@ -268,7 +269,7 @@ public class DefaultCollectionService
 
         if ( !property.isCollection() || !property.isIdentifiableObject() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( message ) );
+            throw new WebMessageException( conflict( message ) );
         }
         return property;
     }
@@ -281,7 +282,7 @@ public class DefaultCollectionService
     @SuppressWarnings( "unchecked" )
     private List<? extends IdentifiableObject> getItems( Property property, Collection<String> itemCodes )
     {
-        return manager.get( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
+        return manager.getByUid( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
     }
 
     @SuppressWarnings( "unchecked" )

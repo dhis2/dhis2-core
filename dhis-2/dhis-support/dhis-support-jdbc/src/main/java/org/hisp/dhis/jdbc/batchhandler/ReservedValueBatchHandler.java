@@ -29,7 +29,6 @@ package org.hisp.dhis.jdbc.batchhandler;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Calendar;
 import java.util.List;
 
 import org.hisp.dhis.reservedvalue.ReservedValue;
@@ -116,21 +115,11 @@ public class ReservedValueBatchHandler
     public ReservedValue mapRow( ResultSet resultSet )
         throws SQLException
     {
-        Calendar expires = Calendar.getInstance();
-
-        ReservedValue rv = new ReservedValue();
-
-        expires.setTime( resultSet.getDate( "expirydate" ) );
-
-        rv.setId( resultSet.getInt( "reservedvalueid" ) );
-        rv.setOwnerObject( resultSet.getString( "ownerobject" ) );
-        rv.setOwnerUid( resultSet.getString( "ownerUid" ) );
-        rv.setKey( resultSet.getString( "key" ) );
-        rv.setValue( resultSet.getString( "value" ) );
-        rv.setExpiryDate( expires.getTime() );
-        rv.setCreated( resultSet.getDate( "created" ) );
-
-        return rv;
+        return ReservedValue.builder().id( resultSet.getInt( "reservedvalueid" ) )
+            .ownerObject( resultSet.getString( "ownerobject" ) ).ownerUid( resultSet.getString( "ownerUid" ) )
+            .key( resultSet.getString( "key" ) ).value( resultSet.getString( "value" ) )
+            .expiryDate( resultSet.getDate( "expirydate" ) )
+            .created( resultSet.getDate( "created" ) ).build();
     }
 
     @Override

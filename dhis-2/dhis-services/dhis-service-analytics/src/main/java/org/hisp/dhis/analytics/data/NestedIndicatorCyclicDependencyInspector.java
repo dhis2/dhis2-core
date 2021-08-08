@@ -85,7 +85,6 @@ public class NestedIndicatorCyclicDependencyInspector
      */
     public void inspect( List<DimensionalItemObject> dimensionalItemObjects )
     {
-        // Make sure the List contains only Indicator objects
         List<Indicator> indicators = asTypedList( dimensionalItemObjects.stream()
             .filter( d -> d.getDimensionItemType().equals( INDICATOR ) ).collect( Collectors.toList() ) );
 

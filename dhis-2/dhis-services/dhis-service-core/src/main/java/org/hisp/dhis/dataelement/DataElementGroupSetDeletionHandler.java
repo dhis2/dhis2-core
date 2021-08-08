@@ -49,18 +49,13 @@ public class DataElementGroupSetDeletionHandler
         this.idObjectManager = idObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return DataElementGroupSet.class.getSimpleName();
+        whenDeleting( DataElementGroup.class, this::deleteDataElementGroup );
     }
 
-    @Override
-    public void deleteDataElementGroup( DataElementGroup dataElementGroup )
+    private void deleteDataElementGroup( DataElementGroup dataElementGroup )
     {
         for ( DataElementGroupSet groupSet : dataElementGroup.getGroupSets() )
         {

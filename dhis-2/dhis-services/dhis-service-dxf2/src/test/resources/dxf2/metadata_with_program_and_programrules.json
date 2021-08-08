@@ -689,6 +689,9 @@
       "WEB",
       "ANDROID"
     ],
+    "programRule":{
+      "id": "R4bFX7Q5oQa"
+    },
     "translations": []
   },
     {
@@ -711,6 +714,9 @@
         "WEB",
         "ANDROID"
       ],
+      "programRule":{
+        "id" : "Xh9idCUkyaE"
+      },
       "translations": []
     },
     {
@@ -730,6 +736,12 @@
         "WEB",
         "ANDROID"
       ],
+      "dataElement": {
+        "id": "z3Z4TD3oBCP"
+      },
+      "programRule":{
+        "id" : "Xh9idCUkyaF"
+      },
       "translations": []
     },
     {
@@ -752,6 +764,9 @@
         "WEB",
         "ANDROID"
       ],
+      "programRule":{
+        "id" : "Xh9idCUkyaS"
+      },
       "translations": []
     },
     {
@@ -773,6 +788,9 @@
         "WEB",
         "ANDROID"
       ],
+      "programRule":{
+        "id" : "R4bFX7Q5oQa"
+      },
       "translations": []
     },
     {
@@ -795,6 +813,9 @@
         "WEB",
         "ANDROID"
       ],
+      "programRule":{
+        "id" : "tZz1oAC5i6P"
+      },
       "translations": []
     }
   ],
@@ -1956,6 +1977,8 @@
       },
       "programTrackedEntityAttributes": [],
       "notificationTemplates": [],
+
+
       "translations": [],
       "organisationUnits": [{
         "id": "O6uvpzGd5pu"

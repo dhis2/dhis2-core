@@ -337,18 +337,6 @@ function saveTrueOnly( dataElementId, optionComboId, fieldId )
     valueSaver.save();
 }
 
-function saveFileResource( dataElementId, optionComboId, fieldId, fileResource, onSuccessCallback )
-{
-    fieldId = '#' + fieldId;
-
-    var periodId = $( '#selectedPeriodId' ).val();
-
-    var dataSetId = $( '#selectedDataSetId' ).val();
-
-    var valueSaver = new FileResourceValueSaver( dataElementId, periodId, optionComboId, dataSetId, fileResource, fieldId, dhis2.de.cst.colorGreen, onSuccessCallback );
-    valueSaver.save();
-}
-
 /**
  * Supportive method.
  */
@@ -459,13 +447,4 @@ function ValueSaver( de, pe, co, ds, value, fieldId, resultColor )
     {
         $( fieldId ).css( 'background-color', color );
     }
-}
-
-function FileResourceValueSaver( de, pe, co, ds, fileResource, fieldId, resultColor, onSuccessCallback )
-{
-    var valueSaver = new ValueSaver( de, pe, co, ds, fileResource.id, fieldId, resultColor );
-
-    valueSaver.setAfterHandleSuccess( onSuccessCallback );
-
-    return valueSaver;
 }

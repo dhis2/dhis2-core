@@ -130,8 +130,19 @@ public class ValidationUtils
 
     public static boolean needsToValidateDataValues( Event event, ProgramStage programStage )
     {
-        return !event.getStatus().equals( EventStatus.ACTIVE ) ||
-            !programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE );
+        if ( event.getStatus().equals( EventStatus.SCHEDULE ) || event.getStatus().equals( EventStatus.SKIPPED ) )
+        {
+            return false;
+        }
+        else if ( programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE )
+            && event.getStatus().equals( EventStatus.COMPLETED ) )
+        {
+            return true;
+        }
+        else
+        {
+            return !programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE );
+        }
     }
 
     public static void addIssuesToReporter( ValidationErrorReporter reporter, List<ProgramRuleIssue> programRuleIssues )
@@ -155,5 +166,20 @@ public class ValidationUtils
                     reporter.addWarning( newWarningReport( issue.getIssueCode() )
                         .addArgs( args.toArray() ) );
                 } );
+    }
+
+    public static boolean trackedEntityInstanceExist( TrackerImportValidationContext context, String teiUid )
+    {
+        return context.getTrackedEntityInstance( teiUid ) != null || context.getReference( teiUid ).isPresent();
+    }
+
+    public static boolean enrollmentExist( TrackerImportValidationContext context, String enrollmentUid )
+    {
+        return context.getProgramInstance( enrollmentUid ) != null || context.getReference( enrollmentUid ).isPresent();
+    }
+
+    public static boolean eventExist( TrackerImportValidationContext context, String eventUid )
+    {
+        return context.getProgramStageInstance( eventUid ) != null || context.getReference( eventUid ).isPresent();
     }
 }

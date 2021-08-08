@@ -44,10 +44,6 @@ import org.springframework.stereotype.Component;
 public class ProgramStageDataElementDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ProgramStageDataElementService programStageDataElementService;
 
     public ProgramStageDataElementDeletionHandler( ProgramStageDataElementService programStageDataElementService )
@@ -57,18 +53,14 @@ public class ProgramStageDataElementDeletionHandler
         this.programStageDataElementService = programStageDataElementService;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return ProgramStageDataElement.class.getSimpleName();
+        whenDeleting( ProgramStage.class, this::deleteProgramStage );
+        whenDeleting( DataElement.class, this::deleteDataElement );
     }
 
-    @Override
-    public void deleteProgramStage( ProgramStage programStage )
+    private void deleteProgramStage( ProgramStage programStage )
     {
         List<ProgramStageDataElement> programStageDataElements = new ArrayList<>(
             programStage.getProgramStageDataElements() );
@@ -80,8 +72,7 @@ public class ProgramStageDataElementDeletionHandler
         }
     }
 
-    @Override
-    public void deleteDataElement( DataElement dataElement )
+    private void deleteDataElement( DataElement dataElement )
     {
         if ( DataElementDomain.TRACKER == dataElement.getDomainType() )
         {

@@ -101,4 +101,10 @@ public class DefaultProgramStageService
         programStageStore.update( programStage );
     }
 
+    @Override
+    @Transactional( readOnly = true )
+    public List<ProgramStage> getProgramStagesByProgram( Program program )
+    {
+        return programStageStore.getByProgram( program );
+    }
 }

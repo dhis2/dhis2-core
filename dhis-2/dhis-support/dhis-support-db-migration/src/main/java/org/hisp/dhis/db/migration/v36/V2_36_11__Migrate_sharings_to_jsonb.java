@@ -27,14 +27,10 @@
  */
 package org.hisp.dhis.db.migration.v36;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
-import org.flywaydb.core.api.migration.BaseJavaMigration;
-import org.flywaydb.core.api.migration.Context;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.flywaydb.core.api.migration.*;
+import org.slf4j.*;
 
 public class V2_36_11__Migrate_sharings_to_jsonb
     extends BaseJavaMigration
@@ -135,7 +131,7 @@ public class V2_36_11__Migrate_sharings_to_jsonb
         }
 
         String query = "update " + tableName + " _entity set sharing = to_jsonb(jsonb_build_object(" +
-            "'owner',nullif((select _owner.uid from users _owner where _owner.userid = _entity.userid),'' )," +
+            "'owner',nullif((select _owner.uid from userinfo _owner where _owner.userinfoid = _entity.userid),'' )," +
             "'public',nullif(_entity.publicaccess,'')," +
             "'external', false," +
             "'users',(" +

@@ -79,4 +79,10 @@ public interface UserGroupService
     int getUserGroupCount();
 
     int getUserGroupCountByName( String name );
+
+    /**
+     * Get UserGroup's display name by given userGroup uid Return null if
+     * UserGroup does not exist
+     */
+    String getDisplayName( String uid );
 }

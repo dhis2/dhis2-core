@@ -48,18 +48,13 @@ public class CategoryOptionGroupSetDeletionHandler
         this.idObjectManager = idObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return CategoryOptionGroupSet.class.getSimpleName();
+        whenDeleting( CategoryOptionGroup.class, this::deleteCategoryOptionGroup );
     }
 
-    @Override
-    public void deleteCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
+    private void deleteCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
     {
         for ( CategoryOptionGroupSet groupSet : categoryOptionGroup.getGroupSets() )
         {

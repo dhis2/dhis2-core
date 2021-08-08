@@ -28,10 +28,12 @@
 package org.hisp.dhis.dimension;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -42,9 +44,8 @@ import org.springframework.stereotype.Component;
 public class DataDimensionItemDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+
+    private static final DeletionVeto VETO = new DeletionVeto( DataDimensionItem.class );
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -54,22 +55,17 @@ public class DataDimensionItemDeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return DataDimensionItem.class.getSimpleName();
+        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
     }
 
-    @Override
-    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
+    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
         String sql = "SELECT COUNT(*) FROM datadimensionitem where dataelementoperand_categoryoptioncomboid="
             + optionCombo.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 }

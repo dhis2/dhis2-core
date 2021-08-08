@@ -56,7 +56,7 @@ public class DhisOidcUserService
     public UserService userService;
 
     @Autowired
-    private DhisClientRegistrationRepository clientRegistrationRepository;
+    private DhisOidcProviderRepository clientRegistrationRepository;
 
     @Override
     public OidcUser loadUser( OidcUserRequest userRequest )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ public class DhisCustomAuthorizationRequestResolver implements OAuth2Authorizati
     public static final String HASH_DIGEST_ALGORITHM = "SHA-256";
 
     @Autowired
-    private DhisClientRegistrationRepository clientRegistrationRepository;
+    private DhisOidcProviderRepository clientRegistrationRepository;
 
     private DefaultOAuth2AuthorizationRequestResolver defaultResolver;
 

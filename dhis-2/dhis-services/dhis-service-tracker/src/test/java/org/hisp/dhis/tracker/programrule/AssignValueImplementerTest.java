@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.programrule;
 
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
+import static org.hisp.dhis.rules.models.TrackerObjectType.ENROLLMENT;
+import static org.hisp.dhis.rules.models.TrackerObjectType.EVENT;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.junit.Assert.*;
@@ -59,7 +61,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 @RunWith( MockitoJUnitRunner.class )
@@ -143,7 +144,7 @@ public class AssignValueImplementerTest
         when( preheat.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( preheat.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
 
-        bundle = new TrackerBundle();
+        bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
 
         when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
@@ -155,7 +156,7 @@ public class AssignValueImplementerTest
     {
         List<Event> events = Lists.newArrayList( getEventWithDataValueNOTSet() );
         bundle.setEvents( events );
-        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        bundle.setRuleEffects( getRuleEventEffects( events ) );
         Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) )
@@ -175,7 +176,7 @@ public class AssignValueImplementerTest
     {
         List<Event> events = Lists.newArrayList( getEventWithDataValueNOTSetInDifferentProgramStage() );
         bundle.setEvents( events );
-        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        bundle.setRuleEffects( getRuleEventEffects( events ) );
         Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) )
@@ -192,7 +193,7 @@ public class AssignValueImplementerTest
     {
         List<Event> events = Lists.newArrayList( getEventWithDataValueSet() );
         bundle.setEvents( events );
-        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        bundle.setRuleEffects( getRuleEventEffects( events ) );
         Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) )
@@ -212,7 +213,7 @@ public class AssignValueImplementerTest
     {
         List<Event> events = Lists.newArrayList( getEventWithDataValueSetSameValue() );
         bundle.setEvents( events );
-        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        bundle.setRuleEffects( getRuleEventEffects( events ) );
         Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
 
         Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) )
@@ -232,7 +233,7 @@ public class AssignValueImplementerTest
     {
         List<Event> events = Lists.newArrayList( getEventWithDataValueSet() );
         bundle.setEvents( events );
-        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        bundle.setRuleEffects( getRuleEventEffects( events ) );
         when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
         Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
@@ -256,7 +257,7 @@ public class AssignValueImplementerTest
         List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeNOTSet() );
         bundle.setTrackedEntities( trackedEntities );
         bundle.setEnrollments( enrollments );
-        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
         Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
 
         Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
@@ -276,7 +277,7 @@ public class AssignValueImplementerTest
     {
         List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeSet() );
         bundle.setEnrollments( enrollments );
-        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
         Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
 
         Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
@@ -298,7 +299,7 @@ public class AssignValueImplementerTest
         List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeSet() );
         bundle.setEnrollments( enrollments );
         bundle.setTrackedEntities( trackedEntities );
-        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
         Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
 
         Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
@@ -327,7 +328,7 @@ public class AssignValueImplementerTest
         List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeSet() );
         bundle.setEnrollments( enrollments );
         bundle.setTrackedEntities( trackedEntities );
-        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
         Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
 
         Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
@@ -352,7 +353,7 @@ public class AssignValueImplementerTest
     {
         List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeSetSameValue() );
         bundle.setEnrollments( enrollments );
-        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
         Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
 
         Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
@@ -372,7 +373,7 @@ public class AssignValueImplementerTest
     {
         List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeSet() );
         bundle.setEnrollments( enrollments );
-        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
         when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
         Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
@@ -392,7 +393,6 @@ public class AssignValueImplementerTest
     private Event getEventWithDataValueSet()
     {
         Event event = new Event();
-        event.setUid( FIRST_EVENT_ID );
         event.setEvent( FIRST_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( firstProgramStage.getUid() );
@@ -404,7 +404,6 @@ public class AssignValueImplementerTest
     private Event getEventWithDataValueSetSameValue()
     {
         Event event = new Event();
-        event.setUid( FIRST_EVENT_ID );
         event.setEvent( FIRST_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( firstProgramStage.getUid() );
@@ -416,7 +415,6 @@ public class AssignValueImplementerTest
     private Event getEventWithDataValueNOTSet()
     {
         Event event = new Event();
-        event.setUid( SECOND_EVENT_ID );
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( firstProgramStage.getUid() );
@@ -427,7 +425,6 @@ public class AssignValueImplementerTest
     private Event getEventWithDataValueNOTSetInDifferentProgramStage()
     {
         Event event = new Event();
-        event.setUid( SECOND_EVENT_ID );
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( secondProgramStage.getUid() );
@@ -454,7 +451,6 @@ public class AssignValueImplementerTest
     private Enrollment getEnrollmentWithAttributeSet()
     {
         Enrollment enrollment = new Enrollment();
-        enrollment.setUid( FIRST_ENROLLMENT_ID );
         enrollment.setEnrollment( FIRST_ENROLLMENT_ID );
         enrollment.setStatus( EnrollmentStatus.ACTIVE );
         enrollment.setAttributes( getAttributes() );
@@ -465,7 +461,6 @@ public class AssignValueImplementerTest
     private Enrollment getEnrollmentWithAttributeSetSameValue()
     {
         Enrollment enrollment = new Enrollment();
-        enrollment.setUid( FIRST_ENROLLMENT_ID );
         enrollment.setEnrollment( FIRST_ENROLLMENT_ID );
         enrollment.setStatus( EnrollmentStatus.ACTIVE );
         enrollment.setAttributes( getAttributesSameValue() );
@@ -476,7 +471,6 @@ public class AssignValueImplementerTest
     private TrackedEntity getTrackedEntitiesWithAttributeSet()
     {
         TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setUid( TRACKED_ENTITY_ID );
         trackedEntity.setTrackedEntity( TRACKED_ENTITY_ID );
         trackedEntity.setAttributes( getAttributes() );
 
@@ -486,7 +480,6 @@ public class AssignValueImplementerTest
     private TrackedEntity getTrackedEntitiesWithAttributeNOTSet()
     {
         TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setUid( TRACKED_ENTITY_ID );
         trackedEntity.setTrackedEntity( TRACKED_ENTITY_ID );
 
         return trackedEntity;
@@ -495,7 +488,6 @@ public class AssignValueImplementerTest
     private Enrollment getEnrollmentWithAttributeNOTSet()
     {
         Enrollment enrollment = new Enrollment();
-        enrollment.setUid( SECOND_ENROLLMENT_ID );
         enrollment.setEnrollment( SECOND_ENROLLMENT_ID );
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
         enrollment.setTrackedEntity( TRACKED_ENTITY_ID );
@@ -519,25 +511,26 @@ public class AssignValueImplementerTest
         return Lists.newArrayList( attribute );
     }
 
-    private Map<String, List<RuleEffect>> getRuleEventEffects( List<Event> events )
+    private List<RuleEffects> getRuleEventEffects( List<Event> events )
     {
-        Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
+        List<RuleEffects> ruleEffectsByEvent = Lists.newArrayList();
 
         for ( Event event : events )
         {
-            ruleEffectsByEvent.put( event.getEvent(), getRuleEventEffects() );
+            ruleEffectsByEvent.add( new RuleEffects( EVENT, event.getEvent(), getRuleEventEffects() ) );
 
         }
         return ruleEffectsByEvent;
     }
 
-    private Map<String, List<RuleEffect>> getRuleEnrollmentEffects( List<Enrollment> enrollments )
+    private List<RuleEffects> getRuleEnrollmentEffects( List<Enrollment> enrollments )
     {
-        Map<String, List<RuleEffect>> ruleEffectsByEnrollment = Maps.newHashMap();
+        List<RuleEffects> ruleEffectsByEnrollment = Lists.newArrayList();
 
         for ( Enrollment enrollment : enrollments )
         {
-            ruleEffectsByEnrollment.put( enrollment.getEnrollment(), getRuleEnrollmentEffects() );
+            ruleEffectsByEnrollment
+                .add( new RuleEffects( ENROLLMENT, enrollment.getEnrollment(), getRuleEnrollmentEffects() ) );
 
         }
         return ruleEffectsByEnrollment;

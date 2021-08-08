@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -54,6 +55,14 @@ public interface ValidationService
      * @return a collection of ValidationResults found.
      */
     List<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters );
+
+    /**
+     * Get validation rule expression details for a validation run.
+     *
+     * @param parameters the parameters to base the analysis on.
+     * @return the validation rule expression details
+     */
+    ValidationRuleExpressionDetails getValidationRuleExpressionDetails( ValidationAnalysisParams parameters );
 
     /**
      * Validate that missing data values have a corresponding comment, assuming

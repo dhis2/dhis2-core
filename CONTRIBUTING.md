@@ -1,5 +1,9 @@
 # Contributing
 
+## Guidelines
+
+Read the contribution [guidelines](https://developers.dhis2.org/docs/conceptual/contribute/).
+
 ## Requirements
 
 You'll need the following software to run DHIS2 on your machine:

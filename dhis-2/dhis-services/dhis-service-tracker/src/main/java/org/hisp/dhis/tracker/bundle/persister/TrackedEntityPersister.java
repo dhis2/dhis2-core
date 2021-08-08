@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.bundle.persister;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
@@ -39,7 +38,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleHook;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
@@ -55,10 +53,10 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     @NotNull
     private final TrackerConverterService<TrackedEntity, TrackedEntityInstance> teConverter;
 
-    public TrackedEntityPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService,
+    public TrackedEntityPersister( ReservedValueService reservedValueService,
         TrackerConverterService<TrackedEntity, TrackedEntityInstance> teConverter )
     {
-        super( bundleHooks, reservedValueService );
+        super( reservedValueService );
         this.teConverter = teConverter;
     }
 
@@ -105,20 +103,6 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     }
 
     @Override
-    protected void runPostCreateHooks( TrackerBundle bundle )
-    {
-        bundle.getTrackedEntities()
-            .forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntity.class, o, bundle ) ) );
-    }
-
-    @Override
-    protected void runPreCreateHooks( TrackerBundle bundle )
-    {
-        bundle.getTrackedEntities()
-            .forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( TrackedEntity.class, o, bundle ) ) );
-    }
-
-    @Override
     protected boolean isNew( TrackerPreheat preheat, String uid )
     {
         return preheat.getTrackedEntity( TrackerIdScheme.UID, uid ) == null;
@@ -128,5 +112,12 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     protected TrackerSideEffectDataBundle handleSideEffects( TrackerBundle bundle, TrackedEntityInstance entity )
     {
         return TrackerSideEffectDataBundle.builder().build();
+    }
+
+    @Override
+    protected void persistOwnership( TrackerPreheat preheat, TrackedEntityInstance entity )
+    {
+        // DO NOTHING, Tei alone does not have ownership records
+
     }
 }

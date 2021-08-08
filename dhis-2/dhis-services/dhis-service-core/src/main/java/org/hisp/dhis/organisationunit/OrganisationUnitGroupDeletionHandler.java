@@ -48,18 +48,13 @@ public class OrganisationUnitGroupDeletionHandler
         this.idObjectManager = idObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return OrganisationUnitGroup.class.getSimpleName();
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
     }
 
-    @Override
-    public void deleteOrganisationUnit( OrganisationUnit unit )
+    private void deleteOrganisationUnit( OrganisationUnit unit )
     {
         for ( OrganisationUnitGroup group : unit.getGroups() )
         {

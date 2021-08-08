@@ -244,7 +244,7 @@ public class TrackerSynchronizationTest extends DhisSpringTest
     public void testSkipSyncFunctionality()
     {
         List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
-            .getTrackedEntityInstances( queryParams, params, true );
+            .getTrackedEntityInstances( queryParams, params, true, true );
 
         assertEquals( 1, fetchedTeis.get( 0 ).getAttributes().size() );
     }

@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +79,8 @@ public class DefaultOrganisationUnitService
 
     private final Cache<Boolean> inUserOrgUnitHierarchyCache;
 
+    private final Cache<Boolean> inUserOrgUnitViewHierarchyCache;
+
     private final Cache<Boolean> inUserOrgUnitSearchHierarchyCache;
 
     private final Cache<Boolean> userCaptureOrgCountThresholdCache;
@@ -120,6 +123,7 @@ public class DefaultOrganisationUnitService
         this.inUserOrgUnitHierarchyCache = cacheProvider.createInUserOrgUnitHierarchyCache();
         this.inUserOrgUnitSearchHierarchyCache = cacheProvider.createInUserSearchOrgUnitHierarchyCache();
         this.userCaptureOrgCountThresholdCache = cacheProvider.createUserCaptureOrgUnitThresholdCache();
+        this.inUserOrgUnitViewHierarchyCache = cacheProvider.createInUserViewOrgUnitHierarchyCache();
     }
 
     /**
@@ -205,7 +209,7 @@ public class DefaultOrganisationUnitService
     @Transactional( readOnly = true )
     public List<OrganisationUnit> getOrganisationUnitsByUid( Collection<String> uids )
     {
-        return organisationUnitStore.getByUid( uids );
+        return organisationUnitStore.getByUid( new HashSet<>( uids ) );
     }
 
     @Override
@@ -493,6 +497,43 @@ public class DefaultOrganisationUnitService
         }
 
         return organisationUnit.isDescendant( user.getOrganisationUnits() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isInUserDataViewHierarchy( OrganisationUnit organisationUnit )
+    {
+        return isInUserDataViewHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isInUserDataViewHierarchyCached( OrganisationUnit organisationUnit )
+    {
+        return isInUserDataViewHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isInUserDataViewHierarchy( User user, OrganisationUnit organisationUnit )
+    {
+        if ( user == null || user.getOrganisationUnits() == null || user.getOrganisationUnits().isEmpty() )
+        {
+            return false;
+        }
+
+        return organisationUnit.isDescendant( user.getDataViewOrganisationUnitsWithFallback() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isInUserDataViewHierarchyCached( User user, OrganisationUnit organisationUnit )
+    {
+        String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
+
+        return inUserOrgUnitViewHierarchyCache
+            .get( cacheKey, ou -> isInUserDataViewHierarchy( user, organisationUnit ) )
+            .orElse( false );
     }
 
     @Override

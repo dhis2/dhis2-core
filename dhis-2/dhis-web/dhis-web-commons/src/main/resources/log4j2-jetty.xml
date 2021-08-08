@@ -14,6 +14,8 @@
         <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="error" additivity="true"/>
         <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error" additivity="true"/>
         <Logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>
+        <Logger name="org.apache.activemq" level="error" additivity="true"/>
+        <Logger name="org.hibernate" level="error" additivity="true"/>
 
         <Root level="WARN">
             <AppenderRef ref="console"/>

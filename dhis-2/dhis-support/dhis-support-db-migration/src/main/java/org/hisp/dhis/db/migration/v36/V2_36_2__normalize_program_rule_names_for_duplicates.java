@@ -31,6 +31,7 @@ import static org.hisp.dhis.db.migration.v36.V2_36_1__normalize_program_rule_var
 import static org.hisp.dhis.db.migration.v36.V2_36_1__normalize_program_rule_variable_names_for_duplicates.ProgramRuleMigrationUtils.renameAll;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -53,6 +54,15 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
     extends BaseJavaMigration
 {
 
+    public static final String CANDIDATE_DETECTION_SQL = "SELECT programid, name" +
+        " FROM programrule " +
+        " group by programid, name " +
+        " having count(*) > 1";
+
+    public static final String PROGRAMID_AND_NAME_LIKE = "SELECT uid, name FROM programrule where programid = ?  AND name like ?";
+
+    public static final String UPDATE_PROGRAMRULE = "UPDATE programrule SET name=? WHERE uid=?";
+
     @Override
     public void migrate( Context context )
         throws Exception
@@ -64,23 +74,18 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
     /**
      * Returns a list of rules to be renamed, as pairs of (uid, name)
      *
-     * @param connection
-     * @return
-     * @throws SQLException
+     * @param connection a sql connection
+     * @return a list of candidates
+     * @throws SQLException in case of errors
      */
     private List<Pair<Long, String>> getCandidates( Connection connection )
         throws SQLException
     {
 
-        final String candidateDetectionSql = "SELECT programid, name" +
-            " FROM programrule " +
-            " group by programid, name " +
-            " having count(*) > 1";
-
         List<Pair<Long, String>> candidates = new ArrayList<>();
 
         try ( final Statement stmt = connection.createStatement();
-            final ResultSet rs = stmt.executeQuery( candidateDetectionSql ) )
+            final ResultSet rs = stmt.executeQuery( CANDIDATE_DETECTION_SQL ) )
         {
             while ( rs.next() )
             {
@@ -93,9 +98,8 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
     /**
      * Given a rule name, renames it
      *
-     * @param candidate
-     * @param connection
-     * @return rule names that have actually been renamed
+     * @param candidate a candidate
+     * @param connection a sql connection
      */
     @SneakyThrows
     private void renameOccurrencesWithSuffix( Pair<Long, String> candidate, Connection connection )
@@ -103,27 +107,36 @@ public class V2_36_2__normalize_program_rule_names_for_duplicates
         Long programId = candidate.getLeft();
         String ruleName = candidate.getRight();
 
-        final String programRulesToRenameSql = "SELECT uid, name" +
-            " FROM programrule where programid = " + programId +
-            " AND name like '" + ruleName + "%'";
-
         Map<String, String> uidWithNewNames = new HashMap<>();
 
-        try ( final Statement stmt = connection.createStatement();
-            final ResultSet rs = stmt.executeQuery( programRulesToRenameSql ) )
+        try ( final PreparedStatement preparedStatement = prepareStatement( connection, programId, ruleName );
+            final ResultSet resultSet = preparedStatement.executeQuery() )
         {
-            while ( rs.next() )
+            while ( resultSet.next() )
             {
-                uidWithNewNames.put( rs.getString( "uid" ), rs.getString( "name" ) );
+                uidWithNewNames.put( resultSet.getString( "uid" ), resultSet.getString( "name" ) );
             }
         }
-        renameAll( ruleName, uidWithNewNames, connection, this::getUpdateQuery );
+        renameAll( ruleName, uidWithNewNames, connection, UPDATE_PROGRAMRULE, this::nameUidUpdateSupplier );
     }
 
     @SneakyThrows
-    private String getUpdateQuery( Map.Entry<String, String> uidNameEntry, Set<String> existingNames )
+    private PreparedStatement prepareStatement( Connection connection, Long programId, String ruleName )
     {
-        return "UPDATE programrule SET name='" + findAvailableName( uidNameEntry.getValue(), existingNames )
-            + "' WHERE uid= '" + uidNameEntry.getKey() + "'";
+        PreparedStatement preparedStatement = connection.prepareStatement( PROGRAMID_AND_NAME_LIKE );
+        preparedStatement.setLong( 1, programId );
+        preparedStatement.setString( 2, ruleName + "%" );
+        return preparedStatement;
+    }
+
+    private String getUpdateQuery()
+    {
+        return UPDATE_PROGRAMRULE;
+    }
+
+    private Pair<String, String> nameUidUpdateSupplier( Map.Entry<String, String> uidNameEntry,
+        Set<String> existingNames )
+    {
+        return Pair.of( findAvailableName( uidNameEntry.getValue(), existingNames ), uidNameEntry.getKey() );
     }
 }

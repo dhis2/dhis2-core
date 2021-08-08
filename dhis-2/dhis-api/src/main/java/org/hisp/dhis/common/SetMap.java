@@ -48,20 +48,20 @@ public class SetMap<T, V>
         super( setMap );
     }
 
-    public Set<V> putValue( T key, V value )
+    public void putValue( T key, V value )
     {
         Set<V> set = this.get( key );
         set = set == null ? new HashSet<>() : set;
         set.add( value );
-        return super.put( key, set );
+        super.put( key, set );
     }
 
-    public Set<V> putValues( T key, Set<V> values )
+    public void putValues( T key, Set<V> values )
     {
         Set<V> set = this.get( key );
         set = set == null ? new HashSet<>() : set;
         set.addAll( values );
-        return super.put( key, set );
+        super.put( key, set );
     }
 
     public void putValues( SetMap<T, V> setMap )

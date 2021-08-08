@@ -27,49 +27,43 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
  * @author Luciano Fiandesio
  */
-public class SchemaCheck
-    implements
-    ValidationCheck
+public class SchemaCheck implements ObjectValidationCheck
 {
     @Override
-    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context )
+    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
+        ImportStrategy importStrategy, ValidationContext context, Consumer<ObjectReport> addReports )
     {
-        TypeReport typeReport = new TypeReport( klass );
-
-        List<IdentifiableObject> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+        List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
 
         if ( objects == null || objects.isEmpty() )
         {
-            return typeReport;
+            return;
         }
 
-        for ( IdentifiableObject object : objects )
+        for ( T object : objects )
         {
             List<ErrorReport> validationErrorReports = context.getSchemaValidator().validate( object );
 
             if ( !validationErrorReports.isEmpty() )
             {
-                addObjectReports( validationErrorReports, typeReport, object, bundle );
+                addReports.accept( createObjectReport( validationErrorReports, object, bundle ) );
                 context.markForRemoval( object );
             }
         }
-
-        return typeReport;
     }
-
 }

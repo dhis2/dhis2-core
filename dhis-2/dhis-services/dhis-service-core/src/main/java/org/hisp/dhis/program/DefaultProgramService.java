@@ -27,19 +27,22 @@
  */
 package org.hisp.dhis.program;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,14 +60,12 @@ public class DefaultProgramService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @NonNull
     private final ProgramStore programStore;
 
-    @NonNull
     private final CurrentUserService currentUserService;
 
-    @NonNull
-    private final OrganisationUnitService organisationUnitService;
+    @Qualifier( "jdbcProgramOrgUnitAssociationsStore" )
+    private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -104,6 +105,13 @@ public class DefaultProgramService
     public Program getProgram( long id )
     {
         return programStore.get( id );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Collection<Program> getPrograms( Collection<String> uids )
+    {
+        return programStore.getByUid( uids );
     }
 
     @Override
@@ -184,5 +192,11 @@ public class DefaultProgramService
     public boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit )
     {
         return this.programStore.hasOrgUnit( program, organisationUnit );
+    }
+
+    @Override
+    public IdentifiableObjectAssociations getProgramOrganisationUnitsAssociations( Set<String> programUids )
+    {
+        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociations( programUids );
     }
 }

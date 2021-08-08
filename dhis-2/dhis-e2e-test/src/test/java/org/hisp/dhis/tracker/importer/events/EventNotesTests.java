@@ -29,12 +29,10 @@
 package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -47,16 +45,12 @@ import static org.hamcrest.Matchers.hasItem;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventNotesTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
-    private TrackerActions trackerActions;
-
     @BeforeAll
     public void beforeAll()
     {
-        trackerActions = new TrackerActions();
-
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
     }
 
     @Test

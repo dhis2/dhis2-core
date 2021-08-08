@@ -33,6 +33,8 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,6 +45,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
@@ -160,6 +163,16 @@ public class Schema implements Ordered, Klass
     private boolean dataShareable;
 
     /**
+     * Is data write sharing support for instances of this class.
+     */
+    private Boolean dataWriteShareable;
+
+    /**
+     * Is data read sharing support for instances of this class.
+     */
+    private Boolean dataReadShareable;
+
+    /**
      * Points to relative Web-API endpoint (if exposed).
      */
     private String relativeApiEndpoint;
@@ -194,6 +207,11 @@ public class Schema implements Ordered, Klass
     private boolean implicitPrivateAuthority;
 
     /**
+     * Database table name of this class
+     */
+    private String tableName;
+
+    /**
      * List of authorities required for doing operations on this class.
      */
     private List<Authority> authorities = Lists.newArrayList();
@@ -205,6 +223,13 @@ public class Schema implements Ordered, Klass
      * @see org.hisp.dhis.schema.Property
      */
     private Map<String, Property> propertyMap = Maps.newHashMap();
+
+    /**
+     * Map defining a way to retieve values from a set of properties. Only make
+     * sense for IdentifiableObjects schemas
+     */
+    private Map<Collection<String>, Collection<Function<IdentifiableObject, String>>> uniqueMultiPropertiesExctractors = Collections
+        .emptyMap();
 
     /**
      * Map of all readable properties, cached on first request.
@@ -235,7 +260,7 @@ public class Schema implements Ordered, Klass
      * Map containing cached authorities by their type.
      */
     @JsonIgnore
-    private ConcurrentMap<AuthorityType, List<String>> cachedAuthoritiesByType;
+    private final ConcurrentMap<AuthorityType, List<String>> cachedAuthoritiesByType = new ConcurrentHashMap<>();
 
     /**
      * Used for sorting of schema list when doing metadata import/export.
@@ -401,6 +426,30 @@ public class Schema implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDataWriteShareable()
+    {
+        return dataWriteShareable != null ? dataWriteShareable : isDataShareable();
+    }
+
+    public void setDataWriteShareable( boolean dataWriteShareable )
+    {
+        this.dataWriteShareable = dataWriteShareable;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDataReadShareable()
+    {
+        return dataReadShareable != null ? dataReadShareable : isDataShareable();
+    }
+
+    public void setDataReadShareable( boolean dataReadShareable )
+    {
+        this.dataReadShareable = dataReadShareable;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getRelativeApiEndpoint()
     {
         return relativeApiEndpoint;
@@ -497,18 +546,29 @@ public class Schema implements Ordered, Klass
         this.implicitPrivateAuthority = implicitPrivateAuthority;
     }
 
+    @JsonIgnore
+    public String getTableName()
+    {
+        return tableName;
+    }
+
+    public void setTableName( String tableName )
+    {
+        this.tableName = tableName;
+    }
+
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "authorities", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "authority", namespace = DxfNamespaces.DXF_2_0 )
     public List<Authority> getAuthorities()
     {
-        return authorities;
+        return unmodifiableList( authorities );
     }
 
-    public synchronized void setAuthorities( List<Authority> authorities )
+    public void add( Authority authority )
     {
-        this.authorities = authorities;
-        this.cachedAuthoritiesByType = null;
+        cachedAuthoritiesByType.remove( authority.getType() );
+        this.authorities.add( authority );
     }
 
     @JsonProperty
@@ -517,6 +577,17 @@ public class Schema implements Ordered, Klass
     public List<Property> getProperties()
     {
         return Lists.newArrayList( propertyMap.values() );
+    }
+
+    public Map<Collection<String>, Collection<Function<IdentifiableObject, String>>> getUniqueMultiPropertiesExctractors()
+    {
+        return uniqueMultiPropertiesExctractors;
+    }
+
+    public void setUniqueMultiPropertiesExctractors(
+        Map<Collection<String>, Collection<Function<IdentifiableObject, String>>> uniqueMultiPropertiesExctractors )
+    {
+        this.uniqueMultiPropertiesExctractors = uniqueMultiPropertiesExctractors;
     }
 
     public boolean haveProperty( String propertyName )
@@ -670,16 +741,7 @@ public class Schema implements Ordered, Klass
 
     public List<String> getAuthorityByType( AuthorityType type )
     {
-        if ( cachedAuthoritiesByType == null )
-        {
-            cachedAuthoritiesByType = initAuthoritiesByTypeMap();
-        }
         return cachedAuthoritiesByType.computeIfAbsent( type, this::computeAuthoritiesForType );
-    }
-
-    private synchronized ConcurrentMap<AuthorityType, List<String>> initAuthoritiesByTypeMap()
-    {
-        return cachedAuthoritiesByType != null ? cachedAuthoritiesByType : new ConcurrentHashMap<>();
     }
 
     private List<String> computeAuthoritiesForType( AuthorityType type )

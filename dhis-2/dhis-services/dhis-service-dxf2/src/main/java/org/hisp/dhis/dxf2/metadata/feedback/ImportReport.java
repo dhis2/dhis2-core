@@ -27,18 +27,28 @@
  */
 package org.hisp.dhis.dxf2.metadata.feedback;
 
+import static java.util.Collections.unmodifiableSet;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ErrorReportContainer;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -49,47 +59,66 @@ import com.google.common.base.MoreObjects;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "importReport", namespace = DxfNamespaces.DXF_2_0 )
-public class ImportReport
+public class ImportReport implements ErrorReportContainer
 {
     private MetadataImportParams importParams;
 
     private Status status = Status.OK;
 
-    private Map<Class<?>, TypeReport> typeReportMap = new HashMap<>();
-
-    public ImportReport()
-    {
-    }
+    private final Map<Class<?>, TypeReport> typeReportMap = new HashMap<>();
 
     // -----------------------------------------------------------------------------------
     // Utility Methods
     // -----------------------------------------------------------------------------------
 
-    public TypeReport addTypeReport( TypeReport typeReport )
+    /**
+     * Removes all {@link TypeReport} entries where the {@link Stats#getTotal()}
+     * is zero.
+     */
+    public void clean()
     {
-        if ( !typeReportMap.containsKey( typeReport.getKlass() ) )
-            typeReportMap.put( typeReport.getKlass(), new TypeReport( typeReport.getKlass() ) );
-        typeReportMap.get( typeReport.getKlass() ).merge( typeReport );
-
-        return typeReport;
+        typeReportMap.entrySet().removeIf( entry -> entry.getValue().getStats().getTotal() == 0 );
     }
 
-    public void addTypeReports( List<TypeReport> typeReports )
+    public void addTypeReport( TypeReport typeReport )
+    {
+        typeReportMap.computeIfAbsent( typeReport.getKlass(), TypeReport::new ).merge( typeReport );
+    }
+
+    public void addTypeReports( Iterable<TypeReport> typeReports )
     {
         typeReports.forEach( this::addTypeReport );
     }
 
-    public void addTypeReports( Map<Class<?>, TypeReport> typeReportMap )
+    @JsonIgnore
+    @Override
+    public int getErrorReportsCount()
     {
-        typeReportMap.values().forEach( this::addTypeReport );
+        return typeReportMap.values().stream().mapToInt( TypeReport::getErrorReportsCount ).sum();
     }
 
-    public List<ErrorReport> getErrorReports()
+    @Override
+    public int getErrorReportsCount( ErrorCode errorCode )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-        typeReportMap.values().forEach( typeReport -> errorReports.addAll( typeReport.getErrorReports() ) );
+        return typeReportMap.values().stream().mapToInt( report -> report.getErrorReportsCount( errorCode ) ).sum();
+    }
 
-        return errorReports;
+    @Override
+    public boolean hasErrorReports()
+    {
+        return typeReportMap.values().stream().anyMatch( TypeReport::hasErrorReports );
+    }
+
+    @Override
+    public boolean hasErrorReport( Predicate<ErrorReport> test )
+    {
+        return typeReportMap.values().stream().anyMatch( report -> report.hasErrorReport( test ) );
+    }
+
+    @Override
+    public void forEachErrorReport( Consumer<ErrorReport> reportConsumer )
+    {
+        typeReportMap.values().forEach( report -> report.forEachErrorReport( reportConsumer ) );
     }
 
     // -----------------------------------------------------------------------------------
@@ -143,15 +172,47 @@ public class ImportReport
     @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
     public void setTypeReports( List<TypeReport> typeReports )
     {
+        typeReportMap.clear();
         if ( typeReports != null )
         {
             typeReports.forEach( tr -> typeReportMap.put( tr.getKlass(), tr ) );
         }
     }
 
-    public Map<Class<?>, TypeReport> getTypeReportMap()
+    public Set<Class<?>> getTypeReportKeys()
     {
-        return typeReportMap;
+        return unmodifiableSet( typeReportMap.keySet() );
+    }
+
+    @JsonIgnore
+    public int getTypeReportCount()
+    {
+        return typeReportMap.size();
+    }
+
+    public TypeReport getTypeReport( Class<?> klass )
+    {
+        return typeReportMap.get( klass );
+    }
+
+    public void forEachTypeReport( Consumer<TypeReport> reportConsumer )
+    {
+        typeReportMap.values().forEach( reportConsumer );
+    }
+
+    public ObjectReport getFirstObjectReport()
+    {
+        Iterator<TypeReport> iter = typeReportMap.values().iterator();
+        if ( !iter.hasNext() )
+        {
+            return null;
+        }
+        TypeReport report = iter.next();
+        if ( !report.hasObjectReports() )
+        {
+            return null;
+        }
+        return report.getFirstObjectReport();
     }
 
     @Override

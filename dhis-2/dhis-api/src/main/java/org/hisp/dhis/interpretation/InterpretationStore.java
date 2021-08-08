@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.interpretation;
 
+import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.visualization.Visualization;
@@ -37,9 +39,7 @@ import org.hisp.dhis.visualization.Visualization;
 public interface InterpretationStore
     extends IdentifiableObjectStore<Interpretation>
 {
-    long countMapInterpretations( Map map );
+    List<Interpretation> getInterpretations( Map map );
 
-    long countVisualizationInterpretations( Visualization visualization );
-
-    Interpretation getByVisualizationId( long id );
+    List<Interpretation> getInterpretations( Visualization visualization );
 }

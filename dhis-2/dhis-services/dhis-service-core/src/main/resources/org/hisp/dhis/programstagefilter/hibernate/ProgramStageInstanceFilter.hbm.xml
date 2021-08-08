@@ -32,6 +32,9 @@
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>
+
+    <property name="translations" type="jblTranslations"/>
+
     
   </class>
 

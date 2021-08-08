@@ -50,13 +50,12 @@ public class DataApprovalWorkflowDeletionHandler
     }
 
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return DataApprovalWorkflow.class.getSimpleName();
+        whenDeleting( DataApprovalLevel.class, this::deleteDataApprovalLevel );
     }
 
-    @Override
-    public void deleteDataApprovalLevel( DataApprovalLevel level )
+    private void deleteDataApprovalLevel( DataApprovalLevel level )
     {
         for ( DataApprovalWorkflow workflow : idObjectManager.getAllNoAcl( DataApprovalWorkflow.class ) )
         {

@@ -34,6 +34,7 @@ import java.util.List;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ContextUtils;
 
 import com.opensymphony.xwork2.Action;
@@ -41,7 +42,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author mortenoh
  */
-public class GetAttributesAction
+public class GetAttributesAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -73,10 +74,15 @@ public class GetAttributesAction
     @Override
     public String execute()
     {
+        canReadType( Attribute.class );
+
         attributes = new ArrayList<>( attributeService.getAllAttributes() );
 
         ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(),
             attributes );
+
+        User currentUser = currentUserService.getCurrentUser();
+        attributes.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         Collections.sort( attributes );
 

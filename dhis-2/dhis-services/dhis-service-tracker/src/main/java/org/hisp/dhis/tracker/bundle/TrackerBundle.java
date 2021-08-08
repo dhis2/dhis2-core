@@ -28,18 +28,16 @@
 package org.hisp.dhis.tracker.bundle;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.*;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 
@@ -50,7 +48,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public class TrackerBundle
 {
@@ -147,6 +144,12 @@ public class TrackerBundle
      * Rule effects for Enrollments.
      */
     @Builder.Default
+    private List<RuleEffects> ruleEffects = new ArrayList<>();
+
+    /**
+     * Rule effects for Enrollments.
+     */
+    @Builder.Default
     private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
     /**
@@ -154,6 +157,25 @@ public class TrackerBundle
      */
     @Builder.Default
     private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+
+    @Builder.Default
+    private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = initStrategyMap();
+
+    private TrackerBundle()
+    {
+    }
+
+    private static Map<TrackerType, Map<String, TrackerImportStrategy>> initStrategyMap()
+    {
+        Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new EnumMap<>( TrackerType.class );
+
+        resolvedStrategyMap.put( TrackerType.RELATIONSHIP, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.EVENT, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.ENROLLMENT, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.TRACKED_ENTITY, new HashMap<>() );
+
+        return resolvedStrategyMap;
+    }
 
     @JsonProperty
     public String getUsername()
@@ -174,5 +196,26 @@ public class TrackerBundle
     public Optional<Enrollment> getEnrollment( String id )
     {
         return this.enrollments.stream().filter( t -> t.getEnrollment().equals( id ) ).findFirst();
+    }
+
+    public Map<String, List<RuleEffect>> getEnrollmentRuleEffects()
+    {
+        return ruleEffects.stream()
+            .filter( RuleEffects::isEnrollment )
+            .filter( e -> getEnrollment( e.getTrackerObjectUid() ).isPresent() )
+            .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
+    }
+
+    public Map<String, List<RuleEffect>> getEventRuleEffects()
+    {
+        return ruleEffects.stream()
+            .filter( RuleEffects::isEvent )
+            .filter( e -> getEvent( e.getTrackerObjectUid() ).isPresent() )
+            .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
+    }
+
+    public TrackerImportStrategy setStrategy( TrackerDto dto, TrackerImportStrategy strategy )
+    {
+        return this.getResolvedStrategyMap().get( dto.getTrackerType() ).put( dto.getUid(), strategy );
     }
 }

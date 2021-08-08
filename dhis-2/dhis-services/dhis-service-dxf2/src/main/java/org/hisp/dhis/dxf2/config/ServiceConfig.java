@@ -54,6 +54,7 @@ import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStatusPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
@@ -79,10 +80,12 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.MandatoryAttributesCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.NotOwnerReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SchemaCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SecurityCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniqueAttributesCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniqueMultiPropertiesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniquenessCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UpdateCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationCheck;
@@ -90,6 +93,15 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationHooksCheck;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.action.validation.AlwaysValidProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.BaseProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.HideOptionProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.HideProgramStageProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.HideSectionProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.NotificationProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.ShowHideOptionGroupProgramRuleActionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -147,9 +159,11 @@ public class ServiceConfig
         SecurityCheck.class,
         SchemaCheck.class,
         UniquenessCheck.class,
+        UniqueMultiPropertiesCheck.class,
         MandatoryAttributesCheck.class,
         UniqueAttributesCheck.class,
-        ReferencesCheck.class );
+        ReferencesCheck.class,
+        NotOwnerReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = newArrayList(
         DuplicateIdsCheck.class,
@@ -158,9 +172,11 @@ public class ServiceConfig
         CreationCheck.class,
         SchemaCheck.class,
         UniquenessCheck.class,
+        UniqueMultiPropertiesCheck.class,
         MandatoryAttributesCheck.class,
         UniqueAttributesCheck.class,
-        ReferencesCheck.class );
+        ReferencesCheck.class,
+        NotOwnerReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = newArrayList(
         DuplicateIdsCheck.class,
@@ -169,9 +185,11 @@ public class ServiceConfig
         UpdateCheck.class,
         SchemaCheck.class,
         UniquenessCheck.class,
+        UniqueMultiPropertiesCheck.class,
         MandatoryAttributesCheck.class,
         UniqueAttributesCheck.class,
-        ReferencesCheck.class );
+        ReferencesCheck.class,
+        NotOwnerReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = newArrayList(
         SecurityCheck.class,
@@ -251,6 +269,7 @@ public class ServiceConfig
         return ImmutableMap.of( CREATE, newArrayList(
             ImportOptionsPreProcessor.class,
             EventStoredByPreProcessor.class,
+            EventStatusPreProcessor.class,
             ProgramInstancePreProcessor.class,
             ProgramStagePreProcessor.class,
             EventGeometryPreProcessor.class,
@@ -274,6 +293,7 @@ public class ServiceConfig
         return ImmutableMap.of( UPDATE, newArrayList(
             ImportOptionsPreProcessor.class,
             EventStoredByPreProcessor.class,
+            EventStatusPreProcessor.class,
             ProgramStageInstanceUpdatePreProcessor.class,
             ProgramInstanceGeometryPreProcessor.class,
             UserInfoUpdatePreProcessor.class ) );
@@ -306,5 +326,30 @@ public class ServiceConfig
     {
         return ImmutableMap.of( DELETE, newArrayList(
             EventDeleteAuditPostProcessor.class ) );
+    }
+
+    @Bean
+    public Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> programRuleActionValidatorMap()
+    {
+        return new ImmutableMap.Builder<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>>()
+            .put( ProgramRuleActionType.SENDMESSAGE, NotificationProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SCHEDULEMESSAGE, NotificationProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SHOWOPTIONGROUP, ShowHideOptionGroupProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.HIDEOPTIONGROUP, ShowHideOptionGroupProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.DISPLAYTEXT, AlwaysValidProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.DISPLAYKEYVALUEPAIR, AlwaysValidProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.ASSIGN, BaseProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.HIDEFIELD, BaseProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.CREATEEVENT, BaseProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.WARNINGONCOMPLETE, BaseProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.ERRORONCOMPLETE, BaseProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SHOWWARNING, AlwaysValidProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SHOWERROR, AlwaysValidProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SETMANDATORYFIELD, BaseProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.HIDEOPTION, HideOptionProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.HIDESECTION, HideSectionProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.HIDEPROGRAMSTAGE, HideProgramStageProgramRuleActionValidator.class )
+
+            .build();
     }
 }

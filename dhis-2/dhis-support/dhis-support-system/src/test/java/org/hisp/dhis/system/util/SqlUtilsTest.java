@@ -49,4 +49,12 @@ public class SqlUtilsTest
         assertEquals( "ougs.\"Short name\"", SqlUtils.quote( "ougs", "Short name" ) );
         assertEquals( "ous.\"uid\"", SqlUtils.quote( "ous", "uid" ) );
     }
+
+    @Test
+    public void testSingleQuote()
+    {
+        assertEquals( "'jkhYg65ThbF'", SqlUtils.singleQuote( "jkhYg65ThbF" ) );
+        assertEquals( "'Some ''special'' value'", SqlUtils.singleQuote( "Some 'special' value" ) );
+        assertEquals( "'Another \"strange\" value'", SqlUtils.singleQuote( "Another \"strange\" value" ) );
+    }
 }

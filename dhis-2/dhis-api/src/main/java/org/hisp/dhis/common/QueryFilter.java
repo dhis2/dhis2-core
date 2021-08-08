@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.analytics.QueryKey.NV;
+
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -39,16 +45,16 @@ public class QueryFilter
 {
     public static final String OPTION_SEP = ";";
 
-    public static final ImmutableMap<QueryOperator, String> OPERATOR_MAP = ImmutableMap
-        .<QueryOperator, String> builder()
-        .put( QueryOperator.EQ, "=" )
-        .put( QueryOperator.GT, ">" )
-        .put( QueryOperator.GE, ">=" )
-        .put( QueryOperator.LT, "<" )
-        .put( QueryOperator.LE, "<=" )
-        .put( QueryOperator.NE, "!=" )
-        .put( QueryOperator.LIKE, "like" )
-        .put( QueryOperator.IN, "in" ).build();
+    public static final ImmutableMap<QueryOperator, Function<Boolean, String>> OPERATOR_MAP = ImmutableMap
+        .<QueryOperator, Function<Boolean, String>> builder()
+        .put( QueryOperator.EQ, isValueNull -> isValueNull ? "is" : "=" )
+        .put( QueryOperator.GT, unused -> ">" )
+        .put( QueryOperator.GE, unused -> ">=" )
+        .put( QueryOperator.LT, unused -> "<" )
+        .put( QueryOperator.LE, unused -> "<=" )
+        .put( QueryOperator.NE, isValueNull -> isValueNull ? "is not" : "!=" )
+        .put( QueryOperator.LIKE, unused -> "like" )
+        .put( QueryOperator.IN, unused -> "in" ).build();
 
     protected QueryOperator operator;
 
@@ -89,9 +95,15 @@ public class QueryFilter
             return null;
         }
 
-        return OPERATOR_MAP.get( operator );
+        return safelyGetOperator();
     }
 
+    private String safelyGetOperator()
+    {
+        return OPERATOR_MAP.get( operator ).apply( StringUtils.trimToEmpty( filter ).contains( NV ) );
+    }
+
+    // TODO: unused. Remove ?
     public String getJavaOperator()
     {
         if ( operator == null || operator == QueryOperator.LIKE || operator == QueryOperator.IN )
@@ -104,7 +116,7 @@ public class QueryFilter
             return "==";
         }
 
-        return OPERATOR_MAP.get( operator );
+        return safelyGetOperator();
     }
 
     public String getSqlFilter( String encodedFilter )
@@ -118,21 +130,25 @@ public class QueryFilter
         {
             return "'%" + encodedFilter + "%'";
         }
+        else if ( QueryOperator.EQ.equals( operator ) || QueryOperator.NE.equals( operator ) )
+        {
+            if ( encodedFilter.equals( NV ) )
+            {
+                return "null";
+            }
+        }
         else if ( QueryOperator.IN.equals( operator ) )
         {
-            List<String> filterItems = getFilterItems( encodedFilter );
-
-            final StringBuffer buffer = new StringBuffer( "(" );
-
-            for ( String filterItem : filterItems )
-            {
-                buffer.append( "'" ).append( filterItem ).append( "'," );
-            }
-
-            return buffer.deleteCharAt( buffer.length() - 1 ).append( ")" ).toString();
+            return getFilterItems( encodedFilter ).stream()
+                .map( this::quote )
+                .collect( Collectors.joining( ",", "(", ")" ) );
         }
-
         return "'" + encodedFilter + "'";
+    }
+
+    private String quote( String filterItem )
+    {
+        return "'" + filterItem + "'";
     }
 
     /**
@@ -207,17 +223,10 @@ public class QueryFilter
 
         if ( operator == null )
         {
-            if ( other.operator != null )
-            {
-                return false;
-            }
+            return other.operator == null;
         }
-        else if ( !operator.equals( other.operator ) )
-        {
-            return false;
-        }
-
-        return true;
+        else
+            return operator.equals( other.operator );
     }
 
     // -------------------------------------------------------------------------

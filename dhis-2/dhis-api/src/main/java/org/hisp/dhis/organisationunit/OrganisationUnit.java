@@ -54,10 +54,13 @@ import org.hisp.dhis.common.coordinate.CoordinateObject;
 import org.hisp.dhis.common.coordinate.CoordinateUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitDisplayNameComparator;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitDisplayShortNameComparator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
@@ -95,6 +98,11 @@ public class OrganisationUnit
 
     private OrganisationUnit parent;
 
+    /**
+     * Child org units, inverse set managed by {@link OrganisationUnit#parent}.
+     */
+    private Set<OrganisationUnit> children = new HashSet<>();
+
     private String path;
 
     private Integer hierarchyLevel;
@@ -127,11 +135,14 @@ public class OrganisationUnit
 
     private Geometry geometry;
 
+    /**
+     * A reference to the Image file associated with this OrganisationUnit.
+     */
+    private FileResource image;
+
     // -------------------------------------------------------------------------
     // Transient fields
     // -------------------------------------------------------------------------
-
-    private Set<OrganisationUnit> children = new HashSet<>();
 
     private transient boolean currentParent;
 
@@ -659,6 +670,7 @@ public class OrganisationUnit
         return set;
     }
 
+    @Property( persistedAs = "hierarchyLevel" )
     @JsonProperty( value = "level", access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( localName = "level", isAttribute = true )
     public int getLevel()
@@ -802,6 +814,20 @@ public class OrganisationUnit
     }
 
     @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "children", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "child", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<OrganisationUnit> getChildren()
+    {
+        return children;
+    }
+
+    public void setChildren( Set<OrganisationUnit> children )
+    {
+        this.children = children;
+    }
+
+    @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getPath()
     {
@@ -872,20 +898,6 @@ public class OrganisationUnit
     public void setHierarchyLevel( Integer hierarchyLevel )
     {
         this.hierarchyLevel = hierarchyLevel;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "children", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "child", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<OrganisationUnit> getChildren()
-    {
-        return children;
-    }
-
-    public void setChildren( Set<OrganisationUnit> children )
-    {
-        this.children = children;
     }
 
     @JsonProperty
@@ -1065,6 +1077,7 @@ public class OrganisationUnit
         this.categoryOptions = categoryOptions;
     }
 
+    @Gist( included = Include.FALSE )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Geometry getGeometry()
@@ -1093,6 +1106,18 @@ public class OrganisationUnit
     public boolean hasCoordinates()
     {
         return this.geometry != null;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FileResource getImage()
+    {
+        return image;
+    }
+
+    public void setImage( FileResource image )
+    {
+        this.image = image;
     }
 
     // -------------------------------------------------------------------------

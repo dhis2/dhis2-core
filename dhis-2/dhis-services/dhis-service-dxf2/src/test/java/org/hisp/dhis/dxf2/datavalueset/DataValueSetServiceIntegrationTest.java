@@ -27,17 +27,22 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.junit.Assert.assertEquals;
 
 import java.io.InputStream;
 
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -50,7 +55,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -60,7 +64,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@Ignore
 public class DataValueSetServiceIntegrationTest
     extends DhisTest
 {
@@ -78,6 +81,9 @@ public class DataValueSetServiceIntegrationTest
 
     @Autowired
     private DataValueService dataValueService;
+
+    @Autowired
+    private CategoryService categoryService;
 
     @Autowired
     private UserService _userService;
@@ -180,7 +186,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 3, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 3, dataValueService.getAllDataValues().size() );
@@ -194,7 +200,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 0, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 3, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 0, dataValueService.getAllDataValues().size() );
@@ -216,7 +222,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 12, dataValueService.getAllDataValues().size() );
@@ -248,10 +254,46 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 4, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 14, dataValueService.getAllDataValues().size() );
+    }
+
+    /**
+     * When updating a data value with a specified created date, the specified
+     * created date should be used.
+     *
+     * When updating a data value without a specified created date, the existing
+     * created date should remain unchanged.
+     */
+    @Test
+    public void testUpdateCreatedDate()
+        throws Exception
+    {
+        // Insert:
+        // deC, peA, ouA created = 2010-01-01
+        // deC, peA, ouB created = 2010-01-01
+
+        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+
+        dataValueSetService.saveDataValueSet( in );
+
+        // Update:
+        // deC, peA, ouA created = not specified, should remain unchanged
+        // deC, peA, ouB created = 2020-02-02
+
+        in = new ClassPathResource( "datavalueset/dataValueSetBUpdate.xml" ).getInputStream();
+
+        dataValueSetService.saveDataValueSet( in );
+
+        CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+
+        DataValue dv1 = dataValueService.getDataValue( deC, peA, ouA, cc, cc );
+        assertEquals( "2010-01-01", getMediumDateString( dv1.getCreated() ) );
+
+        DataValue dv2 = dataValueService.getDataValue( deC, peA, ouB, cc, cc );
+        assertEquals( "2020-02-02", getMediumDateString( dv2.getCreated() ) );
     }
 
     /**
@@ -272,7 +314,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 8, dataValueService.getAllDataValues().size() );
@@ -306,7 +348,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 4, summary.getImportCount().getImported() );
         assertEquals( 8, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 12, dataValueService.getAllDataValues().size() );
@@ -340,7 +382,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 8, summary.getImportCount().getImported() );
         assertEquals( 4, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 16, dataValueService.getAllDataValues().size() );
@@ -373,7 +415,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 0, summary.getImportCount().getImported() );
         assertEquals( 8, summary.getImportCount().getUpdated() );
         assertEquals( 4, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 8, dataValueService.getAllDataValues().size() );
@@ -406,7 +448,7 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 6, summary.getImportCount().getUpdated() );
         assertEquals( 4, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 10, dataValueService.getAllDataValues().size() );
@@ -442,9 +484,17 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 0, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 12, summary.getImportCount().getDeleted() );
-        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertHasNoConflicts( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
         assertEquals( 0, dataValueService.getAllDataValues().size() );
+    }
+
+    private static void assertHasNoConflicts( ImportConflicts summary )
+    {
+        if ( summary.hasConflicts() )
+        {
+            assertEquals( summary.getConflictsDescription(), 0, summary.getConflictCount() );
+        }
     }
 }

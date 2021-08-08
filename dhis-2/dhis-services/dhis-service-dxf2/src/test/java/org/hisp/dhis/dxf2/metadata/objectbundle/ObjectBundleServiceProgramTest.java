@@ -41,6 +41,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -110,9 +111,9 @@ public class ObjectBundleServiceProgramTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
-        validate.getErrorReports().forEach( System.out::println );
+        validate.forEachErrorReport( System.out::println );
 
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -154,7 +155,7 @@ public class ObjectBundleServiceProgramTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -201,9 +202,9 @@ public class ObjectBundleServiceProgramTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
-        validate.getErrorReports().forEach( System.out::println );
+        validate.forEachErrorReport( System.out::println );
 
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -244,8 +245,8 @@ public class ObjectBundleServiceProgramTest
         ObjectBundle bundle1 = objectBundleService.create( params1 );
         ObjectBundleValidationReport validate1 = objectBundleValidationService.validate( bundle1 );
 
-        assertTrue( validate1.getErrorReports().isEmpty() );
-        assertEquals( 0, validate1.getErrorReports().size() );
+        assertFalse( validate1.hasErrorReports() );
+        assertEquals( 0, validate1.getErrorReportsCount() );
     }
 
     @Test
@@ -265,7 +266,52 @@ public class ObjectBundleServiceProgramTest
         ObjectBundle bundle1 = objectBundleService.create( params1 );
         ObjectBundleValidationReport validate1 = objectBundleValidationService.validate( bundle1 );
 
-        assertTrue( validate1.getErrorReports().isEmpty() );
+        assertFalse( validate1.hasErrorReports() );
+    }
+
+    @Test
+    public void testInvalidProgramRuleAction()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_program_and_program_rules_with_invalid_ruleActions.json" )
+                .getInputStream(),
+            RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+
+        validate.forEachErrorReport( System.out::println );
+
+        assertTrue( validate.hasErrorReports() );
+        assertTrue( validate.hasErrorReport( report -> report.getErrorCode() == ErrorCode.E4047 ) );
+    }
+
+    @Test
+    public void testValidProgramRuleAction()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_program_and_program_rules_with_valid_ruleActions.json" )
+                .getInputStream(),
+            RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+
+        validate.forEachErrorReport( System.out::println );
+
+        assertFalse( validate.hasErrorReports() );
     }
 
     @Test
@@ -283,7 +329,7 @@ public class ObjectBundleServiceProgramTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -299,8 +345,8 @@ public class ObjectBundleServiceProgramTest
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
-        validate.getErrorReports().forEach( System.out::println );
-        assertFalse( validate.getErrorReports().isEmpty() );
+        validate.forEachErrorReport( System.out::println );
+        assertTrue( validate.hasErrorReports() );
     }
 
     @Test
@@ -318,7 +364,7 @@ public class ObjectBundleServiceProgramTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -349,8 +395,8 @@ public class ObjectBundleServiceProgramTest
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
-        validate.getErrorReports().forEach( System.out::println );
-        assertFalse( validate.getErrorReports().isEmpty() );
+        validate.forEachErrorReport( System.out::println );
+        assertTrue( validate.hasErrorReports() );
     }
 
     @Test
@@ -368,8 +414,8 @@ public class ObjectBundleServiceProgramTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        validate.getErrorReports().forEach( System.out::println );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        validate.forEachErrorReport( System.out::println );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
 
@@ -411,8 +457,8 @@ public class ObjectBundleServiceProgramTest
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
-        validate.getErrorReports().forEach( System.out::println );
-        assertTrue( validate.getErrorReports().isEmpty() );
+        validate.forEachErrorReport( System.out::println );
+        assertFalse( validate.hasErrorReports() );
     }
 
     private void createProgramRuleMetadata()
@@ -430,9 +476,9 @@ public class ObjectBundleServiceProgramTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
 
-        validate.getErrorReports().forEach( System.out::println );
+        validate.forEachErrorReport( System.out::println );
 
-        assertTrue( validate.getErrorReports().isEmpty() );
+        assertFalse( validate.hasErrorReports() );
 
         objectBundleService.commit( bundle );
     }

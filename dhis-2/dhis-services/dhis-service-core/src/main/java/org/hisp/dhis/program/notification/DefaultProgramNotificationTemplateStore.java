@@ -27,12 +27,16 @@
  */
 package org.hisp.dhis.program.notification;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
+import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -47,6 +51,12 @@ public class DefaultProgramNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
     implements ProgramNotificationTemplateStore
 {
+    private static final String NOTIFICATION_RECIPIENT = "recipient";
+
+    private static final String PROGRAM_ID = "pid";
+
+    private static final String PROGRAM_STAGE_ID = "psid";
+
     public DefaultProgramNotificationTemplateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
@@ -61,5 +71,51 @@ public class DefaultProgramNotificationTemplateStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "notificationtrigger" ), trigger ) ) );
+    }
+
+    @Override
+    public boolean isProgramLinkedToWebHookNotification( Long pId )
+    {
+        NativeQuery<BigInteger> query = getSession().createNativeQuery(
+            "select count(*) from programnotificationtemplate where programid = :pid and notificationrecipienttype = :recipient" );
+        query.setParameter( PROGRAM_ID, pId );
+        query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
+
+        return query.getSingleResult().longValue() > 0;
+    }
+
+    @Override
+    public boolean isProgramStageLinkedToWebHookNotification( Long psId )
+    {
+        NativeQuery<BigInteger> query = getSession().createNativeQuery(
+            "select count(*) from programnotificationtemplate where programstageid = :psid and notificationrecipienttype = :recipient" );
+        query.setParameter( PROGRAM_STAGE_ID, psId );
+        query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
+
+        return query.getSingleResult().longValue() > 0;
+    }
+
+    @Override
+    public List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications( Program program )
+    {
+        NativeQuery<ProgramNotificationTemplate> query = getSession().createNativeQuery(
+            "select * from programnotificationtemplate where programid = :pid and notificationrecipienttype = :recipient",
+            ProgramNotificationTemplate.class );
+        query.setParameter( PROGRAM_ID, program.getId() );
+        query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
+
+        return query.getResultList();
+    }
+
+    @Override
+    public List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications( ProgramStage programStage )
+    {
+        NativeQuery<ProgramNotificationTemplate> query = getSession().createNativeQuery(
+            "select * from programnotificationtemplate where programstageid = :psid and notificationrecipienttype = :recipient",
+            ProgramNotificationTemplate.class );
+        query.setParameter( PROGRAM_STAGE_ID, programStage.getId() );
+        query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
+
+        return query.getResultList();
     }
 }

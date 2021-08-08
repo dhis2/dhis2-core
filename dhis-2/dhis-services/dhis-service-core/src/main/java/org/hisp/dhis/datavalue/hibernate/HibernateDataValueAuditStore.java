@@ -52,6 +52,7 @@ import org.hisp.dhis.period.PeriodStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 
@@ -82,6 +83,13 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     // -------------------------------------------------------------------------
     // DataValueAuditStore implementation
     // -------------------------------------------------------------------------
+
+    @Override
+    @Transactional
+    public void updateDataValueAudit( DataValueAudit dataValueAudit )
+    {
+        getSession().update( dataValueAudit );
+    }
 
     @Override
     public void addDataValueAudit( DataValueAudit dataValueAudit )

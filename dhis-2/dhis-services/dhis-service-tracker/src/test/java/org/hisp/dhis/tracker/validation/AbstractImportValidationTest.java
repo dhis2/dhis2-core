@@ -30,16 +30,11 @@ package org.hisp.dhis.tracker.validation;
 import java.io.IOException;
 import java.io.InputStream;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -47,7 +42,6 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 public abstract class AbstractImportValidationTest
     extends TrackerTest
 {
@@ -94,37 +88,5 @@ public abstract class AbstractImportValidationTest
     protected void initTest()
         throws IOException
     {
-    }
-
-    protected void printReport( TrackerValidationReport report )
-    {
-        for ( TrackerErrorReport errorReport : report.getErrorReports() )
-        {
-            log.error( errorReport.toString() );
-        }
-    }
-
-    protected ValidateAndCommitTestUnit validateAndCommit( String jsonFileName, TrackerImportStrategy strategy )
-        throws IOException
-    {
-        return ValidateAndCommitTestUnit.builder()
-            .trackerBundleService( trackerBundleService )
-            .trackerValidationService( trackerValidationService )
-            .trackerImportParams( createBundleFromJson( jsonFileName ) )
-            .trackerImportStrategy( strategy )
-            .build()
-            .invoke();
-    }
-
-    protected ValidateAndCommitTestUnit validateAndCommit( TrackerImportParams params,
-        TrackerImportStrategy strategy )
-    {
-        return ValidateAndCommitTestUnit.builder()
-            .trackerBundleService( trackerBundleService )
-            .trackerValidationService( trackerValidationService )
-            .trackerImportParams( params )
-            .trackerImportStrategy( strategy )
-            .build()
-            .invoke();
     }
 }

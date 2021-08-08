@@ -27,37 +27,30 @@
  */
 package org.hisp.dhis.trackedentitycomment;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@AllArgsConstructor
 public class TrackedEntityCommentDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    @Autowired
-    TrackedEntityCommentService commentService;
-
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+    private final TrackedEntityCommentService commentService;
 
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return ProgramInstance.class.getSimpleName();
+        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
+        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
     }
 
-    @Override
-    public void deleteProgramInstance( ProgramInstance programInstance )
+    private void deleteProgramInstance( ProgramInstance programInstance )
     {
         for ( TrackedEntityComment comment : programInstance.getComments() )
         {
@@ -65,8 +58,7 @@ public class TrackedEntityCommentDeletionHandler
         }
     }
 
-    @Override
-    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    private void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         for ( TrackedEntityComment comment : programStageInstance.getComments() )
         {

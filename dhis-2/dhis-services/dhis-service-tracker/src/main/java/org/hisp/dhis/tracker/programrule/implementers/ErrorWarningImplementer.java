@@ -108,7 +108,7 @@ public abstract class ErrorWarningImplementer<T extends RuleActionMessage>
         return Lists.newArrayList();
     }
 
-    private <T extends ActionRule> List<ProgramRuleIssue> parseErrors( List<T> effects )
+    private <U extends ActionRule> List<ProgramRuleIssue> parseErrors( List<U> effects )
     {
         return effects
             .stream()

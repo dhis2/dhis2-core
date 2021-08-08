@@ -44,6 +44,15 @@ public interface DataValueAuditStore
     String ID = DataValueAuditStore.class.getName();
 
     /**
+     * Updates the given audit.
+     *
+     * OBS! This is for use in tests only!
+     *
+     * @param dataValueAudit entry to update
+     */
+    void updateDataValueAudit( DataValueAudit dataValueAudit );
+
+    /**
      * Adds a DataValueAudit.
      *
      * @param dataValueAudit the DataValueAudit to add.

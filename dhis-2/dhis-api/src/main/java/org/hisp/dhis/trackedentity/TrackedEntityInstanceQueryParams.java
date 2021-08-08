@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -242,6 +241,11 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether paging should be skipped.
      */
     private boolean skipPaging;
+
+    /**
+     * Indicates if there is a maximum tei retrieval limit. 0 no limit.
+     */
+    private int maxTeiLimit;
 
     /**
      * Indicates whether to include soft-deleted elements
@@ -735,24 +739,36 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether filters are unique attributes.
+     * Checks if there is atleast one unique filter in the params. In attributes
+     * or filters.
+     *
+     * @return true if there is exist atlesast one unique filter in
+     *         filters/attributes, false otherwise.
      */
-    public boolean hasUniqueFilters()
+    public boolean hasUniqueFilter()
     {
-        if ( !hasFilters() )
+        if ( !hasFilters() && !hasAttributes() )
         {
             return false;
         }
 
         for ( QueryItem filter : filters )
         {
-            if ( !filter.isUnique() )
+            if ( filter.isUnique() )
             {
-                return false;
+                return true;
             }
         }
 
-        return true;
+        for ( QueryItem attribute : attributes )
+        {
+            if ( attribute.isUnique() && attribute.hasFilter() )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -787,7 +803,7 @@ public class TrackedEntityInstanceQueryParams
      */
     public boolean isPaging()
     {
-        return page != null || pageSize != null;
+        return !isSkipPaging();
     }
 
     /**
@@ -814,16 +830,6 @@ public class TrackedEntityInstanceQueryParams
     public int getOffset()
     {
         return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-    }
-
-    /**
-     * Sets paging properties to default values.
-     */
-    public void setDefaultPaging()
-    {
-        this.page = DEFAULT_PAGE;
-        this.pageSize = DEFAULT_PAGE_SIZE;
-        this.skipPaging = false;
     }
 
     // -------------------------------------------------------------------------
@@ -1150,6 +1156,17 @@ public class TrackedEntityInstanceQueryParams
         return this;
     }
 
+    public int getMaxTeiLimit()
+    {
+        return maxTeiLimit;
+    }
+
+    public TrackedEntityInstanceQueryParams setMaxTeiLimit( int maxTeiLimit )
+    {
+        this.maxTeiLimit = maxTeiLimit;
+        return this;
+    }
+
     public boolean isIncludeDeleted()
     {
         return includeDeleted;
@@ -1280,6 +1297,12 @@ public class TrackedEntityInstanceQueryParams
         this.trackedEntityTypes = trackedEntityTypes;
     }
 
+    public boolean hasFilterForPrograms()
+    {
+        return hasProgramStatus() || hasFollowUp() || hasProgramEnrollmentStartDate() || hasProgramEnrollmentEndDate()
+            || hasProgramIncidentStartDate() || hasProgramIncidentEndDate() || hasFilterForEvents();
+    }
+
     @Getter
     @AllArgsConstructor
     public enum OrderColumn
@@ -1293,18 +1316,7 @@ public class TrackedEntityInstanceQueryParams
         ENROLLED_AT( "enrolledAt", "pi.enrollmentDate" ),
         // this works only for the new endpoint
         // ORGUNIT_NAME( "orgUnitName", "tei.organisationUnit.name" ),
-        INACTIVE( INACTIVE_ID, "tei.inactive" ),
-        ENROLLMENT_OCCURED_AT( "enrollmentOccurredAt", "pi.incidentDate" ),
-        ENROLLMENT_CREATED_AT( "enrollmentCreatedAt", "pi.created" ),
-        ENROLLMENT_CREATED_AT_CLIENT( "enrollmentCreatedAtClient", "pi.createdAtClient" ),
-        ENROLLMENT_UPDATED_AT( "enrollmentUpdatedAt", "pi.lastUpdated" ),
-        ENROLLMENT_UPDATED_AT_CLIENT( "enrollmentUpdatedAtClient", "pi.lastUpdatedAtClient" ),
-        ENROLLMENT_STATUS( "status",
-            "(case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end)" );
-
-        private static final EnumSet<OrderColumn> enrollmentOrderColumns = EnumSet.of( ENROLLED_AT,
-            ENROLLMENT_OCCURED_AT, ENROLLMENT_CREATED_AT, ENROLLMENT_CREATED_AT_CLIENT,
-            ENROLLMENT_UPDATED_AT, ENROLLMENT_UPDATED_AT_CLIENT, ENROLLMENT_STATUS );
+        INACTIVE( INACTIVE_ID, "tei.inactive" );
 
         private final String propName;
 
@@ -1313,12 +1325,6 @@ public class TrackedEntityInstanceQueryParams
         public static boolean isStaticColumn( String propName )
         {
             return Arrays.stream( OrderColumn.values() )
-                .anyMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
-        }
-
-        public static boolean isEnrollmentColumn( String propName )
-        {
-            return OrderColumn.enrollmentOrderColumns.stream()
                 .anyMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
         }
 

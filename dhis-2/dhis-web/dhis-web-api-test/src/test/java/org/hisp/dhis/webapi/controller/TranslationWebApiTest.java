@@ -43,7 +43,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
-import org.hisp.dhis.webapi.documentation.common.TestUtils;
+import org.hisp.dhis.webapi.utils.TestUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

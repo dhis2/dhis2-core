@@ -132,12 +132,12 @@ public class UserSettingServiceTest
 
         assertEquals( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION.getDefaultValue(), emailNotification );
 
-        userSettingService.saveUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, new Boolean( false ), userA );
+        userSettingService.saveUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, Boolean.FALSE, userA );
 
         emailNotification = (Boolean) userSettingService.getUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION,
             userA );
 
-        assertEquals( new Boolean( false ), emailNotification );
+        assertEquals( Boolean.FALSE, emailNotification );
     }
 
     @Test

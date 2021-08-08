@@ -52,6 +52,8 @@ public class UserAccess
 
     private String uid;
 
+    private String displayName;
+
     public UserAccess()
     {
     }
@@ -59,6 +61,14 @@ public class UserAccess
     public UserAccess( User user, String access )
     {
         this.user = user;
+        this.uid = user.getUid();
+        this.displayName = user.getDisplayName();
+        this.access = access;
+    }
+
+    public UserAccess( String uid, String access )
+    {
+        this.uid = uid;
         this.access = access;
     }
 
@@ -104,7 +114,12 @@ public class UserAccess
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String displayName()
     {
-        return user != null ? user.getDisplayName() : null;
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
     }
 
     @JsonIgnore

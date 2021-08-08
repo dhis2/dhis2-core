@@ -29,7 +29,10 @@ package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
-import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -41,7 +44,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.QueryValidator;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -141,7 +147,8 @@ public class DefaultQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7107 );
         }
-        else if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
+        else if ( (!params.getFilterIndicators().isEmpty() || !params.getFilterProgramIndicators().isEmpty())
+            && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
         {
             error = new ErrorMessage( ErrorCode.E7108 );
         }
@@ -188,7 +195,6 @@ public class DefaultQueryValidator
             else if ( !params.hasDimension( ORGUNIT_DIM_ID ) )
             {
                 error = new ErrorMessage( ErrorCode.E7119 );
-                ;
             }
         }
 

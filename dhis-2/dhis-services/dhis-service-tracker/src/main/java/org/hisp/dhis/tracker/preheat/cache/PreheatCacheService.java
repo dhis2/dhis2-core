@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
 /**
  * A DHIS2 metadata cache implementation to reduce db lookups during pre-heat
@@ -79,4 +80,11 @@ public interface PreheatCacheService
      * Invalidates all caches.
      */
     void invalidateCache();
+
+    /**
+     * Event handler for {@link ApplicationCacheClearedEvent}.
+     *
+     * @param event the {@link ApplicationCacheClearedEvent}.
+     */
+    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
 }

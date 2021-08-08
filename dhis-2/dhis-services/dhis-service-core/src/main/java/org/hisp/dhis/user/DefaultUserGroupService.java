@@ -27,16 +27,14 @@
  */
 package org.hisp.dhis.user;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.*;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
-import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.cache.*;
+import org.hisp.dhis.security.acl.*;
+import org.springframework.stereotype.*;
+import org.springframework.transaction.annotation.*;
 
 /**
  * @author Lars Helge Overland
@@ -57,8 +55,11 @@ public class DefaultUserGroupService
 
     private final HibernateCacheManager cacheManager;
 
+    private Cache<String> userGroupNameCache;
+
     public DefaultUserGroupService( UserGroupStore userGroupStore,
-        AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService )
+        AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService,
+        CacheProvider cacheProvider )
     {
         checkNotNull( userGroupStore );
         checkNotNull( currentUserService );
@@ -69,6 +70,8 @@ public class DefaultUserGroupService
         this.aclService = aclService;
         this.cacheManager = cacheManager;
         this.currentUserService = currentUserService;
+
+        userGroupNameCache = cacheProvider.createUserGroupNameCache();
     }
 
     // -------------------------------------------------------------------------
@@ -254,5 +257,13 @@ public class DefaultUserGroupService
     public List<UserGroup> getUserGroupsBetweenByName( String name, int first, int max )
     {
         return userGroupStore.getAllLikeName( name, first, max, false );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public String getDisplayName( String uid )
+    {
+        return userGroupNameCache.get( uid,
+            n -> userGroupStore.getByUidNoAcl( uid ).getDisplayName() ).orElse( null );
     }
 }

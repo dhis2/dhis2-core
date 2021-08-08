@@ -35,7 +35,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 @Component( "org.hisp.dhis.category.CategoryOptionDeletionHandler" )
 public class CategoryOptionDeletionHandler
@@ -49,18 +48,13 @@ public class CategoryOptionDeletionHandler
         this.idObjectManager = idObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return CategoryOption.class.getSimpleName();
+        whenDeleting( Category.class, this::deleteCategory );
     }
 
-    @Override
-    public void deleteCategory( Category category )
+    private void deleteCategory( Category category )
     {
         for ( CategoryOption categoryOption : category.getCategoryOptions() )
         {

@@ -27,18 +27,18 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
-import org.springframework.context.event.EventListener;
+
+import com.google.common.collect.ImmutableList;
 
 abstract class ImplementableRuleService
 {
@@ -51,7 +51,7 @@ abstract class ImplementableRuleService
 
     abstract List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid );
 
-    abstract Cache<Boolean> getProgramRulesCache();
+    abstract Cache<Boolean> getProgramHasRulesCache();
 
     protected List<ProgramRule> getProgramRulesByActionTypes( Program program,
         Set<ProgramRuleActionType> types, String programStageUid )
@@ -69,22 +69,26 @@ abstract class ImplementableRuleService
 
     public List<ProgramRule> getProgramRules( Program program, String programStageUid )
     {
-        Optional<Boolean> optionalCacheValue = getProgramRulesCache().get( program.getUid() );
+        Optional<Boolean> optionalCacheValue = getProgramHasRulesCache().get( program.getUid() );
+
         if ( optionalCacheValue.isPresent() && Boolean.FALSE.equals( optionalCacheValue.get() ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         List<ProgramRule> programRulesByActionTypes = getProgramRulesByActionTypes( program, programStageUid );
 
-        getProgramRulesCache().put( program.getUid(), !programRulesByActionTypes.isEmpty() );
-        return programRulesByActionTypes;
-    }
+        if ( programStageUid == null ) // To populate programHasRulesCache at
+                                       // enrollment
+        {
+            getProgramHasRulesCache().put( program.getUid(), !programRulesByActionTypes.isEmpty() );
 
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        getProgramRulesCache().invalidateAll();
+            // At enrollment, only those rules should be selected for execution
+            // which are not associated with any ProgramStage.
+            return programRulesByActionTypes.stream().filter( rule -> rule.getProgramStage() == null )
+                .collect( Collectors.toList() );
+        }
+        return programRulesByActionTypes;
     }
 
 }

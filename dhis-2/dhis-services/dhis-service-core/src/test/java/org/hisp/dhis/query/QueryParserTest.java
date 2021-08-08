@@ -31,7 +31,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
-import java.util.List;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.cache.CacheProvider;
@@ -45,10 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevelStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.query.operators.EmptyOperator;
 import org.hisp.dhis.query.operators.EqualOperator;
-import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.query.operators.NullOperator;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -109,8 +105,7 @@ public class QueryParserTest
             organisationUnitLevelStore, currentUserService, configurationService, userSettingService, cacheProvider );
         organisationUnitService.addOrganisationUnit( orgUnitA );
         identifiableObjectManager.save( orgUnitA );
-        queryParser = new DefaultJpaQueryParser( schemaService, currentUserService,
-            organisationUnitService );
+        queryParser = new DefaultJpaQueryParser( schemaService );
     }
 
     @Test( expected = QueryParserException.class )
@@ -163,36 +158,6 @@ public class QueryParserTest
     {
         queryParser.parse( DataElement.class,
             Arrays.asList( "dataElementGroups.id.name:eq:1", "dataElementGroups.id.abc:eq:2" ) );
-    }
-
-    @Test
-    public void restrictToCaptureScopeCriterions()
-    {
-        Query query = queryParser.parse( Program.class, Arrays.asList( "name:eq:1", "name:eq:2" ), Junction.Type.AND,
-            true );
-        assertEquals( 3, query.getCriterions().size() );
-
-        Restriction restriction = (Restriction) query.getCriterions().get( 0 );
-        assertEquals( "name", restriction.getPath() );
-        assertEquals( "1", restriction.getOperator().getArgs().get( 0 ) );
-        assertTrue( restriction.getOperator() instanceof EqualOperator );
-
-        restriction = (Restriction) query.getCriterions().get( 1 );
-        assertEquals( "name", restriction.getPath() );
-        assertEquals( "2", restriction.getOperator().getArgs().get( 0 ) );
-        assertTrue( restriction.getOperator() instanceof EqualOperator );
-
-        Disjunction disjunction = (Disjunction) query.getCriterions().get( 2 );
-        assertEquals( 2, disjunction.getCriterions().size() );
-
-        restriction = (Restriction) disjunction.getCriterions().get( 0 );
-        assertEquals( "organisationUnits.id", restriction.getPath() );
-        assertEquals( "ouabcdefghA", ((List<?>) restriction.getOperator().getCollectionArgs().get( 0 )).get( 0 ) );
-        assertTrue( restriction.getOperator() instanceof InOperator );
-
-        restriction = (Restriction) disjunction.getCriterions().get( 1 );
-        assertEquals( "organisationUnits", restriction.getPath() );
-        assertTrue( restriction.getOperator() instanceof EmptyOperator );
     }
 
     @Test

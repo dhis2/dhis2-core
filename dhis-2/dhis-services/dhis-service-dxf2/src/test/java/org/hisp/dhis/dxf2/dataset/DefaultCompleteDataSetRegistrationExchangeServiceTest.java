@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.dataset;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.assertIllegalQueryEx;
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
@@ -37,6 +36,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -59,7 +59,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -69,6 +69,8 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -181,6 +183,9 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
     private CachingMap<String, CategoryOptionCombo> aocCache;
 
     @Mock
+    private DhisConfigurationProvider dhisConfigurationProvider;
+
+    @Mock
     private Environment environment;
 
     @Mock
@@ -201,9 +206,12 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         user = new User();
 
         when( environment.getActiveProfiles() ).thenReturn( new String[] { "test" } );
+        when( dhisConfigurationProvider.getProperty( ConfigurationKey.SYSTEM_CACHE_MAX_SIZE_FACTOR ) )
+            .thenReturn( "1" );
         CacheBuilderProvider cacheBuilderProvider = new DefaultCacheBuilderProvider();
 
-        DefaultCacheProvider cacheContext = new DefaultCacheProvider( cacheBuilderProvider, environment );
+        DefaultCacheProvider cacheContext = new DefaultCacheProvider( cacheBuilderProvider, environment,
+            dhisConfigurationProvider );
         InputUtils inputUtils = new InputUtils( categoryService, idObjManager, cacheContext );
 
         DefaultAggregateAccessManager aggregateAccessManager = new DefaultAggregateAccessManager( aclService,
@@ -294,7 +302,7 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
 
         assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
         assertThat( summary.getImportCount().getIgnored(), is( 1 ) );
-        assertThat( summary.getConflicts(), hasSize( 1 ) );
+        assertEquals( 1, summary.getConflictCount() );
         assertThat( summary.getConflicts().iterator().next().getValue(),
             is( "User has no data write access for CategoryOption: " + categoryOptionA.getUid() ) );
     }

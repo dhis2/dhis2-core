@@ -43,6 +43,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
@@ -277,7 +278,9 @@ public class DefaultTrackedEntityAttributeService
         {
             return validateImage( value );
         }
-        else if ( trackedEntityAttribute.hasOptionSet() && !trackedEntityAttribute.isValidOptionValue( value ) )
+        else if ( null != trackedEntityAttribute.getOptionSet()
+            && trackedEntityAttribute.getOptionSet().getOptions().stream().filter( Objects::nonNull )
+                .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ) )
         {
             return "Value '" + errorValue + "' is not a valid option for attribute " +
                 trackedEntityAttribute.getUid() + " and option set " + trackedEntityAttribute.getOptionSet().getUid();
@@ -326,6 +329,13 @@ public class DefaultTrackedEntityAttributeService
         }
 
         return attributes;
+    }
+
+    @Override
+    public ProgramTrackedEntityAttribute getProgramTrackedEntityAttribute( Program program,
+        TrackedEntityAttribute trackedEntityAttribute )
+    {
+        return programAttributeStore.get( program, trackedEntityAttribute );
     }
 
     // -------------------------------------------------------------------------

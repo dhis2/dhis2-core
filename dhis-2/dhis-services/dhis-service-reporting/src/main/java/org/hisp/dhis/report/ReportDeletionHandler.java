@@ -28,23 +28,20 @@
 package org.hisp.dhis.report;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 @Component( "org.hisp.dhis.report.ReportDeletionHandler" )
 public class ReportDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ReportService reportService;
 
     public ReportDeletionHandler( ReportService reportService )
@@ -53,27 +50,22 @@ public class ReportDeletionHandler
         this.reportService = reportService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return Visualization.class.getSimpleName();
+        whenVetoing( Visualization.class, this::allowDeleteVisualization );
     }
 
-    @Override
-    public String allowDeleteVisualization( Visualization visualization )
+    private DeletionVeto allowDeleteVisualization( Visualization visualization )
     {
         for ( Report report : reportService.getAllReports() )
         {
             if ( report.getVisualization() != null && report.getVisualization().equals( visualization ) )
             {
-                return report.getName();
+                return new DeletionVeto( Visualization.class, report.getName() );
             }
         }
 
-        return null;
+        return ACCEPT;
     }
 }

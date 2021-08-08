@@ -1,0 +1,25 @@
+{
+  "programRuleVariables": [
+    {
+      "name": "AgeYears_A",
+      "programRuleVariableSourceType": "TEI_ATTRIBUTE",
+      "useCodeForOptionSet": false,
+      "program": {
+        "id": "qDkgAbB5Jlk"
+      },
+      "trackedEntityAttribute": {
+        "id": "B6TnnFMgmCk"
+      }
+    },
+    {
+      "name": "AgeYears_A",
+      "programRuleVariableSourceType": "TEI_ATTRIBUTE",
+      "program": {
+        "id": "qDkgAbB5Jlk"
+      },
+      "trackedEntityAttribute": {
+        "id": "B6TnnFMgmCk"
+      }
+    }
+  ]
+}

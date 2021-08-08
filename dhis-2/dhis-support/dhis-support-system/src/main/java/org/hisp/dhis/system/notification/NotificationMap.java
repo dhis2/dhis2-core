@@ -27,7 +27,15 @@
  */
 package org.hisp.dhis.system.notification;
 
-import java.util.*;
+import static java.util.Arrays.stream;
+import static java.util.Collections.unmodifiableMap;
+
+import java.util.Deque;
+import java.util.EnumMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -37,108 +45,77 @@ import org.hisp.dhis.scheduling.JobType;
  */
 public class NotificationMap
 {
-    private final static int MAX_POOL_TYPE_SIZE = 100;
+    public static final int MAX_POOL_TYPE_SIZE = 500;
 
-    private Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> notificationsWithType;
+    private final Map<JobType, Map<String, Deque<Notification>>> notificationsWithType = new EnumMap<>( JobType.class );
 
-    private Map<JobType, LinkedHashMap<String, Object>> summariesWithType;
+    private final Map<JobType, Map<String, Object>> summariesWithType = new EnumMap<>( JobType.class );
+
+    private final Map<JobType, Deque<String>> notificationsJobIdOrder = new EnumMap<>( JobType.class );
+
+    private final Map<JobType, Deque<String>> summariesJobIdOrder = new EnumMap<>( JobType.class );
 
     NotificationMap()
     {
-        notificationsWithType = new HashMap<>();
-        Arrays.stream( JobType.values() )
-            .forEach( jobType -> notificationsWithType.put( jobType, new LinkedHashMap<>() ) );
-
-        summariesWithType = new HashMap<>();
-        Arrays.stream( JobType.values() )
-            .forEach( jobType -> summariesWithType.put( jobType, new LinkedHashMap<>() ) );
+        stream( JobType.values() ).forEach( jobType -> {
+            notificationsWithType.put( jobType, new ConcurrentHashMap<>() );
+            summariesWithType.put( jobType, new ConcurrentHashMap<>() );
+            notificationsJobIdOrder.put( jobType, new ConcurrentLinkedDeque<>() );
+            summariesJobIdOrder.put( jobType, new ConcurrentLinkedDeque<>() );
+        } );
     }
 
-    public List<Notification> getLastNotificationsByJobType( JobType jobType )
+    public Map<JobType, Map<String, Deque<Notification>>> getNotifications()
     {
-        LinkedHashMap<String, LinkedList<Notification>> jobTypeNotifications = notificationsWithType.get( jobType );
+        return unmodifiableMap( notificationsWithType );
+    }
 
-        if ( jobTypeNotifications.size() == 0 )
+    public Deque<Notification> getNotificationsByJobId( JobType jobType, String jobId )
+    {
+        Deque<Notification> notifications = notificationsWithType.get( jobType ).get( jobId );
+        // return a defensive copy
+        return notifications == null ? new LinkedList<>() : new LinkedList<>( notifications );
+    }
+
+    public Map<String, Deque<Notification>> getNotificationsWithType( JobType jobType )
+    {
+        return unmodifiableMap( notificationsWithType.get( jobType ) );
+    }
+
+    public void add( JobConfiguration configuration, Notification notification )
+    {
+        String jobId = configuration.getUid();
+        if ( jobId == null )
         {
-            return new ArrayList<>();
+            return;
         }
-
-        String key = (String) jobTypeNotifications.keySet().toArray()[jobTypeNotifications.size() - 1];
-
-        return jobTypeNotifications.get( key );
-    }
-
-    public Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> getNotifications()
-    {
-        return notificationsWithType;
-    }
-
-    public LinkedList<Notification> getNotificationsByJobId( JobType jobType, String jobId )
-    {
-        return Optional.ofNullable( notificationsWithType.get( jobType ) ).map( n -> n.get( jobId ) )
-            .orElse( new LinkedList<>() );
-    }
-
-    public Map<String, LinkedList<Notification>> getNotificationsWithType( JobType jobType )
-    {
-        return notificationsWithType.get( jobType );
-    }
-
-    public void add( JobConfiguration jobConfiguration, Notification notification )
-    {
-        String uid = jobConfiguration.getUid();
-
-        LinkedHashMap<String, LinkedList<Notification>> uidNotifications = notificationsWithType
-            .get( jobConfiguration.getJobType() );
-
-        LinkedList<Notification> notifications;
-        if ( uidNotifications.containsKey( uid ) )
+        JobType jobType = configuration.getJobType();
+        Deque<String> notifications = notificationsJobIdOrder.get( jobType );
+        if ( notifications.size() > MAX_POOL_TYPE_SIZE )
         {
-            notifications = uidNotifications.get( uid );
+            notificationsWithType.get( jobType ).remove( notifications.removeLast() );
         }
-        else
-        {
-            notifications = new LinkedList<>();
-        }
-
-        notifications.addFirst( notification );
-
-        if ( uidNotifications.size() >= MAX_POOL_TYPE_SIZE )
-        {
-            String key = (String) uidNotifications.keySet().toArray()[0];
-            uidNotifications.remove( key );
-        }
-
-        uidNotifications.put( uid, notifications );
-
-        notificationsWithType.put( jobConfiguration.getJobType(), uidNotifications );
+        notifications.addFirst( jobId );
+        notificationsWithType.get( jobType )
+            .computeIfAbsent( jobId, key -> new ConcurrentLinkedDeque<>() )
+            .addFirst( notification );
     }
 
-    public void addSummary( JobConfiguration jobConfiguration, Object summary )
+    public void addSummary( JobConfiguration configuration, Object summary )
     {
-        LinkedHashMap<String, Object> summaries = summariesWithType.get( jobConfiguration.getJobType() );
-
+        String jobId = configuration.getUid();
+        if ( jobId == null )
+        {
+            return;
+        }
+        JobType jobType = configuration.getJobType();
+        Deque<String> summaries = summariesJobIdOrder.get( jobType );
         if ( summaries.size() >= MAX_POOL_TYPE_SIZE )
         {
-            String key = (String) summaries.keySet().toArray()[0];
-            summaries.remove( key );
+            summariesWithType.get( jobType ).remove( summaries.removeLast() );
         }
-
-        summaries.put( jobConfiguration.getUid(), summary );
-    }
-
-    public Object getSummary( JobType jobType )
-    {
-        LinkedHashMap<String, Object> summariesForJobType = summariesWithType.get( jobType );
-
-        if ( summariesForJobType.size() == 0 )
-        {
-            return null;
-        }
-        else
-        {
-            return summariesForJobType.values().toArray()[summariesForJobType.size() - 1];
-        }
+        summaries.addFirst( jobId );
+        summariesWithType.get( jobType ).put( jobId, summary );
     }
 
     public Object getSummary( JobType jobType, String jobId )
@@ -146,14 +123,18 @@ public class NotificationMap
         return summariesWithType.get( jobType ).get( jobId );
     }
 
-    public Object getJobSummariesForJobType( JobType jobType )
+    public Map<String, Object> getJobSummariesForJobType( JobType jobType )
     {
-        return summariesWithType.get( jobType );
+        return unmodifiableMap( summariesWithType.get( jobType ) );
     }
 
-    public void clear( JobConfiguration jobConfiguration )
+    public void clear( JobConfiguration configuration )
     {
-        notificationsWithType.get( jobConfiguration.getJobType() ).remove( jobConfiguration.getUid() );
-        summariesWithType.get( jobConfiguration.getJobType() ).remove( jobConfiguration.getUid() );
+        JobType jobType = configuration.getJobType();
+        String jobId = configuration.getUid();
+        notificationsWithType.get( jobType ).remove( jobId );
+        notificationsJobIdOrder.get( jobType ).removeIf( e -> e.equals( jobId ) );
+        summariesWithType.get( jobType ).remove( jobId );
+        summariesJobIdOrder.get( jobType ).removeIf( e -> e.equals( jobId ) );
     }
 }

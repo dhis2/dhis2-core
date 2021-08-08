@@ -39,5 +39,5 @@ public interface StatisticsProvider
 {
     String ID = StatisticsProvider.class.getName();
 
-    Map<Objects, Integer> getObjectCounts();
+    Map<Objects, Long> getObjectCounts();
 }

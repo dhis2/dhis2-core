@@ -28,8 +28,10 @@
 package org.hisp.dhis.fileresource;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +42,8 @@ import org.springframework.stereotype.Component;
 public class ExternalFileResourceDeletionHandler
     extends DeletionHandler
 {
+    private static final DeletionVeto VETO = new DeletionVeto( ExternalFileResource.class );
+
     private final JdbcTemplate jdbcTemplate;
 
     public ExternalFileResourceDeletionHandler( JdbcTemplate jdbcTemplate )
@@ -49,23 +53,23 @@ public class ExternalFileResourceDeletionHandler
     }
 
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return ExternalFileResource.class.getSimpleName();
+
+        whenVetoing( FileResource.class, this::allowDeleteFileResource );
+        whenDeleting( FileResource.class, this::deleteFileResource );
     }
 
-    @Override
-    public String allowDeleteFileResource( FileResource fileResource )
+    private DeletionVeto allowDeleteFileResource( FileResource fileResource )
     {
         String sql = "SELECT COUNT(*) FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
 
         int result = jdbcTemplate.queryForObject( sql, Integer.class );
 
-        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? null : ERROR;
+        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? ACCEPT : VETO;
     }
 
-    @Override
-    public void deleteFileResource( FileResource fileResource )
+    private void deleteFileResource( FileResource fileResource )
     {
         String sql = "DELETE FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
 

@@ -38,6 +38,8 @@
       <key column="validationnotificationtemplateid" />
       <many-to-many class="org.hisp.dhis.validation.ValidationRule" column="validationruleid" />
     </set>
+
+    <property name="translations" type="jblTranslations"/>
   </class>
 
 </hibernate-mapping>

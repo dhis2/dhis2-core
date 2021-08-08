@@ -40,8 +40,11 @@ import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.springframework.context.annotation.Scope;
@@ -72,6 +75,8 @@ public class ValidationRunContext
 
     private Set<CategoryOption> coDimensionConstraints;
 
+    private Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap;
+
     // -------------------------------------------------------------------------
     // Properties to configure analysis
     // -------------------------------------------------------------------------
@@ -94,6 +99,12 @@ public class ValidationRunContext
     }
 
     // -------------------------------------------------------------------------
+    // Return expression details if requested
+    // -------------------------------------------------------------------------
+
+    private ValidationRuleExpressionDetails validationRuleExpressionDetails;
+
+    // -------------------------------------------------------------------------
     // Id-to-Object Caches
     // -------------------------------------------------------------------------
 
@@ -102,6 +113,15 @@ public class ValidationRunContext
     private Map<Long, CategoryOptionCombo> aocIdMap = new ConcurrentHashMap<>();
 
     private Map<String, CategoryOptionCombo> aocUidMap = new ConcurrentHashMap<>();
+
+    // -------------------------------------------------------------------------
+    // Setter method
+    // -------------------------------------------------------------------------
+
+    public void setValidationRuleExpressionDetails( ValidationRuleExpressionDetails validationRuleExpressionDetails )
+    {
+        this.validationRuleExpressionDetails = validationRuleExpressionDetails;
+    }
 
     // -------------------------------------------------------------------------
     // Getter methods
@@ -147,6 +167,11 @@ public class ValidationRunContext
         return coDimensionConstraints;
     }
 
+    public Map<DimensionalItemId, DimensionalItemObject> getDimensionItemMap()
+    {
+        return dimensionItemMap;
+    }
+
     public boolean isSendNotifications()
     {
         return sendNotifications;
@@ -175,6 +200,11 @@ public class ValidationRunContext
     public Map<String, CategoryOptionCombo> getAocUidMap()
     {
         return aocUidMap;
+    }
+
+    public ValidationRuleExpressionDetails getValidationRuleExpressionDetails()
+    {
+        return validationRuleExpressionDetails;
     }
 
     // -------------------------------------------------------------------------
@@ -211,6 +241,11 @@ public class ValidationRunContext
     public boolean isAnalysisComplete()
     {
         return validationResults.size() >= maxResults;
+    }
+
+    public boolean processExpressionDetails()
+    {
+        return validationRuleExpressionDetails != null;
     }
 
     // -------------------------------------------------------------------------
@@ -342,6 +377,12 @@ public class ValidationRunContext
         public Builder withPersistResults( boolean persistResults )
         {
             this.context.persistResults = persistResults;
+            return this;
+        }
+
+        public Builder withDimensionItemMap( Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap )
+        {
+            this.context.dimensionItemMap = dimensionItemMap;
             return this;
         }
 

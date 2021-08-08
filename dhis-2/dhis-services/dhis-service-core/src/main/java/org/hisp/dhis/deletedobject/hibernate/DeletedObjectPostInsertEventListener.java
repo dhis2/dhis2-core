@@ -37,6 +37,7 @@ import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hisp.dhis.cacheinvalidation.KnownTransactionsService;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
@@ -52,10 +53,15 @@ public class DeletedObjectPostInsertEventListener
 {
     private final DeletedObjectService deletedObjectService;
 
-    public DeletedObjectPostInsertEventListener( DeletedObjectService deletedObjectService )
+    private final transient KnownTransactionsService knownTransactionsService;
+
+    public DeletedObjectPostInsertEventListener( DeletedObjectService deletedObjectService,
+        KnownTransactionsService knownTransactionsService )
     {
         checkNotNull( deletedObjectService );
+        checkNotNull( knownTransactionsService );
         this.deletedObjectService = deletedObjectService;
+        this.knownTransactionsService = knownTransactionsService;
     }
 
     @Override
@@ -79,7 +85,9 @@ public class DeletedObjectPostInsertEventListener
                 List<DeletedObject> deletedObjects = deletedObjectService
                     .getDeletedObjects( new DeletedObjectQuery( (IdentifiableObject) event.getEntity() ) );
 
-                deletedObjects.forEach( deletedObject -> session.delete( deletedObject ) );
+                deletedObjects.forEach( session::delete );
+
+                knownTransactionsService.registerEvent( event );
 
                 session.getTransaction().commit();
             }

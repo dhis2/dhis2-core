@@ -40,10 +40,6 @@ import org.springframework.stereotype.Component;
 public class MessageConversationDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final MessageService messageService;
 
     public MessageConversationDeletionHandler( MessageService messageService )
@@ -52,18 +48,13 @@ public class MessageConversationDeletionHandler
         this.messageService = messageService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return MessageConversation.class.getSimpleName();
+        whenDeleting( User.class, this::deleteUser );
     }
 
-    @Override
-    public void deleteUser( User user )
+    private void deleteUser( User user )
     {
         messageService.deleteMessages( user );
     }

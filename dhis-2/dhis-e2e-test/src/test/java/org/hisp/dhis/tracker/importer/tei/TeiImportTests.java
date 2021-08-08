@@ -29,16 +29,13 @@
 package org.hisp.dhis.tracker.importer.tei;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.json.JSONException;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -52,21 +49,16 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TeiImportTests
-    extends ApiTest
+    extends TrackerNtiApiTest
 {
-    private TrackerActions trackerActions;
-
     @BeforeAll
     public void beforeAll()
     {
-        trackerActions = new TrackerActions();
-
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
     }
 
     @Test
     public void shouldImportTei()
-        throws JSONException
     {
         // arrange
         JsonObject trackedEntities = new JsonObjectBuilder()
@@ -137,10 +129,11 @@ public class TeiImportTests
         response.validateSuccessfulImport()
             .validate()
             .body( "stats.created", equalTo( 7 ) )
-            .body( "bundleReport.typeReportMap.TRACKED_ENTITY.objectReports", hasSize( 2 ) )
-            .body( "bundleReport.typeReportMap.ENROLLMENT.objectReports", hasSize( 2 ) )
-            .body( "bundleReport.typeReportMap.EVENT.objectReports", hasSize( 2 ) )
-            .body( "bundleReport.typeReportMap.RELATIONSHIP.objectReports", hasSize( 1 ) );
+            .rootPath( "bundleReport.typeReportMap" )
+            .body( "TRACKED_ENTITY.objectReports", hasSize( 2 ) )
+            .body( "ENROLLMENT.objectReports", hasSize( 2 ) )
+            .body( "EVENT.objectReports", hasSize( 2 ) )
+            .body( "RELATIONSHIP.objectReports", hasSize( 1 ) );
 
         JsonObject teiBody = teiPayload.get( "trackedEntities" ).getAsJsonArray().get( 0 ).getAsJsonObject();
 

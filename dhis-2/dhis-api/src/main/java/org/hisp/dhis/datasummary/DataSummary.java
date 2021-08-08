@@ -41,7 +41,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement
 public class DataSummary
 {
-    private Map<String, Integer> objectCounts = new HashMap<>();
+    private Map<String, Long> objectCounts = new HashMap<>();
 
     private Map<Integer, Integer> activeUsers = new HashMap<>();
 
@@ -55,7 +55,7 @@ public class DataSummary
     {
     }
 
-    public DataSummary( Map<String, Integer> objectCounts,
+    public DataSummary( Map<String, Long> objectCounts,
         Map<Integer, Integer> activeUsers, Map<String, Integer> userInvitations,
         Map<Integer, Integer> dataValueCount, Map<Integer, Long> eventCount )
     {
@@ -67,12 +67,12 @@ public class DataSummary
     }
 
     @JsonProperty
-    public Map<String, Integer> getObjectCounts()
+    public Map<String, Long> getObjectCounts()
     {
         return objectCounts;
     }
 
-    public void setObjectCounts( Map<String, Integer> objectCounts )
+    public void setObjectCounts( Map<String, Long> objectCounts )
     {
         this.objectCounts = objectCounts;
     }

@@ -90,10 +90,4 @@ public class AttributeValueConverterService
     {
         return attributes.stream().map( n -> from( preheat, n ) ).collect( Collectors.toList() );
     }
-
-    @Override
-    public TrackedEntityAttributeValue fromForRuleEngine( TrackerPreheat preheat, Attribute object )
-    {
-        return null;
-    }
 }

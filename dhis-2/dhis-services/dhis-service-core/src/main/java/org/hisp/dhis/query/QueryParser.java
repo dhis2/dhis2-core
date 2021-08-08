@@ -29,7 +29,6 @@ package org.hisp.dhis.query;
 
 import java.util.List;
 
-import org.hisp.dhis.query.Junction.Type;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 
@@ -63,8 +62,5 @@ public interface QueryParser
         throws QueryParserException;
 
     Restriction getRestriction( Schema schema, String path, String operator, Object arg )
-        throws QueryParserException;
-
-    Query parse( Class<?> klass, List<String> filters, Type rootJunction, boolean restrictToCaptureScope )
         throws QueryParserException;
 }

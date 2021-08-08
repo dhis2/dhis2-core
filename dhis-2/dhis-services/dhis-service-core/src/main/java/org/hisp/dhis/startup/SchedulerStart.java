@@ -30,7 +30,13 @@ package org.hisp.dhis.startup;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
-import static org.hisp.dhis.scheduling.JobType.*;
+import static org.hisp.dhis.scheduling.JobType.CREDENTIALS_EXPIRY_ALERT;
+import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
+import static org.hisp.dhis.scheduling.JobType.DATA_STATISTICS;
+import static org.hisp.dhis.scheduling.JobType.FILE_RESOURCE_CLEANUP;
+import static org.hisp.dhis.scheduling.JobType.LEADER_ELECTION;
+import static org.hisp.dhis.scheduling.JobType.REMOVE_USED_OR_EXPIRED_RESERVED_VALUES;
+import static org.hisp.dhis.scheduling.JobType.VALIDATION_RESULTS_NOTIFICATION;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -57,8 +63,6 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 @Slf4j
 public class SchedulerStart extends AbstractStartupRoutine
 {
-    private final String CRON_HOURLY = "0 0 * ? * *";
-
     private final String CRON_DAILY_2AM = "0 0 2 ? * *";
 
     private final String CRON_DAILY_7AM = "0 0 7 ? * *";
@@ -85,9 +89,9 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     private final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
 
-    private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID = "uwWCT2BMmlq";
+    private final String DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES_UID = "uwWCT2BMmlq";
 
-    private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
+    private final String DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES = "Remove expired or used reserved values";
 
     private final String DEFAULT_LEADER_ELECTION_UID = "MoUd5BTQ3lY";
 
@@ -151,7 +155,7 @@ public class SchedulerStart extends AbstractStartupRoutine
                         + oldExecutionTime );
                 }
 
-                schedulingManager.scheduleJob( jobConfig );
+                schedulingManager.schedule( jobConfig );
             }
         }) );
 
@@ -219,12 +223,13 @@ public class SchedulerStart extends AbstractStartupRoutine
             addAndScheduleJob( dataSetNotification );
         }
 
-        if ( verifyNoJobExist( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES, jobConfigurations ) )
+        if ( verifyNoJobExist( DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES, jobConfigurations ) )
         {
-            JobConfiguration removeExpiredReservedValues = new JobConfiguration( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES,
-                REMOVE_EXPIRED_RESERVED_VALUES, CRON_HOURLY, null );
+            JobConfiguration removeExpiredReservedValues = new JobConfiguration(
+                DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES,
+                REMOVE_USED_OR_EXPIRED_RESERVED_VALUES, CRON_DAILY_2AM, null );
             removeExpiredReservedValues.setLeaderOnlyJob( true );
-            removeExpiredReservedValues.setUid( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID );
+            removeExpiredReservedValues.setUid( DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES_UID );
             addAndScheduleJob( removeExpiredReservedValues );
         }
 
@@ -271,7 +276,7 @@ public class SchedulerStart extends AbstractStartupRoutine
     private void addAndScheduleJob( JobConfiguration jobConfiguration )
     {
         jobConfigurationService.addJobConfiguration( jobConfiguration );
-        schedulingManager.scheduleJob( jobConfiguration );
+        schedulingManager.schedule( jobConfiguration );
     }
 
     private static void portJob( SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration,

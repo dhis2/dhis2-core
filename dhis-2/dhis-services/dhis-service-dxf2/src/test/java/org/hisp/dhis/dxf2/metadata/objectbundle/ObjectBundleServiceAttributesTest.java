@@ -48,7 +48,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
@@ -108,7 +108,7 @@ public class ObjectBundleServiceAttributesTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertTrue( validationReport.getErrorReports().isEmpty() );
+        assertFalse( validationReport.hasErrorReports() );
 
         transactionTemplate.execute( status -> {
             objectBundleService.commit( bundle );
@@ -193,11 +193,11 @@ public class ObjectBundleServiceAttributesTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        List<ObjectReport> objectReports = validationReport.getObjectReports( DataElement.class );
+        TypeReport typeReport = validationReport.getTypeReport( DataElement.class );
 
-        assertFalse( objectReports.isEmpty() );
-        assertEquals( 4, objectReports.size() );
-        objectReports.forEach( objectReport -> assertEquals( 2, objectReport.getErrorReports().size() ) );
+        assertNotNull( typeReport );
+        assertEquals( 4, typeReport.getObjectReportsCount() );
+        typeReport.forEachObjectReport( objectReport -> assertEquals( 2, objectReport.getErrorReportsCount() ) );
     }
 
     @Test
@@ -214,11 +214,11 @@ public class ObjectBundleServiceAttributesTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        List<ObjectReport> objectReports = validationReport.getObjectReports( DataElement.class );
+        TypeReport typeReport = validationReport.getTypeReport( DataElement.class );
 
-        assertFalse( objectReports.isEmpty() );
-        assertEquals( 4, objectReports.size() );
-        objectReports.forEach( objectReport -> assertEquals( 1, objectReport.getErrorReports().size() ) );
+        assertNotNull( typeReport );
+        assertEquals( 4, typeReport.getObjectReportsCount() );
+        typeReport.forEachObjectReport( objectReport -> assertEquals( 1, objectReport.getErrorReportsCount() ) );
     }
 
     @Test
@@ -236,10 +236,10 @@ public class ObjectBundleServiceAttributesTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        List<ObjectReport> objectReports = validationReport.getObjectReports( DataElement.class );
+        TypeReport typeReport = validationReport.getTypeReport( DataElement.class );
 
-        assertFalse( objectReports.isEmpty() );
-        assertEquals( 2, validationReport.getErrorReportsByCode( DataElement.class, ErrorCode.E4009 ).size() );
+        assertNotNull( typeReport );
+        assertEquals( 2, validationReport.getErrorReportsCountByCode( DataElement.class, ErrorCode.E4009 ) );
     }
 
     @Test
@@ -256,10 +256,9 @@ public class ObjectBundleServiceAttributesTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        List<ObjectReport> objectReports = validationReport.getObjectReports( DataElement.class );
 
-        assertFalse( objectReports.isEmpty() );
-        assertEquals( 2, validationReport.getErrorReportsByCode( DataElement.class, ErrorCode.E4009 ).size() );
+        assertNotNull( validationReport.getTypeReport( DataElement.class ) );
+        assertEquals( 2, validationReport.getErrorReportsCountByCode( DataElement.class, ErrorCode.E4009 ) );
     }
 
     private void defaultSetupWithAttributes()
@@ -280,13 +279,16 @@ public class ObjectBundleServiceAttributesTest
         DataElement de2 = createDataElement( 'B' );
         DataElement de3 = createDataElement( 'C' );
 
-        attributeService.addAttributeValue( de1, attributeValue1 );
-        attributeService.addAttributeValue( de2, attributeValue2 );
-        attributeService.addAttributeValue( de3, attributeValue3 );
-
-        manager.save( de1 );
-        manager.save( de2 );
-        manager.save( de3 );
+        transactionTemplate.execute( status -> {
+            manager.save( de1 );
+            manager.save( de2 );
+            manager.save( de3 );
+            attributeService.addAttributeValue( de1, attributeValue1 );
+            attributeService.addAttributeValue( de2, attributeValue2 );
+            attributeService.addAttributeValue( de3, attributeValue3 );
+            manager.clear();
+            return null;
+        } );
 
         User user = createUser( 'A' );
         manager.save( user );

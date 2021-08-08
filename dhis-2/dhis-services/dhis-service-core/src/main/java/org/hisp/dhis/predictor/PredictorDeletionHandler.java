@@ -28,6 +28,7 @@
 package org.hisp.dhis.predictor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,10 +46,6 @@ import org.springframework.stereotype.Component;
 public class PredictorDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final PredictorService predictorService;
 
     public PredictorDeletionHandler( PredictorService predictorService )
@@ -57,18 +55,15 @@ public class PredictorDeletionHandler
         this.predictorService = predictorService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return Predictor.class.getSimpleName();
+        whenDeletingEmbedded( Expression.class, this::deleteExpression );
+        whenDeleting( PredictorGroup.class, this::deletePredictorGroup );
+        whenVetoing( DataElement.class, this::allowDeleteDataElement );
     }
 
-    @Override
-    public void deleteExpression( Expression expression )
+    private void deleteExpression( Expression expression )
     {
         Iterator<Predictor> iterator = predictorService.getAllPredictors().iterator();
 
@@ -88,8 +83,7 @@ public class PredictorDeletionHandler
         }
     }
 
-    @Override
-    public void deletePredictorGroup( PredictorGroup predictorGroup )
+    private void deletePredictorGroup( PredictorGroup predictorGroup )
     {
         for ( Predictor predictor : predictorGroup.getMembers() )
         {
@@ -98,8 +92,7 @@ public class PredictorDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteDataElement( DataElement dataElement )
+    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
         List<Predictor> predictors = predictorService.getAllPredictors();
 
@@ -107,10 +100,10 @@ public class PredictorDeletionHandler
         {
             if ( dataElement.typedEquals( predictor.getOutput() ) )
             {
-                return predictor.getName();
+                return new DeletionVeto( Predictor.class, predictor.getName() );
             }
         }
 
-        return null;
+        return ACCEPT;
     }
 }

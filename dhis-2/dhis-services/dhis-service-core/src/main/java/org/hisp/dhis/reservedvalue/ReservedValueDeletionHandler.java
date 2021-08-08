@@ -46,13 +46,12 @@ public class ReservedValueDeletionHandler extends DeletionHandler
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return ReservedValue.class.getSimpleName();
+        whenDeleting( TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute );
     }
 
-    @Override
-    public void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
+    private void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
         reservedValueService.deleteReservedValueByUid( attribute.getUid() );
     }

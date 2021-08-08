@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.artemis;
 
-import org.apache.qpid.jms.JmsQueue;
-import org.apache.qpid.jms.JmsTopic;
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
+import org.apache.activemq.artemis.jms.client.ActiveMQTopic;
 import org.hisp.dhis.render.RenderService;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
@@ -60,13 +60,13 @@ public class MessageManager
 
     public void sendTopic( String destinationName, Message message )
     {
-        jmsTopicTemplate.send( new JmsTopic( destinationName ),
+        jmsTopicTemplate.send( new ActiveMQTopic( destinationName ),
             session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
     }
 
     public void sendQueue( String destinationName, Message message )
     {
-        jmsQueueTemplate.send( new JmsQueue( destinationName ),
+        jmsQueueTemplate.send( new ActiveMQQueue( destinationName ),
             session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
     }
 }

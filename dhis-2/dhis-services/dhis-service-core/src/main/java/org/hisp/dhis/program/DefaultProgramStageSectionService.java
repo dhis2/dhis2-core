@@ -57,6 +57,7 @@ public class DefaultProgramStageSectionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long saveProgramStageSection( ProgramStageSection programStageSection )
     {
         programStageSectionStore.save( programStageSection );
@@ -64,12 +65,14 @@ public class DefaultProgramStageSectionService
     }
 
     @Override
+    @Transactional
     public void deleteProgramStageSection( ProgramStageSection programStageSection )
     {
         programStageSectionStore.delete( programStageSection );
     }
 
     @Override
+    @Transactional
     public void updateProgramStageSection( ProgramStageSection programStageSection )
     {
         programStageSectionStore.update( programStageSection );
@@ -80,5 +83,12 @@ public class DefaultProgramStageSectionService
     public ProgramStageSection getProgramStageSection( long id )
     {
         return programStageSectionStore.get( id );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public ProgramStageSection getProgramStageSection( String uid )
+    {
+        return programStageSectionStore.getByUid( uid );
     }
 }

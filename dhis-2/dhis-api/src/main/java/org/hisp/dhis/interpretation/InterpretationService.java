@@ -54,6 +54,10 @@ public interface InterpretationService
 
     List<Interpretation> getInterpretations();
 
+    List<Interpretation> getInterpretations( Visualization visualization );
+
+    List<Interpretation> getInterpretations( Map map );
+
     List<Interpretation> getInterpretations( Date lastUpdated );
 
     List<Interpretation> getInterpretations( int first, int max );
@@ -88,10 +92,4 @@ public interface InterpretationService
      * @return true if the current user had previously liked the interpretation.
      */
     boolean unlikeInterpretation( long id );
-
-    long countMapInterpretations( Map map );
-
-    long countVisualizationInterpretations( Visualization visualization );
-
-    Interpretation getInterpretationByVisualization( long id );
 }

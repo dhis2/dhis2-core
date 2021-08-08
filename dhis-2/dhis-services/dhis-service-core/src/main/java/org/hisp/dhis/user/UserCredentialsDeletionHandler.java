@@ -47,18 +47,13 @@ public class UserCredentialsDeletionHandler
         this.userCredentialsStore = userCredentialsStore;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return UserCredentials.class.getSimpleName();
+        whenDeleting( User.class, this::deleteUser );
     }
 
-    @Override
-    public void deleteUser( User user )
+    private void deleteUser( User user )
     {
         userCredentialsStore.delete( user.getUserCredentials() );
     }

@@ -30,10 +30,10 @@ package org.hisp.dhis.servlet;
 import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 
 import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
+import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.WebApplicationInitializer;
 
@@ -44,9 +44,11 @@ public class DhisWebCommonsWebAppInitializer implements WebApplicationInitialize
     @Override
     public void onStartup( ServletContext context )
     {
-        FilterRegistration.Dynamic strutsFilter = context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() );
+        context
+            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
+            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
 
-        strutsFilter.addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
+        context.addFilter( "JsonFilteringRequestFilter", JsonFilteringRequestFilter.class )
+            .addMappingForUrlPatterns( null, true, "/*" );
     }
 }

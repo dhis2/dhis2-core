@@ -53,12 +53,9 @@ public class OAuth2ClientSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1030 );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.READ, Lists.newArrayList( "F_OAUTH2_CLIENT_MANAGE" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_OAUTH2_CLIENT_MANAGE" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_OAUTH2_CLIENT_MANAGE" ) ) );
+        schema.add( new Authority( AuthorityType.READ, Lists.newArrayList( "F_OAUTH2_CLIENT_MANAGE" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_OAUTH2_CLIENT_MANAGE" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_OAUTH2_CLIENT_MANAGE" ) ) );
 
         return schema;
     }

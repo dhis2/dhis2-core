@@ -271,6 +271,16 @@ public class ProgramRuleAction
         return this.optionGroup != null;
     }
 
+    public boolean hasProgramStage()
+    {
+        return programStage != null;
+    }
+
+    public boolean hasProgramStageSection()
+    {
+        return programStageSection != null;
+    }
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

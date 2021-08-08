@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.*;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -44,7 +47,17 @@ import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.InQueryFilter;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -73,6 +86,10 @@ public class JdbcEnrollmentAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
     implements EnrollmentAnalyticsManager
 {
+    private static final String ANALYTICS_EVENT = "analytics_event_";
+
+    private static final String ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 = "order by executiondate desc limit 1";
+
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
@@ -182,7 +199,7 @@ public class JdbcEnrollmentAnalyticsManager
     protected String getWhereClause( EventQueryParams params )
     {
         String sql = "";
-        SqlHelper sqlHelper = new SqlHelper();
+        SqlHelper hlp = new SqlHelper();
 
         // ---------------------------------------------------------------------
         // Periods
@@ -191,19 +208,18 @@ public class JdbcEnrollmentAnalyticsManager
         if ( params.hasNonDefaultBoundaries() )
         {
             sql += statementBuilder.getBoundaryCondition( params.getProgramIndicator(), params.getEarliestStartDate(),
-                params.getLatestEndDate(), sqlHelper );
+                params.getLatestEndDate(), hlp );
         }
         else
         {
             if ( params.hasStartEndDate() )
             {
-                sql += sqlHelper.whereAnd() + " enrollmentdate >= '" + getMediumDateString( params.getStartDate() )
-                    + "' ";
+                sql += hlp.whereAnd() + " enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
                 sql += "and enrollmentdate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
             }
             else // Periods
             {
-                sql += sqlHelper.whereAnd() + " " + quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() )
+                sql += hlp.whereAnd() + " " + quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() )
                     + " in ("
                     + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) )
                     + ") ";
@@ -216,17 +232,17 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) )
         {
-            sql += sqlHelper.whereAnd() + " ou in ("
+            sql += hlp.whereAnd() + " ou in ("
                 + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
         }
         else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
         {
-            sql += sqlHelper.whereAnd() + " ou in ("
+            sql += hlp.whereAnd() + " ou in ("
                 + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
         }
         else // Descendants
         {
-            sql += sqlHelper.whereAnd() + " (";
+            sql += hlp.whereAnd() + " (";
 
             for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
             {
@@ -270,8 +286,19 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += "and " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) + " "
-                        + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    String field = getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() );
+
+                    if ( IN.equals( filter.getOperator() ) )
+                    {
+                        QueryFilter inQueryFilter = new InQueryFilter( field, filter );
+                        sql += "and " + getSqlFilter( inQueryFilter, item );
+                    }
+                    else
+                    {
+                        sql += "and " + field + " " + filter.getSqlOperator() + " "
+                            + getSqlFilter( filter, item ) + " ";
+                    }
+
                 }
             }
         }
@@ -344,6 +371,106 @@ public class JdbcEnrollmentAnalyticsManager
     }
 
     /**
+     * Returns an encoded column name respecting the geometry/coordinate format.
+     * The given QueryItem must be of type COORDINATE.
+     *
+     * @param item the {@link QueryItem}
+     * @return the column selector (SQL query) or EMPTY if the item valueType is
+     *         not COORDINATE.
+     *
+     * @throws NullPointerException if item is null
+     */
+    @Override
+    protected String getCoordinateColumn( final QueryItem item )
+    {
+        return getCoordinateColumn( item, null );
+    }
+
+    /**
+     * Returns an encoded column name respecting the geometry/coordinate format.
+     * The given QueryItem can be of type COORDINATE or ORGANISATION_UNIT.
+     *
+     * @param suffix is currently ignored. Not currently used for enrollments
+     * @param item the {@link QueryItem}
+     * @return the column selector (SQL query) or EMPTY if the item valueType is
+     *         not COORDINATE.
+     *
+     * @throws NullPointerException if item is null
+     */
+    @Override
+    protected String getCoordinateColumn( final QueryItem item, final String suffix )
+    {
+        if ( item.getProgram() != null )
+        {
+            final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+            final String colName = quote( item.getItemId() );
+
+            String psCondition = "";
+
+            if ( item.hasProgramStage() )
+            {
+                assertProgram( item );
+
+                psCondition = "and ps = '" + item.getProgramStage().getUid() + "' ";
+            }
+
+            String stCentroidFunction = "";
+
+            if ( ValueType.ORGANISATION_UNIT == item.getValueType() )
+            {
+                stCentroidFunction = "ST_Centroid";
+
+            }
+
+            return "(select '[' || round(ST_X(" + stCentroidFunction + "(" + colName
+                + "))::numeric, 6) || ',' || round(ST_Y("
+                + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName
+                + " from " + eventTableName
+                + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+                "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
+        }
+
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * Creates a column "selector" for the given item name. The suffix will be
+     * appended as part of the item name. The column selection is based on
+     * events analytics tables.
+     *
+     * @param item the {@link QueryItem}
+     * @param suffix to be appended to the item name (column)
+     * @return when there is a program stage: returns the column select
+     *         statement for the given item and suffix, otherwise returns the
+     *         item name quoted and prefixed with the table prefix. ie.:
+     *         ax."enrollmentdate"
+     */
+    @Override
+    protected String getColumn( final QueryItem item, final String suffix )
+    {
+        String colName = item.getItemName();
+
+        if ( item.hasProgramStage() )
+        {
+            assertProgram( item );
+
+            colName = quote( colName + suffix );
+
+            final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+
+            return "(select " + colName
+                + " from " + eventTableName
+                + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+                "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
+                ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
+        }
+        else
+        {
+            return quoteAlias( colName );
+        }
+    }
+
+    /**
      * Returns an encoded column name wrapped in lower directive if not numeric
      * or boolean.
      *
@@ -357,18 +484,27 @@ public class JdbcEnrollmentAnalyticsManager
         if ( item.hasProgramStage() )
         {
             colName = quote( colName );
-            Assert.isTrue( item.hasProgram(),
-                "Can not query item with program stage but no program:" + item.getItemName() );
-            String eventTableName = "analytics_event_" + item.getProgram().getUid();
-            return "(select " + colName + " from " + eventTableName +
-                " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+
+            assertProgram( item );
+
+            String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+
+            return "(select " + colName
+                + " from " + eventTableName
+                + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                "order by executiondate " + "desc limit 1 )";
+                ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
         }
         else
         {
             return quoteAlias( colName );
         }
+    }
+
+    private void assertProgram( final QueryItem item )
+    {
+        Assert.isTrue( item.hasProgram(),
+            "Can not query item with program stage but no program:" + item.getItemName() );
     }
 
     @Override

@@ -27,301 +27,108 @@
  */
 package org.hisp.dhis.tracker.preheat;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.PeriodStore;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.relationship.RelationshipStore;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.tracker.preheat.supplier.*;
 import org.hisp.dhis.user.User;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.context.ApplicationContext;
+
+import com.google.common.collect.ImmutableList;
 
 /**
- * @author Luciano Fiandesio
+ * @author Cambi Luca
  */
-@Ignore // FIXME this test has to be rewritten from scratch
 public class DefaultTrackerPreheatServiceTest
 {
-    @Mock
-    private SchemaService schemaService;
-
-    @Mock
-    private QueryService queryService;
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
     private IdentifiableObjectManager manager;
 
     @Mock
-    private CurrentUserService currentUserService;
+    private ClassBasedSupplier classBasedSupplier;
 
     @Mock
-    private PeriodStore periodStore;
+    private ApplicationContext applicationContext;
 
-    @Mock
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+    @Captor
+    private ArgumentCaptor<Class<PreheatSupplier>> preheatSupplierClassCaptor;
 
-    @Mock
-    private ProgramInstanceStore programInstanceStore;
+    @Captor
+    private ArgumentCaptor<String> bean;
 
-    @Mock
-    private ProgramStageInstanceStore programStageInstanceStore;
+    private DefaultTrackerPreheatService preheatService;
 
-    @Mock
-    private RelationshipStore relationshipStore;
+    private final TrackerImportParams preheatParams = TrackerImportParams.builder()
+        .user( getUser() )
+        .trackedEntities( Collections.singletonList( new TrackedEntity() ) )
+        .build();
 
-    @Mock
-    private TrackedEntityAttributeService trackedEntityAttributeService;
-
-    @Mock
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
-    @Mock
-    private TrackedEntityCommentStore trackedEntityCommentStore;
-
-    @InjectMocks
-    private DefaultTrackerPreheatService subject;
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    private BeanRandomizer rnd = new BeanRandomizer();
-
-    @Test
-    public void verifyTrackedEntitiesPreheated()
+    @Before
+    public void setUp()
     {
-        // Given
-        final List<TrackedEntity> trackedEntities = rnd.randomObjects( TrackedEntity.class, 3 );
-        final List<TrackedEntityInstance> preheatTeis = rnd.randomObjects( TrackedEntityInstance.class, 3, "uid" );
+        preheatService = new DefaultTrackerPreheatService( manager, ImmutableList.of(
+            ClassBasedSupplier.class.getSimpleName() ) );
 
-        IntStream.range( 0, 3 ).forEach( i -> preheatTeis.get( i ).setUid( trackedEntities.get( i ).getUid() ) );
-
+        preheatService.setApplicationContext( applicationContext );
         when( manager.get( User.class, getUser().getUid() ) ).thenReturn( getUser() );
-        when( trackedEntityInstanceStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( preheatTeis );
-
-        final TrackerImportParams preheatParams = TrackerImportParams.builder()
-            .user( getUser() )
-            .trackedEntities( trackedEntities )
-            .build();
-
-        final TrackerPreheat preheat = subject.preheat( preheatParams );
-
-        // Then
-        final Map<String, TrackedEntityInstance> teis = preheat.getTrackedEntities().get( TrackerIdScheme.UID );
-
-        assertThat( teis.keySet(), hasSize( 3 ) );
-        assertThat( teis.keySet(), containsInAnyOrder( trackedEntities.get( 0 ).getUid(),
-            trackedEntities.get( 1 ).getUid(), trackedEntities.get( 2 ).getUid() ) );
     }
 
     @Test
-    public void verifyEnrollmentsPreheated()
+    public void shouldGetFromContextAndAdd()
     {
-        // Given
-        final List<Enrollment> enrollments = rnd.randomObjects( Enrollment.class, 3 );
-        final List<ProgramInstance> preheatPi = rnd.randomObjects( ProgramInstance.class, 3, "uid" );
+        when( applicationContext.getBean( bean.capture(), preheatSupplierClassCaptor.capture() ) )
+            .thenReturn( classBasedSupplier );
 
-        IntStream.range( 0, 3 ).forEach( i -> preheatPi.get( i ).setUid( enrollments.get( i ).getUid() ) );
+        doCallRealMethod().when( classBasedSupplier ).add( any(), any() );
 
-        when( manager.get( User.class, getUser().getUid() ) ).thenReturn( getUser() );
-        when( programInstanceStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( preheatPi );
+        preheatService.preheat( preheatParams );
 
-        final TrackerImportParams preheatParams = TrackerImportParams.builder()
-            .user( getUser() )
-            .enrollments( enrollments )
-            .build();
-
-        final TrackerPreheat preheat = subject.preheat( preheatParams );
-
-        // Then
-        final Map<String, ProgramInstance> pis = preheat.getEnrollments().get( TrackerIdScheme.UID );
-
-        assertThat( pis.keySet(), hasSize( 3 ) );
-        assertThat( pis.keySet(), containsInAnyOrder( enrollments.get( 0 ).getUid(),
-            enrollments.get( 1 ).getUid(), enrollments.get( 2 ).getUid() ) );
+        verify( applicationContext ).getBean( bean.getValue(), preheatSupplierClassCaptor.getValue() );
+        verify( classBasedSupplier ).add( any(), any() );
+        verify( classBasedSupplier ).preheatAdd( any(), any() );
     }
 
     @Test
-    public void verifyEventsPreheated()
+    public void shouldDoNothingWhenSupplierBeanNotFound()
     {
-        // Given
-        final List<Event> events = rnd.randomObjects( Event.class, 3 );
-        final List<ProgramStageInstance> preheatPsi = rnd.randomObjects( ProgramStageInstance.class, 3, "uid" );
+        when( applicationContext.getBean( bean.capture(), preheatSupplierClassCaptor.capture() ) )
+            .thenThrow( new BeanCreationException( "e" ) );
 
-        IntStream.range( 0, 3 ).forEach( i -> preheatPsi.get( i ).setUid( events.get( i ).getUid() ) );
+        preheatService.preheat( preheatParams );
 
-        when( manager.get( User.class, getUser().getUid() ) ).thenReturn( getUser() );
-        when( programStageInstanceStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( preheatPsi );
-
-        // When
-        final TrackerImportParams preheatParams = TrackerImportParams.builder()
-            .user( getUser() )
-            .events( events )
-            .build();
-
-        final TrackerPreheat preheat = subject.preheat( preheatParams );
-
-        // Then
-        final Map<String, ProgramStageInstance> psis = preheat.getEvents().get( TrackerIdScheme.UID );
-
-        assertThat( psis.keySet(), hasSize( 3 ) );
-        assertThat( psis.keySet(), containsInAnyOrder( events.get( 0 ).getUid(),
-            events.get( 1 ).getUid(), events.get( 2 ).getUid() ) );
+        verify( applicationContext ).getBean( bean.getValue(), preheatSupplierClassCaptor.getValue() );
+        verify( classBasedSupplier, times( 0 ) ).add( any(), any() );
+        verify( classBasedSupplier, times( 0 ) ).preheatAdd( any(), any() );
     }
 
     @Test
-    public void verifyOrgUnitsPreheated()
+    public void shouldDoNothingWhenAddException()
     {
-        // Given
-        ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass( Query.class );
-        final List<OrganisationUnit> organisationUnits = rnd.randomObjects( OrganisationUnit.class, 3 );
-        final List<TrackedEntity> trackedEntitiesIithOu = rnd.randomObjects( TrackedEntity.class, 3 );
+        when( applicationContext.getBean( bean.capture(), preheatSupplierClassCaptor.capture() ) )
+            .thenReturn( classBasedSupplier );
+        doThrow( new RuntimeException( "e" ) ).when( classBasedSupplier ).add( any(), any() );
 
-        IntStream.range( 0, 3 )
-            .forEach( i -> trackedEntitiesIithOu.get( i ).setOrgUnit( organisationUnits.get( i ).getUid() ) );
+        preheatService.preheat( preheatParams );
 
-        when( manager.get( User.class, getUser().getUid() ) ).thenReturn( getUser() );
-        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
-            .thenReturn( new OrganisationUnitSchemaDescriptor().getSchema() );
-
-        doReturn( organisationUnits ).when( queryService ).query( queryCaptor.capture() );
-
-        // When
-        final TrackerImportParams preheatParams = TrackerImportParams.builder()
-            .user( getUser() )
-            .trackedEntities( trackedEntitiesIithOu )
-            .build();
-
-        final TrackerPreheat preheat = subject.preheat( preheatParams );
-
-        // Then
-        assertThat( getGeneric( preheat, OrganisationUnit.class, organisationUnits.get( 0 ).getUid() ),
-            is( notNullValue() ) );
-        assertThat( getGeneric( preheat, OrganisationUnit.class, organisationUnits.get( 1 ).getUid() ),
-            is( notNullValue() ) );
-        assertThat( getGeneric( preheat, OrganisationUnit.class, organisationUnits.get( 2 ).getUid() ),
-            is( notNullValue() ) );
-
-        final Query query = queryCaptor.getValue();
-        assertThat( query.getSchema().getKlass().getName(), is( OrganisationUnit.class.getName() ) );
-        assertThat( query.getDefaults(), is( Defaults.INCLUDE ) );
-        assertThat( query.getUser().getUid(), is( "user1234" ) );
-    }
-
-    @Test
-    public void verifyEnrollmentsNotesPreheated()
-    {
-        // Given
-        final List<Enrollment> enrollments = rnd.randomObjects( Enrollment.class, 3 );
-        final List<TrackedEntityComment> notes = rnd.randomObjects( TrackedEntityComment.class, 3 );
-        final List<ProgramInstance> preheatPi = rnd.randomObjects( ProgramInstance.class, 3, "uid" );
-
-        IntStream.range( 0, 3 ).forEach( i -> {
-            enrollments.get( i ).setNotes( Collections.singletonList(
-                new Note( CodeGenerator.generateUid(), null, null, RandomStringUtils.randomAlphabetic( 3 ), "" ) ) );
-            preheatPi.get( i ).setUid( enrollments.get( i ).getUid() );
-            notes.get( 0 ).setUid( enrollments.get( i ).getNotes().get( 0 ).getNote() );
-        } );
-
-        when( manager.get( User.class, getUser().getUid() ) ).thenReturn( getUser() );
-        when( programInstanceStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( preheatPi );
-        when( trackedEntityCommentStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( notes );
-
-        final TrackerImportParams preheatParams = TrackerImportParams.builder()
-            .user( getUser() )
-            .enrollments( enrollments )
-            .build();
-
-        final TrackerPreheat preheat = subject.preheat( preheatParams );
-
-        // Then
-        assertTrue( preheat.getNote( notes.get( 0 ).getUid() ).isPresent() );
-        assertTrue( preheat.getNote( notes.get( 1 ).getUid() ).isPresent() );
-        assertTrue( preheat.getNote( notes.get( 2 ).getUid() ).isPresent() );
-    }
-
-    @Test
-    public void verifyEventsNotesPreheated()
-    {
-        // Given
-        final List<Event> events = rnd.randomObjects( Event.class, 3 );
-        final List<ProgramStageInstance> preheatPsi = rnd.randomObjects( ProgramStageInstance.class, 3, "uid" );
-        final List<TrackedEntityComment> notes = rnd.randomObjects( TrackedEntityComment.class, 3 );
-
-        IntStream.range( 0, 3 ).forEach( i -> {
-            events.get( i ).setNotes( Collections.singletonList(
-                new Note( CodeGenerator.generateUid(), null, null, RandomStringUtils.randomAlphabetic( 3 ), "" ) ) );
-            preheatPsi.get( i ).setUid( events.get( i ).getUid() );
-            notes.get( 0 ).setUid( events.get( i ).getNotes().get( 0 ).getNote() );
-        } );
-
-        when( manager.get( User.class, getUser().getUid() ) ).thenReturn( getUser() );
-        when( programStageInstanceStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( preheatPsi );
-        when( trackedEntityCommentStore.getByUid( anyList(), any( User.class ) ) ).thenReturn( notes );
-
-        final TrackerImportParams preheatParams = TrackerImportParams.builder()
-            .user( getUser() )
-            .events( events )
-            .build();
-
-        final TrackerPreheat preheat = subject.preheat( preheatParams );
-
-        // Then
-        assertTrue( preheat.getNote( notes.get( 0 ).getUid() ).isPresent() );
-        assertTrue( preheat.getNote( notes.get( 1 ).getUid() ).isPresent() );
-        assertTrue( preheat.getNote( notes.get( 2 ).getUid() ).isPresent() );
-
-    }
-
-    private <T extends IdentifiableObject> T getGeneric( TrackerPreheat preheat, Class<T> klazz, String uid )
-    {
-        return preheat.get( klazz, uid );
+        verify( applicationContext ).getBean( bean.getValue(), preheatSupplierClassCaptor.getValue() );
+        verify( classBasedSupplier ).add( any(), any() );
     }
 
     private User getUser()
@@ -330,5 +137,4 @@ public class DefaultTrackerPreheatServiceTest
         user.setUid( "user1234" );
         return user;
     }
-
 }

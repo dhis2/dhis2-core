@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,14 +62,28 @@ public class EventDataValuesValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
+        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+
+        checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
+
         for ( DataValue dataValue : event.getDataValues() )
         {
             // event dates (createdAt, updatedAt) are ignored and set by the
             // system
-            validateDataElement( reporter, context, dataValue );
+            DataElement dataElement = context.getDataElement( dataValue.getDataElement() );
+
+            if ( dataElement == null )
+            {
+                addError( reporter, TrackerErrorCode.E1304, dataValue.getDataElement() );
+                continue;
+            }
+
+            validateDataElement( reporter, dataElement, dataValue, programStage, event );
+            validateOptionSet( reporter, dataElement, dataValue.getValue() );
         }
+
         validateMandatoryDataValues( event, context, reporter );
-        validateDataValueDataElementIsConnectedToProgramStage( reporter, context, event );
+        validateDataValueDataElementIsConnectedToProgramStage( reporter, event, programStage );
     }
 
     private void validateMandatoryDataValues( Event event, TrackerImportValidationContext context,
@@ -83,42 +99,48 @@ public class EventDataValuesValidationHook
                 .collect( Collectors.toList() );
             List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
                 mandatoryDataElements );
-            wrongMandatoryDataValue.forEach( de -> addError( reporter, TrackerErrorCode.E1303, de ) );
+            wrongMandatoryDataValue.forEach( de -> addError( reporter, E1303, de ) );
         }
     }
 
-    private void validateDataElement( ValidationErrorReporter reporter, TrackerImportValidationContext ctx,
-        DataValue dataValue )
+    private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
+        DataValue dataValue, ProgramStage programStage, Event event )
     {
-        DataElement dataElement = ctx.getDataElement( dataValue.getDataElement() );
+        final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
 
-        if ( dataElement == null )
+        if ( status != null )
         {
-            addError( reporter, TrackerErrorCode.E1304, dataValue.getDataElement() );
+            addError( reporter, TrackerErrorCode.E1302, dataElement.getUid(), status );
         }
         else
         {
-            final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
-
-            if ( status != null )
-            {
-                addError( reporter, TrackerErrorCode.E1302, dataElement.getUid(), status );
-            }
-            else
-            {
-                validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
-            }
+            validateNullDataValues( reporter, dataElement, programStage, dataValue, event );
+            validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
         }
     }
 
-    private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter,
-        TrackerImportValidationContext ctx, Event event )
+    private void validateNullDataValues( ValidationErrorReporter reporter, DataElement dataElement,
+        ProgramStage programStage, DataValue dataValue, Event event )
     {
-        if ( StringUtils.isEmpty( event.getProgramStage() ) )
+        if ( dataValue.getValue() != null || !needsToValidateDataValues( event, programStage ) )
             return;
 
-        ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
+        Optional<ProgramStageDataElement> optionalPsde = Optional.of( programStage )
+            .map( ps -> ps.getProgramStageDataElements().stream() ).flatMap( psdes -> psdes
+                .filter(
+                    psde -> psde.getDataElement().getUid().equals( dataElement.getUid() ) && psde.isCompulsory() )
+                .findFirst() );
 
+        if ( optionalPsde.isPresent() )
+        {
+            addError( reporter, E1076, DataElement.class.getSimpleName(),
+                dataElement.getUid() );
+        }
+    }
+
+    private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter, Event event,
+        ProgramStage programStage )
+    {
         final Set<String> dataElements = programStage.getProgramStageDataElements()
             .stream()
             .map( de -> de.getDataElement().getUid() )
@@ -140,6 +162,11 @@ public class EventDataValuesValidationHook
     private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, DataValue dataValue,
         DataElement dataElement )
     {
+        if ( dataValue == null || dataValue.getValue() == null )
+        {
+            return;
+        }
+
         boolean isFile = dataElement.getValueType() != null && dataElement.getValueType().isFile();
         if ( !isFile )
         {

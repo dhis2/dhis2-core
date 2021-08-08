@@ -38,7 +38,11 @@ public interface NotificationTemplate
 {
     String getSubjectTemplate();
 
+    String getDisplaySubjectTemplate();
+
     String getMessageTemplate();
+
+    String getDisplayMessageTemplate();
 
     Set<DeliveryChannel> getDeliveryChannels();
 

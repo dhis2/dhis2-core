@@ -46,10 +46,6 @@ import org.springframework.stereotype.Component;
 public class SectionDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final SectionService sectionService;
 
     public SectionDeletionHandler( SectionService sectionService )
@@ -58,18 +54,14 @@ public class SectionDeletionHandler
         this.sectionService = sectionService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return Section.class.getSimpleName();
+        whenDeleting( DataElement.class, this::deleteDataElement );
+        whenDeleting( DataSet.class, this::deleteDataSet );
     }
 
-    @Override
-    public void deleteDataElement( DataElement dataElement )
+    private void deleteDataElement( DataElement dataElement )
     {
         for ( Section section : sectionService.getAllSections() )
         {
@@ -91,8 +83,7 @@ public class SectionDeletionHandler
         }
     }
 
-    @Override
-    public void deleteDataSet( DataSet dataSet )
+    private void deleteDataSet( DataSet dataSet )
     {
         Iterator<Section> iterator = dataSet.getSections().iterator();
 

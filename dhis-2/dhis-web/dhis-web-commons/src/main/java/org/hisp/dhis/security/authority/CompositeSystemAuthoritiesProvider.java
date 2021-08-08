@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hisp.dhis.security.SystemAuthoritiesProvider;
+
 /**
  * @author Torgeir Lorange Ostby
  * @version $Id: CompositeSystemAuthoritiesProvider.java 3160 2007-03-24

@@ -5,7 +5,6 @@
       "program": "E8o1E9tAppy",
       "programStage": "Qmqxq907VNz",
       "orgUnit": "QfUVllTs6cS",
-      "trackedEntity": "Kj6vYde4LHh",
       "enrollment": "MNWZ6hnuhSw",
       "enrollmentStatus": "ACTIVE",
       "status": "ACTIVE",
@@ -16,15 +15,19 @@
       "dataValues": [],
       "notes": [
         {
+          "note": "noteUid0001",
           "value": "this is the first note"
         },
         {
+          "note": "noteUid0002",
           "value": "this is the second note"
         },
         {
+          "note": "noteUid0003",
           "value": "this is the third note"
         },
         {
+          "note": "noteUid0004",
           "value": ""
         }
 

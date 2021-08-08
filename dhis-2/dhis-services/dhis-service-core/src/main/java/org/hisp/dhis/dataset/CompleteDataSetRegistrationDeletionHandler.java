@@ -28,11 +28,13 @@
 package org.hisp.dhis.dataset;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -44,13 +46,11 @@ import org.springframework.stereotype.Component;
 public class CompleteDataSetRegistrationDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private static final DeletionVeto VETO = new DeletionVeto( CompleteDataSetRegistration.class );
 
-    private CompleteDataSetRegistrationService completeDataSetRegistrationService;
+    private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public CompleteDataSetRegistrationDeletionHandler(
         CompleteDataSetRegistrationService completeDataSetRegistrationService, JdbcTemplate jdbcTemplate )
@@ -62,42 +62,37 @@ public class CompleteDataSetRegistrationDeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return CompleteDataSetRegistration.class.getSimpleName();
+        whenDeleting( DataSet.class, this::deleteDataSet );
+        whenVetoing( Period.class, this::allowDeletePeriod );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
     }
 
-    @Override
-    public void deleteDataSet( DataSet dataSet )
+    private void deleteDataSet( DataSet dataSet )
     {
         completeDataSetRegistrationService.deleteCompleteDataSetRegistrations( dataSet );
     }
 
-    @Override
-    public String allowDeletePeriod( Period period )
+    private DeletionVeto allowDeletePeriod( Period period )
     {
         String sql = "SELECT COUNT(*) FROM completedatasetregistration where periodid=" + period.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 
-    @Override
-    public void deleteOrganisationUnit( OrganisationUnit unit )
+    private void deleteOrganisationUnit( OrganisationUnit unit )
     {
         completeDataSetRegistrationService.deleteCompleteDataSetRegistrations( unit );
     }
 
-    @Override
-    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
+    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
         String sql = "SELECT COUNT(*) FROM completedatasetregistration where attributeoptioncomboid="
             + optionCombo.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 }

@@ -29,6 +29,8 @@ package org.hisp.dhis.cache;
 
 import java.time.Duration;
 
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+
 /**
  * The {@link CacheProvider} has a factory method for each {@link Cache} use
  * case in DHIS2.
@@ -42,10 +44,7 @@ import java.time.Duration;
  */
 public interface CacheProvider
 {
-
     <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime );
-
-    <V> Cache<V> createAppCache();
 
     <V> Cache<V> createDefaultObjectCache();
 
@@ -54,6 +53,8 @@ public interface CacheProvider
     <V> Cache<V> createAllConstantsCache();
 
     <V> Cache<V> createInUserOrgUnitHierarchyCache();
+
+    <V> Cache<V> createInUserViewOrgUnitHierarchyCache();
 
     <V> Cache<V> createInUserSearchOrgUnitHierarchyCache();
 
@@ -69,7 +70,7 @@ public interface CacheProvider
 
     <V> Cache<V> createProgramTempOwnerCache();
 
-    <V> Cache<V> createUserIdCacheCache();
+    <V> Cache<V> createUserIdCache();
 
     <V> Cache<V> createCurrentUserGroupInfoCache();
 
@@ -93,6 +94,17 @@ public interface CacheProvider
 
     <V> Cache<V> createPropertyTransformerCache();
 
-    <V> Cache<V> createProgramRulesCache();
+    <V> Cache<V> createProgramHasRulesCache();
 
+    <V> Cache<V> createProgramRuleVariablesCache();
+
+    <V> Cache<V> createUserGroupNameCache();
+
+    <V> Cache<V> createUserDisplayNameCache();
+
+    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
+
+    <V> Cache<V> createProgramWebHookNotificationTemplateCache();
+
+    <V> Cache<V> createProgramStageWebHookNotificationTemplateCache();
 }

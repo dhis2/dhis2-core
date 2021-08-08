@@ -46,6 +46,10 @@ import com.google.common.collect.ImmutableSet;
 public class DefaultAdminUserPopulator
     extends TransactionContextStartupRoutine
 {
+    /**
+     * Authorities which are not part of schema descriptors/associated with
+     * metadata CRUD operations.
+     */
     public static final Set<String> ALL_AUTHORITIES = ImmutableSet.of(
         "ALL",
         "F_VIEW_EVENT_ANALYTICS",
@@ -66,6 +70,8 @@ public class DefaultAdminUserPopulator
         "F_PREDICTOR_RUN",
         "F_SEND_EMAIL",
         "F_ORGANISATIONUNIT_MOVE",
+        "F_ORGANISATION_UNIT_SPLIT",
+        "F_ORGANISATION_UNIT_MERGE",
         "F_INSERT_CUSTOM_JS_CSS",
         "F_VIEW_UNAPPROVED_DATA",
         "F_USER_VIEW",
@@ -81,7 +87,8 @@ public class DefaultAdminUserPopulator
         "F_EDIT_EXPIRED",
         "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
         "F_TRACKER_IMPORTER_EXPERIMENTAL",
-        "F_VIEW_SERVER_INFO" );
+        "F_VIEW_SERVER_INFO",
+        "F_ORG_UNIT_PROFILE_ADD" );
 
     private final UserService userService;
 

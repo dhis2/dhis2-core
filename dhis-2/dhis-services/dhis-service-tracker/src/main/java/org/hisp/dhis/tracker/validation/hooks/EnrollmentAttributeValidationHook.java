@@ -28,11 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1017;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1018;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1019;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1075;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
 
 import java.util.Collections;
 import java.util.Map;
@@ -46,7 +42,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -57,6 +52,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Maps;
@@ -69,7 +65,7 @@ import com.google.common.collect.Streams;
 public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 {
 
-    public EnrollmentAttributeValidationHook( TrackedEntityAttributeService teAttrService )
+    public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService )
     {
         super( teAttrService );
     }
@@ -78,6 +74,9 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
+
+        Program program = context.getProgram( enrollment.getProgram() );
+        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
         TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
@@ -88,35 +87,48 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
-            validateRequiredProperties( reporter, attribute );
+            validateRequiredProperties( reporter, attribute, program );
 
-            if ( attribute.getAttribute() == null || attribute.getValue() == null ||
-                context.getTrackedEntityAttribute( attribute.getAttribute() ) == null )
+            if ( attribute.getAttribute() != null && attribute.getValue() != null )
             {
-                continue;
+
+                attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
+
+                TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
+
+                if ( teAttribute == null )
+                {
+                    addError( reporter, E1006, attribute.getAttribute() );
+                    continue;
+                }
+
+                validateAttrValueType( reporter, attribute, teAttribute );
+                validateOptionSet( reporter, teAttribute, attribute.getValue() );
+
+                validateAttributeUniqueness( reporter,
+                    attribute.getValue(),
+                    teAttribute,
+                    tei,
+                    orgUnit );
             }
-
-            attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
-
-            TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
-
-            validateAttrValueType( reporter, attribute, teAttribute );
-
-            validateAttributeUniqueness( reporter,
-                attribute.getValue(),
-                teAttribute,
-                tei,
-                orgUnit );
         }
 
-        Program program = context.getProgram( enrollment.getProgram() );
         validateMandatoryAttributes( reporter, program, enrollment );
     }
 
-    protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute )
+    protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute, Program program )
     {
         addErrorIfNull( attribute.getAttribute(), reporter, E1075, attribute );
-        addErrorIfNull( attribute.getValue(), reporter, E1076, attribute );
+
+        Optional<ProgramTrackedEntityAttribute> optionalTrackedAttr = program.getProgramAttributes().stream()
+            .filter( pa -> pa.getAttribute().getUid().equals( attribute.getAttribute() ) && pa.isMandatory() )
+            .findFirst();
+
+        if ( optionalTrackedAttr.isPresent() )
+        {
+            addErrorIfNull( attribute.getValue(), reporter, E1076, TrackedEntityAttribute.class.getSimpleName(),
+                attribute.getAttribute() );
+        }
 
         if ( attribute.getAttribute() != null )
         {
@@ -130,8 +142,6 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     private void validateMandatoryAttributes( ValidationErrorReporter reporter,
         Program program, Enrollment enrollment )
     {
-        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
-
         // Build a data structures of attributes eligible for mandatory
         // validations:
         // 1 - attributes from enrollments whose value is not empty or null

@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -51,13 +53,13 @@ import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.Test;
-import org.mockito.internal.util.collections.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
 public class ProgramMessageServiceTest
     extends DhisSpringTest
 {
@@ -147,7 +149,7 @@ public class ProgramMessageServiceTest
 
         Program program = createProgram( 'A' );
         program.setAutoFields();
-        program.setOrganisationUnits( Sets.newSet( ouA, ouB ) );
+        program.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         program.setName( "programA" );
         program.setShortName( "programAshortname" );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );

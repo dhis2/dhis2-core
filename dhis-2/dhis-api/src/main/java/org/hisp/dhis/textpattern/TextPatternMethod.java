@@ -89,6 +89,9 @@ public enum TextPatternMethod
         RANDOM,
         SEQUENTIAL );
 
+    public static final ImmutableSet<TextPatternMethod> PERSIST = ImmutableSet.of(
+        RANDOM );
+
     private MethodType type;
 
     TextPatternMethod( MethodType type )
@@ -114,5 +117,10 @@ public enum TextPatternMethod
     public boolean isGenerated()
     {
         return GENERATED.contains( this );
+    }
+
+    public boolean isPersistable()
+    {
+        return PERSIST.contains( this );
     }
 }

@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.visualization;
 
+import static java.lang.Integer.MAX_VALUE;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import java.io.Serializable;
 
 import lombok.Data;
+
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -68,10 +71,12 @@ public class AxisV2 implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -MAX_VALUE )
     private Integer maxValue;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @PropertyRange( min = -MAX_VALUE )
     private Integer minValue;
 
     @JsonProperty

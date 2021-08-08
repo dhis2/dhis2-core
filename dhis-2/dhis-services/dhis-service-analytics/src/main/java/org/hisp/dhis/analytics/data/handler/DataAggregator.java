@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.DataQueryParams.DX_INDEX;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.analytics.ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM;
+import static org.hisp.dhis.analytics.ProcessingHint.SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 
@@ -151,14 +152,18 @@ public class DataAggregator
      */
     private DataQueryParams preHandleQuery( DataQueryParams params )
     {
-        if ( params.hasSingleIndicatorAsDataFilter() || params.hasSingleReportingRateAsDataFilter() )
+        if ( params.hasSingleIndicatorAsDataFilter() || params.hasSingleProgramIndicatorAsDataFilter()
+            || params.hasSingleReportingRateAsDataFilter() )
         {
             DimensionalObject dx = params.getFilter( DATA_X_DIM_ID );
 
             params = newBuilder( params )
                 .addDimension( dx )
                 .removeFilter( DATA_X_DIM_ID )
-                .addProcessingHint( SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ).build();
+                .addProcessingHint(
+                    params.hasSingleIndicatorAsDataFilter() ? SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM
+                        : SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM )
+                .build();
         }
 
         return params;
@@ -175,7 +180,8 @@ public class DataAggregator
      */
     private void postHandleGrid( DataQueryParams params, Grid grid )
     {
-        if ( params.hasProcessingHint( SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ) )
+        if ( params.hasProcessingHint( SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM )
+            || params.hasProcessingHint( SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM ) )
         {
             grid.removeColumn( DX_INDEX );
         }

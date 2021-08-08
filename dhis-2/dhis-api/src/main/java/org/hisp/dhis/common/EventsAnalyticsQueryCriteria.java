@@ -48,7 +48,7 @@ import org.hisp.dhis.program.ProgramStatus;
 public class EventsAnalyticsQueryCriteria
 {
     // -------------------------------------------------------------------------
-    // VALID FOR EVENT QUERY AND AGGREGATE ANALYTICS
+    // Event and aggregate analytics
     // -------------------------------------------------------------------------
 
     /**
@@ -112,7 +112,7 @@ public class EventsAnalyticsQueryCriteria
     private String rows;
 
     // -------------------------------------------------------------------------
-    // VALID FOR EVENT AGGREGATE ANALYTICS ONLY
+    // Event aggregate analytics only
     // -------------------------------------------------------------------------
 
     /**
@@ -218,8 +218,14 @@ public class EventsAnalyticsQueryCriteria
     private String coordinateField;
 
     // -------------------------------------------------------------------------
-    // VALID FOR EVENT QUERY ANALYTICS ONLY
+    // Event query analytics only
     // -------------------------------------------------------------------------
+
+    /**
+     * Field to base geospatial event analytics on. Default is event. Can be set
+     * to identifiers of attributes and data elements of value type coordinate.
+     */
+    private String fallbackCoordinateField;
 
     /**
      * The mode of selecting organisation units. Default is DESCENDANTS, meaning
@@ -246,12 +252,24 @@ public class EventsAnalyticsQueryCriteria
     private boolean coordinatesOnly;
 
     /**
+     * Whether to return events which ou coordinates when primary coordinates do
+     * not exist.
+     */
+    private boolean coordinateOuFallback;
+
+    /**
      * d scheme to be used for data, more specifically data elements and
      * attributes which have an option set or legend set, e.g. return the name
      * of the option instead of the code, or the name of the legend instead of
      * the legend ID, in the data response.
      */
     private IdScheme dataIdScheme;
+
+    /**
+     * Identifier scheme to use for metadata items the query response, can be
+     * identifier, code or attributes. ( options: UID | CODE | ATTRIBUTE:<ID> )
+     */
+    private IdScheme outputIdScheme;
 
     /**
      * The page number. Default page is 1.
@@ -261,5 +279,11 @@ public class EventsAnalyticsQueryCriteria
     /**
      * The page size.
      */
-    private Integer pageSize = 50;
+    private Integer pageSize;
+
+    /**
+     * The paging parameter. When set to false we should not paginate. The
+     * default is true (always paginate).
+     */
+    private boolean paging = true;
 }

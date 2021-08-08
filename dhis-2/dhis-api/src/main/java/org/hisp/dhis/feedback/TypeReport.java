@@ -31,10 +31,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -45,48 +49,75 @@ import com.google.common.base.MoreObjects;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
-public class TypeReport
+public class TypeReport implements ErrorReportContainer
 {
-    private Class<?> klass;
+    private static final Map<Class<?>, TypeReport> EMPTY_BY_TYPE = new ConcurrentHashMap<>();
 
-    private Stats stats = new Stats();
+    private final Class<?> klass;
 
-    private Map<Integer, ObjectReport> objectReportMap = new HashMap<>();
+    private final boolean empty;
+
+    private final Stats stats = new Stats();
+
+    private final Map<Integer, ObjectReport> objectReportMap = new HashMap<>();
+
+    public static TypeReport empty( Class<?> klass )
+    {
+        return EMPTY_BY_TYPE.computeIfAbsent( klass, type -> new TypeReport( type, true ) );
+    }
 
     @JsonCreator
     public TypeReport( @JsonProperty( "klass" ) Class<?> klass )
     {
+        this( klass, false );
+    }
+
+    private TypeReport( Class<?> klass, boolean empty )
+    {
         this.klass = klass;
+        this.empty = empty;
     }
 
     // -----------------------------------------------------------------------------------
     // Utility Methods
     // -----------------------------------------------------------------------------------
 
-    public void merge( TypeReport typeReport )
+    public void merge( TypeReport other )
     {
-        stats.merge( typeReport.getStats() );
+        if ( empty )
+        {
+            throw new IllegalStateException( "Empty report cannot be changed." );
+        }
+        if ( other.empty )
+        {
+            return; // done: nothing to merge with
+        }
+        stats.merge( other.getStats() );
 
-        typeReport.getObjectReportMap().forEach( ( index, objectReport ) -> {
-            if ( !objectReportMap.containsKey( index ) )
-            {
-                objectReportMap.put( index, objectReport );
-                return;
-            }
-
-            objectReportMap.get( index ).addErrorReports( objectReport.getErrorReports() );
-        } );
+        other.objectReportMap.forEach(
+            ( index, objectReport ) -> objectReportMap.compute( index, ( key, value ) -> {
+                if ( value == null )
+                {
+                    return objectReport;
+                }
+                objectReport.forEachErrorReport( value::addErrorReport );
+                return value;
+            } ) );
     }
 
-    public void addObjectReport( ObjectReport objectReport )
+    /**
+     * Removes entries where the {@link ObjectReport} has no
+     * {@link ErrorReport}s.
+     */
+    public void clean()
     {
-        if ( !objectReportMap.containsKey( objectReport.getIndex() ) )
-        {
-            objectReportMap.put( objectReport.getIndex(), objectReport );
-            return;
-        }
+        objectReportMap.entrySet().removeIf( entry -> !entry.getValue().hasErrorReports() );
+    }
 
-        objectReportMap.get( objectReport.getIndex() ).merge( objectReport );
+    public void addObjectReport( ObjectReport report )
+    {
+        objectReportMap.compute( report.getIndex(),
+            ( key, value ) -> value == null ? report : value.merge( report ) );
     }
 
     // -----------------------------------------------------------------------------------
@@ -120,23 +151,63 @@ public class TypeReport
     @JacksonXmlProperty( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )
     public void setObjectReports( List<ObjectReport> objectReports )
     {
+        objectReportMap.clear();
         if ( objectReports != null )
         {
             objectReports.forEach( or -> objectReportMap.put( or.getIndex(), or ) );
         }
     }
 
-    public List<ErrorReport> getErrorReports()
+    @JsonIgnore
+    public int getObjectReportsCount()
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-        objectReportMap.values().forEach( objectReport -> errorReports.addAll( objectReport.getErrorReports() ) );
-
-        return errorReports;
+        return objectReportMap.size();
     }
 
-    public Map<Integer, ObjectReport> getObjectReportMap()
+    public boolean hasObjectReports()
     {
-        return objectReportMap;
+        return !objectReportMap.isEmpty();
+    }
+
+    public ObjectReport getFirstObjectReport()
+    {
+        return objectReportMap.isEmpty() ? null : objectReportMap.values().iterator().next();
+    }
+
+    public void forEachObjectReport( Consumer<ObjectReport> reportConsumer )
+    {
+        objectReportMap.values().forEach( reportConsumer );
+    }
+
+    @JsonIgnore
+    @Override
+    public int getErrorReportsCount()
+    {
+        return objectReportMap.values().stream().mapToInt( ObjectReport::getErrorReportsCount ).sum();
+    }
+
+    @Override
+    public int getErrorReportsCount( ErrorCode errorCode )
+    {
+        return objectReportMap.values().stream().mapToInt( report -> report.getErrorReportsCount( errorCode ) ).sum();
+    }
+
+    @Override
+    public boolean hasErrorReports()
+    {
+        return objectReportMap.values().stream().anyMatch( ObjectReport::hasErrorReports );
+    }
+
+    @Override
+    public boolean hasErrorReport( Predicate<ErrorReport> test )
+    {
+        return objectReportMap.values().stream().anyMatch( report -> report.hasErrorReport( test ) );
+    }
+
+    @Override
+    public void forEachErrorReport( Consumer<ErrorReport> reportConsumer )
+    {
+        objectReportMap.values().forEach( objectReport -> objectReport.forEachErrorReport( reportConsumer ) );
     }
 
     @Override
@@ -148,4 +219,5 @@ public class TypeReport
             .add( "objectReports", getObjectReports() )
             .toString();
     }
+
 }

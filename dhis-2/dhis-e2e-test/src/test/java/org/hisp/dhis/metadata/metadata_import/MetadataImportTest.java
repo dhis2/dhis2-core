@@ -34,9 +34,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.SchemasActions;
 import org.hisp.dhis.actions.SystemActions;
+import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.dto.TypeReport;
@@ -63,17 +62,14 @@ import static org.junit.jupiter.api.Assertions.*;
 public class MetadataImportTest
     extends ApiTest
 {
-    private RestApiActions metadataActions;
-
-    private SchemasActions schemasActions;
+    private MetadataActions metadataActions;
 
     private SystemActions systemActions;
 
     @BeforeAll
     public void before()
     {
-        schemasActions = new SchemasActions();
-        metadataActions = new RestApiActions( "/metadata" );
+        metadataActions = new MetadataActions();
         systemActions = new SystemActions();
 
         new LoginActions().loginAsSuperUser();
@@ -308,7 +304,7 @@ public class MetadataImportTest
         ApiResponse response = metadataActions.post( metadata, new QueryParamsBuilder().add( "skipSharing=true" ) );
 
         response.validate().statusCode( 200 )
-            .body( "status", isOneOf( "SUCCESS", "OK" ) )
+            .body( "status", is( oneOf( "SUCCESS", "OK" ) ) )
             .body( "stats.created", equalTo( 1 ) );
 
     }

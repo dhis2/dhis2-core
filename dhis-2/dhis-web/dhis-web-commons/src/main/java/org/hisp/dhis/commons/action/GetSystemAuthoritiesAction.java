@@ -40,7 +40,7 @@ import java.util.List;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.security.authority.SystemAuthoritiesProvider;
+import org.hisp.dhis.security.SystemAuthoritiesProvider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;

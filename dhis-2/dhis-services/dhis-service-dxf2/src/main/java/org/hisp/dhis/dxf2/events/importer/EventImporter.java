@@ -117,7 +117,7 @@ public class EventImporter
 
         if ( ERRORS == importOptions.getReportMode() && isNotEmpty( importSummaries.getImportSummaries() ) )
         {
-            importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
+            importSummaries.getImportSummaries().removeIf( is -> !is.hasConflicts() );
         }
 
         return importSummaries;

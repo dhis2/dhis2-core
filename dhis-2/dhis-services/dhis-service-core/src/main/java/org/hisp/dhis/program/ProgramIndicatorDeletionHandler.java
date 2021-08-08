@@ -39,13 +39,8 @@ import org.springframework.stereotype.Component;
  * @author Chau Thu Tran
  */
 @Component( "org.hisp.dhis.program.ProgramIndicatorDeletionHandler" )
-public class ProgramIndicatorDeletionHandler
-    extends DeletionHandler
+public class ProgramIndicatorDeletionHandler extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ProgramIndicatorService programIndicatorService;
 
     public ProgramIndicatorDeletionHandler( ProgramIndicatorService programIndicatorService )
@@ -54,18 +49,13 @@ public class ProgramIndicatorDeletionHandler
         this.programIndicatorService = programIndicatorService;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return ProgramIndicator.class.getSimpleName();
+        whenDeleting( Program.class, this::deleteProgram );
     }
 
-    @Override
-    public void deleteProgram( Program program )
+    private void deleteProgram( Program program )
     {
         Collection<ProgramIndicator> indicators = new HashSet<>( program.getProgramIndicators() );
 

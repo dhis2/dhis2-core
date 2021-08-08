@@ -54,12 +54,11 @@ public class CategoryOptionSchemaDescriptor implements SchemaDescriptor
         schema.setOrder( 1140 );
         schema.setDataShareable( true );
 
-        schema.getAuthorities()
+        schema
             .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_CATEGORY_OPTION_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add(
+        schema.add(
             new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_CATEGORY_OPTION_PRIVATE_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_CATEGORY_OPTION_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_CATEGORY_OPTION_DELETE" ) ) );
 
         return schema;
     }

@@ -52,6 +52,8 @@ public class UserGroupAccess
 
     private String uid;
 
+    private String displayName;
+
     public UserGroupAccess()
     {
     }
@@ -60,6 +62,12 @@ public class UserGroupAccess
     {
         this.userGroup = userGroup;
         this.access = access;
+    }
+
+    public UserGroupAccess( org.hisp.dhis.user.sharing.UserGroupAccess userGroupAccess )
+    {
+        this.uid = userGroupAccess.getId();
+        this.access = userGroupAccess.getAccess();
     }
 
     public String getId()
@@ -104,7 +112,12 @@ public class UserGroupAccess
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String displayName()
     {
-        return userGroup != null ? userGroup.getDisplayName() : null;
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
     }
 
     @JsonIgnore
@@ -118,22 +131,6 @@ public class UserGroupAccess
         }
 
         return userGroup;
-    }
-
-    /**
-     * Check if the given {@link User} is contained in the {@link UserGroup}.
-     *
-     * @param user a {@link User}.
-     * @return true if the {@link User} is part of this UserGroup members list.
-     */
-    public boolean userGroupContainsUser( User user )
-    {
-        if ( userGroup != null )
-        {
-            return userGroup.getMembers().stream().anyMatch( u -> u.getId() == user.getId() );
-        }
-
-        return false;
     }
 
     @JsonProperty

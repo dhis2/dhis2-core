@@ -52,7 +52,7 @@ public class MaintenanceActions
         sendRequest( true, "softDeletedEventRemoval=true" );
     }
 
-    public void removeSoftDeletedMetadata()
+    public void removeSoftDeletedData()
     {
         sendRequest( true, "softDeletedEventRemoval=true", "softDeletedTrackedEntityInstanceRemoval=true",
             "softDeletedProgramStageInstanceRemoval=true", "softDeletedProgramInstanceRemoval=true",

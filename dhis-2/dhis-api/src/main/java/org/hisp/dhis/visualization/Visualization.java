@@ -46,6 +46,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.visualization.CompatibilityGuard.keepAxesReadingCompatibility;
+import static org.hisp.dhis.visualization.CompatibilityGuard.keepLegendReadingCompatibility;
 import static org.hisp.dhis.visualization.DimensionDescriptor.getDimensionIdentifierFor;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
@@ -77,12 +79,10 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.legend.LegendDisplayStrategy;
-import org.hisp.dhis.legend.LegendDisplayStyle;
-import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
@@ -217,11 +217,7 @@ public class Visualization
      */
     private List<Axis> optionalAxes = new ArrayList<>();
 
-    private LegendDisplayStyle legendDisplayStyle;
-
-    private LegendSet legendSet;
-
-    private LegendDisplayStrategy legendDisplayStrategy;
+    private LegendDefinitions legendDefinitions;
 
     /**
      * The font style for various components of the visualization.
@@ -238,27 +234,27 @@ public class Visualization
     // Display items for graphics/charts
     // -------------------------------------------------------------------------
 
-    private Double targetLineValue;
+    private transient Double targetLineValue;
 
-    private Double baseLineValue;
+    private transient Double baseLineValue;
 
-    private String baseLineLabel;
+    private transient String baseLineLabel;
 
-    private String targetLineLabel;
+    private transient String targetLineLabel;
 
-    private Double rangeAxisMaxValue;
+    private transient Double rangeAxisMaxValue;
 
-    private Double rangeAxisMinValue;
+    private transient Double rangeAxisMinValue;
 
-    private Integer rangeAxisSteps; // Minimum 1
+    private transient Integer rangeAxisSteps; // Minimum 1
 
-    private Integer rangeAxisDecimals;
+    private transient Integer rangeAxisDecimals;
 
-    private String domainAxisLabel;
+    private transient String domainAxisLabel;
 
-    private String rangeAxisLabel;
+    private transient String rangeAxisLabel;
 
-    private LegendDefinitions legend;
+    private SeriesKey seriesKey;
 
     private List<AxisV2> axes = new ArrayList<>();
 
@@ -506,30 +502,6 @@ public class Visualization
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public LegendSet getLegendSet()
-    {
-        return legendSet;
-    }
-
-    public void setLegendSet( LegendSet legendSet )
-    {
-        this.legendSet = legendSet;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public LegendDisplayStrategy getLegendDisplayStrategy()
-    {
-        return legendDisplayStrategy;
-    }
-
-    public void setLegendDisplayStrategy( LegendDisplayStrategy legendDisplayStrategy )
-    {
-        this.legendDisplayStrategy = legendDisplayStrategy;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getMeasureCriteria()
     {
         return measureCriteria;
@@ -673,16 +645,16 @@ public class Visualization
         this.optionalAxes = optionalAxes;
     }
 
-    @JsonProperty
+    @JsonProperty( "legend" )
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public LegendDisplayStyle getLegendDisplayStyle()
+    public LegendDefinitions getLegendDefinitions()
     {
-        return legendDisplayStyle;
+        return legendDefinitions;
     }
 
-    public void setLegendDisplayStyle( LegendDisplayStyle legendDisplayStyle )
+    public void setLegendDefinitions( LegendDefinitions legendDefinitions )
     {
-        this.legendDisplayStyle = legendDisplayStyle;
+        this.legendDefinitions = legendDefinitions;
     }
 
     @JsonProperty
@@ -872,11 +844,19 @@ public class Visualization
         this.series = series;
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getDomainAxisLabel()
     {
         return domainAxisLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "domainAxisLabel" )
+    public String getDisplayDomainAxisLabel()
+    {
+        return getTranslation( "domainAxisLabel", getDomainAxisLabel() );
     }
 
     public void setDomainAxisLabel( String domainAxisLabel )
@@ -884,11 +864,19 @@ public class Visualization
         this.domainAxisLabel = domainAxisLabel;
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getRangeAxisLabel()
     {
         return rangeAxisLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "rangeAxisLabel" )
+    public String getDisplayRangeAxisLabel()
+    {
+        return getTranslation( "rangeAxisLabel", getRangeAxisLabel() );
     }
 
     public void setRangeAxisLabel( String rangeAxisLabel )
@@ -932,11 +920,19 @@ public class Visualization
         this.noSpaceBetweenColumns = noSpaceBetweenColumns;
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getBaseLineLabel()
     {
         return baseLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "baseLineLabel" )
+    public String getDisplayBaseLineLabel()
+    {
+        return getTranslation( "baseLineLabel", getBaseLineLabel() );
     }
 
     public void setBaseLineLabel( String baseLineLabel )
@@ -944,11 +940,19 @@ public class Visualization
         this.baseLineLabel = baseLineLabel;
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getTargetLineLabel()
     {
         return targetLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "targetLineLabel" )
+    public String getDisplayTargetLineLabel()
+    {
+        return getTranslation( "targetLineLabel", getTargetLineLabel() );
     }
 
     public void setTargetLineLabel( String targetLineLabel )
@@ -1004,7 +1008,7 @@ public class Visualization
         this.showData = showData;
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     @PropertyRange( min = -Double.MAX_VALUE )
     public Double getTargetLineValue()
@@ -1017,7 +1021,7 @@ public class Visualization
         this.targetLineValue = targetLineValue;
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     @PropertyRange( min = -Double.MAX_VALUE )
     public Double getBaseLineValue()
@@ -1042,7 +1046,7 @@ public class Visualization
         this.percentStackedValues = percentStackedValues;
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMaxValue()
@@ -1055,7 +1059,7 @@ public class Visualization
         this.rangeAxisMaxValue = rangeAxisMaxValue;
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     @PropertyRange( min = -Double.MAX_VALUE )
     public Double getRangeAxisMinValue()
@@ -1068,7 +1072,7 @@ public class Visualization
         this.rangeAxisMinValue = rangeAxisMinValue;
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public Integer getRangeAxisSteps()
     {
@@ -1080,7 +1084,7 @@ public class Visualization
         this.rangeAxisSteps = rangeAxisSteps;
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public Integer getRangeAxisDecimals()
     {
@@ -1117,16 +1121,18 @@ public class Visualization
         this.outlierAnalysis = outlierAnalysis;
     }
 
-    @JsonProperty( value = "legend" )
-    @JacksonXmlProperty( localName = "legend", namespace = DXF_2_0 )
-    public LegendDefinitions getLegend()
+    @JsonProperty( value = "seriesKey" )
+    @JacksonXmlProperty( localName = "seriesKey", namespace = DXF_2_0 )
+    public SeriesKey getSeriesKey()
     {
-        return legend;
+        return seriesKey;
     }
 
-    public void setLegend( LegendDefinitions legend )
+    public void setSeriesKey( SeriesKey seriesKey )
     {
-        this.legend = legend;
+        this.seriesKey = seriesKey;
+
+        keepLegendReadingCompatibility( this );
     }
 
     @JsonProperty( value = "axes" )
@@ -1139,6 +1145,8 @@ public class Visualization
     public void setAxes( List<AxisV2> axes )
     {
         this.axes = axes;
+
+        keepAxesReadingCompatibility( this );
     }
 
     /**

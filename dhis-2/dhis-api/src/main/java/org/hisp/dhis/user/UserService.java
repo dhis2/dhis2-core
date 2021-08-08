@@ -267,7 +267,7 @@ public interface UserService
      * OpenID.
      *
      * @param openId the openId of the User.
-     * @return the UserCredentials.
+     * @return the UserCredentials or null if there is no match
      */
     UserCredentials getUserCredentialsByOpenId( String openId );
 
@@ -465,4 +465,10 @@ public interface UserService
      * @return number of users disabled
      */
     int disableUsersInactiveSince( Date inactiveSince );
+
+    /**
+     * Get user display name by concat( firstname,' ', surname ) Return null if
+     * User doesn't exist
+     */
+    String getDisplayName( String userUid );
 }

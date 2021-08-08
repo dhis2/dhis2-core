@@ -36,10 +36,7 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.*;
@@ -152,14 +149,20 @@ public class JdbcEventAnalyticsTableManagerTest
     {
         Program prA = createProgram( 'A' );
         Program prB = createProgram( 'B' );
-        List<Program> programs = Lists.newArrayList( prA, prB );
+        Program prC = createProgram( 'C' );
+        Program prD = createProgram( 'D' );
+        List<Program> programs = Lists.newArrayList( prA, prB, prC, prD );
 
         Date lastFullTableUpdate = new DateTime( 2019, 3, 1, 2, 0 ).toDate();
         Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
         Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
 
+        Set<String> skipPrograms = new HashSet<>();
+        skipPrograms.add( prC.getUid() );
+        skipPrograms.add( prD.getUid() );
+
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( startTime )
-            .withLatestPartition().build();
+            .withLatestPartition().withSkipPrograms( skipPrograms ).build();
 
         List<Map<String, Object>> queryResp = Lists.newArrayList();
         queryResp.add( ImmutableMap.of( "dataelementid", 1 ) );
@@ -172,11 +175,10 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( programs );
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
-
         assertThat( tables, hasSize( 2 ) );
 
         AnalyticsTable tableA = tables.get( 0 );
-        AnalyticsTable tableB = tables.get( 0 );
+        AnalyticsTable tableB = tables.get( 1 );
 
         assertThat( tableA, notNullValue() );
         assertThat( tableB, notNullValue() );
@@ -222,7 +224,7 @@ public class JdbcEventAnalyticsTableManagerTest
         assertThat( tables, hasSize( 1 ) );
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) ).withTableType( AnalyticsTableType.EVENT )
-            .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withColumnSize( 41 )
+            .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withColumnSize( 42 )
             .withDefaultColumns( subject.getFixedColumns() ).addColumns( periodColumns )
             .addColumn( categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated() )
             .addColumn( categoryB.getUid(), CHARACTER_11, "acs.", categoryB.getCreated() ).build().verify();
@@ -281,7 +283,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 48 ).addColumns( periodColumns )
+            .withColumnSize( 49 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( d2.getUid(), DOUBLE, toAlias( aliasD2, d2.getUid() ) ) // ValueType.PERCENTAGE
             .addColumn( d3.getUid(), INTEGER, toAlias( aliasD3, d3.getUid() ) ) // ValueType.BOOLEAN
@@ -289,21 +291,10 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( d5.getUid(), TEXT, toAlias( aliasD5, d5.getUid() ) ) // ValueType.ORGANISATION_UNIT
             .addColumn( d6.getUid(), BIGINT, toAlias( aliasD6, d6.getUid() ) ) // ValueType.INTEGER
             .addColumn( d7.getUid(), GEOMETRY_POINT, toAlias( aliasD7, d7.getUid() ) ) // ValueType.COORDINATES
-            .addColumn( d5.getUid() + "_geom", GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), "gist" ) // element
-                                                                                                       // d5
-                                                                                                       // also
-                                                                                                       // creates
-                                                                                                       // a
-                                                                                                       // Geo
-                                                                                                       // column
-            .addColumn( d5.getUid() + "_name", TEXT, toAlias( aliasD5_name, d5.getUid() + "_name" ) ) // element
-                                                                                                      // d5
-                                                                                                      // also
-                                                                                                      // creates
-                                                                                                      // a
-                                                                                                      // Name
-                                                                                                      // column
-
+            // element d5 also creates a Geo column
+            .addColumn( d5.getUid() + "_geom", GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), IndexType.GIST )
+            // element d5 also creates a Name column
+            .addColumn( d5.getUid() + "_name", TEXT, toAlias( aliasD5_name, d5.getUid() + "_name" ) )
             .withDefaultColumns( subject.getFixedColumns() ).build().verify();
     }
 
@@ -346,12 +337,12 @@ public class JdbcEventAnalyticsTableManagerTest
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 43 ).addColumns( periodColumns )
+            .withColumnSize( 44 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.uid", tea1.getId(), tea1.getUid() ) ) // ValueType.ORGANISATION_UNIT
             // Second Geometry column created from the OU column above
             .addColumn( tea1.getUid() + "_geom", GEOMETRY,
-                String.format( aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid() ), "gist" )
+                String.format( aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid() ), IndexType.GIST )
             .addColumn( tea1.getUid() + "_name", TEXT,
                 String.format( aliasTea1, "ou.name", tea1.getId(), tea1.getUid() ) )
             .withDefaultColumns( subject.getFixedColumns() ).build().verify();
@@ -451,7 +442,7 @@ public class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( subject.getFixedColumns().size() + PeriodType.getAvailablePeriodTypes().size()
-                + ouLevels.size() + (programA.isRegistration() ? 2 : 0) )
+                + ouLevels.size() + (programA.isRegistration() ? 1 : 0) )
             .addColumns( periodColumns ).withDefaultColumns( subject.getFixedColumns() )
             .addColumn( quote( "uidlevel" + ouLevels.get( 0 ).getLevel() ), col -> match( ouLevels.get( 0 ), col ) )
             .addColumn( quote( "uidlevel" + ouLevels.get( 1 ).getLevel() ), col -> match( ouLevels.get( 1 ), col ) )
@@ -479,7 +470,7 @@ public class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( subject.getFixedColumns().size() + PeriodType.getAvailablePeriodTypes().size()
-                + ouGroupSet.size() + (programA.isRegistration() ? 2 : 0) )
+                + ouGroupSet.size() + (programA.isRegistration() ? 1 : 0) )
             .addColumns( periodColumns ).withDefaultColumns( subject.getFixedColumns() )
             .addColumn( quote( ouGroupSet.get( 0 ).getUid() ), col -> match( ouGroupSet.get( 0 ), col ) )
             .addColumn( quote( ouGroupSet.get( 1 ).getUid() ), col -> match( ouGroupSet.get( 1 ), col ) ).build()
@@ -507,7 +498,7 @@ public class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( subject.getFixedColumns().size() + PeriodType.getAvailablePeriodTypes().size()
-                + cogs.size() + (programA.isRegistration() ? 2 : 0) )
+                + cogs.size() + (programA.isRegistration() ? 1 : 0) )
             .addColumns( periodColumns ).withDefaultColumns( subject.getFixedColumns() )
             .addColumn( quote( cogs.get( 0 ).getUid() ), col -> match( cogs.get( 0 ), col ) )
             .addColumn( quote( cogs.get( 1 ).getUid() ), col -> match( cogs.get( 1 ), col ) ).build().verify();

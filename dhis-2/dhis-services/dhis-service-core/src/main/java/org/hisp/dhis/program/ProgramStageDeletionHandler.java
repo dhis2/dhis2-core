@@ -28,6 +28,7 @@
 package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -45,9 +47,7 @@ import org.springframework.stereotype.Component;
 public class ProgramStageDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private static final DeletionVeto VETO = new DeletionVeto( ProgramStage.class );
 
     private final ProgramStageService programStageService;
 
@@ -61,18 +61,15 @@ public class ProgramStageDeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return ProgramStage.class.getSimpleName();
+        whenDeleting( Program.class, this::deleteProgram );
+        whenDeleting( DataEntryForm.class, this::deleteDataEntryForm );
+        whenVetoing( DataElement.class, this::allowDeleteDataElement );
     }
 
-    @Override
-    public void deleteProgram( Program program )
+    private void deleteProgram( Program program )
     {
         Iterator<ProgramStage> iterator = program.getProgramStages().iterator();
 
@@ -84,8 +81,7 @@ public class ProgramStageDeletionHandler
         }
     }
 
-    @Override
-    public void deleteDataEntryForm( DataEntryForm dataEntryForm )
+    private void deleteDataEntryForm( DataEntryForm dataEntryForm )
     {
         List<ProgramStage> associatedProgramStages = programStageService
             .getProgramStagesByDataEntryForm( dataEntryForm );
@@ -97,11 +93,10 @@ public class ProgramStageDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteDataElement( DataElement dataElement )
+    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
         String sql = "SELECT COUNT(*) FROM programstagedataelement WHERE dataelementid=" + dataElement.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 }

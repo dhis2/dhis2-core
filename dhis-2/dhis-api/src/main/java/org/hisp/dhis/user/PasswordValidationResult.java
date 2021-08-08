@@ -32,55 +32,39 @@ package org.hisp.dhis.user;
  */
 public class PasswordValidationResult
 {
-    private String errorMessage;
+    public static final PasswordValidationResult VALID = new PasswordValidationResult( null );
 
-    private String i18ErrorMessage;
+    private final String message;
 
-    private boolean valid;
+    private final PasswordValidationError error;
 
-    public PasswordValidationResult()
+    public PasswordValidationResult( PasswordValidationError error, Object... args )
     {
+        this.message = getMessage( error, args );
+        this.error = error;
     }
 
-    public PasswordValidationResult( boolean valid )
+    private String getMessage( PasswordValidationError error, Object[] args )
     {
-        this.valid = valid;
-    }
-
-    public PasswordValidationResult( String errorMessage, String i18ErrorMessage, boolean valid )
-    {
-        this.errorMessage = errorMessage;
-        this.i18ErrorMessage = i18ErrorMessage;
-        this.valid = valid;
+        if ( error == null )
+        {
+            return null;
+        }
+        return args.length == 0 ? error.getMessage() : String.format( error.getMessage(), args );
     }
 
     public String getErrorMessage()
     {
-        return errorMessage;
-    }
-
-    public void setErrorMessage( String errorMessage )
-    {
-        this.errorMessage = errorMessage;
+        return message;
     }
 
     public boolean isValid()
     {
-        return valid;
-    }
-
-    public void setValid( boolean valid )
-    {
-        this.valid = valid;
+        return error == null;
     }
 
     public String getI18ErrorMessage()
     {
-        return i18ErrorMessage;
-    }
-
-    public void setI18ErrorMessage( String i18ErrorMessage )
-    {
-        this.i18ErrorMessage = i18ErrorMessage;
+        return error == null ? null : error.getI18nKey();
     }
 }

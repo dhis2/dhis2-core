@@ -28,24 +28,23 @@
 package org.hisp.dhis.category;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 @Component( "org.hisp.dhis.category.CategoryOptionComboDeletionHandler" )
 public class CategoryOptionComboDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private static final DeletionVeto VETO = new DeletionVeto( CategoryOptionCombo.class );
 
     private final CategoryService categoryService;
 
@@ -60,20 +59,18 @@ public class CategoryOptionComboDeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     // TODO expressionoptioncombo
 
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return CategoryOptionCombo.class.getSimpleName();
+        whenVetoing( CategoryOption.class, this::allowDeleteCategoryOption );
+        whenVetoing( CategoryCombo.class, this::allowDeleteCategoryCombo );
+        whenDeleting( CategoryOption.class, this::deleteCategoryOption );
+        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
     }
 
-    @Override
-    public String allowDeleteCategoryOption( CategoryOption categoryOption )
+    private DeletionVeto allowDeleteCategoryOption( CategoryOption categoryOption )
     {
         final String dvSql = "select count(*) from datavalue dv " +
             "where dv.categoryoptioncomboid in ( " +
@@ -85,7 +82,7 @@ public class CategoryOptionComboDeletionHandler
 
         if ( jdbcTemplate.queryForObject( dvSql, Integer.class ) > 0 )
         {
-            return ERROR;
+            return VETO;
         }
 
         final String crSql = "select count(*) from completedatasetregistration cdr " +
@@ -95,14 +92,13 @@ public class CategoryOptionComboDeletionHandler
 
         if ( jdbcTemplate.queryForObject( crSql, Integer.class ) > 0 )
         {
-            return ERROR;
+            return VETO;
         }
 
-        return null;
+        return ACCEPT;
     }
 
-    @Override
-    public String allowDeleteCategoryCombo( CategoryCombo categoryCombo )
+    private DeletionVeto allowDeleteCategoryCombo( CategoryCombo categoryCombo )
     {
         final String dvSql = "select count(*) from datavalue dv " +
             "where dv.categoryoptioncomboid in ( " +
@@ -114,7 +110,7 @@ public class CategoryOptionComboDeletionHandler
 
         if ( jdbcTemplate.queryForObject( dvSql, Integer.class ) > 0 )
         {
-            return ERROR;
+            return VETO;
         }
 
         final String crSql = "select count(*) from completedatasetregistration cdr " +
@@ -124,14 +120,13 @@ public class CategoryOptionComboDeletionHandler
 
         if ( jdbcTemplate.queryForObject( crSql, Integer.class ) > 0 )
         {
-            return ERROR;
+            return VETO;
         }
 
-        return null;
+        return ACCEPT;
     }
 
-    @Override
-    public void deleteCategoryOption( CategoryOption categoryOption )
+    private void deleteCategoryOption( CategoryOption categoryOption )
     {
         Iterator<CategoryOptionCombo> iterator = categoryOption.getCategoryOptionCombos().iterator();
 
@@ -143,8 +138,7 @@ public class CategoryOptionComboDeletionHandler
         }
     }
 
-    @Override
-    public void deleteCategoryCombo( CategoryCombo categoryCombo )
+    private void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
         Iterator<CategoryOptionCombo> iterator = categoryCombo.getOptionCombos().iterator();
 

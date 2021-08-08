@@ -27,52 +27,67 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHook;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ValidationHooksCheck
-    implements
-    ValidationCheck
+public class ValidationHooksCheck implements ObjectValidationCheck
 {
 
     @Override
-    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx )
+    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
+        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
     {
-        TypeReport typeReport = new TypeReport( klass );
-
-        List<IdentifiableObject> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+        List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
 
         if ( objects == null || objects.isEmpty() )
         {
-            return typeReport;
+            return;
         }
-
-        for ( IdentifiableObject object : objects )
+        for ( T object : objects )
         {
-            List<ErrorReport> errorReports = new ArrayList<>();
-            ctx.getObjectBundleHooks().forEach( hook -> errorReports.addAll( hook.validate( object, bundle ) ) );
-
-            if ( !errorReports.isEmpty() )
+            if ( object != null )
             {
-                addObjectReports( errorReports, typeReport, object, bundle );
-                ctx.markForRemoval( object );
+                validate( object, bundle, ctx, addReports );
             }
         }
-
-        return typeReport;
     }
 
+    private static <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle, ValidationContext ctx,
+        Consumer<ObjectReport> addReports )
+    {
+        @SuppressWarnings( "unchecked" )
+        List<ErrorReport>[] box = new List[1];
+        for ( ObjectBundleHook<? super T> hook : ctx.getObjectBundleHooks().getObjectHooks( object ) )
+        {
+            hook.validate( object, bundle, error -> {
+                List<ErrorReport> list = box[0];
+                if ( list == null )
+                {
+                    list = new ArrayList<>();
+                    box[0] = list;
+                }
+                list.add( error );
+            } );
+        }
+        List<ErrorReport> errorReports = box[0];
+        if ( errorReports != null && !errorReports.isEmpty() )
+        {
+            addReports.accept( createObjectReport( errorReports, object, bundle ) );
+            ctx.markForRemoval( object );
+        }
+    }
 }

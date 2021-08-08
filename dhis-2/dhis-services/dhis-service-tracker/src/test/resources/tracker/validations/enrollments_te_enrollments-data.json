@@ -11,7 +11,7 @@
       "enrolledAt": "2019-08-19T00:00:00.000",
       "deleted": false,
       "occurredAt": "2019-08-19T00:00:00.000",
-      "status": "ACTIVE",
+      "status": "COMPLETED",
       "notes": [],
       "relationships": [],
       "attributes": []
@@ -43,7 +43,7 @@
       "enrolledAt": "2019-08-19T00:00:00.000",
       "deleted": false,
       "occurredAt": "2019-08-19T00:00:00.000",
-      "status": "ACTIVE",
+      "status": "COMPLETED",
       "notes": [],
       "relationships": [],
       "attributes": []
@@ -59,7 +59,7 @@
       "enrolledAt": "2019-08-19T00:00:00.000",
       "deleted": false,
       "occurredAt": "2019-08-19T00:00:00.000",
-      "status": "ACTIVE",
+      "status": "COMPLETED",
       "notes": [],
       "relationships": [],
       "attributes": []

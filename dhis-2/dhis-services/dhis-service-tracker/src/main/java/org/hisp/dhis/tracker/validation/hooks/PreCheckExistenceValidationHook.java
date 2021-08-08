@@ -27,21 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1030;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1032;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1063;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1080;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1081;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1082;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -61,8 +52,7 @@ public class PreCheckExistenceValidationHook
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerBundle bundle = context.getBundle();
-        TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+        TrackerImportStrategy importStrategy = context.getStrategy( trackedEntity );
 
         TrackedEntityInstance existingTe = context
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
@@ -74,18 +64,7 @@ public class PreCheckExistenceValidationHook
             return;
         }
 
-        if ( importStrategy.isCreateAndUpdate() )
-        {
-            if ( existingTe == null )
-            {
-                context.setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
-            }
-            else
-            {
-                context.setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
-            }
-        }
-        else if ( existingTe != null && importStrategy.isCreate() )
+        if ( existingTe != null && importStrategy.isCreate() )
         {
             addError( reporter, E1002, trackedEntity.getTrackedEntity() );
         }
@@ -93,18 +72,13 @@ public class PreCheckExistenceValidationHook
         {
             addError( reporter, E1063, trackedEntity.getTrackedEntity() );
         }
-        else
-        {
-            context.setStrategy( trackedEntity, importStrategy );
-        }
     }
 
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerBundle bundle = context.getBundle();
-        TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+        TrackerImportStrategy importStrategy = context.getStrategy( enrollment );
 
         ProgramInstance existingPi = context.getProgramInstance( enrollment.getEnrollment() );
 
@@ -115,18 +89,7 @@ public class PreCheckExistenceValidationHook
             return;
         }
 
-        if ( importStrategy.isCreateAndUpdate() )
-        {
-            if ( existingPi == null )
-            {
-                context.setStrategy( enrollment, TrackerImportStrategy.CREATE );
-            }
-            else
-            {
-                context.setStrategy( enrollment, TrackerImportStrategy.UPDATE );
-            }
-        }
-        else if ( existingPi != null && importStrategy.isCreate() )
+        if ( existingPi != null && importStrategy.isCreate() )
         {
             addError( reporter, E1080, enrollment.getEnrollment() );
         }
@@ -134,18 +97,13 @@ public class PreCheckExistenceValidationHook
         {
             addError( reporter, E1081, enrollment.getEnrollment() );
         }
-        else
-        {
-            context.setStrategy( enrollment, importStrategy );
-        }
     }
 
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerBundle bundle = context.getBundle();
-        TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+        TrackerImportStrategy importStrategy = context.getStrategy( event );
 
         ProgramStageInstance existingPsi = context.getProgramStageInstance( event.getEvent() );
 
@@ -156,18 +114,7 @@ public class PreCheckExistenceValidationHook
             return;
         }
 
-        if ( importStrategy.isCreateAndUpdate() )
-        {
-            if ( existingPsi == null )
-            {
-                context.setStrategy( event, TrackerImportStrategy.CREATE );
-            }
-            else
-            {
-                context.setStrategy( event, TrackerImportStrategy.UPDATE );
-            }
-        }
-        else if ( existingPsi != null && importStrategy.isCreate() )
+        if ( existingPsi != null && importStrategy.isCreate() )
         {
             addError( reporter, E1030, event.getEvent() );
         }
@@ -175,16 +122,25 @@ public class PreCheckExistenceValidationHook
         {
             addError( reporter, E1032, event.getEvent() );
         }
-        else
-        {
-            context.setStrategy( event, importStrategy );
-        }
     }
 
     @Override
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
-        // TODO need to add existence check for relationship
+        TrackerImportValidationContext context = reporter.getValidationContext();
+
+        org.hisp.dhis.relationship.Relationship existingRelationship = context.getRelationship( relationship );
+
+        if ( existingRelationship != null )
+        {
+            addWarning( reporter, E4015, relationship.getRelationship() );
+        }
+    }
+
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return true;
     }
 
     @Override

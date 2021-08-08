@@ -29,6 +29,7 @@ package org.hisp.dhis.mock.batchhandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.JdbcConfiguration;
@@ -45,7 +46,7 @@ public class MockBatchHandler<T>
 
     private List<T> deletes = new ArrayList<>();
 
-    private boolean findSelf = false;
+    private UnaryOperator<T> findObject = obj -> null;
 
     public MockBatchHandler()
     {
@@ -53,7 +54,12 @@ public class MockBatchHandler<T>
 
     public MockBatchHandler<T> withFindSelf( boolean findSelf )
     {
-        this.findSelf = findSelf;
+        return withFindObject( obj -> findSelf ? obj : null );
+    }
+
+    public MockBatchHandler<T> withFindObject( UnaryOperator<T> findObject )
+    {
+        this.findObject = findObject;
         return this;
     }
 
@@ -84,7 +90,7 @@ public class MockBatchHandler<T>
     @Override
     public T findObject( T arg )
     {
-        return findSelf ? arg : null;
+        return findObject.apply( arg );
     }
 
     @Override
