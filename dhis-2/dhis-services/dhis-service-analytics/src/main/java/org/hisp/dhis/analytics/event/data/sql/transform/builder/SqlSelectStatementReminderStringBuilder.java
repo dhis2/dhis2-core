@@ -38,22 +38,22 @@ public class SqlSelectStatementReminderStringBuilder
 {
     private final String sqlStatement;
 
-    private Function<String, Pair<String, String>> provide;
+    private Function<String, Pair<String, String>> provider;
 
     public SqlSelectStatementReminderStringBuilder( String sqlStatement )
     {
         this.sqlStatement = sqlStatement;
     }
 
-    public SqlSelectStatementReminderStringBuilder setProvider( Function<String, Pair<String, String>> provide )
+    public SqlSelectStatementReminderStringBuilder setProvider( Function<String, Pair<String, String>> provider )
     {
-        this.provide = provide;
+        this.provider = provider;
 
         return this;
     }
 
     public Pair<String, String> build()
     {
-        return provide.apply( sqlStatement );
+        return provider.apply( sqlStatement );
     }
 }

@@ -40,23 +40,23 @@ public class SqlWhereStringBuilder
 {
     private final String sqlStatement;
 
-    private Function<String, List<PredicateElement>> provide;
+    private Function<String, List<PredicateElement>> provider;
 
     public SqlWhereStringBuilder( String sqlStatement )
     {
         this.sqlStatement = sqlStatement;
     }
 
-    public SqlWhereStringBuilder setProvider( Function<String, List<PredicateElement>> provide )
+    public SqlWhereStringBuilder setProvider( Function<String, List<PredicateElement>> provider )
     {
-        this.provide = provide;
+        this.provider = provider;
 
         return this;
     }
 
     public String build()
     {
-        return "where " + provide.apply( sqlStatement )
+        return "where " + provider.apply( sqlStatement )
             .stream()
             .map( c -> c.getLogicalOperator() + " " + c.getLeftExpression() + " " + c.getRelation() + " " +
                 ("in".equals( c.getRelation() ) ? "(" + c.getRightExpression() + ")" : c.getRightExpression()) )

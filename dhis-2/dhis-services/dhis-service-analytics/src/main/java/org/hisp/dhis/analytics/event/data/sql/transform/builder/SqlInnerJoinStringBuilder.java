@@ -40,23 +40,23 @@ public class SqlInnerJoinStringBuilder
 {
     private final String sqlStatement;
 
-    private Function<String, List<InnerJoinElement>> provide;
+    private Function<String, List<InnerJoinElement>> provider;
 
     public SqlInnerJoinStringBuilder( String sqlStatement )
     {
         this.sqlStatement = sqlStatement;
     }
 
-    public SqlInnerJoinStringBuilder setProvider( Function<String, List<InnerJoinElement>> provide )
+    public SqlInnerJoinStringBuilder setProvider( Function<String, List<InnerJoinElement>> provider )
     {
-        this.provide = provide;
+        this.provider = provider;
 
         return this;
     }
 
     public String build()
     {
-        return provide.apply( sqlStatement )
+        return provider.apply( sqlStatement )
             .stream()
             .distinct()
             .map( ij -> "inner join " + ij.getTableElement().getName() + " as " +

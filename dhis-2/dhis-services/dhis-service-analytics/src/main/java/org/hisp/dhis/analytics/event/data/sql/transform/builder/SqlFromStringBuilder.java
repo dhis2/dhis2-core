@@ -40,23 +40,23 @@ public class SqlFromStringBuilder
 {
     private final String sqlStatement;
 
-    private Function<String, List<TableElement>> provide;
+    private Function<String, List<TableElement>> provider;
 
     public SqlFromStringBuilder( String sqlStatement )
     {
         this.sqlStatement = sqlStatement;
     }
 
-    public SqlFromStringBuilder setProvider( Function<String, List<TableElement>> provide )
+    public SqlFromStringBuilder setProvider( Function<String, List<TableElement>> provider )
     {
-        this.provide = provide;
+        this.provider = provider;
 
         return this;
     }
 
     public String build()
     {
-        return "from " + provide.apply( sqlStatement )
+        return "from " + provider.apply( sqlStatement )
             .stream()
             .map( c -> {
                 String alias = c.getAlias().trim();

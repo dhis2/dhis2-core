@@ -41,11 +41,11 @@ public class SqlStringProcessor
 
     public static String toInnerJoins( String sql, boolean pretty )
     {
-        SqlEligibleForTransformationValueProvider sqlNeedTransformationValueProvider = new SqlEligibleForTransformationValueProvider();
+        SqlEligibleForTransformationValueProvider provider = new SqlEligibleForTransformationValueProvider();
 
-        boolean needTransformation = sqlNeedTransformationValueProvider.getProvider().apply( sql );
+        boolean eligibleForTransformation = provider.getProvider().apply( sql );
 
-        if ( needTransformation )
+        if ( eligibleForTransformation )
         {
             SqlSelectInnerJoinStatementStringBuilder sqlSelectInnerJoinStatementStringBuilder = new SqlSelectInnerJoinStatementStringBuilder(
                 sql );
