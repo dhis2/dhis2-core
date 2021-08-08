@@ -47,10 +47,10 @@ public class SqlStringProcessor
 
         if ( eligibleForTransformation )
         {
-            SqlSelectInnerJoinStatementStringBuilder sqlSelectInnerJoinStatementStringBuilder = new SqlSelectInnerJoinStatementStringBuilder(
+            SqlSelectInnerJoinStatementStringBuilder builder = new SqlSelectInnerJoinStatementStringBuilder(
                 sql );
 
-            return sqlSelectInnerJoinStatementStringBuilder.build( pretty );
+            return builder.build( pretty );
         }
         else
         {
