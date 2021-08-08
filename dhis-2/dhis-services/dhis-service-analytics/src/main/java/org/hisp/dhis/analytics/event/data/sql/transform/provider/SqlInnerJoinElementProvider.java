@@ -89,11 +89,6 @@ public class SqlInnerJoinElementProvider
                                                 @Override
                                                 public void visit( Table table )
                                                 {
-                                                    if ( sbTableName.length() > 0 )
-                                                    {
-                                                        throw new RuntimeException(
-                                                            "where nested select statement has more then one table" );
-                                                    }
                                                     sbTableName.append( table.getName() );
                                                 }
                                             } );
@@ -104,14 +99,8 @@ public class SqlInnerJoinElementProvider
                                                     @Override
                                                     public void visit( SelectExpressionItem item )
                                                     {
-                                                        if ( sbAlias.length() > 0 )
-                                                        {
-                                                            throw new RuntimeException(
-                                                                "where nested select statement has more then one column" );
-                                                        }
-
                                                         sbAlias.append( item.getExpression().toString()
-                                                            .replaceAll( "\"", "" ) );
+                                                            .replace( "\"", "" ) );
                                                     }
                                                 } ) );
                                             innerJoinElementList.add(

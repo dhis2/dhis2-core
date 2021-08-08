@@ -56,11 +56,12 @@ public class SqlYearlyExpressionProvider
 {
     public FunctionXt<String, List<PredicateElement>> getProvider()
     {
-        List<PredicateElement> yearlies = new ArrayList<>();
-
-        SqlInnerJoinElementProvider sqlInnerJoinElementProvider = new SqlInnerJoinElementProvider();
 
         return sqlStatement -> {
+
+            List<PredicateElement> yearlies = new ArrayList<>();
+
+            SqlInnerJoinElementProvider sqlInnerJoinElementProvider = new SqlInnerJoinElementProvider();
 
             Statement select = CCJSqlParserUtil.parse( sqlStatement );
 
@@ -83,62 +84,13 @@ public class SqlYearlyExpressionProvider
                                 @Override
                                 public void visit( MinorThan expr )
                                 {
-                                    expr.accept( new ExpressionVisitorAdapter()
-                                    {
-                                        @Override
-                                        public void visit( CastExpression expr )
-                                        {
-                                            expr.getLeftExpression().accept( new ExpressionVisitorAdapter()
-                                            {
-                                                @Override
-                                                public void visit( StringValue value )
-                                                {
-                                                    try
-                                                    {
-                                                        LocalDate ld = LocalDate
-                                                            .parse( value.toString().replaceAll( "'", "" ) );
-                                                        if ( ld.getMonthValue() > 1 || ld.getDayOfYear() > 1 )
-                                                        {
-                                                            years.add( "'" + ld.getYear() + "'" );
-                                                        }
-                                                    }
-                                                    catch ( DateTimeParseException ignored )
-                                                    {
-
-                                                    }
-                                                }
-                                            } );
-                                        }
-                                    } );
+                                    expr.accept( getVisitorForMinorThen( years ) );
                                 }
 
                                 @Override
                                 public void visit( GreaterThanEquals expr )
                                 {
-                                    expr.accept( new ExpressionVisitorAdapter()
-                                    {
-                                        @Override
-                                        public void visit( CastExpression expr )
-                                        {
-                                            expr.getLeftExpression().accept( new ExpressionVisitorAdapter()
-                                            {
-                                                @Override
-                                                public void visit( StringValue value )
-                                                {
-                                                    try
-                                                    {
-                                                        LocalDate ld = LocalDate
-                                                            .parse( value.toString().replaceAll( "'", "" ) );
-                                                        years.add( "'" + ld.getYear() + "'" );
-                                                    }
-                                                    catch ( DateTimeParseException ignored )
-                                                    {
-
-                                                    }
-                                                }
-                                            } );
-                                        }
-                                    } );
+                                    expr.accept( getVisitorForGreaterThenEquals( years ) );
                                 }
                             } );
 
@@ -153,6 +105,63 @@ public class SqlYearlyExpressionProvider
             } );
 
             return yearlies.stream().distinct().collect( Collectors.toList() );
+        };
+    }
+
+    private static ExpressionVisitorAdapter getVisitorForGreaterThenEquals( List<String> years )
+    {
+        return new ExpressionVisitorAdapter()
+        {
+            @Override
+            public void visit( CastExpression expr )
+            {
+                expr.getLeftExpression().accept( new ExpressionVisitorAdapter()
+                {
+                    @Override
+                    public void visit( StringValue value )
+                    {
+                        try
+                        {
+                            LocalDate ld = LocalDate
+                                .parse( value.toString().replace( "'", "" ) );
+                            years.add( "'" + ld.getYear() + "'" );
+                        }
+                        catch ( DateTimeParseException ignored )
+                        {
+                        }
+                    }
+                } );
+            }
+        };
+    }
+
+    private static ExpressionVisitorAdapter getVisitorForMinorThen( List<String> years )
+    {
+        return new ExpressionVisitorAdapter()
+        {
+            @Override
+            public void visit( CastExpression expr )
+            {
+                expr.getLeftExpression().accept( new ExpressionVisitorAdapter()
+                {
+                    @Override
+                    public void visit( StringValue value )
+                    {
+                        try
+                        {
+                            LocalDate ld = LocalDate
+                                .parse( value.toString().replace( "'", "" ) );
+                            if ( ld.getMonthValue() > 1 || ld.getDayOfYear() > 1 )
+                            {
+                                years.add( "'" + ld.getYear() + "'" );
+                            }
+                        }
+                        catch ( DateTimeParseException ignored )
+                        {
+                        }
+                    }
+                } );
+            }
         };
     }
 }

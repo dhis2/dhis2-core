@@ -89,14 +89,9 @@ public class SqlProgramStageExpressionProvider
                                                     @Override
                                                     public void visit( SelectExpressionItem item )
                                                     {
-                                                        if ( sbAlias.length() > 0 )
-                                                        {
-                                                            throw new RuntimeException(
-                                                                "where nested select statement has more then one column" );
-                                                        }
 
                                                         sbAlias.append( item.getExpression().toString()
-                                                            .replaceAll( "\"", "" )
+                                                            .replace( "\"", "" )
                                                             .replace( "count(", "" )
                                                             .replace( ")", "" ) );
                                                     }

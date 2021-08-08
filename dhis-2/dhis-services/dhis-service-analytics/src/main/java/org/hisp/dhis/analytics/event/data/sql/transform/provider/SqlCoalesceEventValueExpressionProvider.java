@@ -95,7 +95,7 @@ public class SqlCoalesceEventValueExpressionProvider
                                                                 public void visit( SelectExpressionItem item )
                                                                 {
                                                                     sbAlias.append( item.getExpression().toString()
-                                                                        .replaceAll( "\"", "" ) );
+                                                                        .replace( "\"", "" ) );
                                                                 }
                                                             } ) );
                                                     }

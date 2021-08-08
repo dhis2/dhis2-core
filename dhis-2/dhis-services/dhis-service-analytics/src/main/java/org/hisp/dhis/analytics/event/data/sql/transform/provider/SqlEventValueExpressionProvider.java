@@ -53,10 +53,12 @@ public class SqlEventValueExpressionProvider
 {
     public FunctionXt<String, List<PredicateElement>> getProvider()
     {
-        List<PredicateElement> predicateElementList = new ArrayList<>();
-
         return sqlStatement -> {
+
+            List<PredicateElement> predicateElementList = new ArrayList<>();
+
             Statement select = CCJSqlParserUtil.parse( sqlStatement );
+
             select.accept( new StatementVisitorAdapter()
             {
                 @Override
@@ -72,56 +74,7 @@ public class SqlEventValueExpressionProvider
                                 @Override
                                 public void visit( SubSelect subSelect )
                                 {
-                                    subSelect.getSelectBody().accept( new SelectVisitorAdapter()
-                                    {
-                                        @Override
-                                        public void visit( PlainSelect plainSelect )
-                                        {
-                                            StringBuilder sbAlias = new StringBuilder();
-                                            StringBuilder sbEventValue = new StringBuilder();
-                                            plainSelect.getSelectItems()
-                                                .forEach( i -> i.accept( new SelectItemVisitorAdapter()
-                                                {
-                                                    @Override
-                                                    public void visit( SelectExpressionItem item )
-                                                    {
-                                                        if ( sbAlias.length() > 0 )
-                                                        {
-                                                            throw new RuntimeException(
-                                                                "where nested select statement has more then one column" );
-                                                        }
-
-                                                        sbAlias.append( item.getExpression().toString()
-                                                            .replaceAll( "\"", "" )
-                                                            .replace( "count(", "" )
-                                                            .replace( ")", "" ) );
-                                                    }
-                                                } ) );
-
-                                            plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
-                                            {
-                                                @Override
-                                                public void visit( EqualsTo expr )
-                                                {
-                                                    if ( sbAlias.toString()
-                                                        .equalsIgnoreCase( expr.getLeftExpression().toString()
-                                                            .replace( "\"", "" ) ) )
-                                                    {
-                                                        sbEventValue.append( expr.getRightExpression() );
-                                                    }
-                                                }
-
-                                            } );
-
-                                            if ( !sbEventValue.toString().isEmpty() )
-                                            {
-                                                predicateElementList
-                                                    .add( new PredicateElement( sbAlias + ".\"" + sbAlias + "\"",
-                                                        sbEventValue.toString(),
-                                                        "=", "and" ) );
-                                            }
-                                        }
-                                    } );
+                                    subSelect.getSelectBody().accept( getSelectVisitorAdapter( predicateElementList ) );
                                 }
                             } );
                         }
@@ -130,6 +83,63 @@ public class SqlEventValueExpressionProvider
             } );
 
             return predicateElementList.stream().distinct().collect( Collectors.toList() );
+        };
+    }
+
+    private static SelectVisitorAdapter getSelectVisitorAdapter( List<PredicateElement> predicateElementList )
+    {
+        return new SelectVisitorAdapter()
+        {
+            @Override
+            public void visit( PlainSelect plainSelect )
+            {
+                StringBuilder sbAlias = new StringBuilder();
+                StringBuilder sbEventValue = new StringBuilder();
+                plainSelect.getSelectItems()
+                    .forEach( i -> i.accept( getVisitorForAlias( sbAlias ) ) );
+
+                plainSelect.getWhere().accept( getVisitorForValue( sbAlias.toString(), sbEventValue ) );
+
+                if ( !sbEventValue.toString().isEmpty() )
+                {
+                    predicateElementList
+                        .add( new PredicateElement( sbAlias + ".\"" + sbAlias + "\"",
+                            sbEventValue.toString(),
+                            "=", "and" ) );
+                }
+            }
+        };
+    }
+
+    private static SelectItemVisitorAdapter getVisitorForAlias( StringBuilder sbAlias )
+    {
+        return new SelectItemVisitorAdapter()
+        {
+            @Override
+            public void visit( SelectExpressionItem item )
+            {
+                sbAlias.append( item.getExpression().toString()
+                    .replace( "\"", "" )
+                    .replace( "count(", "" )
+                    .replace( ")", "" ) );
+            }
+        };
+    }
+
+    private static ExpressionVisitorAdapter getVisitorForValue( String alias, StringBuilder sbEventValue )
+    {
+        return new ExpressionVisitorAdapter()
+        {
+            @Override
+            public void visit( EqualsTo expr )
+            {
+                if ( alias.equalsIgnoreCase( expr.getLeftExpression().toString()
+                    .replace( "\"", "" ) ) )
+                {
+                    sbEventValue.append( expr.getRightExpression() );
+                }
+            }
+
         };
     }
 }

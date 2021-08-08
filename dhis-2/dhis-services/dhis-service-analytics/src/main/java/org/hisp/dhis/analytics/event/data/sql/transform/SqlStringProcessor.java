@@ -27,17 +27,19 @@
  */
 package org.hisp.dhis.analytics.event.data.sql.transform;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.event.data.sql.transform.builder.SqlSelectInnerJoinStatementStringBuilder;
 import org.hisp.dhis.analytics.event.data.sql.transform.provider.SqlNeedTransformationValueProvider;
 
 /**
  * @author Dusan Bernat
  */
-@Slf4j
 public class SqlStringProcessor
 {
+    private SqlStringProcessor()
+    {
+
+    }
+
     public static String toInnerJoins( String sql, boolean pretty )
     {
         SqlNeedTransformationValueProvider sqlNeedTransformationValueProvider = new SqlNeedTransformationValueProvider();
