@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.event.data.sql.transform;
 
 import org.hisp.dhis.analytics.event.data.sql.transform.builder.SqlSelectInnerJoinStatementStringBuilder;
-import org.hisp.dhis.analytics.event.data.sql.transform.provider.SqlNeedTransformationValueProvider;
+import org.hisp.dhis.analytics.event.data.sql.transform.provider.SqlEligibleForTransformationValueProvider;
 
 /**
  * @author Dusan Bernat
@@ -41,7 +41,7 @@ public class SqlStringProcessor
 
     public static String toInnerJoins( String sql, boolean pretty )
     {
-        SqlNeedTransformationValueProvider sqlNeedTransformationValueProvider = new SqlNeedTransformationValueProvider();
+        SqlEligibleForTransformationValueProvider sqlNeedTransformationValueProvider = new SqlEligibleForTransformationValueProvider();
 
         boolean needTransformation = sqlNeedTransformationValueProvider.getProvider().apply( sql );
 

@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.event.data.sql.transform.provider;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
@@ -42,7 +45,7 @@ import org.hisp.dhis.analytics.event.data.sql.transform.FunctionXt;
 /**
  * @author Dusan Bernat
  */
-public class SqlNeedTransformationValueProvider
+public class SqlEligibleForTransformationValueProvider
 {
     public FunctionXt<String, Boolean> getProvider()
     {
@@ -53,9 +56,7 @@ public class SqlNeedTransformationValueProvider
             Pair<String, String> selectAndRemainder = sqlSelectStatementReminderProvider.getProvider()
                 .apply( sqlStatement );
 
-            BooleanWrapper booleanWrapper = new BooleanWrapper();
-
-            booleanWrapper.value = false;
+            List<Boolean> checkResultList = new ArrayList<>();
 
             Statement select = CCJSqlParserUtil.parse( selectAndRemainder.getLeft() );
             select.accept( new StatementVisitorAdapter()
@@ -73,7 +74,7 @@ public class SqlNeedTransformationValueProvider
                                 @Override
                                 public void visit( SubSelect subSelect )
                                 {
-                                    booleanWrapper.value = true;
+                                    checkResultList.add( true );
                                 }
                             } );
                         }
@@ -81,12 +82,7 @@ public class SqlNeedTransformationValueProvider
                 }
             } );
 
-            return booleanWrapper.value;
+            return checkResultList.stream().allMatch( b -> b );
         };
-    }
-
-    static class BooleanWrapper
-    {
-        private boolean value;
     }
 }
