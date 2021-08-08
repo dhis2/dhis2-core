@@ -56,10 +56,12 @@ public class SqlProgramStageExpressionProvider
     {
         List<PredicateElement> predicateElementList = new ArrayList<>();
 
-        return ( sqlStatement ) -> {
+        return sqlStatement -> {
+
             try
             {
                 Statement select = CCJSqlParserUtil.parse( sqlStatement );
+
                 select.accept( new StatementVisitorAdapter()
                 {
                     @Override

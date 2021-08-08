@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin;
+package org.hisp.dhis.analytics.event.data.sql.transform.model.element.inner_join;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

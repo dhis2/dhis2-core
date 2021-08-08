@@ -46,7 +46,7 @@ import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 
-import org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin.InnerJoinElement;
+import org.hisp.dhis.analytics.event.data.sql.transform.model.element.inner_join.InnerJoinElement;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 import org.hisp.dhis.calendar.DateUnitType;
 
@@ -60,7 +60,8 @@ public class SqlPeriodExpressionProvider
         List<PredicateElement> periods = new ArrayList<>();
 
         SqlInnerJoinElementProvider sqlInnerJoinElementProvider = new SqlInnerJoinElementProvider();
-        return ( sqlStatement ) -> {
+
+        return sqlStatement -> {
             try
             {
                 Statement select = CCJSqlParserUtil.parse( sqlStatement );

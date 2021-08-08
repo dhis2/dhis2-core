@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin.InnerJoinElement;
+import org.hisp.dhis.analytics.event.data.sql.transform.model.element.inner_join.InnerJoinElement;
 
 /**
  * @author Dusan Bernat

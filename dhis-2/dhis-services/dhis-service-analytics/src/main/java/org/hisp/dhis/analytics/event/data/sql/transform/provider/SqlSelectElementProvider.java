@@ -54,7 +54,8 @@ public class SqlSelectElementProvider
 {
     public Function<String, List<ColumnElement>> getProvider()
     {
-        return ( sqlStatement ) -> {
+        return sqlStatement -> {
+
             List<ColumnElement> columnElementList = new ArrayList<>();
             try
             {

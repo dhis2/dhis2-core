@@ -40,7 +40,8 @@ public class SqlWhereElementProvider
 {
     public Function<String, List<PredicateElement>> getProvider()
     {
-        return ( sqlStatement ) -> {
+        return sqlStatement -> {
+
             List<PredicateElement> predicateElementList = new ArrayList<>();
             try
             {

@@ -50,7 +50,7 @@ public class SqlFromElementProvider
 {
     public Function<String, List<TableElement>> getProvider()
     {
-        return ( sqlStatement ) -> {
+        return sqlStatement -> {
             List<TableElement> tableElementList = new ArrayList<>();
             try
             {

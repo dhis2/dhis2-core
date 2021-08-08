@@ -48,10 +48,12 @@ public class SqlUidLevelExpressionProvider
 {
     public Function<String, PredicateElement> getProvider()
     {
-        return ( sqlStatement ) -> {
+        return sqlStatement -> {
+
             StringBuilder sbLeft = new StringBuilder();
             StringBuilder sbRight = new StringBuilder();
             StringBuilder sbExpression = new StringBuilder();
+
             try
             {
 

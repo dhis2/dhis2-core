@@ -46,8 +46,8 @@ import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.TableElement;
-import org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin.InnerJoinElement;
-import org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin.OnElement;
+import org.hisp.dhis.analytics.event.data.sql.transform.model.element.inner_join.InnerJoinElement;
+import org.hisp.dhis.analytics.event.data.sql.transform.model.element.inner_join.OnElement;
 
 /**
  * @author Dusan Bernat
@@ -56,8 +56,10 @@ public class SqlInnerJoinElementProvider
 {
     public Function<String, List<InnerJoinElement>> getProvider()
     {
-        return ( sqlStatement ) -> {
+        return sqlStatement -> {
+
             List<InnerJoinElement> innerJoinElementList = new ArrayList<>();
+
             try
             {
                 Statement select = CCJSqlParserUtil.parse( sqlStatement );

@@ -47,7 +47,7 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 
-import org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin.InnerJoinElement;
+import org.hisp.dhis.analytics.event.data.sql.transform.model.element.inner_join.InnerJoinElement;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 
 /**
@@ -60,7 +60,9 @@ public class SqlYearlyExpressionProvider
         List<PredicateElement> yearlies = new ArrayList<>();
 
         SqlInnerJoinElementProvider sqlInnerJoinElementProvider = new SqlInnerJoinElementProvider();
-        return ( sqlStatement ) -> {
+
+        return sqlStatement -> {
+
             try
             {
                 Statement select = CCJSqlParserUtil.parse( sqlStatement );

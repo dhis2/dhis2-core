@@ -48,7 +48,8 @@ public class SqlSelectStatementReminderProvider
 
     public Function<String, Pair<String, String>> getProvider()
     {
-        return ( sqlStatement ) -> {
+        return sqlStatement -> {
+
             String remainder = "";
             String sql = sqlStatement;
 

@@ -48,7 +48,8 @@ public class SqlNeedTransformationValueProvider
 {
     public Function<String, Boolean> getProvider()
     {
-        return ( sqlStatement ) -> {
+        return sqlStatement -> {
+
             SqlSelectStatementReminderProvider sqlSelectStatementReminderProvider = new SqlSelectStatementReminderProvider();
 
             Pair<String, String> selectAndRemainder = sqlSelectStatementReminderProvider.getProvider()

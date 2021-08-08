@@ -33,7 +33,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.analytics.event.data.sql.transform.model.element.innerJoin.InnerJoinElement;
+import org.hisp.dhis.analytics.event.data.sql.transform.model.element.inner_join.InnerJoinElement;
 import org.hisp.dhis.analytics.event.data.sql.transform.model.element.where.PredicateElement;
 
 /**
