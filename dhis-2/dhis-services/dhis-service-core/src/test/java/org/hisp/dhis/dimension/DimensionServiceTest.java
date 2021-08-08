@@ -50,6 +50,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -684,7 +685,7 @@ public class DimensionServiceTest
 
     private DataElement dataElementWithOffset( DataElement dataElement, int periodOffset )
     {
-        DataElement de = new DataElement( dataElement );
+        DataElement de = SerializationUtils.clone( dataElement );
 
         de.setPeriodOffset( periodOffset );
 

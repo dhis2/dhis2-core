@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -534,7 +535,7 @@ public class DefaultDimensionService
                 DataElement dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
                 if ( dataElement != null )
                 {
-                    dimensionalItemObject = new DataElement( dataElement );
+                    dimensionalItemObject = cloneIfNeeded( dataElement, id );
                 }
                 break;
 
@@ -542,7 +543,7 @@ public class DefaultDimensionService
                 Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
                 if ( indicator != null )
                 {
-                    dimensionalItemObject = new Indicator( indicator );
+                    dimensionalItemObject = cloneIfNeeded( indicator, id );
                 }
                 break;
 
@@ -593,7 +594,7 @@ public class DefaultDimensionService
                     id.getId0() );
                 if ( programIndicator != null )
                 {
-                    dimensionalItemObject = new ProgramIndicator( programIndicator );
+                    dimensionalItemObject = cloneIfNeeded( programIndicator, id );
                 }
                 break;
 
@@ -614,6 +615,24 @@ public class DefaultDimensionService
         }
 
         return itemObjectMap;
+    }
+
+    /**
+     * Clones a BaseDimensionalItemObject if the periodOffset is not zero, so
+     * there can be a BaseDimensionalItemObject for each different periodOffset.
+     *
+     * @param item the item to clone if needed.
+     * @param id the item id with the periodOffset.
+     * @return the item or its clone.
+     */
+    private BaseDimensionalItemObject cloneIfNeeded( BaseDimensionalItemObject item, DimensionalItemId id )
+    {
+        if ( id.getPeriodOffset() != 0 )
+        {
+            return SerializationUtils.clone( item );
+        }
+
+        return item;
     }
 
     /**

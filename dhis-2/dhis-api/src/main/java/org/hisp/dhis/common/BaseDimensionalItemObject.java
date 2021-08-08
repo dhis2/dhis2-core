@@ -80,15 +80,6 @@ public class BaseDimensionalItemObject
         this.name = dimensionItem;
     }
 
-    public BaseDimensionalItemObject( BaseDimensionalItemObject dio )
-    {
-        super( dio.id, dio.uid, dio.name, dio.shortName, dio.code, dio.description );
-        this.dimensionItemType = dio.dimensionItemType;
-        this.legendSets = dio.legendSets;
-        this.aggregationType = dio.aggregationType;
-        this.periodOffset = dio.periodOffset;
-    }
-
     // -------------------------------------------------------------------------
     // DimensionalItemObject
     // -------------------------------------------------------------------------
