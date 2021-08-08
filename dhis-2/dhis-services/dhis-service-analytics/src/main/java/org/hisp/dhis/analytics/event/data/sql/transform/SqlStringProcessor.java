@@ -37,7 +37,6 @@ public class SqlStringProcessor
 {
     private SqlStringProcessor()
     {
-
     }
 
     public static String toInnerJoins( String sql, boolean pretty )

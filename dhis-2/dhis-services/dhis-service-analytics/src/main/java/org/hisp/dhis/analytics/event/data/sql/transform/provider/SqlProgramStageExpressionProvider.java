@@ -53,9 +53,9 @@ public class SqlProgramStageExpressionProvider
 {
     public FunctionXt<String, List<PredicateElement>> getProvider()
     {
-        List<PredicateElement> predicateElementList = new ArrayList<>();
 
         return sqlStatement -> {
+            List<PredicateElement> predicateElementList = new ArrayList<>();
 
             Statement select = CCJSqlParserUtil.parse( sqlStatement );
 

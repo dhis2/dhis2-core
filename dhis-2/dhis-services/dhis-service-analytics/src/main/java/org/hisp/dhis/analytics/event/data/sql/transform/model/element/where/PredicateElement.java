@@ -27,43 +27,23 @@
  */
 package org.hisp.dhis.analytics.event.data.sql.transform.model.element.where;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@AllArgsConstructor
 public class PredicateElement
 {
+    @Getter
     private final String leftExpression;
 
+    @Getter
     private final String rightExpression;
 
+    @Getter
     private final String relation;
 
+    @Getter
     private final String logicalOperator;
-
-    public PredicateElement( String leftExpression, String rightExpression, String relation, String logicalOperator )
-    {
-        this.leftExpression = leftExpression;
-        this.rightExpression = rightExpression;
-        this.relation = relation;
-        this.logicalOperator = logicalOperator;
-    }
-
-    public String getLeftExpression()
-    {
-        return leftExpression;
-    }
-
-    public String getRightExpression()
-    {
-        return rightExpression;
-    }
-
-    public String getRelation()
-    {
-        return relation;
-    }
-
-    public String getLogicalOperator()
-    {
-        return logicalOperator;
-    }
 
     @Override
     public boolean equals( Object o )
