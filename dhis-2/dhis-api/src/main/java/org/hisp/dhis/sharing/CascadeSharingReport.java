@@ -29,15 +29,19 @@ package org.hisp.dhis.sharing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -54,25 +58,27 @@ public class CascadeSharingReport
     private int countUpdatedDashBoardItems = 0;
 
     @JsonProperty
-    private boolean updatePublicAccess = false;
+    private Map<String, Set<String>> updatedObjects = new HashMap<>();
 
-    @JsonProperty
-    private Map<Class, Map<Class, AccessObject>> updatedObjects = new HashMap<>();
-
-    public void addUpdatedObject( Class accessClass, Class objectClass, AccessObject accessObject )
+    public void addUpdatedObject( IdentifiableObject object )
     {
-        Map<Class, AccessObject> clazzReport = getUpdatedObjects().get( objectClass );
+        Set<String> clazzReport = getUpdatedObjects().get( HibernateProxyUtils.getRealClass( object ).getSimpleName() );
 
         if ( clazzReport == null )
         {
-            clazzReport = new HashMap<>();
+            clazzReport = new HashSet<>();
         }
 
-        clazzReport.put( accessClass, accessObject );
-        getUpdatedObjects().put( objectClass, clazzReport );
+        clazzReport.add( object.getUid() );
+        getUpdatedObjects().put( HibernateProxyUtils.getRealClass( object ).getSimpleName(), clazzReport );
     }
 
-    public void increaseCountDashboardItem()
+    public Set<String> getUpdateObjects( Class clazz )
+    {
+        return getUpdatedObjects().get( clazz.getSimpleName() );
+    }
+
+    public void incUpdatedDashboardItem()
     {
         countUpdatedDashBoardItems++;
     }

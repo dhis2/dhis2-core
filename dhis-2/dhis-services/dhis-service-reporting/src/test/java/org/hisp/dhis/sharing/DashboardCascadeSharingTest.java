@@ -32,7 +32,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.collections.SetUtils;
-import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
@@ -42,7 +41,6 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -59,8 +57,6 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Lists;
 
 public class DashboardCascadeSharingTest
     extends CascadeSharingTest
@@ -202,11 +198,8 @@ public class DashboardCascadeSharingTest
     @Test
     public void testCascadeShareMap()
     {
-        MapView mapView = createMapView( "Test" );
-        Map map = new Map();
-        map.setName( "mapA" );
+        Map map = createMap( "A" );
         map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
-        map.setMapViews( Lists.newArrayList( mapView ) );
         objectManager.save( map, false );
 
         Dashboard dashboard = createDashboardWithItem( "A", sharingReadForUserA );
@@ -231,11 +224,8 @@ public class DashboardCascadeSharingTest
     @Test
     public void testCascadeSharePublicAccess()
     {
-        MapView mapView = createMapView( "Test" );
-        Map map = new Map();
-        map.setName( "mapA" );
+        Map map = createMap( "A" );
         map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
-        map.setMapViews( Lists.newArrayList( mapView ) );
         objectManager.save( map, false );
 
         Dashboard dashboard = createDashboardWithItem( "dashboardA",
@@ -254,8 +244,9 @@ public class DashboardCascadeSharingTest
     /**
      * Dashboard is shared to userB.
      * <p>
-     * But userB's access is DEFAULT('--------') Expected: no objects being
-     * updated.
+     * But userB's access is DEFAULT('--------')
+     * <p>
+     * Expected: no objects being updated.
      */
     @Test
     public void testCascadeShareMapError()
@@ -264,11 +255,8 @@ public class DashboardCascadeSharingTest
         dataElementB.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
         objectManager.save( dataElementB, false );
 
-        MapView mapView = createMapView( "Test" );
-        Map map = new Map();
-        map.setName( "mapA" );
+        Map map = createMap( "A" );
         map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
-        map.setMapViews( Lists.newArrayList( mapView ) );
         objectManager.save( map, false );
         objectManager.flush();
 
@@ -303,10 +291,7 @@ public class DashboardCascadeSharingTest
 
         TrackedEntityDataElementDimension teDeDim = new TrackedEntityDataElementDimension( deA, lsA, psA, "EQ:1" );
 
-        EventReport eventReport = new EventReport();
-        eventReport.setName( "eventReportA" );
-        eventReport.setAutoFields();
-        eventReport.setProgram( programA );
+        EventReport eventReport = createEventReport( "A", programA );
         eventReport.addTrackedEntityDataElementDimension( teDeDim );
         eventReport.setSharing( defaultSharing() );
 
@@ -322,10 +307,10 @@ public class DashboardCascadeSharingTest
 
         assertEquals( 0, report.getErrorReports().size() );
         assertEquals( 4, report.getUpdatedObjects().size() );
-        assertEquals( 1, report.getUpdatedObjects().get( DataElement.class ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( LegendSet.class ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( ProgramStage.class ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( EventReport.class ).size() );
+        assertEquals( 1, report.getUpdateObjects( DataElement.class ).size() );
+        assertEquals( 1, report.getUpdateObjects( LegendSet.class ).size() );
+        assertEquals( 1, report.getUpdateObjects( ProgramStage.class ).size() );
+        assertEquals( 1, report.getUpdateObjects( EventReport.class ).size() );
 
         assertTrue( aclService.canRead( userA, eventReport ) );
         assertTrue( aclService.canRead( userA, deA ) );
@@ -342,7 +327,6 @@ public class DashboardCascadeSharingTest
     @Test
     public void cascadeShareEventChart()
     {
-
         LegendSet legendSet = createLegendSet( 'A' );
         legendSet.setSharing( defaultSharing() );
         objectManager.save( legendSet, false );
@@ -356,10 +340,8 @@ public class DashboardCascadeSharingTest
         TrackedEntityAttributeDimension attributeDimension = new TrackedEntityAttributeDimension();
         attributeDimension.setLegendSet( legendSet );
         attributeDimension.setAttribute( trackedEntityAttribute );
-        EventChart eventChart = new EventChart();
-        eventChart.setName( "eventChartA" );
-        eventChart.setProgram( programA );
-        eventChart.setType( ChartType.COLUMN );
+
+        EventChart eventChart = createEventChart( "A", programA );
         eventChart.setAttributeValueDimension( trackedEntityAttribute );
         eventChart.getAttributeDimensions().add( attributeDimension );
         eventChart.setSharing( defaultSharing() );
@@ -374,9 +356,9 @@ public class DashboardCascadeSharingTest
 
         assertEquals( 0, report.getErrorReports().size() );
         assertEquals( 3, report.getUpdatedObjects().size() );
-        assertEquals( 1, report.getUpdatedObjects().get( LegendSet.class ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( TrackedEntityAttribute.class ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( EventChart.class ).size() );
+        assertEquals( 1, report.getUpdateObjects( LegendSet.class ).size() );
+        assertEquals( 1, report.getUpdateObjects( TrackedEntityAttribute.class ).size() );
+        assertEquals( 1, report.getUpdateObjects( EventChart.class ).size() );
 
         assertTrue( aclService.canRead( userA, eventChart ) );
         assertTrue( aclService.canRead( userA, legendSet ) );
@@ -413,9 +395,9 @@ public class DashboardCascadeSharingTest
             new CascadeSharingParameters() );
         assertEquals( 0, report.getErrorReports().size() );
         assertEquals( 3, report.getUpdatedObjects().size() );
-        assertEquals( 1, report.getUpdatedObjects().get( DataElement.class ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( Indicator.class ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( Visualization.class ).size() );
+        assertEquals( 1, report.getUpdateObjects( DataElement.class ).size() );
+        assertEquals( 1, report.getUpdateObjects( Indicator.class ).size() );
+        assertEquals( 1, report.getUpdateObjects( Visualization.class ).size() );
 
         DataElement updatedDataElementA = objectManager.get( DataElement.class, dataElementA.getUid() );
         Indicator updatedIndicatorA = objectManager.get( Indicator.class, indicatorA.getUid() );
@@ -426,5 +408,23 @@ public class DashboardCascadeSharingTest
         assertFalse( aclService.canRead( userB, visualizationA ) );
         assertFalse( aclService.canRead( userB, updatedDataElementA ) );
         assertFalse( aclService.canRead( userB, updatedIndicatorA ) );
+    }
+
+    @Test
+    public void testDryRun()
+    {
+        Map map = createMap( "A" );
+        map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        objectManager.save( map, false );
+
+        Dashboard dashboard = createDashboardWithItem( "A", sharingReadForUserA );
+        dashboard.getItems().get( 0 ).setMap( map );
+        objectManager.save( dashboard, false );
+
+        CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
+            CascadeSharingParameters.builder().dryRun( true ).build() );
+        assertEquals( 0, report.getErrorReports().size() );
+        assertFalse( aclService.canRead( userA, dashboard.getItems().get( 0 ).getMap() ) );
+        assertFalse( aclService.canRead( userB, dashboard.getItems().get( 0 ).getMap() ) );
     }
 }

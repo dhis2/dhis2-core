@@ -28,14 +28,22 @@
 package org.hisp.dhis.sharing;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.sharing.Sharing;
+
+import com.google.common.collect.Lists;
 
 public abstract class CascadeSharingTest
     extends DhisSpringTest
@@ -75,6 +83,35 @@ public abstract class CascadeSharingTest
         dashboard.setSharing( sharing );
         dashboard.getItems().add( dashboardItem );
         return dashboard;
+    }
+
+    protected EventChart createEventChart( String name, Program program )
+    {
+        EventChart eventChart = new EventChart();
+        eventChart.setAutoFields();
+        eventChart.setName( "eventChart" + name );
+        eventChart.setProgram( program );
+        eventChart.setType( ChartType.COLUMN );
+        return eventChart;
+    }
+
+    protected EventReport createEventReport( String name, Program program )
+    {
+        EventReport eventReport = new EventReport();
+        eventReport.setName( "eventReport" + name );
+        eventReport.setAutoFields();
+        eventReport.setProgram( program );
+        return eventReport;
+    }
+
+    protected Map createMap( String name )
+    {
+        MapView mapView = createMapView( "Test" );
+        Map map = new Map();
+        map.setName( "map" + name );
+        map.setMapViews( Lists.newArrayList( mapView ) );
+        map.setAutoFields();
+        return map;
     }
 
 }

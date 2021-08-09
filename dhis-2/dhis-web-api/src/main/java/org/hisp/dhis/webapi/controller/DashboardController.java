@@ -120,7 +120,7 @@ public class DashboardController
 
     @PostMapping( "cascadeSharing/{uid}" )
     public @ResponseBody CascadeSharingReport cascadeSharing( @PathVariable( "uid" ) String dashboardId,
-        CascadeSharingParameters parameters )
+        @RequestParam( required = false ) boolean dryRun )
         throws WebMessageException
     {
         Dashboard dashboard = dashboardService.getDashboard( dashboardId );
@@ -130,7 +130,8 @@ public class DashboardController
             throw new WebMessageException( notFound( "Dashboard not found for uid: " + dashboardId ) );
         }
 
-        return cascadeSharingService.cascadeSharing( dashboard, parameters );
+        return cascadeSharingService.cascadeSharing( dashboard,
+            CascadeSharingParameters.builder().dryRun( dryRun ).build() );
     }
 
     /**
