@@ -86,9 +86,9 @@ public class SqlInnerJoinElementProviderTest extends DhisTest
 
         assertEquals( "ovY6E8BSdto", innerJoinElementList.get( 2 ).getTableElement().getAlias() );
 
-        assertEquals( "analytics_event_uYjxkTbwRNf", innerJoinElementList.get( 2 ).getTableElement().getName() );
+        assertEquals( "analytics_event_uYjxkTbwRNf", innerJoinElementList.get( 3 ).getTableElement().getName() );
 
-        assertEquals( "ovY6E8BSdto", innerJoinElementList.get( 2 ).getTableElement().getAlias() );
+        assertEquals( "bOYWVEBaWy6", innerJoinElementList.get( 3 ).getTableElement().getAlias() );
 
     }
 }
