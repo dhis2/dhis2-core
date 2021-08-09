@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -74,7 +75,6 @@ import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroupAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.comparator.SharingUserGroupAccessNameComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -120,7 +120,7 @@ public class SharingController
     // Resources
     // -------------------------------------------------------------------------
 
-    @GetMapping( produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( produces = APPLICATION_JSON_VALUE )
     public void getSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response )
         throws IOException,
         WebMessageException
@@ -223,12 +223,12 @@ public class SharingController
 
         sharing.getObject().getUserGroupAccesses().sort( SharingUserGroupAccessNameComparator.INSTANCE );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), sharing );
     }
 
-    @PutMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage putSharing( @RequestParam String type, @RequestParam String id,
         HttpServletRequest request )
@@ -237,7 +237,7 @@ public class SharingController
         return postSharing( type, id, request );
     }
 
-    @PostMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postSharing( @RequestParam String type, @RequestParam String id, HttpServletRequest request )
         throws Exception
@@ -386,7 +386,7 @@ public class SharingController
         return ok( "Access control set" );
     }
 
-    @GetMapping( value = "/search", produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/search", produces = APPLICATION_JSON_VALUE )
     public void searchUserGroups( @RequestParam String key, @RequestParam( required = false ) Integer pageSize,
         HttpServletResponse response )
         throws IOException,
@@ -406,7 +406,7 @@ public class SharingController
         output.put( "userGroups", userGroupAccesses );
         output.put( "users", userAccesses );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), output );
     }

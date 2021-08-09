@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Date;
 import java.util.List;
@@ -70,7 +71,7 @@ public class KeyJsonValueController
      * Returns a JSON array of strings representing the different namespaces
      * used. If no namespaces exist, an empty array is returned.
      */
-    @GetMapping( value = "", produces = "application/json" )
+    @GetMapping( value = "", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
     {
         setNoStore( response );
@@ -81,7 +82,7 @@ public class KeyJsonValueController
     /**
      * Returns a list of strings representing keys in the given namespace.
      */
-    @GetMapping( value = "/{namespace}", produces = "application/json" )
+    @GetMapping( value = "/{namespace}", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<String> getKeysInNamespace( @RequestParam( required = false ) Date lastUpdated,
         @PathVariable String namespace,
         HttpServletResponse response )
@@ -119,7 +120,7 @@ public class KeyJsonValueController
      * Retrieves the value of the KeyJsonValue represented by the given key from
      * the given namespace.
      */
-    @GetMapping( value = "/{namespace}/{key}", produces = "application/json" )
+    @GetMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody String getKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
         HttpServletResponse response )
         throws Exception
@@ -131,7 +132,7 @@ public class KeyJsonValueController
      * Retrieves the KeyJsonValue represented by the given key from the given
      * namespace.
      */
-    @GetMapping( value = "/{namespace}/{key}/metaData", produces = "application/json" )
+    @GetMapping( value = "/{namespace}/{key}/metaData", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody KeyJsonValue getKeyJsonValueMetaData( @PathVariable String namespace, @PathVariable String key,
         HttpServletResponse response )
         throws Exception
@@ -151,7 +152,7 @@ public class KeyJsonValueController
      * value supplied.
      */
     @ResponseBody
-    @PostMapping( value = "/{namespace}/{key}", produces = "application/json", consumes = "application/json" )
+    @PostMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE )
     public WebMessage addKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
         @RequestBody String body,
         @RequestParam( defaultValue = "false" ) boolean encrypt )
@@ -171,7 +172,7 @@ public class KeyJsonValueController
      * Update a key in the given namespace.
      */
     @ResponseBody
-    @PutMapping( value = "/{namespace}/{key}", produces = "application/json", consumes = "application/json" )
+    @PutMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE )
     public WebMessage updateKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
         @RequestBody String value )
         throws Exception
@@ -188,7 +189,7 @@ public class KeyJsonValueController
      * Delete a key from the given namespace.
      */
     @ResponseBody
-    @DeleteMapping( value = "/{namespace}/{key}", produces = "application/json" )
+    @DeleteMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE )
     public WebMessage deleteKeyJsonValue( @PathVariable String namespace, @PathVariable String key )
         throws Exception
     {

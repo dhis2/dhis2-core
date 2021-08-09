@@ -105,7 +105,7 @@ public class OrganisationUnitController
 
     @ResponseStatus( HttpStatus.OK )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_SPLIT')" )
-    @PostMapping( value = "/split", produces = { APPLICATION_JSON_VALUE } )
+    @PostMapping( value = "/split", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody WebMessage splitOrgUnits( @RequestBody OrgUnitSplitQuery query )
     {
         orgUnitSplitService.split( orgUnitSplitService.getFromQuery( query ) );
@@ -115,7 +115,7 @@ public class OrganisationUnitController
 
     @ResponseStatus( HttpStatus.OK )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_MERGE')" )
-    @PostMapping( value = "/merge", produces = { APPLICATION_JSON_VALUE } )
+    @PostMapping( value = "/merge", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody WebMessage mergeOrgUnits( @RequestBody OrgUnitMergeQuery query )
     {
         orgUnitMergeService.merge( orgUnitMergeService.getFromQuery( query ) );
@@ -329,7 +329,7 @@ public class OrganisationUnitController
         List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitsAtLevels( rpLevels,
             parents );
 
-        response.setContentType( "application/json" );
+        response.setContentType( APPLICATION_JSON_VALUE );
 
         JsonFactory jsonFactory = new JsonFactory();
         JsonGenerator generator = jsonFactory.createGenerator( response.getOutputStream() );

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.mapping;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -125,7 +126,7 @@ public class MapController
     // --------------------------------------------------------------------------
 
     @Override
-    @PutMapping( value = "/{uid}", consumes = "application/json" )
+    @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @ResponseBody
     public WebMessage putJsonObject( @PathVariable String uid, HttpServletRequest request )

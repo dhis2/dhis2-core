@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
@@ -58,7 +60,7 @@ public class OrgUnitAnalyticsController
     @Autowired
     private ContextUtils contextUtils;
 
-    @GetMapping( value = RESOURCE_PATH, produces = { "application/json" } )
+    @GetMapping( value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE )
     public @ResponseBody Grid getJson(
         @RequestParam String ou,
         @RequestParam String ougs,

@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.List;
@@ -89,7 +90,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @PostMapping( produces = { "application/json" } )
+    @PostMapping( produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage sendSMSMessage( @RequestParam String recipient, @RequestParam String message )
     {
@@ -113,7 +114,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @PostMapping( consumes = { "application/json" }, produces = { "application/json" } )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage sendSMSMessage( HttpServletRequest request )
         throws IOException
@@ -133,7 +134,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
     // DELETE
     // -------------------------------------------------------------------------
 
-    @DeleteMapping( value = "/{uid}", produces = "application/json" )
+    @DeleteMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
     public WebMessage deleteOutboundMessage( @PathVariable String uid )
@@ -150,7 +151,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
         return ok( "OutboundSms with " + uid + " deleted" );
     }
 
-    @DeleteMapping( produces = "application/json" )
+    @DeleteMapping( produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
     public WebMessage deleteOutboundMessages( @RequestParam List<String> ids )
