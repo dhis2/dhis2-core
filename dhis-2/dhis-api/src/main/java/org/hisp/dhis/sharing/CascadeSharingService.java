@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.sharing;
 
-import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.visualization.Visualization;
 
 public interface CascadeSharingService
 {
@@ -37,9 +35,4 @@ public interface CascadeSharingService
      * Cascade sharing for given {@link Dashboard}
      */
     CascadeSharingReport cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters );
-
-    /**
-     * Cascade sharing for given {@link Visualization}
-     */
-    CascadeSharingReport cascadeSharing( BaseAnalyticalObject analyticalObject, CascadeSharingParameters parameters );
 }

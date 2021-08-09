@@ -28,30 +28,38 @@
 package org.hisp.dhis.dashboard.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import lombok.NonNull;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.common.BaseAnalyticalObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
-import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sharing.AbstractCascadeSharingService;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
 import org.hisp.dhis.sharing.CascadeSharingReport;
 import org.hisp.dhis.sharing.CascadeSharingService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,43 +85,18 @@ public class DefaultCascadeSharingService
                 handleMapObject( dashboard, dashboardItem.getMap(), parameters );
                 break;
             case VISUALIZATION:
-                handleAnalyticalObject( dashboard, dashboardItem.getVisualization(), parameters );
+                handleVisualization( dashboard, dashboardItem.getVisualization(), parameters );
                 break;
             case EVENT_REPORT:
-                handleAnalyticalObject( dashboard, dashboardItem.getEventReport(), parameters );
+                handleEventReport( dashboard, dashboardItem.getEventReport(), parameters );
                 break;
             case EVENT_CHART:
-                handleAnalyticalObject( dashboard, dashboardItem.getEventChart(), parameters );
+                handleEventChart( dashboard, dashboardItem.getEventChart(), parameters );
                 break;
             default:
                 break;
             }
         } );
-
-        return parameters.getReport();
-    }
-
-    @Override
-    @Transactional
-    public CascadeSharingReport cascadeSharing( BaseAnalyticalObject sourceObject,
-        CascadeSharingParameters parameters )
-    {
-        List<IdentifiableObject> listUpdateObjects = new ArrayList<>();
-
-        handleIdentifiableObjects( sourceObject, sourceObject.getDataElements(), listUpdateObjects, parameters );
-
-        handleIdentifiableObjects( sourceObject, sourceObject.getIndicators(), listUpdateObjects, parameters );
-
-        handleCategoryDimension( sourceObject, listUpdateObjects, parameters );
-
-        handleDataElementDimensions( sourceObject, listUpdateObjects, parameters );
-
-        handleDataElementGroupSetDimensions( sourceObject, listUpdateObjects, parameters );
-
-        if ( canUpdate( parameters ) )
-        {
-            manager.update( listUpdateObjects );
-        }
 
         return parameters.getReport();
     }
@@ -126,31 +109,146 @@ public class DefaultCascadeSharingService
         }
     }
 
-    private <T extends BaseAnalyticalObject> void handleAnalyticalObject( Dashboard dashboard, T analyticalObject,
+    private void handleVisualization( Dashboard dashboard, Visualization visualization,
         CascadeSharingParameters parameters )
     {
-        if ( analyticalObject == null )
-        {
-            return;
-        }
+        Set<IdentifiableObject> listUpdateObjects = new HashSet<>();
 
-        if ( !mergeSharing( dashboard, analyticalObject, parameters ) )
+        if ( !handleIdentifiableObject( dashboard, visualization, listUpdateObjects, parameters ) )
         {
             return;
         }
 
         if ( canUpdate( parameters ) )
         {
-            manager.update( analyticalObject );
+            manager.update( visualization );
         }
 
-        cascadeSharing( analyticalObject, parameters );
+        handleBaseAnalyticObject( visualization, listUpdateObjects, parameters );
 
-        parameters.getReport().increaseCountDashboardItem();
+        if ( canUpdate( parameters ) )
+        {
+            manager.update( new ArrayList<>( listUpdateObjects ) );
+        }
+    }
+
+    private void handleEventReport( Dashboard dashboard, EventReport eventReport, CascadeSharingParameters parameters )
+    {
+        Set<IdentifiableObject> listUpdateObjects = new HashSet<>();
+
+        if ( !handleIdentifiableObject( dashboard, eventReport, listUpdateObjects, parameters ) )
+        {
+            return;
+        }
+
+        if ( canUpdate( parameters ) )
+        {
+            manager.update( eventReport );
+        }
+
+        handleBaseAnalyticObject( eventReport, listUpdateObjects, parameters );
+
+        if ( canUpdate( parameters ) )
+        {
+            manager.update( new ArrayList<>( listUpdateObjects ) );
+        }
+    }
+
+    private void handleEventChart( Dashboard dashboard, EventChart eventChart, CascadeSharingParameters parameters )
+    {
+        Set<IdentifiableObject> listUpdateObjects = new HashSet<>();
+
+        if ( !handleIdentifiableObject( dashboard, eventChart, listUpdateObjects, parameters ) )
+        {
+            return;
+        }
+
+        if ( canUpdate( parameters ) )
+        {
+            manager.update( eventChart );
+        }
+
+        handleIdentifiableObject( dashboard, eventChart.getAttributeValueDimension(), listUpdateObjects, parameters );
+
+        handleIdentifiableObject( dashboard, eventChart.getDataElementValueDimension(), listUpdateObjects, parameters );
+
+        handleBaseAnalyticObject( eventChart, listUpdateObjects, parameters );
+
+        if ( canUpdate( parameters ) )
+        {
+            manager.update( new ArrayList<>( listUpdateObjects ) );
+        }
+    }
+
+    private void handleBaseAnalyticObject( BaseAnalyticalObject sourceObject, Set<IdentifiableObject> listUpdateObjects,
+        CascadeSharingParameters parameters )
+    {
+        handleIdentifiableObjects( sourceObject, sourceObject.getDataElements(), listUpdateObjects, parameters );
+
+        handleIdentifiableObjects( sourceObject, sourceObject.getIndicators(), listUpdateObjects, parameters );
+
+        handleCategoryDimension( sourceObject, listUpdateObjects, parameters );
+
+        handleDataElementDimensions( sourceObject, listUpdateObjects, parameters );
+
+        handleDataElementGroupSetDimensions( sourceObject, listUpdateObjects, parameters );
+
+        handleCategoryOptionGroupSetDimensions( sourceObject, listUpdateObjects, parameters );
+
+        handleTrackedEntityAttributeDimension( sourceObject, listUpdateObjects, parameters );
+    }
+
+    private void handleTrackedEntityAttributeDimension( BaseAnalyticalObject sourceObject,
+        Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
+    {
+        List<TrackedEntityAttributeDimension> attributeDimensions = sourceObject
+            .getAttributeDimensions();
+
+        if ( CollectionUtils.isEmpty( attributeDimensions ) )
+        {
+            return;
+        }
+
+        attributeDimensions.forEach( attributeDimension -> {
+            handleIdentifiableObject( sourceObject, attributeDimension.getAttribute(), listUpdateObjects, parameters );
+            handleIdentifiableObject( sourceObject, attributeDimension.getLegendSet(), listUpdateObjects, parameters );
+        } );
+    }
+
+    private void handleCategoryOptionGroupSetDimensions( BaseAnalyticalObject sourceObject,
+        Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
+    {
+        List<CategoryOptionGroupSetDimension> catOptionGroupSetDimensions = sourceObject
+            .getCategoryOptionGroupSetDimensions();
+
+        if ( CollectionUtils.isEmpty( catOptionGroupSetDimensions ) )
+        {
+            return;
+        }
+
+        catOptionGroupSetDimensions.forEach( categoryOptionGroupSetDimension -> {
+            CategoryOptionGroupSet catOptionGroupSet = categoryOptionGroupSetDimension
+                .getDimension();
+
+            handleIdentifiableObject( sourceObject, catOptionGroupSet, listUpdateObjects, parameters );
+
+            List<CategoryOptionGroup> catOptionGroups = catOptionGroupSet.getMembers();
+
+            if ( CollectionUtils.isEmpty( catOptionGroups ) )
+            {
+                return;
+            }
+
+            catOptionGroups.forEach( catOptionGroup -> {
+                handleIdentifiableObject( sourceObject, catOptionGroup, listUpdateObjects, parameters );
+                handleIdentifiableObjects( sourceObject, catOptionGroup.getMembers(), listUpdateObjects, parameters );
+            } );
+
+        } );
     }
 
     private void handleDataElementDimensions( BaseAnalyticalObject sourceObject,
-        List<IdentifiableObject> listUpdateObjects,
+        Set<IdentifiableObject> listUpdateObjects,
         CascadeSharingParameters parameters )
     {
         List<TrackedEntityDataElementDimension> deDimensions = sourceObject
@@ -162,31 +260,13 @@ public class DefaultCascadeSharingService
         }
 
         deDimensions.forEach( deDimension -> {
-            DataElement dataElement = deDimension.getDataElement();
-
-            if ( dataElement != null && mergeSharing( sourceObject, dataElement, parameters ) )
-            {
-                listUpdateObjects.add( dataElement );
-            }
-
-            LegendSet legendSet = deDimension.getLegendSet();
-
-            if ( legendSet != null && mergeSharing( sourceObject, legendSet, parameters ) )
-            {
-                listUpdateObjects.add( legendSet );
-            }
-
-            ProgramStage programStage = deDimension.getProgramStage();
-
-            if ( programStage != null && mergeSharing( sourceObject, programStage, parameters ) )
-            {
-                listUpdateObjects.add( programStage );
-            }
-
+            handleIdentifiableObject( sourceObject, deDimension.getDataElement(), listUpdateObjects, parameters );
+            handleIdentifiableObject( sourceObject, deDimension.getLegendSet(), listUpdateObjects, parameters );
+            handleIdentifiableObject( sourceObject, deDimension.getProgramStage(), listUpdateObjects, parameters );
         } );
     }
 
-    private void handleCategoryDimension( BaseAnalyticalObject sourceObject, List<IdentifiableObject> listUpdateObjects,
+    private void handleCategoryDimension( BaseAnalyticalObject sourceObject, Set<IdentifiableObject> listUpdateObjects,
         CascadeSharingParameters parameters )
     {
         List<CategoryDimension> catDimensions = sourceObject.getCategoryDimensions();
@@ -199,10 +279,7 @@ public class DefaultCascadeSharingService
         catDimensions.forEach( catDimension -> {
             Category category = catDimension.getDimension();
 
-            if ( category != null && mergeSharing( sourceObject, category, parameters ) )
-            {
-                listUpdateObjects.add( category );
-            }
+            handleIdentifiableObject( sourceObject, category, listUpdateObjects, parameters );
 
             List<CategoryOption> catOptions = catDimension.getItems();
 
@@ -211,18 +288,13 @@ public class DefaultCascadeSharingService
                 return;
             }
 
-            catOptions.forEach( catOption -> {
-                if ( mergeSharing( sourceObject, catOption, parameters ) )
-                {
-                    listUpdateObjects.add( catOption );
-                }
-            } );
-
+            catOptions.forEach( catOption -> handleIdentifiableObject( sourceObject, catOption,
+                listUpdateObjects, parameters ) );
         } );
     }
 
     private void handleDataElementGroupSetDimensions( BaseAnalyticalObject sourceObject,
-        List<IdentifiableObject> listUpdateObjects,
+        Set<IdentifiableObject> listUpdateObjects,
         CascadeSharingParameters parameters )
     {
         List<DataElementGroupSetDimension> deGroupSetDimensions = sourceObject
@@ -236,10 +308,7 @@ public class DefaultCascadeSharingService
         deGroupSetDimensions.forEach( deGroupSetDimension -> {
             DataElementGroupSet deGroupSet = deGroupSetDimension.getDimension();
 
-            if ( deGroupSet != null && mergeSharing( sourceObject, deGroupSet, parameters ) )
-            {
-                listUpdateObjects.add( deGroupSet );
-            }
+            handleIdentifiableObject( sourceObject, deGroupSet, listUpdateObjects, parameters );
 
             List<DataElementGroup> deGroups = deGroupSetDimension.getItems();
 
@@ -248,17 +317,13 @@ public class DefaultCascadeSharingService
                 return;
             }
 
-            deGroups.forEach( deGroup -> {
-                if ( mergeSharing( sourceObject, deGroup, parameters ) )
-                {
-                    listUpdateObjects.add( deGroup );
-                }
-            } );
+            deGroups
+                .forEach( deGroup -> handleIdentifiableObject( sourceObject, deGroup, listUpdateObjects, parameters ) );
         } );
     }
 
     private void handleIdentifiableObjects( final BaseAnalyticalObject sourceObject,
-        final List<? extends IdentifiableObject> targetObjects, List<IdentifiableObject> listUpdateObjects,
+        final Collection<? extends IdentifiableObject> targetObjects, Collection<IdentifiableObject> listUpdateObjects,
         CascadeSharingParameters parameters )
     {
         if ( CollectionUtils.isEmpty( targetObjects ) )
@@ -267,10 +332,25 @@ public class DefaultCascadeSharingService
         }
 
         targetObjects.forEach( object -> {
-            if ( mergeSharing( sourceObject, object, parameters ) )
-            {
-                listUpdateObjects.add( object );
-            }
+            handleIdentifiableObject( sourceObject, object, listUpdateObjects, parameters );
         } );
+    }
+
+    private boolean handleIdentifiableObject( final BaseIdentifiableObject sourceObject,
+        IdentifiableObject target, Collection<IdentifiableObject> listUpdateObjects,
+        CascadeSharingParameters parameters )
+    {
+        if ( target == null )
+        {
+            return false;
+        }
+
+        if ( mergeSharing( sourceObject, target, parameters ) )
+        {
+            listUpdateObjects.add( target );
+            return true;
+        }
+
+        return false;
     }
 }

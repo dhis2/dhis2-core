@@ -31,6 +31,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -64,6 +65,16 @@ public abstract class CascadeSharingTest
     protected Sharing defaultSharing()
     {
         return Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build();
+    }
+
+    protected Dashboard createDashboardWithItem( String name, Sharing sharing )
+    {
+        DashboardItem dashboardItem = createDashboardItem( "A" );
+        Dashboard dashboard = new Dashboard();
+        dashboard.setName( "dashboardA" );
+        dashboard.setSharing( sharing );
+        dashboard.getItems().add( dashboardItem );
+        return dashboard;
     }
 
 }
