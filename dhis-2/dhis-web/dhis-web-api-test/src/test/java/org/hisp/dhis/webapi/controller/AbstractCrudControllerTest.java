@@ -48,7 +48,9 @@ import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
+import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.snippets.SomeUserId;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -137,6 +139,14 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    public void replaceTranslations_NoSuchEntity()
+    {
+        String translations = "{'translations': [{'locale':'sv', 'property':'name'}]}";
+        assertWebMessage( "Not Found", 404, "ERROR", "User with id notanid could not be found.",
+            PUT( "/users/notanid/translations", translations ).content( HttpStatus.NOT_FOUND ) );
+    }
+
+    @Test
     public void replaceTranslations_MissingValue()
     {
         String id = getCurrentUser().getUid();
@@ -178,8 +188,11 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testPostJsonObject()
     {
-        assertStatus( HttpStatus.CREATED,
-            POST( "/constants/", "{'name':'answer', 'value': 42}" ) );
+        HttpResponse response = POST( "/constants/", "{'name':'answer', 'value': 42}" );
+        assertWebMessage( "Created", 201, "OK", null,
+            response.content( HttpStatus.CREATED ) );
+        assertEquals( "http://localhost/constants/" + assertStatus( HttpStatus.CREATED, response ),
+            response.header( "Location" ) );
     }
 
     @Test
@@ -187,10 +200,27 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     {
         // first we need to create an entity that can be marked as favorite
         String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
+        String userId = getCurrentUser().getUid();
 
-        assertStatus( HttpStatus.OK, POST( "/maps/" + mapId + "/favorite" ) );
+        assertWebMessage( "OK", 200, "OK", "Object '" + mapId + "' set as favorite for user 'admin'",
+            POST( "/maps/" + mapId + "/favorite" ).content( HttpStatus.OK ) );
+
         JsonGeoMap map = GET( "/maps/{uid}", mapId ).content().as( JsonGeoMap.class );
-        assertEquals( singletonList( getCurrentUser().getUid() ), map.getFavorites() );
+        assertEquals( singletonList( userId ), map.getFavorites() );
+    }
+
+    @Test
+    public void testSetAsFavorite_NotFavoritable()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Objects of this class cannot be set as favorite",
+            POST( "/users/" + getSuperuserUid() + "/favorite" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testSetAsFavorite_NoSuchObject()
+    {
+        assertWebMessage( "Not Found", 404, "ERROR", "Map with id xyz could not be found.",
+            POST( "/maps/xyz/favorite" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
@@ -201,9 +231,24 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         // make it a favorite
         assertStatus( HttpStatus.OK, POST( "/maps/" + mapId + "/favorite" ) );
 
-        assertStatus( HttpStatus.OK, DELETE( "/maps/" + mapId + "/favorite" ) );
+        assertWebMessage( "OK", 200, "OK", "Object '" + mapId + "' removed as favorite for user 'admin'",
+            DELETE( "/maps/" + mapId + "/favorite" ).content( HttpStatus.OK ) );
         assertEquals( emptyList(), GET( "/maps/{uid}", mapId )
             .content().as( JsonGeoMap.class ).getFavorites() );
+    }
+
+    @Test
+    public void testRemoveAsFavorite_NotFavoritable()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Objects of this class cannot be set as favorite",
+            DELETE( "/users/xyz/favorite" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testRemoveAsFavorite_NoSuchObject()
+    {
+        assertWebMessage( "Not Found", 404, "ERROR", "Map with id xyz could not be found.",
+            DELETE( "/maps/xyz/favorite" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
@@ -212,9 +257,25 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         // first we need to create an entity that can be subscribed to
         String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
 
-        assertStatus( HttpStatus.OK, POST( "/maps/" + mapId + "/subscriber" ) );
+        assertWebMessage( "OK", 200, "OK", "User 'admin' subscribed to object '" + mapId + "'",
+            POST( "/maps/" + mapId + "/subscriber" ).content( HttpStatus.OK ) );
+
         JsonGeoMap map = GET( "/maps/{uid}", mapId ).content().as( JsonGeoMap.class );
         assertEquals( singletonList( getCurrentUser().getUid() ), map.getSubscribers() );
+    }
+
+    @Test
+    public void testSubscribe_NotSubscribable()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Objects of this class cannot be subscribed to",
+            POST( "/users/" + getSuperuserUid() + "/subscriber" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testSubscribe_NoSuchObject()
+    {
+        assertWebMessage( "Not Found", 404, "ERROR", "Map with id xyz could not be found.",
+            POST( "/maps/xyz/subscriber" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
@@ -223,20 +284,48 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
         assertStatus( HttpStatus.OK, POST( "/maps/" + mapId + "/subscriber" ) );
 
-        assertStatus( HttpStatus.OK, DELETE( "/maps/" + mapId + "/subscriber" ) );
+        assertWebMessage( "OK", 200, "OK", "User 'admin' removed as subscriber of object '" + mapId + "'",
+            DELETE( "/maps/" + mapId + "/subscriber" ).content( HttpStatus.OK ) );
+
         JsonGeoMap map = GET( "/maps/{uid}", mapId ).content().as( JsonGeoMap.class );
         assertEquals( emptyList(), map.getSubscribers() );
+    }
+
+    @Test
+    public void testUnsubscribe_NoSuchObject()
+    {
+        assertWebMessage( "Not Found", 404, "ERROR", "Map with id xyz could not be found.",
+            DELETE( "/maps/xyz/subscriber" ).content( HttpStatus.NOT_FOUND ) );
+    }
+
+    @Test
+    public void testUnsubscribe_NotSubscribable()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Objects of this class cannot be subscribed to",
+            DELETE( "/users/xyz/subscriber" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
     public void testPutJsonObject()
     {
         // first the updated entity needs to be created
-        String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
+        String ouId = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
 
-        assertStatus( HttpStatus.NO_CONTENT, PUT( "/maps/" + mapId, "{'name':'Europa'}" ) );
-        assertEquals( "Europa", GET( "/maps/{id}", mapId )
-            .content().as( JsonGeoMap.class ).getName() );
+        assertWebMessage( "OK", 200, "OK", null,
+            PUT( "/organisationUnits/" + ouId, "{'name':'New name', 'shortName':'OU1', 'openingDate': '2020-01-01'}" )
+                .content( HttpStatus.OK ) );
+
+        assertEquals( "New name", GET( "/organisationUnits/{id}", ouId )
+            .content().as( JsonIdentifiableObject.class ).getName() );
+    }
+
+    @Test
+    public void testPutJsonObject_NoSuchObject()
+    {
+        assertWebMessage( "Not Found", 404, "ERROR", "OrganisationUnit with id xyz could not be found.",
+            PUT( "/organisationUnits/xyz", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" )
+                .content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
@@ -320,10 +409,18 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     public void testDeleteObject()
     {
         // first the deleted entity needs to be created
-        String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
+        String ouId = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
 
-        assertStatus( HttpStatus.OK, DELETE( "/maps/" + mapId ) );
-        assertEquals( 0, GET( "/maps" ).content().getArray( "maps" ).size() );
+        assertWebMessage( "OK", 200, "OK", null, DELETE( "/organisationUnits/" + ouId ).content( HttpStatus.OK ) );
+        assertEquals( 0, GET( "/organisationUnits" ).content().getArray( "organisationUnits" ).size() );
+    }
+
+    @Test
+    public void testDeleteObject_NoSuchObject()
+    {
+        assertWebMessage( "Not Found", 404, "ERROR", "OrganisationUnit with id xyz could not be found.",
+            DELETE( "/organisationUnits/xyz" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
@@ -407,6 +504,31 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         assertTrue( program.exists() );
         assertEquals( "rwrw----", program.getSharing().getPublic().string() );
         assertFalse( "programs cannot be external", program.getSharing().isExternal() );
+    }
+
+    @Test
+    public void testSetSharing_InvalidPublicAccess()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which can be shared
+        String programId = assertStatus( HttpStatus.CREATED,
+            POST( "/programs/", "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}" ) );
+
+        String sharing = "{'owner':'" + userId + "', 'public':'illegal', 'external': true }";
+        JsonWebMessage message = PUT( "/programs/" + programId + "/sharing", sharing ).content( HttpStatus.CONFLICT )
+            .as( JsonWebMessage.class );
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "One more more errors occurred, please see full details in import report.", message );
+        JsonTypeReport response = message.get( "response", JsonTypeReport.class );
+        assertEquals( 1, response.getObjectReports().size() );
+        assertEquals( ErrorCode.E3015, response.getObjectReports().get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void testSetSharing_EntityNoFound()
+    {
+        assertWebMessage( "Not Found", 404, "ERROR", "Program with id doesNotExist could not be found.",
+            PUT( "/programs/doesNotExist/sharing", "{}" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     private void assertUserGroupHasOnlyUser( String groupId, String userId )

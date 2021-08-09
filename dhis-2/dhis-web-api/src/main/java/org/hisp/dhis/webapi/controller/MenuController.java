@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.io.InputStream;
 import java.util.List;
 
@@ -61,7 +63,7 @@ public class MenuController
 
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @SuppressWarnings( "unchecked" )
-    @PostMapping( consumes = "application/json" )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     public void saveMenuOrder( InputStream input )
         throws Exception
     {

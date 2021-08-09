@@ -27,8 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummaries;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -59,8 +67,8 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -73,7 +81,6 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -89,13 +96,12 @@ import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceStrategyHandler;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -105,6 +111,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
@@ -136,15 +143,11 @@ public class TrackedEntityInstanceController
 
     private final ContextService contextService;
 
-    private final WebMessageService webMessageService;
-
     private final CurrentUserService currentUserService;
 
     private final FileResourceService fileResourceService;
 
     private final TrackerAccessManager trackerAccessManager;
-
-    private final SchedulingManager schedulingManager;
 
     private final TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
 
@@ -225,25 +228,25 @@ public class TrackedEntityInstanceController
 
         if ( !trackerAccessErrors.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils
-                .unathorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
+            throw new WebMessageException(
+                unauthorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
         }
 
         if ( attribute.size() == 0 )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Attribute not found for ID " + attributeId ) );
+            throw new WebMessageException( notFound( "Attribute not found for ID " + attributeId ) );
         }
 
         TrackedEntityAttributeValue value = attribute.get( 0 );
 
         if ( value == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Value not found for ID " + attributeId ) );
+            throw new WebMessageException( notFound( "Value not found for ID " + attributeId ) );
         }
 
         if ( value.getAttribute().getValueType() != ValueType.IMAGE )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Attribute must be of type image" ) );
+            throw new WebMessageException( conflict( "Attribute must be of type image" ) );
         }
 
         // ---------------------------------------------------------------------
@@ -254,8 +257,8 @@ public class TrackedEntityInstanceController
 
         if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
         {
-            throw new WebMessageException( WebMessageUtils
-                .notFound( "A data value file resource with id " + value.getValue() + " does not exist." ) );
+            throw new WebMessageException(
+                notFound( "A data value file resource with id " + value.getValue() + " does not exist." ) );
         }
 
         if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
@@ -266,7 +269,7 @@ public class TrackedEntityInstanceController
             // -----------------------------------------------------------------
 
             throw new WebMessageException(
-                WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
+                conflict( "The content is being processed and is not available yet. Try again later.",
                     "The content requested is in transit to the file store and will be available at a later time." ) );
         }
 
@@ -295,7 +298,7 @@ public class TrackedEntityInstanceController
         }
         catch ( IOException ex )
         {
-            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+            throw new WebMessageException( error( "Failed fetching the file from storage",
                 "There was an exception when trying to fetch the file from the storage backend." ) );
         }
     }
@@ -373,28 +376,30 @@ public class TrackedEntityInstanceController
     // CREATE
     // -------------------------------------------------------------------------
 
-    @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void postTrackedEntityInstanceJson(
+    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage postTrackedEntityInstanceJson(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException,
         BadRequestException
     {
-        postTrackedEntityInstance( strategy, importOptions, request, response, MediaType.APPLICATION_JSON_VALUE );
+        return postTrackedEntityInstance( strategy, importOptions, request, APPLICATION_JSON_VALUE );
     }
 
-    @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE )
-    public void postTrackedEntityInstanceXml(
+    @PostMapping( value = "", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
+    @ResponseBody
+    public WebMessage postTrackedEntityInstanceXml(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException,
         BadRequestException
     {
-        postTrackedEntityInstance( strategy, importOptions, request, response, MediaType.APPLICATION_XML_VALUE );
+        return postTrackedEntityInstance( strategy, importOptions, request, APPLICATION_XML_VALUE );
     }
 
-    private void postTrackedEntityInstance( ImportStrategy strategy, ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response, String mediaType )
+    private WebMessage postTrackedEntityInstance( ImportStrategy strategy, ImportOptions importOptions,
+        HttpServletRequest request, String mediaType )
         throws IOException,
         BadRequestException
     {
@@ -418,18 +423,19 @@ public class TrackedEntityInstanceController
 
         if ( !importOptions.isAsync() )
         {
-            finalizeTrackedEntityInstancePostRequest( importOptions, request, response, importSummaries, mediaType );
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+            ImportSummary singleSummary = finalizeTrackedEntityInstancePostRequest( importOptions, request,
+                importSummaries );
+            return importSummaries( importSummaries )
+                .setLocation( singleSummary == null
+                    ? null
+                    : "/api/" + "trackedEntityInstances" + "/" + singleSummary.getReference() );
         }
-        else
-        {
-            response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TEI_IMPORT );
-            webMessageService.send( jobConfigurationReport( jobId ), response, request );
-        }
+        return jobConfigurationReport( jobId )
+            .setLocation( "/system/tasks/" + TEI_IMPORT );
     }
 
-    private void finalizeTrackedEntityInstancePostRequest( ImportOptions importOptions, HttpServletRequest request,
-        HttpServletResponse response, ImportSummaries importSummaries, String mediaType )
+    private ImportSummary finalizeTrackedEntityInstancePostRequest( ImportOptions importOptions,
+        HttpServletRequest request, ImportSummaries importSummaries )
     {
 
         importSummaries.setImportOptions( importOptions );
@@ -451,22 +457,22 @@ public class TrackedEntityInstanceController
 
             if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
             {
-                response.setHeader( "Location", getResourcePath( request, importSummary ) );
+                return importSummary;
             }
         }
-
-        response.setContentType( mediaType );
+        return null;
     }
 
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
 
-    @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_XML_VALUE )
-    public void updateTrackedEntityInstanceXml(
+    @PutMapping( value = "/{id}", consumes = APPLICATION_XML_VALUE )
+    @ResponseBody
+    public WebMessage updateTrackedEntityInstanceXml(
         @PathVariable String id,
         @RequestParam( required = false ) String program,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -474,14 +480,15 @@ public class TrackedEntityInstanceController
             inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return importSummary( importSummary );
     }
 
-    @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void updateTrackedEntityInstanceJson(
+    @PutMapping( value = "/{id}", consumes = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage updateTrackedEntityInstanceJson(
         @PathVariable String id,
         @RequestParam( required = false ) String program,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -489,7 +496,7 @@ public class TrackedEntityInstanceController
             inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return importSummary( importSummary );
     }
 
     // -------------------------------------------------------------------------
@@ -497,20 +504,23 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @DeleteMapping( "/{id}" )
-    public void deleteTrackedEntityInstance( @PathVariable String id, HttpServletRequest request,
-        HttpServletResponse response )
+    @ResponseBody
+    public WebMessage deleteTrackedEntityInstance( @PathVariable String id )
     {
         ImportSummary importSummary = trackedEntityInstanceService.deleteTrackedEntityInstance( id );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return importSummary( importSummary );
     }
 
-    @PutMapping( "/{tei}/potentialduplicate" )
+    @PutMapping( "/{tei}/potentialDuplicate" )
+    @ResponseStatus( value = HttpStatus.OK )
     public void updatePotentialDuplicateFlag(
         @PathVariable String tei,
-        @RequestParam boolean flag )
+        @RequestParam String flag )
         throws OperationNotAllowedException,
-        NotFoundException
+        NotFoundException,
+        BadRequestException
     {
+        boolean isPotentialDuplicate = parseInputFlag( flag );
 
         User user = currentUserService.getCurrentUser();
 
@@ -526,9 +536,22 @@ public class TrackedEntityInstanceController
                 "You're not authorized to access the TrackedEntityInstance with id: " + tei );
         }
 
-        trackedEntityInstance.setPotentialDuplicate( flag );
+        trackedEntityInstance.setPotentialDuplicate( isPotentialDuplicate );
 
         instanceService.updateTrackedEntityInstance( trackedEntityInstance );
+    }
+
+    private boolean parseInputFlag( String flag )
+        throws BadRequestException
+    {
+        if ( "true".equals( flag ) || "false".equals( flag ) )
+        {
+            return Boolean.parseBoolean( flag );
+        }
+        else
+        {
+            throw new BadRequestException( "Flag must be true or false" );
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -542,12 +565,6 @@ public class TrackedEntityInstanceController
         final TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
         return instanceService.getTrackedEntityInstancesGrid( queryParams );
-    }
-
-    private String getResourcePath( HttpServletRequest request, ImportSummary importSummary )
-    {
-        return ContextUtils.getContextPath( request ) + "/api/" + "trackedEntityInstances" + "/"
-            + importSummary.getReference();
     }
 
     private TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )

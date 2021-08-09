@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
@@ -65,7 +67,7 @@ public class EnrollmentAnalyticsController
     @Autowired
     private ContextUtils contextUtils;
 
-    @GetMapping( value = "/query/{program}", produces = { "application/json", "application/javascript" } )
+    @GetMapping( value = "/query/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getQueryJson( // JSON, JSONP
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,

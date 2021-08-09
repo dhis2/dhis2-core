@@ -267,7 +267,7 @@ public class JsonResponseTest
         assertEquals( "Expected \" but reach EOI: {\"a:12}", map.toString() );
     }
 
-    private JsonResponse createJSON( String content )
+    private static JsonResponse createJSON( String content )
     {
         return new JsonResponse( content.replace( '\'', '"' ) );
     }

@@ -27,6 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
+import static org.springframework.http.MediaType.TEXT_XML_VALUE;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,7 +76,6 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
@@ -87,7 +94,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -180,7 +186,7 @@ public class DataSetController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + uid ) );
+            throw new WebMessageException( conflict( "Data set does not exist: " + uid ) );
         }
 
         Map<String, Integer> versionMap = new HashMap<>();
@@ -198,7 +204,7 @@ public class DataSetController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + uid ) );
+            throw new WebMessageException( conflict( "Data set does not exist: " + uid ) );
         }
 
         dataSet.increaseVersion();
@@ -217,7 +223,7 @@ public class DataSetController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + uid ) );
+            throw new WebMessageException( conflict( "Data set does not exist: " + uid ) );
         }
 
         List<CategoryCombo> categoryCombos = dataSet.getDataSetElements().stream()
@@ -250,7 +256,7 @@ public class DataSetController
 
         if ( dataSets.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
         }
 
         Period pe = periodService.getPeriod( period );
@@ -259,7 +265,7 @@ public class DataSetController
             dataElementIdScheme );
     }
 
-    @GetMapping( value = "/{uid}/form", produces = "application/json" )
+    @GetMapping( value = "/{uid}/form", produces = APPLICATION_JSON_VALUE )
     public void getFormJson(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnit,
@@ -275,14 +281,14 @@ public class DataSetController
 
         if ( dataSets.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
         }
 
         OrganisationUnit ou = manager.get( OrganisationUnit.class, orgUnit );
 
         if ( ou == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Organisation unit does not exist: " + orgUnit ) );
+            throw new WebMessageException( notFound( "Organisation unit does not exist: " + orgUnit ) );
         }
 
         Period pe = PeriodType.getPeriodFromIsoString( period );
@@ -292,7 +298,7 @@ public class DataSetController
         renderService.toJson( response.getOutputStream(), form );
     }
 
-    @GetMapping( value = "/{uid}/form", produces = { "application/xml", "text/xml" } )
+    @GetMapping( value = "/{uid}/form", produces = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     public void getFormXml(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnit,
@@ -308,14 +314,14 @@ public class DataSetController
 
         if ( dataSets.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
         }
 
         OrganisationUnit ou = manager.get( OrganisationUnit.class, orgUnit );
 
         if ( ou == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Organisation unit does not exist: " + orgUnit ) );
+            throw new WebMessageException( notFound( "Organisation unit does not exist: " + orgUnit ) );
         }
 
         Period pe = PeriodType.getPeriodFromIsoString( period );
@@ -363,7 +369,7 @@ public class DataSetController
     }
 
     @RequestMapping( value = { "/{uid}/customDataEntryForm", "/{uid}/form" }, method = { RequestMethod.PUT,
-        RequestMethod.POST }, consumes = "text/html" )
+        RequestMethod.POST }, consumes = TEXT_HTML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCustomDataEntryFormHtml( @PathVariable( "uid" ) String uid,
         @RequestBody String formContent,
@@ -374,7 +380,7 @@ public class DataSetController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
         }
 
         DataEntryForm form = dataSet.getDataEntryForm();
@@ -395,7 +401,7 @@ public class DataSetController
         dataSetService.updateDataSet( dataSet );
     }
 
-    @PostMapping( value = "/{uid}/form", consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/{uid}/form", consumes = APPLICATION_JSON_VALUE )
     @ApiVersion( value = DhisApiVersion.ALL )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCustomDataEntryFormJson( @PathVariable( "uid" ) String uid, HttpServletRequest request )
@@ -405,7 +411,7 @@ public class DataSetController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
         }
 
         DataEntryForm form = dataSet.getDataEntryForm();
@@ -417,14 +423,14 @@ public class DataSetController
         }
         catch ( IOException e )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Failed to parse request", e.getMessage() ) );
+            throw new WebMessageException( badRequest( "Failed to parse request", e.getMessage() ) );
         }
 
         if ( form == null )
         {
             if ( !newForm.hasForm() )
             {
-                throw new WebMessageException( WebMessageUtils.badRequest( "Missing required parameter 'htmlCode'" ) );
+                throw new WebMessageException( badRequest( "Missing required parameter 'htmlCode'" ) );
             }
 
             newForm.setName( dataSet.getName() );
@@ -459,7 +465,7 @@ public class DataSetController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + pvUid ) );
+            throw new WebMessageException( notFound( "DataSet not found for uid: " + pvUid ) );
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dataSet, download );

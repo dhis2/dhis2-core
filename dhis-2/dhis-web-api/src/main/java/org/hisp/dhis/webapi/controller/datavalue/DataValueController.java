@@ -28,6 +28,9 @@
 package org.hisp.dhis.webapi.controller.datavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.io.IOException;
@@ -50,7 +53,6 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
@@ -250,21 +252,21 @@ public class DataValueController
 
         if ( strictPeriods && !dataElement.getPeriodTypes().contains( period.getPeriodType() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "Period type of period: " + period.getIsoDate() + " not valid for data element: "
                     + dataElement.getUid() ) );
         }
 
         if ( strictCategoryOptionCombos && !dataElement.getCategoryOptionCombos().contains( categoryOptionCombo ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "Category option combo: " + categoryOptionCombo.getUid()
                     + " must be part of category combo of data element: " + dataElement.getUid() ) );
         }
 
         if ( strictOrgUnits && !organisationUnit.hasDataElement( dataElement ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "Data element: " + dataElement.getUid() + " must be assigned through data sets to organisation unit: "
                     + organisationUnit.getUid() ) );
         }
@@ -449,7 +451,7 @@ public class DataValueController
         if ( dataValue == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Data value cannot be deleted because it does not exist" ) );
+                conflict( "Data value cannot be deleted because it does not exist" ) );
         }
 
         if ( dataValue.getDataElement().isFileType() && retentionStrategy == FileResourceRetentionStrategy.NONE )
@@ -500,7 +502,7 @@ public class DataValueController
 
         if ( dataValue == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data value does not exist" ) );
+            throw new WebMessageException( conflict( "Data value does not exist" ) );
         }
 
         // ---------------------------------------------------------------------
@@ -577,7 +579,7 @@ public class DataValueController
 
         if ( !dataElement.isFileType() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "DataElement must be of type file" ) );
+            throw new WebMessageException( conflict( "DataElement must be of type file" ) );
         }
 
         CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, false );
@@ -599,7 +601,7 @@ public class DataValueController
 
         if ( dataValue == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data value does not exist" ) );
+            throw new WebMessageException( conflict( "Data value does not exist" ) );
         }
 
         // ---------------------------------------------------------------------
@@ -613,7 +615,7 @@ public class DataValueController
         if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "A data value file resource with id " + uid + " does not exist." ) );
+                notFound( "A data value file resource with id " + uid + " does not exist." ) );
         }
 
         FileResourceStorageStatus storageStatus = fileResource.getStorageStatus();
@@ -627,12 +629,10 @@ public class DataValueController
             // store provider.
 
             // HTTP 409, for lack of a more suitable status code
-            WebMessage webMessage = WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "The content is being processed and is not available yet. Try again later.",
-                "The content requested is in transit to the file store and will be available at a later time." );
-            webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
-
-            throw new WebMessageException( webMessage );
+                "The content requested is in transit to the file store and will be available at a later time." )
+                    .setResponse( new FileResourceWebMessageResponse( fileResource ) ) );
         }
 
         response.setContentType( fileResource.getContentType() );
@@ -646,7 +646,7 @@ public class DataValueController
         }
         catch ( IOException e )
         {
-            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+            throw new WebMessageException( error( "Failed fetching the file from storage",
                 "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related" ) );
         }
 
