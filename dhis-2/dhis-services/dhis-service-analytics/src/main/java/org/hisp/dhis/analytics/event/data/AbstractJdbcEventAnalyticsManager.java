@@ -50,7 +50,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
-import org.hisp.dhis.analytics.event.data.sql.transform.SqlStringProcessor;
+import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.SqlStringProcessor;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
