@@ -31,11 +31,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
+import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.StatementVisitorAdapter;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
@@ -56,7 +59,7 @@ public class SqlEligibleForTransformationValueProvider
             Pair<String, String> selectAndRemainder = sqlSelectStatementReminderProvider.getProvider()
                 .apply( sqlStatement );
 
-            List<Boolean> checkResultList = new ArrayList<>();
+            List<Boolean> checkList = new ArrayList<>();
 
             Statement select = CCJSqlParserUtil.parse( selectAndRemainder.getLeft() );
             select.accept( new StatementVisitorAdapter()
@@ -69,20 +72,55 @@ public class SqlEligibleForTransformationValueProvider
                         @Override
                         public void visit( PlainSelect plainSelect )
                         {
-                            plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
-                            {
-                                @Override
-                                public void visit( SubSelect subSelect )
-                                {
-                                    checkResultList.add( true );
-                                }
-                            } );
+                            checkMainSelect( checkList, plainSelect );
+                            checkMainWhere( checkList, plainSelect );
                         }
                     } );
                 }
             } );
 
-            return checkResultList.stream().allMatch( b -> b );
+            return checkList.stream().allMatch( b -> b );
         };
+    }
+
+    private static void checkMainSelect( List<Boolean> checkList, PlainSelect plainSelect )
+    {
+        plainSelect.getSelectItems().forEach( i -> i.accept( new SelectItemVisitorAdapter()
+        {
+            @Override
+            public void visit( SelectExpressionItem item )
+            {
+                item.getExpression().accept( new ExpressionVisitorAdapter()
+                {
+                    @Override
+                    public void visit( net.sf.jsqlparser.expression.Function function )
+                    {
+                        checkList.add( "count".equalsIgnoreCase( function.getName() ) );
+                    }
+
+                    @Override
+                    public void visit( StringValue value )
+                    {
+                        checkList.add( !value.toString().isEmpty() &&
+                            "'".equals( value.toString().substring( 0, 1 ) ) &&
+                            "'".equals( value.toString().substring( value.toString().length() - 1 ) ) );
+                    }
+                } );
+            }
+        } ) );
+    }
+
+    private static void checkMainWhere( List<Boolean> checkList, PlainSelect plainSelect )
+    {
+        StringBuilder sb = new StringBuilder();
+        plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
+        {
+            @Override
+            public void visit( SubSelect subSelect )
+            {
+                sb.append( "found" );
+            }
+        } );
+        checkList.add( !sb.toString().isEmpty() );
     }
 }
