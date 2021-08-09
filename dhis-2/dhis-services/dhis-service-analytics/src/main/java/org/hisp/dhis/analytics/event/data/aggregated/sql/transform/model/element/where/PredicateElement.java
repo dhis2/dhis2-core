@@ -69,6 +69,11 @@ public class PredicateElement
     @Override
     public int hashCode()
     {
+        if ( leftExpression == null || relation == null )
+        {
+            return 1;
+        }
+
         return leftExpression.hashCode() + relation.hashCode();
     }
 }

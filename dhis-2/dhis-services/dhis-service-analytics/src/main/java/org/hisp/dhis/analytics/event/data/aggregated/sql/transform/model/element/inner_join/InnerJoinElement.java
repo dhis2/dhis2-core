@@ -65,6 +65,11 @@ public class InnerJoinElement
     @Override
     public int hashCode()
     {
+        if ( onElement == null || onElement.getLeftExpression() == null )
+        {
+            return 1;
+        }
+
         return onElement.getLeftExpression().hashCode();
     }
 }
