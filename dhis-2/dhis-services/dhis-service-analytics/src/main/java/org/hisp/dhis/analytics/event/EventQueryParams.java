@@ -412,7 +412,7 @@ public class EventQueryParams
      * from the periods as start date and the latest end date from the periods
      * as end date. Remove the period dimension or filter.
      */
-    private void replacePeriodsWithStartEndDates()
+    private void replacePeriodsWithStartEndDates( boolean periodsReplacedByStartEndDates )
     {
         List<Period> periods = asTypedList( getDimensionOrFilterItems( PERIOD_DIM_ID ) );
 
@@ -432,7 +432,10 @@ public class EventQueryParams
             }
         }
 
-        removeDimensionOrFilter( PERIOD_DIM_ID );
+        if ( periodsReplacedByStartEndDates )
+        {
+            removeDimensionOrFilter( PERIOD_DIM_ID );
+        }
     }
 
     /**
@@ -1299,9 +1302,15 @@ public class EventQueryParams
             return this;
         }
 
+        public Builder withStartEndDatesForPeriods( boolean periodsReplacedByStartEndDates )
+        {
+            this.params.replacePeriodsWithStartEndDates( periodsReplacedByStartEndDates );
+            return this;
+        }
+
         public Builder withStartEndDatesForPeriods()
         {
-            this.params.replacePeriodsWithStartEndDates();
+            withStartEndDatesForPeriods( true );
             return this;
         }
 
