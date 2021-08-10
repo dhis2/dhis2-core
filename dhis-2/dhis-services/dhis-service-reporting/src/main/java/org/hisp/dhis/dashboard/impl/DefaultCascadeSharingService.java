@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import lombok.NonNull;
@@ -53,7 +54,6 @@ import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
-import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.sharing.AccessObject;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
@@ -130,7 +130,16 @@ public class DefaultCascadeSharingService
         return parameters.getReport();
     }
 
-    private void handleMapObject( Dashboard dashboard, Map map, Set<IdentifiableObject> updateObjects,
+    /**
+     * Merge sharing from given dashboard to given visualization
+     *
+     * @param dashboard {@link Dashboard}
+     * @param map {@link org.hisp.dhis.mapping.Map}
+     * @param updateObjects Set of objects need to be updated
+     * @param parameters {@link CascadeSharingParameters}
+     */
+    private void handleMapObject( Dashboard dashboard, org.hisp.dhis.mapping.Map map,
+        Set<IdentifiableObject> updateObjects,
         CascadeSharingParameters parameters )
     {
         if ( mergeSharing( dashboard.getSharing(), map, parameters ) )
@@ -139,10 +148,22 @@ public class DefaultCascadeSharingService
         }
     }
 
+    /**
+     * Merge sharing from given dashboard to given visualization
+     *
+     * @param dashboard {@link Dashboard}
+     * @param visualization {@link Visualization}
+     * @param updateObjects Set of objects need to be updated
+     * @param parameters {@link CascadeSharingParameters}
+     */
     private void handleVisualization( Dashboard dashboard, Visualization visualization,
-        Set<IdentifiableObject> updateObjects,
-        CascadeSharingParameters parameters )
+        Set<IdentifiableObject> updateObjects, CascadeSharingParameters parameters )
     {
+        if ( visualization == null )
+        {
+            return;
+        }
+
         if ( handleIdentifiableObject( dashboard.getSharing(), visualization, updateObjects, parameters ) )
         {
             updateObjects.add( visualization );
@@ -151,20 +172,51 @@ public class DefaultCascadeSharingService
         handleBaseAnalyticObject( dashboard.getSharing(), visualization, updateObjects, parameters );
     }
 
+    /**
+     * Merge sharing from given dashboard to given eventReport
+     *
+     * @param dashboard {@link Dashboard}
+     * @param eventReport {@link EventReport}
+     * @param updateObjects Set of objects need to be updated
+     * @param parameters {@link CascadeSharingParameters}
+     */
     private void handleEventReport( Dashboard dashboard, EventReport eventReport, Set<IdentifiableObject> updateObjects,
         CascadeSharingParameters parameters )
     {
+        if ( eventReport == null )
+        {
+            return;
+        }
+
         if ( handleIdentifiableObject( dashboard.getSharing(), eventReport, updateObjects, parameters ) )
         {
             updateObjects.add( eventReport );
         }
 
+        handleIdentifiableObject( dashboard.getSharing(), eventReport.getAttributeValueDimension(), updateObjects,
+            parameters );
+
+        handleIdentifiableObject( dashboard.getSharing(), eventReport.getDataElementValueDimension(), updateObjects,
+            parameters );
+
         handleBaseAnalyticObject( dashboard.getSharing(), eventReport, updateObjects, parameters );
     }
 
+    /**
+     * Merge sharing from given dashboard to given eventChart
+     *
+     * @param dashboard {@link Dashboard}
+     * @param eventChart {@link EventChart}
+     * @param updateObjects Set of objects need to be updated
+     * @param parameters {@link CascadeSharingParameters}
+     */
     private void handleEventChart( Dashboard dashboard, EventChart eventChart, Set<IdentifiableObject> updateObjects,
         CascadeSharingParameters parameters )
     {
+        if ( eventChart == null )
+        {
+            return;
+        }
 
         if ( handleIdentifiableObject( dashboard.getSharing(), eventChart, updateObjects, parameters ) )
         {
@@ -180,9 +232,17 @@ public class DefaultCascadeSharingService
         handleBaseAnalyticObject( dashboard.getSharing(), eventChart, updateObjects, parameters );
     }
 
+    /**
+     * Merge sharing from given source to all given analyticalObject's
+     * dimensional objects
+     *
+     * @param source {@link Sharing}
+     * @param analyticalObject any object extends {@link BaseAnalyticalObject}
+     * @param listUpdateObjects Set of objects need to be updated
+     * @param parameters {@link CascadeSharingParameters}
+     */
     private void handleBaseAnalyticObject( Sharing source, BaseAnalyticalObject analyticalObject,
-        Set<IdentifiableObject> listUpdateObjects,
-        CascadeSharingParameters parameters )
+        Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
     {
         handleIdentifiableObjects( source, analyticalObject.getDataElements(), listUpdateObjects, parameters );
 
@@ -199,6 +259,16 @@ public class DefaultCascadeSharingService
         handleTrackedEntityAttributeDimension( source, analyticalObject, listUpdateObjects, parameters );
     }
 
+    /**
+     * Merge sharing from given source to given analyticalObject's
+     * {@link TrackedEntityAttributeDimension} and all related objects that has
+     * Sharing enabled.
+     *
+     * @param source {@link Sharing}
+     * @param analyticalObject any object extends {@link BaseAnalyticalObject}
+     * @param listUpdateObjects Set of objects need to be updated
+     * @param parameters {@link CascadeSharingParameters}
+     */
     private void handleTrackedEntityAttributeDimension( Sharing source, BaseAnalyticalObject analyticalObject,
         Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
     {
@@ -216,6 +286,16 @@ public class DefaultCascadeSharingService
         } );
     }
 
+    /**
+     * Merge sharing from given source to given analyticalObject's
+     * {@link CategoryOptionGroupSetDimension} and all related objects that has
+     * Sharing enabled.
+     *
+     * @param source {@link Sharing}
+     * @param analyticalObject any object extends {@link BaseAnalyticalObject}
+     * @param listUpdateObjects Set of objects need to be updated
+     * @param parameters {@link CascadeSharingParameters}
+     */
     private void handleCategoryOptionGroupSetDimensions( Sharing source, BaseAnalyticalObject analyticalObject,
         Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
     {
@@ -248,9 +328,18 @@ public class DefaultCascadeSharingService
         } );
     }
 
+    /**
+     * Merge sharing from given source to given analyticalObject's
+     * {@link TrackedEntityDataElementDimension} and all related objects that
+     * has Sharing enabled.
+     *
+     * @param source {@link Sharing}
+     * @param analyticalObject any object extends {@link BaseAnalyticalObject}
+     * @param listUpdateObjects Set of objects need to be updated
+     * @param parameters {@link CascadeSharingParameters}
+     */
     private void handleDataElementDimensions( Sharing source, BaseAnalyticalObject analyticalObject,
-        Set<IdentifiableObject> listUpdateObjects,
-        CascadeSharingParameters parameters )
+        Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
     {
         List<TrackedEntityDataElementDimension> deDimensions = analyticalObject
             .getDataElementDimensions();
@@ -267,9 +356,18 @@ public class DefaultCascadeSharingService
         } );
     }
 
+    /**
+     * Merge sharing from given source to given analyticalObject's
+     * {@link CategoryDimension} and all related objects that has Sharing
+     * enabled.
+     *
+     * @param source {@link Sharing}
+     * @param analyticalObject any object extends {@link BaseAnalyticalObject}
+     * @param listUpdateObjects Set of objects need to be updated
+     * @param parameters {@link CascadeSharingParameters}
+     */
     private void handleCategoryDimension( Sharing source, BaseAnalyticalObject analyticalObject,
-        Set<IdentifiableObject> listUpdateObjects,
-        CascadeSharingParameters parameters )
+        Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
     {
         List<CategoryDimension> catDimensions = analyticalObject.getCategoryDimensions();
 
@@ -295,9 +393,18 @@ public class DefaultCascadeSharingService
         } );
     }
 
+    /**
+     * Merge sharing from given source to given analyticalObject's
+     * {@link DataElementGroupSetDimension} and all related objects that has
+     * Sharing enabled.
+     *
+     * @param source {@link Sharing}
+     * @param analyticalObject any object extends {@link BaseAnalyticalObject}
+     * @param listUpdateObjects Set of objects need to be updated
+     * @param parameters {@link CascadeSharingParameters}
+     */
     private void handleDataElementGroupSetDimensions( Sharing source, BaseAnalyticalObject analyticalObject,
-        Set<IdentifiableObject> listUpdateObjects,
-        CascadeSharingParameters parameters )
+        Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
     {
         List<DataElementGroupSetDimension> deGroupSetDimensions = analyticalObject
             .getDataElementGroupSetDimensions();
@@ -324,8 +431,17 @@ public class DefaultCascadeSharingService
         } );
     }
 
+    /**
+     * Util method for merge sharing from given {@link Sharing} to give List of
+     * {@link IdentifiableObject}
+     *
+     * @param source {@link Sharing}
+     * @param targetObjects list of {@link IdentifiableObject}
+     * @param listUpdateObjects Set of objects need to be updated.
+     * @param parameters {@link CascadeSharingParameters}
+     */
     private void handleIdentifiableObjects( final Sharing source,
-        final Collection<? extends IdentifiableObject> targetObjects, Collection<IdentifiableObject> listUpdateObjects,
+        Collection<? extends IdentifiableObject> targetObjects, Collection<IdentifiableObject> listUpdateObjects,
         CascadeSharingParameters parameters )
     {
         if ( CollectionUtils.isEmpty( targetObjects ) )
@@ -336,6 +452,15 @@ public class DefaultCascadeSharingService
         targetObjects.forEach( object -> handleIdentifiableObject( source, object, listUpdateObjects, parameters ) );
     }
 
+    /**
+     * Util method for merge sharing from given {@link Sharing} to given
+     * {@link IdentifiableObject}
+     *
+     * @param source {@link Sharing}
+     * @param target {@link IdentifiableObject}
+     * @param listUpdateObjects Set of objects need to be updated.
+     * @return TRUE if target object should be updated, otherwise return FALSE.
+     */
     private boolean handleIdentifiableObject( final Sharing source,
         IdentifiableObject target, Collection<IdentifiableObject> listUpdateObjects,
         CascadeSharingParameters parameters )
@@ -354,7 +479,15 @@ public class DefaultCascadeSharingService
         return false;
     }
 
-    private <S extends IdentifiableObject, T extends IdentifiableObject> boolean mergeSharing( Sharing source, T target,
+    /**
+     * Add UserAccesses and UserGroupAccesses from source to target object.
+     * <p>
+     * If dryRun=true then target object will not be updated, but function still
+     * return TRUE.
+     *
+     * @return TRUE if targetObject should be updated, otherwise return FALSE
+     */
+    private <T extends IdentifiableObject> boolean mergeSharing( final Sharing source, T target,
         CascadeSharingParameters parameters )
     {
         if ( AccessStringHelper.canRead( target.getSharing().getPublicAccess() ) )
@@ -362,8 +495,8 @@ public class DefaultCascadeSharingService
             return false;
         }
 
-        java.util.Map<String, UserAccess> userAccesses = new HashMap<>( target.getSharing().getUsers() );
-        java.util.Map<String, UserGroupAccess> userGroupAccesses = new HashMap<>( target.getSharing()
+        Map<String, UserAccess> userAccesses = new HashMap<>( target.getSharing().getUsers() );
+        Map<String, UserGroupAccess> userGroupAccesses = new HashMap<>( target.getSharing()
             .getUserGroups() );
 
         if ( mergeAccessObject( source.getUsers(), userAccesses )
@@ -383,11 +516,12 @@ public class DefaultCascadeSharingService
     }
 
     /**
-     * Merge {@link org.hisp.dhis.sharing.AccessObject} from source to target
-     * {@code Map<String,AccessObject>}
+     * Add {@link AccessObject} from source to target
+     * <p>
+     * After added, target accessObjects will only have READ permission
      */
     private <T extends AccessObject> boolean mergeAccessObject(
-        java.util.Map<String, T> source, java.util.Map<String, T> target )
+        final Map<String, T> source, Map<String, T> target )
     {
         if ( MapUtils.isEmpty( source ) )
         {
@@ -424,6 +558,9 @@ public class DefaultCascadeSharingService
         return shouldUpdate;
     }
 
+    /**
+     * If dryRun=TRUE then no objects will be updated.
+     */
     private boolean canUpdate( CascadeSharingParameters parameters )
     {
         return !parameters.isDryRun() && parameters.getReport().getErrorReports().isEmpty();

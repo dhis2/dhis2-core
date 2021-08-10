@@ -32,7 +32,7 @@ import org.hisp.dhis.dashboard.Dashboard;
 public interface CascadeSharingService
 {
     /**
-     * Cascade sharing for given {@link Dashboard}
+     * Cascade sharing form given {@link Dashboard} to all of its DashboardItems
      */
     CascadeSharingReport cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters );
 }
