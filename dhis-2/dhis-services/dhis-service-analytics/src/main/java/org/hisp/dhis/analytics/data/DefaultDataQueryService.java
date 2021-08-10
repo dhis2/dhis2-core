@@ -36,11 +36,9 @@ import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_LONGITUDE;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT_GROUP;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_PERIOD;
-import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_STORED_BY;
 import static org.hisp.dhis.analytics.DataQueryParams.KEY_DE_GROUP;
 import static org.hisp.dhis.analytics.DataQueryParams.KEY_IN_GROUP;
 import static org.hisp.dhis.analytics.DataQueryParams.getMeasureCriteriaFromParam;
-import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.STORED_BY_COL_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -50,7 +48,6 @@ import static org.hisp.dhis.common.DimensionalObject.LONGITUDE_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.STOREDBY_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
@@ -69,7 +66,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -93,7 +89,6 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.StoredByDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -453,12 +448,6 @@ public class DefaultDataQueryService
                 asList( periods ), dimensionalKeywords );
         }
 
-        else if ( STOREDBY_DIM_ID.equals( dimension ) )
-        {
-            return new BaseDimensionalObject( dimension, DimensionType.STORED_BY,
-                STORED_BY_COL_NAME, DISPLAY_NAME_STORED_BY, asStoredByDimensionalItemObjects( items ) );
-        }
-
         else if ( ORGUNIT_DIM_ID.equals( dimension ) )
         {
             List<DimensionalItemObject> ous = new ArrayList<>();
@@ -624,13 +613,6 @@ public class DefaultDataQueryService
         }
 
         throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7125, dimension ) );
-    }
-
-    private List<? extends DimensionalItemObject> asStoredByDimensionalItemObjects( List<String> items )
-    {
-        return CollectionUtils.emptyIfNull( items ).stream()
-            .map( StoredByDimensionalItemObject::new )
-            .collect( Collectors.toList() );
     }
 
     @Override
