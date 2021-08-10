@@ -111,6 +111,8 @@ public class AnalyticsServiceTest
 {
     private CategoryOptionCombo ocDef;
 
+    private Category catDef;
+
     private Map<String, DataQueryParams> dataQueryParams = new HashMap<>();
 
     private Map<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
@@ -194,6 +196,10 @@ public class AnalyticsServiceTest
         ocDef = categoryService.getDefaultCategoryOptionCombo();
         ocDef.setUid( "o1234578def" );
         categoryService.updateCategoryOptionCombo( ocDef );
+
+        catDef = categoryService.getDefaultCategory();
+        catDef.setUid( "cat12345def" );
+        categoryService.updateCategory( catDef );
 
         Period peJan = createPeriod( "2017-01" );
         Period peFeb = createPeriod( "2017-02" );
@@ -389,6 +395,7 @@ public class AnalyticsServiceTest
 
         Category categoryA = createCategory( 'A', optionA, optionB );
         categoryA.setDataDimensionType( DataDimensionType.ATTRIBUTE );
+        categoryA.setUid( "categoryabA" );
         categoryService.addCategory( categoryA );
 
         CategoryCombo categoryComboA = createCategoryCombo( 'A', categoryA );
