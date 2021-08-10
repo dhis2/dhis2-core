@@ -42,6 +42,7 @@ import net.sf.jsqlparser.statement.select.SelectItemVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.FunctionXt;
 
@@ -90,37 +91,54 @@ public class SqlEligibleForTransformationValueProvider
             @Override
             public void visit( SelectExpressionItem item )
             {
+                MutableBoolean countChecked = new MutableBoolean();
+                countChecked.setTrue();
+
+                MutableBoolean quotedValueChecked = new MutableBoolean();
+                quotedValueChecked.setTrue();
+
                 item.getExpression().accept( new ExpressionVisitorAdapter()
                 {
                     @Override
                     public void visit( net.sf.jsqlparser.expression.Function function )
                     {
-                        checkList.add( "count".equalsIgnoreCase( function.getName() ) );
+                        if ( !"count".equalsIgnoreCase( function.getName() ) )
+                        {
+                            countChecked.setFalse();
+                        }
                     }
 
                     @Override
                     public void visit( StringValue value )
                     {
-                        checkList.add( !value.toString().isEmpty() &&
-                            "'".equals( value.toString().substring( 0, 1 ) ) &&
-                            "'".equals( value.toString().substring( value.toString().length() - 1 ) ) );
+                        if ( value.toString().isEmpty() ||
+                            !"'".equals( value.toString().substring( 0, 1 ) ) ||
+                            !"'".equals( value.toString().substring( value.toString().length() - 1 ) ) )
+                        {
+                            quotedValueChecked.setFalse();
+                        }
                     }
                 } );
+
+                checkList.add( countChecked.getValue() );
+                checkList.add( quotedValueChecked.getValue() );
             }
         } ) );
     }
 
     private static void checkMainWhere( List<Boolean> checkList, PlainSelect plainSelect )
     {
-        StringBuilder sb = new StringBuilder();
+        MutableBoolean subSelectChecked = new MutableBoolean();
+        subSelectChecked.setFalse();
+
         plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
         {
             @Override
             public void visit( SubSelect subSelect )
             {
-                sb.append( "found" );
+                subSelectChecked.setTrue();
             }
         } );
-        checkList.add( !sb.toString().isEmpty() );
+        checkList.add( subSelectChecked.getValue() );
     }
 }
