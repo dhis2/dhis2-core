@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 import java.io.IOException;
@@ -45,7 +47,6 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
@@ -250,7 +251,7 @@ public class VisualizationDataController
 
         if ( visualization == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Visualization does not exist: " + uid ) );
+            throw new WebMessageException( notFound( "Visualization does not exist: " + uid ) );
         }
 
         OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
@@ -316,35 +317,35 @@ public class VisualizationDataController
 
         if ( dataElement == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data element does not exist: " + de ) );
+            throw new WebMessageException( conflict( "Data element does not exist: " + de ) );
         }
 
         CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( co );
 
         if ( categoryOptionCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Category option combo does not exist: " + co ) );
+            throw new WebMessageException( conflict( "Category option combo does not exist: " + co ) );
         }
 
         CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( cp );
 
         if ( attributeOptionCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Category option combo does not exist: " + cp ) );
+            throw new WebMessageException( conflict( "Category option combo does not exist: " + cp ) );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( pe );
 
         if ( period == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Period does not exist: " + pe ) );
+            throw new WebMessageException( conflict( "Period does not exist: " + pe ) );
         }
 
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( ou );
 
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist: " + ou ) );
+            throw new WebMessageException( conflict( "Organisation unit does not exist: " + ou ) );
         }
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING,

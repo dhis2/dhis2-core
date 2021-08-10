@@ -183,7 +183,8 @@ public class DeduplicationControllerTest
     public void postPotentialDuplicate()
         throws OperationNotAllowedException,
         ConflictException,
-        NotFoundException
+        NotFoundException,
+        BadRequestException
     {
         Mockito.when( deduplicationService.exists( new PotentialDuplicate( teiA, teiB ) ) ).thenReturn( false );
 
@@ -208,9 +209,9 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( "invalid", "invalid1" ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
         {
-            assertTrue( e instanceof ConflictException );
+            assertTrue( e instanceof BadRequestException );
         }
 
         verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
@@ -226,9 +227,9 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, "invalid" ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
         {
-            assertTrue( e instanceof ConflictException );
+            assertTrue( e instanceof BadRequestException );
         }
 
         verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
@@ -241,9 +242,9 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( null, null ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
         {
-            assertTrue( e instanceof ConflictException );
+            assertTrue( e instanceof BadRequestException );
         }
 
         verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
@@ -256,9 +257,9 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, null ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
         {
-            assertTrue( e instanceof ConflictException );
+            assertTrue( e instanceof BadRequestException );
         }
 
         verify( deduplicationService, times( 0 ) ).addPotentialDuplicate( any() );
@@ -274,7 +275,7 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, teiB ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
         {
             assertTrue( e instanceof NotFoundException );
         }
@@ -292,7 +293,7 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, teiB ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
         {
             assertTrue( e instanceof OperationNotAllowedException );
         }
@@ -314,7 +315,7 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, teiB ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
         {
             assertTrue( e instanceof OperationNotAllowedException );
         }
@@ -340,7 +341,7 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( pd );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
         {
             assertTrue( e instanceof ConflictException );
         }

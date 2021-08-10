@@ -238,7 +238,10 @@ public class AccessStringHelper
 
     public static String disableDataSharing( String access )
     {
-        return AccessStringHelper.newInstance( access.toCharArray() ).disable( Permission.DATA_READ )
-            .disable( Permission.DATA_WRITE ).toString();
+        return access == null
+            ? null
+            : AccessStringHelper.newInstance( access.toCharArray() )
+                .disable( Permission.DATA_READ )
+                .disable( Permission.DATA_WRITE ).toString();
     }
 }

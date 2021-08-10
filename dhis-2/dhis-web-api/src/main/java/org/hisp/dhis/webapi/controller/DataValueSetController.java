@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.common.DhisApiVersion.V38;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
@@ -35,6 +37,8 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PDF;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -69,11 +73,10 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -83,6 +86,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Lars Helge Overland
@@ -102,9 +106,6 @@ public class DataValueSetController
     private AdxDataService adxDataService;
 
     @Autowired
-    private RenderService renderService;
-
-    @Autowired
     private CurrentUserService currentUserService;
 
     @Autowired
@@ -112,9 +113,6 @@ public class DataValueSetController
 
     @Autowired
     private SessionFactory sessionFactory;
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     // -------------------------------------------------------------------------
     // Get
@@ -255,115 +253,85 @@ public class DataValueSetController
     // Post
     // -------------------------------------------------------------------------
 
-    @PostMapping( consumes = "application/xml" )
+    @PostMapping( consumes = APPLICATION_XML_VALUE, produces = CONTENT_TYPE_XML )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
-    public void postDxf2DataValueSet( ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postDxf2DataValueSet( ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         if ( importOptions.isAsync() )
         {
-            startAsyncImport( importOptions, ImportDataValueTask.FORMAT_XML, request, response );
+            return startAsyncImport( importOptions, ImportDataValueTask.FORMAT_XML, request );
         }
-        else
-        {
-            ImportSummary summary = dataValueSetService.saveDataValueSet( request.getInputStream(), importOptions );
-            summary.setImportOptions( importOptions );
+        ImportSummary summary = dataValueSetService.saveDataValueSet( request.getInputStream(), importOptions );
+        summary.setImportOptions( importOptions );
 
-            response.setContentType( CONTENT_TYPE_XML );
-            renderService.toXml( response.getOutputStream(), summary );
-        }
+        return importSummary( summary ).withPlainResponseBefore( V38 );
     }
 
-    @PostMapping( consumes = CONTENT_TYPE_XML_ADX )
+    @PostMapping( consumes = CONTENT_TYPE_XML_ADX, produces = CONTENT_TYPE_XML )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
-    public void postAdxDataValueSet( ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postAdxDataValueSet( ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         if ( importOptions.isAsync() )
         {
-            startAsyncImport( importOptions, ImportDataValueTask.FORMAT_ADX, request, response );
+            return startAsyncImport( importOptions, ImportDataValueTask.FORMAT_ADX, request );
         }
-        else
-        {
-            try
-            {
-                ImportSummary summary = adxDataService.saveDataValueSet( request.getInputStream(), importOptions,
-                    null );
+        ImportSummary summary = adxDataService.saveDataValueSet( request.getInputStream(), importOptions,
+            null );
+        summary.setImportOptions( importOptions );
 
-                summary.setImportOptions( importOptions );
-
-                response.setContentType( CONTENT_TYPE_XML );
-                renderService.toXml( response.getOutputStream(), summary );
-            }
-            catch ( Exception ex )
-            {
-                log.error( "ADX Import error: ", ex );
-
-                throw ex;
-            }
-        }
+        return importSummary( summary ).withPlainResponseBefore( V38 );
     }
 
-    @PostMapping( consumes = "application/json" )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = CONTENT_TYPE_JSON )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
-    public void postJsonDataValueSet( ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postJsonDataValueSet( ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         if ( importOptions.isAsync() )
         {
-            startAsyncImport( importOptions, ImportDataValueTask.FORMAT_JSON, request, response );
+            return startAsyncImport( importOptions, ImportDataValueTask.FORMAT_JSON, request );
         }
-        else
-        {
-            ImportSummary summary = dataValueSetService.saveDataValueSetJson( request.getInputStream(), importOptions );
-            summary.setImportOptions( importOptions );
+        ImportSummary summary = dataValueSetService.saveDataValueSetJson( request.getInputStream(), importOptions );
+        summary.setImportOptions( importOptions );
 
-            response.setContentType( CONTENT_TYPE_JSON );
-            renderService.toJson( response.getOutputStream(), summary );
-        }
+        return importSummary( summary ).withPlainResponseBefore( V38 );
     }
 
-    @PostMapping( consumes = "application/csv" )
+    @PostMapping( consumes = "application/csv", produces = CONTENT_TYPE_JSON )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
-    public void postCsvDataValueSet( ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postCsvDataValueSet( ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         if ( importOptions.isAsync() )
         {
-            startAsyncImport( importOptions, ImportDataValueTask.FORMAT_CSV, request, response );
+            return startAsyncImport( importOptions, ImportDataValueTask.FORMAT_CSV, request );
         }
-        else
-        {
-            ImportSummary summary = dataValueSetService.saveDataValueSetCsv( request.getInputStream(), importOptions );
-            summary.setImportOptions( importOptions );
+        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( request.getInputStream(), importOptions );
+        summary.setImportOptions( importOptions );
 
-            response.setContentType( CONTENT_TYPE_JSON );
-            renderService.toJson( response.getOutputStream(), summary );
-        }
+        return importSummary( summary ).withPlainResponseBefore( V38 );
     }
 
-    @PostMapping( consumes = CONTENT_TYPE_PDF )
+    @PostMapping( consumes = CONTENT_TYPE_PDF, produces = CONTENT_TYPE_JSON )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
-    public void postPdfDataValueSet( ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response )
+    @ResponseBody
+    public WebMessage postPdfDataValueSet( ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         if ( importOptions.isAsync() )
         {
-            startAsyncImport( importOptions, ImportDataValueTask.FORMAT_PDF, request, response );
+            return startAsyncImport( importOptions, ImportDataValueTask.FORMAT_PDF, request );
         }
-        else
-        {
-            ImportSummary summary = dataValueSetService.saveDataValueSetPdf( request.getInputStream(), importOptions );
-            summary.setImportOptions( importOptions );
+        ImportSummary summary = dataValueSetService.saveDataValueSetPdf( request.getInputStream(), importOptions );
+        summary.setImportOptions( importOptions );
 
-            response.setContentType( CONTENT_TYPE_JSON );
-            renderService.toJson( response.getOutputStream(), summary );
-        }
+        return importSummary( summary ).withPlainResponseBefore( V38 );
     }
 
     // -------------------------------------------------------------------------
@@ -376,10 +344,8 @@ public class DataValueSetController
      * @param importOptions the ImportOptions.
      * @param format the resource representation format.
      * @param request the HttpRequest.
-     * @param response the HttpResponse.
      */
-    private void startAsyncImport( ImportOptions importOptions, String format, HttpServletRequest request,
-        HttpServletResponse response )
+    private WebMessage startAsyncImport( ImportOptions importOptions, String format, HttpServletRequest request )
         throws IOException
     {
         InputStream inputStream = saveTmp( request.getInputStream() );
@@ -390,8 +356,8 @@ public class DataValueSetController
             new ImportDataValueTask( dataValueSetService, adxDataService, sessionFactory, inputStream, importOptions,
                 jobId, format ) );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + DATAVALUE_IMPORT );
-        webMessageService.send( jobConfigurationReport( jobId ), response, request );
+        return jobConfigurationReport( jobId )
+            .setLocation( "/system/tasks/" + DATAVALUE_IMPORT );
     }
 
     /**

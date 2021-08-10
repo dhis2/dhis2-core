@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -41,14 +45,12 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datasetreport.DataSetReportService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -82,12 +84,9 @@ public class DataSetReportController
     private ContextUtils contextUtils;
 
     @Autowired
-    WebMessageService webMessageService;
-
-    @Autowired
     IdentifiableObjectManager idObjectManager;
 
-    @GetMapping( value = RESOURCE_PATH + "/custom", produces = "text/html;charset=UTF-8" )
+    @GetMapping( value = RESOURCE_PATH + "/custom", produces = CONTENT_TYPE_HTML )
     public @ResponseBody String getCustomDataSetReport( HttpServletResponse response,
         @RequestParam String ou,
         @RequestParam String ds,
@@ -103,16 +102,16 @@ public class DataSetReportController
         if ( !dataSet.getFormType().isCustom() )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Data set form type must be 'custom': " + dataSet.getFormType() ) );
+                conflict( "Data set form type must be 'custom': " + dataSet.getFormType() ) );
         }
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML,
+        contextUtils.configureResponse( response, CONTENT_TYPE_HTML,
             CacheStrategy.RESPECT_SYSTEM_SETTING );
 
         return dataSetReportService.getCustomDataSetReport( dataSet, periods, orgUnit, filter, selectedUnitOnly );
     }
 
-    @GetMapping( value = RESOURCE_PATH, produces = "application/json" )
+    @GetMapping( value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<Grid> getDataSetReportAsJson( HttpServletResponse response,
         @RequestParam String ou,
         @RequestParam String ds,
@@ -180,7 +179,7 @@ public class DataSetReportController
 
         if ( orgUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist: " + ou ) );
+            throw new WebMessageException( conflict( "Organisation unit does not exist: " + ou ) );
         }
 
         return orgUnit;
@@ -193,7 +192,7 @@ public class DataSetReportController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + ds ) );
+            throw new WebMessageException( conflict( "Data set does not exist: " + ds ) );
         }
 
         return dataSet;
@@ -210,7 +209,7 @@ public class DataSetReportController
 
             if ( period == null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Period does not exist: " + pe ) );
+                throw new WebMessageException( conflict( "Period does not exist: " + pe ) );
             }
 
             periods.add( periodService.reloadPeriod( period ) );

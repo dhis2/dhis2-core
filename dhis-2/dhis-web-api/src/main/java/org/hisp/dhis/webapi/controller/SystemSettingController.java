@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -37,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,10 +46,12 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
+
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -57,7 +61,6 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -81,34 +84,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping( "/systemSettings" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class SystemSettingController
 {
     private final SystemSettingManager systemSettingManager;
 
     private final RenderService renderService;
 
-    private final WebMessageService webMessageService;
-
     private final CurrentUserService currentUserService;
 
     private final UserSettingService userSettingService;
-
-    public SystemSettingController( SystemSettingManager systemSettingManager, RenderService renderService,
-        WebMessageService webMessageService, CurrentUserService currentUserService,
-        UserSettingService userSettingService )
-    {
-        checkNotNull( systemSettingManager );
-        checkNotNull( renderService );
-        checkNotNull( webMessageService );
-        checkNotNull( currentUserService );
-        checkNotNull( userSettingService );
-
-        this.systemSettingManager = systemSettingManager;
-        this.renderService = renderService;
-        this.webMessageService = webMessageService;
-        this.currentUserService = currentUserService;
-        this.userSettingService = userSettingService;
-    }
 
     // -------------------------------------------------------------------------
     // Create
@@ -117,7 +102,8 @@ public class SystemSettingController
     @PostMapping( value = "/{key}", consumes = { ContextUtils.CONTENT_TYPE_JSON,
         ContextUtils.CONTENT_TYPE_TEXT, ContextUtils.CONTENT_TYPE_HTML } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    public void setSystemSettingOrTranslation( @PathVariable( value = "key" ) String key,
+    @ResponseBody
+    public WebMessage setSystemSettingOrTranslation( @PathVariable( value = "key" ) String key,
         @RequestParam( value = "locale", required = false ) String locale,
         @RequestParam( value = "value", required = false ) String value,
         @RequestBody( required = false ) String valuePayload, HttpServletResponse response, HttpServletRequest request )
@@ -129,36 +115,28 @@ public class SystemSettingController
 
         if ( !setting.isPresent() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Key is not supported: " + key ) );
+            return conflict( "Key is not supported: " + key );
         }
 
         value = ObjectUtils.firstNonNull( value, valuePayload );
 
         if ( StringUtils.isEmpty( locale ) )
         {
-            saveSystemSetting( key, value, setting.get(), response, request );
+            return saveSystemSetting( key, value, setting.get() );
         }
-        else
-        {
-            saveSystemSettingTranslation( key, locale, value, setting.get(), response, request );
-        }
+        return saveSystemSettingTranslation( key, locale, value, setting.get() );
     }
 
-    private void saveSystemSetting( String key, String value, SettingKey setting,
-        HttpServletResponse response, HttpServletRequest request )
+    private WebMessage saveSystemSetting( String key, String value, SettingKey setting )
     {
         Serializable valueObject = SettingKey.getAsRealClass( key, value );
 
         systemSettingManager.saveSystemSetting( setting, valueObject );
 
-        webMessageService.send(
-            WebMessageUtils.ok( "System setting '" + key + "' set to value '" + valueObject + "'." ), response,
-            request );
+        return ok( "System setting '" + key + "' set to value '" + valueObject + "'." );
     }
 
-    private void saveSystemSettingTranslation( String key, String locale, String value, SettingKey setting,
-        HttpServletResponse response, HttpServletRequest request )
-        throws WebMessageException
+    private WebMessage saveSystemSettingTranslation( String key, String locale, String value, SettingKey setting )
     {
         try
         {
@@ -166,11 +144,11 @@ public class SystemSettingController
         }
         catch ( IllegalStateException e )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( e.getMessage() ) );
+            return conflict( e.getMessage() );
         }
 
-        webMessageService.send( WebMessageUtils.ok( "Translation for system setting '" + key +
-            "' and locale: '" + locale + "' set to: '" + value + "'" ), response, request );
+        return ok( "Translation for system setting '" + key +
+            "' and locale: '" + locale + "' set to: '" + value + "'" );
     }
 
     private void validateParameters( String key, String value, String valuePayload )
@@ -178,38 +156,37 @@ public class SystemSettingController
     {
         if ( key == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Key must be specified" ) );
+            throw new WebMessageException( conflict( "Key must be specified" ) );
         }
 
         if ( value == null && valuePayload == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Value must be specified as query param or as payload" ) );
+                conflict( "Value must be specified as query param or as payload" ) );
         }
     }
 
-    @PostMapping( consumes = { ContextUtils.CONTENT_TYPE_JSON } )
+    @PostMapping( consumes = ContextUtils.CONTENT_TYPE_JSON )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    public void setSystemSettingV29( @RequestBody Map<String, Object> settings, HttpServletResponse response,
-        HttpServletRequest request )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage setSystemSettingV29( @RequestBody Map<String, Object> settings )
     {
         List<String> invalidKeys = settings.keySet().stream()
             .filter( ( key ) -> !SettingKey.getByName( key ).isPresent() ).collect( Collectors.toList() );
 
-        if ( invalidKeys.size() > 0 )
+        if ( !invalidKeys.isEmpty() )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Key(s) is not supported: " + StringUtils.join( invalidKeys, ", " ) ) );
+            return conflict( "Key(s) is not supported: " + StringUtils.join( invalidKeys, ", " ) );
         }
 
-        for ( String key : settings.keySet() )
+        for ( Entry<String, Object> entry : settings.entrySet() )
         {
-            Serializable valueObject = SettingKey.getAsRealClass( key, settings.get( key ).toString() );
+            String key = entry.getKey();
+            Serializable valueObject = SettingKey.getAsRealClass( key, entry.getValue().toString() );
             systemSettingManager.saveSystemSetting( SettingKey.getByName( key ).get(), valueObject );
         }
 
-        webMessageService.send( WebMessageUtils.ok( "System settings imported" ), response, request );
+        return ok( "System settings imported" );
     }
 
     // -------------------------------------------------------------------------
@@ -361,7 +338,7 @@ public class SystemSettingController
 
         if ( !setting.isPresent() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Key is not supported: " + key ) );
+            throw new WebMessageException( conflict( "Key is not supported: " + key ) );
         }
 
         if ( StringUtils.isNotEmpty( locale ) )

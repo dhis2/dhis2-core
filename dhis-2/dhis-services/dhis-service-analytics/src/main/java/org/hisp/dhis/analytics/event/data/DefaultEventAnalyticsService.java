@@ -128,6 +128,8 @@ public class DefaultEventAnalyticsService
 
     private static final String NAME_EVENT_DATE = "Event date";
 
+    private static final String NAME_STORED_BY = "Stored by";
+
     private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
 
     private static final String NAME_INCIDENT_DATE = "Incident date";
@@ -233,6 +235,7 @@ public class DefaultEventAnalyticsService
         // ---------------------------------------------------------------------
 
         securityManager.decideAccessEventQuery( params );
+        params = securityManager.withUserConstraints( params );
 
         queryValidator.validate( params );
 
@@ -703,7 +706,8 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader( ITEM_EVENT, NAME_EVENT, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_EVENT_DATE,
-                LabelMapper.getEventDateLabel( params.getProgramStage(), NAME_EVENT_DATE ), DATE, false, true ) );
+                LabelMapper.getEventDateLabel( params.getProgramStage(), NAME_EVENT_DATE ), DATE, false, true ) )
+            .addHeader( new GridHeader( ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) );
 
         if ( params.getProgram().isRegistration() )
         {

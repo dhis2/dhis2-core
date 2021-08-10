@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -35,7 +37,6 @@ import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemShape;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.schema.descriptors.DashboardItemSchemaDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,7 @@ public class DashboardItemController
 
         if ( item == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Dashboard item does not exist: " + uid ) );
+            throw new WebMessageException( notFound( "Dashboard item does not exist: " + uid ) );
         }
 
         Dashboard dashboard = dashboardService.getDashboardFromDashboardItem( item );

@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.List;
 import java.util.Set;
@@ -38,7 +40,6 @@ import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.dashboard.DashboardSearchResult;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
@@ -96,7 +97,7 @@ public class DashboardController
 
         if ( dashboard == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Dashboard not found for uid: " + dashboardId ) );
+            throw new WebMessageException( notFound( "Dashboard not found for uid: " + dashboardId ) );
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dashboard, download );
@@ -121,8 +122,7 @@ public class DashboardController
     {
         if ( !hasDashboardItemsTypeSet( dashboard.getItems() ) )
         {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Dashboard item does not have any type associated." ) );
+            throw new WebMessageException( conflict( "Dashboard item does not have any type associated." ) );
         }
     }
 
