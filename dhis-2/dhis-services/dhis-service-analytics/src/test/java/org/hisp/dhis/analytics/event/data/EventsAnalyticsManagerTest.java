@@ -98,7 +98,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
     private final static String TABLE_NAME = "analytics_event";
 
-    private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
+    private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,storedby,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
 
     @Before
     public void setUp()
@@ -125,7 +125,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "select psi,ps,executiondate,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\"  from "
+        String expected = "select psi,ps,executiondate,storedby,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\"  from "
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) limit 101";
 
@@ -145,7 +145,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "select psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) "
+        String expected = "select psi,ps,executiondate,storedby,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) "
             +
             "as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name"
             + "\"  " +
