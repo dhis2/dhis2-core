@@ -25,25 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.aggregated.sql.transform;
+package org.hisp.dhis.analytics.event.data.aggregated.sql.transform.provider;
 
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.model.element.inner_join.InnerJoinElement;
-import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.provider.SqlInnerJoinElementProvider;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.model.element.where.PredicateElement;
 import org.junit.Test;
 
-public class SqlInnerJoinElementProviderTest extends DhisTest
+public class SqlCoalesceEventValueExpressionProviderTest extends DhisSpringTest
 {
-    private String sql;
+    private String sqlWithCoalesce;
+
+    private String sqlWithoutCoalesce;
 
     @Override
     public void setUpTest()
     {
-        sql = "select count(pi) as value \n" +
+        sqlWithCoalesce = "select count(pi) as value \n" +
             "from analytics_enrollment_uyjxktbwrnf as ax \n" +
             "where cast((select \"PFXeJV8d7ja\" \n" +
             "from analytics_event_uYjxkTbwRNf \n" +
@@ -63,32 +64,51 @@ public class SqlInnerJoinElementProviderTest extends DhisTest
             "from analytics_event_uYjxkTbwRNf \n" +
             "where analytics_event_uYjxkTbwRNf.pi = ax.pi and \"bOYWVEBaWy6\" is not null and ps = 'iVfs6Jyp7I8' \n" +
             "order by executiondate desc limit 1 ),'') = 'Recovered') limit 100001";
+
+        sqlWithoutCoalesce = "select count(pi) as value,'20200201' as Daily \n" +
+            "from analytics_enrollment_uyjxktbwrnf as ax where \n" +
+            "cast((select \"PFXeJV8d7ja\" from analytics_event_uYjxkTbwRNf \n" +
+            "\t  where analytics_event_uYjxkTbwRNf.pi = ax.pi and \"PFXeJV8d7ja\" is not null and ps = 'LpWNjNGvCO5' \n"
+            +
+            "\t  order by executiondate desc limit 1 ) as date) < cast( '2020-02-02' as date )and \n" +
+            "cast((select \"PFXeJV8d7ja\" from analytics_event_uYjxkTbwRNf \n" +
+            "\t  where analytics_event_uYjxkTbwRNf.pi = ax.pi and \"PFXeJV8d7ja\" is not null and ps = 'LpWNjNGvCO5' \n"
+            +
+            "\t  order by executiondate desc limit 1 ) as date) >= cast( '2020-02-01' as date )\n" +
+            "and (uidlevel1 = 'VGTTybr8UcS' ) \n" +
+            "and (((select count(\"ovY6E8BSdto\") \n" +
+            "\t   from analytics_event_uYjxkTbwRNf \n" +
+            "\t   where analytics_event_uYjxkTbwRNf.pi = ax.pi \n" +
+            "\t   and \"ovY6E8BSdto\" is not null \n" +
+            "\t   and \"ovY6E8BSdto\" = 'Positive' \n" +
+            "\t   and ps = 'dDHkBd3X8Ce') > 0)) limit 100001";
     }
 
     @Test
-    public void verifySqlInnerJoinElementProvider()
+    public void verifySqlCoalesceEventValueExpressionWithCoalesceFunction()
     {
-        SqlInnerJoinElementProvider provider = new SqlInnerJoinElementProvider();
+        SqlCoalesceEventValueExpressionProvider provider = new SqlCoalesceEventValueExpressionProvider();
 
-        List<InnerJoinElement> innerJoinElementList = provider.getProvider().apply( sql );
+        List<PredicateElement> predicateElementList = provider.getProvider().apply( sqlWithCoalesce );
 
-        assertEquals( 4, innerJoinElementList.size() );
+        assertEquals( 1, predicateElementList.size() );
 
-        assertEquals( "analytics_event_uYjxkTbwRNf", innerJoinElementList.get( 0 ).getTableElement().getName() );
+        assertEquals( "bOYWVEBaWy6.\"bOYWVEBaWy6\"", predicateElementList.get( 0 ).getLeftExpression() );
 
-        assertEquals( "PFXeJV8d7ja", innerJoinElementList.get( 0 ).getTableElement().getAlias() );
+        assertEquals( "=", predicateElementList.get( 0 ).getRelation() );
 
-        assertEquals( "analytics_event_uYjxkTbwRNf", innerJoinElementList.get( 1 ).getTableElement().getName() );
+        assertEquals( "'Recovered'", predicateElementList.get( 0 ).getRightExpression() );
 
-        assertEquals( "PFXeJV8d7ja", innerJoinElementList.get( 1 ).getTableElement().getAlias() );
+        assertEquals( "and", predicateElementList.get( 0 ).getLogicalOperator() );
+    }
 
-        assertEquals( "analytics_event_uYjxkTbwRNf", innerJoinElementList.get( 2 ).getTableElement().getName() );
+    @Test
+    public void verifySqlCoalesceEventValueExpressionWithNoCoalesceFunction()
+    {
+        SqlCoalesceEventValueExpressionProvider provider = new SqlCoalesceEventValueExpressionProvider();
 
-        assertEquals( "ovY6E8BSdto", innerJoinElementList.get( 2 ).getTableElement().getAlias() );
+        List<PredicateElement> predicateElementList = provider.getProvider().apply( sqlWithoutCoalesce );
 
-        assertEquals( "analytics_event_uYjxkTbwRNf", innerJoinElementList.get( 3 ).getTableElement().getName() );
-
-        assertEquals( "bOYWVEBaWy6", innerJoinElementList.get( 3 ).getTableElement().getAlias() );
-
+        assertEquals( 0, predicateElementList.size() );
     }
 }

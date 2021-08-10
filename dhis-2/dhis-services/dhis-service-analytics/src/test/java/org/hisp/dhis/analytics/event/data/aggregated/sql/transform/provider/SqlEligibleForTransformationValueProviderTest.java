@@ -25,13 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.aggregated.sql.transform;
+package org.hisp.dhis.analytics.event.data.aggregated.sql.transform.provider;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.provider.SqlEligibleForTransformationValueProvider;
 import org.junit.Test;
 
 public class SqlEligibleForTransformationValueProviderTest extends DhisSpringTest

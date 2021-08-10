@@ -25,18 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.aggregated.sql.transform;
+package org.hisp.dhis.analytics.event.data.aggregated.sql.transform.provider;
 
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
 import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.model.element.TableElement;
-import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.provider.SqlFromElementProvider;
+import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.model.element.inner_join.InnerJoinElement;
 import org.junit.Test;
 
-public class SqlFromElementProviderTest extends DhisTest
+public class SqlInnerJoinElementProviderTest extends DhisTest
 {
     private String sql;
 
@@ -66,16 +65,29 @@ public class SqlFromElementProviderTest extends DhisTest
     }
 
     @Test
-    public void verifySqlCoalesceEventValueExpressionWithCoalesceFunction()
+    public void verifySqlInnerJoinElementProvider()
     {
-        SqlFromElementProvider provider = new SqlFromElementProvider();
+        SqlInnerJoinElementProvider provider = new SqlInnerJoinElementProvider();
 
-        List<TableElement> tableElementList = provider.getProvider().apply( sql );
+        List<InnerJoinElement> innerJoinElementList = provider.getProvider().apply( sql );
 
-        assertEquals( 1, tableElementList.size() );
+        assertEquals( 4, innerJoinElementList.size() );
 
-        assertEquals( "analytics_enrollment_uyjxktbwrnf", tableElementList.get( 0 ).getName() );
+        assertEquals( "analytics_event_uYjxkTbwRNf", innerJoinElementList.get( 0 ).getTableElement().getName() );
 
-        assertEquals( "as ax", tableElementList.get( 0 ).getAlias().trim().toLowerCase() );
+        assertEquals( "PFXeJV8d7ja", innerJoinElementList.get( 0 ).getTableElement().getAlias() );
+
+        assertEquals( "analytics_event_uYjxkTbwRNf", innerJoinElementList.get( 1 ).getTableElement().getName() );
+
+        assertEquals( "PFXeJV8d7ja", innerJoinElementList.get( 1 ).getTableElement().getAlias() );
+
+        assertEquals( "analytics_event_uYjxkTbwRNf", innerJoinElementList.get( 2 ).getTableElement().getName() );
+
+        assertEquals( "ovY6E8BSdto", innerJoinElementList.get( 2 ).getTableElement().getAlias() );
+
+        assertEquals( "analytics_event_uYjxkTbwRNf", innerJoinElementList.get( 3 ).getTableElement().getName() );
+
+        assertEquals( "bOYWVEBaWy6", innerJoinElementList.get( 3 ).getTableElement().getAlias() );
+
     }
 }

@@ -25,27 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.aggregated.sql.transform;
+package org.hisp.dhis.analytics.event.data.aggregated.sql.transform.provider;
 
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.model.element.where.PredicateElement;
-import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.provider.SqlCoalesceEventValueExpressionProvider;
+import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.model.element.TableElement;
 import org.junit.Test;
 
-public class SqlCoalesceEventValueExpressionProviderTest extends DhisSpringTest
+public class SqlFromElementProviderTest extends DhisTest
 {
-    private String sqlWithCoalesce;
-
-    private String sqlWithoutCoalesce;
+    private String sql;
 
     @Override
     public void setUpTest()
     {
-        sqlWithCoalesce = "select count(pi) as value \n" +
+        sql = "select count(pi) as value \n" +
             "from analytics_enrollment_uyjxktbwrnf as ax \n" +
             "where cast((select \"PFXeJV8d7ja\" \n" +
             "from analytics_event_uYjxkTbwRNf \n" +
@@ -65,51 +62,19 @@ public class SqlCoalesceEventValueExpressionProviderTest extends DhisSpringTest
             "from analytics_event_uYjxkTbwRNf \n" +
             "where analytics_event_uYjxkTbwRNf.pi = ax.pi and \"bOYWVEBaWy6\" is not null and ps = 'iVfs6Jyp7I8' \n" +
             "order by executiondate desc limit 1 ),'') = 'Recovered') limit 100001";
-
-        sqlWithoutCoalesce = "select count(pi) as value,'20200201' as Daily \n" +
-            "from analytics_enrollment_uyjxktbwrnf as ax where \n" +
-            "cast((select \"PFXeJV8d7ja\" from analytics_event_uYjxkTbwRNf \n" +
-            "\t  where analytics_event_uYjxkTbwRNf.pi = ax.pi and \"PFXeJV8d7ja\" is not null and ps = 'LpWNjNGvCO5' \n"
-            +
-            "\t  order by executiondate desc limit 1 ) as date) < cast( '2020-02-02' as date )and \n" +
-            "cast((select \"PFXeJV8d7ja\" from analytics_event_uYjxkTbwRNf \n" +
-            "\t  where analytics_event_uYjxkTbwRNf.pi = ax.pi and \"PFXeJV8d7ja\" is not null and ps = 'LpWNjNGvCO5' \n"
-            +
-            "\t  order by executiondate desc limit 1 ) as date) >= cast( '2020-02-01' as date )\n" +
-            "and (uidlevel1 = 'VGTTybr8UcS' ) \n" +
-            "and (((select count(\"ovY6E8BSdto\") \n" +
-            "\t   from analytics_event_uYjxkTbwRNf \n" +
-            "\t   where analytics_event_uYjxkTbwRNf.pi = ax.pi \n" +
-            "\t   and \"ovY6E8BSdto\" is not null \n" +
-            "\t   and \"ovY6E8BSdto\" = 'Positive' \n" +
-            "\t   and ps = 'dDHkBd3X8Ce') > 0)) limit 100001";
     }
 
     @Test
     public void verifySqlCoalesceEventValueExpressionWithCoalesceFunction()
     {
-        SqlCoalesceEventValueExpressionProvider provider = new SqlCoalesceEventValueExpressionProvider();
+        SqlFromElementProvider provider = new SqlFromElementProvider();
 
-        List<PredicateElement> predicateElementList = provider.getProvider().apply( sqlWithCoalesce );
+        List<TableElement> tableElementList = provider.getProvider().apply( sql );
 
-        assertEquals( 1, predicateElementList.size() );
+        assertEquals( 1, tableElementList.size() );
 
-        assertEquals( "bOYWVEBaWy6.\"bOYWVEBaWy6\"", predicateElementList.get( 0 ).getLeftExpression() );
+        assertEquals( "analytics_enrollment_uyjxktbwrnf", tableElementList.get( 0 ).getName() );
 
-        assertEquals( "=", predicateElementList.get( 0 ).getRelation() );
-
-        assertEquals( "'Recovered'", predicateElementList.get( 0 ).getRightExpression() );
-
-        assertEquals( "and", predicateElementList.get( 0 ).getLogicalOperator() );
-    }
-
-    @Test
-    public void verifySqlCoalesceEventValueExpressionWithNoCoalesceFunction()
-    {
-        SqlCoalesceEventValueExpressionProvider provider = new SqlCoalesceEventValueExpressionProvider();
-
-        List<PredicateElement> predicateElementList = provider.getProvider().apply( sqlWithoutCoalesce );
-
-        assertEquals( 0, predicateElementList.size() );
+        assertEquals( "as ax", tableElementList.get( 0 ).getAlias().trim().toLowerCase() );
     }
 }

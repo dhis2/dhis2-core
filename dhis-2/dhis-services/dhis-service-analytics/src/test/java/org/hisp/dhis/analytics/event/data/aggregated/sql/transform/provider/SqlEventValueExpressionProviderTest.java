@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data.aggregated.sql.transform;
+package org.hisp.dhis.analytics.event.data.aggregated.sql.transform.provider;
 
 import static org.junit.Assert.assertEquals;
 
@@ -33,7 +33,6 @@ import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.model.element.where.PredicateElement;
-import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.provider.SqlEventValueExpressionProvider;
 import org.junit.Test;
 
 public class SqlEventValueExpressionProviderTest extends DhisSpringTest
