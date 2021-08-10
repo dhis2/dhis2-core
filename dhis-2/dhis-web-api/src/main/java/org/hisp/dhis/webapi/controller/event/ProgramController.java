@@ -125,7 +125,7 @@ public class ProgramController
     {
         return Optional.ofNullable( programUids )
             .filter( CollectionUtils::isNotEmpty )
-            .map( programService::getProgramOrganisationUnitsAssociations )
+            .map( programService::getProgramOrganisationUnitsAssociationsForCurrentUser )
             .orElseThrow( () -> new IllegalArgumentException( "At least one program uid must be specified" ) );
     }
 
