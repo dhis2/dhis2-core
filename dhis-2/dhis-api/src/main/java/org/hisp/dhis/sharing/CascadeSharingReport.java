@@ -54,9 +54,19 @@ public class CascadeSharingReport
     @JsonProperty
     private List<ErrorReport> errorReports = new ArrayList<>();
 
+    /**
+     * Number of DashboardItem updated for cascade sharing
+     */
     @JsonProperty
     private int countUpdatedDashBoardItems = 0;
 
+    /**
+     * Map contains objects that will be updated for cascade sharing.
+     * <p>
+     * Key: Object Class name
+     * <p>
+     * Value: Set of UIDs of updated objects
+     */
     @JsonProperty
     private Map<String, Set<String>> updatedObjects = new HashMap<>();
 
