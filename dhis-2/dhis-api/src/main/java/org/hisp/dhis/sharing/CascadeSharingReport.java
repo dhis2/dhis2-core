@@ -62,20 +62,20 @@ public class CascadeSharingReport
 
     public void addUpdatedObject( IdentifiableObject object )
     {
-        Set<String> clazzReport = getUpdatedObjects().get( HibernateProxyUtils.getRealClass( object ).getSimpleName() );
+        Set<String> typeReport = getUpdatedObjects().get( HibernateProxyUtils.getRealClass( object ).getSimpleName() );
 
-        if ( clazzReport == null )
+        if ( typeReport == null )
         {
-            clazzReport = new HashSet<>();
+            typeReport = new HashSet<>();
         }
 
-        clazzReport.add( object.getUid() );
-        getUpdatedObjects().put( HibernateProxyUtils.getRealClass( object ).getSimpleName(), clazzReport );
+        typeReport.add( object.getUid() );
+        getUpdatedObjects().put( HibernateProxyUtils.getRealClass( object ).getSimpleName(), typeReport );
     }
 
-    public Set<String> getUpdateObjects( Class clazz )
+    public Set<String> getUpdateObjects( Class type )
     {
-        return getUpdatedObjects().get( clazz.getSimpleName() );
+        return getUpdatedObjects().get( type.getSimpleName() );
     }
 
     public void incUpdatedDashboardItem()

@@ -120,12 +120,10 @@ public class DefaultCascadeSharingService
             }
         } );
 
-        if ( !canUpdate( parameters ) || CollectionUtils.isEmpty( updateObjects ) )
+        if ( canUpdate( parameters ) && !CollectionUtils.isEmpty( updateObjects ) )
         {
-            return parameters.getReport();
+            manager.update( new ArrayList<>( updateObjects ) );
         }
-
-        manager.update( new ArrayList<>( updateObjects ) );
 
         return parameters.getReport();
     }
