@@ -2467,6 +2467,11 @@ public abstract class DhisConvenienceTest
         return new ProgramDataElementDimensionItem( pr, de );
     }
 
+    protected void removeUserAccess( IdentifiableObject object )
+    {
+        object.getUserAccesses().clear();
+    }
+
     protected void enableDataSharing( User user, IdentifiableObject object, String access )
     {
         object.getUserAccesses().clear();
