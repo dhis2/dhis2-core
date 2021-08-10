@@ -39,25 +39,15 @@ import lombok.NoArgsConstructor;
 public class CascadeSharingParameters
 {
     /**
-     * TRUE: do not save anything, just return errors if any
+     * TRUE: do not save anything, just return errors/report if any.
      * <p>
-     * FALSE: save data if possible ( depends on atomic flag value )
+     * FALSE: save data if possible.
      */
     private boolean dryRun = false;
 
     /**
-     * TRUE: Fail on errors, do not save anything.
-     * <p>
-     * FALSE: Ignore errors, just save the valid data.
+     * Report to be included in the api's response
      */
-    private boolean atomic = false;
-
-    /**
-     * If publicAccess is updated in one of the target objects then this flag
-     * will set to TRUE.
-     */
-    private boolean sharePublicAccess = false;
-
     private CascadeSharingReport report = new CascadeSharingReport();
 
     public CascadeSharingReport getReport()
