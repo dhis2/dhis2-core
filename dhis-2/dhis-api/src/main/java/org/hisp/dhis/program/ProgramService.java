@@ -159,5 +159,27 @@ public interface ProgramService
      */
     boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit );
 
-    IdentifiableObjectAssociations getProgramOrganisationUnitsAssociations( Set<String> programUids );
+    /**
+     * Get all the organisation unit associated for a set of program uids. This
+     * method uses jdbc to directly fetch the associated org unit uids for every
+     * program uid. This method also filters the results to respect the current
+     * users organisation unit scope and sharing settings.
+     *
+     * @param programUids A set of program uids
+     * @return A object of {@link IdentifiableObjectAssociations} containing
+     *         association for each programUid
+     */
+    IdentifiableObjectAssociations getProgramOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids );
+
+    /**
+     * Get all the organisation unit associated for a set of program uids. This
+     * method uses jdbc to directly fetch the associated org unit uids for every
+     * program uid. This method returns all the associations irrespective of the
+     * sharing settings or org unit scopes.
+     *
+     * @param programUids A set of program uids
+     * @return A object of {@link IdentifiableObjectAssociations} containing
+     *         association for each programUid
+     */
+    IdentifiableObjectAssociations getAllProgramOrganisationUnitsAssociations( Set<String> programUids );
 }
