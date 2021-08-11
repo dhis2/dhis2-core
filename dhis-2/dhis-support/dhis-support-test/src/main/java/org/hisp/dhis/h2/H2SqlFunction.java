@@ -32,12 +32,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.sql.DataSource;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.postgresql.util.PGobject;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import lombok.extern.slf4j.Slf4j;
-import org.postgresql.util.PGobject;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -50,23 +53,23 @@ public class H2SqlFunction
     {
         try
         {
-            try (Connection connection = dataSource.getConnection())
+            try ( Connection connection = dataSource.getConnection() )
             {
-                try (Statement statement = connection.createStatement())
+                try ( Statement statement = connection.createStatement() )
                 {
                     statement
                         .execute(
                             "CREATE ALIAS jsonb_extract_path_text FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_extract_path_text\"" );
                 }
 
-                try (Statement statement = connection.createStatement())
+                try ( Statement statement = connection.createStatement() )
                 {
                     statement
                         .execute(
                             "CREATE ALIAS jsonb_has_user_id FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_has_user_id\"" );
                 }
 
-                try (Statement statement = connection.createStatement())
+                try ( Statement statement = connection.createStatement() )
                 {
                     statement
                         .execute(

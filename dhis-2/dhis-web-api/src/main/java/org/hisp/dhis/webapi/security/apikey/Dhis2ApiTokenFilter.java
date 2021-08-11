@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -43,7 +44,6 @@ import org.hisp.dhis.security.apikey.IpAllowedList;
 import org.hisp.dhis.security.apikey.MethodAllowedList;
 import org.hisp.dhis.security.apikey.RefererAllowedList;
 import org.hisp.dhis.util.ObjectUtils;
-
 import org.springframework.core.log.LogMessage;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;

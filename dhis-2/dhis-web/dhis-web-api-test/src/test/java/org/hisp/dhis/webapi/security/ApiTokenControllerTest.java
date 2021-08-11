@@ -36,6 +36,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiToken;
@@ -47,8 +49,6 @@ import org.hisp.dhis.webapi.json.domain.JsonApiToken;
 import org.hisp.dhis.webapi.utils.WebClientUtils;
 import org.junit.Before;
 import org.junit.Test;
-
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 

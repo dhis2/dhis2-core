@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.security.config;
 
 import java.util.Arrays;
 import java.util.Set;
+
 import javax.servlet.Filter;
 import javax.sql.DataSource;
 
@@ -51,8 +52,6 @@ import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
 import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
-
-import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -96,6 +95,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

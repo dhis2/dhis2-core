@@ -49,7 +49,7 @@ public class ApiToken extends BaseIdentifiableObject implements MetadataObject
     public ApiToken()
     {
         /*
-          This constructor is only used by Hibernate
+         * This constructor is only used by Hibernate
          */
     }
 

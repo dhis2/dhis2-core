@@ -33,6 +33,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
@@ -41,12 +43,11 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.web.servlet.MockMvc;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -70,7 +71,6 @@ public class ApiTokenServiceImplTest extends DhisSpringTest
 
     @Autowired
     private UserService _userService;
-
 
     protected MockMvc mvc;
 

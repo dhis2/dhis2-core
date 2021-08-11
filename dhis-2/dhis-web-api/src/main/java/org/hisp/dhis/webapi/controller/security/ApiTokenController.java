@@ -80,6 +80,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     {
         ArrayList<ApiToken> list = new ArrayList<>();
         java.util.Optional.ofNullable( manager.get( ApiToken.class, uid ) ).ifPresent( list::add );
+        list.forEach( t -> t.setKey( "" ) );
         return list;
     }
 
@@ -149,7 +150,8 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
             webMessage.setHttpStatus( HttpStatus.CREATED );
             webMessage.setLocation( getSchema().getRelativeApiEndpoint() + "/" + uid );
 
-            // Set our custom web response object that includes the new generated key.
+            // Set our custom web response object that includes the new
+            // generated key.
             webMessage.setResponse( new ApiTokenCreationResponse( uid, rawKey ) );
         }
         else

@@ -28,9 +28,7 @@
 package org.hisp.dhis.security.apikey;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
