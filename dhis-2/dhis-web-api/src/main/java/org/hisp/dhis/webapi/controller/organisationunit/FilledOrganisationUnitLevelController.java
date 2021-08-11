@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.organisationunit;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 
@@ -42,7 +43,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -72,13 +72,13 @@ public class FilledOrganisationUnitLevelController
         this.organisationUnitService = organisationUnitService;
     }
 
-    @GetMapping( produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping( produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<OrganisationUnitLevel> getList()
     {
         return organisationUnitService.getFilledOrganisationUnitLevels();
     }
 
-    @PostMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.CREATED )
     public void setList( HttpServletRequest request, HttpServletResponse response )
         throws Exception

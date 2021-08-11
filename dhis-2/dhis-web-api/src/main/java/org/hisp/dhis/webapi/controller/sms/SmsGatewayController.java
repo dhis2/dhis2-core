@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.sms;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 
@@ -86,7 +87,7 @@ public class SmsGatewayController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @GetMapping( produces = { "application/json" } )
+    @GetMapping( produces = APPLICATION_JSON_VALUE )
     public void getGateways( HttpServletResponse response )
         throws IOException
     {
@@ -94,7 +95,7 @@ public class SmsGatewayController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @GetMapping( value = "/{uid}", produces = "application/json" )
+    @GetMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
     public void getGatewayConfiguration( @PathVariable String uid, HttpServletResponse response )
         throws WebMessageException,
         IOException
@@ -197,7 +198,7 @@ public class SmsGatewayController
     private void generateOutput( HttpServletResponse response, Object value )
         throws IOException
     {
-        response.setContentType( "application/json" );
+        response.setContentType( APPLICATION_JSON_VALUE );
 
         ObjectMapper jsonMapper = new ObjectMapper();
         jsonMapper.disable( MapperFeature.DEFAULT_VIEW_INCLUSION );

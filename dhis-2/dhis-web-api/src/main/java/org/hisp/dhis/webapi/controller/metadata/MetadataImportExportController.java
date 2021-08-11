@@ -32,6 +32,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.GML_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -71,7 +73,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -124,7 +125,7 @@ public class MetadataImportExportController
     @Autowired
     private ObjectFactory<GmlAsyncImporter> gmlAsyncImporterFactory;
 
-    @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonMetadata( HttpServletRequest request )
         throws IOException
@@ -173,7 +174,7 @@ public class MetadataImportExportController
         return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
-    @PostMapping( value = "/gml", consumes = MediaType.APPLICATION_XML_VALUE )
+    @PostMapping( value = "/gml", consumes = APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage postGmlMetadata( HttpServletRequest request )
         throws IOException
@@ -188,7 +189,7 @@ public class MetadataImportExportController
         return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
-    @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
+    @PostMapping( value = "", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage postXmlMetadata( HttpServletRequest request )
         throws IOException

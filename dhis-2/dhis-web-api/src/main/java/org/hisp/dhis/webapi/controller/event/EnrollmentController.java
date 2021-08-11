@@ -32,6 +32,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.scheduling.JobType.ENROLLMENT_IMPORT;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -73,7 +75,6 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -196,7 +197,7 @@ public class EnrollmentController
     // CREATE
     // -------------------------------------------------------------------------
 
-    @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postEnrollmentJson( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request )
@@ -239,7 +240,7 @@ public class EnrollmentController
         return startAsyncImport( importOptions, enrollmentService.getEnrollmentsJson( inputStream ) );
     }
 
-    @PostMapping( value = "", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
+    @PostMapping( value = "", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage postEnrollmentXml( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions, HttpServletRequest request )
@@ -286,7 +287,7 @@ public class EnrollmentController
     // UPDATE
     // -------------------------------------------------------------------------
 
-    @PostMapping( value = "/{id}/note", consumes = "application/json" )
+    @PostMapping( value = "/{id}/note", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage updateEnrollmentForNoteJson( @PathVariable String id, HttpServletRequest request )
         throws IOException
@@ -296,7 +297,7 @@ public class EnrollmentController
         return importSummary( importSummary );
     }
 
-    @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
+    @PutMapping( value = "/{id}", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage updateEnrollmentXml( @PathVariable String id, ImportOptions importOptions,
         HttpServletRequest request )
@@ -309,7 +310,7 @@ public class EnrollmentController
         return importSummary( importSummary );
     }
 
-    @PutMapping( value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{id}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage updateEnrollmentJson( @PathVariable String id, ImportOptions importOptions,
         HttpServletRequest request )

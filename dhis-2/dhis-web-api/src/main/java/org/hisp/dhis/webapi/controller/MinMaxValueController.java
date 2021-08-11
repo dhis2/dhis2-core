@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -48,7 +49,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -86,7 +86,7 @@ public class MinMaxValueController
     @Autowired
     private SystemSettingManager systemSettingManager;
 
-    @PostMapping( consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_GENERATE_MIN_MAX_VALUES')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void generateMinMaxValue( @RequestBody MinMaxValueParams minMaxValueParams )
