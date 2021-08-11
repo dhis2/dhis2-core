@@ -42,6 +42,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
@@ -51,23 +52,31 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
+@Transactional
 public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 {
+
+    public static final String USER_A_USERNAME = "userA";
+
     @Autowired
     private ApiTokenService apiTokenService;
 
     @Autowired
     private RenderService _renderService;
 
+    private User userA;
+
     @Before
     public final void setupTest()
     {
         this.renderService = _renderService;
+        userA = createUser( USER_A_USERNAME );
     }
 
     @Test
@@ -188,7 +197,9 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
             Body(
                 "[{'op':'replace','path':'/key','value':'MY NEW VALUE'}]" ) );
 
-        assertEquals( "ApiToken key can not be modified.", patch.error().getMessage() );
+        final ApiToken afterPatched = apiTokenService.getWithUid( newToken.getUid() );
+
+        assertEquals( newToken.getKey(), afterPatched.getKey() );
     }
 
     @Test
@@ -295,7 +306,9 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
             newToken.getUid() + "?importReportMode=ERRORS",
             Body( renderService.toJsonAsString( apiToken1 ) ) );
 
-        assertEquals( "ApiToken key can not be modified.", put.error().getMessage() );
+        final ApiToken afterPatched = apiTokenService.getWithUid( newToken.getUid() );
+
+        assertEquals( newToken.getKey(), afterPatched.getKey() );
     }
 
     @Test
@@ -333,7 +346,7 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
     {
         final ApiToken newToken = createNewEmptyToken();
 
-        switchToNewUser( "anonymous" );
+        switchContextToUser( userA );
 
         assertStatus( HttpStatus.NOT_FOUND,
             DELETE( ApiTokenSchemaDescriptor.API_ENDPOINT + "/" + newToken.getUid() ) );
@@ -346,15 +359,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
         assertStatus( HttpStatus.CREATED, POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
             "{'expire': " + ONE_HOUR_FROM_NOW + "}" ) );
-    }
-
-    @Test
-    public void testCreateApiTokenFailExpireInPast()
-    {
-        final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
-            "{'expire': 0}" );
-
-        assertEquals( "ApiToken expire timestamp must be in the future.", post.error().getMessage() );
     }
 
     @Test
@@ -380,7 +384,7 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
         final String uid = assertStatus( HttpStatus.CREATED,
             post );
 
-        return fetchAsEntity( uid );
+        return apiTokenService.getWithUid( uid );
     }
 
     private String createNewTokenWithAttributes()
@@ -393,6 +397,11 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
     }
 
     private ApiToken fetchAsEntity( String uid )
+    {
+        return apiTokenService.getWithUid( uid );
+    }
+
+    private ApiToken fetchDeserialize( String uid )
         throws IOException
     {
         final String json = GET( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{uid}", uid )

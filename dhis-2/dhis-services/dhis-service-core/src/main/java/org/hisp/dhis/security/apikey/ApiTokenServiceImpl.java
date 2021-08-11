@@ -30,9 +30,8 @@ package org.hisp.dhis.security.apikey;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
@@ -121,7 +120,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     public ApiToken initToken( ApiToken token )
     {
-        Random random = ThreadLocalRandom.current();
+        SecureRandom random = new SecureRandom();
         byte[] r = new byte[256];
         random.nextBytes( r );
 

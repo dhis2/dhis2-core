@@ -33,8 +33,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.validator.routines.InetAddressValidator;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -50,17 +56,13 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-
-import com.google.common.collect.ImmutableList;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.validator.routines.InetAddressValidator;
-import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -80,8 +82,21 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     {
         ArrayList<ApiToken> list = new ArrayList<>();
         java.util.Optional.ofNullable( manager.get( ApiToken.class, uid ) ).ifPresent( list::add );
-        list.forEach( t -> t.setKey( "" ) );
         return list;
+    }
+
+    @Override
+    protected void postProcessResponseEntity( ApiToken entity, WebOptions options, Map<String, String> parameters )
+        throws Exception
+    {
+        entity.setKey( null );
+    }
+
+    @Override
+    protected void postProcessResponseEntities( List<ApiToken> entityList, WebOptions options,
+        Map<String, String> parameters )
+    {
+        entityList.forEach( t -> t.setKey( null ) );
     }
 
     @Override
@@ -163,32 +178,29 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     }
 
     @Override
-    protected void prePatchEntity( ApiToken oldToken, ApiToken newToken )
-    {
-        validateKeyEqual( newToken, oldToken );
-        validateExpiry( newToken );
-        validateApiKeyAttributes( newToken );
-    }
-
-    @Override
     protected void prePatchEntity( ApiToken newToken )
     {
-        validateKeyEqual( newToken, apiTokenService.getWithUid( newToken.getUid() ) );
-        validateExpiry( newToken );
+        final ApiToken oldToken = apiTokenService.getWithUid( newToken.getUid() );
+        newToken.setKey( oldToken.getKey() );
         validateApiKeyAttributes( newToken );
     }
 
     @Override
-    protected void preUpdateEntity( ApiToken existingToken, ApiToken newToken )
+    protected void prePatchEntity( ApiToken oldToken, ApiToken newToken )
     {
-        validateKeyEqual( newToken, existingToken );
-        validateExpiry( newToken );
+        newToken.setKey( oldToken.getKey() );
+        validateApiKeyAttributes( newToken );
+    }
+
+    @Override
+    protected void preUpdateEntity( ApiToken oldToken, ApiToken newToken )
+    {
+        newToken.setKey( oldToken.getKey() );
         validateApiKeyAttributes( newToken );
     }
 
     protected void validateBeforeCreate( ApiToken token )
     {
-        validateExpiry( token );
         validateApiKeyAttributes( token );
     }
 
@@ -232,23 +244,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
         if ( !urlValidator.isValid( referrer ) )
         {
             throw new IllegalArgumentException( "Not a valid referrer url, value=" + referrer );
-        }
-    }
-
-    private void validateKeyEqual( ApiToken tokenA, ApiToken tokenB )
-    {
-        if ( !tokenB.getKey().equals( tokenA.getKey() ) )
-        {
-            throw new IllegalArgumentException( "ApiToken key can not be modified." );
-        }
-    }
-
-    private void validateExpiry( ApiToken token )
-    {
-        final Long expire = token.getExpire();
-        if ( expire != null && expire < System.currentTimeMillis() )
-        {
-            throw new IllegalArgumentException( "ApiToken expire timestamp must be in the future." );
         }
     }
 }
