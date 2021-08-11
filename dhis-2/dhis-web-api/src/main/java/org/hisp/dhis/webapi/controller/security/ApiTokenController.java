@@ -74,6 +74,9 @@ import com.google.common.collect.ImmutableList;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ApiTokenController extends AbstractCrudController<ApiToken>
 {
+
+    public static final String OPERATION_NOT_SUPPORTED_ON_API_TOKEN = "Operation not supported on ApiToken";
+
     private final ApiTokenService apiTokenService;
 
     // Overwritten to get full access control on GET single object
@@ -104,7 +107,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
         HttpServletRequest request )
         throws Exception
     {
-        throw new IllegalStateException( "Operation not supported on ApiToken" );
+        throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
     }
 
     @Override
@@ -112,7 +115,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
         HttpServletRequest request )
         throws Exception
     {
-        throw new IllegalStateException( "Operation not supported on ApiToken" );
+        throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
     }
 
     @PostMapping( consumes = { "application/xml", "text/xml" } )
@@ -120,7 +123,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     public WebMessage postXmlObject( HttpServletRequest request )
         throws Exception
     {
-        throw new IllegalStateException( "Operation not supported on ApiToken" );
+        throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
     }
 
     @PostMapping( consumes = "application/json" )
