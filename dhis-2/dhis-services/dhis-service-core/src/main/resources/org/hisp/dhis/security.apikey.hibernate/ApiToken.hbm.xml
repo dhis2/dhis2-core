@@ -10,10 +10,9 @@
 
         <cache usage="read-write"/>
 
-        <id name="id" column="apitokenid">
+        <id name="id" column="apiTokenId">
             <generator class="native" />
         </id>
-
 
         &identifiableProperties;
 

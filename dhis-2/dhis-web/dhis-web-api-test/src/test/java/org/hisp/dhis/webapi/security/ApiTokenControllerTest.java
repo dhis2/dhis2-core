@@ -169,7 +169,7 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.OK,
             PATCH( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}", uid + "?importReportMode=ERRORS",
                 Body(
-                    "[{'op':'replace','path':'/attributes','value':[{'type':'IpAllowedList','type': 'IpAllowedList','allowedIps':['8.8.8.8']}]}]" ) ) );
+                    "[{'op':'replace','path':'/attributes','value':[{'type':'IpAllowedList','allowedIps':['8.8.8.8']}]}]" ) ) );
 
         final ApiToken apiToken2 = fetchAsEntity( uid );
         assertEquals( 1, apiToken2.getIpAllowedList().getAllowedIps().size() );
@@ -195,7 +195,7 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
     public void testCantAddInvalidIp()
     {
         final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
-            "{'attributes':[{'type':'IpAllowedList','type': 'IpAllowedList','allowedIps':['X.1.1.1','2.2.2.2','3.3.3.3']}]}" );
+            "{'attributes':[{'type': 'IpAllowedList','allowedIps':['X.1.1.1','2.2.2.2','3.3.3.3']}]}" );
 
         assertEquals( "Not a valid ip address, value=X.1.1.1", post.error().getMessage() );
     }
@@ -222,7 +222,7 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
         final HttpResponse patch = PATCH( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}",
             token.getUid() + "?importReportMode=ERRORS",
             Body(
-                "[{'op':'replace','path':'/attributes','value':[{'type':'IpAllowedList','type': 'IpAllowedList','allowedIps':['X.1.1.1']}]}]" ) );
+                "[{'op':'replace','path':'/attributes','value':[{'type':'IpAllowedList','allowedIps':['X.1.1.1']}]}]" ) );
 
         assertEquals( "Not a valid ip address, value=X.1.1.1", patch.error().getMessage() );
     }
@@ -232,7 +232,7 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
     {
         final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
             "{'attributes':["
-                + "{'type':'MethodAllowedList','type':'MethodAllowedList','allowedMethods':['POST','X','PATCH']}"
+                + "{'type':'MethodAllowedList','allowedMethods':['POST','X','PATCH']}"
                 + "]}" );
 
         assertEquals( "Not a valid http method, value=X", post.error().getMessage() );
@@ -243,7 +243,7 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
     {
         final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
             "{'attributes':["
-                + "{'type':'RefererAllowedList','type':'RefererAllowedList','allowedReferrers':['http:XXX//hostname3.com','http://hostname2.com','http://hostname1.com']}]}" );
+                + "{'type':'RefererAllowedList','allowedReferrers':['http:XXX//hostname3.com','http://hostname2.com','http://hostname1.com']}]}" );
 
         assertEquals( "Not a valid referrer url, value=http:XXX//hostname3.com", post.error().getMessage() );
     }
@@ -386,9 +386,9 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
     private String createNewTokenWithAttributes()
     {
         final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
-            "{'attributes':[{'type':'IpAllowedList','type': 'IpAllowedList','allowedIps':['1.1.1.1','2.2.2.2','3.3.3.3']},"
-                + "{'type':'MethodAllowedList','type':'MethodAllowedList','allowedMethods':['POST','GET','PATCH']},"
-                + "{'type':'RefererAllowedList','type':'RefererAllowedList','allowedReferrers':['http://hostname3.com','http://hostname2.com','http://hostname1.com']}]}" );
+            "{'attributes':[{'type': 'IpAllowedList','allowedIps':['1.1.1.1','2.2.2.2','3.3.3.3']},"
+                + "{'type':'MethodAllowedList','allowedMethods':['POST','GET','PATCH']},"
+                + "{'type':'RefererAllowedList','allowedReferrers':['http://hostname3.com','http://hostname2.com','http://hostname1.com']}]}" );
         return assertStatus( HttpStatus.CREATED, post );
     }
 

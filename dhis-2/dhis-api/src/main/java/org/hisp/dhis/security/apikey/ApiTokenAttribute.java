@@ -39,7 +39,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes( {
     @JsonSubTypes.Type( value = IpAllowedList.class, name = "IpAllowedList" ),
     @JsonSubTypes.Type( value = RefererAllowedList.class, name = "RefererAllowedList" ),

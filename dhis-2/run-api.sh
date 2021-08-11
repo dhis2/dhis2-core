@@ -39,7 +39,7 @@ echo -e "Port: $DHIS2_PORT\n"
 [ ! -d $DHIS2_HOME ] && echo "DHIS2_HOME directory '$DHIS2_HOME' DOES NOT exists, aborting..." && exit 1;
 [ ! -f "$DHIS2_HOME/dhis.conf" ] && echo "dhis.conf in directory '$DHIS2_HOME' DOES NOT exists, aborting..." && exit 1;
 
-read -p "Do you wan to compile first? (if yes press y/Y to continue) " -n 1 -r
+read -p "Do you want to compile first? (if yes press y/Y to continue) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   mvn clean install -Pdev -Pjdk11 -T 100C -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
