@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.analytics.security;
 
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.util.Set;
 
@@ -47,6 +50,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +81,8 @@ public class AnalyticsSecurityManagerTest
 
     private CategoryOption coB;
 
+    private CategoryOption coNotReadable;
+
     private Category caA;
 
     private DataElement deA;
@@ -91,18 +98,6 @@ public class AnalyticsSecurityManagerTest
     @Override
     public void setUpTest()
     {
-        coA = createCategoryOption( 'A' );
-        coB = createCategoryOption( 'B' );
-
-        categoryService.addCategoryOption( coA );
-        categoryService.addCategoryOption( coB );
-
-        caA = createCategory( 'A', coA, coB );
-
-        categoryService.addCategory( caA );
-
-        Set<Category> catDimensionConstraints = Sets.newHashSet( caA );
-
         deA = createDataElement( 'A' );
 
         dataElementService.addDataElement( deA );
@@ -118,6 +113,24 @@ public class AnalyticsSecurityManagerTest
         userOrgUnits = Sets.newHashSet( ouB, ouC );
 
         userService = (UserService) getBean( UserService.ID );
+
+        coA = createCategoryOption( 'A' );
+        coB = createCategoryOption( 'B' );
+
+        User user = createUser( 'U' );
+        userService.addUser( user );
+        coNotReadable = createCategoryOption( 'N' );
+        coNotReadable.setPublicAccess( AccessStringHelper.READ );
+        coNotReadable.setUser( user );
+
+        categoryService.addCategoryOption( coA );
+        categoryService.addCategoryOption( coB );
+        categoryService.addCategoryOption( coNotReadable );
+
+        caA = createCategory( 'A', coA, coB, coNotReadable );
+        categoryService.addCategory( caA );
+
+        Set<Category> catDimensionConstraints = Sets.newHashSet( caA );
 
         createUserAndInjectSecurityContext( userOrgUnits, userOrgUnits, catDimensionConstraints, false,
             "F_VIEW_EVENT_ANALYTICS" );
@@ -158,6 +171,29 @@ public class AnalyticsSecurityManagerTest
         assertEquals( userOrgUnits, Sets.newHashSet( params.getFilterOrganisationUnits() ) );
         assertNotNull( params.getFilter( caA.getDimension() ) );
         assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
+    }
+
+    @Test
+    public void testWithUserConstraintsEventQueryParamsCheckingNotReadableCategoryOption()
+    {
+        // Given
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addItem( new QueryItem( deA ) )
+            .withStartDate( getDate( 2018, 1, 1 ) )
+            .withEndDate( getDate( 2018, 4, 1 ) )
+            .build();
+
+        // When
+        params = securityManager.withUserConstraints( params );
+
+        // Then
+        int authorizedCatOptions = 2;
+
+        assertEquals( userOrgUnits, Sets.newHashSet( params.getFilterOrganisationUnits() ) );
+        assertNotNull( params.getFilter( caA.getDimension() ) );
+        assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
+        assertEquals( authorizedCatOptions, params.getFilter( caA.getDimension() ).getItems().size() );
+        assertThat( params.getFilter( caA.getDimension() ).getItems(), not( hasItem( coNotReadable ) ) );
     }
 
     @Test
