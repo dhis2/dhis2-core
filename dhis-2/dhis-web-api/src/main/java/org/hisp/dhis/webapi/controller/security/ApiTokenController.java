@@ -186,12 +186,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
 
     protected void validateBeforeCreate( ApiToken token )
     {
-        final String key = token.getKey();
-        if ( key != null )
-        {
-            throw new IllegalArgumentException( "ApiToken key can not be specified." );
-        }
-
         validateExpiry( token );
         validateApiKeyAttributes( token );
     }

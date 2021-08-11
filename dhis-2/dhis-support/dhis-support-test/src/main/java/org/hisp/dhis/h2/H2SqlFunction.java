@@ -29,6 +29,7 @@ package org.hisp.dhis.h2;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import javax.sql.DataSource;
@@ -51,17 +52,26 @@ public class H2SqlFunction
         {
             try (Connection connection = dataSource.getConnection())
             {
-                connection.createStatement()
-                    .execute(
-                        "CREATE ALIAS jsonb_extract_path_text FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_extract_path_text\"" );
+                try (Statement statement = connection.createStatement())
+                {
+                    statement
+                        .execute(
+                            "CREATE ALIAS jsonb_extract_path_text FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_extract_path_text\"" );
+                }
 
-                connection.createStatement()
-                    .execute(
-                        "CREATE ALIAS jsonb_has_user_id FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_has_user_id\"" );
+                try (Statement statement = connection.createStatement())
+                {
+                    statement
+                        .execute(
+                            "CREATE ALIAS jsonb_has_user_id FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_has_user_id\"" );
+                }
 
-                connection.createStatement()
-                    .execute(
-                        "CREATE ALIAS jsonb_check_user_access FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_check_user_access\"" );
+                try (Statement statement = connection.createStatement())
+                {
+                    statement
+                        .execute(
+                            "CREATE ALIAS jsonb_check_user_access FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_check_user_access\"" );
+                }
             }
         }
         catch ( SQLException exception )
