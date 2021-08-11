@@ -131,5 +131,4 @@ public final class ApiTokenResolver
         return ((this.allowFormEncodedBodyParameter && "POST".equals( request.getMethod() ))
             || (this.allowUriQueryParameter && "GET".equals( request.getMethod() )));
     }
-
 }

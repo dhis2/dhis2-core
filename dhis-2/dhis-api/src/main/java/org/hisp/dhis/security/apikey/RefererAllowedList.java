@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  */
 public class RefererAllowedList extends ApiTokenAttribute implements Serializable
 {
-    private Set<String> allowedReferrers = Collections.emptySet();
+    private Set<String> allowedReferrers = new HashSet<>();
 
     public RefererAllowedList()
     {

@@ -31,13 +31,11 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpStatus;
@@ -74,7 +72,7 @@ public class DhisApiTokenAuthenticationEntryPoint implements AuthenticationEntry
         throws IOException,
         ServletException
     {
-        _commence( request, response, authException );
+        _commence( response );
 
         HandlerExceptionResolver handlerExceptionResolver;
         try
@@ -89,8 +87,7 @@ public class DhisApiTokenAuthenticationEntryPoint implements AuthenticationEntry
         }
     }
 
-    public void _commence( HttpServletRequest request, HttpServletResponse response,
-        AuthenticationException authException )
+    public void _commence( HttpServletResponse response )
     {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         LinkedHashMap<String, String> parameters = new LinkedHashMap<>();
@@ -101,6 +98,7 @@ public class DhisApiTokenAuthenticationEntryPoint implements AuthenticationEntry
         }
 
         String wwwAuthenticate = computeWWWAuthenticateHeaderValue( parameters );
+
         response.addHeader( "WWW-Authenticate", wwwAuthenticate );
         response.setStatus( status.value() );
     }
@@ -109,6 +107,7 @@ public class DhisApiTokenAuthenticationEntryPoint implements AuthenticationEntry
     {
         StringBuilder wwwAuthenticate = new StringBuilder();
         wwwAuthenticate.append( "ApiToken" );
+
         if ( !parameters.isEmpty() )
         {
             wwwAuthenticate.append( " " );

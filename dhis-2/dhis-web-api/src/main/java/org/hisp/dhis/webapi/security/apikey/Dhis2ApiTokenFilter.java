@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -39,10 +38,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAttribute;
+import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.IpAllowedList;
 import org.hisp.dhis.security.apikey.MethodAllowedList;
 import org.hisp.dhis.security.apikey.RefererAllowedList;
 import org.hisp.dhis.util.ObjectUtils;
+
 import org.springframework.core.log.LogMessage;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
@@ -73,10 +74,13 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
 
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    public Dhis2ApiTokenFilter( ApiTokenAuthManager apiTokenAuthManager,
+    private final ApiTokenService apiTokenService;
+
+    public Dhis2ApiTokenFilter( ApiTokenService apiTokenService, ApiTokenAuthManager apiTokenAuthManager,
         AuthenticationEntryPoint authenticationEntryPoint,
         DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher )
     {
+        this.apiTokenService = apiTokenService;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.apiTokenAuthManager = apiTokenAuthManager;
         this.authenticationFailureHandler = ( request, response, exception ) -> {
@@ -125,10 +129,13 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
             return;
         }
 
+        final String hashedKey = apiTokenService.hashKey( tokenKey );
+        tokenKey = null;
+
         try
         {
             ApiTokenAuthenticationToken authenticationToken = (ApiTokenAuthenticationToken) apiTokenAuthManager
-                .authenticate( new ApiTokenAuthenticationToken( tokenKey ) );
+                .authenticate( new ApiTokenAuthenticationToken( hashedKey ) );
 
             // Set values unique to each request
             authenticationToken.setDetails( this.authenticationDetailsSource.buildDetails( request ) );
@@ -165,53 +172,65 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
         {
             if ( attribute instanceof IpAllowedList )
             {
-                IpAllowedList ipAllowedList = (IpAllowedList) attribute;
-                if ( !ipAllowedList.getAllowedIps().isEmpty() )
-                {
-                    String requestRemoteAddr = ObjectUtils
-                        .firstNonNull( request.getHeader( HEADER_FORWARDED_FOR ), request.getRemoteAddr() );
-
-                    if ( !ipAllowedList.getAllowedIps().contains( requestRemoteAddr ) )
-                    {
-                        errors.add( "Failed to authenticate API token, request ip address is not allowed." );
-                    }
-                }
+                validateIp( request, errors, (IpAllowedList) attribute );
             }
 
             if ( attribute instanceof RefererAllowedList )
             {
-                RefererAllowedList refererAllowedList = (RefererAllowedList) attribute;
-                if ( !refererAllowedList.getAllowedReferrers().isEmpty() )
-                {
-                    String referrer = request.getHeader( "referrer" );
-
-                    if ( referrer == null || !refererAllowedList.getAllowedReferrers()
-                        .contains( referrer.toLowerCase( Locale.ROOT ) ) )
-                    {
-                        errors.add(
-                            "Failed to authenticate API token, request http referrer is missing or not allowed." );
-                    }
-                }
+                validateReferer( request, errors, (RefererAllowedList) attribute );
             }
 
             if ( attribute instanceof MethodAllowedList )
             {
-                MethodAllowedList methodAllowedList = (MethodAllowedList) attribute;
-                if ( !methodAllowedList.getAllowedMethods().isEmpty() )
-                {
-                    String method = request.getMethod();
-
-                    if ( !methodAllowedList.getAllowedMethods().contains( method ) )
-                    {
-                        errors.add( "Failed to authenticate API token, request http method is not allowed." );
-                    }
-                }
+                validateMethod( request, errors, (MethodAllowedList) attribute );
             }
         }
 
         if ( !errors.isEmpty() )
         {
             throw new ApiTokenConstraintsValidationFailedException( errors.get( 0 ) );
+        }
+    }
+
+    private void validateMethod( HttpServletRequest request, List<String> errors, MethodAllowedList attribute )
+    {
+        if ( !attribute.getAllowedMethods().isEmpty() )
+        {
+            String method = request.getMethod();
+
+            if ( !attribute.getAllowedMethods().contains( method ) )
+            {
+                errors.add( "Failed to authenticate API token, request http method is not allowed." );
+            }
+        }
+    }
+
+    private void validateReferer( HttpServletRequest request, List<String> errors, RefererAllowedList attribute )
+    {
+        if ( !attribute.getAllowedReferrers().isEmpty() )
+        {
+            String referrer = request.getHeader( "referrer" );
+
+            if ( referrer == null || !attribute.getAllowedReferrers()
+                .contains( referrer.toLowerCase( Locale.ROOT ) ) )
+            {
+                errors.add(
+                    "Failed to authenticate API token, request http referrer is missing or not allowed." );
+            }
+        }
+    }
+
+    private void validateIp( HttpServletRequest request, List<String> errors, IpAllowedList attribute )
+    {
+        if ( !attribute.getAllowedIps().isEmpty() )
+        {
+            String requestRemoteAddr = ObjectUtils
+                .firstNonNull( request.getHeader( HEADER_FORWARDED_FOR ), request.getRemoteAddr() );
+
+            if ( !attribute.getAllowedIps().contains( requestRemoteAddr ) )
+            {
+                errors.add( "Failed to authenticate API token, request ip address is not allowed." );
+            }
         }
     }
 }

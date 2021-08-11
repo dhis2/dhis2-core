@@ -29,8 +29,6 @@ package org.hisp.dhis.webapi.security.apikey;
 
 import java.util.Optional;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.security.apikey.ApiToken;
@@ -38,28 +36,24 @@ import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 /**
- * Processes API token authentication requests, looks for the 'Authorization'
- * header containing an API token. If the token is found, the request will be
- * authenticated only if the token is not expired and the request constraint
- * rules are matching.
+ * Processes API token authentication requests, looks for the 'Authorization' header containing an API token. If the
+ * token is found, the request will be authenticated only if the token is not expired and the request constraint rules
+ * are matching.
  */
 @Slf4j
 @Service
 public class ApiTokenAuthManager implements AuthenticationManager
 {
-    // @Autowired
-    private CacheProvider cacheProvider;
-
-    // @Autowired
     private ApiTokenService apiTokenService;
 
-    // @Autowired
     private UserService userService;
 
     private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
@@ -68,7 +62,6 @@ public class ApiTokenAuthManager implements AuthenticationManager
     {
         this.userService = userService;
         this.apiTokenService = apiTokenService;
-        this.cacheProvider = cacheProvider;
         this.apiTokenCache = cacheProvider.createApiKeyCache();
     }
 

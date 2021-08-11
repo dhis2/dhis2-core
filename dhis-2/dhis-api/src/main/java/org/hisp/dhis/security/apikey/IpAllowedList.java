@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  */
 public class IpAllowedList extends ApiTokenAttribute implements Serializable
 {
-    private Set<String> allowedIps = Collections.emptySet();
+    private Set<String> allowedIps = new HashSet<>();
 
     public IpAllowedList()
     {
@@ -72,7 +72,7 @@ public class IpAllowedList extends ApiTokenAttribute implements Serializable
     {
         final IpAllowedList ipAllowedList = new IpAllowedList();
         ipAllowedList.setAllowedIps( new HashSet<>(
-            Stream.of( values ).map( s -> s.toLowerCase( Locale.ROOT ) ).collect( Collectors.toSet() ) ) );
+            Stream.of( values ).collect( Collectors.toSet() ) ) );
         return ipAllowedList;
     }
 

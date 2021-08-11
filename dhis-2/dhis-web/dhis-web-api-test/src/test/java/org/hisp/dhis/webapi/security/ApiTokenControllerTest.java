@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,17 +36,19 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonList;
+import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonApiToken;
+import org.hisp.dhis.webapi.utils.WebClientUtils;
 import org.junit.Before;
 import org.junit.Test;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -66,6 +68,24 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
     public final void setupTest()
     {
         this.renderService = _renderService;
+    }
+
+    @Test
+    public void testCreate()
+        throws IOException
+    {
+        final JsonObject jsonObject = assertApiTokenCreatedResponse(
+            POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/", "{}" ) );
+
+        final String uid = jsonObject.getString( "uid" ).string();
+        final String key = jsonObject.getString( "key" ).string();
+
+        assertNotNull( uid );
+        assertEquals( 128, key.length() );
+
+        final ApiToken token = fetchAsEntity( uid );
+
+        assertEquals( 64, token.getKey().length() );
     }
 
     @Test
@@ -169,6 +189,63 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
                 "[{'op':'replace','path':'/key','value':'MY NEW VALUE'}]" ) );
 
         assertEquals( "ApiToken key can not be modified.", patch.error().getMessage() );
+    }
+
+    @Test
+    public void testCantAddInvalidIp()
+    {
+        final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
+            "{'attributes':[{'type':'IpAllowedList','type': 'IpAllowedList','allowedIps':['X.1.1.1','2.2.2.2','3.3.3.3']}]}" );
+
+        assertEquals( "Not a valid ip address, value=X.1.1.1", post.error().getMessage() );
+    }
+
+    @Test
+    public void testCantAddInvalidIpPut()
+        throws IOException
+    {
+        final ApiToken token = createNewEmptyToken();
+        token.addIpToAllowedList( "X.1.1.1" );
+
+        final HttpResponse put = PUT( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}", token.getUid(),
+            Body( renderService.toJsonAsString( token ) ) );
+
+        assertEquals( "Not a valid ip address, value=X.1.1.1", put.error().getMessage() );
+    }
+
+    @Test
+    public void testCantAddInvalidIpPatch()
+        throws IOException
+    {
+        final ApiToken token = createNewEmptyToken();
+
+        final HttpResponse patch = PATCH( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}",
+            token.getUid() + "?importReportMode=ERRORS",
+            Body(
+                "[{'op':'replace','path':'/attributes','value':[{'type':'IpAllowedList','type': 'IpAllowedList','allowedIps':['X.1.1.1']}]}]" ) );
+
+        assertEquals( "Not a valid ip address, value=X.1.1.1", patch.error().getMessage() );
+    }
+
+    @Test
+    public void testCantAddInvalidMethod()
+    {
+        final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
+            "{'attributes':["
+                + "{'type':'MethodAllowedList','type':'MethodAllowedList','allowedMethods':['POST','X','PATCH']}"
+                + "]}" );
+
+        assertEquals( "Not a valid http method, value=X", post.error().getMessage() );
+    }
+
+    @Test
+    public void testCantAddInvalidReferrer()
+    {
+        final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
+            "{'attributes':["
+                + "{'type':'RefererAllowedList','type':'RefererAllowedList','allowedReferrers':['http:XXX//hostname3.com','http://hostname2.com','http://hostname1.com']}]}" );
+
+        assertEquals( "Not a valid referrer url, value=http:XXX//hostname3.com", post.error().getMessage() );
     }
 
     @Test
@@ -277,7 +354,7 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
         final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
             "{'expire': 0}" );
 
-        assertEquals( "ApiToken expire must be greater than current time", post.error().getMessage() );
+        assertEquals( "ApiToken expire timestamp must be in the future.", post.error().getMessage() );
     }
 
     @Test
@@ -299,18 +376,20 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
     private ApiToken createNewEmptyToken()
         throws IOException
     {
+        final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/", "{}" );
         final String uid = assertStatus( HttpStatus.CREATED,
-            POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/", "{}" ) );
+            post );
 
         return fetchAsEntity( uid );
     }
 
     private String createNewTokenWithAttributes()
     {
-        return assertStatus( HttpStatus.CREATED, POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
+        final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
             "{'attributes':[{'type':'IpAllowedList','type': 'IpAllowedList','allowedIps':['1.1.1.1','2.2.2.2','3.3.3.3']},"
                 + "{'type':'MethodAllowedList','type':'MethodAllowedList','allowedMethods':['POST','GET','PATCH']},"
-                + "{'type':'RefererAllowedList','type':'RefererAllowedList','allowedReferrers':['http://hostname3.com','http://hostname2.com','http://hostname1.com']}]}" ) );
+                + "{'type':'RefererAllowedList','type':'RefererAllowedList','allowedReferrers':['http://hostname3.com','http://hostname2.com','http://hostname1.com']}]}" );
+        return assertStatus( HttpStatus.CREATED, post );
     }
 
     private ApiToken fetchAsEntity( String uid )
@@ -320,5 +399,24 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
             .content().getJsonDocument().toString();
 
         return renderService.fromJson( json, ApiToken.class );
+    }
+
+    public static JsonObject assertApiTokenCreatedResponse( HttpResponse actual )
+    {
+        HttpStatus actualStatus = actual.status();
+        if ( HttpStatus.CREATED != actualStatus )
+        {
+            assertEquals( "Actual response is not CREATED", HttpStatus.CREATED, actualStatus );
+        }
+
+        WebClientUtils.assertValidLocation( actual );
+
+        JsonObject report = actual.contentUnchecked().getObject( "response" );
+        if ( report.exists() )
+        {
+            return report;
+        }
+
+        throw new IllegalStateException( "Response is not a proper ApiTokenCreatedResponse" );
     }
 }

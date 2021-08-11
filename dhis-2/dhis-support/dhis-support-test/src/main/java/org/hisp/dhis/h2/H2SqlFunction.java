@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,16 @@
  */
 package org.hisp.dhis.h2;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.sql.DataSource;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.postgresql.util.PGobject;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
+import org.postgresql.util.PGobject;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -46,20 +44,31 @@ import com.google.gson.Gson;
 @Slf4j
 public class H2SqlFunction
 {
-
     public static void registerH2Functions( DataSource dataSource )
         throws SQLException
     {
-        dataSource.getConnection().createStatement()
-            .execute(
-                "CREATE ALIAS jsonb_extract_path_text FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_extract_path_text\"" );
+        try
+        {
+            try (Connection connection = dataSource.getConnection())
+            {
+                connection.createStatement()
+                    .execute(
+                        "CREATE ALIAS jsonb_extract_path_text FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_extract_path_text\"" );
 
-        dataSource.getConnection().createStatement()
-            .execute( "CREATE ALIAS jsonb_has_user_id FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_has_user_id\"" );
+                connection.createStatement()
+                    .execute(
+                        "CREATE ALIAS jsonb_has_user_id FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_has_user_id\"" );
 
-        dataSource.getConnection().createStatement()
-            .execute(
-                "CREATE ALIAS jsonb_check_user_access FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_check_user_access\"" );
+                connection.createStatement()
+                    .execute(
+                        "CREATE ALIAS jsonb_check_user_access FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_check_user_access\"" );
+            }
+        }
+        catch ( SQLException exception )
+        {
+            log.info( "Failed to register custom H2Functions, probably already registered, ignoring this.",
+                exception );
+        }
     }
 
     // Postgres inbuilt function
@@ -75,10 +84,9 @@ public class H2SqlFunction
 
             if ( retMap != null )
             {
-                final String s = (String) retMap.get( input2 );
-                return s;
+                return (String) retMap.get( input2 );
             }
-            throw new IllegalArgumentException( "Wrong input" );
+            throw new IllegalArgumentException( "Wrong input to jsonb_extract_path_text" );
         }
         catch ( Exception e )
         {
@@ -103,7 +111,7 @@ public class H2SqlFunction
                 final String s = (String) retMap.get( "owner" );
                 return input2.equals( s );
             }
-            throw new IllegalArgumentException( "Wrong input" );
+            throw new IllegalArgumentException( "Wrong input to jsonb_has_user_id" );
         }
         catch ( Exception e )
         {
@@ -134,7 +142,7 @@ public class H2SqlFunction
 
                 return ownerMatches && patternMatches;
             }
-            throw new IllegalArgumentException( "Wrong input" );
+            throw new IllegalArgumentException( "Wrong input to jsonb_check_user_access" );
 
         }
         catch ( Exception e )

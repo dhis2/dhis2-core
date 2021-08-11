@@ -50,7 +50,7 @@ public abstract class ApiTokenAttribute implements Serializable
     @JsonProperty
     protected final String type;
 
-    public ApiTokenAttribute( String type )
+    protected ApiTokenAttribute( String type )
     {
         this.type = type;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
@@ -43,11 +41,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.web.servlet.MockMvc;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -72,6 +71,7 @@ public class ApiTokenServiceImplTest extends DhisSpringTest
     @Autowired
     private UserService _userService;
 
+
     protected MockMvc mvc;
 
     @Before
@@ -81,13 +81,22 @@ public class ApiTokenServiceImplTest extends DhisSpringTest
         userService = _userService;
     }
 
+    public ApiToken createAndSaveToken()
+    {
+        final ApiToken token = new ApiToken();
+        final ApiToken object = apiTokenService.initToken( token );
+        apiTokenStore.save( object );
+
+        return token;
+    }
+
     @Test
     public void testListTokens()
     {
         preCreateInjectAdminUser();
 
-        apiTokenService.createAndSaveToken();
-        apiTokenService.createAndSaveToken();
+        createAndSaveToken();
+        createAndSaveToken();
 
         final List<ApiToken> all = apiTokenService.getAll();
 
@@ -99,8 +108,8 @@ public class ApiTokenServiceImplTest extends DhisSpringTest
     {
         preCreateInjectAdminUser();
 
-        apiTokenService.createAndSaveToken();
-        apiTokenService.createAndSaveToken();
+        createAndSaveToken();
+        createAndSaveToken();
 
         switchToOtherUser();
 
@@ -114,7 +123,7 @@ public class ApiTokenServiceImplTest extends DhisSpringTest
     {
         preCreateInjectAdminUser();
 
-        final ApiToken apiToken0 = apiTokenService.createAndSaveToken();
+        final ApiToken apiToken0 = createAndSaveToken();
         final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
 
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
@@ -125,7 +134,7 @@ public class ApiTokenServiceImplTest extends DhisSpringTest
     {
         preCreateInjectAdminUser();
 
-        final ApiToken apiToken0 = apiTokenService.createAndSaveToken();
+        final ApiToken apiToken0 = createAndSaveToken();
         final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
 
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
@@ -142,7 +151,7 @@ public class ApiTokenServiceImplTest extends DhisSpringTest
     {
         preCreateInjectAdminUser();
 
-        final ApiToken apiToken0 = apiTokenService.createAndSaveToken();
+        final ApiToken apiToken0 = createAndSaveToken();
         final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
 
@@ -158,7 +167,7 @@ public class ApiTokenServiceImplTest extends DhisSpringTest
     {
         preCreateInjectAdminUser();
 
-        final ApiToken apiToken0 = apiTokenService.createAndSaveToken();
+        final ApiToken apiToken0 = createAndSaveToken();
         final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
 
@@ -171,7 +180,7 @@ public class ApiTokenServiceImplTest extends DhisSpringTest
     {
         preCreateInjectAdminUser();
 
-        final ApiToken apiToken0 = apiTokenService.createAndSaveToken();
+        final ApiToken apiToken0 = createAndSaveToken();
         final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
 

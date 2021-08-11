@@ -24,16 +24,29 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
-package org.hisp.dhis.webapi.security.apikey;
+
+package org.hisp.dhis.webapi.controller.security;
+
+import org.hisp.dhis.dxf2.webmessage.WebMessageResponse;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ApiTokenExpiredException extends ApiTokenAuthenticationException
+public class ApiTokenCreationResponse implements WebMessageResponse
 {
-    public ApiTokenExpiredException( String error )
+    @JsonProperty
+    private String key;
+
+    @JsonProperty
+    private String uid;
+
+    public ApiTokenCreationResponse( String uid, String key )
     {
-        super( ApiTokenErrors.invalidToken( error ) );
+        this.uid = uid;
+        this.key = key;
     }
 }

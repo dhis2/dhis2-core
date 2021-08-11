@@ -29,18 +29,19 @@ package org.hisp.dhis.security.apikey;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Hashing;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -49,7 +50,7 @@ import com.google.common.hash.Hashing;
 @Transactional
 public class ApiTokenServiceImpl implements ApiTokenService
 {
-    private final static Long DEFAULT_EXPIRE_TIME_IN_MILLIS = TimeUnit.DAYS.toMillis( 14 );
+    private static final Long DEFAULT_EXPIRE_TIME_IN_MILLIS = TimeUnit.DAYS.toMillis( 30 );
 
     private final ApiTokenStore apiTokenStore;
 
@@ -118,16 +119,6 @@ public class ApiTokenServiceImpl implements ApiTokenService
         // Invalidate cache here or let cache expire ?
     }
 
-    @Override
-    public ApiToken createAndSaveToken()
-    {
-        final ApiToken token = new ApiToken();
-        final ApiToken object = initToken( token );
-        apiTokenStore.save( object );
-
-        return token;
-    }
-
     public ApiToken initToken( ApiToken token )
     {
         Random random = ThreadLocalRandom.current();
@@ -135,13 +126,22 @@ public class ApiTokenServiceImpl implements ApiTokenService
         random.nextBytes( r );
 
         String keyAsSha512Hex = Hashing.sha512().hashBytes( r ).toString();
-
         token.setKey( keyAsSha512Hex );
-        token.setExpire( System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_IN_MILLIS );
+
+        if ( token.getExpire() == null )
+        {
+            token.setExpire( System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_IN_MILLIS );
+        }
+
         token.setVersion( 1 );
         token.setType( 1 );
 
         return token;
+    }
+
+    public String hashKey( String key )
+    {
+        return Hashing.sha256().hashBytes( key.getBytes( StandardCharsets.UTF_8 ) ).toString();
     }
 
     @Override

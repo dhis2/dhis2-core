@@ -50,9 +50,9 @@ public interface ApiTokenService
 
     void delete( ApiToken apiToken );
 
-    ApiToken createAndSaveToken();
-
     ApiToken getWithUid( String uid );
 
     ApiToken initToken( ApiToken entity );
+
+    String hashKey( String key );
 }
