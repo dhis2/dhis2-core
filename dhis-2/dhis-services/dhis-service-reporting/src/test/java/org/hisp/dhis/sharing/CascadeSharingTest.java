@@ -85,6 +85,14 @@ public abstract class CascadeSharingTest
         return dashboard;
     }
 
+    protected Dashboard createDashboard( String name, Sharing sharing )
+    {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setName( "dashboardA" );
+        dashboard.setSharing( sharing );
+        return dashboard;
+    }
+
     protected EventChart createEventChart( String name, Program program )
     {
         EventChart eventChart = new EventChart();

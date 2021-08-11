@@ -34,6 +34,7 @@ import static org.junit.Assert.assertTrue;
 import org.apache.commons.collections.SetUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
@@ -43,6 +44,14 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.EventChartSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.EventReportSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.ProgramStageSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -95,6 +104,8 @@ public class DashboardCascadeSharingTest
         userService = _userService;
         userA = createUser( 'A' );
         userB = createUser( 'B' );
+        userService.addUser( userA );
+        userService.addUser( userB );
 
         userGroupA = createUserGroup( 'A', SetUtils.EMPTY_SET );
 
@@ -307,10 +318,10 @@ public class DashboardCascadeSharingTest
 
         assertEquals( 0, report.getErrorReports().size() );
         assertEquals( 4, report.getUpdatedObjects().size() );
-        assertEquals( 1, report.getUpdateObjects( DataElement.class ).size() );
-        assertEquals( 1, report.getUpdateObjects( LegendSet.class ).size() );
-        assertEquals( 1, report.getUpdateObjects( ProgramStage.class ).size() );
-        assertEquals( 1, report.getUpdateObjects( EventReport.class ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( DataElementSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( LegendSetSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( ProgramStageSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( EventReportSchemaDescriptor.PLURAL ).size() );
 
         assertTrue( aclService.canRead( userA, eventReport ) );
         assertTrue( aclService.canRead( userA, deA ) );
@@ -356,9 +367,9 @@ public class DashboardCascadeSharingTest
 
         assertEquals( 0, report.getErrorReports().size() );
         assertEquals( 3, report.getUpdatedObjects().size() );
-        assertEquals( 1, report.getUpdateObjects( LegendSet.class ).size() );
-        assertEquals( 1, report.getUpdateObjects( TrackedEntityAttribute.class ).size() );
-        assertEquals( 1, report.getUpdateObjects( EventChart.class ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( LegendSetSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( TrackedEntityAttributeSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( EventChartSchemaDescriptor.PLURAL ).size() );
 
         assertTrue( aclService.canRead( userA, eventChart ) );
         assertTrue( aclService.canRead( userA, legendSet ) );
@@ -395,9 +406,9 @@ public class DashboardCascadeSharingTest
             new CascadeSharingParameters() );
         assertEquals( 0, report.getErrorReports().size() );
         assertEquals( 3, report.getUpdatedObjects().size() );
-        assertEquals( 1, report.getUpdateObjects( DataElement.class ).size() );
-        assertEquals( 1, report.getUpdateObjects( Indicator.class ).size() );
-        assertEquals( 1, report.getUpdateObjects( Visualization.class ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( DataElementSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( IndicatorSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdatedObjects().get( VisualizationSchemaDescriptor.PLURAL ).size() );
 
         DataElement updatedDataElementA = objectManager.get( DataElement.class, dataElementA.getUid() );
         Indicator updatedIndicatorA = objectManager.get( Indicator.class, indicatorA.getUid() );
@@ -426,5 +437,69 @@ public class DashboardCascadeSharingTest
         assertEquals( 0, report.getErrorReports().size() );
         assertFalse( aclService.canRead( userA, dashboard.getItems().get( 0 ).getMap() ) );
         assertFalse( aclService.canRead( userB, dashboard.getItems().get( 0 ).getMap() ) );
+    }
+
+    @Test
+    public void testAtomicTrue()
+    {
+        Map mapA = createMap( "A" );
+        mapA.setSharing( sharingReadWriteForUserB );
+        objectManager.save( mapA, false );
+        assertFalse( aclService.canRead( userA, mapA ) );
+
+        Map mapB = createMap( "A" );
+        mapB.setSharing( defaultSharing() );
+        objectManager.save( mapB, false );
+
+        DashboardItem itemB = createDashboardItem( "B" );
+        itemB.setMap( mapB );
+
+        DashboardItem itemA = createDashboardItem( "A" );
+        itemA.setMap( mapA );
+
+        Dashboard dashboard = createDashboard( "A", sharingReadForUserA );
+        dashboard.getItems().add( itemA );
+        dashboard.getItems().add( itemB );
+
+        objectManager.save( dashboard, false );
+
+        assertFalse( aclService.canRead( userA, mapA ) );
+
+        CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
+            CascadeSharingParameters.builder().atomic( true ).user( userB ).build() );
+
+        assertEquals( 1, report.getErrorReports().size() );
+        System.out.println( "report = " + report );
+
+        System.out.println( "mapA.getSharing() = " + mapA.getSharing() );
+        assertFalse( aclService.canRead( userA, mapA ) );
+        assertFalse( aclService.canRead( userA, mapB ) );
+    }
+
+    @Test
+    public void testAtomicFalse()
+    {
+        Map mapA = createMap( "A" );
+        mapA.setSharing( sharingReadWriteForUserB );
+        objectManager.save( mapA, false );
+
+        Map mapB = createMap( "A" );
+        mapB.setSharing( defaultSharing() );
+        objectManager.save( mapB, false );
+        DashboardItem itemB = createDashboardItem( "B" );
+        itemB.setMap( mapB );
+
+        Dashboard dashboard = createDashboardWithItem( "A", sharingReadForUserA );
+        dashboard.getItems().get( 0 ).setMap( mapA );
+        dashboard.getItems().add( itemB );
+
+        objectManager.save( dashboard, false );
+
+        CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
+            CascadeSharingParameters.builder().atomic( false ).user( userB ).build() );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertTrue( aclService.canRead( userA, mapA ) );
+        assertFalse( aclService.canRead( userA, mapB ) );
     }
 }

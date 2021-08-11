@@ -120,7 +120,7 @@ public class DashboardController
 
     @PostMapping( "cascadeSharing/{uid}" )
     public @ResponseBody CascadeSharingReport cascadeSharing( @PathVariable( "uid" ) String dashboardId,
-        @RequestParam( required = false ) boolean dryRun )
+        @RequestParam( required = false ) boolean dryRun, @RequestParam( required = false ) boolean atomic )
         throws WebMessageException
     {
         Dashboard dashboard = dashboardService.getDashboard( dashboardId );
@@ -131,7 +131,8 @@ public class DashboardController
         }
 
         return cascadeSharingService.cascadeSharing( dashboard,
-            CascadeSharingParameters.builder().dryRun( dryRun ).build() );
+            CascadeSharingParameters.builder().user( currentUserService.getCurrentUser() )
+                .atomic( atomic ).dryRun( dryRun ).build() );
     }
 
     /**

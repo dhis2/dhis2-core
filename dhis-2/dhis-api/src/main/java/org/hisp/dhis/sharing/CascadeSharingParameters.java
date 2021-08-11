@@ -32,6 +32,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.user.User;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -44,6 +46,16 @@ public class CascadeSharingParameters
      * FALSE: save data if possible.
      */
     private boolean dryRun = false;
+
+    /**
+     * TRUE: Cascade Sharing will fail if there is an error
+     * <p>
+     * FALSE: Cascade Sharing will try with best effort and report the
+     * successfully shared objects.
+     */
+    private boolean atomic = false;
+
+    private User user;
 
     /**
      * Report to be included in the api's response

@@ -39,9 +39,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -68,28 +68,43 @@ public class CascadeSharingReport
      * Value: Set of UIDs of updated objects
      */
     @JsonProperty
-    private Map<String, Set<String>> updatedObjects = new HashMap<>();
+    private Map<String, Set<IdObject>> updatedObjects = new HashMap<>();
 
-    public void addUpdatedObject( IdentifiableObject object )
+    public void addUpdatedObject( IdentifiableObject object, String key )
     {
-        Set<String> typeReport = getUpdatedObjects().get( HibernateProxyUtils.getRealClass( object ).getSimpleName() );
+        Set<IdObject> typeReport = getUpdatedObjects().get( key );
 
         if ( typeReport == null )
         {
             typeReport = new HashSet<>();
         }
 
-        typeReport.add( object.getUid() );
-        getUpdatedObjects().put( HibernateProxyUtils.getRealClass( object ).getSimpleName(), typeReport );
-    }
-
-    public Set<String> getUpdateObjects( Class type )
-    {
-        return getUpdatedObjects().get( type.getSimpleName() );
+        typeReport.add( new IdObject( object.getUid(), object.getDisplayName() ) );
+        getUpdatedObjects().put( key, typeReport );
     }
 
     public void incUpdatedDashboardItem()
     {
         countUpdatedDashBoardItems++;
+    }
+
+    public boolean hasErrors()
+    {
+        return !CollectionUtils.isEmpty( errorReports );
+    }
+
+    public class IdObject
+    {
+        @JsonProperty
+        private String id;
+
+        @JsonProperty
+        private String name;
+
+        public IdObject( String id, String name )
+        {
+            this.id = id;
+            this.name = name;
+        }
     }
 }
