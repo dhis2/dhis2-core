@@ -41,15 +41,12 @@ import java.util.Date;
 
 import javax.servlet.ServletException;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.metadata.MetadataExportException;
@@ -95,7 +92,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Slf4j
 @ControllerAdvice
 public class CrudControllerAdvice
 {
@@ -343,7 +339,6 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage defaultExceptionHandler( Exception ex )
     {
-        log.error( DebugUtils.getStackTrace( ex ) );
         return error( getExceptionMessage( ex ) );
     }
 
