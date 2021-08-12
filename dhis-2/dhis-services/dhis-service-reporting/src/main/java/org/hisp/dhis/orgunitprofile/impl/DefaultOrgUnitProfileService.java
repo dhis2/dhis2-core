@@ -242,6 +242,11 @@ public class DefaultOrgUnitProfileService
             }
         }
 
+        if ( orgUnit.getImage() != null )
+        {
+            info.setImageId( orgUnit.getImage().getUid() );
+        }
+
         return info;
     }
 
