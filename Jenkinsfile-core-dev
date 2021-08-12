@@ -28,7 +28,7 @@ pipeline {
                 echo 'Building DHIS2 ...'
                 script {
                     withMaven {
-                        sh 'mvn -T 4 clean install -f dhis-2/pom-full.xml -Pjdk8 --update-snapshots'
+                        sh 'mvn -X -T 4 clean install -f dhis-2/pom-full.xml -Pjdk8 --update-snapshots'
                     }
                 }
             }

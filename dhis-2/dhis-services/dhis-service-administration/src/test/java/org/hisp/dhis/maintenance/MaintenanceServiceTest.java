@@ -32,7 +32,11 @@ import static org.junit.Assert.*;
 import java.util.*;
 
 import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.audit.Audit;
+import org.hisp.dhis.audit.AuditQuery;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditService;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -100,6 +104,12 @@ public class MaintenanceServiceTest
     @Autowired
     private MaintenanceService maintenanceService;
 
+    @Autowired
+    private TrackedEntityInstanceService trackedEntityInstanceService;
+
+    @Autowired
+    private AuditService auditService;
+
     private Date incidenDate;
 
     private Date enrollmentDate;
@@ -114,11 +124,17 @@ public class MaintenanceServiceTest
 
     private ProgramInstance programInstance;
 
+    private ProgramInstance programInstanceWithTeiAssociation;
+
     private ProgramStageInstance programStageInstance;
+
+    private ProgramStageInstance programStageInstanceWithTeiAssociation;
 
     private TrackedEntityInstance entityInstance;
 
     private TrackedEntityInstance entityInstanceB;
+
+    private TrackedEntityInstance entityInstanceWithAssociations;
 
     private Collection<Long> orgunitIds;
 
@@ -154,6 +170,8 @@ public class MaintenanceServiceTest
 
         entityInstanceB = createTrackedEntityInstance( organisationUnit );
 
+        entityInstanceWithAssociations = createTrackedEntityInstance( 'T', organisationUnit );
+
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
@@ -167,6 +185,13 @@ public class MaintenanceServiceTest
         programInstance.setUid( "UID-A" );
         programInstance.setOrganisationUnit( organisationUnit );
 
+        programInstanceWithTeiAssociation = new ProgramInstance( enrollmentDate, incidenDate,
+            entityInstanceWithAssociations, program );
+        programInstanceWithTeiAssociation.setUid( "UID-B" );
+        programInstanceWithTeiAssociation.setOrganisationUnit( organisationUnit );
+        trackedEntityInstanceService.addTrackedEntityInstance( entityInstanceWithAssociations );
+
+        programInstanceService.addProgramInstance( programInstanceWithTeiAssociation );
         programInstanceService.addProgramInstance( programInstance );
 
         programStageInstance = new ProgramStageInstance( programInstance, stageA );
@@ -174,6 +199,14 @@ public class MaintenanceServiceTest
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setExecutionDate( new Date() );
+
+        programStageInstanceWithTeiAssociation = new ProgramStageInstance( programInstanceWithTeiAssociation, stageA );
+        programStageInstanceWithTeiAssociation.setUid( "PSUID-C" );
+        programStageInstanceWithTeiAssociation.setOrganisationUnit( organisationUnit );
+        programStageInstanceWithTeiAssociation.setProgramInstance( programInstanceWithTeiAssociation );
+        programStageInstanceWithTeiAssociation.setExecutionDate( new Date() );
+
+        programStageInstanceService.addProgramStageInstance( programStageInstanceWithTeiAssociation );
 
     }
 
@@ -284,7 +317,7 @@ public class MaintenanceServiceTest
         programStageInstanceService.addProgramStageInstance( programStageInstanceA );
 
         TrackedEntityDataValueAudit trackedEntityDataValueAudit = new TrackedEntityDataValueAudit( dataElement,
-            programStageInstanceA, "value", "modifiedBy", false, AuditType.UPDATE );
+            programStageInstanceA, "value", "modifiedBy", false, org.hisp.dhis.common.AuditType.UPDATE );
 
         trackedEntityDataValueAuditService.addTrackedEntityDataValueAudit( trackedEntityDataValueAudit );
 
@@ -397,5 +430,30 @@ public class MaintenanceServiceTest
         maintenanceService.deleteSoftDeletedProgramInstances();
 
         assertFalse( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
+    }
+
+    @Test
+    public void testAuditEntryForDeletionOfSoftDeletedTrackedEntityInstance()
+    {
+        trackedEntityInstanceService.deleteTrackedEntityInstance( entityInstanceWithAssociations );
+
+        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( entityInstanceWithAssociations.getId() ) );
+        assertTrue( trackedEntityInstanceService
+            .trackedEntityInstanceExistsIncludingDeleted( entityInstanceWithAssociations.getUid() ) );
+
+        maintenanceService.deleteSoftDeletedTrackedEntityInstances();
+
+        List<Audit> audits = auditService
+            .getAudits( AuditQuery.builder().auditType( Sets.newHashSet( AuditType.DELETE ) )
+                .auditScope( Sets.newHashSet( AuditScope.TRACKER ) ).build() );
+
+        assertFalse( audits.isEmpty() );
+        assertEquals( 1,
+            audits.stream().filter( a -> a.getKlass().equals( "org.hisp.dhis.program.ProgramInstance" ) ).count() );
+        assertEquals( 1, audits.stream()
+            .filter( a -> a.getKlass().equals( "org.hisp.dhis.program.ProgramStageInstance" ) ).count() );
+        assertEquals( 1, audits.stream()
+            .filter( a -> a.getKlass().equals( "org.hisp.dhis.trackedentity.TrackedEntityInstance" ) ).count() );
+        audits.forEach( a -> assertSame( a.getAuditType(), AuditType.DELETE ) );
     }
 }
