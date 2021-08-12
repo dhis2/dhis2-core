@@ -55,6 +55,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.Constants;
@@ -733,9 +734,8 @@ public abstract class AbstractEnrollmentService
         }
 
         IdentifiableObjectAssociations programAssociations = programService
-            .getAllProgramOrganisationUnitsAssociations( Collections.singleton( program.getUid() ) );
-        if ( programAssociations.get( program.getUid() ) != null
-            && programAssociations.get( program.getUid() ).size() > 0 )
+            .getProgramOrganisationUnitsAssociations( Collections.singleton( program.getUid() ) );
+        if ( !CollectionUtils.isEmpty( programAssociations.get( program.getUid() ) ) )
         {
             if ( !programAssociations.get( program.getUid() ).contains( enrollment.getOrgUnit() ) )
             {

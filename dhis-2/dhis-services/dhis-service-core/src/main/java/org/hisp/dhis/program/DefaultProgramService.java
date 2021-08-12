@@ -202,9 +202,9 @@ public class DefaultProgramService
     }
 
     @Override
-    public IdentifiableObjectAssociations getAllProgramOrganisationUnitsAssociations( Set<String> programUids )
+    public IdentifiableObjectAssociations getProgramOrganisationUnitsAssociations( Set<String> programUids )
     {
-        return jdbcOrgUnitAssociationsStore.getAllOrganisationUnitsAssociations( programUids );
+        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociations( programUids );
     }
 
 }

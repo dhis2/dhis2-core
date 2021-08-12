@@ -181,5 +181,5 @@ public interface ProgramService
      * @return A object of {@link IdentifiableObjectAssociations} containing
      *         association for each programUid
      */
-    IdentifiableObjectAssociations getAllProgramOrganisationUnitsAssociations( Set<String> programUids );
+    IdentifiableObjectAssociations getProgramOrganisationUnitsAssociations( Set<String> programUids );
 }

@@ -69,7 +69,7 @@ public class JdbcOrgUnitAssociationsStore
             } );
     }
 
-    public IdentifiableObjectAssociations getAllOrganisationUnitsAssociations( Set<String> uids )
+    public IdentifiableObjectAssociations getOrganisationUnitsAssociations( Set<String> uids )
     {
 
         return jdbcTemplate.query(
