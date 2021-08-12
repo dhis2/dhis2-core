@@ -70,7 +70,7 @@ public class CascadeSharingReport
     @JsonProperty
     private Map<String, Set<IdObject>> updatedObjects = new HashMap<>();
 
-    public void addUpdatedObject( IdentifiableObject object, String key )
+    public void addUpdatedObject( String key, IdentifiableObject object )
     {
         Set<IdObject> typeReport = getUpdatedObjects().get( key );
 
