@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -53,12 +54,16 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
 
     private final ProgramSupplier programSupplier;
 
+    private final ProgramStageInstanceSupplier programStageInstanceSupplier;
+
     public CategoryOptionComboSupplier( NamedParameterJdbcTemplate jdbcTemplate, ProgramSupplier programSupplier,
-        AttributeOptionComboLoader attributeOptionComboLoader )
+        AttributeOptionComboLoader attributeOptionComboLoader,
+        ProgramStageInstanceSupplier programStageInstanceSupplier )
     {
         super( jdbcTemplate );
         this.attributeOptionComboLoader = attributeOptionComboLoader;
         this.programSupplier = programSupplier;
+        this.programStageInstanceSupplier = programStageInstanceSupplier;
     }
 
     @Override
@@ -74,9 +79,13 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
         Map<String, CategoryOptionCombo> eventToCocMap = new HashMap<>();
         Map<String, Program> programMap = programSupplier.get( importOptions, events );
 
+        Map<String, ProgramStageInstance> programStageInstanceMap = programStageInstanceSupplier.get( importOptions,
+            events );
+
         for ( Event event : events )
         {
             Program program = programMap.get( event.getProgram() );
+            ProgramStageInstance psi = programStageInstanceMap.get( event.getUid() );
 
             // Can't proceed with null Program, this will fail during the
             // validation stage
@@ -86,8 +95,13 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
             }
 
             final CategoryCombo programCatCombo = program.getCategoryCombo();
-            final String aoc = event.getAttributeOptionCombo();
-            final String attributeCatOptions = event.getAttributeCategoryOptions();
+            String aoc = event.getAttributeOptionCombo();
+            String attributeCatOptions = event.getAttributeCategoryOptions();
+
+            if ( psi != null )
+            {
+                aoc = programStageInstanceMap.get( event.getUid() ).getAttributeOptionCombo().getUid();
+            }
 
             CategoryOptionCombo categoryOptionCombo;
 
