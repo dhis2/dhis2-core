@@ -96,4 +96,7 @@ public class OrgUnitInfo
 
     @JsonProperty
     private Double latitude;
+
+    @JsonProperty
+    private String imageId;
 }
