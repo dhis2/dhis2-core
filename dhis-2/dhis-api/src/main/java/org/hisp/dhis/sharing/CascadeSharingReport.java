@@ -68,11 +68,11 @@ public class CascadeSharingReport
      * Value: Set of UIDs of updated objects
      */
     @JsonProperty
-    private Map<String, Set<IdObject>> updatedObjects = new HashMap<>();
+    private Map<String, Set<IdObject>> updateObjects = new HashMap<>();
 
     public void addUpdatedObject( String key, IdentifiableObject object )
     {
-        Set<IdObject> typeReport = getUpdatedObjects().get( key );
+        Set<IdObject> typeReport = getUpdateObjects().get( key );
 
         if ( typeReport == null )
         {
@@ -80,7 +80,7 @@ public class CascadeSharingReport
         }
 
         typeReport.add( new IdObject( object.getUid(), object.getDisplayName() ) );
-        getUpdatedObjects().put( key, typeReport );
+        getUpdateObjects().put( key, typeReport );
     }
 
     public void incUpdatedDashboardItem()

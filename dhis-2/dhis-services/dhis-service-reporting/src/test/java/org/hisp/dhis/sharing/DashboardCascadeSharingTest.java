@@ -193,7 +193,7 @@ public class DashboardCascadeSharingTest
 
         CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
             new CascadeSharingParameters() );
-        assertEquals( 0, report.getUpdatedObjects().size() );
+        assertEquals( 0, report.getUpdateObjects().size() );
 
         assertFalse( aclService.canRead( userB, vzA ) );
         assertFalse( aclService.canRead( userB, dataElementA ) );
@@ -280,7 +280,7 @@ public class DashboardCascadeSharingTest
 
         CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
             new CascadeSharingParameters() );
-        assertEquals( 0, report.getUpdatedObjects().size() );
+        assertEquals( 0, report.getUpdateObjects().size() );
 
         assertFalse( aclService.canRead( userB, dashboard.getItems().get( 0 ).getMap() ) );
     }
@@ -317,11 +317,11 @@ public class DashboardCascadeSharingTest
             .cascadeSharing( dashboard, CascadeSharingParameters.builder().build() );
 
         assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( 4, report.getUpdatedObjects().size() );
-        assertEquals( 1, report.getUpdatedObjects().get( DataElementSchemaDescriptor.PLURAL ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( LegendSetSchemaDescriptor.PLURAL ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( ProgramStageSchemaDescriptor.PLURAL ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( EventReportSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 4, report.getUpdateObjects().size() );
+        assertEquals( 1, report.getUpdateObjects().get( DataElementSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdateObjects().get( LegendSetSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdateObjects().get( ProgramStageSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdateObjects().get( EventReportSchemaDescriptor.PLURAL ).size() );
 
         assertTrue( aclService.canRead( userA, eventReport ) );
         assertTrue( aclService.canRead( userA, deA ) );
@@ -366,10 +366,10 @@ public class DashboardCascadeSharingTest
             .cascadeSharing( dashboard, CascadeSharingParameters.builder().build() );
 
         assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( 3, report.getUpdatedObjects().size() );
-        assertEquals( 1, report.getUpdatedObjects().get( LegendSetSchemaDescriptor.PLURAL ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( TrackedEntityAttributeSchemaDescriptor.PLURAL ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( EventChartSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 3, report.getUpdateObjects().size() );
+        assertEquals( 1, report.getUpdateObjects().get( LegendSetSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdateObjects().get( TrackedEntityAttributeSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdateObjects().get( EventChartSchemaDescriptor.PLURAL ).size() );
 
         assertTrue( aclService.canRead( userA, eventChart ) );
         assertTrue( aclService.canRead( userA, legendSet ) );
@@ -405,10 +405,10 @@ public class DashboardCascadeSharingTest
         CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
             new CascadeSharingParameters() );
         assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( 3, report.getUpdatedObjects().size() );
-        assertEquals( 1, report.getUpdatedObjects().get( DataElementSchemaDescriptor.PLURAL ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( IndicatorSchemaDescriptor.PLURAL ).size() );
-        assertEquals( 1, report.getUpdatedObjects().get( VisualizationSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 3, report.getUpdateObjects().size() );
+        assertEquals( 1, report.getUpdateObjects().get( DataElementSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdateObjects().get( IndicatorSchemaDescriptor.PLURAL ).size() );
+        assertEquals( 1, report.getUpdateObjects().get( VisualizationSchemaDescriptor.PLURAL ).size() );
 
         DataElement updatedDataElementA = objectManager.get( DataElement.class, dataElementA.getUid() );
         Indicator updatedIndicatorA = objectManager.get( Indicator.class, indicatorA.getUid() );
@@ -422,7 +422,7 @@ public class DashboardCascadeSharingTest
     }
 
     @Test
-    public void testDryRun()
+    public void testDryRunTrue()
     {
         Map map = createMap( "A" );
         map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
@@ -434,8 +434,32 @@ public class DashboardCascadeSharingTest
 
         CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
             CascadeSharingParameters.builder().dryRun( true ).build() );
+
         assertEquals( 0, report.getErrorReports().size() );
+        assertEquals( 1, report.getUpdateObjects().size() );
+
         assertFalse( aclService.canRead( userA, dashboard.getItems().get( 0 ).getMap() ) );
+        assertFalse( aclService.canRead( userB, dashboard.getItems().get( 0 ).getMap() ) );
+    }
+
+    @Test
+    public void testDryRunFalse()
+    {
+        Map map = createMap( "A" );
+        map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        objectManager.save( map, false );
+
+        Dashboard dashboard = createDashboardWithItem( "A", sharingReadForUserA );
+        dashboard.getItems().get( 0 ).setMap( map );
+        objectManager.save( dashboard, false );
+
+        CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
+            CascadeSharingParameters.builder().dryRun( false ).build() );
+
+        assertEquals( 0, report.getErrorReports().size() );
+        assertEquals( 1, report.getUpdateObjects().size() );
+
+        assertTrue( aclService.canRead( userA, dashboard.getItems().get( 0 ).getMap() ) );
         assertFalse( aclService.canRead( userB, dashboard.getItems().get( 0 ).getMap() ) );
     }
 
@@ -469,9 +493,8 @@ public class DashboardCascadeSharingTest
             CascadeSharingParameters.builder().atomic( true ).user( userB ).build() );
 
         assertEquals( 1, report.getErrorReports().size() );
-        System.out.println( "report = " + report );
+        assertEquals( 0, report.getUpdateObjects().size() );
 
-        System.out.println( "mapA.getSharing() = " + mapA.getSharing() );
         assertFalse( aclService.canRead( userA, mapA ) );
         assertFalse( aclService.canRead( userA, mapB ) );
     }
@@ -498,6 +521,7 @@ public class DashboardCascadeSharingTest
         CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
             CascadeSharingParameters.builder().atomic( false ).user( userB ).build() );
         assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 1, report.getUpdateObjects().size() );
 
         assertTrue( aclService.canRead( userA, mapA ) );
         assertFalse( aclService.canRead( userA, mapB ) );

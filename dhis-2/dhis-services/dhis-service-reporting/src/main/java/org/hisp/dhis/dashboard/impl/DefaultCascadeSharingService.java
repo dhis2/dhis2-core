@@ -113,16 +113,19 @@ public class DefaultCascadeSharingService
             switch ( dashboardItem.getType() )
             {
             case MAP:
-                handleMapObject( dashboardItem.getMap(), itemCanMergeObjects, parameters );
+                handleMapObject( dashboard.getSharing(), dashboardItem.getMap(), itemCanMergeObjects, parameters );
                 break;
             case VISUALIZATION:
-                handleVisualization( dashboard, dashboardItem.getVisualization(), itemCanMergeObjects, parameters );
+                handleVisualization( dashboard.getSharing(), dashboardItem.getVisualization(), itemCanMergeObjects,
+                    parameters );
                 break;
             case EVENT_REPORT:
-                handleEventReport( dashboard, dashboardItem.getEventReport(), itemCanMergeObjects, parameters );
+                handleEventReport( dashboard.getSharing(), dashboardItem.getEventReport(), itemCanMergeObjects,
+                    parameters );
                 break;
             case EVENT_CHART:
-                handleEventChart( dashboard, dashboardItem.getEventChart(), itemCanMergeObjects, parameters );
+                handleEventChart( dashboard.getSharing(), dashboardItem.getEventChart(), itemCanMergeObjects,
+                    parameters );
                 break;
             default:
                 break;
@@ -132,51 +135,55 @@ public class DefaultCascadeSharingService
             {
                 canMergeObjects.addAll( itemCanMergeObjects );
 
-                parameters.getReport().incUpdatedDashboardItem();
+                if ( !parameters.isAtomic() || !parameters.getReport().hasErrors() )
+                {
+                    parameters.getReport().incUpdatedDashboardItem();
+                }
             }
         } );
 
-        if ( parameters.isDryRun() || (parameters.isAtomic() && parameters.getReport().hasErrors()) )
+        if ( parameters.isAtomic() && parameters.getReport().hasErrors() )
+        {
+            return parameters.getReport();
+        }
+
+        if ( parameters.isDryRun() )
         {
             canMergeObjects
                 .forEach( object -> parameters.getReport().addUpdatedObject( getTypeReportKey( object ), object ) );
             return parameters.getReport();
         }
 
-        canMergeObjects.forEach( object -> {
-            if ( mergeSharing( dashboard.getSharing(), object, parameters ) )
-            {
-                manager.update( object );
-            }
-        } );
+        // All checks done, proceed to update sharing for all objects.
+        canMergeObjects.forEach( object -> mergeSharing( dashboard.getSharing(), object, parameters ) );
 
         return parameters.getReport();
     }
 
     /**
-     * Merge sharing from given dashboard to given visualization
+     * Check if can merge sharing from given dashboard to given visualization
      *
      * @param map {@link org.hisp.dhis.mapping.Map}
-     * @param updateObjects Set of objects need to be updated
+     * @param canMergeObjects Set of objects need to be updated
      * @param parameters {@link CascadeSharingParameters}
      */
-    private void handleMapObject( org.hisp.dhis.mapping.Map map,
-        Set<IdentifiableObject> updateObjects, CascadeSharingParameters parameters )
+    private void handleMapObject( final Sharing sourceSharing, org.hisp.dhis.mapping.Map map,
+        Set<IdentifiableObject> canMergeObjects, CascadeSharingParameters parameters )
     {
-        if ( validateUserAccess( map, parameters ) )
+        if ( canUserUpdate( map, parameters ) && shouldUpdateSharing( sourceSharing, map ) )
         {
-            updateObjects.add( map );
+            canMergeObjects.add( map );
         }
     }
 
     /**
-     * Merge sharing from given dashboard to given visualization
+     * Check if can merge sharing from given dashboard to given visualization
      *
-     * @param dashboard {@link Dashboard}
+     * @param sourceSharing {@link Sharing}
      * @param visualization {@link Visualization}
      * @param parameters {@link CascadeSharingParameters}
      */
-    private void handleVisualization( Dashboard dashboard, Visualization visualization,
+    private void handleVisualization( final Sharing sourceSharing, Visualization visualization,
         Set<IdentifiableObject> canMergeObjects, CascadeSharingParameters parameters )
     {
         if ( visualization == null )
@@ -184,23 +191,24 @@ public class DefaultCascadeSharingService
             return;
         }
 
-        if ( validateUserAccess( visualization, parameters ) )
+        if ( canUserUpdate( visualization, parameters ) && shouldUpdateSharing( sourceSharing, visualization ) )
         {
             canMergeObjects.add( visualization );
         }
 
-        handleBaseAnalyticObject( dashboard.getSharing(), visualization, canMergeObjects, parameters );
+        handleBaseAnalyticObject( sourceSharing, visualization, canMergeObjects, parameters );
     }
 
     /**
-     * Merge sharing from given dashboard to given eventReport
+     * Check if can merge sharing from given dashboard to given eventReport
      *
-     * @param dashboard {@link Dashboard}
+     * @param sourceSharing {@link Sharing}
      * @param eventReport {@link EventReport}
      * @param updateObjects Set of objects need to be updated
      * @param parameters {@link CascadeSharingParameters}
      */
-    private void handleEventReport( Dashboard dashboard, EventReport eventReport, Set<IdentifiableObject> updateObjects,
+    private void handleEventReport( final Sharing sourceSharing, EventReport eventReport,
+        Set<IdentifiableObject> updateObjects,
         CascadeSharingParameters parameters )
     {
         if ( eventReport == null )
@@ -208,29 +216,32 @@ public class DefaultCascadeSharingService
             return;
         }
 
-        if ( handleIdentifiableObject( EventReport.class, eventReport, updateObjects, parameters ) )
+        if ( handleIdentifiableObject( sourceSharing, EventReport.class, eventReport, updateObjects, parameters ) )
         {
             updateObjects.add( eventReport );
         }
 
-        handleIdentifiableObject( TrackedEntityAttribute.class, eventReport.getAttributeValueDimension(), updateObjects,
+        handleIdentifiableObject( sourceSharing, TrackedEntityAttribute.class, eventReport.getAttributeValueDimension(),
+            updateObjects,
             parameters );
 
-        handleIdentifiableObject( DataElement.class, eventReport.getDataElementValueDimension(), updateObjects,
+        handleIdentifiableObject( sourceSharing, DataElement.class, eventReport.getDataElementValueDimension(),
+            updateObjects,
             parameters );
 
-        handleBaseAnalyticObject( dashboard.getSharing(), eventReport, updateObjects, parameters );
+        handleBaseAnalyticObject( sourceSharing, eventReport, updateObjects, parameters );
     }
 
     /**
-     * Merge sharing from given dashboard to given eventChart
+     * Check if can merge sharing from given dashboard to given eventChart
      *
-     * @param dashboard {@link Dashboard}
+     * @param sourceSharing {@link Sharing}
      * @param eventChart {@link EventChart}
      * @param updateObjects Set of objects need to be updated
      * @param parameters {@link CascadeSharingParameters}
      */
-    private void handleEventChart( Dashboard dashboard, EventChart eventChart, Set<IdentifiableObject> updateObjects,
+    private void handleEventChart( final Sharing sourceSharing, EventChart eventChart,
+        Set<IdentifiableObject> updateObjects,
         CascadeSharingParameters parameters )
     {
         if ( eventChart == null )
@@ -238,58 +249,64 @@ public class DefaultCascadeSharingService
             return;
         }
 
-        if ( handleIdentifiableObject( EventChart.class, eventChart, updateObjects, parameters ) )
+        if ( handleIdentifiableObject( sourceSharing, EventChart.class, eventChart, updateObjects, parameters ) )
         {
             updateObjects.add( eventChart );
         }
 
-        handleIdentifiableObject( TrackedEntityAttribute.class, eventChart.getAttributeValueDimension(), updateObjects,
+        handleIdentifiableObject( sourceSharing, TrackedEntityAttribute.class, eventChart.getAttributeValueDimension(),
+            updateObjects,
             parameters );
 
-        handleIdentifiableObject( DataElement.class, eventChart.getDataElementValueDimension(), updateObjects,
+        handleIdentifiableObject( sourceSharing, DataElement.class, eventChart.getDataElementValueDimension(),
+            updateObjects,
             parameters );
 
-        handleBaseAnalyticObject( dashboard.getSharing(), eventChart, updateObjects, parameters );
+        handleBaseAnalyticObject( sourceSharing, eventChart, updateObjects, parameters );
     }
 
     /**
-     * Merge sharing from given source to all given analyticalObject's
-     * dimensional objects
+     * Check if can merge sharing from given source to all given
+     * analyticalObject's dimensional objects
      *
-     * @param source {@link Sharing}
+     * @param sourceSharing {@link Sharing}
      * @param analyticalObject any object extends {@link BaseAnalyticalObject}
      * @param listUpdateObjects Set of objects need to be updated
      * @param parameters {@link CascadeSharingParameters}
      */
-    private void handleBaseAnalyticObject( Sharing source, BaseAnalyticalObject analyticalObject,
+    private void handleBaseAnalyticObject( final Sharing sourceSharing, BaseAnalyticalObject analyticalObject,
         Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
     {
-        handleIdentifiableObjects( DataElement.class, analyticalObject.getDataElements(), listUpdateObjects,
+        handleIdentifiableObjects( sourceSharing, DataElement.class, analyticalObject.getDataElements(),
+            listUpdateObjects,
             parameters );
 
-        handleIdentifiableObjects( Indicator.class, analyticalObject.getIndicators(), listUpdateObjects, parameters );
+        handleIdentifiableObjects( sourceSharing, Indicator.class, analyticalObject.getIndicators(), listUpdateObjects,
+            parameters );
 
-        handleCategoryDimension( analyticalObject, listUpdateObjects, parameters );
+        handleCategoryDimension( sourceSharing, analyticalObject, listUpdateObjects, parameters );
 
-        handleDataElementDimensions( analyticalObject, listUpdateObjects, parameters );
+        handleDataElementDimensions( sourceSharing, analyticalObject, listUpdateObjects, parameters );
 
-        handleDataElementGroupSetDimensions( analyticalObject, listUpdateObjects, parameters );
+        handleDataElementGroupSetDimensions( sourceSharing, analyticalObject, listUpdateObjects, parameters );
 
-        handleCategoryOptionGroupSetDimensions( analyticalObject, listUpdateObjects, parameters );
+        handleCategoryOptionGroupSetDimensions( sourceSharing, analyticalObject, listUpdateObjects, parameters );
 
-        handleTrackedEntityAttributeDimension( analyticalObject, listUpdateObjects, parameters );
+        handleTrackedEntityAttributeDimension( sourceSharing, analyticalObject, listUpdateObjects, parameters );
     }
 
     /**
-     * Merge sharing from given source to given analyticalObject's
+     * Check if can merge sharing from given source to given analyticalObject's
      * {@link TrackedEntityAttributeDimension} and all related objects that has
      * Sharing enabled.
      *
+     * @param sourceSharing {@link Sharing}
      * @param analyticalObject any object extends {@link BaseAnalyticalObject}
      * @param listUpdateObjects Set of objects need to be updated
      * @param parameters {@link CascadeSharingParameters}
      */
-    private void handleTrackedEntityAttributeDimension( BaseAnalyticalObject analyticalObject,
+    private void handleTrackedEntityAttributeDimension( final Sharing sourceSharing,
+        BaseAnalyticalObject analyticalObject,
         Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
     {
         List<TrackedEntityAttributeDimension> attributeDimensions = analyticalObject
@@ -301,23 +318,26 @@ public class DefaultCascadeSharingService
         }
 
         attributeDimensions.forEach( attributeDimension -> {
-            handleIdentifiableObject( TrackedEntityAttribute.class, attributeDimension.getAttribute(),
+            handleIdentifiableObject( sourceSharing, TrackedEntityAttribute.class, attributeDimension.getAttribute(),
                 listUpdateObjects, parameters );
-            handleIdentifiableObject( LegendSet.class, attributeDimension.getLegendSet(), listUpdateObjects,
+            handleIdentifiableObject( sourceSharing, LegendSet.class, attributeDimension.getLegendSet(),
+                listUpdateObjects,
                 parameters );
         } );
     }
 
     /**
-     * Merge sharing from given source to given analyticalObject's
+     * Check if can merge sharing from given source to given analyticalObject's
      * {@link CategoryOptionGroupSetDimension} and all related objects that has
      * Sharing enabled.
      *
+     * @param sourceSharing {@link Sharing}
      * @param analyticalObject any object extends {@link BaseAnalyticalObject}
      * @param listUpdateObjects Set of objects need to be updated
      * @param parameters {@link CascadeSharingParameters}
      */
-    private void handleCategoryOptionGroupSetDimensions( BaseAnalyticalObject analyticalObject,
+    private void handleCategoryOptionGroupSetDimensions( final Sharing sourceSharing,
+        BaseAnalyticalObject analyticalObject,
         Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
     {
         List<CategoryOptionGroupSetDimension> catOptionGroupSetDimensions = analyticalObject
@@ -332,7 +352,8 @@ public class DefaultCascadeSharingService
             CategoryOptionGroupSet catOptionGroupSet = categoryOptionGroupSetDimension
                 .getDimension();
 
-            handleIdentifiableObject( CategoryOptionGroupSet.class, catOptionGroupSet, listUpdateObjects, parameters );
+            handleIdentifiableObject( sourceSharing, CategoryOptionGroupSet.class, catOptionGroupSet, listUpdateObjects,
+                parameters );
 
             List<CategoryOptionGroup> catOptionGroups = catOptionGroupSet.getMembers();
 
@@ -342,8 +363,10 @@ public class DefaultCascadeSharingService
             }
 
             catOptionGroups.forEach( catOptionGroup -> {
-                handleIdentifiableObject( CategoryOptionGroup.class, catOptionGroup, listUpdateObjects, parameters );
-                handleIdentifiableObjects( CategoryOption.class, catOptionGroup.getMembers(), listUpdateObjects,
+                handleIdentifiableObject( sourceSharing, CategoryOptionGroup.class, catOptionGroup, listUpdateObjects,
+                    parameters );
+                handleIdentifiableObjects( sourceSharing, CategoryOption.class, catOptionGroup.getMembers(),
+                    listUpdateObjects,
                     parameters );
             } );
 
@@ -351,15 +374,16 @@ public class DefaultCascadeSharingService
     }
 
     /**
-     * Merge sharing from given source to given analyticalObject's
+     * Check if can merge sharing from given source to given analyticalObject's
      * {@link TrackedEntityDataElementDimension} and all related objects that
      * has Sharing enabled.
      *
+     * @param sourceSharing {@link Sharing}
      * @param analyticalObject any object extends {@link BaseAnalyticalObject}
      * @param listUpdateObjects Set of objects need to be updated
      * @param parameters {@link CascadeSharingParameters}
      */
-    private void handleDataElementDimensions( BaseAnalyticalObject analyticalObject,
+    private void handleDataElementDimensions( final Sharing sourceSharing, BaseAnalyticalObject analyticalObject,
         Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
     {
         List<TrackedEntityDataElementDimension> deDimensions = analyticalObject
@@ -371,23 +395,27 @@ public class DefaultCascadeSharingService
         }
 
         deDimensions.forEach( deDimension -> {
-            handleIdentifiableObject( DataElement.class, deDimension.getDataElement(), listUpdateObjects, parameters );
-            handleIdentifiableObject( LegendSet.class, deDimension.getLegendSet(), listUpdateObjects, parameters );
-            handleIdentifiableObject( ProgramStage.class, deDimension.getProgramStage(), listUpdateObjects,
+            handleIdentifiableObject( sourceSharing, DataElement.class, deDimension.getDataElement(), listUpdateObjects,
+                parameters );
+            handleIdentifiableObject( sourceSharing, LegendSet.class, deDimension.getLegendSet(), listUpdateObjects,
+                parameters );
+            handleIdentifiableObject( sourceSharing, ProgramStage.class, deDimension.getProgramStage(),
+                listUpdateObjects,
                 parameters );
         } );
     }
 
     /**
-     * Merge sharing from given source to given analyticalObject's
+     * Check if can merge sharing from given source to given analyticalObject's
      * {@link CategoryDimension} and all related objects that has Sharing
      * enabled.
      *
+     * @param sourceSharing {@link Sharing}
      * @param analyticalObject any object extends {@link BaseAnalyticalObject}
      * @param listUpdateObjects Set of objects need to be updated
      * @param parameters {@link CascadeSharingParameters}
      */
-    private void handleCategoryDimension( BaseAnalyticalObject analyticalObject,
+    private void handleCategoryDimension( final Sharing sourceSharing, BaseAnalyticalObject analyticalObject,
         Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
     {
         List<CategoryDimension> catDimensions = analyticalObject.getCategoryDimensions();
@@ -400,7 +428,7 @@ public class DefaultCascadeSharingService
         catDimensions.forEach( catDimension -> {
             Category category = catDimension.getDimension();
 
-            handleIdentifiableObject( Category.class, category, listUpdateObjects, parameters );
+            handleIdentifiableObject( sourceSharing, Category.class, category, listUpdateObjects, parameters );
 
             List<CategoryOption> catOptions = catDimension.getItems();
 
@@ -409,21 +437,23 @@ public class DefaultCascadeSharingService
                 return;
             }
 
-            catOptions.forEach( catOption -> handleIdentifiableObject( CategoryOption.class, catOption,
+            catOptions.forEach( catOption -> handleIdentifiableObject( sourceSharing, CategoryOption.class, catOption,
                 listUpdateObjects, parameters ) );
         } );
     }
 
     /**
-     * Merge sharing from given source to given analyticalObject's
+     * Check if can merge sharing from given source to given analyticalObject's
      * {@link DataElementGroupSetDimension} and all related objects that has
      * Sharing enabled.
      *
+     * @param sourceSharing {@link Sharing}
      * @param analyticalObject any object extends {@link BaseAnalyticalObject}
      * @param listUpdateObjects Set of objects need to be updated
      * @param parameters {@link CascadeSharingParameters}
      */
-    private void handleDataElementGroupSetDimensions( BaseAnalyticalObject analyticalObject,
+    private void handleDataElementGroupSetDimensions( final Sharing sourceSharing,
+        BaseAnalyticalObject analyticalObject,
         Set<IdentifiableObject> listUpdateObjects, CascadeSharingParameters parameters )
     {
         List<DataElementGroupSetDimension> deGroupSetDimensions = analyticalObject
@@ -437,7 +467,8 @@ public class DefaultCascadeSharingService
         deGroupSetDimensions.forEach( deGroupSetDimension -> {
             DataElementGroupSet deGroupSet = deGroupSetDimension.getDimension();
 
-            handleIdentifiableObject( DataElementGroupSet.class, deGroupSet, listUpdateObjects, parameters );
+            handleIdentifiableObject( sourceSharing, DataElementGroupSet.class, deGroupSet, listUpdateObjects,
+                parameters );
 
             List<DataElementGroup> deGroups = deGroupSetDimension.getItems();
 
@@ -447,20 +478,24 @@ public class DefaultCascadeSharingService
             }
 
             deGroups
-                .forEach( deGroup -> handleIdentifiableObject( DataElementGroup.class, deGroup, listUpdateObjects,
+                .forEach( deGroup -> handleIdentifiableObject( sourceSharing, DataElementGroup.class, deGroup,
+                    listUpdateObjects,
                     parameters ) );
         } );
     }
 
     /**
-     * Util method for merge sharing from given {@link Sharing} to give List of
-     * {@link IdentifiableObject}
+     * Check if each of target objects sharing can be merged from sourceSharing.
+     * <p>
+     * If yes then target object will be added to listUpdateObjects
      *
+     * @param sourceSharing {@link Sharing}
      * @param targetObjects list of {@link IdentifiableObject}
      * @param listUpdateObjects Set of objects need to be updated.
      * @param parameters {@link CascadeSharingParameters}
      */
-    private <T extends IdentifiableObject> void handleIdentifiableObjects( Class type, Collection<T> targetObjects,
+    private <T extends IdentifiableObject> void handleIdentifiableObjects( final Sharing sourceSharing, Class type,
+        Collection<T> targetObjects,
         Collection<IdentifiableObject> listUpdateObjects,
         CascadeSharingParameters parameters )
     {
@@ -469,18 +504,20 @@ public class DefaultCascadeSharingService
             return;
         }
 
-        targetObjects.forEach( object -> handleIdentifiableObject( type, object, listUpdateObjects, parameters ) );
+        targetObjects.forEach(
+            object -> handleIdentifiableObject( sourceSharing, type, object, listUpdateObjects, parameters ) );
     }
 
     /**
-     * Util method for merge sharing from given {@link Sharing} to given
-     * {@link IdentifiableObject}
+     * Check if target object's sharing can be merged from sourceSharing
      *
+     * @param sourceSharing {@link Sharing}
      * @param target {@link IdentifiableObject}
      * @param listUpdateObjects Set of objects need to be updated.
      * @return TRUE if target object should be updated, otherwise return FALSE.
      */
-    private <T extends IdentifiableObject> boolean handleIdentifiableObject( Class<T> type, T target,
+    private <T extends IdentifiableObject> boolean handleIdentifiableObject( final Sharing sourceSharing, Class<T> type,
+        T target,
         Collection<IdentifiableObject> listUpdateObjects,
         CascadeSharingParameters parameters )
     {
@@ -498,7 +535,7 @@ public class DefaultCascadeSharingService
             return false;
         }
 
-        if ( validateUserAccess( persistedTarget, parameters ) )
+        if ( canUserUpdate( persistedTarget, parameters ) && shouldUpdateSharing( sourceSharing, target ) )
         {
             listUpdateObjects.add( persistedTarget );
             return true;
@@ -510,13 +547,30 @@ public class DefaultCascadeSharingService
     /**
      * Add UserAccesses and UserGroupAccesses from source to target object.
      * <p>
-     * If dryRun=true then target object will not be updated, but function still
-     * return TRUE.
      *
-     * @return TRUE if targetObject should be updated, otherwise return FALSE
+     * @return TRUE if targetObject is updated, otherwise return FALSE
      */
     private <T extends IdentifiableObject> boolean mergeSharing( final Sharing source, T target,
         CascadeSharingParameters parameters )
+    {
+        if ( mergeAccessObject( source.getUsers(), target.getSharing().getUsers() )
+            || mergeAccessObject( source.getUserGroups(), target.getSharing().getUserGroups() ) )
+        {
+            parameters.getReport().addUpdatedObject( getTypeReportKey( target ), target );
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if given target's sharing need to be updated.
+     *
+     * @param source {@link Sharing}
+     * @param target object to check
+     * @return TRUE if object need update sharing, otherwise FALSE.
+     */
+    private <T extends IdentifiableObject> boolean shouldUpdateSharing( final Sharing source, T target )
     {
         if ( AccessStringHelper.canRead( target.getSharing().getPublicAccess() ) )
         {
@@ -530,13 +584,6 @@ public class DefaultCascadeSharingService
         if ( mergeAccessObject( source.getUsers(), userAccesses )
             || mergeAccessObject( source.getUserGroups(), userGroupAccesses ) )
         {
-            if ( !parameters.isDryRun() )
-            {
-                target.getSharing().setUsers( userAccesses );
-                target.getSharing().setUserGroups( userGroupAccesses );
-            }
-
-            parameters.getReport().addUpdatedObject( getTypeReportKey( target ), target );
             return true;
         }
 
@@ -548,8 +595,7 @@ public class DefaultCascadeSharingService
      * <p>
      * After added, target accessObjects will only have READ permission
      */
-    private <T extends AccessObject> boolean mergeAccessObject(
-        final Map<String, T> source, Map<String, T> target )
+    private <T extends AccessObject> boolean mergeAccessObject( final Map<String, T> source, Map<String, T> target )
     {
         if ( MapUtils.isEmpty( source ) )
         {
@@ -587,16 +633,8 @@ public class DefaultCascadeSharingService
     }
 
     /**
-     * If dryRun=TRUE then no objects will be updated.
-     */
-    private boolean canUpdate( CascadeSharingParameters parameters )
-    {
-        return !parameters.isDryRun() && parameters.getReport().getErrorReports().isEmpty();
-    }
-
-    /**
-     * Get the plurals name of the object. Will be used in the
-     * {@link CascadeSharingReport}
+     * Get the plurals name of the object. Will be used to display list updated
+     * objects in the {@link CascadeSharingReport}
      *
      * @return plurals name of the object schema.
      */
@@ -607,15 +645,14 @@ public class DefaultCascadeSharingService
 
     /**
      * Check if currentUser can given object, if not add new ErrorReport to
-     * {@link CascadeSharingParameters}
+     * {@link CascadeSharingParameters}.
      *
      * @param object object for validating
      * @param parameters {@link CascadeSharingParameters}
-     * @return TRUE if current user can update given object, otherwise FALSE
+     * @return TRUE if current user can update given object, otherwise FALSE.
      */
-    private <T extends IdentifiableObject> boolean validateUserAccess( T object, CascadeSharingParameters parameters )
+    private <T extends IdentifiableObject> boolean canUserUpdate( T object, CascadeSharingParameters parameters )
     {
-
         if ( !aclService.canUpdate( parameters.getUser(), object ) )
         {
             parameters.getReport().getErrorReports().add( new ErrorReport( HibernateProxyUtils.getRealClass( object ),
