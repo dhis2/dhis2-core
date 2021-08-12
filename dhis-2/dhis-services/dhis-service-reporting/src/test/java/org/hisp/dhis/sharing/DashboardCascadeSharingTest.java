@@ -31,7 +31,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.apache.commons.collections.SetUtils;
+import java.util.Collections;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -102,12 +103,15 @@ public class DashboardCascadeSharingTest
     public void setUpTest()
     {
         userService = _userService;
-        userA = createUser( 'A' );
-        userB = createUser( 'B' );
-        userService.addUser( userA );
-        userService.addUser( userB );
+        userGroupA = createUserGroup( 'A', Collections.EMPTY_SET );
+        objectManager.save( userGroupA );
 
-        userGroupA = createUserGroup( 'A', SetUtils.EMPTY_SET );
+        userA = createUser( 'A' );
+        userA.getGroups().add( userGroupA );
+        userService.addUser( userA );
+
+        userB = createUser( 'B' );
+        userService.addUser( userB );
 
         sharingReadForUserA = new Sharing();
         sharingReadForUserA.setPublicAccess( AccessStringHelper.DEFAULT );
@@ -525,5 +529,37 @@ public class DashboardCascadeSharingTest
 
         assertTrue( aclService.canRead( userA, mapA ) );
         assertFalse( aclService.canRead( userA, mapB ) );
+    }
+
+    @Test
+    public void testUserGroup()
+    {
+        Map mapA = createMap( "A" );
+        mapA.setSharing( defaultSharing() );
+        objectManager.save( mapA, false );
+
+        Map mapB = createMap( "A" );
+        mapB.setSharing( defaultSharing() );
+        objectManager.save( mapB, false );
+
+        DashboardItem itemA = createDashboardItem( "A" );
+        itemA.setMap( mapA );
+
+        DashboardItem itemB = createDashboardItem( "B" );
+        itemB.setMap( mapB );
+
+        Dashboard dashboard = createDashboard( "A", sharingUserGroupA );
+        dashboard.getItems().add( itemB );
+        dashboard.getItems().add( itemA );
+
+        objectManager.save( dashboard, false );
+
+        CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
+            CascadeSharingParameters.builder().build() );
+        assertEquals( 0, report.getErrorReports().size() );
+        assertEquals( 1, report.getUpdateObjects().size() );
+
+        assertTrue( aclService.canRead( userA, mapA ) );
+        assertTrue( aclService.canRead( userA, mapB ) );
     }
 }
