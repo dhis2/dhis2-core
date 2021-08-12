@@ -15,6 +15,3 @@ CREATE TABLE api_token
     attributes    JSONB default '{}'::JSONB,
     sharing       JSONB default '{}'::JSONB
 );
-
--- ALTER TABLE ONLY api_token
---     ADD CONSTRAINT api_token_pkey PRIMARY KEY (apitokenid);

@@ -83,25 +83,8 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
         this.apiTokenService = apiTokenService;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.apiTokenAuthManager = apiTokenAuthManager;
-        this.authenticationFailureHandler = ( request, response, exception ) -> {
-            defaultAuthenticationEventPublisher.publishAuthenticationFailure( exception,
-                new AbstractAuthenticationToken( null )
-                {
-                    @Override
-                    public Object getCredentials()
-                    {
-                        return null;
-                    }
-
-                    @Override
-                    public Object getPrincipal()
-                    {
-                        return null;
-                    }
-                } );
-
-            authenticationEntryPoint.commence( request, response, exception );
-        };
+        this.authenticationFailureHandler = getAuthenticationFailureHandler( authenticationEntryPoint,
+            defaultAuthenticationEventPublisher );
     }
 
     @Override
@@ -232,5 +215,34 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
                 errors.add( "Failed to authenticate API token, request ip address is not allowed." );
             }
         }
+    }
+
+    /**
+     * Custom authentication failure handler needed for proper failure messaging
+     * with the AuthenticationLoggerListener
+     */
+    private AuthenticationFailureHandler getAuthenticationFailureHandler(
+        AuthenticationEntryPoint authenticationEntryPoint,
+        DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher )
+    {
+        return ( request, response, exception ) -> {
+            defaultAuthenticationEventPublisher.publishAuthenticationFailure( exception,
+                new AbstractAuthenticationToken( null )
+                {
+                    @Override
+                    public Object getCredentials()
+                    {
+                        return null;
+                    }
+
+                    @Override
+                    public Object getPrincipal()
+                    {
+                        return null;
+                    }
+                } );
+
+            authenticationEntryPoint.commence( request, response, exception );
+        };
     }
 }
