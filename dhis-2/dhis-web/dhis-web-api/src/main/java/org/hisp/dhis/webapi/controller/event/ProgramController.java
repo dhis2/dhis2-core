@@ -127,7 +127,7 @@ public class ProgramController
             throw new IllegalArgumentException( "At least one program uid must be specified" );
         }
 
-        return programService.getProgramOrganisationUnitsAssociations( programUids );
+        return programService.getProgramOrganisationUnitsAssociationsForCurrentUser( programUids );
 
     }
 

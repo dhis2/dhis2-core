@@ -91,6 +91,16 @@ public class ProgramOrganisationUnitAssociationsQueryBuilder
         return queryParts.collect( joining( " " ) );
     }
 
+    public String buildSqlQueryForRawAssociation( Set<String> uids )
+    {
+        Stream<String> queryParts = Stream.of(
+            SHARING_OUTER_QUERY_BEGIN,
+            innerQueryProvider( uids, null, null ),
+            SHARING_OUTER_QUERY_END );
+
+        return queryParts.collect( joining( " " ) );
+    }
+
     private String innerQueryProvider( Set<String> programUids, Set<String> userOrgUnitPaths, User currentUser )
     {
         Stream<String> queryParts = Stream.of(

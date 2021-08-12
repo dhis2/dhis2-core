@@ -131,6 +131,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
 
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
+        this.programService = programService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.relationshipService = relationshipService;
