@@ -1,0 +1,24 @@
+{
+    "cves": [
+      {
+        "cveID": "CVE-2021-XXXXX",
+        "privateForkUrl": "https://github.com/dhis2/dhis2-core-ghsa-cmpc-frjv-rrmw",
+        "status": "DRAFT",
+        "pullRequests": [
+          {
+            "parent": "b76c38b612fb0cb3250c3cd59e44722eeafed482",
+            "prNumber": 1,
+            "status": "DRAFT"
+          },
+          {
+            "parent": "73be95b7097a73ac687fcccb74e160a32a5deea5",
+            "prNumber": 3
+          },
+          {
+            "parent": "599b189d38c393ebc68b15365600f2ca6aee7a82",
+            "prNumber": 4
+          }
+        ]
+      }
+    ]
+}
