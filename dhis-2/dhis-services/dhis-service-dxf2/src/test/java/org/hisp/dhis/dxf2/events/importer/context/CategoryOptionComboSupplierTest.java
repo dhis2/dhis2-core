@@ -62,6 +62,9 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
     @Mock
     private AttributeOptionComboLoader attributeOptionComboLoader;
 
+    @Mock
+    private ProgramStageInstanceSupplier programStageInstanceSupplier;
+
     private Map<String, Program> programMap;
 
     private Event event;
@@ -71,7 +74,8 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
     @Before
     public void setUp()
     {
-        this.subject = new CategoryOptionComboSupplier( jdbcTemplate, programSupplier, attributeOptionComboLoader );
+        this.subject = new CategoryOptionComboSupplier( jdbcTemplate, programSupplier, attributeOptionComboLoader,
+            programStageInstanceSupplier );
         programMap = new HashMap<>();
 
         // create a Program for the ProgramSupplier
