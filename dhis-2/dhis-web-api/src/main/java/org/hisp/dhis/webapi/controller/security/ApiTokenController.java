@@ -225,7 +225,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
 
     private void validateHttpMethod( String httpMethodName )
     {
-        final ImmutableList<String> validMethods = ImmutableList.of( "GET", "POST", "PATCH", "PUT" );
+        final ImmutableList<String> validMethods = ImmutableList.of( "GET", "POST", "PATCH", "PUT", "DELETE" );
         if ( !validMethods.contains( httpMethodName.toUpperCase( Locale.ROOT ) ) )
         {
             throw new IllegalArgumentException( "Not a valid http method, value=" + httpMethodName );
