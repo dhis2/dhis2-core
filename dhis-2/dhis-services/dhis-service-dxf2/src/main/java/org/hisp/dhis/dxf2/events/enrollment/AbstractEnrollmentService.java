@@ -32,6 +32,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALU
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -45,6 +46,7 @@ import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -53,6 +55,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.Constants;
@@ -730,11 +733,11 @@ public abstract class AbstractEnrollmentService
                 " is a program without registration. An enrollment cannot be created into program without registration.";
         }
 
-        if ( program.getOrganisationUnits() != null && program.getOrganisationUnits().size() > 0 )
+        IdentifiableObjectAssociations programAssociations = programService
+            .getProgramOrganisationUnitsAssociations( Collections.singleton( program.getUid() ) );
+        if ( !CollectionUtils.isEmpty( programAssociations.get( program.getUid() ) ) )
         {
-            boolean programOrgUnitAccessible = program.getOrganisationUnits().stream()
-                .anyMatch( pou -> pou.getUid().equals( enrollment.getOrgUnit() ) );
-            if ( !programOrgUnitAccessible )
+            if ( !programAssociations.get( program.getUid() ).contains( enrollment.getOrgUnit() ) )
             {
                 return "Program is not assigned to this Organisation Unit: " + enrollment.getOrgUnit();
             }
