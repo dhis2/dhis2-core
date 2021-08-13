@@ -91,37 +91,10 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
             // validation stage
             if ( program == null )
             {
-                return emptyMap();
+                continue;
             }
 
-            final CategoryCombo programCatCombo = program.getCategoryCombo();
-            String aoc = event.getAttributeOptionCombo();
-            String attributeCatOptions = event.getAttributeCategoryOptions();
-
-            if ( psi != null )
-            {
-                aoc = programStageInstanceMap.get( event.getUid() ).getAttributeOptionCombo().getUid();
-            }
-
-            CategoryOptionCombo categoryOptionCombo;
-
-            if ( isNotEmpty( aoc ) )
-            {
-                categoryOptionCombo = attributeOptionComboLoader.getCategoryOptionCombo( idScheme, aoc );
-                if ( categoryOptionCombo == null )
-                {
-                    categoryOptionCombo = attributeOptionComboLoader.getDefault();
-                }
-            }
-            else if ( programCatCombo != null && isNotEmpty( attributeCatOptions ) )
-            {
-                categoryOptionCombo = attributeOptionComboLoader.getAttributeOptionCombo( programCatCombo,
-                    attributeCatOptions, aoc, idScheme );
-            }
-            else
-            {
-                categoryOptionCombo = attributeOptionComboLoader.getDefault();
-            }
+            CategoryOptionCombo categoryOptionCombo = getCategoryOptionCombo( program, event, psi, idScheme );
 
             if ( categoryOptionCombo != null )
             {
@@ -130,6 +103,41 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
         }
 
         return eventToCocMap;
+    }
+
+    private CategoryOptionCombo getCategoryOptionCombo( Program program, Event event, ProgramStageInstance psi,
+        IdScheme idScheme )
+    {
+        final CategoryCombo programCatCombo = program.getCategoryCombo();
+        String aoc = event.getAttributeOptionCombo();
+        String attributeCatOptions = event.getAttributeCategoryOptions();
+
+        if ( psi != null && aoc == null )
+        {
+            aoc = psi.getAttributeOptionCombo().getUid();
+        }
+
+        CategoryOptionCombo categoryOptionCombo;
+
+        if ( isNotEmpty( aoc ) )
+        {
+            categoryOptionCombo = attributeOptionComboLoader.getCategoryOptionCombo( idScheme, aoc );
+            if ( categoryOptionCombo == null )
+            {
+                categoryOptionCombo = attributeOptionComboLoader.getDefault();
+            }
+        }
+        else if ( programCatCombo != null && isNotEmpty( attributeCatOptions ) )
+        {
+            categoryOptionCombo = attributeOptionComboLoader.getAttributeOptionCombo( programCatCombo,
+                attributeCatOptions, aoc, idScheme );
+        }
+        else
+        {
+            categoryOptionCombo = attributeOptionComboLoader.getDefault();
+        }
+
+        return categoryOptionCombo;
     }
 
 }
