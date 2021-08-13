@@ -192,7 +192,7 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
     {
         if ( !attribute.getAllowedReferrers().isEmpty() )
         {
-            String referrer = request.getHeader( "referrer" );
+            String referrer = request.getHeader( "referer" );
 
             if ( referrer == null || !attribute.getAllowedReferrers()
                 .contains( referrer.toLowerCase( Locale.ROOT ) ) )
