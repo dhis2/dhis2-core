@@ -242,8 +242,6 @@ public class ProgramMessageServiceTest
         smsConfig.getGateways().add( bulkSmsConfig );
 
         smsConfigurationManager.updateSmsConfiguration( smsConfig );
-
-        gatewayAdminService.loadGatewayConfigurationMap( smsConfig );
     }
 
     // -------------------------------------------------------------------------

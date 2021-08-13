@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -34,7 +36,6 @@ import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.Program;
@@ -53,7 +54,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -103,7 +103,7 @@ public class ProgramController
         return entityList;
     }
 
-    @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/metadata" )
     public ResponseEntity<RootNode> getProgramWithDependencies( @PathVariable( "uid" ) String pvUid,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException
@@ -112,7 +112,7 @@ public class ProgramController
 
         if ( program == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Program not found for uid: " + pvUid ) );
+            throw new WebMessageException( notFound( "Program not found for uid: " + pvUid ) );
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, program, download );
@@ -125,7 +125,7 @@ public class ProgramController
     {
         return Optional.ofNullable( programUids )
             .filter( CollectionUtils::isNotEmpty )
-            .map( programService::getProgramOrganisationUnitsAssociations )
+            .map( programService::getProgramOrganisationUnitsAssociationsForCurrentUser )
             .orElseThrow( () -> new IllegalArgumentException( "At least one program uid must be specified" ) );
     }
 

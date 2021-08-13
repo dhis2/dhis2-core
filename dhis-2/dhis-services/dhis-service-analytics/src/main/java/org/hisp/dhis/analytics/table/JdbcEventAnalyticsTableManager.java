@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -103,6 +104,8 @@ public class JdbcEventAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
+    public static final String STORED_BY_COL_NAME = "storedby";
+
     private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
@@ -115,6 +118,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP, "psi.completeddate" ),
         new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ),
         new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ),
+        new AnalyticsTableColumn( quote( STORED_BY_COL_NAME ), VARCHAR_255, "psi.storedby" ),
         new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
         new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" )
@@ -308,6 +312,12 @@ public class JdbcEventAnalyticsTableManager
                 "yearly = '" + partition.getYear() + "'",
                 "executiondate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
                 "executiondate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
+    }
+
+    @Override
+    protected String getPartitionColumn()
+    {
+        return "yearly";
     }
 
     @Override

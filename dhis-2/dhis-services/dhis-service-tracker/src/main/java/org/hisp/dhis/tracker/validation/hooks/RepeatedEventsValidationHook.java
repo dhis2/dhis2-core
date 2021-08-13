@@ -32,7 +32,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -81,7 +83,27 @@ public class RepeatedEventsValidationHook
             }
         }
 
+        bundle.getEvents()
+            .forEach( e -> validateNotMultipleEvents( context, e ) );
+
         return rootReporter;
+    }
+
+    private void validateNotMultipleEvents( TrackerImportValidationContext context, Event event )
+    {
+        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
+        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+
+        TrackerImportStrategy strategy = context.getStrategy( event );
+
+        if ( strategy == TrackerImportStrategy.CREATE && programStage != null && programInstance != null
+            && !programStage.getRepeatable()
+            && context.programStageHasEvents( programStage.getUid(), programInstance.getUid() ) )
+        {
+            final ValidationErrorReporter reporter = new ValidationErrorReporter( context, event );
+            addError( reporter, TrackerErrorCode.E1039, event.getProgramStage() );
+            context.getRootReporter().merge( reporter );
+        }
     }
 
     @Override

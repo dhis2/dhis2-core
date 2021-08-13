@@ -69,6 +69,11 @@ public interface JsonFollowupValue extends JsonObject
         return getString( "pe" ).string();
     }
 
+    default String getPeName()
+    {
+        return getString( "peName" ).string();
+    }
+
     default String getPeType()
     {
         return getString( "peType" ).string();

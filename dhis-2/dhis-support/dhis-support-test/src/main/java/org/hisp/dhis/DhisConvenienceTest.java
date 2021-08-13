@@ -124,6 +124,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -284,6 +285,19 @@ public abstract class DhisConvenienceTest
     {
         DateTime dateTime = new DateTime( s );
         return dateTime.toDate();
+    }
+
+    /**
+     * Creates a date. Alias for {@code getDate}.
+     *
+     * @param year the year.
+     * @param month the month.
+     * @param day the day of month.
+     * @return a date.
+     */
+    public static Date date( int year, int month, int day )
+    {
+        return getDate( year, month, day );
     }
 
     /**
@@ -913,6 +927,18 @@ public abstract class DhisConvenienceTest
     }
 
     /**
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param path A path, ie.: "/"
+     */
+    public static OrganisationUnit createOrganisationUnit( char uniqueCharacter, String path )
+    {
+        OrganisationUnit unit = createOrganisationUnit( uniqueCharacter );
+        unit.setPath( path );
+
+        return unit;
+    }
+
+    /**
      * @param name The name, short name and code of the organisation unit.
      */
     public static OrganisationUnit createOrganisationUnit( String name )
@@ -1056,6 +1082,27 @@ public abstract class DhisConvenienceTest
         dataValue.setComment( "Comment" );
         dataValue.setStoredBy( "StoredBy" );
 
+        return dataValue;
+    }
+
+    /**
+     * @param dataElement The data element.
+     * @param period The period.
+     * @param source The source.
+     * @param categoryOptionCombo The category option combo.
+     * @param attributeOptionCombo The attribute option combo.
+     * @param value the value.
+     * @param created the created date.
+     * @param lastUpdated the last updated date.
+     */
+    public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value,
+        Date created, Date lastUpdated )
+    {
+        DataValue dataValue = createDataValue( dataElement, period, source,
+            categoryOptionCombo, attributeOptionCombo, value );
+        dataValue.setCreated( created );
+        dataValue.setLastUpdated( lastUpdated );
         return dataValue;
     }
 
@@ -1507,6 +1554,21 @@ public abstract class DhisConvenienceTest
         }
 
         return program;
+    }
+
+    public static ProgramInstance createProgramInstance( Program program, TrackedEntityInstance tei,
+        OrganisationUnit organisationUnit )
+    {
+        ProgramInstance programInstance = new ProgramInstance( program, tei, organisationUnit );
+        programInstance.setAutoFields();
+
+        programInstance.setProgram( program );
+        programInstance.setEntityInstance( tei );
+        programInstance.setOrganisationUnit( organisationUnit );
+        programInstance.setEnrollmentDate( new Date() );
+        programInstance.setIncidentDate( new Date() );
+
+        return programInstance;
     }
 
     public static ProgramRule createProgramRule( char uniqueCharacter, Program parentProgram )
@@ -2426,6 +2488,11 @@ public abstract class DhisConvenienceTest
         de.setCode( "DCode" + name );
 
         return new ProgramDataElementDimensionItem( pr, de );
+    }
+
+    protected void removeUserAccess( IdentifiableObject object )
+    {
+        object.getSharing().resetUserAccesses();
     }
 
     protected void enableDataSharing( User user, IdentifiableObject object, String access )

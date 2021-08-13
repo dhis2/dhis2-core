@@ -80,6 +80,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.MandatoryAttributesCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.NotOwnerReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SchemaCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SecurityCheck;
@@ -161,7 +162,8 @@ public class ServiceConfig
         UniqueMultiPropertiesCheck.class,
         MandatoryAttributesCheck.class,
         UniqueAttributesCheck.class,
-        ReferencesCheck.class );
+        ReferencesCheck.class,
+        NotOwnerReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = newArrayList(
         DuplicateIdsCheck.class,
@@ -173,7 +175,8 @@ public class ServiceConfig
         UniqueMultiPropertiesCheck.class,
         MandatoryAttributesCheck.class,
         UniqueAttributesCheck.class,
-        ReferencesCheck.class );
+        ReferencesCheck.class,
+        NotOwnerReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = newArrayList(
         DuplicateIdsCheck.class,
@@ -185,7 +188,8 @@ public class ServiceConfig
         UniqueMultiPropertiesCheck.class,
         MandatoryAttributesCheck.class,
         UniqueAttributesCheck.class,
-        ReferencesCheck.class );
+        ReferencesCheck.class,
+        NotOwnerReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = newArrayList(
         SecurityCheck.class,

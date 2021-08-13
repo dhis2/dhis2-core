@@ -266,6 +266,12 @@ public class EventsAnalyticsQueryCriteria
     private IdScheme dataIdScheme;
 
     /**
+     * Identifier scheme to use for metadata items the query response, can be
+     * identifier, code or attributes. ( options: UID | CODE | ATTRIBUTE:<ID> )
+     */
+    private IdScheme outputIdScheme;
+
+    /**
      * The page number. Default page is 1.
      */
     private Integer page;

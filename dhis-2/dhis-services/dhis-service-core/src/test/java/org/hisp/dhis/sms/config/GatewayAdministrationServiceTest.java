@@ -27,10 +27,21 @@
  */
 package org.hisp.dhis.sms.config;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.function.Consumer;
 
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -121,7 +132,7 @@ public class GatewayAdministrationServiceTest
 
         assertNotEquals( clickatellConfig, subject.getDefaultGateway() );
 
-        subject.setDefaultGateway( clickatellConfig.getUid() );
+        subject.setDefaultGateway( clickatellConfig );
 
         assertEquals( clickatellConfig, subject.getDefaultGateway() );
         assertNotEquals( bulkConfig, subject.getDefaultGateway() );
@@ -138,12 +149,14 @@ public class GatewayAdministrationServiceTest
 
         assertTrue( subject.addGateway( genericHttpGatewayConfig ) );
 
-        assertEquals( subject.getGatewayConfigurationMap().size(), 2 );
+        assertGateways( 2 );
+
+        when( smsConfigurationManager.checkInstanceOfGateway( bulkConfig.getClass() ) ).thenReturn( bulkConfig );
 
         subject.addGateway( bulkConfig );
 
         // bulksms gateway already exist so it will not be added.
-        assertEquals( subject.getGatewayConfigurationMap().size(), 2 );
+        assertGateways( 2 );
     }
 
     @Test
@@ -180,10 +193,10 @@ public class GatewayAdministrationServiceTest
 
         subject.updateGateway( clickatellConfig, updated );
 
-        assertEquals( 2, subject.getGatewayConfigurationMap().size() );
-        assertTrue( subject.getGatewayConfigurationMap().get( BULKSMS ).isDefault() );
-        assertFalse( subject.getGatewayConfigurationMap().get( CLICKATELL ).isDefault() );
-        assertNotEquals( "tempUId", subject.getGatewayConfigurationMap().get( CLICKATELL ).getUid() );
+        assertGateways( 2 );
+        assertGateway( BULKSMS, gateway -> assertTrue( gateway.isDefault() ) );
+        assertGateway( CLICKATELL, gateway -> assertFalse( gateway.isDefault() ) );
+        assertGateway( CLICKATELL, gateway -> assertNotEquals( "tempUId", gateway.getUid() ) );
     }
 
     @Test
@@ -226,16 +239,16 @@ public class GatewayAdministrationServiceTest
         subject.addGateway( bulkConfig );
         subject.addGateway( clickatellConfig );
 
-        String bulkId = subject.getGatewayConfigurationMap().get( BULKSMS ).getUid();
-        String clickatelId = subject.getGatewayConfigurationMap().get( CLICKATELL ).getUid();
+        String bulkId = getConfigByClassName( BULKSMS ).getUid();
+        String clickatelId = getConfigByClassName( CLICKATELL ).getUid();
 
         assertNotNull( bulkId );
         assertNotNull( clickatelId );
         assertEquals( bulkConfig, subject.getDefaultGateway() );
 
         assertTrue( subject.removeGatewayByUid( bulkId ) );
-        assertEquals( 1, subject.getGatewayConfigurationMap().size() );
-        assertNull( subject.getGatewayConfigurationMap().get( BULKSMS ) );
+        assertGateways( 1 );
+        assertGateway( BULKSMS, Assert::assertNull );
         assertEquals( clickatellConfig, subject.getDefaultGateway() );
     }
 
@@ -245,15 +258,14 @@ public class GatewayAdministrationServiceTest
         subject.addGateway( bulkConfig );
         subject.addGateway( clickatellConfig );
 
-        subject.getGatewayConfigurationMap().get( BULKSMS ).getUid();
-        String clickatelId = subject.getGatewayConfigurationMap().get( CLICKATELL ).getUid();
+        String clickatelId = getConfigByClassName( CLICKATELL ).getUid();
 
         assertEquals( bulkConfig, subject.getDefaultGateway() );
-        assertEquals( 2, subject.getGatewayConfigurationMap().size() );
+        assertGateways( 2 );
 
         assertTrue( subject.removeGatewayByUid( clickatelId ) );
-        assertEquals( 1, subject.getGatewayConfigurationMap().size() );
-        assertNull( subject.getGatewayConfigurationMap().get( CLICKATELL ) );
+        assertGateways( 1 );
+        assertGateway( CLICKATELL, Assert::assertNull );
         assertEquals( bulkConfig, subject.getDefaultGateway() );
     }
 
@@ -262,33 +274,12 @@ public class GatewayAdministrationServiceTest
     {
         subject.addGateway( bulkConfig );
 
-        String bulkId = subject.getGatewayConfigurationMap().get( BULKSMS ).getUid();
+        String bulkId = getConfigByClassName( BULKSMS ).getUid();
 
         subject.removeGatewayByUid( bulkId );
 
-        assertTrue( subject.getGatewayConfigurationMap().isEmpty() );
+        assertGateways( 0 );
         assertNull( subject.getDefaultGateway() );
-    }
-
-    @Test
-    public void testGetGatewayType()
-    {
-        subject.addGateway( bulkConfig );
-
-        Class<? extends SmsGatewayConfig> config = subject
-            .getGatewayType( subject.getGatewayConfigurationMap().get( BULKSMS ) );
-
-        assertNotNull( config );
-        assertEquals( config, BulkSmsGatewayConfig.class );
-    }
-
-    @Test
-    public void testShouldReturnNullIfNoGatewayTypeFound()
-    {
-        subject.addGateway( bulkConfig );
-
-        assertNull( subject.getGatewayType( clickatellConfig ) );
-        assertNull( subject.getGatewayType( null ) );
     }
 
     @Test
@@ -309,8 +300,26 @@ public class GatewayAdministrationServiceTest
 
         subject.updateGateway( bulkConfig, updated );
 
-        assertEquals( 1, subject.getGatewayConfigurationMap().size() );
-        assertTrue( subject.getGatewayConfigurationMap().get( BULKSMS ).isDefault() );
-        assertEquals( "bulksms2", subject.getGatewayConfigurationMap().get( BULKSMS ).getName() );
+        assertGateways( 1 );
+        assertGateway( BULKSMS, gateway -> assertTrue( gateway.isDefault() ) );
+        assertGateway( BULKSMS, gateway -> assertEquals( "bulksms2", gateway.getName() ) );
+    }
+
+    private void assertGateway( String name, Consumer<SmsGatewayConfig> test )
+    {
+        SmsGatewayConfig config = getConfigByClassName( name );
+        test.accept( config );
+    }
+
+    private void assertGateways( int expectedNumberOfGateways )
+    {
+        assertEquals( expectedNumberOfGateways, spyConfiguration.getGateways().size() );
+    }
+
+    private SmsGatewayConfig getConfigByClassName( String name )
+    {
+        return smsConfigurationManager.getSmsConfiguration().getGateways().stream()
+            .filter( gateway -> gateway.getClass().getName().equals( name ) )
+            .findFirst().orElse( null );
     }
 }

@@ -49,7 +49,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
@@ -103,7 +102,6 @@ public class PreCheckDataRelationsValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( event );
 
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
@@ -128,11 +126,6 @@ public class PreCheckDataRelationsValidationHook
                 {
                     addError( reporter, E1079, event, program, event.getEnrollment() );
                 }
-            }
-
-            if ( strategy.isCreate() )
-            {
-                validateNotMultipleEvents( reporter, event );
             }
         }
 
@@ -178,21 +171,6 @@ public class PreCheckDataRelationsValidationHook
             {
                 addError( reporter, E4012, trackerType.getName(), uid.get() );
             }
-        }
-    }
-
-    private void validateNotMultipleEvents( ValidationErrorReporter reporter, Event event )
-    {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-
-        if ( programStage != null && programInstance != null
-            && !programStage.getRepeatable()
-            && context.programStageHasEvents( programStage.getUid(), programInstance.getUid() ) )
-        {
-            addError( reporter, E1039, programStage );
         }
     }
 
@@ -373,10 +351,10 @@ public class PreCheckDataRelationsValidationHook
     }
 
     private boolean programHasOrgUnit( Program program, OrganisationUnit orgUnit,
-        Map<Long, List<Long>> programAndOrgUnitsMap )
+        Map<String, List<String>> programAndOrgUnitsMap )
     {
-        return programAndOrgUnitsMap.containsKey( program.getId() )
-            && programAndOrgUnitsMap.get( program.getId() ).contains( orgUnit.getId() );
+        return programAndOrgUnitsMap.containsKey( program.getUid() )
+            && programAndOrgUnitsMap.get( program.getUid() ).contains( orgUnit.getUid() );
     }
 
     @Override

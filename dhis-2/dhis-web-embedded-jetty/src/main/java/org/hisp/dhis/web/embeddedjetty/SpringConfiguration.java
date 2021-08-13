@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistryImpl;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -45,6 +46,12 @@ import org.springframework.core.annotation.Order;
 @Profile( "embeddedJetty" )
 public class SpringConfiguration
 {
+    @Bean
+    public static SessionRegistryImpl sessionRegistry()
+    {
+        return new org.springframework.security.core.session.SessionRegistryImpl();
+    }
+
     @Primary
     @Bean( "org.hisp.dhis.security.SystemAuthoritiesProvider" )
     public SystemAuthoritiesProvider systemAuthoritiesProvider()

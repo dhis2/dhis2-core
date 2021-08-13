@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -70,11 +69,10 @@ public class VisualizationController
     }
 
     @Override
-    protected Visualization deserializeJsonEntity( final HttpServletRequest request,
-        final HttpServletResponse response )
+    protected Visualization deserializeJsonEntity( final HttpServletRequest request )
         throws IOException
     {
-        final Visualization visualization = super.deserializeJsonEntity( request, response );
+        final Visualization visualization = super.deserializeJsonEntity( request );
 
         addDimensionsInto( visualization );
 
@@ -95,9 +93,11 @@ public class VisualizationController
             visualization.getRowDimensions().addAll( getDimensions( visualization.getRows() ) );
             visualization.getFilterDimensions().addAll( getDimensions( visualization.getFilters() ) );
 
-            if ( visualization.getLegendSet() != null )
+            if ( visualization.getLegendDefinitions() != null
+                && visualization.getLegendDefinitions().getLegendSet() != null )
             {
-                visualization.setLegendSet( legendSetService.getLegendSet( visualization.getLegendSet().getUid() ) );
+                visualization.getLegendDefinitions().setLegendSet(
+                    legendSetService.getLegendSet( visualization.getLegendDefinitions().getLegendSet().getUid() ) );
             }
         }
     }

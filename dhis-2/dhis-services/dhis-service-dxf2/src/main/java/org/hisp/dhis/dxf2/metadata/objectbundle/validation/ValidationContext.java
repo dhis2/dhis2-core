@@ -30,8 +30,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHook;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHooks;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
@@ -40,32 +42,22 @@ import org.hisp.dhis.user.UserService;
 /**
  * @author Luciano Fiandesio
  */
+@AllArgsConstructor
 public class ValidationContext
 {
+    private final ObjectBundleHooks objectBundleHooks;
 
-    private List<ObjectBundleHook> objectBundleHooks;
+    private final SchemaValidator schemaValidator;
 
-    private SchemaValidator schemaValidator;
+    private final AclService aclService;
 
-    private AclService aclService;
+    private final UserService userService;
 
-    private UserService userService;
+    private final SchemaService schemaService;
 
-    private SchemaService schemaService;
+    private final List<IdentifiableObject> markedForRemoval = new ArrayList<>();
 
-    private List<IdentifiableObject> markedForRemoval = new ArrayList<>();
-
-    public ValidationContext( List<ObjectBundleHook> objectBundleHooks, SchemaValidator schemaValidator,
-        AclService aclService, UserService userService, SchemaService schemaService )
-    {
-        this.objectBundleHooks = objectBundleHooks;
-        this.schemaValidator = schemaValidator;
-        this.aclService = aclService;
-        this.userService = userService;
-        this.schemaService = schemaService;
-    }
-
-    public List<ObjectBundleHook> getObjectBundleHooks()
+    public ObjectBundleHooks getObjectBundleHooks()
     {
         return objectBundleHooks;
     }
@@ -95,7 +87,7 @@ public class ValidationContext
         this.markedForRemoval.add( object );
     }
 
-    public List<IdentifiableObject> getMarkedForRemoval()
+    public List<? extends IdentifiableObject> getMarkedForRemoval()
     {
         return markedForRemoval;
     }

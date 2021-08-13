@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.datastatistics;
 
 import static java.util.Calendar.DATE;
 import static java.util.Calendar.MILLISECOND;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.util.Date;
@@ -45,7 +46,6 @@ import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datastatistics.EventInterval;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
@@ -97,7 +97,7 @@ public class DataStatisticsController
     {
         if ( startDate.after( endDate ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Start date is after end date" ) );
+            throw new WebMessageException( conflict( "Start date is after end date" ) );
         }
 
         // The endDate is arriving as: "2019-09-28". After the conversion below

@@ -27,25 +27,33 @@
  */
 package org.hisp.dhis.common;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Lars Helge Overland
  */
+@Getter
+@RequiredArgsConstructor
 public enum QueryOperator
 {
-    EQ( "=" ),
+    EQ( "=", true ),
     GT( ">" ),
     GE( ">=" ),
     LT( "<" ),
     LE( "<=" ),
-    NE( "!=" ),
+    NE( "!=", true ),
     LIKE( "like" ),
-    IN( "in" );
+    IN( "in", true );
 
     private final String value;
+
+    private final boolean nullAllowed;
 
     QueryOperator( String value )
     {
         this.value = value;
+        this.nullAllowed = false;
     }
 
     public static QueryOperator fromString( String string )
@@ -58,8 +66,4 @@ public enum QueryOperator
         return valueOf( string.toUpperCase() );
     }
 
-    public String getValue()
-    {
-        return value;
-    }
 }

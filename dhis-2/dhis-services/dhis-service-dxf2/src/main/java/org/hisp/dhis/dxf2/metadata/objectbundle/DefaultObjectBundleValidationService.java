@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
-import java.util.ArrayList;
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 import java.util.Map;
 
@@ -82,15 +83,7 @@ public class DefaultObjectBundleValidationService
 
         for ( Class<? extends IdentifiableObject> klass : klasses )
         {
-            List<IdentifiableObject> nonPersistedObjects = bundle.getObjects( klass, false );
-            List<IdentifiableObject> persistedObjects = bundle.getObjects( klass, true );
-
-            cleanDefaults( bundle.getPreheat(), nonPersistedObjects );
-            cleanDefaults( bundle.getPreheat(), persistedObjects );
-
-            // Validate the bundle by running the validation checks chain
-            validation.addTypeReport( validationFactory.validateBundle( bundle, klass, persistedObjects,
-                nonPersistedObjects ) );
+            validateObjectType( bundle, validation, klass );
         }
 
         validateAtomicity( bundle, validation );
@@ -101,7 +94,21 @@ public class DefaultObjectBundleValidationService
         return validation;
     }
 
-    private void cleanDefaults( Preheat preheat, List<IdentifiableObject> objects )
+    private <T extends IdentifiableObject> void validateObjectType( ObjectBundle bundle,
+        ObjectBundleValidationReport validation, Class<T> klass )
+    {
+        List<T> nonPersistedObjects = bundle.getObjects( klass, false );
+        List<T> persistedObjects = bundle.getObjects( klass, true );
+
+        cleanDefaults( bundle.getPreheat(), nonPersistedObjects );
+        cleanDefaults( bundle.getPreheat(), persistedObjects );
+
+        // Validate the bundle by running the validation checks chain
+        validation
+            .addTypeReport( validationFactory.validateBundle( bundle, klass, persistedObjects, nonPersistedObjects ) );
+    }
+
+    private void cleanDefaults( Preheat preheat, List<? extends IdentifiableObject> objects )
     {
         objects.removeIf( preheat::isDefault );
     }
@@ -124,7 +131,7 @@ public class DefaultObjectBundleValidationService
 
         if ( AtomicMode.ALL == bundle.getAtomicMode() )
         {
-            if ( !validation.getErrorReports().isEmpty() )
+            if ( validation.hasErrorReports() )
             {
                 nonPersistedObjects.clear();
                 persistedObjects.clear();
@@ -135,19 +142,9 @@ public class DefaultObjectBundleValidationService
     @SuppressWarnings( "unchecked" )
     private List<Class<? extends IdentifiableObject>> getSortedClasses( ObjectBundle bundle )
     {
-        List<Class<? extends IdentifiableObject>> klasses = new ArrayList<>();
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = bundle.getObjectMap();
-
-        schemaService.getMetadataSchemas().forEach( schema -> {
-            Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) schema.getKlass();
-
-            if ( objectMap.containsKey( klass ) )
-            {
-                klasses.add( klass );
-            }
-        } );
-
-        return klasses;
+        return schemaService.getMetadataSchemas().stream()
+            .map( schema -> (Class<? extends IdentifiableObject>) schema.getKlass() )
+            .filter( bundle::hasObjects )
+            .collect( toList() );
     }
 }

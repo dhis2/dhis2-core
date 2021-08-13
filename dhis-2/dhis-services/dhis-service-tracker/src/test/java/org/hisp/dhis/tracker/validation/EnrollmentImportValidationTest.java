@@ -116,38 +116,6 @@ public class EnrollmentImportValidationTest
     }
 
     @Test
-    public void testNonRegProgram()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_error-nonreg-program.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1014 ) ) ) );
-    }
-
-    @Test
-    public void testTrackedEntityTypeMismatch()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_error-program-tet-mismatch-te.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1022 ) ) ) );
-    }
-
-    @Test
     public void testOnlyProgramAttributesAllowedOnEnrollments()
         throws IOException
     {

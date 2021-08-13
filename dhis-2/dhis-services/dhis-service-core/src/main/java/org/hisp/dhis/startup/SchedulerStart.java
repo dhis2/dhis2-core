@@ -30,7 +30,13 @@ package org.hisp.dhis.startup;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
-import static org.hisp.dhis.scheduling.JobType.*;
+import static org.hisp.dhis.scheduling.JobType.CREDENTIALS_EXPIRY_ALERT;
+import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
+import static org.hisp.dhis.scheduling.JobType.DATA_STATISTICS;
+import static org.hisp.dhis.scheduling.JobType.FILE_RESOURCE_CLEANUP;
+import static org.hisp.dhis.scheduling.JobType.LEADER_ELECTION;
+import static org.hisp.dhis.scheduling.JobType.REMOVE_USED_OR_EXPIRED_RESERVED_VALUES;
+import static org.hisp.dhis.scheduling.JobType.VALIDATION_RESULTS_NOTIFICATION;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -149,7 +155,7 @@ public class SchedulerStart extends AbstractStartupRoutine
                         + oldExecutionTime );
                 }
 
-                schedulingManager.scheduleJob( jobConfig );
+                schedulingManager.schedule( jobConfig );
             }
         }) );
 
@@ -270,7 +276,7 @@ public class SchedulerStart extends AbstractStartupRoutine
     private void addAndScheduleJob( JobConfiguration jobConfiguration )
     {
         jobConfigurationService.addJobConfiguration( jobConfiguration );
-        schedulingManager.scheduleJob( jobConfiguration );
+        schedulingManager.schedule( jobConfiguration );
     }
 
     private static void portJob( SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration,

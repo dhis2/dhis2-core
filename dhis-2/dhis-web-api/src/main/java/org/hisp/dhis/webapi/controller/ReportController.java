@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 import java.util.Date;
@@ -41,7 +43,6 @@ import net.sf.jasperreports.j2ee.servlets.ImageServlet;
 
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -58,10 +59,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -87,7 +89,7 @@ public class ReportController
     // CRUD
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/design", method = RequestMethod.PUT )
+    @PutMapping( "/{uid}/design" )
     @PreAuthorize( "hasRole('ALL')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateReportDesign( @PathVariable( "uid" ) String uid,
@@ -99,14 +101,14 @@ public class ReportController
 
         if ( report == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Report not found for identifier: " + uid ) );
+            throw new WebMessageException( notFound( "Report not found for identifier: " + uid ) );
         }
 
         report.setDesignContent( designContent );
         reportService.saveReport( report );
     }
 
-    @RequestMapping( value = "/{uid}/design", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/design" )
     public void getReportDesign( @PathVariable( "uid" ) String uid, HttpServletResponse response )
         throws Exception
     {
@@ -114,12 +116,12 @@ public class ReportController
 
         if ( report == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Report not found for identifier: " + uid ) );
+            throw new WebMessageException( notFound( "Report not found for identifier: " + uid ) );
         }
 
         if ( report.getDesignContent() == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Report has no design content: " + uid ) );
+            throw new WebMessageException( conflict( "Report has no design content: " + uid ) );
         }
 
         if ( report.isTypeHtml() )
@@ -140,7 +142,7 @@ public class ReportController
     // Get data
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = { "/{uid}/data", "/{uid}/data.pdf" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/{uid}/data", "/{uid}/data.pdf" } )
     public void getReportAsPdf( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "pe", required = false ) String period,
@@ -152,7 +154,7 @@ public class ReportController
             false );
     }
 
-    @RequestMapping( value = "/{uid}/data.xls", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.xls" )
     public void getReportAsXls( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "pe", required = false ) String period,
@@ -164,7 +166,7 @@ public class ReportController
             true );
     }
 
-    @RequestMapping( value = "/{uid}/data.html", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.html" )
     public void getReportAsHtml( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "pe", required = false ) String period,
@@ -185,7 +187,7 @@ public class ReportController
      * servlet mapping around. Note that the path to images are relative to the
      * reports path in this controller.
      */
-    @RequestMapping( value = "/jasperReports/img", method = RequestMethod.GET )
+    @GetMapping( "/jasperReports/img" )
     public void getJasperImage( @RequestParam String image,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
@@ -206,7 +208,7 @@ public class ReportController
 
         if ( report == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Report not found for identifier: " + uid ) );
+            throw new WebMessageException( notFound( "Report not found for identifier: " + uid ) );
         }
 
         if ( organisationUnitUid == null && report.hasVisualization() && report.getVisualization().hasReportingParams()

@@ -89,6 +89,10 @@ public class OrderCriteria
         {
             return OrderCriteria.of( props[0], SortDirection.of( props[1] ) );
         }
+        if ( props.length == 1 )
+        {
+            return OrderCriteria.of( props[0], SortDirection.ASC );
+        }
         return null;
     }
 

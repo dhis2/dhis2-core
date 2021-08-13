@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
@@ -80,27 +80,33 @@ public class DefaultAppManager
 
     private final KeyJsonValueService keyJsonValueService;
 
+    /**
+     * In-memory storage of installed apps. Initially loaded on startup. Should
+     * not be cleared during runtime.
+     */
     private final Cache<App> appCache;
 
     public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
         CurrentUserService currentUserService,
         @Qualifier( "org.hisp.dhis.appmanager.LocalAppStorageService" ) AppStorageService localAppStorageService,
         @Qualifier( "org.hisp.dhis.appmanager.JCloudsAppStorageService" ) AppStorageService jCloudsAppStorageService,
-        KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
+        KeyJsonValueService keyJsonValueService, CacheBuilderProvider cacheBuilderProvider )
     {
         checkNotNull( dhisConfigurationProvider );
         checkNotNull( currentUserService );
         checkNotNull( localAppStorageService );
         checkNotNull( jCloudsAppStorageService );
         checkNotNull( keyJsonValueService );
-        checkNotNull( cacheProvider );
+        checkNotNull( cacheBuilderProvider );
 
         this.dhisConfigurationProvider = dhisConfigurationProvider;
         this.currentUserService = currentUserService;
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
         this.keyJsonValueService = keyJsonValueService;
-        this.appCache = cacheProvider.createAppCache();
+        this.appCache = cacheBuilderProvider.<App> newCacheBuilder()
+            .forRegion( "appCache" )
+            .build();
     }
 
     // -------------------------------------------------------------------------
@@ -110,7 +116,7 @@ public class DefaultAppManager
     @Override
     public List<App> getApps( String contextPath )
     {
-        List<App> apps = appCache.getAll().stream().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
+        List<App> apps = appCache.getAll().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
             .collect( Collectors.toList() );
 
         apps.forEach( a -> a.init( contextPath ) );
@@ -139,15 +145,7 @@ public class DefaultAppManager
         }
 
         // If no apps are found, check for original name
-        for ( App app : appCache.getAll() )
-        {
-            if ( app.getShortName().equals( appName ) )
-            {
-                return app;
-            }
-        }
-
-        return null;
+        return appCache.getAll().filter( app -> app.getShortName().equals( appName ) ).findFirst().orElse( null );
     }
 
     @Override
@@ -336,7 +334,9 @@ public class DefaultAppManager
     }
 
     /**
-     * Triggers AppStorageServices to re-discover apps
+     * Reloads apps by triggering the process to discover apps from local
+     * filesystem and remote cloud storage and installing all detected apps.
+     * This method is invoked automatically on startup.
      */
     @Override
     @PostConstruct

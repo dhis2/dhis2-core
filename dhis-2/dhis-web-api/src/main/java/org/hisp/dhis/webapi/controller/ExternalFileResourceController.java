@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.io.IOException;
@@ -48,9 +50,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * @author Stian Sandvold
@@ -79,7 +81,7 @@ public class ExternalFileResourceController
      * @param response
      * @throws WebMessageException
      */
-    @RequestMapping( value = "/{accessToken}", method = RequestMethod.GET )
+    @GetMapping( "/{accessToken}" )
     public void getExternalFileResource( @PathVariable String accessToken,
         HttpServletResponse response )
         throws WebMessageException
@@ -89,7 +91,7 @@ public class ExternalFileResourceController
 
         if ( externalFileResource == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "No file found with key '" + accessToken + "'" ) );
+            throw new WebMessageException( notFound( "No file found with key '" + accessToken + "'" ) );
         }
 
         if ( externalFileResource.getExpires() != null && externalFileResource.getExpires().before( new Date() ) )
@@ -111,7 +113,7 @@ public class ExternalFileResourceController
         }
         catch ( IOException e )
         {
-            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+            throw new WebMessageException( error( "Failed fetching the file from storage",
                 "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related" ) );
         }
     }

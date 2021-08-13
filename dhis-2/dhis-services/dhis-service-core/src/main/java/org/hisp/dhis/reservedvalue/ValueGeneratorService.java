@@ -28,15 +28,14 @@
 package org.hisp.dhis.reservedvalue;
 
 import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.textpattern.TextPattern;
-import org.hisp.dhis.textpattern.TextPatternMethodUtils;
 import org.hisp.dhis.textpattern.TextPatternSegment;
 import org.springframework.stereotype.Service;
 
@@ -44,12 +43,15 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ValueGeneratorService
 {
-
     private final SequentialNumberCounterStore sequentialNumberCounterStore;
+
+    private final RandomGeneratorService randomGeneratorService;
 
     public List<String> generateValues( TextPatternSegment segment, TextPattern textPattern, String key,
         int numberOfValues )
-        throws ReserveValueException
+        throws ReserveValueException,
+        InterruptedException,
+        ExecutionException
     {
         List<String> generatedValues = new ArrayList<>();
 
@@ -80,11 +82,25 @@ public class ValueGeneratorService
 
         case RANDOM:
 
+            List<Future<List<String>>> resultList = new ArrayList<>();
+
+            ExecutorService executorService = Executors.newFixedThreadPool( 10 );
+
+            randomGeneratorService.setSegmentParameter( segment.getParameter() );
+
             for ( int i = 0; i < numberOfValues; i++ )
             {
-                generatedValues
-                    .add( TextPatternMethodUtils.generateRandom( new SecureRandom(), segment.getParameter() ) );
+                Future<List<String>> result = executorService
+                    .submit( randomGeneratorService );
+                resultList.add( result );
             }
+
+            for ( Future<List<String>> result : resultList )
+            {
+                generatedValues.addAll( result.get() );
+            }
+
+            executorService.shutdown();
 
             break;
 

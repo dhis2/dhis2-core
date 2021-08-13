@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -40,13 +42,12 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.GoogleAccessToken;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -71,7 +72,7 @@ public class TokenController
         this.tokenCache = cacheProvider.createGoogleAccessTokenCache();
     }
 
-    @RequestMapping( value = "/google", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/google", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody GoogleAccessToken getEarthEngineToken( HttpServletResponse response )
         throws WebMessageException,
         ExecutionException
@@ -83,7 +84,7 @@ public class TokenController
 
         if ( !tokenOptional.isPresent() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Token not available" ) );
+            throw new WebMessageException( conflict( "Token not available" ) );
         }
 
         GoogleAccessToken token = tokenOptional.get();

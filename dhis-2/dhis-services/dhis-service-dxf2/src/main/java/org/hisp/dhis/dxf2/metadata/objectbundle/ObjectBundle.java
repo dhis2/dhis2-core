@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
+import static java.util.Collections.emptyList;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,6 +44,7 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.feedback.ObjectIndexProvider;
 import org.hisp.dhis.feedback.TypedIndexedObjectContainer;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -52,6 +54,8 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
+
+import com.google.common.collect.Iterables;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -94,6 +98,12 @@ public class ObjectBundle implements ObjectIndexProvider
      * Sets import strategy (create, update, etc).
      */
     private final ImportStrategy importMode;
+
+    /**
+     * Adjust hows objects imported should be reported (all objects, only errors
+     * etc)
+     */
+    private final ImportReportMode importReportMode;
 
     /**
      * Should import be treated as a atomic import (all or nothing).
@@ -148,7 +158,9 @@ public class ObjectBundle implements ObjectIndexProvider
     /**
      * Objects to import.
      */
-    private Map<Boolean, Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>>> objects = new HashMap<>();
+    private final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> persistedObjects = new HashMap<>();
+
+    private final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> nonPersistedObjects = new HashMap<>();
 
     /**
      * Contains the indexes of the objects to be imported grouped by their type.
@@ -171,17 +183,13 @@ public class ObjectBundle implements ObjectIndexProvider
     public ObjectBundle( ObjectBundleParams params, Preheat preheat,
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap )
     {
-        if ( !objects.containsKey( Boolean.TRUE ) )
-            objects.put( Boolean.TRUE, new HashMap<>() );
-        if ( !objects.containsKey( Boolean.FALSE ) )
-            objects.put( Boolean.FALSE, new HashMap<>() );
-
         this.user = params.getUser();
         this.userOverrideMode = params.getUserOverrideMode();
         this.overrideUser = params.getOverrideUser();
         this.objectBundleMode = params.getObjectBundleMode();
         this.preheatIdentifier = params.getPreheatIdentifier();
         this.importMode = params.getImportStrategy();
+        this.importReportMode = params.getImportReportMode();
         this.atomicMode = params.getAtomicMode();
         this.preheatMode = params.getPreheatMode();
         this.mergeMode = params.getMergeMode();
@@ -239,6 +247,11 @@ public class ObjectBundle implements ObjectIndexProvider
     public ImportStrategy getImportMode()
     {
         return importMode;
+    }
+
+    public ImportReportMode getImportReportMode()
+    {
+        return importReportMode;
     }
 
     public AtomicMode getAtomicMode()
@@ -334,24 +347,13 @@ public class ObjectBundle implements ObjectIndexProvider
 
         Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( object );
 
-        if ( !objects.get( Boolean.TRUE ).containsKey( realClass ) )
-        {
-            objects.get( Boolean.TRUE ).put( realClass, new ArrayList<>() );
-        }
-
-        if ( !objects.get( Boolean.FALSE ).containsKey( realClass ) )
-        {
-            objects.get( Boolean.FALSE ).put( realClass, new ArrayList<>() );
-        }
-
         if ( isPersisted( object ) )
         {
-            objects.get( Boolean.TRUE ).get( realClass ).add( object );
+            persistedObjects.computeIfAbsent( realClass, key -> new ArrayList<>() ).add( object );
         }
         else
         {
-            objects.get( Boolean.FALSE ).get( realClass ).add( object );
-
+            nonPersistedObjects.computeIfAbsent( realClass, key -> new ArrayList<>() ).add( object );
         }
 
         typedIndexedObjectContainer.add( object );
@@ -364,52 +366,69 @@ public class ObjectBundle implements ObjectIndexProvider
 
     private void addObject( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
     {
-        objects.keySet().forEach( klass -> addObject( objects.get( klass ) ) );
+        objects.values().forEach( this::addObject );
     }
 
-    public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getObjectMap()
+    public void forEach( Consumer<IdentifiableObject> objectConsumer )
     {
-        Set<Class<? extends IdentifiableObject>> klasses = new HashSet<>();
+        persistedObjects.values().forEach( list -> list.forEach( objectConsumer ) );
+        nonPersistedObjects.values().forEach( list -> list.forEach( objectConsumer ) );
+    }
 
-        klasses.addAll( objects.get( Boolean.TRUE ).keySet() );
-        klasses.addAll( objects.get( Boolean.FALSE ).keySet() );
+    public boolean hasObjects( Class<? extends IdentifiableObject> klass )
+    {
+        return persistedObjects.containsKey( klass ) || nonPersistedObjects.containsKey( klass );
+    }
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = new HashMap<>();
+    public int getObjectsCount( Class<? extends IdentifiableObject> klass )
+    {
+        List<IdentifiableObject> none = emptyList();
+        return persistedObjects.getOrDefault( klass, none ).size()
+            + nonPersistedObjects.getOrDefault( klass, none ).size();
+    }
 
-        klasses.forEach( klass -> {
-            objectMap.put( klass, new ArrayList<>() );
-            objectMap.get( klass ).addAll( objects.get( Boolean.TRUE ).get( klass ) );
-            objectMap.get( klass ).addAll( objects.get( Boolean.FALSE ).get( klass ) );
-        } );
-
-        return objectMap;
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> Iterable<T> getObjects( Class<T> klass )
+    {
+        List<IdentifiableObject> persistedObjectsOfType = persistedObjects.get( klass );
+        if ( persistedObjectsOfType == null || persistedObjectsOfType.isEmpty() )
+        {
+            return (Iterable<T>) nonPersistedObjects.getOrDefault( klass, emptyList() );
+        }
+        List<IdentifiableObject> nonPersistedObjectsOfType = nonPersistedObjects.get( klass );
+        if ( nonPersistedObjectsOfType == null || nonPersistedObjectsOfType.isEmpty() )
+        {
+            return (Iterable<T>) persistedObjectsOfType;
+        }
+        return (Iterable<T>) Iterables.concat( persistedObjectsOfType, nonPersistedObjectsOfType );
     }
 
     public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getObjects( boolean persisted )
     {
-        return persisted ? objects.get( Boolean.TRUE ) : objects.get( Boolean.FALSE );
+        return persisted ? persistedObjects : nonPersistedObjects;
     }
 
-    public List<IdentifiableObject> getObjects( Class<? extends IdentifiableObject> klass, boolean persisted )
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getObjects( Class<T> klass, boolean persisted )
     {
-        List<IdentifiableObject> identifiableObjects = null;
+        List<T> identifiableObjects = null;
 
         if ( persisted )
         {
-            if ( objects.get( Boolean.TRUE ).containsKey( klass ) )
+            if ( persistedObjects.containsKey( klass ) )
             {
-                identifiableObjects = objects.get( Boolean.TRUE ).get( klass );
+                identifiableObjects = (List<T>) persistedObjects.get( klass );
             }
         }
         else
         {
-            if ( objects.get( Boolean.FALSE ).containsKey( klass ) )
+            if ( nonPersistedObjects.containsKey( klass ) )
             {
-                identifiableObjects = objects.get( Boolean.FALSE ).get( klass );
+                identifiableObjects = (List<T>) nonPersistedObjects.get( klass );
             }
         }
 
-        return identifiableObjects != null ? identifiableObjects : new ArrayList<>();
+        return identifiableObjects != null ? identifiableObjects : emptyList();
     }
 
     public Map<String, Map<String, Object>> getObjectReferences( Class<?> klass )

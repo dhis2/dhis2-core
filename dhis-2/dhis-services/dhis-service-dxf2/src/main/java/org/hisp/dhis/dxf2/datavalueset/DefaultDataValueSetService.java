@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
@@ -46,6 +45,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -97,6 +97,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
@@ -127,8 +128,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Slf4j
 @Service( "org.hisp.dhis.dxf2.datavalueset.DataValueSetService" )
-public class DefaultDataValueSetService
-    implements DataValueSetService
+@AllArgsConstructor
+public class DefaultDataValueSetService implements DataValueSetService
 {
     private static final String ERROR_OBJECT_NEEDED_TO_COMPLETE = "Must be provided to complete data set";
 
@@ -174,70 +175,7 @@ public class DefaultDataValueSetService
 
     private final DataValueSetImportValidator importValidator;
 
-    public DefaultDataValueSetService(
-        IdentifiableObjectManager identifiableObjectManager,
-        CategoryService categoryService,
-        OrganisationUnitService organisationUnitService,
-        PeriodService periodService,
-        BatchHandlerFactory batchHandlerFactory,
-        CompleteDataSetRegistrationService registrationService,
-        CurrentUserService currentUserService,
-        DataValueSetStore dataValueSetStore,
-        SystemSettingManager systemSettingManager,
-        LockExceptionStore lockExceptionStore,
-        I18nManager i18nManager,
-        Notifier notifier,
-        InputUtils inputUtils,
-        CalendarService calendarService,
-        DataValueService dataValueService,
-        FileResourceService fileResourceService,
-        AclService aclService,
-        DhisConfigurationProvider config,
-        ObjectMapper jsonMapper,
-        DataValueSetImportValidator importValidator )
-    {
-        checkNotNull( identifiableObjectManager );
-        checkNotNull( categoryService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( periodService );
-        checkNotNull( batchHandlerFactory );
-        checkNotNull( registrationService );
-        checkNotNull( currentUserService );
-        checkNotNull( dataValueSetStore );
-        checkNotNull( systemSettingManager );
-        checkNotNull( lockExceptionStore );
-        checkNotNull( i18nManager );
-        checkNotNull( notifier );
-        checkNotNull( inputUtils );
-        checkNotNull( calendarService );
-        checkNotNull( dataValueService );
-        checkNotNull( fileResourceService );
-        checkNotNull( aclService );
-        checkNotNull( config );
-        checkNotNull( jsonMapper );
-        checkNotNull( importValidator );
-
-        this.identifiableObjectManager = identifiableObjectManager;
-        this.categoryService = categoryService;
-        this.organisationUnitService = organisationUnitService;
-        this.periodService = periodService;
-        this.batchHandlerFactory = batchHandlerFactory;
-        this.registrationService = registrationService;
-        this.currentUserService = currentUserService;
-        this.dataValueSetStore = dataValueSetStore;
-        this.systemSettingManager = systemSettingManager;
-        this.lockExceptionStore = lockExceptionStore;
-        this.i18nManager = i18nManager;
-        this.notifier = notifier;
-        this.inputUtils = inputUtils;
-        this.calendarService = calendarService;
-        this.dataValueService = dataValueService;
-        this.fileResourceService = fileResourceService;
-        this.aclService = aclService;
-        this.config = config;
-        this.jsonMapper = jsonMapper;
-        this.importValidator = importValidator;
-    }
+    private final SchemaService schemaService;
 
     /**
      * Used only for testing, remove when test is refactored
@@ -796,11 +734,12 @@ public class DefaultDataValueSetService
         clock.logTime( "Validated outer meta-data" );
         notifier.notify( id, notificationLevel, "Importing data values" );
 
+        int index = 0;
         while ( dataValueSet.hasNextDataValue() )
         {
             org.hisp.dhis.dxf2.datavalue.DataValue dataValue = dataValueSet.getNextDataValue();
 
-            ImportContext.DataValueContext valueContext = createDataValueContext(
+            ImportContext.DataValueContext valueContext = createDataValueContext( index++,
                 dataValue, context, dataSetContext );
 
             // -----------------------------------------------------------------
@@ -1150,6 +1089,7 @@ public class DefaultDataValueSetService
                 .createBatchHandler( DataValueBatchHandler.class ).init() )
             .auditBatchHandler( skipAudit ? null
                 : batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init() )
+            .singularNameForType( klass -> schemaService.getDynamicSchema( klass ).getSingular() )
             .build();
     }
 
@@ -1202,10 +1142,11 @@ public class DefaultDataValueSetService
             .build();
     }
 
-    private ImportContext.DataValueContext createDataValueContext(
+    private ImportContext.DataValueContext createDataValueContext( int index,
         org.hisp.dhis.dxf2.datavalue.DataValue dataValue, ImportContext context, DataSetContext dataSetContext )
     {
         return ImportContext.DataValueContext.builder()
+            .index( index )
             .dataElement( context.getDataElementMap().get( trimToNull( dataValue.getDataElement() ),
                 context.getDataElementCallable().setId( trimToNull( dataValue.getDataElement() ) ) ) )
             .period( dataSetContext.getOuterPeriod() != null ? dataSetContext.getOuterPeriod()

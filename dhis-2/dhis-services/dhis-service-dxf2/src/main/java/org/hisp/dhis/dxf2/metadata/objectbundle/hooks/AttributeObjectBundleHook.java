@@ -27,34 +27,23 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class AttributeObjectBundleHook
-    extends AbstractObjectBundleHook
+    extends AbstractObjectBundleHook<Attribute>
 {
     private final AttributeService attributeService;
 
-    public AttributeObjectBundleHook( AttributeService attributeService )
-    {
-        checkNotNull( attributeService );
-        this.attributeService = attributeService;
-    }
-
     @Override
-    public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
+    public void postUpdate( Attribute persistedObject, ObjectBundle bundle )
     {
-        if ( !(persistedObject instanceof Attribute) )
-        {
-            return;
-        }
-
         attributeService.invalidateCachedAttribute( persistedObject.getUid() );
     }
 }

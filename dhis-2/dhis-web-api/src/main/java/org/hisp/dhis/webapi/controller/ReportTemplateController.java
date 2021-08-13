@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
@@ -40,8 +42,7 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
 
 /**
  * @author Lars Helge Overland
@@ -53,14 +54,14 @@ public class ReportTemplateController
     @Autowired
     private ContextUtils contextUtils;
 
-    @RequestMapping( value = "/reportTemplate.xml", method = RequestMethod.GET, produces = "application/xml" )
+    @GetMapping( value = "/reportTemplate.xml", produces = APPLICATION_XML_VALUE )
     public void getReportDesignJrxml( HttpServletResponse response )
         throws Exception
     {
         serveTemplate( response, ContextUtils.CONTENT_TYPE_XML, "jasper-report-template.jrxml" );
     }
 
-    @RequestMapping( value = "/reportTemplate.html", method = RequestMethod.GET, produces = "application/xml" )
+    @GetMapping( value = "/reportTemplate.html", produces = APPLICATION_XML_VALUE )
     public void getReportDesignHtml( HttpServletResponse response )
         throws Exception
     {
