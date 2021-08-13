@@ -875,6 +875,6 @@ public class DefaultCategoryService
     @Override
     public IdentifiableObjectAssociations getCategoryOptionOrganisationUnitsAssociations( Set<String> uids )
     {
-        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociations( uids );
+        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( uids );
     }
 }
