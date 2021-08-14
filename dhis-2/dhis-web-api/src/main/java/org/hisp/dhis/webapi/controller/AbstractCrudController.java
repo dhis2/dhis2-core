@@ -111,11 +111,6 @@ import com.google.common.collect.Lists;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public abstract class AbstractCrudController<T extends IdentifiableObject> extends AbstractFullReadOnlyController<T>
 {
-
-    // --------------------------------------------------------------------------
-    // Dependencies
-    // --------------------------------------------------------------------------
-
     @Autowired
     protected SchemaValidator schemaValidator;
 

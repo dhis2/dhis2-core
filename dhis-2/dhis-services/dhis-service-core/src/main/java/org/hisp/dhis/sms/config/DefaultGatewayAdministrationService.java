@@ -30,10 +30,9 @@ package org.hisp.dhis.sms.config;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,11 +53,7 @@ import org.springframework.stereotype.Service;
 public class DefaultGatewayAdministrationService
     implements GatewayAdministrationService
 {
-    private Map<String, SmsGatewayConfig> gatewayConfigurationMap = new HashMap<>();
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final AtomicBoolean hasGateways = new AtomicBoolean();
 
     private final SmsConfigurationManager smsConfigurationManager;
 
@@ -81,13 +76,7 @@ public class DefaultGatewayAdministrationService
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
-        initializeSmsConfig();
-    }
-
-    @Override
-    public void setDefaultGateway( String uid )
-    {
-        setDefaultGateway( getByUid( uid ) );
+        updateHasGatewaysState();
     }
 
     @Override
@@ -95,66 +84,48 @@ public class DefaultGatewayAdministrationService
     {
         SmsConfiguration configuration = getSmsConfiguration();
 
-        List<SmsGatewayConfig> persistedConfigs = configuration.getGateways();
-
-        List<SmsGatewayConfig> updatedConfigs = new ArrayList<>();
-
-        for ( SmsGatewayConfig persisted : persistedConfigs )
-        {
-            persisted.setDefault( Objects.equals( persisted.getUid(), config.getUid() ) );
-
-            updatedConfigs.add( persisted );
-        }
-
-        configuration.setGateways( updatedConfigs );
+        configuration.getGateways()
+            .forEach( gateway -> gateway.setDefault( Objects.equals( gateway.getUid(), config.getUid() ) ) );
 
         smsConfigurationManager.updateSmsConfiguration( configuration );
-        initializeSmsConfig();
+        updateHasGatewaysState();
     }
 
     @Override
     public boolean addGateway( SmsGatewayConfig config )
     {
-        if ( config != null )
+        if ( config == null )
         {
-            SmsGatewayConfig persisted = smsConfigurationManager.checkInstanceOfGateway( config.getClass() );
+            return false;
+        }
+        SmsGatewayConfig persisted = smsConfigurationManager.checkInstanceOfGateway( config.getClass() );
 
-            if ( persisted != null )
-            {
-                return true;
-            }
-
-            config.setUid( CodeGenerator.generateCode( 10 ) );
-
-            SmsConfiguration smsConfiguration = getSmsConfiguration();
-
-            if ( smsConfiguration.getGateways().isEmpty() )
-            {
-                config.setDefault( true );
-            }
-            else
-            {
-                config.setDefault( false );
-            }
-
-            if ( config instanceof GenericHttpGatewayConfig )
-            {
-                ((GenericHttpGatewayConfig) config).getParameters().stream()
-                    .filter( GenericGatewayParameter::isConfidential )
-                    .forEach( p -> p.setValue( pbeStringEncryptor.encrypt( p.getValue() ) ) );
-            }
-
-            config.setPassword( pbeStringEncryptor.encrypt( config.getPassword() ) );
-
-            smsConfiguration.getGateways().add( config );
-
-            smsConfigurationManager.updateSmsConfiguration( smsConfiguration );
-            initializeSmsConfig();
-
+        if ( persisted != null )
+        {
             return true;
         }
 
-        return false;
+        config.setUid( CodeGenerator.generateCode( 10 ) );
+
+        SmsConfiguration smsConfiguration = getSmsConfiguration();
+
+        config.setDefault( smsConfiguration.getGateways().isEmpty() );
+
+        if ( config instanceof GenericHttpGatewayConfig )
+        {
+            ((GenericHttpGatewayConfig) config).getParameters().stream()
+                .filter( GenericGatewayParameter::isConfidential )
+                .forEach( p -> p.setValue( pbeStringEncryptor.encrypt( p.getValue() ) ) );
+        }
+
+        config.setPassword( pbeStringEncryptor.encrypt( config.getPassword() ) );
+
+        smsConfiguration.getGateways().add( config );
+
+        smsConfigurationManager.updateSmsConfiguration( smsConfiguration );
+        updateHasGatewaysState();
+
+        return true;
     }
 
     @Override
@@ -169,12 +140,10 @@ public class DefaultGatewayAdministrationService
         updatedConfig.setUid( persistedConfig.getUid() );
         updatedConfig.setDefault( persistedConfig.isDefault() );
 
-        if ( persistedConfig.getPassword() != null )
+        if ( persistedConfig.getPassword() != null
+            && !persistedConfig.getPassword().equals( updatedConfig.getPassword() ) )
         {
-            if ( !persistedConfig.getPassword().equals( updatedConfig.getPassword() ) )
-            {
-                updatedConfig.setPassword( pbeStringEncryptor.encrypt( updatedConfig.getPassword() ) );
-            }
+            updatedConfig.setPassword( pbeStringEncryptor.encrypt( updatedConfig.getPassword() ) );
         }
 
         if ( persistedConfig instanceof GenericHttpGatewayConfig )
@@ -215,7 +184,7 @@ public class DefaultGatewayAdministrationService
         configuration.getGateways().add( updatedConfig );
 
         smsConfigurationManager.updateSmsConfiguration( configuration );
-        initializeSmsConfig();
+        updateHasGatewaysState();
     }
 
     @Override
@@ -223,66 +192,38 @@ public class DefaultGatewayAdministrationService
     {
         SmsConfiguration smsConfiguration = getSmsConfiguration();
 
-        for ( SmsGatewayConfig gateway : smsConfiguration.getGateways() )
+        List<SmsGatewayConfig> gateways = smsConfiguration.getGateways();
+        SmsGatewayConfig removed = gateways.stream()
+            .filter( gateway -> gateway.getUid().equals( uid ) )
+            .findFirst().orElse( null );
+        if ( removed == null )
         {
-            if ( gateway.getUid().equals( uid ) )
-            {
-                smsConfiguration.getGateways().remove( gateway );
-
-                if ( gateway.isDefault() )
-                {
-                    if ( !smsConfiguration.getGateways().isEmpty() )
-                    {
-                        smsConfiguration.getGateways().get( 0 ).setDefault( true );
-                    }
-                }
-
-                smsConfigurationManager.updateSmsConfiguration( smsConfiguration );
-                initializeSmsConfig();
-
-                return true;
-            }
+            return false;
         }
-
-        return false;
+        gateways.remove( removed );
+        if ( removed.isDefault() && !gateways.isEmpty() )
+        {
+            gateways.get( 0 ).setDefault( true );
+        }
+        smsConfigurationManager.updateSmsConfiguration( smsConfiguration );
+        updateHasGatewaysState();
+        return true;
     }
 
     @Override
     public SmsGatewayConfig getByUid( String uid )
     {
-        List<SmsGatewayConfig> list = getSmsConfiguration().getGateways();
-
-        if ( !list.isEmpty() )
-        {
-            for ( SmsGatewayConfig gw : list )
-            {
-                if ( gw.getUid().equals( uid ) )
-                {
-                    return gw;
-                }
-            }
-        }
-
-        return null;
+        return getSmsConfiguration().getGateways().stream()
+            .filter( gw -> gw.getUid().equals( uid ) )
+            .findFirst().orElse( null );
     }
 
     @Override
     public SmsGatewayConfig getDefaultGateway()
     {
-        List<SmsGatewayConfig> list = getSmsConfiguration().getGateways();
-
-        if ( !list.isEmpty() )
-        {
-            for ( SmsGatewayConfig gw : list )
-            {
-                if ( gw.isDefault() )
-                {
-                    return gw;
-                }
-            }
-        }
-
-        return null;
+        return getSmsConfiguration().getGateways().stream()
+            .filter( SmsGatewayConfig::isDefault )
+            .findFirst().orElse( null );
     }
 
     @Override
@@ -292,50 +233,9 @@ public class DefaultGatewayAdministrationService
     }
 
     @Override
-    public boolean loadGatewayConfigurationMap( SmsConfiguration smsConfiguration )
+    public boolean hasGateways()
     {
-        gatewayConfigurationMap.clear();
-
-        List<SmsGatewayConfig> gatewayList = smsConfiguration.getGateways();
-
-        if ( !gatewayList.isEmpty() )
-        {
-            for ( SmsGatewayConfig smsGatewayConfig : gatewayList )
-            {
-                gatewayConfigurationMap.put( smsGatewayConfig.getClass().getName(), smsGatewayConfig );
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    @Override
-    public Class<? extends SmsGatewayConfig> getGatewayType( SmsGatewayConfig config )
-    {
-        if ( config == null )
-        {
-            return null;
-        }
-
-        SmsConfiguration configuration = getSmsConfiguration();
-
-        for ( SmsGatewayConfig gatewayConfig : configuration.getGateways() )
-        {
-            if ( gatewayConfig.getUid().equals( config.getUid() ) )
-            {
-                return gatewayConfig.getClass();
-            }
-        }
-
-        return null;
-    }
-
-    @Override
-    public Map<String, SmsGatewayConfig> getGatewayConfigurationMap()
-    {
-        return gatewayConfigurationMap;
+        return hasGateways.get();
     }
 
     // -------------------------------------------------------------------------
@@ -354,13 +254,14 @@ public class DefaultGatewayAdministrationService
         return new SmsConfiguration();
     }
 
-    private void initializeSmsConfig()
+    private void updateHasGatewaysState()
     {
-        SmsConfiguration smsConfiguration = getSmsConfiguration();
+        SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
 
         if ( smsConfiguration == null )
         {
             log.info( "SMS configuration not found" );
+            hasGateways.set( false );
             return;
         }
 
@@ -368,27 +269,19 @@ public class DefaultGatewayAdministrationService
 
         if ( gatewayList == null || gatewayList.isEmpty() )
         {
-            log.info( "No Gateway configuration not found" );
+            log.info( "No Gateway configuration found" );
 
-            loadGatewayConfigurationMap( smsConfiguration );
+            hasGateways.set( false );
             return;
         }
 
         log.info( "Gateway configuration found: " + gatewayList );
 
-        loadGatewayConfigurationMap( smsConfiguration );
+        hasGateways.set( true );
     }
 
     private boolean isPresent( List<GenericGatewayParameter> parameters, GenericGatewayParameter parameter )
     {
-        for ( GenericGatewayParameter p : parameters )
-        {
-            if ( p.equals( parameter ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return parameters.stream().anyMatch( p -> p.equals( parameter ) );
     }
 }
