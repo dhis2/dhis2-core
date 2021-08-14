@@ -112,6 +112,10 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
         String aoc = event.getAttributeOptionCombo();
         String attributeCatOptions = event.getAttributeCategoryOptions();
 
+        /*
+         * Event create request contain aoc information in payload but for event
+         * update aoc should be fetched from ProgramStageInstance
+         */
         if ( psi != null && aoc == null )
         {
             aoc = psi.getAttributeOptionCombo().getUid();
