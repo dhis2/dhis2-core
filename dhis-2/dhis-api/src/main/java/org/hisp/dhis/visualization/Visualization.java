@@ -1669,6 +1669,23 @@ public class Visualization
             || rowDimensions.contains( CATEGORYOPTIONCOMBO_DIM_ID ));
     }
 
+    public boolean isChart()
+    {
+        return type == VisualizationType.LINE ||
+            type == VisualizationType.COLUMN ||
+            type == VisualizationType.BAR ||
+            type == VisualizationType.AREA ||
+            type == VisualizationType.PIE ||
+            type == VisualizationType.STACKED_COLUMN ||
+            type == VisualizationType.STACKED_BAR ||
+            type == VisualizationType.RADAR ||
+            type == VisualizationType.GAUGE ||
+            type == VisualizationType.YEAR_OVER_YEAR_LINE ||
+            type == VisualizationType.YEAR_OVER_YEAR_COLUMN ||
+            type == VisualizationType.SCATTER ||
+            type == VisualizationType.BUBBLE;
+    }
+
     /**
      * Generates a pretty column name based on the given display property of the
      * argument objects. Null arguments are ignored in the name.

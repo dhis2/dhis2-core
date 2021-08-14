@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 
 import java.io.IOException;
 import java.util.Date;
@@ -54,6 +55,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserService;
@@ -62,6 +64,7 @@ import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationGridService;
 import org.hisp.dhis.visualization.VisualizationService;
+import org.hisp.dhis.visualization.VisualizationType;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.jfree.chart.ChartUtils;
@@ -108,36 +111,19 @@ public class VisualizationDataController
     @NonNull
     private final CurrentUserService currentUserService;
 
-    // --------------------------------------------------------------------------
-    // GET - ReportTable data
-    // --------------------------------------------------------------------------
+    @NonNull
+    private final RenderService renderService;
 
-    @GetMapping( value = "/reportTables/{uid}/data" )
-    public @ResponseBody Grid getReportTableData( @PathVariable( "uid" ) String uid, Model model,
+    @GetMapping( value = "/visualizations/{uid}/data.html" )
+    public @ResponseBody Grid getVisualizationDataHtml( @PathVariable( "uid" ) String uid, Model model,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date )
     {
         return getReportTableGrid( uid, organisationUnitUid, date );
     }
 
-    @GetMapping( value = "/reportTables/{uid}/data.html" )
-    public void getReportTableHtml( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String organisationUnitUid,
-        @RequestParam( value = "date", required = false ) Date date,
-        HttpServletResponse response )
-        throws Exception
-    {
-        Grid grid = getReportTableGrid( uid, organisationUnitUid, date );
-
-        String filename = filenameEncode( grid.getTitle() ) + ".html";
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            filename, false );
-
-        GridUtils.toHtml( grid, response.getWriter() );
-    }
-
-    @GetMapping( value = "/reportTables/{uid}/data.html+css" )
-    public void getReportTableHtmlCss( @PathVariable( "uid" ) String uid,
+    @GetMapping( value = "/visualizations/{uid}/data.html+css" )
+    public void getVisualizationDataHtmlCss( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
         HttpServletResponse response )
@@ -152,8 +138,8 @@ public class VisualizationDataController
         GridUtils.toHtmlCss( grid, response.getWriter() );
     }
 
-    @GetMapping( value = "/reportTables/{uid}/data.xml" )
-    public void getReportTableXml( @PathVariable( "uid" ) String uid,
+    @GetMapping( value = "/visualizations/{uid}/data.xml" )
+    public void getVisualizationDataXml( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
         HttpServletResponse response )
@@ -168,8 +154,8 @@ public class VisualizationDataController
         GridUtils.toXml( grid, response.getOutputStream() );
     }
 
-    @GetMapping( value = "/reportTables/{uid}/data.pdf" )
-    public void getReportTablePdf( @PathVariable( "uid" ) String uid,
+    @GetMapping( value = "/visualizations/{uid}/data.pdf" )
+    public void getVisualizationDataPdf( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
         HttpServletResponse response )
@@ -184,8 +170,8 @@ public class VisualizationDataController
         GridUtils.toPdf( grid, response.getOutputStream() );
     }
 
-    @GetMapping( value = "/reportTables/{uid}/data.xls" )
-    public void getReportTableXls( @PathVariable( "uid" ) String uid,
+    @GetMapping( value = "/visualizations/{uid}/data.xls" )
+    public void getVisualizationDataXls( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
         HttpServletResponse response )
@@ -200,8 +186,8 @@ public class VisualizationDataController
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
-    @GetMapping( value = "/reportTables/{uid}/data.csv" )
-    public void getReportTableCsv( @PathVariable( "uid" ) String uid,
+    @GetMapping( value = "/visualizations/{uid}/data.csv" )
+    public void getVisualizationDataCsv( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
         HttpServletResponse response )
@@ -216,27 +202,8 @@ public class VisualizationDataController
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
-    private Grid getReportTableGrid( String uid, String organisationUnitUid, Date date )
-    {
-        Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
-
-        if ( organisationUnitUid == null && visualization.hasReportingParams()
-            && visualization.getReportingParams().isOrganisationUnitSet() )
-        {
-            organisationUnitUid = organisationUnitService.getRootOrganisationUnits().iterator().next().getUid();
-        }
-
-        date = date != null ? date : new Date();
-
-        return visualizationGridService.getVisualizationGrid( uid, date, organisationUnitUid );
-    }
-
-    // --------------------------------------------------------------------------
-    // GET Chart data
-    // --------------------------------------------------------------------------
-
-    @GetMapping( value = { "/{uid}/data", "/{uid}/data.png" } )
-    public void getChart(
+    @GetMapping( value = { "/visualizations/{uid}/data", "/visualizations/{uid}/data.png" } )
+    public void getVisualizationData(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "date", required = false ) Date date,
         @RequestParam( value = "ou", required = false ) String ou,
@@ -254,21 +221,30 @@ public class VisualizationDataController
             throw new WebMessageException( notFound( "Visualization does not exist: " + uid ) );
         }
 
-        OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
+        if ( visualization.isChart() && isChartSupported( visualization.getType() ) )
+        {
+            OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
 
-        JFreeChart jFreeChart = chartService.getJFreeChart( new PlotData( visualization ), date, unit,
-            i18nManager.getI18nFormat(), currentUserService.getCurrentUser() );
+            JFreeChart jFreeChart = chartService.getJFreeChart( new PlotData( visualization ), date, unit,
+                i18nManager.getI18nFormat(), currentUserService.getCurrentUser() );
 
-        String filename = CodecUtils.filenameEncode( visualization.getName() ) + ".png";
+            String filename = CodecUtils.filenameEncode( visualization.getName() ) + ".png";
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            filename, attachment );
+            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG,
+                CacheStrategy.RESPECT_SYSTEM_SETTING,
+                filename, attachment );
 
-        ChartUtils.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
+            ChartUtils.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
+        }
+        else
+        {
+            response.setContentType( CONTENT_TYPE_JSON );
+            renderService.toJson( response.getOutputStream(), getReportTableGrid( uid, ou, date ) );
+        }
     }
 
-    @GetMapping( value = { "/data", "/data.png" } )
-    public void getChart(
+    @GetMapping( value = { "/visualizations/data", "/visualizations/data.png" } )
+    public void getVisualizationChartData(
         @RequestParam( value = "in" ) String indicatorUid,
         @RequestParam( value = "ou" ) String organisationUnitUid,
         @RequestParam( value = "periods", required = false ) boolean periods,
@@ -300,8 +276,8 @@ public class VisualizationDataController
         ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
 
-    @GetMapping( value = { "/history/data", "/history/data.png" } )
-    public void getHistoryChart(
+    @GetMapping( value = { "/visualizations/history/data", "/visualizations/history/data.png" } )
+    public void getVisualizationChartHistory(
         @RequestParam String de,
         @RequestParam String co,
         @RequestParam String cp,
@@ -355,5 +331,33 @@ public class VisualizationDataController
             period, organisationUnit, 13, i18nManager.getI18nFormat() );
 
         ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
+    }
+
+    private Grid getReportTableGrid( String uid, String organisationUnitUid, Date date )
+    {
+        Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
+
+        if ( organisationUnitUid == null && visualization.hasReportingParams()
+            && visualization.getReportingParams().isOrganisationUnitSet() )
+        {
+            organisationUnitUid = organisationUnitService.getRootOrganisationUnits().iterator().next().getUid();
+        }
+
+        date = date != null ? date : new Date();
+
+        return visualizationGridService.getVisualizationGrid( uid, date, organisationUnitUid );
+    }
+
+    private boolean isChartSupported( final VisualizationType type )
+    {
+        return type == VisualizationType.LINE ||
+            type == VisualizationType.COLUMN ||
+            type == VisualizationType.BAR ||
+            type == VisualizationType.AREA ||
+            type == VisualizationType.PIE ||
+            type == VisualizationType.STACKED_COLUMN ||
+            type == VisualizationType.STACKED_BAR ||
+            type == VisualizationType.RADAR ||
+            type == VisualizationType.GAUGE;
     }
 }
