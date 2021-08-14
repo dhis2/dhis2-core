@@ -91,7 +91,7 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
             // validation stage
             if ( program == null )
             {
-                continue;
+                return emptyMap();
             }
 
             CategoryOptionCombo categoryOptionCombo = getCategoryOptionCombo( program, event, psi, idScheme );
