@@ -28,7 +28,6 @@
 package org.hisp.dhis.dashboard.impl;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +70,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -161,7 +158,7 @@ public class DefaultCascadeSharingService
     }
 
     /**
-     * Check if can merge sharing from given dashboard to given visualization
+     * Check if can merge sharing from given dashboard to given Map
      *
      * @param map {@link org.hisp.dhis.mapping.Map}
      * @param canMergeObjects Set of objects need to be updated
@@ -545,8 +542,67 @@ public class DefaultCascadeSharingService
     }
 
     /**
+     * Check if given target's sharing need to be updated.
+     *
+     * @param source {@link Sharing}
+     * @param target object to check
+     * @return TRUE if object need update sharing, otherwise FALSE.
+     */
+    private <T extends IdentifiableObject> boolean shouldUpdateSharing( final Sharing source, final T target )
+    {
+        if ( AccessStringHelper.canRead( target.getSharing().getPublicAccess() ) )
+        {
+            return false;
+        }
+
+        if ( MapUtils.isEmpty( source.getUserGroups() ) && MapUtils.isEmpty( source.getUsers() ) )
+        {
+            return false;
+        }
+
+        return shouldUpdateAccessObjects( source.getUsers(), target.getSharing().getUsers() )
+            || shouldUpdateAccessObjects( source.getUserGroups(), target.getSharing().getUserGroups() );
+    }
+
+    /**
+     * Check if given target {@code Map<String,AccessObject>} need to be updated
+     * based on given source {@code Map<String,AccessObject>}
+     *
+     * @return TRUE if one of AccessObject in target Map need to be updated,
+     *         otherwise FALSE.
+     */
+    private <T extends AccessObject> boolean shouldUpdateAccessObjects( final Map<String, T> source,
+        final Map<String, T> target )
+    {
+        if ( MapUtils.isEmpty( source ) )
+        {
+            return false;
+        }
+
+        boolean shouldUpdate = false;
+
+        for ( final T sourceAccess : source.values() )
+        {
+            if ( !AccessStringHelper.canRead( sourceAccess.getAccess() ) )
+            {
+                continue;
+            }
+
+            T targetAccess = target.get( sourceAccess.getId() );
+
+            if ( targetAccess != null && AccessStringHelper.canRead( targetAccess.getAccess() ) )
+            {
+                continue;
+            }
+
+            shouldUpdate = true;
+        }
+
+        return shouldUpdate;
+    }
+
+    /**
      * Add UserAccesses and UserGroupAccesses from source to target object.
-     * <p>
      *
      * @return TRUE if targetObject is updated, otherwise return FALSE
      */
@@ -557,33 +613,6 @@ public class DefaultCascadeSharingService
             || mergeAccessObject( source.getUserGroups(), target.getSharing().getUserGroups() ) )
         {
             parameters.getReport().addUpdatedObject( getTypeReportKey( target ), target );
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if given target's sharing need to be updated.
-     *
-     * @param source {@link Sharing}
-     * @param target object to check
-     * @return TRUE if object need update sharing, otherwise FALSE.
-     */
-    private <T extends IdentifiableObject> boolean shouldUpdateSharing( final Sharing source, T target )
-    {
-        if ( AccessStringHelper.canRead( target.getSharing().getPublicAccess() ) )
-        {
-            return false;
-        }
-
-        Map<String, UserAccess> userAccesses = new HashMap<>( target.getSharing().getUsers() );
-        Map<String, UserGroupAccess> userGroupAccesses = new HashMap<>( target.getSharing()
-            .getUserGroups() );
-
-        if ( mergeAccessObject( source.getUsers(), userAccesses )
-            || mergeAccessObject( source.getUserGroups(), userGroupAccesses ) )
-        {
             return true;
         }
 
@@ -602,7 +631,7 @@ public class DefaultCascadeSharingService
             return false;
         }
 
-        boolean shouldUpdate = false;
+        boolean updated = false;
 
         for ( T sourceAccess : source.values() )
         {
@@ -620,16 +649,16 @@ public class DefaultCascadeSharingService
 
             if ( targetAccess == null )
             {
-                targetAccess = sourceAccess;
+                targetAccess = (T) new AccessObject( AccessStringHelper.READ, sourceAccess.getId() );
             }
 
             targetAccess.setAccess( AccessStringHelper.READ );
             target.put( targetAccess.getId(), targetAccess );
 
-            shouldUpdate = true;
+            updated = true;
         }
 
-        return shouldUpdate;
+        return updated;
     }
 
     /**
@@ -644,8 +673,8 @@ public class DefaultCascadeSharingService
     }
 
     /**
-     * Check if currentUser can given object, if not add new ErrorReport to
-     * {@link CascadeSharingParameters}.
+     * Check if currentUser can update given object, if not add new ErrorReport
+     * to {@link CascadeSharingParameters}.
      *
      * @param object object for validating
      * @param parameters {@link CascadeSharingParameters}

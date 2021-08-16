@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.sharing;
 
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ_WRITE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -53,7 +56,6 @@ import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramStageSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor;
-import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
@@ -113,22 +115,10 @@ public class DashboardCascadeSharingTest
         userB = createUser( 'B' );
         userService.addUser( userB );
 
-        sharingReadForUserA = new Sharing();
-        sharingReadForUserA.setPublicAccess( AccessStringHelper.DEFAULT );
-        sharingReadForUserA.addUserAccess( new UserAccess( userA, AccessStringHelper.READ ) );
-
-        sharingReadWriteForUserB = new Sharing();
-        sharingReadWriteForUserB.setPublicAccess( AccessStringHelper.DEFAULT );
-        sharingReadWriteForUserB.addUserAccess( new UserAccess( userB, AccessStringHelper.READ_WRITE ) );
-
-        sharingReadForUserAB = new Sharing();
-        sharingReadForUserAB.setPublicAccess( AccessStringHelper.DEFAULT );
-        sharingReadForUserAB.addUserAccess( new UserAccess( userA, AccessStringHelper.READ ) );
-        sharingReadForUserAB.addUserAccess( new UserAccess( userB, AccessStringHelper.READ ) );
-
-        sharingUserGroupA = new Sharing();
-        sharingUserGroupA.setPublicAccess( AccessStringHelper.DEFAULT );
-        sharingUserGroupA.addUserGroupAccess( new UserGroupAccess( userGroupA, AccessStringHelper.READ ) );
+        sharingReadForUserA = new Sharing( DEFAULT, new UserAccess( userA, READ ) );
+        sharingReadWriteForUserB = new Sharing( DEFAULT, new UserAccess( userB, READ_WRITE ) );
+        sharingReadForUserAB = new Sharing( DEFAULT, new UserAccess( userA, READ ), new UserAccess( userB, READ ) );
+        sharingUserGroupA = new Sharing( DEFAULT, new UserGroupAccess( userGroupA, READ ) );
 
         programA = createProgram( 'A' );
         programA.setSharing( defaultSharing() );
@@ -155,7 +145,7 @@ public class DashboardCascadeSharingTest
         Visualization visualizationA = createVisualization( 'A' );
         visualizationA.addDataDimensionItem( dataElementA );
         visualizationA.addDataDimensionItem( dataElementB );
-        visualizationA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        visualizationA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
         objectManager.save( visualizationA, false );
 
         Dashboard dashboard = createDashboardWithItem( "A", sharingReadForUserAB );
@@ -180,17 +170,17 @@ public class DashboardCascadeSharingTest
     public void testCascadeShareVisualizationError()
     {
         DataElement dataElementA = createDataElement( 'A' );
-        dataElementA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        dataElementA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
         objectManager.save( dataElementA, false );
 
         Visualization vzA = createVisualization( 'A' );
-        vzA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        vzA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
         vzA.addDataDimensionItem( dataElementA );
         objectManager.save( vzA, false );
 
         Sharing sharing = new Sharing();
-        sharing.setPublicAccess( AccessStringHelper.DEFAULT );
-        sharing.addUserAccess( new UserAccess( userB, AccessStringHelper.DEFAULT ) );
+        sharing.setPublicAccess( DEFAULT );
+        sharing.addUserAccess( new UserAccess( userB, DEFAULT ) );
         Dashboard dashboard = createDashboardWithItem( "A", sharing );
         dashboard.getItems().get( 0 ).setVisualization( vzA );
         objectManager.save( dashboard, false );
@@ -214,7 +204,7 @@ public class DashboardCascadeSharingTest
     public void testCascadeShareMap()
     {
         Map map = createMap( "A" );
-        map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        map.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
         objectManager.save( map, false );
 
         Dashboard dashboard = createDashboardWithItem( "A", sharingReadForUserA );
@@ -225,7 +215,7 @@ public class DashboardCascadeSharingTest
             new CascadeSharingParameters() );
         assertEquals( 0, report.getErrorReports().size() );
         assertTrue( aclService.canRead( userA, dashboard.getItems().get( 0 ).getMap() ) );
-        assertEquals( AccessStringHelper.READ,
+        assertEquals( READ,
             dashboard.getItems().get( 0 ).getMap().getSharing().getUsers().get( userA.getUid() ).getAccess() );
         assertFalse( aclService.canRead( userB, dashboard.getItems().get( 0 ).getMap() ) );
     }
@@ -240,11 +230,11 @@ public class DashboardCascadeSharingTest
     public void testCascadeSharePublicAccess()
     {
         Map map = createMap( "A" );
-        map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        map.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
         objectManager.save( map, false );
 
         Dashboard dashboard = createDashboardWithItem( "dashboardA",
-            Sharing.builder().publicAccess( AccessStringHelper.READ ).build() );
+            Sharing.builder().publicAccess( READ ).build() );
         dashboard.getItems().get( 0 ).setMap( map );
         objectManager.save( dashboard, false );
 
@@ -267,17 +257,17 @@ public class DashboardCascadeSharingTest
     public void testCascadeShareMapError()
     {
         DataElement dataElementB = createDataElement( 'B' );
-        dataElementB.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        dataElementB.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
         objectManager.save( dataElementB, false );
 
         Map map = createMap( "A" );
-        map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        map.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
         objectManager.save( map, false );
         objectManager.flush();
 
         Sharing sharing = new Sharing();
-        sharing.setPublicAccess( AccessStringHelper.DEFAULT );
-        sharing.addUserAccess( new UserAccess( userB, AccessStringHelper.DEFAULT ) );
+        sharing.setPublicAccess( DEFAULT );
+        sharing.addUserAccess( new UserAccess( userB, DEFAULT ) );
         Dashboard dashboard = createDashboardWithItem( "dashboardA", sharing );
         dashboard.getItems().get( 0 ).setMap( map );
         objectManager.save( dashboard, false );
@@ -390,7 +380,7 @@ public class DashboardCascadeSharingTest
         IndicatorType indicatorType = createIndicatorType( 'A' );
         objectManager.save( indicatorType );
         Indicator indicatorA = createIndicator( 'A', indicatorType );
-        indicatorA.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        indicatorA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
         objectManager.save( indicatorA, false );
 
         DataElement dataElementA = createDEWithDefaultSharing( 'A' );
@@ -429,7 +419,7 @@ public class DashboardCascadeSharingTest
     public void testDryRunTrue()
     {
         Map map = createMap( "A" );
-        map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        map.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
         objectManager.save( map, false );
 
         Dashboard dashboard = createDashboardWithItem( "A", sharingReadForUserA );
@@ -450,7 +440,7 @@ public class DashboardCascadeSharingTest
     public void testDryRunFalse()
     {
         Map map = createMap( "A" );
-        map.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build() );
+        map.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
         objectManager.save( map, false );
 
         Dashboard dashboard = createDashboardWithItem( "A", sharingReadForUserA );

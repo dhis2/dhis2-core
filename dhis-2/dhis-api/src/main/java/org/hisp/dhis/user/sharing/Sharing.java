@@ -84,6 +84,34 @@ public class Sharing
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Map<String, UserAccess> users = new HashMap<>();
 
+    /**
+     * Map of UserGroupAccess. Key is UserGroup uid
+     */
+    @Setter
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private Map<String, UserGroupAccess> userGroups = new HashMap<>();
+
+    public Sharing( String publicAccess, UserAccess... userAccesses )
+    {
+        this.publicAccess = publicAccess;
+
+        for ( UserAccess userAccess : userAccesses )
+        {
+            users.put( userAccess.getId(), userAccess );
+        }
+    }
+
+    public Sharing( String publicAccess, UserGroupAccess... userGroupAccesses )
+    {
+        this.publicAccess = publicAccess;
+
+        for ( UserGroupAccess userGroupAccess : userGroupAccesses )
+        {
+            userGroups.put( userGroupAccess.getId(), userGroupAccess );
+        }
+    }
+
     public Map<String, UserAccess> getUsers()
     {
         if ( users == null )
@@ -93,14 +121,6 @@ public class Sharing
 
         return users;
     }
-
-    /**
-     * Map of UserGroupAccess. Key is UserGroup uid
-     */
-    @Setter
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Map<String, UserGroupAccess> userGroups = new HashMap<>();
 
     public Map<String, UserGroupAccess> getUserGroups()
     {

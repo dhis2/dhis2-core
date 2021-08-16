@@ -79,7 +79,7 @@ public abstract class CascadeSharingTest
     {
         DashboardItem dashboardItem = createDashboardItem( "A" );
         Dashboard dashboard = new Dashboard();
-        dashboard.setName( "dashboardA" );
+        dashboard.setName( "dashboard" + name );
         dashboard.setSharing( sharing );
         dashboard.getItems().add( dashboardItem );
         return dashboard;
@@ -88,7 +88,7 @@ public abstract class CascadeSharingTest
     protected Dashboard createDashboard( String name, Sharing sharing )
     {
         Dashboard dashboard = new Dashboard();
-        dashboard.setName( "dashboardA" );
+        dashboard.setName( "dashboard" + name );
         dashboard.setSharing( sharing );
         return dashboard;
     }
