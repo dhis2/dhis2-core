@@ -209,7 +209,7 @@ public class UserKeyJsonValueController
 
         userKeyJsonValueService.updateUserKeyJsonValue( userKeyJsonValue );
 
-        return ok( "Key '" + key + "' in namespace '" + namespace + "' updated." );
+        return created( "Key '" + key + "' in namespace '" + namespace + "' updated." );
     }
 
     /**
