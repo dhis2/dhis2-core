@@ -169,6 +169,8 @@ public class TrackedEntityInstanceServiceTest
         // uniqueIdAttribute.setPattern( "RANDOM(#####)" );
         TextPattern textPattern = new TextPattern(
             Lists.newArrayList( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#####)" ) ) );
+        textPattern.setOwnerObject( Objects.TRACKEDENTITYATTRIBUTE );
+        textPattern.setOwnerUid( uniqueIdAttribute.getUid() );
         uniqueIdAttribute.setTextPattern( textPattern );
 
         trackedEntityAttributeService.addTrackedEntityAttribute( uniqueIdAttribute );
