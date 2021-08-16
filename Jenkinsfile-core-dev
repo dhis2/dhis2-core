@@ -26,10 +26,7 @@ pipeline {
     stages {
         stage ('Patch') {
             steps {
-                echo 'Patching DHIS2 ...'
-                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/dhis2-cve-patcher.sh" -O'
-                sh 'chmod +x dhis2-cve-patcher.sh'
-                sh './dhis2-cve-patcher.sh'
+                sh './run-cve-patcher.sh'
             }
         }
 
