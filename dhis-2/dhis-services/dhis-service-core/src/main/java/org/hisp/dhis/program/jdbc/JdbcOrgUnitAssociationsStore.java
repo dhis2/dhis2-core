@@ -49,13 +49,31 @@ public class JdbcOrgUnitAssociationsStore
 
     private final AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
 
-    public IdentifiableObjectAssociations getOrganisationUnitsAssociations( Set<String> uids )
+    public IdentifiableObjectAssociations getOrganisationUnitsAssociationsForCurrentUser( Set<String> uids )
     {
 
         Set<String> userOrgUnitPaths = getUserOrgUnitPaths();
 
         return jdbcTemplate.query(
             queryBuilder.buildSqlQuery( uids, userOrgUnitPaths, currentUserService.getCurrentUser() ),
+            resultSet -> {
+                IdentifiableObjectAssociations identifiableObjectAssociations = new IdentifiableObjectAssociations();
+                while ( resultSet.next() )
+                {
+                    identifiableObjectAssociations.addAllAssociations(
+                        resultSet.getString( 1 ),
+                        Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
+
+                }
+                return identifiableObjectAssociations;
+            } );
+    }
+
+    public IdentifiableObjectAssociations getOrganisationUnitsAssociations( Set<String> uids )
+    {
+
+        return jdbcTemplate.query(
+            queryBuilder.buildSqlQueryForRawAssociation( uids ),
             resultSet -> {
                 IdentifiableObjectAssociations identifiableObjectAssociations = new IdentifiableObjectAssociations();
                 while ( resultSet.next() )

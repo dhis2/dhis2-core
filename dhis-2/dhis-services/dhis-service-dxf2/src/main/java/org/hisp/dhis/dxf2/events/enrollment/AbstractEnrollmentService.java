@@ -32,6 +32,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALU
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -45,6 +46,7 @@ import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -53,6 +55,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.Constants;
@@ -121,9 +124,13 @@ import com.google.common.collect.Maps;
 public abstract class AbstractEnrollmentService
     implements EnrollmentService
 {
+    private static final String ATTRIBUTE_VALUE = "Attribute.value";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
+    private static final String ATTRIBUTE_ATTRIBUTE = "Attribute.attribute";
 
     protected ProgramInstanceService programInstanceService;
 
@@ -730,11 +737,11 @@ public abstract class AbstractEnrollmentService
                 " is a program without registration. An enrollment cannot be created into program without registration.";
         }
 
-        if ( program.getOrganisationUnits() != null && program.getOrganisationUnits().size() > 0 )
+        IdentifiableObjectAssociations programAssociations = programService
+            .getProgramOrganisationUnitsAssociations( Collections.singleton( program.getUid() ) );
+        if ( !CollectionUtils.isEmpty( programAssociations.get( program.getUid() ) ) )
         {
-            boolean programOrgUnitAccessible = program.getOrganisationUnits().stream()
-                .anyMatch( pou -> pou.getUid().equals( enrollment.getOrgUnit() ) );
-            if ( !programOrgUnitAccessible )
+            if ( !programAssociations.get( program.getUid() ).contains( enrollment.getOrgUnit() ) )
             {
                 return "Program is not assigned to this Organisation Unit: " + enrollment.getOrgUnit();
             }
@@ -1265,42 +1272,12 @@ public abstract class AbstractEnrollmentService
             throw new IllegalQueryException( errors.toString() );
         }
 
-        for ( TrackedEntityAttribute trackedEntityAttribute : mandatoryMap.keySet() )
-        {
-            Boolean mandatory = mandatoryMap.get( trackedEntityAttribute );
-
-            if ( mandatory && doValidationOfMandatoryAttributes( importOptions.getUser() )
-                && !attributeValueMap.containsKey( trackedEntityAttribute.getUid() ) )
-            {
-                importConflicts.addConflict( "Attribute.attribute", "Missing mandatory attribute "
-                    + trackedEntityAttribute.getUid() );
-                continue;
-            }
-
-            String attributeValue = attributeValueMap.get( trackedEntityAttribute.getUid() );
-
-            if ( attributeValue != null && attributeValue.length() > TEA_VALUE_MAX_LENGTH )
-            {
-                // We shorten the value to first 25 characters, since we dont
-                // want to post a 1200+ string back.
-                importConflicts.addConflict( "Attribute.value",
-                    String.format( "Value exceeds the character limit of %s characters: '%s...'", TEA_VALUE_MAX_LENGTH,
-                        attributeValueMap.get( trackedEntityAttribute.getUid() ).substring( 0, 25 ) ) );
-            }
-
-            if ( trackedEntityAttribute.isUnique() )
-            {
-                checkAttributeUniquenessWithinScope( trackedEntityInstance, trackedEntityAttribute,
-                    attributeValueMap.get( trackedEntityAttribute.getUid() ),
-                    trackedEntityInstance.getOrganisationUnit(), importConflicts );
-            }
-
-            attributeValueMap.remove( trackedEntityAttribute.getUid() );
-        }
+        checkAttributeForMandatoryMaxLengthAndUniqueness( trackedEntityInstance, importOptions, importConflicts,
+            mandatoryMap, attributeValueMap );
 
         if ( !attributeValueMap.isEmpty() )
         {
-            importConflicts.addConflict( "Attribute.attribute",
+            importConflicts.addConflict( ATTRIBUTE_ATTRIBUTE,
                 "Only program attributes is allowed for enrollment " + attributeValueMap );
         }
 
@@ -1325,6 +1302,45 @@ public abstract class AbstractEnrollmentService
         }
     }
 
+    private void checkAttributeForMandatoryMaxLengthAndUniqueness(
+        org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions,
+        ImportConflicts importConflicts, Map<TrackedEntityAttribute, Boolean> mandatoryMap,
+        Map<String, String> attributeValueMap )
+    {
+        for ( TrackedEntityAttribute trackedEntityAttribute : mandatoryMap.keySet() )
+        {
+            Boolean mandatory = mandatoryMap.get( trackedEntityAttribute );
+
+            if ( mandatory && doValidationOfMandatoryAttributes( importOptions.getUser() )
+                && !attributeValueMap.containsKey( trackedEntityAttribute.getUid() ) )
+            {
+                importConflicts.addConflict( ATTRIBUTE_ATTRIBUTE, "Missing mandatory attribute "
+                    + trackedEntityAttribute.getUid() );
+                continue;
+            }
+
+            String attributeValue = attributeValueMap.get( trackedEntityAttribute.getUid() );
+
+            if ( attributeValue != null && attributeValue.length() > TEA_VALUE_MAX_LENGTH )
+            {
+                // We shorten the value to first 25 characters, since we dont
+                // want to post a 1200+ string back.
+                importConflicts.addConflict( ATTRIBUTE_VALUE,
+                    String.format( "Value exceeds the character limit of %s characters: '%s...'", TEA_VALUE_MAX_LENGTH,
+                        attributeValueMap.get( trackedEntityAttribute.getUid() ).substring( 0, 25 ) ) );
+            }
+
+            if ( trackedEntityAttribute.isUnique() )
+            {
+                checkAttributeUniquenessWithinScope( trackedEntityInstance, trackedEntityAttribute,
+                    attributeValueMap.get( trackedEntityAttribute.getUid() ),
+                    trackedEntityInstance.getOrganisationUnit(), importConflicts );
+            }
+
+            attributeValueMap.remove( trackedEntityAttribute.getUid() );
+        }
+    }
+
     private void checkAttributeUniquenessWithinScope(
         org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance,
         TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit,
@@ -1340,7 +1356,7 @@ public abstract class AbstractEnrollmentService
 
         if ( errorMessage != null )
         {
-            importConflicts.addConflict( "Attribute.value", errorMessage );
+            importConflicts.addConflict( ATTRIBUTE_VALUE, errorMessage );
         }
     }
 
@@ -1419,14 +1435,14 @@ public abstract class AbstractEnrollmentService
 
         if ( teAttribute == null )
         {
-            importConflicts.addConflict( "Attribute.attribute", "Does not point to a valid attribute." );
+            importConflicts.addConflict( ATTRIBUTE_ATTRIBUTE, "Does not point to a valid attribute." );
         }
 
         String errorMessage = trackedEntityAttributeService.validateValueType( teAttribute, attribute.getValue() );
 
         if ( errorMessage != null )
         {
-            importConflicts.addConflict( "Attribute.value", errorMessage );
+            importConflicts.addConflict( ATTRIBUTE_VALUE, errorMessage );
         }
     }
 
