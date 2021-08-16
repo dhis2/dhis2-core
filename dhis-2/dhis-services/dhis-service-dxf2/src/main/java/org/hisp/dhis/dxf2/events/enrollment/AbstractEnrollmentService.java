@@ -744,7 +744,7 @@ public abstract class AbstractEnrollmentService
 
         SetValuedMap<String, String> programAssociations = programService
             .getProgramOrganisationUnitsAssociations( Collections.singleton( program.getUid() ) );
-        if ( CollectionUtils.isEmpty( programAssociations.get( program.getUid() ) ) )
+        if ( !CollectionUtils.isEmpty( programAssociations.get( program.getUid() ) ) )
         {
             if ( !programAssociations.get( program.getUid() ).contains( enrollment.getOrgUnit() ) )
             {
