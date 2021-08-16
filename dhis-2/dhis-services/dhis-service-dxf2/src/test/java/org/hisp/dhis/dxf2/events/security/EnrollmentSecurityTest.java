@@ -33,7 +33,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Date;
 import java.util.HashSet;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -67,7 +67,7 @@ import com.google.common.collect.Sets;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class EnrollmentSecurityTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private EnrollmentService enrollmentService;
@@ -105,6 +105,12 @@ public class EnrollmentSecurityTest
     private ProgramStage programStageA;
 
     private ProgramStage programStageB;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()
