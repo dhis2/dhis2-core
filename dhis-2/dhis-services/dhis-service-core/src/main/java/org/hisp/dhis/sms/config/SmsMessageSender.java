@@ -30,7 +30,10 @@ package org.hisp.dhis.sms.config;
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -40,7 +43,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.outboundmessage.*;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
@@ -226,9 +233,7 @@ public class SmsMessageSender
     @Override
     public boolean isConfigured()
     {
-        Map<String, SmsGatewayConfig> configMap = gatewayAdminService.getGatewayConfigurationMap();
-
-        return !configMap.isEmpty();
+        return gatewayAdminService.hasGateways();
     }
 
     // -------------------------------------------------------------------------

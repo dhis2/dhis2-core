@@ -106,7 +106,7 @@ public class PotentialDuplicatesTests
     {
         potentialDuplicatesActions.createPotentialDuplicate( null, createTei(), "OPEN" )
             .validate()
-            .statusCode( not( 200 ) )
+            .statusCode( equalTo( 400 ) )
             .body( "status", equalTo( "ERROR" ) )
             .body( "message", containsStringIgnoringCase( "missing required input property" ) );
     }
@@ -140,6 +140,34 @@ public class PotentialDuplicatesTests
         response.validate().statusCode( 400 ).body( "status", equalTo( "ERROR" ) );
     }
 
+    @Test
+    public void shouldGetDuplicatesByTei()
+    {
+        String teiA = createTei();
+
+        potentialDuplicatesActions.createPotentialDuplicate( teiA, createTei(), "OPEN" ).validate().statusCode( 200 );
+        potentialDuplicatesActions.createPotentialDuplicate( createTei(), teiA, "INVALID" ).validate().statusCode( 200 );
+
+        potentialDuplicatesActions.get( "/tei/" + teiA )
+            .validate().statusCode( 200 )
+            .body( "", hasSize( 2 ) );
+
+        potentialDuplicatesActions.get( "/tei/" + teiA + "?status=INVALID" )
+            .validate().statusCode( 200 )
+            .body( "", hasSize( 1 ) );
+
+        potentialDuplicatesActions.get( "/tei/" + teiA + "?status=OPEN" )
+            .validate().statusCode( 200 )
+            .body( "", hasSize( 1 ) );
+
+        potentialDuplicatesActions.get( "/tei/" + teiA + "?status=MERGED" )
+            .validate().statusCode( 200 )
+            .body( "", hasSize( 0 ) );
+
+        potentialDuplicatesActions.get( "/tei/" + teiA + "?status=ALL" )
+            .validate().statusCode( 200 )
+            .body("", hasSize( 2 ) );
+    }
     private String createTei()
     {
         JsonObject object = trackerActions.buildTei( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] );
