@@ -186,7 +186,7 @@ public class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTe
         apiToken.addReferrerToAllowedList( "https://two.io" );
         apiTokenService.update( apiToken );
 
-        JsonUser user = GET( URI, ApiTokenHeader( key ), Header( "referrer", "https://two.io" ) )
+        JsonUser user = GET( URI, ApiTokenHeader( key ), Header( "referer", "https://two.io" ) )
             .content().as( JsonUser.class );
         assertEquals( adminUser.getUid(), user.getId() );
     }
