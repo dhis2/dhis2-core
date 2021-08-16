@@ -6,17 +6,43 @@
         "status": "DRAFT",
         "pullRequests": [
           {
-            "parent": "b76c38b612fb0cb3250c3cd59e44722eeafed482",
-            "prNumber": 1,
-            "status": "DRAFT"
+            "parent": "77562c2e00d6e88acf281941f5c26d084dacf720",
+            "prNumber": 1
           },
           {
-            "parent": "73be95b7097a73ac687fcccb74e160a32a5deea5",
+            "parent": "77562c2e00d6e88acf281941f5c26d084dacf720",
+            "prNumber": 2
+          },
+          {
+            "parent": "dd4fa5e148ff78f1176f153a913937e1f092569b",
             "prNumber": 3
           },
           {
-            "parent": "599b189d38c393ebc68b15365600f2ca6aee7a82",
-            "prNumber": 4
+            "parent": "9accf306fd11c879346a7bb9e04a69060cb91763",
+            "prNumber": 4,
+            "status": "FIXED"
+          },
+          {
+            "parent": "77562c2e00d6e88acf281941f5c26d084dacf720",
+            "prNumber": 5
+          },
+          {
+            "parent": "9accf306fd11c879346a7bb9e04a69060cb91763",
+            "prNumber": 6,
+            "status": "FIXED"
+          },
+          {
+            "parent": "dd4fa5e148ff78f1176f153a913937e1f092569b",
+            "prNumber": 7
+          },
+          {
+            "parent": "9accf306fd11c879346a7bb9e04a69060cb91763",
+            "prNumber": 8,
+            "status": "FIXED"
+          },
+          {
+            "parent": "dd4fa5e148ff78f1176f153a913937e1f092569b",
+            "prNumber": 9
           }
         ]
       }
