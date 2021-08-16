@@ -57,9 +57,11 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.hibernate.HibernateUtils;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.translation.Translation;
@@ -130,6 +132,8 @@ public class DefaultIdentifiableObjectManager
         this.schemaService = schemaService;
         this.env = env;
         this.cacheProvider = cacheProvider;
+
+        removeNonSupportedStores();
     }
 
     @PostConstruct
@@ -142,6 +146,19 @@ public class DefaultIdentifiableObjectManager
             .forceInMemory()
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10 )
             .build();
+    }
+
+    /**
+     * This method removes identifiable stores that should not be supported
+     * anymore. Some objects are still in usage in very specific places, but
+     * should no longer be backed by any store. Their stores are still usage
+     * directly in a few limited places, but they should not be used broadly or
+     * be part of the core set of endpoints exposed.
+     */
+    private void removeNonSupportedStores()
+    {
+        identifiableObjectStores
+            .removeIf( store -> store.getClazz() == Chart.class || store.getClazz() == ReportTable.class );
     }
 
     // --------------------------------------------------------------------------
