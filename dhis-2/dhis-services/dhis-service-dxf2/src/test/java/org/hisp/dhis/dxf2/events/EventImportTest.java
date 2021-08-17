@@ -138,7 +138,7 @@ public class EventImportTest
     private ProgramInstance pi;
 
     private Event event;
-    
+
     @Override
     public boolean emptyDatabaseAfterTest()
     {

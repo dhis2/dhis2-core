@@ -109,7 +109,7 @@ public class RegistrationSingleEventServiceTest
     private Program programA;
 
     private ProgramStage programStageA;
-    
+
     @Override
     public boolean emptyDatabaseAfterTest()
     {
@@ -226,7 +226,7 @@ public class RegistrationSingleEventServiceTest
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        
+
         manager.flush();
 
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
