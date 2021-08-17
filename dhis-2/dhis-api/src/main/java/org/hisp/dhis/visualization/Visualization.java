@@ -317,6 +317,16 @@ public class Visualization
     private boolean hideEmptyColumns;
 
     /**
+     * Fixes (or not) the pivot table column headers.
+     */
+    private boolean fixColumnHeaders;
+
+    /**
+     * Fixes (or not) the pivot table row headers.
+     */
+    private boolean fixRowHeaders;
+
+    /**
      * Show/hide the legend. Very likely to be used by graphics/charts.
      */
     private boolean hideLegend;
@@ -606,6 +616,30 @@ public class Visualization
     public void setHideEmptyColumns( boolean hideEmptyColumns )
     {
         this.hideEmptyColumns = hideEmptyColumns;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public boolean isFixColumnHeaders()
+    {
+        return fixColumnHeaders;
+    }
+
+    public void setFixColumnHeaders( boolean fixColumnHeaders )
+    {
+        this.fixColumnHeaders = fixColumnHeaders;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public boolean isFixRowHeaders()
+    {
+        return fixRowHeaders;
+    }
+
+    public void setFixRowHeaders( boolean fixRowHeaders )
+    {
+        this.fixRowHeaders = fixRowHeaders;
     }
 
     @JsonProperty
