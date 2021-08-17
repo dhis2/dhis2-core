@@ -28,6 +28,7 @@
 package org.hisp.dhis.cache;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides cache builder to build instances.
@@ -55,4 +56,14 @@ public interface CacheProvider
      *         {@link ExtendedCacheBuilder}.
      */
     <K, V> ExtendedCacheBuilder<Map<K, V>> newCacheBuilder( Class<K> keyType, Class<V> valueType );
+
+    /**
+     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a
+     * cache that stores the Map of keyType and value is a Set holding items of the specified valueType.
+     *
+     * @param valueType The class type of the individual items in the value set to be stored in cache.
+     * @return A cache builder instance for the specified value type. Returns a
+     *         {@link ExtendedCacheBuilder}.
+     */
+    <V> ExtendedCacheBuilder<Set<V>> newCacheBuilderForSet( Class<V> valueType );
 }
