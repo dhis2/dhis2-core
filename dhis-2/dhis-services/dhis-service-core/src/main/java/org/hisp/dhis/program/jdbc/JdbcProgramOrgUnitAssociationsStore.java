@@ -30,13 +30,23 @@ package org.hisp.dhis.program.jdbc;
 import static java.util.stream.Collectors.joining;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+
+import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -64,22 +74,67 @@ public class JdbcProgramOrgUnitAssociationsStore
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final CacheProvider cacheProvider;
+
+    private final Environment env;
+
+    private Cache<Set<String>> programOrgUnitAssociationCache;
+
+    @PostConstruct
+    public void init()
+    {
+        programOrgUnitAssociationCache = cacheProvider.newCacheBuilderForSet( String.class )
+            .forRegion( "pgmOrgUnitAssocCache" )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
+            .withInitialCapacity( 100 )
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 1000 )
+            .build();
+    }
+
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        programOrgUnitAssociationCache.invalidateAll();
+    }
+
     public SetValuedMap<String, String> getOrganisationUnitsAssociations( Set<String> uids )
     {
+        SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<String, String>();
+        boolean cached = true;
+        for ( String uid : uids )
+        {
+            Optional<Set<String>> orgUnitUids = programOrgUnitAssociationCache.get( uid );
+            if ( !orgUnitUids.isPresent() )
+            {
+                cached = false;
+                break;
+            }
+            else
+            {
+                setValuedMap.putAll( uid, orgUnitUids.get() );
+            }
+        }
 
-        return jdbcTemplate.query(
-            buildSqlQueryForRawAssociation( uids ),
-            resultSet -> {
-                SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<String, String>();
-                while ( resultSet.next() )
-                {
-                    setValuedMap.putAll(
-                        resultSet.getString( 1 ),
-                        Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
+        if ( cached )
+        {
+            return setValuedMap;
+        }
+        else
+        {
+            return jdbcTemplate.query(
+                buildSqlQueryForRawAssociation( uids ),
+                resultSet -> {
+                    setValuedMap.clear();
+                    while ( resultSet.next() )
+                    {
+                        setValuedMap.putAll(
+                            resultSet.getString( 1 ),
+                            Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
 
-                }
-                return setValuedMap;
-            } );
+                    }
+                    return setValuedMap;
+                } );
+        }
     }
 
     private String buildSqlQueryForRawAssociation( Set<String> uids )
