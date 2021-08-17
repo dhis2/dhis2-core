@@ -37,6 +37,8 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.hisp.dhis.cache.Cache;
@@ -46,14 +48,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import lombok.RequiredArgsConstructor;
-
 /**
  * Backported class from 2.36 which is purpose built to retrieve program
  * organisation unit associations using jdbc instead of the default hibernate
  * program.getOrganisationUnit() method. The associations are cached for some
  * time.
- * 
  *
  */
 @Service
