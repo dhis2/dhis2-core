@@ -119,4 +119,19 @@ public class RelationshipItem implements EmbeddedObject
     {
         this.programStageInstance = programStageInstance;
     }
+
+    public boolean hasEvent()
+    {
+        return this.programStageInstance != null;
+    }
+
+    public boolean hasTrackedEntityInstance()
+    {
+        return this.trackedEntityInstance != null;
+    }
+
+    public boolean hasEnrollment()
+    {
+        return this.programInstance != null;
+    }
 }

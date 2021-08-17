@@ -97,9 +97,12 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
@@ -114,6 +117,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -145,6 +149,7 @@ import com.google.common.collect.ImmutableMap;
 @Repository( "org.hisp.dhis.dxf2.events.event.EventStore" )
 public class JdbcEventStore implements EventStore
 {
+    private static final String RELATIONSHIP_QUERY = "select relationshipid from relationshipitem where programstageinstanceid=";
 
     private static final String PSI_EVENT_COMMENT_QUERY = "select psic.programstageinstanceid    as psic_id," +
         " psinote.trackedentitycommentid as psinote_id," +
@@ -466,6 +471,28 @@ public class JdbcEventStore implements EventStore
                 event.getNotes().add( note );
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
+
+            Long relationshipId = jdbcTemplate.queryForObject( RELATIONSHIP_QUERY + rowSet.getLong( "psi_id" ),
+                Long.class );
+
+            if ( relationshipId != null )
+            {
+                Relationship relationship = manager.get( Relationship.class, relationshipId );
+
+                org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship1 = new org.hisp.dhis.dxf2.events.trackedentity.Relationship();
+                relationship1.setBidirectional( relationship.getRelationshipType().isBidirectional() );
+                relationship1.setCreated( relationship.getCreated().toString() );
+                relationship1.setLastUpdated( relationship.getLastUpdated().toString() );
+                relationship1.setRelationshipType( relationship.getRelationshipType().getUid() );
+                relationship1.setRelationshipName( relationship.getRelationshipType().getName() );
+                relationship1.setRelationship( relationship.getUid() );
+
+                relationship1.setFrom( mapRelationshipItem( relationship.getFrom() ) );
+                relationship1.setTo( mapRelationshipItem( relationship.getTo() ) );
+
+                event.getRelationships().add( relationship1 );
+            }
+
         }
 
         IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
@@ -489,6 +516,39 @@ public class JdbcEventStore implements EventStore
         }
 
         return events;
+    }
+
+    private RelationshipItem mapRelationshipItem( org.hisp.dhis.relationship.RelationshipItem item )
+    {
+        RelationshipItem relationshipItem = new RelationshipItem();
+
+        Enrollment enrollment = null;
+        Event event = null;
+        TrackedEntityInstance tei = null;
+
+        if ( item.hasEnrollment() )
+        {
+            enrollment = new Enrollment();
+            enrollment.setEnrollment( item.getProgramInstance().getUid() );
+        }
+
+        if ( item.hasEvent() )
+        {
+            event = new Event();
+            event.setEvent( item.getProgramStageInstance().getUid() );
+        }
+
+        if ( item.hasTrackedEntityInstance() )
+        {
+            tei = new TrackedEntityInstance();
+            tei.setTrackedEntityInstance( item.getTrackedEntityInstance().getUid() );
+        }
+
+        relationshipItem.setTrackedEntityInstance( tei );
+        relationshipItem.setEvent( event );
+        relationshipItem.setEnrollment( enrollment );
+
+        return relationshipItem;
     }
 
     @Override
@@ -903,7 +963,8 @@ public class JdbcEventStore implements EventStore
         SqlHelper hlp = new SqlHelper();
 
         StringBuilder sqlBuilder = new StringBuilder().append( "select "
-            + getEventSelectIdentifiersByIdScheme( params.getIdSchemes() ) + " psi.uid as psi_uid, "
+            + getEventSelectIdentifiersByIdScheme( params.getIdSchemes() )
+            + " psi.uid as psi_uid, psi.programstageinstanceid as psinstance_id, "
             + "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, coc.uid as coc_uid, "
             + "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
