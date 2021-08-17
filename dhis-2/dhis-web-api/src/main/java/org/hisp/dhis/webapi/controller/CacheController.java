@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -65,7 +67,7 @@ public class CacheController
 
     private final CappedLocalCache cache;
 
-    @GetMapping( produces = "application/json" )
+    @GetMapping( produces = APPLICATION_JSON_VALUE )
     public @ResponseBody CacheInfo getInfo( @RequestParam( value = "condensed", required = false ) Boolean condensed )
     {
         CacheInfo info = getCacheInfo();
@@ -80,14 +82,14 @@ public class CacheController
                 .collect( Collectors.toList() ) );
     }
 
-    @GetMapping( value = "/regions", produces = "application/json" )
+    @GetMapping( value = "/regions", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody Set<String> getRegions()
     {
         // sort alphabetically
         return new TreeSet<>( cache.getRegions() );
     }
 
-    @GetMapping( value = "/regions/{region}", produces = "application/json" )
+    @GetMapping( value = "/regions/{region}", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody CacheGroupInfo getRegionInfo( @PathVariable( "region" ) String region )
         throws NotFoundException
     {
@@ -102,7 +104,7 @@ public class CacheController
         throw new NotFoundException( region );
     }
 
-    @GetMapping( value = "/cap", produces = "application/json" )
+    @GetMapping( value = "/cap", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody CacheCapInfo getCapInfo()
     {
         return getCacheInfo().getCap();

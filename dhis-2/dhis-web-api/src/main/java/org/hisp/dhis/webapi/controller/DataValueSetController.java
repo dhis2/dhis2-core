@@ -37,6 +37,8 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PDF;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -251,7 +253,7 @@ public class DataValueSetController
     // Post
     // -------------------------------------------------------------------------
 
-    @PostMapping( consumes = "application/xml", produces = CONTENT_TYPE_XML )
+    @PostMapping( consumes = APPLICATION_XML_VALUE, produces = CONTENT_TYPE_XML )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     @ResponseBody
     public WebMessage postDxf2DataValueSet( ImportOptions importOptions, HttpServletRequest request )
@@ -284,7 +286,7 @@ public class DataValueSetController
         return importSummary( summary ).withPlainResponseBefore( V38 );
     }
 
-    @PostMapping( consumes = "application/json", produces = CONTENT_TYPE_JSON )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = CONTENT_TYPE_JSON )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     @ResponseBody
     public WebMessage postJsonDataValueSet( ImportOptions importOptions, HttpServletRequest request )

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 import java.util.Objects;
@@ -125,7 +126,7 @@ public class MinMaxDataElementController
     // POST
     // --------------------------------------------------------------------------
 
-    @PostMapping( consumes = "application/json" )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')" )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request )
@@ -157,7 +158,7 @@ public class MinMaxDataElementController
     // DELETE
     // --------------------------------------------------------------------------
 
-    @DeleteMapping( consumes = "application/json" )
+    @DeleteMapping( consumes = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_DELETE')" )
     @ResponseBody
     public WebMessage deleteObject( HttpServletRequest request )
