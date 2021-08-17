@@ -487,9 +487,17 @@ public class DefaultOrgUnitProfileService
 
         for ( String dataItemId : dataItems )
         {
-            if ( idObjectManager.get( DATA_ITEM_CLASSES, dataItemId ) == null )
+            IdentifiableObject dataItem = idObjectManager.get( DATA_ITEM_CLASSES, dataItemId );
+
+            if ( dataItem == null )
             {
                 errorReports.add( new ErrorReport( Collection.class, ErrorCode.E4014, dataItemId, "dataItems" ) );
+            }
+
+            if ( dataItem != null && DataElement.class.isAssignableFrom( dataItem.getClass() ) &&
+                !((DataElement) dataItem).getValueType().isAggregatable() )
+            {
+                errorReports.add( new ErrorReport( DataElement.class, ErrorCode.E7115, dataItemId, "dataItems" ) );
             }
         }
 
