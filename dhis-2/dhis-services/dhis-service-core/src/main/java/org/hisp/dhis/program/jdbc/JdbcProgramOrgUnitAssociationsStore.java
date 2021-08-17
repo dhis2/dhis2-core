@@ -129,19 +129,22 @@ public class JdbcProgramOrgUnitAssociationsStore
         }
         else
         {
-            return jdbcTemplate.query(
+            setValuedMap.clear();
+            jdbcTemplate.query(
                 buildSqlQueryForRawAssociation( uids ),
                 resultSet -> {
-                    setValuedMap.clear();
                     while ( resultSet.next() )
                     {
                         setValuedMap.putAll(
                             resultSet.getString( 1 ),
                             Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
-
+                        programOrgUnitAssociationCache.put( resultSet.getString( 1 ),
+                            setValuedMap.get( resultSet.getString( 1 ) ) );
                     }
                     return setValuedMap;
                 } );
+
+            return setValuedMap;
         }
     }
 
