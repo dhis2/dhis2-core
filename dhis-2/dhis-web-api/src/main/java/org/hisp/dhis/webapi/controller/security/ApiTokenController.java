@@ -170,7 +170,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
 
             // Set our custom web response object that includes the new
             // generated key.
-            webMessage.setResponse( new ApiTokenCreationResponse( uid, rawKey ) );
+            webMessage.setResponse( new ApiTokenCreationResponse( objectReport, rawKey ) );
         }
         else
         {
