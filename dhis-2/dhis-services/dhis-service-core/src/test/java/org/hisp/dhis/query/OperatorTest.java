@@ -45,6 +45,7 @@ import org.hisp.dhis.query.operators.LessThanOperator;
 import org.hisp.dhis.query.operators.LikeOperator;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.query.operators.NotEqualOperator;
+import org.hisp.dhis.query.operators.NotLikeOperator;
 import org.hisp.dhis.query.operators.NotNullOperator;
 import org.hisp.dhis.query.operators.NullOperator;
 import org.junit.Test;
@@ -410,5 +411,77 @@ public class OperatorTest
         assertTrue( operator.test( TestEnum.B ) );
         assertFalse( operator.test( TestEnum.C ) );
         assertFalse( operator.test( "abc" ) );
+    }
+
+    @Test
+    public void testNotLikeValidTypes()
+    {
+        NotLikeOperator<String> operator = new NotLikeOperator<>( "operator", true, MatchMode.ANYWHERE );
+
+        assertTrue( operator.isValid( String.class ) );
+        assertFalse( operator.isValid( Number.class ) );
+        assertFalse( operator.isValid( Date.class ) );
+        assertFalse( operator.isValid( Boolean.class ) );
+        assertFalse( operator.isValid( Collection.class ) );
+    }
+
+    @Test
+    public void testNotLikeAnywhere()
+    {
+        NotLikeOperator<String> operator = new NotLikeOperator<>( "oper", true, MatchMode.ANYWHERE );
+
+        assertFalse( operator.test( "operator" ) );
+        assertTrue( operator.test( "OPERATOR" ) );
+        assertTrue( operator.test( "abc" ) );
+    }
+
+    @Test
+    public void testNotLikeStart()
+    {
+        NotLikeOperator<String> operator = new NotLikeOperator<>( "oper", true, MatchMode.START );
+
+        assertFalse( operator.test( "operator" ) );
+        assertTrue( operator.test( "OPERATOR" ) );
+        assertTrue( operator.test( "abc" ) );
+    }
+
+    @Test
+    public void tesNotLikeEnd()
+    {
+        NotLikeOperator<String> operator = new NotLikeOperator<>( "ator", true, MatchMode.END );
+
+        assertFalse( operator.test( "operator" ) );
+        assertTrue( operator.test( "OPERATOR" ) );
+        assertTrue( operator.test( "abc" ) );
+    }
+
+    @Test
+    public void testINotLikeAnywhere()
+    {
+        NotLikeOperator<String> operator = new NotLikeOperator<>( "erat", false, MatchMode.ANYWHERE );
+
+        assertFalse( operator.test( "operator" ) );
+        assertFalse( operator.test( "OPERATOR" ) );
+        assertTrue( operator.test( "abc" ) );
+    }
+
+    @Test
+    public void testINotLikeStart()
+    {
+        NotLikeOperator<String> operator = new NotLikeOperator<>( "oper", false, MatchMode.START );
+
+        assertFalse( operator.test( "operator" ) );
+        assertFalse( operator.test( "OPERATOR" ) );
+        assertTrue( operator.test( "abc" ) );
+    }
+
+    @Test
+    public void testINotLikeEnd()
+    {
+        NotLikeOperator<String> operator = new NotLikeOperator<>( "ator", false, MatchMode.END );
+
+        assertFalse( operator.test( "operator" ) );
+        assertFalse( operator.test( "OPERATOR" ) );
+        assertTrue( operator.test( "abc" ) );
     }
 }

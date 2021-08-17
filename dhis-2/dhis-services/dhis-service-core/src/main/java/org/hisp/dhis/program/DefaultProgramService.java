@@ -195,8 +195,16 @@ public class DefaultProgramService
     }
 
     @Override
+    public IdentifiableObjectAssociations getProgramOrganisationUnitsAssociationsForCurrentUser(
+        Set<String> programUids )
+    {
+        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( programUids );
+    }
+
+    @Override
     public IdentifiableObjectAssociations getProgramOrganisationUnitsAssociations( Set<String> programUids )
     {
         return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociations( programUids );
     }
+
 }

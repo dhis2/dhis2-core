@@ -92,7 +92,7 @@ public class OrgUnitProfileTests
         // act
         orgUnitProfileActions.post(
             new JsonObjectBuilder( profileBody ).addArray( "attributes", array ).build()
-        ).validate().statusCode( 204 );
+        ).validate().statusCode( 200 );
 
         // assert
         orgUnitProfileActions.get().validate().body( "attributes", hasSize( greaterThanOrEqualTo( 1 ) ) );
@@ -126,7 +126,7 @@ public class OrgUnitProfileTests
         // act
         orgUnitProfileActions.post(
             profileBody
-        ).validate().statusCode( 204 );
+        ).validate().statusCode( 200 );
 
         // assert
         orgUnitProfileActions.get().validate().body( "groupSets", hasSize( greaterThanOrEqualTo( 1 ) ) );
@@ -154,7 +154,7 @@ public class OrgUnitProfileTests
 
         orgUnitProfileActions.post(
             new JsonObjectBuilder().addArray( "dataItems", array ).build()
-        ).validate().statusCode( 204 );
+        ).validate().statusCode( 200 );
 
         orgUnitProfileActions.get().validate().body( "dataItems", hasSize( greaterThanOrEqualTo( 1 ) ) );
 
