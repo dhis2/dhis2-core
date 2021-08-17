@@ -67,11 +67,12 @@ public class DefaultProgramService
     private final CurrentUserService currentUserService;
 
     private final OrganisationUnitService organisationUnitService;
-    
+
     private final JdbcProgramOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationsStore;
 
     public DefaultProgramService( ProgramStore programStore, CurrentUserService currentUserService,
-        OrganisationUnitService organisationUnitService, JdbcProgramOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationsStore )
+        OrganisationUnitService organisationUnitService,
+        JdbcProgramOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationsStore )
     {
         checkNotNull( programStore );
         checkNotNull( currentUserService );
@@ -245,11 +246,11 @@ public class DefaultProgramService
     {
         return this.programStore.hasOrgUnit( program, organisationUnit );
     }
-    
+
     @Override
     public SetValuedMap<String, String> getProgramOrganisationUnitsAssociations( Set<String> programUids )
     {
         return jdbcProgramOrgUnitAssociationsStore.getOrganisationUnitsAssociations( programUids );
     }
-    
+
 }

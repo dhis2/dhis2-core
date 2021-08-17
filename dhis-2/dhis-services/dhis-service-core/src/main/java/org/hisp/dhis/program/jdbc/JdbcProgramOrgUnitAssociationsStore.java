@@ -48,11 +48,11 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 
-
 /**
  * Backported class from 2.36 which is purpose built to retrieve program
  * organisation unit associations using jdbc instead of the default hibernate
- * program.getOrganisationUnit() method. The associations are cached for some time.
+ * program.getOrganisationUnit() method. The associations are cached for some
+ * time.
  * 
  *
  */
@@ -79,17 +79,17 @@ public class JdbcProgramOrgUnitAssociationsStore
     private static final String INNER_QUERY_GROUPING_BY = "group by pr.uid";
 
     private final JdbcTemplate jdbcTemplate;
-    
+
     private final CacheProvider cacheProvider;
-    
+
     private final Environment env;
-    
+
     private Cache<Set<String>> programOrgUnitAssociationCache;
-    
+
     @PostConstruct
     public void init()
     {
-        programOrgUnitAssociationCache = cacheProvider.newCacheBuilderForSet( String.class ) 
+        programOrgUnitAssociationCache = cacheProvider.newCacheBuilderForSet( String.class )
             .forRegion( "pgmOrgUnitAssocCache" )
             .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( 100 )
