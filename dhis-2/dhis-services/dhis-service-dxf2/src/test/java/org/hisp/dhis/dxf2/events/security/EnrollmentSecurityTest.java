@@ -106,11 +106,11 @@ public class EnrollmentSecurityTest
 
     private ProgramStage programStageB;
 
-	@Override
-	public boolean emptyDatabaseAfterTest() 
-	{
-		return true;
-	}
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()

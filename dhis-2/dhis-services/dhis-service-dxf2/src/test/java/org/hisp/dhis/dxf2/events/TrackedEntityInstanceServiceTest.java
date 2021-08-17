@@ -143,7 +143,7 @@ public class TrackedEntityInstanceServiceTest
     private TrackedEntityAttribute trackedEntityAttributeB;
 
     private TrackedEntityType trackedEntityType;
-    
+
     @Override
     public boolean emptyDatabaseAfterTest()
     {
@@ -166,7 +166,7 @@ public class TrackedEntityInstanceServiceTest
             Lists.newArrayList( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#####)" ) ) );
         textPattern.setOwnerObject( Objects.TRACKEDENTITYATTRIBUTE );
         textPattern.setOwnerUid( uniqueIdAttribute.getUid() );
-        
+
         uniqueIdAttribute.setTextPattern( textPattern );
 
         trackedEntityAttributeService.addTrackedEntityAttribute( uniqueIdAttribute );

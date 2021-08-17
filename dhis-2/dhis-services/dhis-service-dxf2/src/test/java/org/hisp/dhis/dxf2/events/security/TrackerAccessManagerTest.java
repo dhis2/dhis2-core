@@ -122,7 +122,7 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTestBase
     private ProgramStage programStageB;
 
     private TrackedEntityType trackedEntityType;
-    
+
     @Override
     public boolean emptyDatabaseAfterTest()
     {
