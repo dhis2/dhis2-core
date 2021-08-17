@@ -37,7 +37,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 @NoArgsConstructor
-public class AccessObject
+public abstract class AccessObject
     implements Serializable
 {
     protected String access;
@@ -73,4 +73,6 @@ public class AccessObject
     {
         this.id = id;
     }
+
+    public abstract <T extends AccessObject> T copy();
 }

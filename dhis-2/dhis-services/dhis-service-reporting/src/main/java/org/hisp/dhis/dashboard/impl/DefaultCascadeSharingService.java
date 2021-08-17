@@ -70,6 +70,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -609,8 +611,8 @@ public class DefaultCascadeSharingService
     private <T extends IdentifiableObject> boolean mergeSharing( final Sharing source, T target,
         CascadeSharingParameters parameters )
     {
-        if ( mergeAccessObject( source.getUsers(), target.getSharing().getUsers() )
-            || mergeAccessObject( source.getUserGroups(), target.getSharing().getUserGroups() ) )
+        if ( mergeAccessObject( UserAccess.class, source.getUsers(), target.getSharing().getUsers() )
+            || mergeAccessObject( UserGroupAccess.class, source.getUserGroups(), target.getSharing().getUserGroups() ) )
         {
             parameters.getReport().addUpdatedObject( getTypeReportKey( target ), target );
             return true;
@@ -624,7 +626,8 @@ public class DefaultCascadeSharingService
      * <p>
      * After added, target accessObjects will only have READ permission
      */
-    private <T extends AccessObject> boolean mergeAccessObject( final Map<String, T> source, Map<String, T> target )
+    private <T extends AccessObject> boolean mergeAccessObject( Class<T> type, final Map<String, T> source,
+        Map<String, T> target )
     {
         if ( MapUtils.isEmpty( source ) )
         {
@@ -649,7 +652,7 @@ public class DefaultCascadeSharingService
 
             if ( targetAccess == null )
             {
-                targetAccess = (T) new AccessObject( AccessStringHelper.READ, sourceAccess.getId() );
+                targetAccess = sourceAccess.copy();
             }
 
             targetAccess.setAccess( AccessStringHelper.READ );

@@ -79,4 +79,10 @@ public class UserAccess
 
         return userAccess;
     }
+
+    @Override
+    public UserAccess copy()
+    {
+        return new UserAccess( this.access, this.id );
+    }
 }
