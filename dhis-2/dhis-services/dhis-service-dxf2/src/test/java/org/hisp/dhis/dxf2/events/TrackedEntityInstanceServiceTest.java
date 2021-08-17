@@ -27,27 +27,12 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -82,8 +67,24 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -685,5 +686,50 @@ public class TrackedEntityInstanceServiceTest
         List<String> fetchedUids = teiDaoService.getTrackedEntityInstancesUidsIncludingDeleted( uids );
 
         assertTrue( Sets.difference( new HashSet<>( uids ), new HashSet<>( fetchedUids ) ).isEmpty() );
+    }
+
+    @Test
+    public void testAddTrackedEntityInstancePotentialDuplicateFlag()
+    {
+        TrackedEntityInstance tei = new TrackedEntityInstance();
+        tei.setOrgUnit( organisationUnitA.getUid() );
+        tei.setTrackedEntityInstance( CodeGenerator.generateUid() );
+
+        Attribute attribute = new Attribute( "value" );
+        attribute.setAttribute( trackedEntityAttributeB.getUid() );
+        tei.getAttributes().add( attribute );
+        tei.setTrackedEntityType( trackedEntityType.getUid() );
+        tei.setPotentialDuplicate( true );
+
+        List<TrackedEntityInstance> teis = Lists.newArrayList( tei );
+
+        ImportOptions importOptions = new ImportOptions();
+        importOptions.setImportStrategy( ImportStrategy.CREATE );
+        ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( teis, importOptions );
+
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        assertTrue( trackedEntityInstanceService.getTrackedEntityInstance( tei.getTrackedEntityInstance() )
+            .isPotentialDuplicate() );
+    }
+
+    @Test
+    public void testUpdateTrackedEntityInstancePotentialDuplicateFlag()
+    {
+        assertFalse( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ).isPotentialDuplicate() );
+
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
+            .getTrackedEntityInstance( maleA.getUid() );
+
+        trackedEntityInstance.setPotentialDuplicate( true );
+
+        ImportOptions importOptions = new ImportOptions();
+        importOptions.setImportStrategy( ImportStrategy.UPDATE );
+        ImportSummary importSummaries = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
+            null, importOptions, true );
+
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        assertTrue( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ).isPotentialDuplicate() );
     }
 }
