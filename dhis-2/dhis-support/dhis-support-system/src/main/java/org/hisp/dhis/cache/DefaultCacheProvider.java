@@ -53,7 +53,7 @@ public class DefaultCacheProvider implements CacheProvider
     {
         return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
     }
-    
+
     @Override
     public <V> ExtendedCacheBuilder<Set<V>> newCacheBuilderForSet( Class<V> valueType )
     {

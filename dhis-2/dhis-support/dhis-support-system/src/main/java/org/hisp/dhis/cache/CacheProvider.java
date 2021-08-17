@@ -59,9 +59,11 @@ public interface CacheProvider
 
     /**
      * Creates a new {@link ExtendedCacheBuilder} that can be used to build a
-     * cache that stores the Map of keyType and value is a Set holding items of the specified valueType.
+     * cache that stores the Map of keyType and value is a Set holding items of
+     * the specified valueType.
      *
-     * @param valueType The class type of the individual items in the value set to be stored in cache.
+     * @param valueType The class type of the individual items in the value set
+     *        to be stored in cache.
      * @return A cache builder instance for the specified value type. Returns a
      *         {@link ExtendedCacheBuilder}.
      */
