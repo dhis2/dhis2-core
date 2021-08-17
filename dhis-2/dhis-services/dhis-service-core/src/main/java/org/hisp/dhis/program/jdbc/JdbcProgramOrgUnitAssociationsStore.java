@@ -43,7 +43,9 @@ import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -94,6 +96,12 @@ public class JdbcProgramOrgUnitAssociationsStore
             .withInitialCapacity( 100 )
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 1000 )
             .build();
+    }
+
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        programOrgUnitAssociationCache.invalidateAll();
     }
 
     public SetValuedMap<String, String> getOrganisationUnitsAssociations( Set<String> uids )
