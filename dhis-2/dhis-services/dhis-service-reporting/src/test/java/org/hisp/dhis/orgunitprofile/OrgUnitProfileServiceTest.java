@@ -277,6 +277,22 @@ public class OrgUnitProfileServiceTest
         assertTrue( errorContains( errors, ErrorCode.E7115, DataElement.class, deB.getUid() ) );
     }
 
+    @Test
+    public void testDeletionHandling()
+    {
+        DataElement deA = createDataElement( 'A' );
+        deA.setValueType( ValueType.NUMBER );
+
+        manager.save( deA );
+
+        OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
+        orgUnitProfile.getDataItems().add( deA.getUid() );
+
+        service.saveOrgUnitProfile( orgUnitProfile );
+
+        manager.delete( deA );
+    }
+
     private boolean errorContains( List<ErrorReport> errors, ErrorCode errorCode, Class<?> clazz, String uid )
     {
         return errors.stream().filter( errorReport -> errorReport.getErrorCode() == errorCode
