@@ -28,6 +28,7 @@
 package org.hisp.dhis.orgunitprofile;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -280,17 +281,22 @@ public class OrgUnitProfileServiceTest
     @Test
     public void testDeletionHandling()
     {
-        DataElement deA = createDataElement( 'A' );
-        deA.setValueType( ValueType.NUMBER );
+        OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet( 'A' );
 
-        manager.save( deA );
+        manager.save( groupSet );
 
         OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
-        orgUnitProfile.getDataItems().add( deA.getUid() );
+        orgUnitProfile.getGroupSets().add( groupSet.getUid() );
+
+        assertTrue( orgUnitProfile.getGroupSets().contains( groupSet.getUid() ) );
 
         service.saveOrgUnitProfile( orgUnitProfile );
 
-        manager.delete( deA );
+        manager.delete( groupSet );
+
+        orgUnitProfile = service.getOrgUnitProfile();
+
+        assertFalse( orgUnitProfile.getGroupSets().contains( groupSet.getUid() ) );
     }
 
     private boolean errorContains( List<ErrorReport> errors, ErrorCode errorCode, Class<?> clazz, String uid )
