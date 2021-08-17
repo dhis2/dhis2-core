@@ -30,6 +30,7 @@ package org.hisp.dhis.program.jdbc;
 import static java.util.stream.Collectors.joining;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -139,7 +140,7 @@ public class JdbcProgramOrgUnitAssociationsStore
                             resultSet.getString( 1 ),
                             Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
                         programOrgUnitAssociationCache.put( resultSet.getString( 1 ),
-                            setValuedMap.get( resultSet.getString( 1 ) ) );
+                            new HashSet<String>( setValuedMap.get( resultSet.getString( 1 ) ) ) );
                     }
                     return setValuedMap;
                 } );
