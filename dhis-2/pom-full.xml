@@ -20,6 +20,7 @@
 		<module>dhis-services</module>
 		<module>dhis-support</module>
 		<module>dhis-web-api</module>
+		<module>dhis-web-api-test</module>
 		<module>dhis-web</module>
 	</modules>
 
