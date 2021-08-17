@@ -497,7 +497,7 @@ public class DefaultOrgUnitProfileService
             if ( dataItem != null && DataElement.class.isAssignableFrom( dataItem.getClass() ) &&
                 !((DataElement) dataItem).getValueType().isAggregatable() )
             {
-                errorReports.add( new ErrorReport( DataElement.class, ErrorCode.E7115, dataItemId, "dataItems" ) );
+                errorReports.add( new ErrorReport( DataElement.class, ErrorCode.E7115, dataItemId ) );
             }
         }
 
