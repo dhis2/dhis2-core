@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.category.Category;
@@ -77,6 +77,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class DefaultCascadeSharingService
     implements CascadeSharingService
 {
@@ -85,14 +86,6 @@ public class DefaultCascadeSharingService
     private final SchemaService schemaService;
 
     private final AclService aclService;
-
-    public DefaultCascadeSharingService( @NonNull IdentifiableObjectManager manager,
-        @NonNull SchemaService schemaService, @NonNull AclService aclService )
-    {
-        this.manager = manager;
-        this.schemaService = schemaService;
-        this.aclService = aclService;
-    }
 
     @Override
     @Transactional
