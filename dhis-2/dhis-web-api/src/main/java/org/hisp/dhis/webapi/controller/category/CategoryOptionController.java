@@ -56,7 +56,7 @@ public class CategoryOptionController extends AbstractCrudController<CategoryOpt
 
     @ResponseBody
     @GetMapping( value = "orgUnits" )
-    public SetVaaluedMap<String, String> getOrgUnitsAssociations(
+    public SetValuedMap<String, String> getOrgUnitsAssociations(
         @RequestParam( value = "categoryOptions" ) Set<String> categoryOptionsUids )
     {
         return Optional.ofNullable( categoryOptionsUids )
