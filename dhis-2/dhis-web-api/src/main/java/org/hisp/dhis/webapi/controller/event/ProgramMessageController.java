@@ -60,6 +60,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -91,15 +92,14 @@ public class ProgramMessageController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public void getProgramMessages( @RequestParam( required = false ) Set<String> ou,
+    @ResponseBody
+    public List<ProgramMessage> getProgramMessages( @RequestParam( required = false ) Set<String> ou,
         @RequestParam( required = false ) String programInstance,
         @RequestParam( required = false ) String programStageInstance,
         @RequestParam( required = false ) ProgramMessageStatus messageStatus,
         @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Date beforeDate,
-        @RequestParam( required = false ) Integer page, @RequestParam( required = false ) Integer pageSize,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        @RequestParam( required = false ) Integer page, @RequestParam( required = false ) Integer pageSize )
+        throws WebMessageException
     {
         ProgramMessageQueryParams params = programMessageService.getFromUrl( ou, programInstance, programStageInstance,
             messageStatus, page, pageSize, afterDate, beforeDate );
@@ -110,15 +110,13 @@ public class ProgramMessageController
                 conflict( "ProgramInstance or ProgramStageInstance must be specified." ) );
         }
 
-        List<ProgramMessage> programMessages = programMessageService.getProgramMessages( params );
-
-        renderService.toJson( response.getOutputStream(), programMessages );
+        return programMessageService.getProgramMessages( params );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @GetMapping( "/scheduled" )
-    public void getScheduledMessage( @RequestParam( required = false ) Date scheduledAt, HttpServletResponse response )
-        throws IOException
+    @GetMapping( value = "/scheduled", produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public List<ProgramNotificationInstance> getScheduledMessage( @RequestParam( required = false ) Date scheduledAt )
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceStore.getAll();
 
@@ -129,26 +127,23 @@ public class ProgramMessageController
                 .collect( Collectors.toList() );
         }
 
-        renderService.toJson( response.getOutputStream(), instances );
+        return instances;
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @GetMapping( "/scheduled/sent" )
-    public void getScheduledSentMessage(
+    @GetMapping( value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public List<ProgramMessage> getScheduledSentMessage(
         @RequestParam( required = false ) String programInstance,
         @RequestParam( required = false ) String programStageInstance,
         @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        HttpServletResponse response )
-        throws IOException
+        @RequestParam( required = false ) Integer pageSize )
     {
         ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance,
             programStageInstance,
             null, page, pageSize, afterDate, null );
 
-        List<ProgramMessage> programMessages = programMessageService.getProgramMessages( params );
-
-        renderService.toJson( response.getOutputStream(), programMessages );
+        return programMessageService.getProgramMessages( params );
     }
 
     // -------------------------------------------------------------------------
@@ -157,9 +152,9 @@ public class ProgramMessageController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    public void saveMessages( HttpServletRequest request, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+    @ResponseBody
+    public BatchResponseStatus saveMessages( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
     {
         ProgramMessageBatch batch = renderService.fromJson( request.getInputStream(), ProgramMessageBatch.class );
 
@@ -168,10 +163,6 @@ public class ProgramMessageController
             programMessageService.validatePayload( programMessage );
         }
 
-        BatchResponseStatus status = programMessageService.sendMessages( batch.getProgramMessages() );
-
-        response.setContentType( APPLICATION_JSON_VALUE );
-
-        renderService.toJson( response.getOutputStream(), status );
+        return programMessageService.sendMessages( batch.getProgramMessages() );
     }
 }

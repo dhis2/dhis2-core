@@ -363,10 +363,9 @@ public class MeController
 
     @PutMapping( value = "/changePassword", consumes = { "text/*", "application/*" } )
     @ResponseStatus( HttpStatus.ACCEPTED )
-    public void changePassword( @RequestBody Map<String, String> body, HttpServletResponse response )
+    public void changePassword( @RequestBody Map<String, String> body )
         throws WebMessageException,
-        NotAuthenticatedException,
-        IOException
+        NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
 
