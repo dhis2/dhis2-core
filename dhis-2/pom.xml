@@ -590,9 +590,10 @@
           </dependencies>
           <configuration>
             <xmlOutput>true</xmlOutput>
-            <excludeFilterFile>${rootDir}findbugs-exclude.xml</excludeFilterFile>
+            <excludeFilterFile>${rootDir}findbugs-exclude.xml
+            </excludeFilterFile>
           </configuration>
-        </plugin>        
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
@@ -877,6 +878,12 @@
         <artifactId>dhis-support-cache-invalidation</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-web-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
         <artifactId>rule-engine</artifactId>
