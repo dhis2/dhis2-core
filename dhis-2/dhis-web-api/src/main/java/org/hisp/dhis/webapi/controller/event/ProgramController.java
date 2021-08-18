@@ -120,7 +120,7 @@ public class ProgramController
 
     @ResponseBody
     @GetMapping( value = "orgUnits" )
-    public IdentifiableObjectAssociations getOrgUnitsAssociations(
+    public SetValuedMap<String, String> getOrgUnitsAssociations(
         @RequestParam( value = "programs" ) Set<String> programUids )
     {
         return Optional.ofNullable( programUids )
