@@ -32,8 +32,8 @@ import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
@@ -56,7 +56,7 @@ public class CategoryOptionController extends AbstractCrudController<CategoryOpt
 
     @ResponseBody
     @GetMapping( value = "orgUnits" )
-    public IdentifiableObjectAssociations getOrgUnitsAssociations(
+    public SetVaaluedMap<String, String> getOrgUnitsAssociations(
         @RequestParam( value = "categoryOptions" ) Set<String> categoryOptionsUids )
     {
         return Optional.ofNullable( categoryOptionsUids )
