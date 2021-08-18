@@ -77,6 +77,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -472,27 +473,12 @@ public class JdbcEventStore implements EventStore
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
 
-            Long relationshipId = jdbcTemplate.queryForObject( RELATIONSHIP_QUERY + rowSet.getLong( "psi_id" ),
+            List<Long> relationshipIds = jdbcTemplate.queryForList( RELATIONSHIP_QUERY + rowSet.getLong( "psi_id" ),
                 Long.class );
 
-            if ( relationshipId != null )
-            {
-                Relationship relationshipDto = manager.get( Relationship.class, relationshipId );
-
-                org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship = new org.hisp.dhis.dxf2.events.trackedentity.Relationship();
-                relationship.setBidirectional( relationshipDto.getRelationshipType().isBidirectional() );
-                relationship.setCreated( relationshipDto.getCreated().toString() );
-                relationship.setLastUpdated( relationshipDto.getLastUpdated().toString() );
-                relationship.setRelationshipType( relationshipDto.getRelationshipType().getUid() );
-                relationship.setRelationshipName( relationshipDto.getRelationshipType().getName() );
-                relationship.setRelationship( relationshipDto.getUid() );
-
-                relationship.setFrom( mapRelationshipItem( relationshipDto.getFrom() ) );
-                relationship.setTo( mapRelationshipItem( relationshipDto.getTo() ) );
-
-                event.getRelationships().add( relationship );
-            }
-
+            relationshipIds.stream()git
+                .filter( Objects::nonNull )
+                .forEach( id -> event.getRelationships().add( getRelationship( id ) ) );
         }
 
         IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
@@ -516,6 +502,24 @@ public class JdbcEventStore implements EventStore
         }
 
         return events;
+    }
+
+    private org.hisp.dhis.dxf2.events.trackedentity.Relationship getRelationship( Long relationshipId )
+    {
+        Relationship relationshipDto = manager.get( Relationship.class, relationshipId );
+
+        org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship = new org.hisp.dhis.dxf2.events.trackedentity.Relationship();
+        relationship.setBidirectional( relationshipDto.getRelationshipType().isBidirectional() );
+        relationship.setCreated( relationshipDto.getCreated().toString() );
+        relationship.setLastUpdated( relationshipDto.getLastUpdated().toString() );
+        relationship.setRelationshipType( relationshipDto.getRelationshipType().getUid() );
+        relationship.setRelationshipName( relationshipDto.getRelationshipType().getName() );
+        relationship.setRelationship( relationshipDto.getUid() );
+
+        relationship.setFrom( mapRelationshipItem( relationshipDto.getFrom() ) );
+        relationship.setTo( mapRelationshipItem( relationshipDto.getTo() ) );
+
+        return relationship;
     }
 
     private RelationshipItem mapRelationshipItem( org.hisp.dhis.relationship.RelationshipItem itemDto )
