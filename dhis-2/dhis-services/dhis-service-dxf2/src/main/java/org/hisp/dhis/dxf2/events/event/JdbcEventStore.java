@@ -477,20 +477,20 @@ public class JdbcEventStore implements EventStore
 
             if ( relationshipId != null )
             {
-                Relationship relationship = manager.get( Relationship.class, relationshipId );
+                Relationship relationshipDto = manager.get( Relationship.class, relationshipId );
 
-                org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship1 = new org.hisp.dhis.dxf2.events.trackedentity.Relationship();
-                relationship1.setBidirectional( relationship.getRelationshipType().isBidirectional() );
-                relationship1.setCreated( relationship.getCreated().toString() );
-                relationship1.setLastUpdated( relationship.getLastUpdated().toString() );
-                relationship1.setRelationshipType( relationship.getRelationshipType().getUid() );
-                relationship1.setRelationshipName( relationship.getRelationshipType().getName() );
-                relationship1.setRelationship( relationship.getUid() );
+                org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship = new org.hisp.dhis.dxf2.events.trackedentity.Relationship();
+                relationship.setBidirectional( relationshipDto.getRelationshipType().isBidirectional() );
+                relationship.setCreated( relationshipDto.getCreated().toString() );
+                relationship.setLastUpdated( relationshipDto.getLastUpdated().toString() );
+                relationship.setRelationshipType( relationshipDto.getRelationshipType().getUid() );
+                relationship.setRelationshipName( relationshipDto.getRelationshipType().getName() );
+                relationship.setRelationship( relationshipDto.getUid() );
 
-                relationship1.setFrom( mapRelationshipItem( relationship.getFrom() ) );
-                relationship1.setTo( mapRelationshipItem( relationship.getTo() ) );
+                relationship.setFrom( mapRelationshipItem( relationshipDto.getFrom() ) );
+                relationship.setTo( mapRelationshipItem( relationshipDto.getTo() ) );
 
-                event.getRelationships().add( relationship1 );
+                event.getRelationships().add( relationship );
             }
 
         }
@@ -518,7 +518,7 @@ public class JdbcEventStore implements EventStore
         return events;
     }
 
-    private RelationshipItem mapRelationshipItem( org.hisp.dhis.relationship.RelationshipItem item )
+    private RelationshipItem mapRelationshipItem( org.hisp.dhis.relationship.RelationshipItem itemDto )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
 
@@ -526,22 +526,22 @@ public class JdbcEventStore implements EventStore
         Event event = null;
         TrackedEntityInstance tei = null;
 
-        if ( item.hasEnrollment() )
+        if ( itemDto.hasEnrollment() )
         {
             enrollment = new Enrollment();
-            enrollment.setEnrollment( item.getProgramInstance().getUid() );
+            enrollment.setEnrollment( itemDto.getProgramInstance().getUid() );
         }
 
-        if ( item.hasEvent() )
+        if ( itemDto.hasEvent() )
         {
             event = new Event();
-            event.setEvent( item.getProgramStageInstance().getUid() );
+            event.setEvent( itemDto.getProgramStageInstance().getUid() );
         }
 
-        if ( item.hasTrackedEntityInstance() )
+        if ( itemDto.hasTrackedEntityInstance() )
         {
             tei = new TrackedEntityInstance();
-            tei.setTrackedEntityInstance( item.getTrackedEntityInstance().getUid() );
+            tei.setTrackedEntityInstance( itemDto.getTrackedEntityInstance().getUid() );
         }
 
         relationshipItem.setTrackedEntityInstance( tei );
