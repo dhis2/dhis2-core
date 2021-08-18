@@ -204,7 +204,7 @@ public class DeduplicationController
 
         if ( potentialDuplicate == null )
         {
-            throw new NotFoundException("PotentialDuplicate with uid '" + id + "' was not found.");
+            throw new NotFoundException( "PotentialDuplicate with uid '" + id + "' was not found." );
         }
 
         if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
