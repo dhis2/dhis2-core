@@ -476,7 +476,7 @@ public class JdbcEventStore implements EventStore
             List<Long> relationshipIds = jdbcTemplate.queryForList( RELATIONSHIP_QUERY + rowSet.getLong( "psi_id" ),
                 Long.class );
 
-            relationshipIds.stream()git
+            relationshipIds.stream()
                 .filter( Objects::nonNull )
                 .forEach( id -> event.getRelationships().add( getRelationship( id ) ) );
         }
