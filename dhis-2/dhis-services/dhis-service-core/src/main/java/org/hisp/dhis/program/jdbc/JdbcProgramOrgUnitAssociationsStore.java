@@ -28,15 +28,23 @@
 package org.hisp.dhis.program.jdbc;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.association.IdentifiableObjectAssociations;
+import org.apache.commons.collections4.SetValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.hisp.dhis.association.ProgramOrganisationUnitAssociationsQueryBuilder;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +59,23 @@ public class JdbcProgramOrgUnitAssociationsStore
 
     private final ProgramOrganisationUnitAssociationsQueryBuilder queryBuilder;
 
-    public IdentifiableObjectAssociations getOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids )
+    private final CacheProvider cacheProvider;
+
+    private Cache<Set<String>> programOrgUnitAssociationCache;
+
+    @PostConstruct
+    public void init()
+    {
+        programOrgUnitAssociationCache = cacheProvider.createProgramOrgUnitAssociationCache();
+    }
+
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        programOrgUnitAssociationCache.invalidateAll();
+    }
+
+    public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids )
     {
 
         Set<String> userOrgUnitPaths = getUserOrgUnitPaths();
@@ -59,34 +83,58 @@ public class JdbcProgramOrgUnitAssociationsStore
         return jdbcTemplate.query(
             queryBuilder.buildSqlQuery( programUids, userOrgUnitPaths, currentUserService.getCurrentUser() ),
             resultSet -> {
-                IdentifiableObjectAssociations identifiableObjectAssociations = new IdentifiableObjectAssociations();
+                SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<String, String>();
                 while ( resultSet.next() )
                 {
-                    identifiableObjectAssociations.addAllAssociations(
+                    setValuedMap.putAll(
                         resultSet.getString( 1 ),
                         Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
 
                 }
-                return identifiableObjectAssociations;
+                return setValuedMap;
             } );
     }
 
-    public IdentifiableObjectAssociations getOrganisationUnitsAssociations( Set<String> uids )
+    public SetValuedMap<String, String> getOrganisationUnitsAssociations( Set<String> uids )
     {
+        SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<String, String>();
 
-        return jdbcTemplate.query(
-            queryBuilder.buildSqlQueryForRawAssociation( uids ),
-            resultSet -> {
-                IdentifiableObjectAssociations identifiableObjectAssociations = new IdentifiableObjectAssociations();
-                while ( resultSet.next() )
-                {
-                    identifiableObjectAssociations.addAllAssociations(
-                        resultSet.getString( 1 ),
-                        Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
+        boolean cached = true;
+        for ( String uid : uids )
+        {
+            Optional<Set<String>> orgUnitUids = programOrgUnitAssociationCache.get( uid );
+            if ( !orgUnitUids.isPresent() )
+            {
+                cached = false;
+                break;
+            }
+            else
+            {
+                setValuedMap.putAll( uid, orgUnitUids.get() );
+            }
+        }
 
-                }
-                return identifiableObjectAssociations;
-            } );
+        if ( cached )
+        {
+            return setValuedMap;
+        }
+        else
+        {
+            setValuedMap.clear();
+            jdbcTemplate.query(
+                queryBuilder.buildSqlQueryForRawAssociation( uids ),
+                resultSet -> {
+                    while ( resultSet.next() )
+                    {
+                        setValuedMap.putAll(
+                            resultSet.getString( 1 ),
+                            Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
+
+                    }
+                    return setValuedMap;
+                } );
+            return setValuedMap;
+        }
     }
 
     private Set<String> getUserOrgUnitPaths()
