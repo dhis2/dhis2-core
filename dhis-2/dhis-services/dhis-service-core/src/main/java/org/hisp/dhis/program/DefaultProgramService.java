@@ -36,11 +36,13 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.jdbc.JdbcProgramOrgUnitAssociationsStore;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -70,6 +72,9 @@ public class DefaultProgramService
 
     @NonNull
     private final OrganisationUnitService organisationUnitService;
+
+    @NonNull
+    private final JdbcProgramOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationsStore;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -232,5 +237,11 @@ public class DefaultProgramService
     public boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit )
     {
         return this.programStore.hasOrgUnit( program, organisationUnit );
+    }
+
+    @Override
+    public SetValuedMap<String, String> getProgramOrganisationUnitsAssociations( Set<String> programUids )
+    {
+        return jdbcProgramOrgUnitAssociationsStore.getOrganisationUnitsAssociations( programUids );
     }
 }

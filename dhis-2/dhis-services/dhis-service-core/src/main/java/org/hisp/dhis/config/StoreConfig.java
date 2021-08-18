@@ -203,7 +203,7 @@ public class StoreConfig
     }
 
     @Bean( "org.hisp.dhis.visualization.generic.VisualizationStore" )
-    public HibernateAnalyticalObjectStore<Visualization> visuzliationStore()
+    public HibernateAnalyticalObjectStore<Visualization> visualizationStore()
     {
         return new HibernateAnalyticalObjectStore<>( sessionFactory,
             jdbcTemplate, publisher, Visualization.class, currentUserService, aclService, true );

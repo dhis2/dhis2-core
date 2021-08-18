@@ -48,7 +48,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -91,7 +91,7 @@ import com.google.common.collect.Sets;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackedEntityInstanceServiceTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -150,6 +150,12 @@ public class TrackedEntityInstanceServiceTest
     private TrackedEntityType trackedEntityType;
 
     @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
     protected void setUpTest()
         throws Exception
     {
@@ -163,6 +169,8 @@ public class TrackedEntityInstanceServiceTest
         // uniqueIdAttribute.setPattern( "RANDOM(#####)" );
         TextPattern textPattern = new TextPattern(
             Lists.newArrayList( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#####)" ) ) );
+        textPattern.setOwnerObject( Objects.TRACKEDENTITYATTRIBUTE );
+        textPattern.setOwnerUid( uniqueIdAttribute.getUid() );
         uniqueIdAttribute.setTextPattern( textPattern );
 
         trackedEntityAttributeService.addTrackedEntityAttribute( uniqueIdAttribute );
