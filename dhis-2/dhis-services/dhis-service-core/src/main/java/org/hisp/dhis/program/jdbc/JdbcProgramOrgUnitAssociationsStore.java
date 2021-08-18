@@ -41,10 +41,8 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.hisp.dhis.association.ProgramOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -67,12 +65,6 @@ public class JdbcProgramOrgUnitAssociationsStore
     public void init()
     {
         programOrgUnitAssociationCache = cacheProvider.createProgramOrgUnitAssociationCache();
-    }
-
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        programOrgUnitAssociationCache.invalidateAll();
     }
 
     public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids )
