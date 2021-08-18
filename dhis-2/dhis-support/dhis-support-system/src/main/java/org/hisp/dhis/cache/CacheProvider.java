@@ -99,4 +99,6 @@ public interface CacheProvider
     <V> Cache<V> createUserGroupNameCache();
 
     <V> Cache<V> createUserDisplayNameCache();
+
+    <V> Cache<V> createProgramOrgUnitAssociationCache();
 }
