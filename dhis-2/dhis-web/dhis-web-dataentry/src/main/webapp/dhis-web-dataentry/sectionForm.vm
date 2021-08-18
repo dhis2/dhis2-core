@@ -41,11 +41,11 @@
         #set( $categoryComboIds = "null" )
         #set( $categoryComboIds = $sectionCombos.get( $section.id ) )
 
-        #foreach( $categoryComboId in $categoryComboIds )
-            #set( $seCbId = "${section.id}-${categoryComboId}" )
+        #foreach( $catComboId in $categoryComboIds )
+            #set( $seCbId = "${section.id}-${catComboId}" )
+            #set( $categoryComboId = $customSectionCategoryCombos.get( $catComboId ) )
             #set( $dataElements = $sectionCategoryComboDataElements.get( $seCbId ) )
             #set( $optionCombos = $orderedCategoryOptionCombos.get( $categoryComboId )  )
-
             <table id="sectionTable" class="sectionTable" cellspacing="0">
                 #set( $colCount = $numberOfTotalColumns.get( $categoryComboId ) )
                 #set( $categories = $orderedCategories.get( $categoryComboId ) )
