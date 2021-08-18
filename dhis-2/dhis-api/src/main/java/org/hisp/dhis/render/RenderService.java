@@ -44,10 +44,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 public interface RenderService
 {
     /**
-     * @deprecated Use spring techniques, return objects that are mapped to JSON
-     *             instead
+     * NOTE: Please do not use this in controllers to return an HTTP call
+     * handler method result as JSON. Instead, return the value from the method.
      */
-    @Deprecated
     void toJson( OutputStream output, Object value )
         throws IOException;
 
