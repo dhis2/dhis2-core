@@ -33,6 +33,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.hisp.dhis.association.AbstractOrganisationUnitAssociationsQueryBuilder;
@@ -40,8 +42,6 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class JdbcOrgUnitAssociationsStore
