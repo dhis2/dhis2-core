@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program.jdbc;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.association.CategoryOptionOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.association.ProgramOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.cache.CacheProvider;
@@ -34,8 +36,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor

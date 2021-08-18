@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -45,8 +47,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Abyot Asalefew
