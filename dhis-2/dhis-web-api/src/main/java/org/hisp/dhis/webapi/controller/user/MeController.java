@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
@@ -84,6 +85,7 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -281,8 +283,8 @@ public class MeController
             response.getOutputStream() );
     }
 
-    @GetMapping( value = { "/authorization", "/authorities" } )
-    public void getAuthorities( HttpServletResponse response )
+    @GetMapping( value = { "/authorization", "/authorities" }, produces = APPLICATION_JSON_VALUE )
+    public ResponseEntity<Set<String>> getAuthorities()
         throws IOException,
         NotAuthenticatedException
     {
@@ -293,15 +295,14 @@ public class MeController
             throw new NotAuthenticatedException();
         }
 
-        response.setContentType( APPLICATION_JSON_VALUE );
-        setNoStore( response );
-        renderService.toJson( response.getOutputStream(), currentUser.getUserCredentials().getAllAuthorities() );
+        return ResponseEntity.ok().cacheControl( noStore() )
+            .body( currentUser.getUserCredentials().getAllAuthorities() );
     }
 
-    @GetMapping( value = { "/authorization/{authority}", "/authorities/{authority}" } )
-    public void hasAuthority( HttpServletResponse response, @PathVariable String authority )
-        throws IOException,
-        NotAuthenticatedException
+    @GetMapping( value = { "/authorization/{authority}",
+        "/authorities/{authority}" }, produces = APPLICATION_JSON_VALUE )
+    public ResponseEntity<Boolean> hasAuthority( @PathVariable String authority )
+        throws NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -310,17 +311,13 @@ public class MeController
             throw new NotAuthenticatedException();
         }
 
-        boolean hasAuthority = currentUser.getUserCredentials().isAuthorized( authority );
-
-        response.setContentType( APPLICATION_JSON_VALUE );
-        setNoStore( response );
-        renderService.toJson( response.getOutputStream(), hasAuthority );
+        return ResponseEntity.ok().cacheControl( noStore() )
+            .body( currentUser.getUserCredentials().isAuthorized( authority ) );
     }
 
-    @GetMapping( "/settings" )
-    public void getSettings( HttpServletResponse response )
-        throws IOException,
-        NotAuthenticatedException
+    @GetMapping( value = "/settings", produces = APPLICATION_JSON_VALUE )
+    public ResponseEntity<Map<String, Serializable>> getSettings()
+        throws NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -332,15 +329,12 @@ public class MeController
         Map<String, Serializable> userSettings = userSettingService.getUserSettingsWithFallbackByUserAsMap(
             currentUser, USER_SETTING_KEYS, true );
 
-        response.setContentType( APPLICATION_JSON_VALUE );
-        setNoStore( response );
-        renderService.toJson( response.getOutputStream(), userSettings );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( userSettings );
     }
 
-    @GetMapping( "/settings/{key}" )
-    public void getSetting( HttpServletResponse response, @PathVariable String key )
-        throws IOException,
-        WebMessageException,
+    @GetMapping( value = "/settings/{key}", produces = APPLICATION_JSON_VALUE )
+    public ResponseEntity<Serializable> getSetting( @PathVariable String key )
+        throws WebMessageException,
         NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
@@ -364,9 +358,7 @@ public class MeController
             throw new WebMessageException( notFound( "User setting not found for key: " + key ) );
         }
 
-        response.setContentType( APPLICATION_JSON_VALUE );
-        setNoStore( response );
-        renderService.toJson( response.getOutputStream(), value );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( value );
     }
 
     @PutMapping( value = "/changePassword", consumes = { "text/*", "application/*" } )
@@ -454,14 +446,11 @@ public class MeController
     }
 
     @GetMapping( value = "/dataApprovalLevels", produces = { APPLICATION_JSON_VALUE, "text/*" } )
-    public void getApprovalLevels( HttpServletResponse response )
-        throws IOException
+    public ResponseEntity<List<DataApprovalLevel>> getApprovalLevels()
     {
         List<DataApprovalLevel> approvalLevels = approvalLevelService
             .getUserDataApprovalLevels( currentUserService.getCurrentUser() );
-        response.setContentType( APPLICATION_JSON_VALUE );
-        setNoStore( response );
-        renderService.toJson( response.getOutputStream(), approvalLevels );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( approvalLevels );
     }
 
     // ------------------------------------------------------------------------------------------------
