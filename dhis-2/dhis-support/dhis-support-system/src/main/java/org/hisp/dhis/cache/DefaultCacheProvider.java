@@ -479,7 +479,7 @@ public class DefaultCacheProvider
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_500 ) ) ) );
     }
-    
+
     @Override
     public <V> Cache<V> createProgramOrgUnitAssociationCache()
     {
@@ -489,7 +489,7 @@ public class DefaultCacheProvider
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .withMaximumSize( orZeroInTestRun( SIZE_1K ) ) );
     }
-    
+
     @Override
     public <V> Cache<V> createCatOptOrgUnitAssociationCache()
     {
