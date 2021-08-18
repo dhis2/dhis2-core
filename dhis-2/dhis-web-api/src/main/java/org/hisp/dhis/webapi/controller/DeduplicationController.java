@@ -27,21 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletResponse;
-
+import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
+import org.hisp.dhis.deduplication.MergeObject;
+import org.hisp.dhis.deduplication.MergeStrategy;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
@@ -61,10 +54,24 @@ import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 
-import com.google.common.collect.Lists;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 @RestController
 @RequestMapping( value = "/potentialDuplicates" )
@@ -181,6 +188,54 @@ public class DeduplicationController
 
         potentialDuplicate.setStatus( deduplicationStatus );
         deduplicationService.updatePotentialDuplicate( potentialDuplicate );
+    }
+
+    @PostMapping( value = "/{id}/merge" )
+    @ResponseStatus( value = HttpStatus.OK )
+    public void mergePotentialDuplicate(
+        @PathVariable String id,
+        @RequestParam( value = "MANUAL" ) MergeStrategy mergeStrategy,
+        @RequestBody MergeObject mergeObject
+    ) throws NotFoundException,
+        ConflictException
+    {
+
+        PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid( id );
+
+        if ( potentialDuplicate == null )
+        {
+            throw new NotFoundException("PotentialDuplicate with uid '" + id + "' was not found.");
+        }
+
+        if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
+        {
+            throw new ConflictException( "PotentialDuplicate is missing references and cannot be merged." );
+        }
+
+        TrackedEntityInstance original = trackedEntityInstanceService.getTrackedEntityInstance( potentialDuplicate.getTeiA() );
+        TrackedEntityInstance duplicate = trackedEntityInstanceService.getTrackedEntityInstance( potentialDuplicate.getTeiB() );
+
+        if ( original == null || duplicate == null )
+        {
+            throw new ConflictException( "One or more Tracked Entities in the Potential Duplicate no longer exist." );
+        }
+
+        if ( original.getCreated().after( duplicate.getCreated() ) )
+        {
+            TrackedEntityInstance t = original;
+            original = duplicate;
+            duplicate = t;
+        }
+
+        if ( MergeStrategy.MANUAL.equals( mergeStrategy ) )
+        {
+            // TODO: manualMerge(original, duplicate, mergeObject);
+        }
+        else
+        {
+            // TODO: autoMerge(original, duplicate);
+        }
+
     }
 
     private void checkDbAndRequestStatus( PotentialDuplicate potentialDuplicate,
