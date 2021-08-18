@@ -40,11 +40,8 @@ import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.hisp.dhis.association.AbstractOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @RequiredArgsConstructor
@@ -57,21 +54,7 @@ public class JdbcOrgUnitAssociationsStore
 
     private final AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
 
-    private final CacheProvider cacheProvider;
-
-    private Cache<Set<String>> programOrgUnitAssociationCache;
-
-    @PostConstruct
-    public void init()
-    {
-        programOrgUnitAssociationCache = cacheProvider.createProgramOrgUnitAssociationCache();
-    }
-
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        programOrgUnitAssociationCache.invalidateAll();
-    }
+    private final Cache<Set<String>> orgUnitAssocCache;
 
     public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids )
     {
@@ -100,7 +83,7 @@ public class JdbcOrgUnitAssociationsStore
         boolean cached = true;
         for ( String uid : uids )
         {
-            Optional<Set<String>> orgUnitUids = programOrgUnitAssociationCache.get( uid );
+            Optional<Set<String>> orgUnitUids = orgUnitAssocCache.get( uid );
             if ( !orgUnitUids.isPresent() )
             {
                 cached = false;
