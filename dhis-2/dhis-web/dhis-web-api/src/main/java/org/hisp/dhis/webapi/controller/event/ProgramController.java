@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -116,9 +118,9 @@ public class ProgramController
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, program, download );
     }
 
-    @ResponseBody
     @RequestMapping( value = "orgUnits" )
-    SetValuedMap<String, String> getProgramOrgUnitsAssociations(
+    @ResponseBody
+    public Map<String, Collection<String>> getProgramOrgUnitsAssociations(
         @RequestParam( value = "programs" ) Set<String> programUids )
     {
 
@@ -127,7 +129,7 @@ public class ProgramController
             throw new IllegalArgumentException( "At least one program uid must be specified" );
         }
 
-        return programService.getProgramOrganisationUnitsAssociationsForCurrentUser( programUids );
+        return programService.getProgramOrganisationUnitsAssociationsForCurrentUser( programUids ).asMap();
 
     }
 
