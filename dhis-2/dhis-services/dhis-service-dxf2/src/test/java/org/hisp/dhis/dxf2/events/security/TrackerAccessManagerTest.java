@@ -213,12 +213,10 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTestBase
     {
         programA.setPublicAccess( AccessStringHelper.FULL );
         manager.update( programA );
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( trackedEntityType );
 
         User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
-        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
-
-        manager.update( trackedEntityType );
 
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
 
@@ -237,14 +235,12 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTestBase
     {
         programA.setPublicAccess( AccessStringHelper.FULL );
         manager.update( programA );
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( trackedEntityType );
 
         User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
 
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
-
-        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
-
-        manager.update( trackedEntityType );
 
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
 
@@ -263,12 +259,10 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTestBase
     {
         programA.setPublicAccess( AccessStringHelper.FULL );
         manager.update( programA );
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( trackedEntityType );
 
         User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
-
-        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
-
-        manager.update( trackedEntityType );
 
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
 
@@ -434,14 +428,12 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTestBase
         manager.update( programStageA );
         manager.update( programStageB );
         manager.update( programA );
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( trackedEntityType );
 
         User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
 
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
-
-        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
-
-        manager.update( trackedEntityType );
 
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
 
@@ -514,14 +506,12 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTestBase
         manager.update( programStageA );
         manager.update( programStageB );
         manager.update( programA );
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( trackedEntityType );
 
         User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
 
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
-
-        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
-
-        manager.update( trackedEntityType );
 
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
 
