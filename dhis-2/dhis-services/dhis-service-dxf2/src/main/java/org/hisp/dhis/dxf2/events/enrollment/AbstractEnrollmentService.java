@@ -43,6 +43,8 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
@@ -114,8 +116,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -29,7 +29,9 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -120,12 +122,13 @@ public class ProgramController
 
     @ResponseBody
     @GetMapping( value = "orgUnits" )
-    public SetValuedMap<String, String> getOrgUnitsAssociations(
+    public Map<String, Collection<String>> getOrgUnitsAssociations(
         @RequestParam( value = "programs" ) Set<String> programUids )
     {
         return Optional.ofNullable( programUids )
             .filter( CollectionUtils::isNotEmpty )
             .map( programService::getProgramOrganisationUnitsAssociationsForCurrentUser )
+            .map( SetValuedMap::asMap )
             .orElseThrow( () -> new IllegalArgumentException( "At least one program uid must be specified" ) );
     }
 

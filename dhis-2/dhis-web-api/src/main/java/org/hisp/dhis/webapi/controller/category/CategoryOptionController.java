@@ -27,13 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.category;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
@@ -56,12 +58,13 @@ public class CategoryOptionController extends AbstractCrudController<CategoryOpt
 
     @ResponseBody
     @GetMapping( value = "orgUnits" )
-    public SetValuedMap<String, String> getOrgUnitsAssociations(
+    public Map<String, Collection<String>> getOrgUnitsAssociations(
         @RequestParam( value = "categoryOptions" ) Set<String> categoryOptionsUids )
     {
         return Optional.ofNullable( categoryOptionsUids )
             .filter( CollectionUtils::isNotEmpty )
             .map( categoryService::getCategoryOptionOrganisationUnitsAssociations )
+            .map( SetValuedMap::asMap )
             .orElseThrow( () -> new IllegalArgumentException( "At least one categoryOption uid must be specified" ) );
     }
 
