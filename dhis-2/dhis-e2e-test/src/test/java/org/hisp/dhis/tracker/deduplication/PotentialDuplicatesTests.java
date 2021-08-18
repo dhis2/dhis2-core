@@ -146,9 +146,11 @@ public class PotentialDuplicatesTests
         String teiA = createTei();
         String teiB = createTei();
         String teiC = createTei();
+        String teiD = createTei();
 
         potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" ).validate().statusCode( 200 );
         potentialDuplicatesActions.createPotentialDuplicate( teiC, teiA, "INVALID" ).validate().statusCode( 200 );
+        potentialDuplicatesActions.createPotentialDuplicate( teiD, teiA, "OPEN" ).validate().statusCode( 200 );
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "teis=" + teiA ) )
             .validate().statusCode( 200 )
@@ -156,7 +158,7 @@ public class PotentialDuplicatesTests
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "teis=" + teiB + "," + teiC) )
             .validate().statusCode( 200 )
-            .body( "identifiableObjects", hasSize( 2 ) );
+            .body( "identifiableObjects", hasSize( 1 ) );
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=INVALID" ) )
             .validate().statusCode( 200 )
