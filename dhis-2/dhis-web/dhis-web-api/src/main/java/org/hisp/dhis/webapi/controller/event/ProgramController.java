@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import org.hisp.dhis.association.IdentifiableObjectAssociations;
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -118,7 +118,7 @@ public class ProgramController
 
     @ResponseBody
     @RequestMapping( value = "orgUnits" )
-    IdentifiableObjectAssociations getProgramOrgUnitsAssociations(
+    SetValuedMap<String, String> getProgramOrgUnitsAssociations(
         @RequestParam( value = "programs" ) Set<String> programUids )
     {
 

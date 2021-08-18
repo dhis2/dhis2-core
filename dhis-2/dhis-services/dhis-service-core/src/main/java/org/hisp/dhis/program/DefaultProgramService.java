@@ -35,7 +35,7 @@ import java.util.Set;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.association.IdentifiableObjectAssociations;
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -197,14 +197,14 @@ public class DefaultProgramService
     }
 
     @Override
-    public IdentifiableObjectAssociations getProgramOrganisationUnitsAssociationsForCurrentUser(
+    public SetValuedMap<String, String> getProgramOrganisationUnitsAssociationsForCurrentUser(
         Set<String> programUids )
     {
         return jdbcProgramOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( programUids );
     }
 
     @Override
-    public IdentifiableObjectAssociations getProgramOrganisationUnitsAssociations( Set<String> programUids )
+    public SetValuedMap<String, String> getProgramOrganisationUnitsAssociations( Set<String> programUids )
     {
         return jdbcProgramOrgUnitAssociationsStore.getOrganisationUnitsAssociations( programUids );
     }
