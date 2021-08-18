@@ -28,6 +28,7 @@
 package org.hisp.dhis.program.jdbc;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -110,6 +111,8 @@ public class JdbcOrgUnitAssociationsStore
                         setValuedMap.putAll(
                             resultSet.getString( 1 ),
                             Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
+                        orgUnitAssocCache.put( resultSet.getString( 1 ),
+                            new HashSet<String>( setValuedMap.get( resultSet.getString( 1 ) ) ) );
 
                     }
                     return setValuedMap;
