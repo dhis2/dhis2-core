@@ -156,9 +156,9 @@ public class PotentialDuplicatesTests
             .validate().statusCode( 200 )
             .body( "identifiableObjects", hasSize( 2 ) );
 
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "teis=" + teiB + "," + teiC) )
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiB + "," + teiC, "status=ALL") )
             .validate().statusCode( 200 )
-            .body( "identifiableObjects", hasSize( 1 ) );
+            .body( "identifiableObjects", hasSize( 2 ) );
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=INVALID" ) )
             .validate().statusCode( 200 )
