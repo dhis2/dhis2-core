@@ -58,6 +58,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -74,7 +75,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,7 +95,10 @@ public class DefaultOrgUnitProfileService
 
     private static final List<Class<? extends IdentifiableObject>> DATA_ITEM_CLASSES = ImmutableList
         .<Class<? extends IdentifiableObject>> builder()
-        .add( DataElement.class ).add( Indicator.class ).add( DataSet.class ).add( ProgramIndicator.class )
+        .add( DataElement.class )
+        .add( Indicator.class )
+        .add( DataSet.class )
+        .add( ProgramIndicator.class )
         .build();
 
     private KeyJsonValueService dataStore;
@@ -227,19 +230,14 @@ public class DefaultOrgUnitProfileService
         info.setAddress( orgUnit.getAddress() );
         info.setEmail( orgUnit.getEmail() );
         info.setPhoneNumber( orgUnit.getPhoneNumber() );
+        info.setFeatureType( orgUnit.getFeatureType() );
 
         if ( orgUnit.getGeometry() != null )
         {
-            if ( orgUnit.getGeometry().getGeometryType().equals( "Point" ) )
+            if ( orgUnit.getGeometry().getGeometryType().equals( FeatureType.POINT.value() ) )
             {
                 info.setLongitude( orgUnit.getGeometry().getCoordinate().x );
                 info.setLatitude( orgUnit.getGeometry().getCoordinate().y );
-            }
-            else
-            {
-                Point point = orgUnit.getGeometry().getInteriorPoint();
-                info.setLongitude( point.getX() );
-                info.setLatitude( point.getY() );
             }
         }
 
@@ -352,7 +350,8 @@ public class DefaultOrgUnitProfileService
             return ImmutableList.of();
         }
 
-        List<DimensionalItemObject> dataItems = idObjectManager.getByUid( DATA_ITEM_CLASSES, profile.getDataItems() );
+        List<DimensionalItemObject> dataItems = idObjectManager
+            .getByUid( DATA_ITEM_CLASSES, profile.getDataItems() );
 
         if ( CollectionUtils.isEmpty( dataItems ) )
         {
