@@ -166,7 +166,7 @@ public class PotentialDuplicatesTests
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=OPEN" ) )
             .validate().statusCode( 200 )
-            .body( "identifiableObjects", hasSize( 1 ) );
+            .body( "identifiableObjects", hasSize( 2 ) );
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=MERGED" ) )
             .validate().statusCode( 200 )
@@ -174,7 +174,7 @@ public class PotentialDuplicatesTests
 
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=ALL" ) )
             .validate().statusCode( 200 )
-            .body( "identifiableObjects", hasSize( 2 ) );
+            .body( "identifiableObjects", hasSize( 3 ) );
 
     }
 
