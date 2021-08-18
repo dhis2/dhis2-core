@@ -140,6 +140,42 @@ public class PotentialDuplicatesTests
         response.validate().statusCode( 400 ).body( "status", equalTo( "ERROR" ) );
     }
 
+    @Test
+    public void shouldGetDuplicatesByTei()
+    {
+        String teiA = createTei();
+        String teiB = createTei();
+        String teiC = createTei();
+
+        potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" ).validate().statusCode( 200 );
+        potentialDuplicatesActions.createPotentialDuplicate( teiC, teiA, "INVALID" ).validate().statusCode( 200 );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "teis=" + teiA ) )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 2 ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "teis=" + teiB + "," + teiC) )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 2 ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=INVALID" ) )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 1 ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=OPEN" ) )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 1 ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=MERGED" ) )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 0 ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=ALL" ) )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 2 ) );
+
+    }
+
     private String createTei()
     {
         JsonObject object = trackerActions.buildTei( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] );
