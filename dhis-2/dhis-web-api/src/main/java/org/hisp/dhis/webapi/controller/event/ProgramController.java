@@ -35,8 +35,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.node.types.RootNode;
