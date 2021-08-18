@@ -28,7 +28,10 @@
 package org.hisp.dhis.dxf2.events;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -39,7 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.hamcrest.CoreMatchers;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -57,7 +60,16 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
@@ -72,7 +84,7 @@ import com.google.common.collect.Sets;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 public class EventImportTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private EventService eventService;
@@ -126,6 +138,12 @@ public class EventImportTest
     private ProgramInstance pi;
 
     private Event event;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()
@@ -512,4 +530,5 @@ public class EventImportTest
 
         return event;
     }
+
 }

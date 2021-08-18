@@ -35,7 +35,7 @@ import java.util.Date;
 import java.util.HashSet;
 
 import org.hamcrest.CoreMatchers;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
@@ -67,7 +67,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class RegistrationSingleEventServiceTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private EventService eventService;
@@ -109,6 +109,12 @@ public class RegistrationSingleEventServiceTest
     private Program programA;
 
     private ProgramStage programStageA;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()
@@ -220,6 +226,8 @@ public class RegistrationSingleEventServiceTest
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        manager.flush();
 
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
         importSummary = enrollmentService.deleteEnrollment( tei.getEnrollments().get( 0 ).getEnrollment() );

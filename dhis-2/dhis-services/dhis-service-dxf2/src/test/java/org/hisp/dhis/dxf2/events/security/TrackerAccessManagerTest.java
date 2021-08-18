@@ -37,7 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -73,7 +73,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class TrackerAccessManagerTest extends DhisSpringTest
+public class TrackerAccessManagerTest extends TransactionalIntegrationTestBase
 {
     @Autowired
     private TrackerAccessManager trackerAccessManager;
@@ -122,6 +122,12 @@ public class TrackerAccessManagerTest extends DhisSpringTest
     private ProgramStage programStageB;
 
     private TrackedEntityType trackedEntityType;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()

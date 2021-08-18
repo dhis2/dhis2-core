@@ -35,11 +35,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.jdbc.JdbcProgramOrgUnitAssociationsStore;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -66,8 +68,11 @@ public class DefaultProgramService
 
     private final OrganisationUnitService organisationUnitService;
 
+    private final JdbcProgramOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationsStore;
+
     public DefaultProgramService( ProgramStore programStore, CurrentUserService currentUserService,
-        OrganisationUnitService organisationUnitService )
+        OrganisationUnitService organisationUnitService,
+        JdbcProgramOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationsStore )
     {
         checkNotNull( programStore );
         checkNotNull( currentUserService );
@@ -76,6 +81,7 @@ public class DefaultProgramService
         this.programStore = programStore;
         this.currentUserService = currentUserService;
         this.organisationUnitService = organisationUnitService;
+        this.jdbcProgramOrgUnitAssociationsStore = jdbcProgramOrgUnitAssociationsStore;
     }
 
     // -------------------------------------------------------------------------
@@ -240,4 +246,11 @@ public class DefaultProgramService
     {
         return this.programStore.hasOrgUnit( program, organisationUnit );
     }
+
+    @Override
+    public SetValuedMap<String, String> getProgramOrganisationUnitsAssociations( Set<String> programUids )
+    {
+        return jdbcProgramOrgUnitAssociationsStore.getOrganisationUnitsAssociations( programUids );
+    }
+
 }

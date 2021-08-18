@@ -258,6 +258,7 @@ public class HibernateDbmsManager
 
         emptyTable( "trackedentitydatavalueaudit" );
         emptyTable( "trackedentityprogramowner" );
+        emptyTable( "programownershiphistory" );
         emptyTable( "programstageinstance" );
         emptyTable( "programinstance" );
         emptyTable( "programnotificationtemplate" );

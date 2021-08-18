@@ -28,6 +28,7 @@
 package org.hisp.dhis.cache;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,12 @@ public class DefaultCacheProvider implements CacheProvider
     public <V> ExtendedCacheBuilder<V> newCacheBuilder( Class<V> valueType )
     {
         return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
+    }
+
+    @Override
+    public <V> ExtendedCacheBuilder<Set<V>> newCacheBuilderForSet( Class<V> valueType )
+    {
+        return new ExtendedCacheBuilder<Set<V>>( redisTemplate, configurationProvider );
     }
 
     @Override

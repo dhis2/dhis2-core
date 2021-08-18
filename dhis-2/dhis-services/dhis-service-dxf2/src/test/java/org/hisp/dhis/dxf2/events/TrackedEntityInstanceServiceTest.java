@@ -27,16 +27,26 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -79,7 +89,7 @@ import com.google.common.collect.Sets;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackedEntityInstanceServiceTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -135,6 +145,12 @@ public class TrackedEntityInstanceServiceTest
     private TrackedEntityType trackedEntityType;
 
     @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+    @Override
     protected void setUpTest()
         throws Exception
     {
@@ -148,6 +164,9 @@ public class TrackedEntityInstanceServiceTest
         // uniqueIdAttribute.setPattern( "RANDOM(#####)" );
         TextPattern textPattern = new TextPattern(
             Lists.newArrayList( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#####)" ) ) );
+        textPattern.setOwnerObject( Objects.TRACKEDENTITYATTRIBUTE );
+        textPattern.setOwnerUid( uniqueIdAttribute.getUid() );
+
         uniqueIdAttribute.setTextPattern( textPattern );
 
         trackedEntityAttributeService.addTrackedEntityAttribute( uniqueIdAttribute );
