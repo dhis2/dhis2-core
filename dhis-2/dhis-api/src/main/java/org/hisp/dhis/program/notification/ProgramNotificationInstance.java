@@ -58,7 +58,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class ProgramNotificationInstance extends BaseIdentifiableObject
 {
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private ProgramNotificationTemplateSnapshot programNotificationTemplateSnapshot;
 

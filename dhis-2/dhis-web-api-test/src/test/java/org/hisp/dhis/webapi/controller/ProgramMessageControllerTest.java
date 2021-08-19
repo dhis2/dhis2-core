@@ -90,12 +90,6 @@ public class ProgramMessageControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGetScheduledMessage()
-    {
-        assertTrue( GET( "/messages/scheduled" ).content( HttpStatus.OK ).isArray() );
-    }
-
-    @Test
     public void testGetScheduledSentMessage()
     {
         assertTrue(

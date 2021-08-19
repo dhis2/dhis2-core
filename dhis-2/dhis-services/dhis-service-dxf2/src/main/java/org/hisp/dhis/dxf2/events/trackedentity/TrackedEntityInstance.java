@@ -353,7 +353,7 @@ public class TrackedEntityInstance
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getPotentialDuplicate()
+    public Boolean isPotentialDuplicate()
     {
         return potentialDuplicate;
     }

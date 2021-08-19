@@ -25,11 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
-import io.restassured.http.ContentType;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+
+import java.io.File;
+import java.util.stream.Stream;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
@@ -49,13 +54,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import com.google.gson.JsonObject;
+import io.restassured.http.ContentType;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -133,10 +133,11 @@ public class EventsTests
     public void shouldImportToRepeatableStage( Boolean repeatableStage )
         throws Exception
     {
-        //arrange
+        // arrange
         String program = Constants.TRACKER_PROGRAM_ID;
         String programStage = new ProgramStageActions().get( "",
-            new QueryParamsBuilder().addAll( "filter=program.id:eq:" + program, "filter=repeatable:eq:" + repeatableStage ) )
+            new QueryParamsBuilder().addAll( "filter=program.id:eq:" + program,
+                "filter=repeatable:eq:" + repeatableStage ) )
             .extractString( "programStages.id[0]" );
 
         TrackerApiResponse response = importTeiWithEnrollment( program, programStage );
@@ -182,10 +183,9 @@ public class EventsTests
 
         JsonObject event = new JsonObjectBuilder(
             trackerActions.buildEvent( Constants.ORG_UNIT_IDS[1], programId, programStageId ).getAsJsonArray(
-                "events"
-            ).get( 0 ).getAsJsonObject() )
-            .addProperty( "enrollment", enrollmentId )
-            .wrapIntoArray( "events" );
+                "events" ).get( 0 ).getAsJsonObject() )
+                    .addProperty( "enrollment", enrollmentId )
+                    .wrapIntoArray( "events" );
 
         response = trackerActions.postAndGetJobReport( event )
             .validateSuccessfulImport();
