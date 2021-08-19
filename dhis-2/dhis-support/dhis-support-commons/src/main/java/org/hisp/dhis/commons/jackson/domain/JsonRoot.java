@@ -25,20 +25,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.webdomain;
+package org.hisp.dhis.commons.jackson.domain;
 
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.commons.jackson.filter.FieldFilterMixin;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.hisp.dhis.commons.jackson.filter.FieldFilterMixin;
 
 /**
  * @author Morten Olav Hansen
