@@ -48,11 +48,20 @@ public class JsonRoot implements FieldFilterMixin
 {
     private final Map<String, List<? extends JsonNode>> properties = new TreeMap<>();
 
+    public JsonRoot()
+    {
+    }
+
+    public JsonRoot( String property, List<? extends JsonNode> nodes )
+    {
+        setProperty( property, nodes );
+    }
+
     @JsonAnySetter
     @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public JsonRoot setProperty( String property, List<? extends JsonNode> node )
+    public JsonRoot setProperty( String property, List<? extends JsonNode> nodes )
     {
-        this.properties.put( property, node );
+        this.properties.put( property, nodes );
         return this;
     }
 

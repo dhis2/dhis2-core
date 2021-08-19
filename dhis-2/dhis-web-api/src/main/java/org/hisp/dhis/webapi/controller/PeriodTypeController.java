@@ -81,7 +81,7 @@ public class PeriodTypeController
         FieldFilterParams params = new FieldFilterParams( periodTypes, fields );
         List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
 
-        return ResponseEntity.ok( new JsonRoot().setProperty( "periodTypes", objectNodes ) );
+        return ResponseEntity.ok( new JsonRoot( "periodTypes", objectNodes ) );
     }
 
     @GetMapping( value = "/relativePeriodTypes", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
