@@ -30,6 +30,7 @@ package org.hisp.dhis.deduplication;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 public interface PotentialDuplicateStore
     extends IdentifiableObjectStore<PotentialDuplicate>
@@ -41,4 +42,7 @@ public interface PotentialDuplicateStore
     List<PotentialDuplicate> getAllByTei( String tei, DeduplicationStatus status );
 
     boolean exists( PotentialDuplicate potentialDuplicate );
+
+    void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject );
+
 }

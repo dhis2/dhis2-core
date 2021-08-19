@@ -55,4 +55,6 @@ public interface DeduplicationService
 
     boolean isAutoMergeable( TrackedEntityInstance original, TrackedEntityInstance duplicate );
 
+    MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate );
+
 }

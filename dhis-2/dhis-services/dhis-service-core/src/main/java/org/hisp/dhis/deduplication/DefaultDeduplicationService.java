@@ -110,12 +110,8 @@ public class DefaultDeduplicationService
     {
         if ( isAutoMergeable( original, duplicate ) )
         {
-            // TODO: MergeObject mergeObject =
-            // generateMergeObject(trackedEntityInstanceA,
-            // trackedEntityInstanceB);
-            // TODO: store.merge( trackedEntityInstanceA,
-            // trackedEntityInstanceB, mergeObject );
-
+            MergeObject mergeObject = generateMergeObject( original, duplicate );
+            potentialDuplicateStore.merge( original, duplicate, mergeObject );
             return true;
         }
 
@@ -144,6 +140,12 @@ public class DefaultDeduplicationService
             .getTrackedEntityAttributeValues();
 
         return !sameAttributesAreEquals( trackedEntityAttributeValueA, trackedEntityAttributeValueB );
+    }
+
+    @Override
+    public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    {
+        return null;
     }
 
     private boolean sameAttributesAreEquals( Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA,
