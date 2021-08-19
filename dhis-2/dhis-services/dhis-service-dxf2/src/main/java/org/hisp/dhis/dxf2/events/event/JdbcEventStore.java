@@ -968,7 +968,7 @@ public class JdbcEventStore implements EventStore
 
         StringBuilder sqlBuilder = new StringBuilder().append( "select "
             + getEventSelectIdentifiersByIdScheme( params.getIdSchemes() )
-            + " psi.uid as psi_uid, psi.programstageinstanceid as psinstance_id, "
+            + " psi.uid as psi_uid, "
             + "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, coc.uid as coc_uid, "
             + "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
