@@ -44,7 +44,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * @author Morten Olav Hansen
  */
 @JsonRootName( value = "root", namespace = DxfNamespaces.DXF_2_0 )
-public class JsonRoot implements FieldFilterMixin
+public class JsonRoot
 {
     private final Map<String, List<? extends JsonNode>> properties = new TreeMap<>();
 

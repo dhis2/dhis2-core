@@ -41,6 +41,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.PeriodType;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -70,7 +71,7 @@ public class PeriodTypeController
         this.fieldFilterManager = fieldFilterManager;
     }
 
-    @GetMapping
+    @GetMapping( produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonRoot> getPeriodTypes(
         @RequestParam( defaultValue = "*" ) Set<String> fields )
     {

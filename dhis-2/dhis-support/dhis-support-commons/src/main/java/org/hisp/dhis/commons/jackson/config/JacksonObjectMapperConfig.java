@@ -99,6 +99,7 @@ public class JacksonObjectMapperConfig
     @Bean( "jsonMapper" )
     public ObjectMapper jsonMapper( Collection<FieldFilterCustomizer> fieldFilterCustomizers )
     {
+        /* TODO causes issues with new Field Filtering
         JsonFiltering.init( jsonMapper,
             new RequestJsonFilteringContextProvider( FIELDS_FILTER_PARAM_NAME, INCLUDE_ALL_FIELDS_FILTER )
             {
@@ -112,6 +113,8 @@ public class JacksonObjectMapperConfig
                         .orElse( INCLUDE_ALL_FIELDS_FILTER );
                 }
             } );
+         */
+
         return jsonMapper;
     }
 
