@@ -25,10 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.tei;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.*;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.RestApiActions;
@@ -42,7 +42,7 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -142,7 +142,8 @@ public class TeiValidationTests
     {
         JsonObject object = buildTeiWithMandatoryAndOptionSetAttribute();
         String teiId = trackerActions
-            .postAndGetJobReport( buildTeiWithMandatoryAndOptionSetAttribute(), new QueryParamsBuilder().add( "async=false" ) )
+            .postAndGetJobReport( buildTeiWithMandatoryAndOptionSetAttribute(),
+                new QueryParamsBuilder().add( "async=false" ) )
             .validateSuccessfulImport().extractImportedTeis().get( 0 );
 
         JsonObjectBuilder.jsonObject( object )
@@ -163,7 +164,8 @@ public class TeiValidationTests
     {
         // arrange
         JsonObject trackedEntities = JsonObjectBuilder
-            .jsonObject( trackerActions.buildTeiAndEnrollment( trackedEntityType, Constants.ORG_UNIT_IDS[0], program ) ).build();
+            .jsonObject( trackerActions.buildTeiAndEnrollment( trackedEntityType, Constants.ORG_UNIT_IDS[0], program ) )
+            .build();
 
         // assert
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
@@ -183,8 +185,8 @@ public class TeiValidationTests
                 new JsonObjectBuilder()
                     .addProperty( "attribute", attributeWithOptionSet )
                     .addProperty( "value", DataGenerator.randomString() )
-                    .build()
-            ).build();
+                    .build() )
+            .build();
 
         trackerActions.postAndGetJobReport( trackedEntities, new QueryParamsBuilder().add( "async=false" ) )
             .validateErrorReport()
@@ -272,8 +274,7 @@ public class TeiValidationTests
                     .addProperty( "mandatory", "false" )
                     .addObject( "trackedEntityAttribute", new JsonObjectBuilder()
                         .addProperty( "id", attributeWithOptionSet ) )
-                    .build()
-            )
+                    .build() )
             .build();
 
         trackedEntityType = trackedEntityTypeActions.create( trackedEntityTypePayload );
@@ -289,7 +290,8 @@ public class TeiValidationTests
             .addOrAppendToArray( "programTrackedEntityAttributes",
                 new JsonObjectBuilder()
                     .addProperty( "mandatory", "true" )
-                    .addObject( "trackedEntityAttribute", new JsonObjectBuilder().addProperty( "id", mandatoryProgramAttribute ) )
+                    .addObject( "trackedEntityAttribute",
+                        new JsonObjectBuilder().addProperty( "id", mandatoryProgramAttribute ) )
                     .build() )
             .build();
 

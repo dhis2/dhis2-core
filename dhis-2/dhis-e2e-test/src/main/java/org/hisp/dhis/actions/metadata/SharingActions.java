@@ -25,13 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.actions.metadata;
 
-import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -47,18 +47,21 @@ public class SharingActions
     public void setupSharingForConfiguredUserGroup( String type, String id )
     {
 
-        JsonObject jsonObject = this.get( new QueryParamsBuilder().add( "type=" + type ).add( "id=" + id ).build() ).getBody();
+        JsonObject jsonObject = this.get( new QueryParamsBuilder().add( "type=" + type ).add( "id=" + id ).build() )
+            .getBody();
 
         jsonObject.add( "object", JsonObjectBuilder.jsonObject()
             .addProperty( "publicAccess", "--------" )
             .addUserGroupAccess().build() );
 
-        this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type ).add( "id=" + id ) ).validate().statusCode( 200 );
+        this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type ).add( "id=" + id ) ).validate()
+            .statusCode( 200 );
     }
 
     public void setupSharingForUsers( String type, String id, String... userIds )
     {
-        JsonObject jsonObject = this.get( new QueryParamsBuilder().add( "type=" + type ).add( "id=" + id ).build() ).getBody();
+        JsonObject jsonObject = this.get( new QueryParamsBuilder().add( "type=" + type ).add( "id=" + id ).build() )
+            .getBody();
 
         for ( String userId : userIds )
         {
@@ -68,7 +71,8 @@ public class SharingActions
                     .addProperty( "access", "rw------" ).build() );
         }
 
-        this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type ).add( "id=" + id ) ).validate().statusCode( 200 );
+        this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type ).add( "id=" + id ) ).validate()
+            .statusCode( 200 );
 
     }
 

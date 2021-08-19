@@ -33,6 +33,7 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 import java.util.List;
 
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -70,7 +71,8 @@ public class ProgramNotificationInstanceDeletionHandler
     private void deleteProgramInstance( ProgramInstance programInstance )
     {
         List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
-            .getProgramNotificationInstances( programInstance );
+            .getProgramNotificationInstances(
+                ProgramNotificationInstanceParam.builder().programInstance( programInstance ).build() );
 
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }
@@ -78,7 +80,8 @@ public class ProgramNotificationInstanceDeletionHandler
     private void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
-            .getProgramNotificationInstances( programStageInstance );
+            .getProgramNotificationInstances(
+                ProgramNotificationInstanceParam.builder().programStageInstance( programStageInstance ).build() );
 
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }
@@ -86,7 +89,8 @@ public class ProgramNotificationInstanceDeletionHandler
     private DeletionVeto allowDeleteProgramInstance( ProgramInstance programInstance )
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
-            .getProgramNotificationInstances( programInstance );
+            .getProgramNotificationInstances(
+                ProgramNotificationInstanceParam.builder().programInstance( programInstance ).build() );
 
         return instances == null || instances.isEmpty() ? ACCEPT : VETO;
     }
@@ -94,7 +98,8 @@ public class ProgramNotificationInstanceDeletionHandler
     private DeletionVeto allowDeleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
-            .getProgramNotificationInstances( programStageInstance );
+            .getProgramNotificationInstances(
+                ProgramNotificationInstanceParam.builder().programStageInstance( programStageInstance ).build() );
 
         return instances == null || instances.isEmpty() ? ACCEPT : VETO;
     }
