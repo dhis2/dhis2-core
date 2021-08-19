@@ -42,16 +42,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "periodType", namespace = DxfNamespaces.DXF_2_0 )
 public class PeriodType implements FieldFilterMixin
 {
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String name;
 
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String isoDuration;
 
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String isoFormat;
 
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final int frequencyOrder;
 
     public PeriodType( org.hisp.dhis.period.PeriodType periodType )
@@ -60,5 +56,29 @@ public class PeriodType implements FieldFilterMixin
         this.frequencyOrder = periodType.getFrequencyOrder();
         this.isoDuration = periodType.getIso8601Duration();
         this.isoFormat = periodType.getIsoFormat();
+    }
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getName()
+    {
+        return name;
+    }
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getIsoDuration()
+    {
+        return isoDuration;
+    }
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getIsoFormat()
+    {
+        return isoFormat;
+    }
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getFrequencyOrder()
+    {
+        return frequencyOrder;
     }
 }
