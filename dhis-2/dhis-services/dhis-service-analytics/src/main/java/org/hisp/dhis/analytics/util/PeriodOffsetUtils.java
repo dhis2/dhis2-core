@@ -34,7 +34,6 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.DataQueryParams;
