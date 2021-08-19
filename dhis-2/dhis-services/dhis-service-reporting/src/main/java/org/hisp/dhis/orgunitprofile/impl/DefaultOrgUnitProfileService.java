@@ -52,6 +52,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
@@ -242,6 +243,11 @@ public class DefaultOrgUnitProfileService
             }
         }
 
+        if ( orgUnit.getImage() != null )
+        {
+            info.setImageId( orgUnit.getImage().getUid() );
+        }
+
         return info;
     }
 
@@ -393,7 +399,7 @@ public class DefaultOrgUnitProfileService
 
         if ( unit == null )
         {
-            throw new IllegalQueryException( ErrorCode.E1102 );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1102, orgUnit ) );
         }
 
         return unit;
@@ -482,9 +488,17 @@ public class DefaultOrgUnitProfileService
 
         for ( String dataItemId : dataItems )
         {
-            if ( idObjectManager.get( DATA_ITEM_CLASSES, dataItemId ) == null )
+            IdentifiableObject dataItem = idObjectManager.get( DATA_ITEM_CLASSES, dataItemId );
+
+            if ( dataItem == null )
             {
                 errorReports.add( new ErrorReport( Collection.class, ErrorCode.E4014, dataItemId, "dataItems" ) );
+            }
+
+            if ( dataItem != null && DataElement.class.isAssignableFrom( dataItem.getClass() ) &&
+                !((DataElement) dataItem).getValueType().isAggregatable() )
+            {
+                errorReports.add( new ErrorReport( DataElement.class, ErrorCode.E7115, dataItemId ) );
             }
         }
 

@@ -78,8 +78,8 @@ public class UserKeyJsonValueControllerTest extends DhisControllerConvenienceTes
     {
         assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
 
-        assertWebMessage( "OK", 200, "OK", "Key 'key1' in namespace 'test' updated.",
-            PUT( "/userDataStore/test/key1", "false" ).content( HttpStatus.OK ) );
+        assertWebMessage( "Created", 201, "OK", "Key 'key1' in namespace 'test' updated.",
+            PUT( "/userDataStore/test/key1", "false" ).content( HttpStatus.CREATED ) );
     }
 
     @Test

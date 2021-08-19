@@ -30,15 +30,11 @@ package org.hisp.dhis.config;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dataentryform.DataEntryFormService;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nLocaleService;
-import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodStore;
@@ -48,7 +44,6 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.startup.ConfigurationPopulator;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
-import org.hisp.dhis.startup.ExpressionUpgrader;
 import org.hisp.dhis.startup.I18nLocalePopulator;
 import org.hisp.dhis.startup.ModelUpgrader;
 import org.hisp.dhis.startup.SchedulerStart;
@@ -124,18 +119,6 @@ public class StartupConfig
         ModelUpgrader upgrader = new ModelUpgrader( organisationUnitService, categoryService );
         upgrader.setName( "ModelUpgrader" );
         upgrader.setRunlevel( 7 );
-        upgrader.setSkipInTests( true );
-        return upgrader;
-    }
-
-    @Bean( "org.hisp.dhis.startup.ExpressionUpgrader" )
-    public ExpressionUpgrader expressionUpgrader( DataEntryFormService dataEntryFormService,
-        DataElementService dataElementService, CategoryService categoryService, IndicatorService indicatorService,
-        ConstantService constantService, ExpressionService expressionService )
-    {
-        ExpressionUpgrader upgrader = new ExpressionUpgrader( dataEntryFormService, dataElementService, categoryService,
-            indicatorService, constantService, expressionService );
-        upgrader.setRunlevel( 11 );
         upgrader.setSkipInTests( true );
         return upgrader;
     }
