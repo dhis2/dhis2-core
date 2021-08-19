@@ -31,6 +31,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Stack;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -52,7 +53,7 @@ public class FieldFilterParser
     private static Set<String> expandField( String field, String prefix )
     {
         Set<String> output = new HashSet<>();
-        Deque<String> path = new ArrayDeque<>();
+        Stack<String> path = new Stack<>();
         StringBuilder builder = new StringBuilder();
 
         if ( prefix != null )
@@ -120,7 +121,7 @@ public class FieldFilterParser
             || StringUtils.containsAny( token, "*", ":", ";", "{", "}", "~", "!" );
     }
 
-    private static String toFullPath( String field, Deque<String> path )
+    private static String toFullPath( String field, Stack<String> path )
     {
         return path.isEmpty() ? field : StringUtils.join( path, "." ) + "." + field;
     }
