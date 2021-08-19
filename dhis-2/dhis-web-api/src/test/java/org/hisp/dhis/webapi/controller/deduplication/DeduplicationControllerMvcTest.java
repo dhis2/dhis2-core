@@ -47,7 +47,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.DeduplicationController;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
-import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.Before;
 import org.junit.Test;
@@ -240,84 +239,6 @@ public class DeduplicationControllerMvcTest
             .andExpect( content().contentType( "application/json" ) );
 
         verify( deduplicationService ).getPotentialDuplicateByUid( uid );
-    }
-
-    @Test
-    public void shouldGetPotentialDuplicateByTei()
-        throws Exception
-    {
-        String tei = "tei";
-
-        when( deduplicationService.getPotentialDuplicateByTei( eq( tei ), any() ) )
-            .thenReturn( Collections.singletonList( new PotentialDuplicate( teiA, teiB ) ) );
-
-        when( trackedEntityInstanceService.getTrackedEntityInstance( tei ) )
-            .thenReturn( new TrackedEntityInstance() );
-
-        mockMvc.perform( get( ENDPOINT + "/tei/" + tei ).param( "status", DeduplicationStatus.INVALID.name() )
-            .content( "{}" )
-            .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() )
-            .andExpect( content().contentType( "application/json" ) );
-
-        verify( deduplicationService ).getPotentialDuplicateByTei( tei, DeduplicationStatus.INVALID );
-    }
-
-    @Test
-    public void shouldThrowGetPotentialDuplicateByTeiWrongStatus()
-        throws Exception
-    {
-        String tei = "tei";
-
-        when( trackedEntityInstanceService.getTrackedEntityInstance( tei ) )
-            .thenReturn( new TrackedEntityInstance() );
-
-        mockMvc.perform( get( ENDPOINT + "/tei/" + tei ).param( "status", "wrong status" )
-            .content( "{}" )
-            .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isBadRequest() )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
-    }
-
-    @Test
-    public void shouldThrowGetPotentialDuplicateByTeiNotExistingTei()
-        throws Exception
-    {
-        String tei = "tei";
-
-        when( trackedEntityInstanceService.getTrackedEntityInstance( tei ) )
-            .thenReturn( null );
-
-        mockMvc.perform( get( ENDPOINT + "/tei/" + tei )
-            .content( "{}" )
-            .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isNotFound() )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
-    }
-
-    @Test
-    public void shouldThrowGetPotentialDuplicateByTeiMissingReadAccess()
-        throws Exception
-    {
-        String tei = "tei";
-
-        when( trackedEntityInstanceService.getTrackedEntityInstance( tei ) )
-            .thenReturn( new TrackedEntityInstance() );
-
-        when( trackerAccessManager.canRead( any(), any( TrackedEntityInstance.class ) ) )
-            .thenReturn( Collections.singletonList( "Read Error" ) );
-
-        mockMvc.perform( get( ENDPOINT + "/tei/" + tei )
-            .content( "{}" )
-            .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isForbidden() )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof OperationNotAllowedException ) );
-
-        verify( deduplicationService, times( 0 ) ).getPotentialDuplicateByTei( tei, DeduplicationStatus.ALL );
     }
 
     @Test
