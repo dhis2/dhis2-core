@@ -42,6 +42,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
+import org.hisp.dhis.deduplication.MergeObject;
+import org.hisp.dhis.deduplication.MergeStrategy;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
@@ -189,6 +191,56 @@ public class DeduplicationController
 
         potentialDuplicate.setStatus( deduplicationStatus );
         deduplicationService.updatePotentialDuplicate( potentialDuplicate );
+    }
+
+    @PostMapping( value = "/{id}/merge" )
+    @ResponseStatus( value = HttpStatus.OK )
+    public void mergePotentialDuplicate(
+        @PathVariable String id,
+        @RequestParam( value = "MANUAL" ) MergeStrategy mergeStrategy,
+        @RequestBody MergeObject mergeObject )
+        throws NotFoundException,
+        ConflictException
+    {
+
+        PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid( id );
+
+        if ( potentialDuplicate == null )
+        {
+            throw new NotFoundException( "PotentialDuplicate with uid '" + id + "' was not found." );
+        }
+
+        if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
+        {
+            throw new ConflictException( "PotentialDuplicate is missing references and cannot be merged." );
+        }
+
+        TrackedEntityInstance original = trackedEntityInstanceService
+            .getTrackedEntityInstance( potentialDuplicate.getTeiA() );
+        TrackedEntityInstance duplicate = trackedEntityInstanceService
+            .getTrackedEntityInstance( potentialDuplicate.getTeiB() );
+
+        if ( original == null || duplicate == null )
+        {
+            throw new ConflictException( "One or more Tracked Entities in the Potential Duplicate no longer exist." );
+        }
+
+        if ( original.getCreated().after( duplicate.getCreated() ) )
+        {
+            TrackedEntityInstance t = original;
+            original = duplicate;
+            duplicate = t;
+        }
+
+        if ( MergeStrategy.MANUAL.equals( mergeStrategy ) )
+        {
+            // TODO: manualMerge(original, duplicate, mergeObject);
+        }
+        else
+        {
+            // TODO: autoMerge(original, duplicate);
+        }
+
     }
 
     private void checkDbAndRequestStatus( PotentialDuplicate potentialDuplicate,
