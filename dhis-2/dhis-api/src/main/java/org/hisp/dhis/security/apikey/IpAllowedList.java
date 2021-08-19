@@ -78,9 +78,15 @@ public class IpAllowedList extends ApiTokenAttribute implements Serializable
     public boolean equals( Object o )
     {
         if ( this == o )
+        {
             return true;
+        }
+
         if ( o == null || getClass() != o.getClass() )
+        {
             return false;
+        }
+
         IpAllowedList that = (IpAllowedList) o;
         return Objects.equals( allowedIps, that.allowedIps );
     }

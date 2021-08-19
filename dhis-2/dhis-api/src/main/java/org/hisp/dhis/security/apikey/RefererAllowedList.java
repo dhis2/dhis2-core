@@ -79,9 +79,15 @@ public class RefererAllowedList extends ApiTokenAttribute implements Serializabl
     public boolean equals( Object o )
     {
         if ( this == o )
+        {
             return true;
+        }
+
         if ( o == null || getClass() != o.getClass() )
+        {
             return false;
+        }
+
         RefererAllowedList that = (RefererAllowedList) o;
         return Objects.equals( allowedReferrers, that.allowedReferrers );
     }
