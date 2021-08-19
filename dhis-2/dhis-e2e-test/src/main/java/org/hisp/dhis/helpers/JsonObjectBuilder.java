@@ -25,8 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.helpers;
+
+import org.hisp.dhis.Constants;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -35,7 +36,6 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
-import org.hisp.dhis.Constants;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -77,7 +77,7 @@ public class JsonObjectBuilder
     /**
      * Adds additional property to the path.
      *
-     * @param path         eg "events[0]
+     * @param path eg "events[0]
      * @param propertyName eg "event"
      * @param value
      * @return
@@ -151,7 +151,8 @@ public class JsonObjectBuilder
             .addArray( arrayName, objects )
             .build();
 
-        JsonPath.using( jsonPathConfiguration ).parse( jsonObject ).put( path, arrayName, object.getAsJsonArray( arrayName ) );
+        JsonPath.using( jsonPathConfiguration ).parse( jsonObject ).put( path, arrayName,
+            object.getAsJsonArray( arrayName ) );
 
         return this;
     }

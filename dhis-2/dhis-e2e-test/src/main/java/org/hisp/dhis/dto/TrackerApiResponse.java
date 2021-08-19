@@ -25,16 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.dto;
-
-import io.restassured.response.ValidatableResponse;
-import org.hamcrest.Matchers;
-
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
+
+import java.util.List;
+
+import org.hamcrest.Matchers;
+
+import io.restassured.response.ValidatableResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -73,7 +73,7 @@ public class TrackerApiResponse
         return validateSuccessfulImportWithIgnored( 0 );
     }
 
-    public TrackerApiResponse validateSuccessfulImportWithIgnored(int ignoredCount)
+    public TrackerApiResponse validateSuccessfulImportWithIgnored( int ignoredCount )
     {
         validate()
             .statusCode( 200 )
@@ -93,19 +93,22 @@ public class TrackerApiResponse
             .rootPath( "validationReport.errorReports" );
     }
 
-    public ValidatableResponse validateWarningReport() {
+    public ValidatableResponse validateWarningReport()
+    {
         return validate().statusCode( Matchers.oneOf( 409, 200 ) )
-            .body( "validationReport.warningReports", Matchers.notNullValue())
-            .rootPath( "validationReport.warningReports");
+            .body( "validationReport.warningReports", Matchers.notNullValue() )
+            .rootPath( "validationReport.warningReports" );
     }
 
-    public ValidatableResponse validateTeis() {
+    public ValidatableResponse validateTeis()
+    {
         return validate()
             .body( "bundleReport.typeReportMap.TRACKED_ENTITY", notNullValue() )
             .rootPath( "bundleReport.typeReportMap.TRACKED_ENTITY" );
     }
 
-    public ValidatableResponse validateEvents() {
+    public ValidatableResponse validateEvents()
+    {
         return validate()
             .body( "bundleReport.typeReportMap.EVENT", notNullValue() )
             .rootPath( "bundleReport.typeReportMap.EVENT" );

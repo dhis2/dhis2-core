@@ -25,10 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.tei;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+
+import java.io.File;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -39,11 +43,7 @@ import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -84,7 +84,8 @@ public class TeiImportTests
         teiResponse.validate()
             .statusCode( 200 );
 
-        assertThat( teiResponse.getBody(), matchesJSON( trackedEntities.get( "trackedEntities" ).getAsJsonArray().get( 0 ) ) );
+        assertThat( teiResponse.getBody(),
+            matchesJSON( trackedEntities.get( "trackedEntities" ).getAsJsonArray().get( 0 ) ) );
     }
 
     @Test
@@ -121,7 +122,8 @@ public class TeiImportTests
     {
         // the file contains 2 teis with 1 enrollment and 1 event each
         JsonObject teiPayload = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) );
+            .readJsonAndGenerateData(
+                new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) );
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiPayload );
@@ -137,7 +139,8 @@ public class TeiImportTests
 
         JsonObject teiBody = teiPayload.get( "trackedEntities" ).getAsJsonArray().get( 0 ).getAsJsonObject();
 
-        ApiResponse trackedEntityResponse = trackerActions.get( "/trackedEntities/" + teiBody.get( "trackedEntity" ).getAsString(),
+        ApiResponse trackedEntityResponse = trackerActions.get(
+            "/trackedEntities/" + teiBody.get( "trackedEntity" ).getAsString(),
             new QueryParamsBuilder().addAll( "fields=*" ) );
 
         trackedEntityResponse.validate()

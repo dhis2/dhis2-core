@@ -25,10 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.deduplication;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.*;
+
+import java.util.Arrays;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
@@ -43,9 +45,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.Arrays;
-
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -98,7 +98,8 @@ public class PotentialDuplicatesTests
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=ALL" ) )
             .validate()
             .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "identifiableObjects.status", allOf( hasItem( "OPEN" ), hasItem( "INVALID" ), hasItem( "MERGED" ) ) );
+            .body( "identifiableObjects.status",
+                allOf( hasItem( "OPEN" ), hasItem( "INVALID" ), hasItem( "MERGED" ) ) );
     }
 
     @Test
@@ -125,7 +126,8 @@ public class PotentialDuplicatesTests
 
         String duplicateId = response.extractString( "id" );
 
-        response = potentialDuplicatesActions.update( duplicateId + "?status=" + newStatus, new JsonObjectBuilder().build() );
+        response = potentialDuplicatesActions.update( duplicateId + "?status=" + newStatus,
+            new JsonObjectBuilder().build() );
 
         if ( shouldUpdate )
         {
@@ -146,7 +148,8 @@ public class PotentialDuplicatesTests
         String teiA = createTei();
 
         potentialDuplicatesActions.createPotentialDuplicate( teiA, createTei(), "OPEN" ).validate().statusCode( 200 );
-        potentialDuplicatesActions.createPotentialDuplicate( createTei(), teiA, "INVALID" ).validate().statusCode( 200 );
+        potentialDuplicatesActions.createPotentialDuplicate( createTei(), teiA, "INVALID" ).validate()
+            .statusCode( 200 );
 
         potentialDuplicatesActions.get( "/tei/" + teiA )
             .validate().statusCode( 200 )
@@ -166,8 +169,9 @@ public class PotentialDuplicatesTests
 
         potentialDuplicatesActions.get( "/tei/" + teiA + "?status=ALL" )
             .validate().statusCode( 200 )
-            .body("", hasSize( 2 ) );
+            .body( "", hasSize( 2 ) );
     }
+
     private String createTei()
     {
         JsonObject object = trackerActions.buildTei( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] );

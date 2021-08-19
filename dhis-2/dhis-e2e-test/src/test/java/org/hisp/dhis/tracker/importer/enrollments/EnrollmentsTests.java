@@ -25,10 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.enrollments;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+
+import java.io.File;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -39,12 +44,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -95,10 +95,12 @@ public class EnrollmentsTests
     public void shouldImportEnrollmentToExistingTei()
         throws Exception
     {
-        JsonObject teiPayload = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/teis/tei.json" ) )
+        JsonObject teiPayload = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/teis/tei.json" ) )
             .get( JsonObject.class );
 
-        String teiId = trackerActions.postAndGetJobReport( teiPayload ).validateSuccessfulImport().extractImportedTeis().get( 0 );
+        String teiId = trackerActions.postAndGetJobReport( teiPayload ).validateSuccessfulImport().extractImportedTeis()
+            .get( 0 );
 
         JsonObject enrollmentPayload = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/importer/enrollments/enrollment.json" ) )
