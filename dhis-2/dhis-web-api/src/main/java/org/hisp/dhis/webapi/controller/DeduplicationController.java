@@ -27,8 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletResponse;
+
 import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.deduplication.DeduplicationService;
@@ -65,13 +74,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 
-import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import com.google.common.collect.Lists;
 
 @RestController
 @RequestMapping( value = "/potentialDuplicates" )
@@ -195,8 +198,8 @@ public class DeduplicationController
     public void mergePotentialDuplicate(
         @PathVariable String id,
         @RequestParam( value = "MANUAL" ) MergeStrategy mergeStrategy,
-        @RequestBody MergeObject mergeObject
-    ) throws NotFoundException,
+        @RequestBody MergeObject mergeObject )
+        throws NotFoundException,
         ConflictException
     {
 
@@ -212,8 +215,10 @@ public class DeduplicationController
             throw new ConflictException( "PotentialDuplicate is missing references and cannot be merged." );
         }
 
-        TrackedEntityInstance original = trackedEntityInstanceService.getTrackedEntityInstance( potentialDuplicate.getTeiA() );
-        TrackedEntityInstance duplicate = trackedEntityInstanceService.getTrackedEntityInstance( potentialDuplicate.getTeiB() );
+        TrackedEntityInstance original = trackedEntityInstanceService
+            .getTrackedEntityInstance( potentialDuplicate.getTeiA() );
+        TrackedEntityInstance duplicate = trackedEntityInstanceService
+            .getTrackedEntityInstance( potentialDuplicate.getTeiB() );
 
         if ( original == null || duplicate == null )
         {
