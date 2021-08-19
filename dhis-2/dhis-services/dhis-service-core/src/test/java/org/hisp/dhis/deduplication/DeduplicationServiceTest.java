@@ -159,7 +159,7 @@ public class DeduplicationServiceTest
     @Test
     public void shouldBeAutoMergeable()
     {
-        assertTrue( deduplicationService.isAutoMergeable( potentialDuplicate ) );
+        assertTrue( deduplicationService.isAutoMergeable( trackedEntityInstanceA, trackedEntityInstanceB ) );
     }
 
     @Test
@@ -173,7 +173,7 @@ public class DeduplicationServiceTest
 
         when( trackedEntityInstanceB.getTrackedEntityType() ).thenReturn( trackedEntityOther );
 
-        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
+        assertFalse( deduplicationService.isAutoMergeable( trackedEntityInstanceA, trackedEntityInstanceB ) );
     }
 
     @Test
@@ -181,12 +181,12 @@ public class DeduplicationServiceTest
     {
         when( trackedEntityInstanceA.isDeleted() ).thenReturn( true );
 
-        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
+        assertFalse( deduplicationService.isAutoMergeable( trackedEntityInstanceA, trackedEntityInstanceB ) );
 
         when( trackedEntityInstanceA.isDeleted() ).thenReturn( false );
         when( trackedEntityInstanceB.isDeleted() ).thenReturn( true );
 
-        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
+        assertFalse( deduplicationService.isAutoMergeable( trackedEntityInstanceA, trackedEntityInstanceB ) );
     }
 
     @Test
@@ -200,7 +200,7 @@ public class DeduplicationServiceTest
         when( programInstanceA.getProgram() ).thenReturn( program );
         when( programInstanceB.getProgram() ).thenReturn( program );
 
-        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
+        assertFalse( deduplicationService.isAutoMergeable( trackedEntityInstanceA, trackedEntityInstanceB ) );
     }
 
     @Test
@@ -216,7 +216,7 @@ public class DeduplicationServiceTest
         when( trackedEntityInstanceB.getTrackedEntityAttributeValues() )
             .thenReturn( new HashSet<>( Arrays.asList( sexAttributeValueB, nameAttributeValueB ) ) );
 
-        assertFalse( deduplicationService.isAutoMergeable( potentialDuplicate ) );
+        assertFalse( deduplicationService.isAutoMergeable( trackedEntityInstanceA, trackedEntityInstanceB ) );
     }
 
     @Test
@@ -225,7 +225,7 @@ public class DeduplicationServiceTest
         when( trackedEntityInstanceB.getTrackedEntityAttributeValues() )
             .thenReturn( new HashSet<>() );
 
-        assertTrue( deduplicationService.isAutoMergeable( potentialDuplicate ) );
+        assertTrue( deduplicationService.isAutoMergeable( trackedEntityInstanceA, trackedEntityInstanceB ) );
     }
 
     @Test( expected = PotentialDuplicateException.class )
@@ -233,7 +233,7 @@ public class DeduplicationServiceTest
     {
         when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) ).thenReturn( null );
 
-        deduplicationService.isAutoMergeable( potentialDuplicate );
+        deduplicationService.isAutoMergeable( trackedEntityInstanceA, trackedEntityInstanceB );
     }
 
     @Test( expected = PotentialDuplicateException.class )
@@ -241,7 +241,7 @@ public class DeduplicationServiceTest
     {
         when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) ).thenReturn( null );
 
-        deduplicationService.isAutoMergeable( potentialDuplicate );
+        deduplicationService.isAutoMergeable( trackedEntityInstanceA, trackedEntityInstanceB );
     }
 
     private TrackedEntityAttributeValue getTrackedEntityAttributeValue( String uid, String name,

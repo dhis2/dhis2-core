@@ -28,7 +28,6 @@
 package org.hisp.dhis.deduplication;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
@@ -107,34 +106,41 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    public boolean isAutoMergeable( PotentialDuplicate potentialDuplicate )
+    public boolean autoMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
-        TrackedEntityInstance trackedEntityInstanceA = Optional.ofNullable( trackedEntityInstanceService
-            .getTrackedEntityInstance( potentialDuplicate.getTeiA() ) )
-            .orElseThrow( () -> new PotentialDuplicateException(
-                "No tracked entity instance found with id '" + potentialDuplicate.getTeiA() + "'." ) );
+        if ( isAutoMergeable( original, duplicate ) )
+        {
+            // TODO: MergeObject mergeObject =
+            // generateMergeObject(trackedEntityInstanceA,
+            // trackedEntityInstanceB);
+            // TODO: store.merge( trackedEntityInstanceA,
+            // trackedEntityInstanceB, mergeObject );
 
-        TrackedEntityInstance trackedEntityInstanceB = Optional.ofNullable( trackedEntityInstanceService
-            .getTrackedEntityInstance( potentialDuplicate.getTeiB() ) )
-            .orElseThrow( () -> new PotentialDuplicateException(
-                "No tracked entity instance found with id '" + potentialDuplicate.getTeiB() + "'." ) );
+            return true;
+        }
 
-        if ( enrolledSameProgram( trackedEntityInstanceA, trackedEntityInstanceB ) )
+        return false;
+    }
+
+    @Override
+    public boolean isAutoMergeable( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    {
+        if ( enrolledSameProgram( original, duplicate ) )
             return false;
 
-        if ( !trackedEntityInstanceA.getTrackedEntityType().equals( trackedEntityInstanceB.getTrackedEntityType() ) )
+        if ( !original.getTrackedEntityType().equals( duplicate.getTrackedEntityType() ) )
         {
             return false;
         }
 
-        if ( trackedEntityInstanceA.isDeleted() || trackedEntityInstanceB.isDeleted() )
+        if ( original.isDeleted() || duplicate.isDeleted() )
         {
             return false;
         }
 
-        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA = trackedEntityInstanceA
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA = original
             .getTrackedEntityAttributeValues();
-        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB = trackedEntityInstanceB
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB = duplicate
             .getTrackedEntityAttributeValues();
 
         return !sameAttributesAreEquals( trackedEntityAttributeValueA, trackedEntityAttributeValueB );
