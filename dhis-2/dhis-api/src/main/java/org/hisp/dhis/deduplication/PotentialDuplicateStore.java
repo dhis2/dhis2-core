@@ -39,8 +39,6 @@ public interface PotentialDuplicateStore
 
     List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query );
 
-    List<PotentialDuplicate> getAllByTei( String tei, DeduplicationStatus status );
-
     boolean exists( PotentialDuplicate potentialDuplicate );
 
     void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject );
