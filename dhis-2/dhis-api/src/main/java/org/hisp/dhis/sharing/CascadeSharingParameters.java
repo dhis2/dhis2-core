@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dto;
+package org.hisp.dhis.sharing;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-public class MetadataApiResponse
-    extends ApiResponse
+import org.hisp.dhis.user.User;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CascadeSharingParameters
 {
-    public MetadataApiResponse( ApiResponse response )
+    /**
+     * TRUE: do not save anything, just return errors/report if any.
+     * <p>
+     * FALSE: save data if possible.
+     */
+    private boolean dryRun = false;
+
+    /**
+     * TRUE: Cascade Sharing will fail if there is an error
+     * <p>
+     * FALSE: Cascade Sharing will try with best effort and report the
+     * successfully shared objects.
+     */
+    private boolean atomic = false;
+
+    private User user;
+
+    /**
+     * Report to be included in the api's response
+     */
+    private CascadeSharingReport report = new CascadeSharingReport();
+
+    public CascadeSharingReport getReport()
     {
-        super( response.raw );
-    }
+        if ( report == null )
+        {
+            report = new CascadeSharingReport();
+        }
 
-    public List<String> extractObjectUid( String metadataObject )
-    {
-        return this.getTypeReports()
-            .stream().filter( p -> {
-                String[] parts = p.getKlass().split( "\\." );
-
-                return parts[parts.length - 1].equals( metadataObject );
-            } ).findFirst()
-
-            .map( p -> p.getObjectReports().stream().map( ObjectReport::getUid ) ).get().collect( Collectors.toList() );
+        return report;
     }
 }

@@ -25,10 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItem;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -37,9 +39,7 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.hasItem;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -56,7 +56,7 @@ public class EventNotesTests
     @Test
     public void shouldUpdateEventWithANote()
     {
-        //arrange
+        // arrange
         JsonObject ob = buildEventWithNote();
 
         String eventId = trackerActions.postAndGetJobReport( ob )
@@ -78,7 +78,7 @@ public class EventNotesTests
     @Test
     public void shouldNotAddAnotherNote()
     {
-        //arrange
+        // arrange
         JsonObject ob = buildEventWithNote();
 
         String eventId = trackerActions.postAndGetJobReport( ob )

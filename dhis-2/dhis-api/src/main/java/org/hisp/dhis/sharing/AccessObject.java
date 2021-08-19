@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dto;
+package org.hisp.dhis.sharing;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.io.Serializable;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-public class MetadataApiResponse
-    extends ApiResponse
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
+@NoArgsConstructor
+public abstract class AccessObject
+    implements Serializable
 {
-    public MetadataApiResponse( ApiResponse response )
+    protected String access;
+
+    protected String id;
+
+    public AccessObject( String access, String id )
     {
-        super( response.raw );
+        this.access = access;
+        this.id = id;
     }
 
-    public List<String> extractObjectUid( String metadataObject )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAccess()
     {
-        return this.getTypeReports()
-            .stream().filter( p -> {
-                String[] parts = p.getKlass().split( "\\." );
-
-                return parts[parts.length - 1].equals( metadataObject );
-            } ).findFirst()
-
-            .map( p -> p.getObjectReports().stream().map( ObjectReport::getUid ) ).get().collect( Collectors.toList() );
+        return access;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setAccess( String access )
+    {
+        this.access = access;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
+    }
+
+    public abstract <T extends AccessObject> T copy();
 }

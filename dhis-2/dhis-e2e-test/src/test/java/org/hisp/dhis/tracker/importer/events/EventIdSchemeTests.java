@@ -25,10 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.File;
+import java.util.stream.Stream;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
@@ -45,11 +49,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -62,7 +62,8 @@ public class EventIdSchemeTests
 
     private static final String OU_CODE = "TA EventsImportIdSchemeTests ou code " + DataGenerator.randomString();
 
-    private static final String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute " + DataGenerator.randomString();
+    private static final String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute "
+        + DataGenerator.randomString();
 
     private static final String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
 
@@ -84,8 +85,7 @@ public class EventIdSchemeTests
             Arguments.arguments( "CODE", "code" ),
             Arguments.arguments( "NAME", "name" ),
             Arguments.arguments( "UID", "id" ),
-            Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID, "attributeValues.value[0]" )
-        );
+            Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID, "attributeValues.value[0]" ) );
     }
 
     @BeforeAll
@@ -108,7 +108,8 @@ public class EventIdSchemeTests
         String ouPropertyValue = orgUnitActions.get( orgUnitId ).extractString( ouProperty );
         assertNotNull( ouPropertyValue, String.format( "Org unit property %s was not present.", ouProperty ) );
 
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
+        JsonObject object = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
             .replacePropertyValuesWith( "orgUnit", ouPropertyValue )
             .replacePropertyValuesWithIds( "event" )
             .get( JsonObject.class );
@@ -134,7 +135,8 @@ public class EventIdSchemeTests
 
         assertNotNull( programPropertyValue, String.format( "Program property %s was not present.", property ) );
 
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
+        JsonObject object = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
             .replacePropertyValuesWithIds( "event" )
             .replacePropertyValuesWith( "orgUnit", orgUnitId )
             .replacePropertyValuesWith( "program", programPropertyValue )
@@ -172,12 +174,14 @@ public class EventIdSchemeTests
         new UserActions().grantCurrentUserAccessToOrgUnit( orgUnitId );
         programActions.addOrganisationUnits( PROGRAM_ID, orgUnitId ).validate().statusCode( 200 );
 
-        orgUnitActions.update( orgUnitId, addAttributeValuePayload( orgUnitActions.get( orgUnitId ).getBody(), ATTRIBUTE_ID,
-            ATTRIBUTE_VALUE ) )
+        orgUnitActions
+            .update( orgUnitId, addAttributeValuePayload( orgUnitActions.get( orgUnitId ).getBody(), ATTRIBUTE_ID,
+                ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
 
-        programActions.update( PROGRAM_ID, addAttributeValuePayload( programActions.get( PROGRAM_ID ).getBody(), ATTRIBUTE_ID,
-            ATTRIBUTE_VALUE ) )
+        programActions
+            .update( PROGRAM_ID, addAttributeValuePayload( programActions.get( PROGRAM_ID ).getBody(), ATTRIBUTE_ID,
+                ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
     }
 
