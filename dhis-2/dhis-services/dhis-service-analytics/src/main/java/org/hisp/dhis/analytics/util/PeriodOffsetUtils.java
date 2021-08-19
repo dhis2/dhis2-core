@@ -193,9 +193,6 @@ public class PeriodOffsetUtils
             return null;
         }
 
-        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = ( Integer index,
-            Integer defaultIndex ) -> index == -1 ? defaultIndex : index;
-
         Period shifted = offset != 0 ? shiftPeriod( PeriodType.getPeriodFromIsoString( isoPeriod ), offset )
             : PeriodType.getPeriodFromIsoString( isoPeriod );
 
