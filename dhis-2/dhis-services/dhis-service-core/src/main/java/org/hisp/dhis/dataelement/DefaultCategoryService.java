@@ -36,7 +36,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.association.IdentifiableObjectAssociations;
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
@@ -873,7 +873,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    public IdentifiableObjectAssociations getCategoryOptionOrganisationUnitsAssociations( Set<String> uids )
+    public SetValuedMap<String, String> getCategoryOptionOrganisationUnitsAssociations( Set<String> uids )
     {
         return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( uids );
     }

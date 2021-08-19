@@ -115,7 +115,9 @@ public class DefaultCacheProvider
         userGroupNameCache,
         userDisplayNameCache,
         programWebHookNotificationTemplateCache,
-        programStageWebHookNotificationTemplateCache
+        programStageWebHookNotificationTemplateCache,
+        pgmOrgUnitAssocCache,
+        catOptOrgUnitAssocCache
     }
 
     private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -476,5 +478,25 @@ public class DefaultCacheProvider
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_500 ) ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createProgramOrgUnitAssociationCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.pgmOrgUnitAssocCache.name() )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( 20 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_1K ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createCatOptOrgUnitAssociationCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.catOptOrgUnitAssocCache.name() )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( 20 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_1K ) ) );
     }
 }

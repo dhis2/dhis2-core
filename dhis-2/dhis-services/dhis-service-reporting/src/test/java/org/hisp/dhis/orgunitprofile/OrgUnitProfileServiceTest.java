@@ -28,6 +28,7 @@
 package org.hisp.dhis.orgunitprofile;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -42,6 +43,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -254,6 +256,47 @@ public class OrgUnitProfileServiceTest
         assertTrue( errorContains( errors, ErrorCode.E4014, OrganisationUnitGroupSet.class, groupSet.getUid() ) );
         assertTrue( errorContains( errors, ErrorCode.E4014, Attribute.class, attribute.getUid() ) );
         assertTrue( errorContains( errors, ErrorCode.E4014, Collection.class, dataElement.getUid() ) );
+    }
+
+    @Test
+    public void testValidateNonAggregateableDataElement()
+    {
+        DataElement deA = createDataElement( 'A' );
+        deA.setValueType( ValueType.NUMBER );
+        DataElement deB = createDataElement( 'B' );
+        deB.setValueType( ValueType.DATE );
+
+        manager.save( deA );
+        manager.save( deB );
+
+        OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
+        orgUnitProfile.getDataItems().add( deA.getUid() );
+        orgUnitProfile.getDataItems().add( deB.getUid() );
+
+        List<ErrorReport> errors = service.validateOrgUnitProfile( orgUnitProfile );
+        assertEquals( 1, errors.size() );
+        assertTrue( errorContains( errors, ErrorCode.E7115, DataElement.class, deB.getUid() ) );
+    }
+
+    @Test
+    public void testDeletionHandling()
+    {
+        OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet( 'A' );
+
+        manager.save( groupSet );
+
+        OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
+        orgUnitProfile.getGroupSets().add( groupSet.getUid() );
+
+        assertTrue( orgUnitProfile.getGroupSets().contains( groupSet.getUid() ) );
+
+        service.saveOrgUnitProfile( orgUnitProfile );
+
+        manager.delete( groupSet );
+
+        orgUnitProfile = service.getOrgUnitProfile();
+
+        assertFalse( orgUnitProfile.getGroupSets().contains( groupSet.getUid() ) );
     }
 
     private boolean errorContains( List<ErrorReport> errors, ErrorCode errorCode, Class<?> clazz, String uid )

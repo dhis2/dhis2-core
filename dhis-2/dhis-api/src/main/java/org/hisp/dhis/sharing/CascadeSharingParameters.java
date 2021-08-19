@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,64 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user.sharing;
+package org.hisp.dhis.sharing;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.sharing.AccessObject;
 import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
+@Data
+@Builder
 @NoArgsConstructor
-@JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
-public class UserAccess
-    extends AccessObject
+@AllArgsConstructor
+public class CascadeSharingParameters
 {
-    public UserAccess( String access, String id )
-    {
-        super( access, id );
-    }
-
-    public UserAccess( User user, String access )
-    {
-        super( access, user.getUid() );
-    }
+    /**
+     * TRUE: do not save anything, just return errors/report if any.
+     * <p>
+     * FALSE: save data if possible.
+     */
+    private boolean dryRun = false;
 
     /**
-     * This is for backward compatibility with legacy
-     * {@link org.hisp.dhis.user.UserAccess}
+     * TRUE: Cascade Sharing will fail if there is an error
+     * <p>
+     * FALSE: Cascade Sharing will try with best effort and report the
+     * successfully shared objects.
      */
-    public UserAccess( org.hisp.dhis.user.UserAccess userAccess )
-    {
-        super( userAccess.getAccess(), userAccess.getUid() );
-    }
+    private boolean atomic = false;
 
-    public void setUser( User user )
-    {
-        setId( user.getUid() );
-    }
+    private User user;
 
-    public org.hisp.dhis.user.UserAccess toDtoObject()
-    {
-        org.hisp.dhis.user.UserAccess userAccess = new org.hisp.dhis.user.UserAccess();
-        userAccess.setUid( getId() );
-        userAccess.setAccess( getAccess() );
-        User user = new User();
-        user.setUid( getId() );
-        userAccess.setUser( user );
-        userAccess.setUid( getId() );
+    /**
+     * Report to be included in the api's response
+     */
+    private CascadeSharingReport report = new CascadeSharingReport();
 
-        return userAccess;
-    }
-
-    @Override
-    public UserAccess copy()
+    public CascadeSharingReport getReport()
     {
-        return new UserAccess( this.access, this.id );
+        if ( report == null )
+        {
+            report = new CascadeSharingReport();
+        }
+
+        return report;
     }
 }
