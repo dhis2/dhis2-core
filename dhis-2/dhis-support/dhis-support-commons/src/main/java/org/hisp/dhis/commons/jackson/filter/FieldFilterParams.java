@@ -35,24 +35,24 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen
  */
-public class FieldFilterParams
+public class FieldFilterParams<T>
 {
-    private final List<?> objects;
+    private final List<T> objects;
 
     private final Set<String> filters;
 
-    public FieldFilterParams( List<?> objects, Set<String> filters )
+    public FieldFilterParams( List<T> objects, Set<String> filters )
     {
         this.objects = objects;
         this.filters = filters;
     }
 
-    public FieldFilterParams( List<?> objects )
+    public FieldFilterParams( List<T> objects )
     {
         this( objects, Sets.newHashSet( "*" ) );
     }
 
-    public List<?> getObjects()
+    public List<T> getObjects()
     {
         return objects;
     }

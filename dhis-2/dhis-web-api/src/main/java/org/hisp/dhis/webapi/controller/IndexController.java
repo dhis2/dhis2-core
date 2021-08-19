@@ -55,8 +55,6 @@ public class IndexController
 
     private final ContextService contextService;
 
-    private final ObjectMapper jsonMapper;
-
     public IndexController( SchemaService schemaService,
         ContextService contextService,
         ObjectMapper jsonMapper )

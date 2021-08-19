@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.commons.jackson.filter;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Stack;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,7 +52,7 @@ public class FieldFilterParser
     private static Set<String> expandField( String field, String prefix )
     {
         Set<String> output = new HashSet<>();
-        Stack<String> path = new Stack<>();
+        Deque<String> path = new ArrayDeque<>();
         StringBuilder builder = new StringBuilder();
 
         if ( prefix != null )
@@ -119,9 +120,9 @@ public class FieldFilterParser
             || StringUtils.containsAny( token, "*", ":", ";", "{", "}", "~", "!" );
     }
 
-    private static String toFullPath( String field, Stack<String> path )
+    private static String toFullPath( String field, Deque<String> path )
     {
-        return path.size() == 0 ? field : StringUtils.join( path, "." ) + "." + field;
+        return path.isEmpty() ? field : StringUtils.join( path, "." ) + "." + field;
     }
 
     private FieldFilterParser()

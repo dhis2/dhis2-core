@@ -250,7 +250,7 @@ public class SystemController
     private void handleSummary( HttpServletResponse response, Object summary )
         throws IOException
     {
-        if ( summary != null && ImportSummary.class.isInstance( summary ) )
+        if ( summary instanceof ImportSummary )
         {
             ImportSummary importSummary = (ImportSummary) summary;
             renderService.toJson( response.getOutputStream(), importSummary );

@@ -29,6 +29,7 @@ package org.hisp.dhis.commons.jackson.filter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import com.google.common.collect.ForwardingMap;
 
@@ -60,5 +61,34 @@ public class FieldFilterNode extends ForwardingMap<String, FieldFilterNode>
     public String getPath()
     {
         return path;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        if ( !super.equals( o ) )
+        {
+            return false;
+        }
+
+        FieldFilterNode that = (FieldFilterNode) o;
+
+        return Objects.equals( delegate, that.delegate ) && Objects.equals( path, that.path );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( super.hashCode(), delegate, path );
     }
 }

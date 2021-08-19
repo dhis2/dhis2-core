@@ -78,7 +78,7 @@ public class PeriodTypeController
             .map( PeriodType::new )
             .collect( Collectors.toList() );
 
-        FieldFilterParams params = new FieldFilterParams( periodTypes, fields );
+        FieldFilterParams<PeriodType> params = new FieldFilterParams<>( periodTypes, fields );
         List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
 
         return ResponseEntity.ok( new JsonRoot( "periodTypes", objectNodes ) );
