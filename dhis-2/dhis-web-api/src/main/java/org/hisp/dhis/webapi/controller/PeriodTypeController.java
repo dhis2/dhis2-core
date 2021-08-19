@@ -39,6 +39,7 @@ import org.hisp.dhis.commons.jackson.filter.FieldFilterParams;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.JsonRoot;
 import org.hisp.dhis.webapi.webdomain.PeriodType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,7 +71,7 @@ public class PeriodTypeController
     }
 
     @GetMapping
-    public @ResponseBody ResponseEntity<List<ObjectNode>> getPeriodTypes(
+    public @ResponseBody ResponseEntity<JsonRoot> getPeriodTypes(
         @RequestParam( defaultValue = "*" ) Set<String> fields )
     {
         List<PeriodType> periodTypes = periodService.getAllPeriodTypes().stream()
@@ -80,7 +81,10 @@ public class PeriodTypeController
         FieldFilterParams params = new FieldFilterParams( periodTypes, fields );
         List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
 
-        return ResponseEntity.ok( objectNodes );
+        JsonRoot root = new JsonRoot();
+        root.setProperty("periodTypes", objectNodes);
+
+        return ResponseEntity.ok(root);
     }
 
     @GetMapping( value = "/relativePeriodTypes", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
