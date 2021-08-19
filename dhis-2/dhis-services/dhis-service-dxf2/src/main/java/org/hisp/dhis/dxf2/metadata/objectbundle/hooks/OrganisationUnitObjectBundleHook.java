@@ -41,6 +41,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComparator;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -54,6 +55,8 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
 {
 
     private final OrganisationUnitService organisationUnitService;
+
+    private final AclService aclService;
 
     @Override
     public void preCommit( ObjectBundle bundle )
@@ -111,7 +114,7 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
         Consumer<ErrorReport> addReports )
     {
         validateOpeningClosingDate( organisationUnit, addReports );
-        validateMove( organisationUnit, bundle, addReports );
+        validatePotentialMove( organisationUnit, bundle, addReports );
     }
 
     private void validateOpeningClosingDate( OrganisationUnit object, Consumer<ErrorReport> addReports )
@@ -123,49 +126,50 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
         }
     }
 
-    private void validateMove( OrganisationUnit object, ObjectBundle bundle, Consumer<ErrorReport> addReports )
+    private void validatePotentialMove( OrganisationUnit unit, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
         User user = bundle.getUser();
-        if ( user == null || user.isSuper() )
+        if ( user == null || user.isSuper() || !bundle.isPersisted( unit ) )
         {
+            return; // not an update or always permitted for superuser
+        }
+        OrganisationUnit oldParent = bundle.getPreheat().get( bundle.getPreheatIdentifier(), unit ).getParent();
+        OrganisationUnit newParent = unit.getParent();
+        if ( Objects.equals( getNullableUid( oldParent ), getNullableUid( newParent ) ) )
+        {
+            return; // not a move
+        }
+        if ( !user.isAuthorized( "F_ORGANISATIONUNIT_MOVE" ) )
+        {
+            addReports.accept(
+                new ErrorReport( OrganisationUnit.class, ErrorCode.E1515, user.getUid() ) );
             return;
         }
-        if ( !bundle.isPersisted( object ) )
+        if ( !aclService.canWrite( user, unit ) )
         {
-            if ( !isParentInUserHierarchy( object, bundle ) )
-            {
-                addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1511, user.getUid(),
-                    getParentIdentifier( object ) ) );
-            }
+            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1516, user.getUid(),
+                getUidOrName( unit ) ) );
         }
-        else if ( !Objects.equals(
-            getParentIdentifier( bundle.getPreheat().get( bundle.getPreheatIdentifier(), object ) ),
-            getParentIdentifier( object ) ) )
+        if ( oldParent != null && !aclService.canWrite( user, oldParent ) )
         {
-            if ( !user.isAuthorized( "F_ORGANISATIONUNIT_MOVE" ) )
-            {
-                addReports.accept(
-                    new ErrorReport( OrganisationUnit.class, ErrorCode.E1510, user.getUid() ) );
-            }
-            if ( !isParentInUserHierarchy( object, bundle ) )
-            {
-                addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1512, user.getUid(),
-                    object.getUid(), getParentIdentifier( object ) ) );
-            }
+            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1517, user.getUid(),
+                getUidOrName( unit ), getUidOrName( oldParent ) ) );
+        }
+        if ( newParent != null && !aclService.canWrite( user, newParent ) )
+        {
+            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1517, user.getUid(),
+                getUidOrName( unit ), getUidOrName( newParent ) ) );
         }
     }
 
-    private String getParentIdentifier( OrganisationUnit object )
+    private String getNullableUid( OrganisationUnit unit )
     {
-        OrganisationUnit parent = object.getParent();
-        return parent == null ? "(root)" : parent.getUid();
+        return unit == null ? null : unit.getUid();
     }
 
-    private boolean isParentInUserHierarchy( OrganisationUnit object, ObjectBundle bundle )
+    private String getUidOrName( OrganisationUnit unit )
     {
-        OrganisationUnit parent = object.getParent();
-        User user = bundle.getUser();
-        return parent != null && organisationUnitService.isInUserHierarchy( user, parent );
+        return unit.getUid() != null ? unit.getUid() : unit.getName();
     }
 
     private void setSRID( OrganisationUnit organisationUnit )

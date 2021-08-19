@@ -44,8 +44,6 @@ import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
@@ -118,21 +116,6 @@ public class CsvMetadataImportTest
 
         assertEquals( 5, importReport.getStats().getCreated() );
         assertEquals( 5, organisationUnitService.getAllOrganisationUnits().size() );
-    }
-
-    @Test
-    public void testOrgUnitImport_IllegalMove()
-        throws Exception
-    {
-        ImportReport importReport = runImport( "metadata/organisationUnits.csv", CsvImportClass.ORGANISATION_UNIT,
-            metadata -> assertEquals( 5, metadata.getOrganisationUnits().size() ) );
-        assertEquals( 5, importReport.getStats().getCreated() );
-
-        User admin = createAndInjectAdminUser( new String[0] );
-        importReport = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT, null,
-            params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
-
-        assertEquals( Status.ERROR, importReport.getStatus() );
     }
 
     @Test

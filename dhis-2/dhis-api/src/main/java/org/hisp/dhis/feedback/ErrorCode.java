@@ -57,11 +57,10 @@ public enum ErrorCode
     E1513( "Primary target must be specified" ),
     E1514( "Primary target must be a target org unit" ),
 
-    /* Org unit move/create */
+    /* Org unit move */
     E1515( "User `{0}` is not allowed to move organisation units" ),
-    E1516( "User `{0}` is not allowed to create organisation with parent `{1}` outside of user''s hierarchy" ),
-    E1517(
-        "User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}` which is outside of user''s hierarchy" ),
+    E1516( "User `{0}` is not allowed to move organisation `{1}`" ),
+    E1517( "User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`" ),
 
     /* Data */
     E2000( "Query parameters cannot be null" ),
