@@ -25,16 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.actions.tracker.importer;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.File;
 import java.time.Instant;
@@ -42,7 +35,14 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import static org.hamcrest.Matchers.notNullValue;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -69,7 +69,7 @@ public class TrackerActions
         boolean completed = false;
         int maxAttempts = 100;
 
-        while ( !completed && maxAttempts > 0)
+        while ( !completed && maxAttempts > 0 )
         {
             response = getJob( jobId );
             response.validate().statusCode( 200 );
@@ -80,7 +80,8 @@ public class TrackerActions
         if ( maxAttempts == 0 )
         {
             logger.warning(
-                String.format( "Tracker job didn't complete in %d. Message: %s", maxAttempts, response.extract( "message" ) ) );
+                String.format( "Tracker job didn't complete in %d. Message: %s", maxAttempts,
+                    response.extract( "message" ) ) );
         }
 
         logger.info( "Tracker job is completed. Message: " + response.extract( "message" ) );
@@ -153,7 +154,8 @@ public class TrackerActions
     private TrackerApiResponse getJobReportByImportResponse( ApiResponse response )
     {
         // if import is sync, just return response
-        if ( response.extractString( "response.id" ) == null) {
+        if ( response.extractString( "response.id" ) == null )
+        {
             return new TrackerApiResponse( response );
         }
 
@@ -189,7 +191,7 @@ public class TrackerActions
 
     public JsonObject buildTeiAndEnrollment( String ouId, String programId )
     {
-        JsonObject jsonObject = buildTeiAndEnrollment("Q9GufDoplCL", ouId, programId  );
+        JsonObject jsonObject = buildTeiAndEnrollment( "Q9GufDoplCL", ouId, programId );
 
         return jsonObject;
     }
@@ -222,7 +224,8 @@ public class TrackerActions
         return object;
     }
 
-    public JsonObject buildTeiWithEnrollmentAndEvent( String ouId, String programId, String programStageId, String eventStatus )
+    public JsonObject buildTeiWithEnrollmentAndEvent( String ouId, String programId, String programStageId,
+        String eventStatus )
     {
         JsonObject object = buildTeiAndEnrollment( ouId, programId );
 
@@ -240,14 +243,16 @@ public class TrackerActions
         JsonObject relationship = (JsonObject) jsonObject.getAsJsonArray( "relationships" ).get( 0 );
         JsonArray relationships = new JsonArray();
         relationships.add( buildTrackedEntityRelationship(
-                relationship.getAsJsonObject( "to" ).get( "trackedEntity" ).getAsString(),
-                relationship.getAsJsonObject( "from" ).get( "trackedEntity" ).getAsString(),
-                relationship.get("relationshipType").getAsString() ) );
+            relationship.getAsJsonObject( "to" ).get( "trackedEntity" ).getAsString(),
+            relationship.getAsJsonObject( "from" ).get( "trackedEntity" ).getAsString(),
+            relationship.get( "relationshipType" ).getAsString() ) );
         inverseJsonObject.add( "relationships", relationships );
         return inverseJsonObject;
     }
 
-    public JsonObject buildTrackedEntityAndRelationships(String trackedEntity_1, String trackedEntity_2, BiFunction<String, String, JsonObject> relationshipArray) {
+    public JsonObject buildTrackedEntityAndRelationships( String trackedEntity_1, String trackedEntity_2,
+        BiFunction<String, String, JsonObject> relationshipArray )
+    {
         Function<String, JsonObject> tei = ( id ) -> new JsonObjectBuilder()
             .addProperty( "trackedEntity", id )
             .addProperty( "trackedEntityType", "Q9GufDoplCL" )
@@ -255,33 +260,45 @@ public class TrackerActions
             .build();
 
         return new JsonObjectBuilder()
-                .addArray("trackedEntities",
-                        tei.apply(trackedEntity_1),
-                        tei.apply( trackedEntity_2 ))
-                .addArray("relationships",
-                        relationshipArray.apply(trackedEntity_1, trackedEntity_2))
-                .build();
+            .addArray( "trackedEntities",
+                tei.apply( trackedEntity_1 ),
+                tei.apply( trackedEntity_2 ) )
+            .addArray( "relationships",
+                relationshipArray.apply( trackedEntity_1, trackedEntity_2 ) )
+            .build();
     }
 
-    public JsonObject buildNonBidirectionalTrackedEntityRelationship(String trackedEntity_1, String trackedEntity_2 )
+    public JsonObject buildNonBidirectionalTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2 )
     {
-        return buildTrackedEntityRelationship( trackedEntity_1, trackedEntity_2, "TV9oB9LT3sh" /* a non bidirectional relationship type*/ );
+        return buildTrackedEntityRelationship( trackedEntity_1, trackedEntity_2, "TV9oB9LT3sh" /*
+                                                                                                * a
+                                                                                                * non
+                                                                                                * bidirectional
+                                                                                                * relationship
+                                                                                                * type
+                                                                                                */ );
     }
 
-    public JsonObject buildBidirectionalTrackedEntityRelationship(String trackedEntity_1, String trackedEntity_2 )
+    public JsonObject buildBidirectionalTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2 )
     {
-        return buildTrackedEntityRelationship( trackedEntity_1, trackedEntity_2, "xLmPUYJX8Ks"  /* a bidirectional relationship type*/  );
+        return buildTrackedEntityRelationship( trackedEntity_1, trackedEntity_2, "xLmPUYJX8Ks" /*
+                                                                                                * a
+                                                                                                * bidirectional
+                                                                                                * relationship
+                                                                                                * type
+                                                                                                */ );
     }
 
-    public JsonObject buildTrackedEntityRelationship(String trackedEntity_1, String trackedEntity_2, String relationshipType )
+    public JsonObject buildTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2,
+        String relationshipType )
     {
         return new JsonObjectBuilder()
-                .addProperty( "relationshipType", relationshipType )
-                .addObject( "from", new JsonObjectBuilder()
-                        .addProperty( "trackedEntity", trackedEntity_1 ) )
-                .addObject( "to", new JsonObjectBuilder()
-                        .addProperty( "trackedEntity", trackedEntity_2 ) )
-                .build();
+            .addProperty( "relationshipType", relationshipType )
+            .addObject( "from", new JsonObjectBuilder()
+                .addProperty( "trackedEntity", trackedEntity_1 ) )
+            .addObject( "to", new JsonObjectBuilder()
+                .addProperty( "trackedEntity", trackedEntity_2 ) )
+            .build();
     }
 
     public JsonObject buildTei( String trackedEntityType, String ou )
