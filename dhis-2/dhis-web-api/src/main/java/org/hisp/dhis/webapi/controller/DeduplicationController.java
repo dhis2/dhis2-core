@@ -238,7 +238,10 @@ public class DeduplicationController
         }
         else
         {
-            // TODO: autoMerge(original, duplicate);
+            if ( !deduplicationService.autoMerge( original, duplicate ) )
+            {
+                throw new ConflictException( "PotentialDuplicate '" + id + "' is not automatically mergable." );
+            }
         }
 
     }
