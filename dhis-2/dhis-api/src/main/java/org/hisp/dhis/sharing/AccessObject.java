@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,64 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user.sharing;
+package org.hisp.dhis.sharing;
+
+import java.io.Serializable;
 
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.sharing.AccessObject;
-import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
 @NoArgsConstructor
-@JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
-public class UserAccess
-    extends AccessObject
+public abstract class AccessObject
+    implements Serializable
 {
-    public UserAccess( String access, String id )
+    protected String access;
+
+    protected String id;
+
+    public AccessObject( String access, String id )
     {
-        super( access, id );
+        this.access = access;
+        this.id = id;
     }
 
-    public UserAccess( User user, String access )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAccess()
     {
-        super( access, user.getUid() );
+        return access;
     }
 
-    /**
-     * This is for backward compatibility with legacy
-     * {@link org.hisp.dhis.user.UserAccess}
-     */
-    public UserAccess( org.hisp.dhis.user.UserAccess userAccess )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getId()
     {
-        super( userAccess.getAccess(), userAccess.getUid() );
+        return id;
     }
 
-    public void setUser( User user )
+    public void setAccess( String access )
     {
-        setId( user.getUid() );
+        this.access = access;
     }
 
-    public org.hisp.dhis.user.UserAccess toDtoObject()
+    public void setId( String id )
     {
-        org.hisp.dhis.user.UserAccess userAccess = new org.hisp.dhis.user.UserAccess();
-        userAccess.setUid( getId() );
-        userAccess.setAccess( getAccess() );
-        User user = new User();
-        user.setUid( getId() );
-        userAccess.setUser( user );
-        userAccess.setUid( getId() );
-
-        return userAccess;
+        this.id = id;
     }
 
-    @Override
-    public UserAccess copy()
-    {
-        return new UserAccess( this.access, this.id );
-    }
+    public abstract <T extends AccessObject> T copy();
 }
