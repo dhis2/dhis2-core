@@ -27,23 +27,30 @@
  */
 package org.hisp.dhis.program.jdbc;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.association.CategoryOptionOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.association.ProgramOrganisationUnitAssociationsQueryBuilder;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration
+@RequiredArgsConstructor
 public class JdbcOrgUnitAssociationStoreConfiguration
 {
+
+    private final CacheProvider cacheProvider;
 
     @Bean( "jdbcProgramOrgUnitAssociationsStore" )
     JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationStore( CurrentUserService currentUserService,
         JdbcTemplate jdbcTemplate )
     {
         return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
-            new ProgramOrganisationUnitAssociationsQueryBuilder( currentUserService ) );
+            new ProgramOrganisationUnitAssociationsQueryBuilder( currentUserService ),
+            cacheProvider.createProgramOrgUnitAssociationCache() );
     }
 
     @Bean( "jdbcCategoryOptionOrgUnitAssociationsStore" )
@@ -51,7 +58,8 @@ public class JdbcOrgUnitAssociationStoreConfiguration
         JdbcTemplate jdbcTemplate )
     {
         return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
-            new CategoryOptionOrganisationUnitAssociationsQueryBuilder( currentUserService ) );
+            new CategoryOptionOrganisationUnitAssociationsQueryBuilder( currentUserService ),
+            cacheProvider.createCatOptOrgUnitAssociationCache() );
     }
 
 }

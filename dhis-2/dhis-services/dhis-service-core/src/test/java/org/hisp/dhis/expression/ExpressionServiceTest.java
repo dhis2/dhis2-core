@@ -631,6 +631,17 @@ public class ExpressionServiceTest
     }
 
     /**
+     * Evaluates a test expression as a Double.
+     *
+     * @param expr expression to evaluate
+     * @return result from testing the expression
+     */
+    private Double evalDouble( String expr )
+    {
+        return Double.parseDouble( eval( expr ) );
+    }
+
+    /**
      * Formats the result from testing the expression
      *
      * @param value the value retuned from getExpressionValueRegEx
@@ -843,21 +854,21 @@ public class ExpressionServiceTest
 
         // Logarithms
 
-        assertEquals( "3.912023005428146", eval( "log(50)" ) );
-        assertEquals( "1", eval( "log(2.718281828459045)" ) );
+        assertEquals( 3.912023005428146, evalDouble( "log(50)" ), DELTA );
+        assertEquals( 1, evalDouble( "log(2.718281828459045)" ), DELTA );
         assertEquals( "-Infinity", eval( "log(0)" ) );
         assertEquals( "NaN", eval( "log(-1)" ) );
 
-        assertEquals( "3.5608767950073115", eval( "log(50,3)" ) );
-        assertEquals( "3", eval( "log(8,2)" ) );
+        assertEquals( 3.5608767950073115, evalDouble( "log(50,3)" ), DELTA );
+        assertEquals( 3, evalDouble( "log(8,2)" ), DELTA );
         assertEquals( "-Infinity", eval( "log(0,3)" ) );
         assertEquals( "NaN", eval( "log(-1,3)" ) );
         assertEquals( "0", eval( "log(50,0)" ) );
         assertEquals( "NaN", eval( "log(50,-3)" ) );
         assertEquals( "NaN", eval( "log(-50,-3)" ) );
 
-        assertEquals( "1.6989700043360187", eval( "log10(50)" ) );
-        assertEquals( "3", eval( "log10(1000)" ) );
+        assertEquals( 1.6989700043360187, evalDouble( "log10(50)" ), DELTA );
+        assertEquals( 3, evalDouble( "log10(1000)" ), DELTA );
         assertEquals( "-Infinity", eval( "log10(0)" ) );
         assertEquals( "NaN", eval( "log10(-1)" ) );
 

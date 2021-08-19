@@ -19,8 +19,7 @@
           },
           {
             "parent": "9accf306fd11c879346a7bb9e04a69060cb91763",
-            "prNumber": 4,
-            "status": "FIXED"
+            "prNumber": 4
           },
           {
             "parent": "77562c2e00d6e88acf281941f5c26d084dacf720",
@@ -28,8 +27,7 @@
           },
           {
             "parent": "9accf306fd11c879346a7bb9e04a69060cb91763",
-            "prNumber": 6,
-            "status": "FIXED"
+            "prNumber": 6
           },
           {
             "parent": "dd4fa5e148ff78f1176f153a913937e1f092569b",
@@ -37,8 +35,7 @@
           },
           {
             "parent": "9accf306fd11c879346a7bb9e04a69060cb91763",
-            "prNumber": 8,
-            "status": "FIXED"
+            "prNumber": 8
           },
           {
             "parent": "dd4fa5e148ff78f1176f153a913937e1f092569b",

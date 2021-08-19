@@ -463,6 +463,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 : importOptions.getUser().getUsername());
 
         daoEntityInstance.setStoredBy( storedBy );
+        daoEntityInstance.setPotentialDuplicate( dtoEntityInstance.isPotentialDuplicate() );
 
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
@@ -869,6 +870,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         daoEntityInstance.setOrganisationUnit( organisationUnit );
         daoEntityInstance.setInactive( dtoEntityInstance.isInactive() );
+        daoEntityInstance.setPotentialDuplicate( dtoEntityInstance.isPotentialDuplicate() );
 
         if ( dtoEntityInstance.getGeometry() != null )
         {
@@ -1652,6 +1654,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         trackedEntityInstance.setInactive( daoTrackedEntityInstance.isInactive() );
         trackedEntityInstance.setGeometry( daoTrackedEntityInstance.getGeometry() );
         trackedEntityInstance.setDeleted( daoTrackedEntityInstance.isDeleted() );
+        trackedEntityInstance.setPotentialDuplicate( daoTrackedEntityInstance.isPotentialDuplicate() );
         trackedEntityInstance.setStoredBy( daoTrackedEntityInstance.getStoredBy() );
         trackedEntityInstance.setCreatedByUserInfo( daoTrackedEntityInstance.getCreatedByUserInfo() );
         trackedEntityInstance.setLastUpdatedByUserInfo( daoTrackedEntityInstance.getLastUpdatedByUserInfo() );
