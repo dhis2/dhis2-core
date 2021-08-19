@@ -43,7 +43,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,12 +77,44 @@ public class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTe
             metadata -> assertEquals( 5, metadata.getOrganisationUnits().size() ) );
         assertEquals( 5, importReport.getStats().getCreated() );
 
-        User admin = createAndInjectAdminUser( new String[0] );
+        createAndInjectAdminUser( new String[0] );
         importReport = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT, null,
             params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
 
         assertEquals( Status.ERROR, importReport.getStatus() );
         assertTrue( importReport.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1515 ) );
+    }
+
+    @Test
+    public void testOrgUnitImport_MoveLacksWriteAuthority()
+        throws Exception
+    {
+        ImportReport importReport = runImport( "metadata/organisationUnits.csv", CsvImportClass.ORGANISATION_UNIT,
+            metadata -> assertEquals( 5, metadata.getOrganisationUnits().size() ) );
+        assertEquals( 5, importReport.getStats().getCreated() );
+
+        createAndInjectAdminUser( "F_ORGANISATIONUNIT_MOVE" );
+        importReport = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT, null,
+            params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
+
+        assertEquals( Status.ERROR, importReport.getStatus() );
+        assertTrue( importReport.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1516 ) );
+    }
+
+    @Test
+    public void testOrgUnitImport_Success()
+        throws Exception
+    {
+        ImportReport importReport = runImport( "metadata/organisationUnits.csv", CsvImportClass.ORGANISATION_UNIT,
+            metadata -> assertEquals( 5, metadata.getOrganisationUnits().size() ) );
+        assertEquals( 5, importReport.getStats().getCreated() );
+
+        createAndInjectAdminUser( "F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD" );
+        importReport = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT, null,
+            params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
+
+        assertEquals( Status.OK, importReport.getStatus() );
+        assertEquals( 1, importReport.getStats().getUpdated() );
     }
 
     private ImportReport runImport( String csvFile, CsvImportClass importClass, Consumer<Metadata> preCondition )
