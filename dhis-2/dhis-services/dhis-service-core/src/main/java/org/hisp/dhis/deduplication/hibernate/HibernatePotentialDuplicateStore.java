@@ -38,8 +38,14 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deduplication.*;
+import org.hisp.dhis.deduplication.DeduplicationStatus;
+import org.hisp.dhis.deduplication.MergeObject;
+import org.hisp.dhis.deduplication.PotentialDuplicate;
+import org.hisp.dhis.deduplication.PotentialDuplicateException;
+import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
+import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -147,5 +153,11 @@ public class HibernatePotentialDuplicateStore
         query.setParameter( "teib", potentialDuplicate.getTeiB() );
 
         return query.getSingleResult().intValue() != 0;
+    }
+
+    @Override
+    public void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject )
+    {
+        return;
     }
 }
