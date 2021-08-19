@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.commons.jackson.filter.FieldFilterMixin;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
