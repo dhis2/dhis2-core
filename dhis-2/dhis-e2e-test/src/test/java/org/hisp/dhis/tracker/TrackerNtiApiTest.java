@@ -25,10 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker;
 
-import com.google.gson.JsonObject;
+import java.io.File;
+import java.util.List;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.MaintenanceActions;
@@ -38,8 +39,7 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 
-import java.io.File;
-import java.util.List;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -64,7 +64,8 @@ public class TrackerNtiApiTest
         JsonObject teiBody = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teiAndEnrollment.json" ) );
 
-        return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedEnrollments().get( 0 );
+        return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedEnrollments()
+            .get( 0 );
     }
 
     protected String importTei()
@@ -78,7 +79,8 @@ public class TrackerNtiApiTest
 
     protected List<String> importTeis()
     {
-        List<String> teis = trackerActions.postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/teis.json" ) )
+        List<String> teis = trackerActions
+            .postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/teis.json" ) )
             .validateSuccessfulImport().extractImportedTeis();
 
         return teis;
@@ -87,7 +89,8 @@ public class TrackerNtiApiTest
     protected List<String> importEvents()
         throws Exception
     {
-        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/events.json" ) )
+        JsonObject object = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
 
         return trackerActions.postAndGetJobReport( object )
