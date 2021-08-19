@@ -510,8 +510,8 @@ public class JdbcEventStore implements EventStore
 
         org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship = new org.hisp.dhis.dxf2.events.trackedentity.Relationship();
         relationship.setBidirectional( relationshipDto.getRelationshipType().isBidirectional() );
-        relationship.setCreated( relationshipDto.getCreated().toString() );
-        relationship.setLastUpdated( relationshipDto.getLastUpdated().toString() );
+        relationship.setCreated( DateUtils.getIso8601NoTz( relationshipDto.getCreated() ) );
+        relationship.setLastUpdated( DateUtils.getIso8601NoTz( relationshipDto.getLastUpdated() ) );
         relationship.setRelationshipType( relationshipDto.getRelationshipType().getUid() );
         relationship.setRelationshipName( relationshipDto.getRelationshipType().getName() );
         relationship.setRelationship( relationshipDto.getUid() );
