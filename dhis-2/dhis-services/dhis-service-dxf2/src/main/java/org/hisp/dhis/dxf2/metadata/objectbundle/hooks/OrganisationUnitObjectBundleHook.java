@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import lombok.AllArgsConstructor;
+
 import org.hibernate.Session;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -42,8 +44,6 @@ import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComp
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import lombok.AllArgsConstructor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
