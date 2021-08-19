@@ -63,11 +63,6 @@ public class OrgUnitMergeRequest
         return ImmutableSet.copyOf( sources );
     }
 
-    public OrganisationUnit getTarget()
-    {
-        return target;
-    }
-
     @Override
     public String toString()
     {

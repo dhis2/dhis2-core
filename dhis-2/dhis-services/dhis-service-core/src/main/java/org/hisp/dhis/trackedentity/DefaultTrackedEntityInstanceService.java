@@ -727,18 +727,6 @@ public class DefaultTrackedEntityInstanceService
                 }
             }
 
-            if ( params.hasProgram() )
-            {
-                maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
-
-                if ( !params.hasTrackedEntityInstances() && isProgramMinAttributesViolated( params ) )
-                {
-                    throw new IllegalQueryException(
-                        "At least " + params.getProgram().getMinAttributesRequiredToSearch()
-                            + " attributes should be mentioned in the search criteria." );
-                }
-            }
-
             if ( params.hasTrackedEntityType() )
             {
                 maxTeiLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
@@ -747,6 +735,18 @@ public class DefaultTrackedEntityInstanceService
                 {
                     throw new IllegalQueryException(
                         "At least " + params.getTrackedEntityType().getMinAttributesRequiredToSearch()
+                            + " attributes should be mentioned in the search criteria." );
+                }
+            }
+
+            if ( params.hasProgram() )
+            {
+                maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
+
+                if ( !params.hasTrackedEntityInstances() && isProgramMinAttributesViolated( params ) )
+                {
+                    throw new IllegalQueryException(
+                        "At least " + params.getProgram().getMinAttributesRequiredToSearch()
                             + " attributes should be mentioned in the search criteria." );
                 }
             }

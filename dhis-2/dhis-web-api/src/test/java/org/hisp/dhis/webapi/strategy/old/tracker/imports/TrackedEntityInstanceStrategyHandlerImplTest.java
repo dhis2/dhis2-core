@@ -28,19 +28,21 @@
 package org.hisp.dhis.webapi.strategy.old.tracker.imports;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.trackedentity.ImportTrackedEntitiesTask;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceSyncStrategyImpl;
@@ -74,7 +76,7 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Mock
-    private SchedulingManager schedulingManager;
+    private AsyncTaskExecutor taskExecutor;
 
     @Mock
     private TrackedEntityInstance trackedEntityInstance;
@@ -155,7 +157,7 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
         trackedEntityInstanceAsyncStrategy.mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
 
         verify( trackedEntityInstanceService, times( 1 ) ).getTrackedEntityInstancesJson( inputStream );
-        verify( schedulingManager, times( 1 ) ).executeJob( trackedEntitiesTaskArgumentCaptor.capture() );
+        verify( taskExecutor, times( 1 ) ).executeTask( trackedEntitiesTaskArgumentCaptor.capture() );
     }
 
     @Test
@@ -174,7 +176,7 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
         trackedEntityInstanceAsyncStrategy.mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
 
         verify( trackedEntityInstanceService, times( 1 ) ).getTrackedEntityInstancesXml( inputStream );
-        verify( schedulingManager, times( 1 ) ).executeJob( trackedEntitiesTaskArgumentCaptor.capture() );
+        verify( taskExecutor, times( 1 ) ).executeTask( trackedEntitiesTaskArgumentCaptor.capture() );
     }
 
     @Test( expected = BadRequestException.class )

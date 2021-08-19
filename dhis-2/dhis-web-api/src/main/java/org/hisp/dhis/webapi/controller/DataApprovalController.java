@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +59,6 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
@@ -83,9 +84,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -145,7 +148,7 @@ public class DataApprovalController
     // Get
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = APPROVALS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = APPROVALS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON )
     public void getApprovalPermissions(
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String wf,
@@ -171,8 +174,8 @@ public class DataApprovalController
         renderService.toJson( response.getOutputStream(), status.getPermissions() );
     }
 
-    @RequestMapping( value = { MULTIPLE_APPROVALS_PATH,
-        APPROVALS_PATH + "/approvals" }, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = { MULTIPLE_APPROVALS_PATH,
+        APPROVALS_PATH + "/approvals" }, produces = ContextUtils.CONTENT_TYPE_JSON )
     public void getMultipleApprovalPermissions(
         @RequestParam Set<String> wf,
         @RequestParam( required = false ) Set<String> pe,
@@ -193,7 +196,7 @@ public class DataApprovalController
             if ( startDate == null || endDate == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Must have either pe or both startDate and endDate." ) );
+                    conflict( "Must have either pe or both startDate and endDate." ) );
             }
         }
         else
@@ -201,7 +204,7 @@ public class DataApprovalController
             if ( startDate != null || endDate != null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Cannot have both pe and startDate or endDate." ) );
+                    conflict( "Cannot have both pe and startDate or endDate." ) );
             }
 
             periods = new ArrayList<>();
@@ -288,7 +291,7 @@ public class DataApprovalController
         renderService.toJson( response.getOutputStream(), approvalStatuses );
     }
 
-    @RequestMapping( value = STATUS_PATH, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = STATUS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getApproval(
         @RequestParam Set<String> ds,
         @RequestParam( required = false ) String pe,
@@ -378,8 +381,8 @@ public class DataApprovalController
             createdDate, createdByUsername, status.getPermissions() );
     }
 
-    @RequestMapping( value = APPROVALS_PATH
-        + "/categoryOptionCombos", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = APPROVALS_PATH
+        + "/categoryOptionCombos", produces = ContextUtils.CONTENT_TYPE_JSON )
     public void getApprovalByCategoryOptionCombos(
         @RequestParam( required = false ) Set<String> ds,
         @RequestParam( required = false ) Set<String> wf,
@@ -449,7 +452,7 @@ public class DataApprovalController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')" )
-    @RequestMapping( value = APPROVALS_PATH, method = RequestMethod.POST )
+    @PostMapping( value = APPROVALS_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveApproval(
         @RequestParam( required = false ) String ds,
@@ -473,7 +476,7 @@ public class DataApprovalController
         dataApprovalService.approveData( dataApprovalList );
     }
 
-    @RequestMapping( value = APPROVALS_PATH + "/approvals", method = RequestMethod.POST )
+    @PostMapping( APPROVALS_PATH + "/approvals" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveApprovalBatch( @RequestBody ApprovalsDto approvals )
         throws WebMessageException
@@ -481,7 +484,7 @@ public class DataApprovalController
         dataApprovalService.approveData( getDataApprovalList( approvals ) );
     }
 
-    @RequestMapping( value = APPROVALS_PATH + "/unapprovals", method = RequestMethod.POST )
+    @PostMapping( APPROVALS_PATH + "/unapprovals" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeApprovalBatch( @RequestBody ApprovalsDto approvals )
         throws WebMessageException
@@ -494,7 +497,7 @@ public class DataApprovalController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')" )
-    @RequestMapping( value = ACCEPTANCES_PATH, method = RequestMethod.POST )
+    @PostMapping( ACCEPTANCES_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void acceptApproval(
         @RequestParam( required = false ) String ds,
@@ -518,7 +521,7 @@ public class DataApprovalController
         dataApprovalService.acceptData( dataApprovalList );
     }
 
-    @RequestMapping( value = ACCEPTANCES_PATH + "/acceptances", method = RequestMethod.POST )
+    @PostMapping( ACCEPTANCES_PATH + "/acceptances" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveAcceptanceBatch( @RequestBody ApprovalsDto approvals )
         throws WebMessageException
@@ -526,7 +529,7 @@ public class DataApprovalController
         dataApprovalService.acceptData( getDataApprovalList( approvals ) );
     }
 
-    @RequestMapping( value = ACCEPTANCES_PATH + "/unacceptances", method = RequestMethod.POST )
+    @PostMapping( ACCEPTANCES_PATH + "/unacceptances" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeAcceptancesBatch( @RequestBody ApprovalsDto approvals )
         throws WebMessageException
@@ -539,7 +542,7 @@ public class DataApprovalController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')" )
-    @RequestMapping( value = APPROVALS_PATH, method = RequestMethod.DELETE )
+    @DeleteMapping( APPROVALS_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeApproval(
         @RequestParam( required = false ) Set<String> ds,
@@ -570,7 +573,7 @@ public class DataApprovalController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')" )
-    @RequestMapping( value = ACCEPTANCES_PATH, method = RequestMethod.DELETE )
+    @DeleteMapping( ACCEPTANCES_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void unacceptApproval(
         @RequestParam( required = false ) String ds,
@@ -608,7 +611,7 @@ public class DataApprovalController
             if ( dataSet.getWorkflow() == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "DataSet does not have an approval workflow: " + dataSet.getUid() ) );
+                    conflict( "DataSet does not have an approval workflow: " + dataSet.getUid() ) );
             }
         }
 
@@ -638,7 +641,7 @@ public class DataApprovalController
 
         if ( periods.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Approvals must have periods" ) );
+            throw new WebMessageException( conflict( "Approvals must have periods" ) );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -701,13 +704,13 @@ public class DataApprovalController
 
             if ( dataSet == null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + ds ) );
+                throw new WebMessageException( conflict( "Data set does not exist: " + ds ) );
             }
 
             if ( dataSet.getWorkflow() == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Data set does not have an approval workflow: " + ds ) );
+                    conflict( "Data set does not have an approval workflow: " + ds ) );
             }
 
             return dataSet.getWorkflow();
@@ -719,7 +722,7 @@ public class DataApprovalController
             if ( workflow == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Data approval workflow does not exist: " + wf ) );
+                    conflict( "Data approval workflow does not exist: " + wf ) );
             }
 
             return workflow;
@@ -727,7 +730,7 @@ public class DataApprovalController
         else
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Either data set or data approval workflow must be specified" ) );
+                conflict( "Either data set or data approval workflow must be specified" ) );
         }
     }
 
@@ -764,7 +767,7 @@ public class DataApprovalController
         if ( workflows.isEmpty() )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Either data sets or data approval workflows must be specified" ) );
+                conflict( "Either data sets or data approval workflows must be specified" ) );
         }
 
         return workflows;
@@ -777,7 +780,7 @@ public class DataApprovalController
 
         if ( period == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal period identifier: " + pe ) );
+            throw new WebMessageException( conflict( "Illegal period identifier: " + pe ) );
         }
 
         return period;
@@ -790,7 +793,7 @@ public class DataApprovalController
 
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist: " + ou ) );
+            throw new WebMessageException( conflict( "Organisation unit does not exist: " + ou ) );
         }
 
         return organisationUnit;
@@ -804,7 +807,7 @@ public class DataApprovalController
         if ( dataApprovalLevel == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Approval level not found for org unit: " + unit.getUid() ) );
+                conflict( "Approval level not found for org unit: " + unit.getUid() ) );
         }
 
         return dataApprovalLevel;
@@ -820,7 +823,7 @@ public class DataApprovalController
             if ( optionCombo == null )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.conflict( "Attribute option combo does not exist: " + aoc ) );
+                    conflict( "Attribute option combo does not exist: " + aoc ) );
             }
 
             return optionCombo;

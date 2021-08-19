@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.organisationunit;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -45,8 +47,8 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -69,7 +71,7 @@ public class OrganisationUnitLocationController
     /**
      * Get Organisation Units within a distance from a location
      */
-    @RequestMapping( value = "/withinRange", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @GetMapping( value = "/withinRange", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getEntitiesWithinRange(
         @RequestParam Double longitude,
         @RequestParam Double latitude,
@@ -120,8 +122,7 @@ public class OrganisationUnitLocationController
      * Get lowest level Org Units that includes the location in their polygon
      * shape.
      */
-    @RequestMapping( value = "/orgUnitByLocation", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
+    @GetMapping( value = "/orgUnitByLocation", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void getParentByLocation(
         @RequestParam Double longitude,
         @RequestParam Double latitude,
@@ -149,8 +150,7 @@ public class OrganisationUnitLocationController
     /**
      * Check if the location lies within the organisation unit boundary
      */
-    @RequestMapping( value = "/locationWithinOrgUnitBoundary", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
+    @GetMapping( value = "/locationWithinOrgUnitBoundary", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public void checkLocationWithinOrgUnit( @RequestParam String orgUnitUid,
         @RequestParam Double longitude, @RequestParam Double latitude, HttpServletResponse response )
         throws Exception

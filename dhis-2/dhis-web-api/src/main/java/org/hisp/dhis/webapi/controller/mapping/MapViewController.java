@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.mapping;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -35,7 +37,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.MapView;
@@ -53,9 +54,9 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.google.common.collect.Lists;
@@ -84,7 +85,7 @@ public class MapViewController
     // Get data
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = { "/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/{uid}/data", "/{uid}/data.png" } )
     public void getMapViewData( @PathVariable String uid, HttpServletResponse response )
         throws Exception
     {
@@ -92,13 +93,13 @@ public class MapViewController
 
         if ( mapView == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Map view does not exist: " + uid ) );
+            throw new WebMessageException( notFound( "Map view does not exist: " + uid ) );
         }
 
         renderMapViewPng( mapView, response );
     }
 
-    @RequestMapping( value = { "/data", "/data.png" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/data", "/data.png" } )
     public void getMapView( Model model,
         @RequestParam( value = "in" ) String indicatorUid,
         @RequestParam( value = "ou" ) String organisationUnitUid,

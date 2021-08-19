@@ -62,11 +62,6 @@ public class PotentialDuplicate
     {
     }
 
-    public PotentialDuplicate( String teiA )
-    {
-        this.teiA = teiA;
-    }
-
     public PotentialDuplicate( String teiA, String teiB )
     {
         this.teiA = teiA;

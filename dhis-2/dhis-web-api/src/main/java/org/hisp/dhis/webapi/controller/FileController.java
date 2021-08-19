@@ -27,28 +27,31 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
 import java.io.IOException;
 import java.io.Writer;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
@@ -67,14 +70,11 @@ public class FileController
     @Autowired
     private ContextUtils contextUtils;
 
-    @Autowired
-    private WebMessageService webMessageService;
-
     // -------------------------------------------------------------------------
     // Custom script
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/script", method = RequestMethod.GET )
+    @GetMapping( "/script" )
     public void getCustomScript( HttpServletResponse response, Writer writer )
         throws IOException
     {
@@ -88,19 +88,21 @@ public class FileController
         }
     }
 
-    @RequestMapping( value = "/script", method = RequestMethod.POST, consumes = "application/javascript" )
+    @PostMapping( value = "/script", consumes = "application/javascript" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')" )
-    public void postCustomScript( @RequestBody String content, HttpServletResponse response,
-        HttpServletRequest request )
+    @ResponseBody
+    @ResponseStatus( HttpStatus.OK )
+    public WebMessage postCustomScript( @RequestBody String content )
     {
         if ( content != null )
         {
             systemSettingManager.saveSystemSetting( SettingKey.CUSTOM_JS, content );
-            webMessageService.send( WebMessageUtils.ok( "Custom script created" ), response, request );
+            return ok( "Custom script created" );
         }
+        return null;
     }
 
-    @RequestMapping( value = "/script", method = RequestMethod.DELETE )
+    @DeleteMapping( "/script" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeCustomScript( HttpServletResponse response )
@@ -116,7 +118,7 @@ public class FileController
      * The style/external mapping enables style to be reached from login page /
      * before authentication.
      */
-    @RequestMapping( value = { "/style", "/style/external" }, method = RequestMethod.GET )
+    @GetMapping( value = { "/style", "/style/external" } )
     public void getCustomStyle( HttpServletResponse response, Writer writer )
         throws IOException
     {
@@ -130,18 +132,21 @@ public class FileController
         }
     }
 
-    @RequestMapping( value = "/style", method = RequestMethod.POST, consumes = "text/css" )
+    @PostMapping( value = "/style", consumes = "text/css" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')" )
-    public void postCustomStyle( @RequestBody String content, HttpServletResponse response, HttpServletRequest request )
+    @ResponseBody
+    @ResponseStatus( HttpStatus.OK )
+    public WebMessage postCustomStyle( @RequestBody String content )
     {
         if ( content != null )
         {
             systemSettingManager.saveSystemSetting( SettingKey.CUSTOM_CSS, content );
-            webMessageService.send( WebMessageUtils.ok( "Custom style created" ), response, request );
+            return ok( "Custom style created" );
         }
+        return null;
     }
 
-    @RequestMapping( value = "/style", method = RequestMethod.DELETE )
+    @DeleteMapping( "/style" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeCustomStyle( HttpServletResponse response )

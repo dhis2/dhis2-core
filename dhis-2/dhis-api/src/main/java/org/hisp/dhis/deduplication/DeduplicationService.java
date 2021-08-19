@@ -31,21 +31,23 @@ import java.util.List;
 
 public interface DeduplicationService
 {
-    long addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
-
     PotentialDuplicate getPotentialDuplicateById( long id );
 
     PotentialDuplicate getPotentialDuplicateByUid( String uid );
 
     List<PotentialDuplicate> getAllPotentialDuplicates();
 
-    void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate );
-
     int countPotentialDuplicates( PotentialDuplicateQuery query );
 
     boolean exists( PotentialDuplicate potentialDuplicate );
 
-    List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query );
+    List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query );
 
-    void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate );
+    List<PotentialDuplicate> getPotentialDuplicateByTei( String tei, DeduplicationStatus status );
+
+    void addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
+
+    void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
+
+    boolean isAutoMergeable( PotentialDuplicate potentialDuplicate );
 }

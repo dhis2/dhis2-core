@@ -67,7 +67,7 @@ public class OrgUnitMergeValidator
      */
     public ErrorMessage validateForErrorMessage( OrgUnitMergeRequest request )
     {
-        if ( request.getSources().isEmpty() )
+        if ( request.getSources().size() < 2 )
         {
             return new ErrorMessage( ErrorCode.E1500 );
         }

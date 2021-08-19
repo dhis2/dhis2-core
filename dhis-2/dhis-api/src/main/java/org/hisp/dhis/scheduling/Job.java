@@ -34,9 +34,7 @@ import org.hisp.dhis.feedback.ErrorReport;
  * by the Spring scheduler. The actual job will contain an execute method which
  * performs the appropriate actions.
  * <p>
- * {@link JobInstance} is another interface connected to jobs. This interface is
- * used for the actual execution of the job. See {@link SchedulingManager} for
- * more information about the scheduling.
+ * See {@link SchedulingManager} for more information about the scheduling.
  *
  * @author Henning Håkonsen
  */

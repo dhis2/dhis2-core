@@ -27,14 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller.organisationunit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileService;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,21 +50,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping( value = "/orgUnitProfile" )
+@AllArgsConstructor
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping( value = "/organisationUnitProfile" )
 public class OrganisationUnitProfileController
 {
     private final OrgUnitProfileService orgUnitProfileService;
 
-    public OrganisationUnitProfileController( OrgUnitProfileService orgUnitProfileService )
-    {
-        checkNotNull( orgUnitProfileService );
-
-        this.orgUnitProfileService = orgUnitProfileService;
-    }
-
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ORG_UNIT_PROFILE_ADD')" )
-    @PostMapping( consumes = "application/json" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.OK )
     public void saveProfile( @RequestBody OrgUnitProfile profile )
         throws WebMessageException
     {
@@ -76,10 +74,10 @@ public class OrganisationUnitProfileController
         return orgUnitProfileService.getOrgUnitProfile();
     }
 
-    @GetMapping( value = "/data/{uid}", produces = APPLICATION_JSON_VALUE )
-    public OrgUnitProfileData getProfileData( @PathVariable( value = "uid" ) String uid,
-        @RequestParam( value = "period", required = false ) String isoPeriod )
+    @GetMapping( value = "/{uid}/data", produces = APPLICATION_JSON_VALUE )
+    public OrgUnitProfileData getProfileData( @PathVariable String uid,
+        @RequestParam( required = false ) String period )
     {
-        return orgUnitProfileService.getOrgUnitProfileData( uid, isoPeriod );
+        return orgUnitProfileService.getOrgUnitProfileData( uid, period );
     }
 }

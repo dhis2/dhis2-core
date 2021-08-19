@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletResponse;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -40,11 +39,12 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.schema.descriptors.ProgramIndicatorSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Lars Helge Overland
@@ -60,59 +60,42 @@ public class ProgramIndicatorController
     @Autowired
     private I18nManager i18nManager;
 
-    @RequestMapping( value = "/expression/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getExpressionDescription( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
+    @PostMapping( value = "/expression/description", produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage getExpressionDescription( @RequestBody String expression )
     {
         I18n i18n = i18nManager.getI18n();
-
-        DescriptiveWebMessage message = new DescriptiveWebMessage();
-
         try
         {
-            message.setDescription( programIndicatorService.getExpressionDescription( expression ) );
-
-            message.setStatus( Status.OK );
-
-            message.setMessage( i18n.getString( ProgramIndicator.VALID ) );
+            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
+                .setDescription( programIndicatorService.getExpressionDescription( expression ) )
+                .setMessage( i18n.getString( ProgramIndicator.VALID ) );
         }
         catch ( IllegalStateException e )
         {
-            message.setDescription( e.getMessage() );
-
-            message.setStatus( Status.ERROR );
-
-            message.setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
+            return new DescriptiveWebMessage( Status.ERROR, HttpStatus.OK )
+                .setDescription( e.getMessage() )
+                .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
         }
-
-        webMessageService.sendJson( message, response );
     }
 
-    @RequestMapping( value = "/filter/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void validateFilter( @RequestBody String expression, HttpServletResponse response )
-        throws IOException
+    @PostMapping( value = "/filter/description", produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage validateFilter( @RequestBody String expression )
     {
         I18n i18n = i18nManager.getI18n();
 
-        DescriptiveWebMessage message = new DescriptiveWebMessage();
-
         try
         {
-            message.setDescription( programIndicatorService.getFilterDescription( expression ) );
-
-            message.setStatus( Status.OK );
-
-            message.setMessage( i18n.getString( ProgramIndicator.VALID ) );
+            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
+                .setDescription( programIndicatorService.getFilterDescription( expression ) )
+                .setMessage( i18n.getString( ProgramIndicator.VALID ) );
         }
         catch ( IllegalStateException e )
         {
-            message.setDescription( e.getMessage() );
-
-            message.setStatus( Status.ERROR );
-
-            message.setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
+            return new DescriptiveWebMessage( Status.ERROR, HttpStatus.OK )
+                .setDescription( e.getMessage() )
+                .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
         }
-
-        webMessageService.sendJson( message, response );
     }
 }

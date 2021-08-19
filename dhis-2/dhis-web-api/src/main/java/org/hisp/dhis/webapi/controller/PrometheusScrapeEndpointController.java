@@ -36,8 +36,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import io.prometheus.client.CollectorRegistry;
@@ -58,7 +57,7 @@ public class PrometheusScrapeEndpointController
         this.collectorRegistry = collectorRegistry;
     }
 
-    @RequestMapping( value = "/metrics", method = RequestMethod.GET, produces = TextFormat.CONTENT_TYPE_004 )
+    @GetMapping( value = "/metrics", produces = TextFormat.CONTENT_TYPE_004 )
     @ResponseBody
     public String scrape()
     {

@@ -46,14 +46,21 @@ public enum ErrorCode
     E1105( "Data set not found or not accessible: `{0}`" ),
 
     /* Org unit merge */
-    E1500( "At least one source org unit must be specified" ),
+    E1500( "At least two source orgs unit must be specified" ),
     E1501( "Target org unit must be specified" ),
     E1502( "Target org unit cannot be a source org unit" ),
 
+    /* Org unit split */
+    E1510( "Source org unit must be specified" ),
+    E1511( "At least two target org units must be specified" ),
+    E1512( "Source org unit cannot be a target org unit" ),
+    E1513( "Primary target must be specified" ),
+    E1514( "Primary target must be a target org unit" ),
+
     /* Org unit move/create */
-    E1510( "User `{0}` is not allowed to move organisation units" ),
-    E1511( "User `{0}` is not allowed to create organisation with parent `{1}` outside of user''s hierarchy" ),
-    E1512(
+    E1515( "User `{0}` is not allowed to move organisation units" ),
+    E1516( "User `{0}` is not allowed to create organisation with parent `{1}` outside of user''s hierarchy" ),
+    E1517(
         "User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}` which is outside of user''s hierarchy" ),
 
     /* Data */
@@ -209,6 +216,8 @@ public enum ErrorCode
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." ),
     E5005( "Properties `{0}` in objects `{1}` must be unique within the payload" ),
+    E5006(
+        "Non owner reference {0} on object {1} for association `{2}` is not allowed within payload for ERRORS_NOT_OWNER" ),
 
     /* Metadata import */
     E6000( "Program `{0}` has more than one Program Instances" ),
@@ -297,6 +306,7 @@ public enum ErrorCode
     E7226( "Dimension is not a valid query item: `{0}`" ),
     E7227( "Relationship entity type not supported: `{0}`" ),
     E7228( "Fallback coordinate field is invalid: `{0}` " ),
+    E7229( "Operator '{0}' does not allow missing value" ),
 
     /* Org unit analytics */
     E7300( "At least one organisation unit must be specified" ),

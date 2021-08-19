@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,19 +39,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.security.SecurityUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -67,12 +71,9 @@ public class SecurityController
     private SystemSettingManager systemSettingManager;
 
     @Autowired
-    private WebMessageService webMessageService;
-
-    @Autowired
     private ObjectMapper jsonMapper;
 
-    @RequestMapping( value = "/qr", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
     public void getQrCode( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
@@ -91,12 +92,13 @@ public class SecurityController
         map.put( "url", url );
 
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
-        response.setContentType( "application/json" );
+        response.setContentType( APPLICATION_JSON_VALUE );
         jsonMapper.writeValue( response.getOutputStream(), map );
     }
 
-    @RequestMapping( value = "/authenticate", method = RequestMethod.GET, produces = "application/json" )
-    public void authenticate2FA( @RequestParam String code, HttpServletRequest request, HttpServletResponse response )
+    @GetMapping( value = "/authenticate", produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage authenticate2FA( @RequestParam String code )
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -107,11 +109,11 @@ public class SecurityController
 
         if ( !SecurityUtils.verify( currentUser.getUserCredentials(), code ) )
         {
-            webMessageService.send( WebMessageUtils.unathorized( "2FA code not authenticated" ), response, request );
+            return unauthorized( "2FA code not authenticated" );
         }
         else
         {
-            webMessageService.send( WebMessageUtils.ok( "2FA code authenticated" ), response, request );
+            return ok( "2FA code authenticated" );
         }
     }
 }

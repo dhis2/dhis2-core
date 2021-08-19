@@ -92,6 +92,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -1163,6 +1164,12 @@ public class JdbcEventStore implements EventStore
             sqlBuilder.append( hlp.whereAnd() ).append( " psi.lastupdated > psi.lastsynchronized " );
         }
 
+        if ( !CollectionUtils.isEmpty( params.getProgramInstances() ) )
+        {
+            sqlBuilder.append( hlp.whereAnd() )
+                .append( " (pi.uid in (" + getQuotedCommaDelimitedString( params.getProgramInstances() ) + "))" );
+        }
+
         return sqlBuilder.toString();
     }
 
@@ -1820,20 +1827,7 @@ public class JdbcEventStore implements EventStore
                 .collect( toList() );
             final String uids = Joiner.on( "," ).join( psiUids );
 
-            jdbcTemplate.execute( "DELETE FROM programstageinstancecomments where programstageinstanceid in "
-                + "(select programstageinstanceid from programstageinstance where uid in (" + uids + ") )" );
-
-            // remove link between comment and psi
-
-            jdbcTemplate.execute( "DELETE FROM trackedentitycomment t "
-                + "    where t.trackedentitycommentid in (SELECT psic.trackedentitycommentid "
-                + "                FROM programstageinstancecomments psic "
-                + "                WHERE psic.programstageinstanceid in "
-                + "                (select programstageinstanceid from programstageinstance where uid in (" + uids
-                + ")))" );
-
-            jdbcTemplate.execute( "DELETE FROM programstageinstance where uid in ( " + uids + ")" );
-
+            jdbcTemplate.execute( "UPDATE programstageinstance SET deleted = true where uid in ( " + uids + ")" );
         }
     }
 

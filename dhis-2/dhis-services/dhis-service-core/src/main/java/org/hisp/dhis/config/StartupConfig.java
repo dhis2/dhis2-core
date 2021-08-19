@@ -30,15 +30,11 @@ package org.hisp.dhis.config;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dataentryform.DataEntryFormService;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nLocaleService;
-import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodStore;
@@ -48,7 +44,6 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.startup.ConfigurationPopulator;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
-import org.hisp.dhis.startup.ExpressionUpgrader;
 import org.hisp.dhis.startup.I18nLocalePopulator;
 import org.hisp.dhis.startup.ModelUpgrader;
 import org.hisp.dhis.startup.SchedulerStart;
@@ -78,7 +73,7 @@ public class StartupConfig
     public TwoFAPopulator twoFAPopulator( UserService userService, CurrentUserService currentUserService )
     {
         TwoFAPopulator populator = new TwoFAPopulator( userService, currentUserService );
-        populator.setName( "PeriodTypePopulator" );
+        populator.setName( "TwoFAPopulator" );
         populator.setRunlevel( 3 );
         populator.setSkipInTests( true );
         return populator;
@@ -128,18 +123,6 @@ public class StartupConfig
         return upgrader;
     }
 
-    @Bean( "org.hisp.dhis.startup.ExpressionUpgrader" )
-    public ExpressionUpgrader expressionUpgrader( DataEntryFormService dataEntryFormService,
-        DataElementService dataElementService, CategoryService categoryService, IndicatorService indicatorService,
-        ConstantService constantService, ExpressionService expressionService )
-    {
-        ExpressionUpgrader upgrader = new ExpressionUpgrader( dataEntryFormService, dataElementService, categoryService,
-            indicatorService, constantService, expressionService );
-        upgrader.setRunlevel( 11 );
-        upgrader.setSkipInTests( true );
-        return upgrader;
-    }
-
     @Bean( "org.hisp.dhis.startup.SettingUpgrader" )
     public SettingUpgrader settingUpgrader( SystemSettingManager systemSettingManager )
     {
@@ -169,7 +152,7 @@ public class StartupConfig
             configurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ),
             configurationProvider.getProperty( ConfigurationKey.LEADER_TIME_TO_LIVE ), jobConfigurationService,
             schedulingManager, messageService );
-        schedulerStart.setRunlevel( 14 );
+        schedulerStart.setRunlevel( 15 );
         schedulerStart.setSkipInTests( true );
         return schedulerStart;
     }

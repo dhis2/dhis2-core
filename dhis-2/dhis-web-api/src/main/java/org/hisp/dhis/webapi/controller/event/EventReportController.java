@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.eventreport.EventReport;
@@ -69,10 +68,10 @@ public class EventReportController
     // --------------------------------------------------------------------------
 
     @Override
-    protected EventReport deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
+    protected EventReport deserializeJsonEntity( HttpServletRequest request )
         throws IOException
     {
-        EventReport eventReport = super.deserializeJsonEntity( request, response );
+        EventReport eventReport = super.deserializeJsonEntity( request );
         mergeEventReport( eventReport );
 
         return eventReport;

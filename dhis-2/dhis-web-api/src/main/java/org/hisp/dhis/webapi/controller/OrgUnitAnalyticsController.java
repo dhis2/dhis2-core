@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
@@ -39,8 +41,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -59,7 +60,7 @@ public class OrgUnitAnalyticsController
     @Autowired
     private ContextUtils contextUtils;
 
-    @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.GET, produces = { "application/json" } )
+    @GetMapping( value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE )
     public @ResponseBody Grid getJson(
         @RequestParam String ou,
         @RequestParam String ougs,
@@ -74,7 +75,7 @@ public class OrgUnitAnalyticsController
         return analyticsService.getOrgUnitData( params );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + ".xls", method = RequestMethod.GET )
+    @GetMapping( RESOURCE_PATH + ".xls" )
     public void getXls(
         @RequestParam String ou,
         @RequestParam String ougs,
@@ -90,7 +91,7 @@ public class OrgUnitAnalyticsController
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + ".csv", method = RequestMethod.GET )
+    @GetMapping( RESOURCE_PATH + ".csv" )
     public void getCsv(
         @RequestParam String ou,
         @RequestParam String ougs,
@@ -105,7 +106,7 @@ public class OrgUnitAnalyticsController
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + ".pdf", method = RequestMethod.GET )
+    @GetMapping( RESOURCE_PATH + ".pdf" )
     public void getPdf(
         @RequestParam String ou,
         @RequestParam String ougs,

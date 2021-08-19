@@ -52,6 +52,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
@@ -61,6 +62,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.orgunitprofile.OrgUnitInfo;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
@@ -103,17 +106,24 @@ public class DefaultOrgUnitProfileService
 
     private OrganisationUnitGroupService groupService;
 
+    private OrganisationUnitService organisationUnitService;
+
     private ObjectMapper jsonMapper;
 
-    public DefaultOrgUnitProfileService( KeyJsonValueService dataStore,
-        IdentifiableObjectManager idObjectManager, AnalyticsService analyticsService,
-        OrganisationUnitGroupService groupService, ObjectMapper jsonMapper )
+    public DefaultOrgUnitProfileService(
+        KeyJsonValueService dataStore,
+        IdentifiableObjectManager idObjectManager,
+        AnalyticsService analyticsService,
+        OrganisationUnitGroupService groupService,
+        OrganisationUnitService organisationUnitService,
+        ObjectMapper jsonMapper )
     {
         this.dataStore = dataStore;
         this.idObjectManager = idObjectManager;
         this.analyticsService = analyticsService;
-        this.jsonMapper = jsonMapper;
         this.groupService = groupService;
+        this.organisationUnitService = organisationUnitService;
+        this.jsonMapper = jsonMapper;
 
         this.dataStore.addProtection(
             new KeyJsonNamespaceProtection( ORG_UNIT_PROFILE_NAMESPACE, KeyJsonNamespaceProtection.ProtectionType.NONE,
@@ -206,6 +216,9 @@ public class DefaultOrgUnitProfileService
         info.setName( orgUnit.getDisplayName() );
         info.setShortName( orgUnit.getDisplayShortName() );
         info.setDescription( orgUnit.getDisplayDescription() );
+        info.setParentName( orgUnit.isRoot() ? null : orgUnit.getParent().getDisplayName() );
+        info.setLevel( orgUnit.getLevel() );
+        info.setLevelName( getOrgUnitLevelName( orgUnit.getLevel() ) );
         info.setOpeningDate( orgUnit.getOpeningDate() );
         info.setClosedDate( orgUnit.getClosedDate() );
         info.setComment( orgUnit.getComment() );
@@ -228,6 +241,11 @@ public class DefaultOrgUnitProfileService
                 info.setLongitude( point.getX() );
                 info.setLatitude( point.getY() );
             }
+        }
+
+        if ( orgUnit.getImage() != null )
+        {
+            info.setImageId( orgUnit.getImage().getUid() );
         }
 
         return info;
@@ -381,7 +399,7 @@ public class DefaultOrgUnitProfileService
 
         if ( unit == null )
         {
-            throw new IllegalQueryException( ErrorCode.E1102 );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1102, orgUnit ) );
         }
 
         return unit;
@@ -409,6 +427,21 @@ public class DefaultOrgUnitProfileService
                     RelativePeriodEnum.THIS_YEAR, new Date() )
                 .get( 0 );
         }
+    }
+
+    /**
+     * Returns the name of the org unit level corresponding to the numeric
+     * level.
+     *
+     * @param level the numeric org unit level.
+     * @return the org unit level name, or null if not exists.
+     */
+    private String getOrgUnitLevelName( Integer level )
+    {
+        OrganisationUnitLevel orgUnitLevel = organisationUnitService
+            .getOrganisationUnitLevelByLevel( level );
+
+        return orgUnitLevel != null ? orgUnitLevel.getDisplayName() : null;
     }
 
     /**
@@ -455,9 +488,17 @@ public class DefaultOrgUnitProfileService
 
         for ( String dataItemId : dataItems )
         {
-            if ( idObjectManager.get( DATA_ITEM_CLASSES, dataItemId ) == null )
+            IdentifiableObject dataItem = idObjectManager.get( DATA_ITEM_CLASSES, dataItemId );
+
+            if ( dataItem == null )
             {
                 errorReports.add( new ErrorReport( Collection.class, ErrorCode.E4014, dataItemId, "dataItems" ) );
+            }
+
+            if ( dataItem != null && DataElement.class.isAssignableFrom( dataItem.getClass() ) &&
+                !((DataElement) dataItem).getValueType().isAggregatable() )
+            {
+                errorReports.add( new ErrorReport( DataElement.class, ErrorCode.E7115, dataItemId ) );
             }
         }
 

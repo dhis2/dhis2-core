@@ -28,29 +28,26 @@
 package org.hisp.dhis.deduplication;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service( "org.hisp.dhis.deduplication.DeduplicationService" )
+@RequiredArgsConstructor
 public class DefaultDeduplicationService
     implements DeduplicationService
 {
-
     private final PotentialDuplicateStore potentialDuplicateStore;
 
-    public DefaultDeduplicationService( PotentialDuplicateStore potentialDuplicateStore )
-    {
-        this.potentialDuplicateStore = potentialDuplicateStore;
-    }
-
-    @Override
-    @Transactional
-    public long addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
-    {
-        potentialDuplicateStore.save( potentialDuplicate );
-        return potentialDuplicate.getId();
-    }
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Override
     @Transactional( readOnly = true )
@@ -74,11 +71,24 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    @Transactional
-    public void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate )
+    @Transactional( readOnly = true )
+    public boolean exists( PotentialDuplicate potentialDuplicate )
     {
-        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
-        potentialDuplicateStore.update( potentialDuplicate );
+        return potentialDuplicateStore.exists( potentialDuplicate );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query )
+    {
+        return potentialDuplicateStore.getAllByQuery( query );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<PotentialDuplicate> getPotentialDuplicateByTei( String tei, DeduplicationStatus status )
+    {
+        return potentialDuplicateStore.getAllByTei( tei, status );
     }
 
     @Override
@@ -90,23 +100,90 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public boolean exists( PotentialDuplicate potentialDuplicate )
+    @Transactional
+    public void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
-        return potentialDuplicateStore.exists( potentialDuplicate );
+        potentialDuplicateStore.update( potentialDuplicate );
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query )
+    public boolean isAutoMergeable( PotentialDuplicate potentialDuplicate )
     {
-        return potentialDuplicateStore.getAllByQuery( query );
+        TrackedEntityInstance trackedEntityInstanceA = Optional.ofNullable( trackedEntityInstanceService
+            .getTrackedEntityInstance( potentialDuplicate.getTeiA() ) )
+            .orElseThrow( () -> new PotentialDuplicateException(
+                "No tracked entity instance found with id '" + potentialDuplicate.getTeiA() + "'." ) );
+
+        TrackedEntityInstance trackedEntityInstanceB = Optional.ofNullable( trackedEntityInstanceService
+            .getTrackedEntityInstance( potentialDuplicate.getTeiB() ) )
+            .orElseThrow( () -> new PotentialDuplicateException(
+                "No tracked entity instance found with id '" + potentialDuplicate.getTeiB() + "'." ) );
+
+        if ( enrolledSameProgram( trackedEntityInstanceA, trackedEntityInstanceB ) )
+            return false;
+
+        if ( !trackedEntityInstanceA.getTrackedEntityType().equals( trackedEntityInstanceB.getTrackedEntityType() ) )
+        {
+            return false;
+        }
+
+        if ( trackedEntityInstanceA.isDeleted() || trackedEntityInstanceB.isDeleted() )
+        {
+            return false;
+        }
+
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA = trackedEntityInstanceA
+            .getTrackedEntityAttributeValues();
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB = trackedEntityInstanceB
+            .getTrackedEntityAttributeValues();
+
+        return !sameAttributesAreEquals( trackedEntityAttributeValueA, trackedEntityAttributeValueB );
+    }
+
+    private boolean sameAttributesAreEquals( Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA,
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB )
+    {
+        if ( trackedEntityAttributeValueA.isEmpty() || trackedEntityAttributeValueB.isEmpty() )
+        {
+            return false;
+        }
+
+        for ( TrackedEntityAttributeValue teavA : trackedEntityAttributeValueA )
+        {
+            for ( TrackedEntityAttributeValue teavB : trackedEntityAttributeValueB )
+            {
+                if ( teavA.getAttribute().equals( teavB.getAttribute() )
+                    && !teavA.getValue().equals( teavB.getValue() ) )
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean enrolledSameProgram( TrackedEntityInstance trackedEntityInstanceA,
+        TrackedEntityInstance trackedEntityInstanceB )
+    {
+        if ( !trackedEntityInstanceA.getProgramInstances().isEmpty()
+            && !trackedEntityInstanceB.getProgramInstances().isEmpty() )
+        {
+            for ( ProgramInstance programInstanceA : trackedEntityInstanceA.getProgramInstances() )
+            {
+                for ( ProgramInstance programInstanceB : trackedEntityInstanceB.getProgramInstances() )
+                {
+                    if ( programInstanceA.getProgram().equals( programInstanceB.getProgram() ) )
+                        return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
     @Transactional
-    public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
+    public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
-        potentialDuplicateStore.delete( potentialDuplicate );
+        potentialDuplicateStore.save( potentialDuplicate );
     }
 }

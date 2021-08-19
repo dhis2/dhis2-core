@@ -927,6 +927,18 @@ public abstract class DhisConvenienceTest
     }
 
     /**
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param path A path, ie.: "/"
+     */
+    public static OrganisationUnit createOrganisationUnit( char uniqueCharacter, String path )
+    {
+        OrganisationUnit unit = createOrganisationUnit( uniqueCharacter );
+        unit.setPath( path );
+
+        return unit;
+    }
+
+    /**
      * @param name The name, short name and code of the organisation unit.
      */
     public static OrganisationUnit createOrganisationUnit( String name )
@@ -2476,6 +2488,11 @@ public abstract class DhisConvenienceTest
         de.setCode( "DCode" + name );
 
         return new ProgramDataElementDimensionItem( pr, de );
+    }
+
+    protected void removeUserAccess( IdentifiableObject object )
+    {
+        object.getSharing().resetUserAccesses();
     }
 
     protected void enableDataSharing( User user, IdentifiableObject object, String access )

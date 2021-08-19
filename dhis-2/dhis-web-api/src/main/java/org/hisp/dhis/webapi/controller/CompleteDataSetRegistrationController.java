@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.COMPLETE_DATA_SET_REGISTRATION_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
@@ -53,6 +55,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
@@ -67,26 +70,26 @@ import org.hisp.dhis.dxf2.dataset.ExportParams;
 import org.hisp.dhis.dxf2.dataset.tasks.ImportCompleteDataSetRegistrationsTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
@@ -125,19 +128,16 @@ public class CompleteDataSetRegistrationController
     private RenderService renderService;
 
     @Autowired
-    private SchedulingManager schedulingManager;
+    private AsyncTaskExecutor taskExecutor;
 
     @Autowired
     private SessionFactory sessionFactory;
-
-    @Autowired
-    private WebMessageService webMessageService;
 
     // -------------------------------------------------------------------------
     // GET
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML )
+    @GetMapping( produces = CONTENT_TYPE_XML )
     public void getCompleteRegistrationsXml(
         @RequestParam Set<String> dataSet,
         @RequestParam( required = false ) Set<String> period,
@@ -163,7 +163,7 @@ public class CompleteDataSetRegistrationController
         registrationExchangeService.writeCompleteDataSetRegistrationsXml( params, response.getOutputStream() );
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_JSON )
+    @GetMapping( produces = CONTENT_TYPE_JSON )
     public void getCompleteRegistrationsJson(
         @RequestParam Set<String> dataSet,
         @RequestParam( required = false ) Set<String> period,
@@ -193,49 +193,43 @@ public class CompleteDataSetRegistrationController
     // POST
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML )
-    public void postCompleteRegistrationsXml(
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    @PostMapping( consumes = CONTENT_TYPE_XML, produces = CONTENT_TYPE_XML )
+    @ResponseBody
+    public WebMessage postCompleteRegistrationsXml(
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         if ( importOptions.isAsync() )
         {
-            asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_XML, request, response );
+            return asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_XML, request );
         }
-        else
-        {
-            response.setContentType( CONTENT_TYPE_XML );
-            ImportSummary summary = registrationExchangeService
-                .saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
-            summary.setImportOptions( importOptions );
-            renderService.toXml( response.getOutputStream(), summary );
-        }
+        ImportSummary summary = registrationExchangeService
+            .saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
+        summary.setImportOptions( importOptions );
+        return importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
-    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON )
-    public void postCompleteRegistrationsJson(
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    @PostMapping( consumes = CONTENT_TYPE_JSON, produces = CONTENT_TYPE_JSON )
+    @ResponseBody
+    public WebMessage postCompleteRegistrationsJson(
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         if ( importOptions.isAsync() )
         {
-            asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_JSON, request, response );
+            return asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_JSON, request );
         }
-        else
-        {
-            response.setContentType( CONTENT_TYPE_JSON );
-            ImportSummary summary = registrationExchangeService
-                .saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
-            summary.setImportOptions( importOptions );
-            renderService.toJson( response.getOutputStream(), summary );
-        }
+        ImportSummary summary = registrationExchangeService
+            .saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
+        summary.setImportOptions( importOptions );
+        return importSummary( summary ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     // -------------------------------------------------------------------------
     // DELETE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.DELETE )
+    @DeleteMapping
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCompleteDataSetRegistration(
         @RequestParam Set<String> ds,
@@ -251,21 +245,21 @@ public class CompleteDataSetRegistrationController
         if ( dataSets.size() != ds.size() )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Illegal data set identifier in this list: " + ds ) );
+                conflict( "Illegal data set identifier in this list: " + ds ) );
         }
 
         Period period = PeriodType.getPeriodFromIsoString( pe );
 
         if ( period == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal period identifier: " + pe ) );
+            throw new WebMessageException( conflict( "Illegal period identifier: " + pe ) );
         }
 
         OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( ou );
 
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
+            throw new WebMessageException( conflict( "Illegal organisation unit identifier: " + ou ) );
         }
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
@@ -295,7 +289,7 @@ public class CompleteDataSetRegistrationController
         if ( lockedDataSets.size() != 0 )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Locked Data set(s) : " + StringUtils.join( lockedDataSets, ", " ) ) );
+                conflict( "Locked Data set(s) : " + StringUtils.join( lockedDataSets, ", " ) ) );
         }
 
         // ---------------------------------------------------------------------
@@ -317,8 +311,7 @@ public class CompleteDataSetRegistrationController
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void asyncImport( ImportOptions importOptions, String format, HttpServletRequest request,
-        HttpServletResponse response )
+    private WebMessage asyncImport( ImportOptions importOptions, String format, HttpServletRequest request )
         throws IOException
     {
         Pair<InputStream, Path> tmpFile = saveTmpFile( request.getInputStream() );
@@ -326,15 +319,14 @@ public class CompleteDataSetRegistrationController
         JobConfiguration jobId = new JobConfiguration( "inMemoryCompleteDataSetRegistrationImport",
             COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser().getUid(), true );
 
-        schedulingManager.executeJob(
+        taskExecutor.executeTask(
             new ImportCompleteDataSetRegistrationsTask(
                 registrationExchangeService, sessionFactory, tmpFile.getLeft(), tmpFile.getRight(), importOptions,
                 format,
                 jobId ) );
 
-        response.setHeader( "Location",
-            ContextUtils.getRootPath( request ) + "/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT );
-        webMessageService.send( jobConfigurationReport( jobId ), response, request );
+        return jobConfigurationReport( jobId )
+            .setLocation( "/system/tasks/" + COMPLETE_DATA_SET_REGISTRATION_IMPORT );
     }
 
     private Pair<InputStream, Path> saveTmpFile( InputStream in )

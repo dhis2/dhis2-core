@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -39,15 +41,23 @@ import org.junit.Test;
  */
 public class OrgUnitMergeValidatorTest
 {
-    private OrgUnitMergeValidator validator = new OrgUnitMergeValidator();
+    private OrgUnitMergeValidator validator;
+
+    @Before
+    public void before()
+    {
+        validator = new OrgUnitMergeValidator();
+    }
 
     @Test
     public void testValidateMissingSources()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
 
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .withTarget( ouA )
+            .addSource( ouA )
+            .withTarget( ouB )
             .build();
 
         assertEquals( ErrorCode.E1500, validator.validateForErrorMessage( request ).getErrorCode() );
@@ -57,9 +67,11 @@ public class OrgUnitMergeValidatorTest
     public void testValidateMissingTarget()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
 
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
             .addSource( ouA )
+            .addSource( ouB )
             .build();
 
         assertEquals( ErrorCode.E1501, validator.validateForErrorMessage( request ).getErrorCode() );
@@ -78,5 +90,21 @@ public class OrgUnitMergeValidatorTest
             .build();
 
         assertEquals( ErrorCode.E1502, validator.validateForErrorMessage( request ).getErrorCode() );
+    }
+
+    @Test
+    public void testValidateSuccess()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+        OrganisationUnit ouC = createOrganisationUnit( 'C' );
+
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .addSource( ouA )
+            .addSource( ouB )
+            .withTarget( ouC )
+            .build();
+
+        assertNull( validator.validateForErrorMessage( request ) );
     }
 }

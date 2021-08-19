@@ -35,7 +35,6 @@ import javax.annotation.Nonnull;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -54,7 +53,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component( "programRuleActionObjectBundle" )
-public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
+public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<ProgramRuleAction>
 {
     @NonNull
     @Qualifier( "programRuleActionValidatorMap" )
@@ -72,16 +71,8 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> void validate( T object, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
+    public void validate( ProgramRuleAction programRuleAction, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
-        if ( !(object instanceof ProgramRuleAction) )
-        {
-            return;
-        }
-
-        ProgramRuleAction programRuleAction = (ProgramRuleAction) object;
-
         ProgramRuleActionValidationResult validationResult = validateProgramRuleAction( programRuleAction, bundle );
 
         if ( !validationResult.isValid() )

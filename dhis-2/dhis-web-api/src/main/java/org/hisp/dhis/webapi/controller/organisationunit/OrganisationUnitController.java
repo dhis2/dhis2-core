@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.organisationunit;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -42,6 +43,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.TranslateParams;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeQuery;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeService;
@@ -54,6 +56,8 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
+import org.hisp.dhis.split.orgunit.OrgUnitSplitQuery;
+import org.hisp.dhis.split.orgunit.OrgUnitSplitService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.version.VersionService;
@@ -65,11 +69,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -94,14 +98,29 @@ public class OrganisationUnitController
     private VersionService versionService;
 
     @Autowired
+    private OrgUnitSplitService orgUnitSplitService;
+
+    @Autowired
     private OrgUnitMergeService orgUnitMergeService;
 
     @ResponseStatus( HttpStatus.OK )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_SPLIT')" )
+    @PostMapping( value = "/split", produces = APPLICATION_JSON_VALUE )
+    public @ResponseBody WebMessage splitOrgUnits( @RequestBody OrgUnitSplitQuery query )
+    {
+        orgUnitSplitService.split( orgUnitSplitService.getFromQuery( query ) );
+
+        return ok( "Organisation unit split" );
+    }
+
+    @ResponseStatus( HttpStatus.OK )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_MERGE')" )
-    @PostMapping( value = "/merge", produces = { APPLICATION_JSON_VALUE } )
-    public void mergeOrgUnits( @RequestBody OrgUnitMergeQuery query )
+    @PostMapping( value = "/merge", produces = APPLICATION_JSON_VALUE )
+    public @ResponseBody WebMessage mergeOrgUnits( @RequestBody OrgUnitMergeQuery query )
     {
         orgUnitMergeService.merge( orgUnitMergeService.getFromQuery( query ) );
+
+        return ok( "Organisation units merged" );
     }
 
     @Override
@@ -256,7 +275,7 @@ public class OrganisationUnitController
         return organisationUnits;
     }
 
-    @RequestMapping( value = "/{uid}/parents", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/parents" )
     public @ResponseBody List<OrganisationUnit> getEntityList( @PathVariable( "uid" ) String uid,
         @RequestParam Map<String, String> parameters, Model model, TranslateParams translateParams,
         HttpServletRequest request, HttpServletResponse response )
@@ -283,7 +302,7 @@ public class OrganisationUnitController
         return organisationUnits;
     }
 
-    @RequestMapping( value = "", method = RequestMethod.GET, produces = { "application/json+geo",
+    @GetMapping( value = "", produces = { "application/json+geo",
         "application/json+geojson" } )
     public void getGeoJson(
         @RequestParam( value = "level", required = false ) List<Integer> rpLevels,
@@ -310,7 +329,7 @@ public class OrganisationUnitController
         List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitsAtLevels( rpLevels,
             parents );
 
-        response.setContentType( "application/json" );
+        response.setContentType( APPLICATION_JSON_VALUE );
 
         JsonFactory jsonFactory = new JsonFactory();
         JsonGenerator generator = jsonFactory.createGenerator( response.getOutputStream() );

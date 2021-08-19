@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -39,7 +41,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconData;
 import org.hisp.dhis.icon.IconService;
@@ -50,7 +51,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.net.MediaType;
 
@@ -70,7 +75,7 @@ public class IconController
     @Autowired
     private ContextService contextService;
 
-    @RequestMapping( method = RequestMethod.GET )
+    @GetMapping
     public @ResponseBody List<IconData> getIcons( HttpServletResponse response,
         @RequestParam( required = false ) Collection<String> keywords )
     {
@@ -91,13 +96,13 @@ public class IconController
             .collect( Collectors.toList() );
     }
 
-    @RequestMapping( value = "/keywords", method = RequestMethod.GET )
+    @GetMapping( "/keywords" )
     public @ResponseBody Collection<String> getKeywords( HttpServletResponse response )
     {
         return iconService.getKeywords();
     }
 
-    @RequestMapping( value = "/{iconKey}", method = RequestMethod.GET )
+    @GetMapping( "/{iconKey}" )
     public @ResponseBody IconData getIcon( HttpServletResponse response, @PathVariable String iconKey )
         throws WebMessageException
     {
@@ -106,7 +111,7 @@ public class IconController
         if ( !icon.isPresent() )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( String.format( "Icon not found: '%s", iconKey ) ) );
+                notFound( String.format( "Icon not found: '%s", iconKey ) ) );
         }
 
         icon.get().setReference( String.format( "%s%s/%s/icon.%s", contextService.getApiPath(),
@@ -115,7 +120,7 @@ public class IconController
         return icon.get();
     }
 
-    @RequestMapping( value = "/{iconKey}/icon.svg", method = RequestMethod.GET )
+    @GetMapping( "/{iconKey}/icon.svg" )
     public void getIconData( HttpServletResponse response, @PathVariable String iconKey )
         throws WebMessageException,
         IOException
@@ -125,7 +130,7 @@ public class IconController
         if ( !icon.isPresent() )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( String.format( "Icon resource not found: '%s", iconKey ) ) );
+                notFound( String.format( "Icon resource not found: '%s", iconKey ) ) );
         }
 
         response.setHeader( "Cache-Control", CacheControl.maxAge( TTL, TimeUnit.DAYS ).getHeaderValue() );

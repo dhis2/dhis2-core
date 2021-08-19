@@ -54,6 +54,14 @@ public interface GistAccessControl
      */
     boolean isSuperuser();
 
+    /**
+     * Whether or not the current user is allowed to use Gist API
+     * {@code describe} to view the HQL query.
+     *
+     * @return true, if the current user is allowed, otherwise false
+     */
+    boolean canReadHQL();
+
     boolean canRead( Class<? extends IdentifiableObject> type );
 
     boolean canReadObject( Class<? extends IdentifiableObject> type, String uid );
@@ -98,4 +106,5 @@ public interface GistAccessControl
     Access asAccess( Class<? extends IdentifiableObject> type, Sharing value );
 
     String createAccessFilterHQL( String tableName );
+
 }

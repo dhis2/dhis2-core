@@ -32,6 +32,7 @@ import java.util.function.Consumer;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary.JsonConflict;
 
 /**
  * A generic error JSON as usually returned by DHIS2.
@@ -97,19 +98,39 @@ public interface JsonError extends JsonObject
             }
         };
         String message = getMessage();
-        str.append( message != null ? message : "(no error message in response)" );
-        if ( getTypeReport().exists() )
+        str.append( message != null
+            ? message
+            : String.format( "(no error message in %d %s response)", getHttpStatusCode(),
+                getHttpStatus() ) );
+        JsonTypeReport report = getTypeReport();
+        if ( report.exists() )
         {
-            printer.accept( getTypeReport().getErrorReports() );
-            if ( getTypeReport().getObjectReports().exists() )
+            printer.accept( report.getErrorReports() );
+            if ( report.getObjectReports().exists() )
             {
-                for ( JsonObjectReport report : getTypeReport().getObjectReports() )
+                for ( JsonObjectReport objectReport : report.getObjectReports() )
                 {
-                    str.append( "\n* " ).append( report.getKlass() );
-                    printer.accept( report.getErrorReports() );
+                    str.append( "\n* " ).append( objectReport.getKlass() );
+                    printer.accept( objectReport.getErrorReports() );
+                }
+            }
+            addSummaries( str, report );
+        }
+        return str.toString();
+    }
+
+    static void addSummaries( StringBuilder str, JsonTypeReport report )
+    {
+        JsonList<JsonImportSummary> summaries = report.getImportSummaries();
+        if ( summaries.exists() )
+        {
+            for ( JsonImportSummary summary : summaries )
+            {
+                for ( JsonConflict conflict : summary.getConflicts() )
+                {
+                    str.append( "\n  " ).append( conflict.getObject() ).append( ' ' ).append( conflict.getValue() );
                 }
             }
         }
-        return str.toString();
     }
 }

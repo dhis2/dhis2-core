@@ -49,15 +49,15 @@ import org.hisp.dhis.schema.Schema;
 public class UniqueMultiPropertiesCheck implements ObjectValidationCheck
 {
     @Override
-    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext context, Consumer<ObjectReport> addReports )
     {
         Schema schema = context.getSchemaService().getSchema( klass );
 
         Map<List<String>, List<IdentifiableObject>> propertyValuesToObjects = new HashMap<>();
 
-        for ( IdentifiableObject identifiableObject : nonPersistedObjects )
+        for ( T identifiableObject : nonPersistedObjects )
         {
             for ( Map.Entry<Collection<String>, Collection<Function<IdentifiableObject, String>>> entry : schema
                 .getUniqueMultiPropertiesExctractors().entrySet() )

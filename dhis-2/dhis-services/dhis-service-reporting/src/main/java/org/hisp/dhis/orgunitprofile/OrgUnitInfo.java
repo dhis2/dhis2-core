@@ -59,6 +59,15 @@ public class OrgUnitInfo
     private String description;
 
     @JsonProperty
+    private String parentName;
+
+    @JsonProperty
+    private Integer level;
+
+    @JsonProperty
+    private String levelName;
+
+    @JsonProperty
     private Date openingDate;
 
     @JsonProperty
@@ -87,4 +96,7 @@ public class OrgUnitInfo
 
     @JsonProperty
     private Double latitude;
+
+    @JsonProperty
+    private String imageId;
 }

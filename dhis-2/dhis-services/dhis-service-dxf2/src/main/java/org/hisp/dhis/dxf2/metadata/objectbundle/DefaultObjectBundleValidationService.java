@@ -83,15 +83,7 @@ public class DefaultObjectBundleValidationService
 
         for ( Class<? extends IdentifiableObject> klass : klasses )
         {
-            List<IdentifiableObject> nonPersistedObjects = bundle.getObjects( klass, false );
-            List<IdentifiableObject> persistedObjects = bundle.getObjects( klass, true );
-
-            cleanDefaults( bundle.getPreheat(), nonPersistedObjects );
-            cleanDefaults( bundle.getPreheat(), persistedObjects );
-
-            // Validate the bundle by running the validation checks chain
-            validation.addTypeReport( validationFactory.validateBundle( bundle, klass, persistedObjects,
-                nonPersistedObjects ) );
+            validateObjectType( bundle, validation, klass );
         }
 
         validateAtomicity( bundle, validation );
@@ -102,7 +94,21 @@ public class DefaultObjectBundleValidationService
         return validation;
     }
 
-    private void cleanDefaults( Preheat preheat, List<IdentifiableObject> objects )
+    private <T extends IdentifiableObject> void validateObjectType( ObjectBundle bundle,
+        ObjectBundleValidationReport validation, Class<T> klass )
+    {
+        List<T> nonPersistedObjects = bundle.getObjects( klass, false );
+        List<T> persistedObjects = bundle.getObjects( klass, true );
+
+        cleanDefaults( bundle.getPreheat(), nonPersistedObjects );
+        cleanDefaults( bundle.getPreheat(), persistedObjects );
+
+        // Validate the bundle by running the validation checks chain
+        validation
+            .addTypeReport( validationFactory.validateBundle( bundle, klass, persistedObjects, nonPersistedObjects ) );
+    }
+
+    private void cleanDefaults( Preheat preheat, List<? extends IdentifiableObject> objects )
     {
         objects.removeIf( preheat::isDefault );
     }
@@ -125,7 +131,7 @@ public class DefaultObjectBundleValidationService
 
         if ( AtomicMode.ALL == bundle.getAtomicMode() )
         {
-            if ( !validation.getErrorReports().isEmpty() )
+            if ( validation.hasErrorReports() )
             {
                 nonPersistedObjects.clear();
                 persistedObjects.clear();
