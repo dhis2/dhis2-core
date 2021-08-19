@@ -25,22 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.program.notification;
 
-import java.util.List;
+import java.util.Date;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface PotentialDuplicateStore
-    extends IdentifiableObjectStore<PotentialDuplicate>
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+
+/**
+ * @author Zubair Asghar
+ */
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ProgramNotificationInstanceParam
 {
-    int getCountByQuery( PotentialDuplicateQuery query );
+    public static final int DEFAULT_PAGE_SIZE = 50;
 
-    List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query );
+    public static final int DEFAULT_PAGE = 0;
 
-    boolean exists( PotentialDuplicate potentialDuplicate );
+    private ProgramInstance programInstance;
 
-    void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject );
+    private ProgramStageInstance programStageInstance;
 
+    private Date scheduledAt;
+
+    private Integer page;
+
+    private Integer pageSize;
+
+    private boolean skipPaging;
+
+    public boolean hasProgramInstance()
+    {
+        return programInstance != null;
+    }
+
+    public boolean hasProgramStageInstance()
+    {
+        return programStageInstance != null;
+    }
+
+    public boolean hasScheduledAt()
+    {
+        return scheduledAt != null;
+    }
 }

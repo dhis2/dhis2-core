@@ -25,22 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.List;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import com.google.common.collect.Lists;
 
-public interface PotentialDuplicateStore
-    extends IdentifiableObjectStore<PotentialDuplicate>
+/**
+ * @author Zubair Asghar
+ */
+public class ProgramNotificationInstanceSchemaDescriptor
+    implements SchemaDescriptor
 {
-    int getCountByQuery( PotentialDuplicateQuery query );
+    public static final String SINGULAR = "programNotificationInstance";
 
-    List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query );
+    public static final String PLURAL = "programNotificationInstances";
 
-    boolean exists( PotentialDuplicate potentialDuplicate );
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
-    void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject );
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( ProgramNotificationInstance.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1508 );
 
+        schema.add( new Authority( AuthorityType.CREATE,
+            Lists.newArrayList( "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_DELETE" ) ) );
+
+        return schema;
+    }
 }
