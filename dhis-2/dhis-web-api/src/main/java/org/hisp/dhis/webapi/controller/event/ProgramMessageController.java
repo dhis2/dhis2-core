@@ -33,9 +33,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -116,23 +114,6 @@ public class ProgramMessageController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @GetMapping( "/scheduled" )
-    public void getScheduledMessage( @RequestParam( required = false ) Date scheduledAt, HttpServletResponse response )
-        throws IOException
-    {
-        List<ProgramNotificationInstance> instances = programNotificationInstanceStore.getAll();
-
-        if ( scheduledAt != null )
-        {
-            instances = instances.parallelStream().filter( Objects::nonNull )
-                .filter( i -> scheduledAt.equals( i.getScheduledAt() ) )
-                .collect( Collectors.toList() );
-        }
-
-        renderService.toJson( response.getOutputStream(), instances );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @GetMapping( "/scheduled/sent" )
     public void getScheduledSentMessage(
         @RequestParam( required = false ) String programInstance,
@@ -158,8 +139,7 @@ public class ProgramMessageController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     public void saveMessages( HttpServletRequest request, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws IOException
     {
         ProgramMessageBatch batch = renderService.fromJson( request.getInputStream(), ProgramMessageBatch.class );
 

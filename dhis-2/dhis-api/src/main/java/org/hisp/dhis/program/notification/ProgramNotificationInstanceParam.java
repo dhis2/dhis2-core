@@ -25,50 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.template.snapshot;
+package org.hisp.dhis.program.notification;
 
-import java.util.Set;
+import java.util.Date;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.program.notification.NotificationTrigger;
-import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+/**
+ * @author Zubair Asghar
+ */
 
 @Data
-@EqualsAndHashCode( callSuper = true )
-public class ProgramNotificationTemplateSnapshot extends IdentifiableObjectSnapshot
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ProgramNotificationInstanceParam
 {
+    public static final int DEFAULT_PAGE_SIZE = 50;
 
-    @JsonProperty
-    private NotificationTrigger notificationTrigger;
+    public static final int DEFAULT_PAGE = 0;
 
-    @JsonProperty
-    private ProgramNotificationRecipient notificationRecipient;
+    private ProgramInstance programInstance;
 
-    private IdentifiableObjectSnapshot recipientDataElement;
+    private ProgramStageInstance programStageInstance;
 
-    private IdentifiableObjectSnapshot recipientProgramAttribute;
+    private Date scheduledAt;
 
-    private UserGroupSnapshot recipientUserGroup;
+    private Integer page;
 
-    @JsonProperty
-    private String subjectTemplate;
+    private Integer pageSize;
 
-    @JsonProperty
-    private String messageTemplate;
+    private boolean skipPaging;
 
-    @JsonProperty
-    private Set<DeliveryChannel> deliveryChannels;
+    public boolean hasProgramInstance()
+    {
+        return programInstance != null;
+    }
 
-    private Boolean notifyUsersInHierarchyOnly;
+    public boolean hasProgramStageInstance()
+    {
+        return programStageInstance != null;
+    }
 
-    private Boolean notifyParentOrganisationUnitOnly;
-
-    @JsonProperty
-    private boolean sendRepeatable;
-
+    public boolean hasScheduledAt()
+    {
+        return scheduledAt != null;
+    }
 }
