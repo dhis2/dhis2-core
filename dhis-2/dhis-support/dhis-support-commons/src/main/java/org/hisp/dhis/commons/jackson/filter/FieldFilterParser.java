@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.commons.jackson.filter;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Stack;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -52,13 +51,13 @@ public class FieldFilterParser
     private static Set<String> expandField( String field, String prefix )
     {
         Set<String> output = new HashSet<>();
-        Deque<String> path = new ArrayDeque<>();
+        Stack<String> path = new Stack<>();
         StringBuilder builder = new StringBuilder();
 
         if ( prefix != null )
         {
             output.add( prefix );
-            path.addLast( prefix );
+            path.push( prefix );
         }
 
         for ( String token : field.split( "" ) )
@@ -70,13 +69,13 @@ public class FieldFilterParser
             }
             else if ( isBlockStart( token ) )
             {
-                path.addLast( builder.toString() );
+                path.push( builder.toString() );
                 builder = new StringBuilder();
             }
             else if ( isBlockEnd( token ) )
             {
                 output.add( toFullPath( builder.toString(), path ) );
-                output.add( path.getLast() );
+                output.add( path.pop() );
 
                 builder = new StringBuilder();
             }
@@ -120,7 +119,7 @@ public class FieldFilterParser
             || StringUtils.containsAny( token, "*", ":", ";", "{", "}", "~", "!" );
     }
 
-    private static String toFullPath( String field, Deque<String> path )
+    private static String toFullPath( String field, Stack<String> path )
     {
         return path.isEmpty() ? field : StringUtils.join( path, "." ) + "." + field;
     }
