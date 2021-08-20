@@ -118,4 +118,28 @@ public class DefaultProgramNotificationTemplateStore
 
         return query.getResultList();
     }
+
+    @Override
+    public Long countProgramNotificationTemplates( ProgramNotificationTemplateParam param )
+    {
+        NativeQuery<Long> query = getSession().createNativeQuery(
+            "select count(programnotificationtemplateid) from programnotificationtemplate where programstageid = :psid or  programid = :pid",
+            Long.class );
+        query.setParameter( PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : null );
+        query.setParameter( PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : null );
+
+        return query.getSingleResult();
+    }
+
+    @Override
+    public List<ProgramNotificationTemplate> getProgramNotificationTemplates( ProgramNotificationTemplateParam param )
+    {
+        NativeQuery<ProgramNotificationTemplate> query = getSession().createNativeQuery(
+            "select * from programnotificationtemplate where programstageid = :psid or  programid = :pid",
+            ProgramNotificationTemplate.class );
+        query.setParameter( PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : null );
+        query.setParameter( PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : null );
+
+        return query.getResultList();
+    }
 }

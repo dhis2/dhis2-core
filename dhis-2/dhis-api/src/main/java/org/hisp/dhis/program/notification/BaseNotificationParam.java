@@ -27,51 +27,26 @@
  */
 package org.hisp.dhis.program.notification;
 
-import java.util.Date;
-
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Zubair Asghar
  */
 
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
-public class ProgramNotificationInstanceParam extends BaseNotificationParam
+public class BaseNotificationParam
 {
-    @Builder
-    public ProgramNotificationInstanceParam( Integer page, Integer pageSize, boolean skipPaging,
-        ProgramInstance programInstance, ProgramStageInstance programStageInstance, Date scheduledAt )
-    {
-        super( page, pageSize, skipPaging );
-        this.programInstance = programInstance;
-        this.programStageInstance = programStageInstance;
-        this.scheduledAt = scheduledAt;
-    }
+    public static final int DEFAULT_PAGE_SIZE = 50;
 
-    private ProgramInstance programInstance;
+    public static final int DEFAULT_PAGE = 0;
 
-    private ProgramStageInstance programStageInstance;
+    private Integer page;
 
-    private Date scheduledAt;
+    private Integer pageSize;
 
-    public boolean hasProgramInstance()
-    {
-        return programInstance != null;
-    }
-
-    public boolean hasProgramStageInstance()
-    {
-        return programStageInstance != null;
-    }
-
-    public boolean hasScheduledAt()
-    {
-        return scheduledAt != null;
-    }
+    private boolean skipPaging;
 }

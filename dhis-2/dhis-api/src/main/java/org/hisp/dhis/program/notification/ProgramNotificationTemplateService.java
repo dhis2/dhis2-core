@@ -71,4 +71,8 @@ public interface ProgramNotificationTemplateService
 
     List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications( ProgramStage programStage );
 
+    Long countProgramNotificationTemplates( ProgramNotificationTemplateParam programNotificationTemplateParam );
+
+    List<ProgramNotificationTemplate> getProgramNotificationTemplates(
+        ProgramNotificationTemplateParam programNotificationTemplateParam );
 }
