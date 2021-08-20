@@ -51,7 +51,7 @@ public class FieldFilterManager
         this.jsonMapper = jsonMapper;
     }
 
-    public List<ObjectNode> toObjectNode( FieldFilterParams params )
+    public List<ObjectNode> toObjectNode( FieldFilterParams<?> params )
     {
         SimpleFilterProvider filterProvider = getSimpleFilterProvider( params );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
@@ -69,7 +69,7 @@ public class FieldFilterManager
         return objectNodes;
     }
 
-    private SimpleFilterProvider getSimpleFilterProvider( FieldFilterParams params )
+    private SimpleFilterProvider getSimpleFilterProvider( FieldFilterParams<?> params )
     {
         SimpleFilterProvider filterProvider = new SimpleFilterProvider();
         filterProvider.addFilter( "field-filter",
