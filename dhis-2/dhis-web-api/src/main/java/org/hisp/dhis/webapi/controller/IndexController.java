@@ -43,8 +43,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -56,12 +54,10 @@ public class IndexController
     private final ContextService contextService;
 
     public IndexController( SchemaService schemaService,
-        ContextService contextService,
-        ObjectMapper jsonMapper )
+        ContextService contextService )
     {
         this.schemaService = schemaService;
         this.contextService = contextService;
-        this.jsonMapper = jsonMapper;
     }
 
     // --------------------------------------------------------------------------
