@@ -119,7 +119,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryGroups;
@@ -957,9 +956,8 @@ public class DataHandler
 
         for ( List<Object> row : grid.getRows() )
         {
-            final List<DimensionalItemObject> dimensionalItems = findDimensionalItems( (String) row.get( dataIndex ),
-                items );
-            if ( isNotEmpty( dimensionalItems ) )
+            for ( DimensionalItemObject dimensionalItem : findDimensionalItems(
+                (String) row.get( dataIndex ), items ) )
             {
                 // Check if the current row's Period belongs to the list of
                 // periods from the original Analytics request. The row may
@@ -968,16 +966,14 @@ public class DataHandler
                 if ( hasPeriod( row, periodIndex )
                     && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
                 {
-                    if ( dimensionalItems.size() == 1 )
-                    {
-                        addItemBasedOnPeriodOffset( grid, result, periodIndex, valueIndex, row, dimensionalItems );
-                    }
+                    addItemBasedOnPeriodOffset( grid, result, dataIndex, periodIndex, valueIndex, row,
+                        dimensionalItem );
                 }
                 else
                 {
                     result.put( join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP ),
-                        new DimensionItemObjectValue( dimensionalItems.get( 0 ),
-                            ((Number) row.get( valueIndex )).doubleValue() ) );
+                        new DimensionItemObjectValue(
+                            dimensionalItem, ((Number) row.get( valueIndex )).doubleValue() ) );
                 }
             }
         }
@@ -1030,45 +1026,35 @@ public class DataHandler
      *
      * @param grid the current Grid.
      * @param result the map where the values will be added to.
+     * @param dataIndex the current grid row data index.
      * @param periodIndex the current grid row period index.
      * @param valueIndex the current grid row value index.
      * @param row the current grid row.
-     * @param dimensionalItems the dimensional items for the current grid row,
+     * @param dimensionalItemObject a dimensional item for the current grid row,
      *        see
      *        {@link org.hisp.dhis.analytics.util.AnalyticsUtils#findDimensionalItems(String, List)}
      *
      * @return the DimensionalItemObject
      */
     private void addItemBasedOnPeriodOffset( Grid grid, MultiValuedMap<String, DimensionItemObjectValue> result,
-        int periodIndex, int valueIndex, List<Object> row, List<DimensionalItemObject> dimensionalItems )
+        int dataIndex, int periodIndex, int valueIndex, List<Object> row, DimensionalItemObject dimensionalItemObject )
     {
+        final List<Object> adjustedRow = (dimensionalItemObject.getPeriodOffset() != 0)
+            ? getPeriodOffsetRow( grid, dataIndex, periodIndex, dimensionalItemObject, (String) row.get( periodIndex ),
+                dimensionalItemObject.getPeriodOffset() )
+            : row;
+
+        if ( adjustedRow == null || adjustedRow.get( valueIndex ) == null )
+        {
+            return;
+        }
+
         // Key is composed of [uid-period]
         final String key = join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP );
 
-        final DimensionalItemObject dimensionalItemObject = dimensionalItems.get( 0 );
-        DimensionalItemObject clone = dimensionalItemObject;
+        final Double value = ((Number) adjustedRow.get( valueIndex )).doubleValue();
 
-        if ( dimensionalItemObject.getPeriodOffset() != 0 )
-        {
-            List<Object> periodOffsetRow = getPeriodOffsetRow( grid, dimensionalItemObject,
-                (String) row.get( periodIndex ), dimensionalItemObject.getPeriodOffset() );
-
-            if ( periodOffsetRow != null )
-            {
-                result.put( key, new DimensionItemObjectValue( dimensionalItemObject,
-                    ((Number) periodOffsetRow.get( valueIndex )).doubleValue() ) );
-            }
-
-            clone = SerializationUtils.clone( dimensionalItemObject );
-        }
-
-        Double value = null;
-        if ( row.get( valueIndex ) != null )
-        {
-            value = ((Number) row.get( valueIndex )).doubleValue();
-        }
-
-        result.put( key, new DimensionItemObjectValue( clone, value ) );
+        result.put( key, new DimensionItemObjectValue( dimensionalItemObject, value ) );
     }
 
     /**
