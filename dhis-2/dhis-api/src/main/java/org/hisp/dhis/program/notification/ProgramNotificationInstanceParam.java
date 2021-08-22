@@ -25,31 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dto;
+package org.hisp.dhis.program.notification;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Date;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Zubair Asghar
  */
-public class MetadataApiResponse
-    extends ApiResponse
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ProgramNotificationInstanceParam
 {
-    public MetadataApiResponse( ApiResponse response )
+    public static final int DEFAULT_PAGE_SIZE = 50;
+
+    public static final int DEFAULT_PAGE = 0;
+
+    private ProgramInstance programInstance;
+
+    private ProgramStageInstance programStageInstance;
+
+    private Date scheduledAt;
+
+    private Integer page;
+
+    private Integer pageSize;
+
+    private boolean skipPaging;
+
+    public boolean hasProgramInstance()
     {
-        super( response.raw );
+        return programInstance != null;
     }
 
-    public List<String> extractObjectUid( String metadataObject )
+    public boolean hasProgramStageInstance()
     {
-        return this.getTypeReports()
-            .stream().filter( p -> {
-                String[] parts = p.getKlass().split( "\\." );
+        return programStageInstance != null;
+    }
 
-                return parts[parts.length - 1].equals( metadataObject );
-            } ).findFirst()
-
-            .map( p -> p.getObjectReports().stream().map( ObjectReport::getUid ) ).get().collect( Collectors.toList() );
+    public boolean hasScheduledAt()
+    {
+        return scheduledAt != null;
     }
 }

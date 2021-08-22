@@ -25,31 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dto;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+
+import com.google.common.collect.Lists;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Zubair Asghar
  */
-public class MetadataApiResponse
-    extends ApiResponse
+public class ProgramNotificationInstanceSchemaDescriptor
+    implements SchemaDescriptor
 {
-    public MetadataApiResponse( ApiResponse response )
+    public static final String SINGULAR = "programNotificationInstance";
+
+    public static final String PLURAL = "programNotificationInstances";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        super( response.raw );
-    }
+        Schema schema = new Schema( ProgramNotificationInstance.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1508 );
 
-    public List<String> extractObjectUid( String metadataObject )
-    {
-        return this.getTypeReports()
-            .stream().filter( p -> {
-                String[] parts = p.getKlass().split( "\\." );
+        schema.add( new Authority( AuthorityType.CREATE,
+            Lists.newArrayList( "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_DELETE" ) ) );
 
-                return parts[parts.length - 1].equals( metadataObject );
-            } ).findFirst()
-
-            .map( p -> p.getObjectReports().stream().map( ObjectReport::getUid ) ).get().collect( Collectors.toList() );
+        return schema;
     }
 }

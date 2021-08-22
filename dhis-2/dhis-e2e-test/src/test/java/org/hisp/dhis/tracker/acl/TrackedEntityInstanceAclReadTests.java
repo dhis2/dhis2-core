@@ -1,9 +1,41 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker.acl;
 
-import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.commons.collections.ListUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
@@ -22,14 +54,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.*;
+import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 /**
  * @author Stian Sandvold
@@ -79,8 +107,8 @@ public class TrackedEntityInstanceAclReadTests
     }
 
     /**
-     * Takes a User object and retrieves information about the users from the api.
-     * Updates the password of the user to allow access.
+     * Takes a User object and retrieves information about the users from the
+     * api. Updates the password of the user to allow access.
      *
      * @param user to setup
      */
@@ -112,7 +140,8 @@ public class TrackedEntityInstanceAclReadTests
     }
 
     /**
-     * Finds metadata a user has access to and determines what data can be read or not based on sharing.
+     * Finds metadata a user has access to and determines what data can be read
+     * or not based on sharing.
      *
      * @param user the user to setup
      */
@@ -146,7 +175,8 @@ public class TrackedEntityInstanceAclReadTests
 
                     boolean hasDataRead = false;
 
-                    if ( object.has( "publicAccess" ) && object.get( "publicAccess" ).getAsString().matches( _DATAREAD ) )
+                    if ( object.has( "publicAccess" )
+                        && object.get( "publicAccess" ).getAsString().matches( _DATAREAD ) )
                     {
                         hasDataRead = true;
                     }
@@ -217,14 +247,13 @@ public class TrackedEntityInstanceAclReadTests
 
     }
 
-
     /* Helper methods */
 
     /**
      * Asserts that the trackedEntityInstance follows the expectations.
      *
      * @param user the user(username) we are testing as
-     * @param tei  the trackedEntityInstance we are testing
+     * @param tei the trackedEntityInstance we are testing
      */
     private void assertTrackedEntityInstance( User user, JsonObject tei )
     {
@@ -250,9 +279,9 @@ public class TrackedEntityInstanceAclReadTests
     /**
      * Asserts that the enrollment follows the expectations.
      *
-     * @param user       the user(username) we are testing as
+     * @param user the user(username) we are testing as
      * @param enrollment the enrollment we are testing
-     * @param tei        the tei wrapped around the enrollment
+     * @param tei the tei wrapped around the enrollment
      */
     private void assertEnrollment( User user, JsonObject enrollment, JsonObject tei )
     {
@@ -276,8 +305,8 @@ public class TrackedEntityInstanceAclReadTests
     /**
      * Asserts that the event follows the expectations.
      *
-     * @param user       the user(username) we are testing as
-     * @param event      the event we are testing
+     * @param user the user(username) we are testing as
+     * @param event the event we are testing
      * @param enrollment the enrollment wrapped around the event
      */
     private void assertEvent( User user, JsonObject event, JsonObject enrollment )
@@ -296,7 +325,8 @@ public class TrackedEntityInstanceAclReadTests
     }
 
     /**
-     * Asserts that the given JsonObject does not have a property "deleted" that is true.
+     * Asserts that the given JsonObject does not have a property "deleted" that
+     * is true.
      *
      * @param object the object to check
      */
@@ -309,8 +339,8 @@ public class TrackedEntityInstanceAclReadTests
     /**
      * Asserts that two JsonObject share the same value for a given property
      *
-     * @param a        First JsonObject to test
-     * @param b        Second JsonObject to test
+     * @param a First JsonObject to test
+     * @param b Second JsonObject to test
      * @param property The property to test
      */
     private void assertSameValueForProperty( JsonObject a, JsonObject b, String property )
@@ -323,10 +353,11 @@ public class TrackedEntityInstanceAclReadTests
     }
 
     /**
-     * Assert that a list, other, of OrgUnit uids contains at least one Uid matching the inScope list of OrgUnit uids.
+     * Assert that a list, other, of OrgUnit uids contains at least one Uid
+     * matching the inScope list of OrgUnit uids.
      *
      * @param inScope OrgUnit uids in the scope
-     * @param other   OrgUnits to test
+     * @param other OrgUnits to test
      */
     private void assertWithinOuScope( List<String> inScope, List<String> other )
     {
@@ -339,7 +370,7 @@ public class TrackedEntityInstanceAclReadTests
      * Assert that a given String, str, is part of a whitelist.
      *
      * @param whitelist list of strings we allow
-     * @param str       the string to test
+     * @param str the string to test
      */
     private void assertStringIsInWhitelist( List<String> whitelist, String str )
     {

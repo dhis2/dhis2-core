@@ -25,11 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.metadata;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.hasSize;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
@@ -43,7 +42,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.hasSize;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -76,8 +76,7 @@ public class MetadataPatchTests
         dataElementId = dataElementActions.create( dataElementActions.body(
             "SUM",
             "AGGREGATE",
-            "TEXT"
-        ) );
+            "TEXT" ) );
 
         dataElementGroupId = dataElementGroupActions
             .create( new JsonObjectBuilder().addProperty( "name", DataGenerator.randomString() ).build() );
@@ -87,7 +86,8 @@ public class MetadataPatchTests
     @Test
     public void shouldReplaceArray()
     {
-        sharingActions.setupSharingForUsers( "dataElement", dataElementId, Constants.SUPER_USER_ID, Constants.ADMIN_ID );
+        sharingActions.setupSharingForUsers( "dataElement", dataElementId, Constants.SUPER_USER_ID,
+            Constants.ADMIN_ID );
 
         JsonObject userAccesses = JsonObjectBuilder.jsonObject()
             .addProperty( "access", "rw------" )
@@ -97,8 +97,7 @@ public class MetadataPatchTests
         JsonArray array = new JsonArray();
 
         array.add(
-            buildOperation( "replace", "/userAccesses", new JsonObjectBuilder( userAccesses ).wrapIntoArray() )
-        );
+            buildOperation( "replace", "/userAccesses", new JsonObjectBuilder( userAccesses ).wrapIntoArray() ) );
 
         dataElementActions.patch( dataElementId, array ).validate().statusCode( 200 );
         dataElementActions.get( dataElementId ).validate().body( "userAccesses", hasSize( 1 ) );
@@ -108,14 +107,15 @@ public class MetadataPatchTests
     @Test
     public void shouldRemoveArray()
     {
-        sharingActions.setupSharingForUsers( "dataElement", dataElementId, Constants.SUPER_USER_ID, Constants.ADMIN_ID );
+        sharingActions.setupSharingForUsers( "dataElement", dataElementId, Constants.SUPER_USER_ID,
+            Constants.ADMIN_ID );
 
         JsonArray array = new JsonArray();
 
         array.add(
-            JsonObjectBuilder.jsonObject( buildOperation( "remove", "/sharing[users]", new JsonObjectBuilder().build() ) )
-                .addArray( "value", new JsonObjectBuilder().build() ).build()
-        );
+            JsonObjectBuilder
+                .jsonObject( buildOperation( "remove", "/sharing[users]", new JsonObjectBuilder().build() ) )
+                .addArray( "value", new JsonObjectBuilder().build() ).build() );
 
         dataElementActions.patch( dataElementId, array )
             .validate()
@@ -149,8 +149,7 @@ public class MetadataPatchTests
         JsonArray array = new JsonArray();
 
         array.add( buildOperation( "add", "/dataElements/-", new JsonObjectBuilder().addProperty(
-            "id", dataElementId
-        ).build() ) );
+            "id", dataElementId ).build() ) );
 
         dataElementGroupActions.patch( dataElementGroupId, array ).validate()
             .statusCode( 200 );
