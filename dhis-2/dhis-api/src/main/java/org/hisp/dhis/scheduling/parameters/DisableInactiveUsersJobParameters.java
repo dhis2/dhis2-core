@@ -51,6 +51,8 @@ public class DisableInactiveUsersJobParameters implements JobParameters
 
     private int inactiveMonths;
 
+    private Integer reminderDaysBefore;
+
     public DisableInactiveUsersJobParameters()
     {
 
@@ -73,6 +75,18 @@ public class DisableInactiveUsersJobParameters implements JobParameters
         this.inactiveMonths = inactiveMonths;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getReminderDaysBefore()
+    {
+        return reminderDaysBefore;
+    }
+
+    public void setReminderDaysBefore( Integer reminderDaysBefore )
+    {
+        this.reminderDaysBefore = reminderDaysBefore;
+    }
+
     @Override
     public Optional<ErrorReport> validate()
     {
@@ -80,6 +94,11 @@ public class DisableInactiveUsersJobParameters implements JobParameters
         {
             return Optional.of(
                 new ErrorReport( getClass(), ErrorCode.E4008, "inactiveMonths", 1, 24, inactiveMonths ) );
+        }
+        if ( reminderDaysBefore != null && reminderDaysBefore < 1 || reminderDaysBefore > 24 )
+        {
+            return Optional.of(
+                new ErrorReport( getClass(), ErrorCode.E4008, "reminderDaysBefore", 1, 24, reminderDaysBefore ) );
         }
         return Optional.empty();
     }

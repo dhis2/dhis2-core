@@ -29,6 +29,7 @@ package org.hisp.dhis.user;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -114,6 +115,22 @@ public interface UserStore
      * @return number of users disabled
      */
     int disableUsersInactiveSince( Date inactiveSince );
+
+    /**
+     * Selects all users where the {@link UserCredentials#getLastLogin()} is
+     * before or equal to the provided pivot {@link Date}.
+     *
+     * Does a comparable query to {@link #disableUsersInactiveSince(Date)} but
+     * instead of disabling the found uses it returns them (without making a
+     * change).
+     *
+     * @see #disableUsersInactiveSince(Date)
+     *
+     * @param inactiveSince the most recent point in time that is considered *
+     *        inactive together with accounts only active further in the past.
+     * @return user emails that were inactive at least since the provided date
+     */
+    Set<String> findUsersInactiveSince( Date inactiveSince );
 
     String getDisplayName( String userUid );
 }

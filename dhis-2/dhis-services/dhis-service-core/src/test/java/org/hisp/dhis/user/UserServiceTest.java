@@ -29,6 +29,7 @@ package org.hisp.dhis.user;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.setting.SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS;
@@ -622,5 +623,28 @@ public class UserServiceTest
         List<User> users = userService.getUsers( params );
         assertEquals( new HashSet<>( asList( userA.getUid(), userB.getUid() ) ),
             users.stream().map( User::getUid ).collect( toSet() ) );
+    }
+
+    @Test
+    public void testFindUsersInactiveSince()
+    {
+        ZonedDateTime now = ZonedDateTime.now();
+        Date twoMonthsAgo = Date.from( now.minusMonths( 2 ).toInstant() );
+        Date threeMonthAgo = Date.from( now.minusMonths( 3 ).toInstant() );
+        Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
+        Date twentyTwoDaysAgo = Date.from( now.minusDays( 22 ).toInstant() );
+
+        User userA = addUser( 'A', UserCredentials::setLastLogin, threeMonthAgo );
+        User userB = addUser( 'B', credentials -> {
+            credentials.setDisabled( true );
+            credentials.setLastLogin( fourMonthAgo );
+        } );
+
+        addUser( 'C', UserCredentials::setLastLogin, twentyTwoDaysAgo );
+        addUser( 'D' );
+
+        assertEquals( singleton( "EmailA" ), userService.findUsersInactiveSince( twoMonthsAgo ) );
+        assertEquals( new HashSet<>( asList( "EmailA", "EmailC" ) ),
+            userService.findUsersInactiveSince( Date.from( now.minusDays( 10 ).toInstant() ) ) );
     }
 }
