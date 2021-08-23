@@ -157,7 +157,7 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
         }
         if ( newParent != null && !aclService.canWrite( user, newParent ) )
         {
-            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1517, user.getUid(),
+            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1518, user.getUid(),
                 getUidOrName( unit ), getUidOrName( newParent ) ) );
         }
     }
