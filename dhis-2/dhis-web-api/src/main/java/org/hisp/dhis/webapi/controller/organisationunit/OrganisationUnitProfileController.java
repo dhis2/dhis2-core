@@ -27,14 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller.organisationunit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileService;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,21 +50,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@AllArgsConstructor
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequestMapping( value = "/organisationUnitProfile" )
 public class OrganisationUnitProfileController
 {
     private final OrgUnitProfileService orgUnitProfileService;
 
-    public OrganisationUnitProfileController( OrgUnitProfileService orgUnitProfileService )
-    {
-        checkNotNull( orgUnitProfileService );
-
-        this.orgUnitProfileService = orgUnitProfileService;
-    }
-
     @PreAuthorize( "hasRole('ALL') or hasRole('F_ORG_UNIT_PROFILE_ADD')" )
     @PostMapping( consumes = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
+    @ResponseStatus( HttpStatus.OK )
     public void saveProfile( @RequestBody OrgUnitProfile profile )
         throws WebMessageException
     {

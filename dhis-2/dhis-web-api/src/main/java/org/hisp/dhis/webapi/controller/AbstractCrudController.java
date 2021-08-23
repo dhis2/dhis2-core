@@ -111,11 +111,6 @@ import com.google.common.collect.Lists;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public abstract class AbstractCrudController<T extends IdentifiableObject> extends AbstractFullReadOnlyController<T>
 {
-
-    // --------------------------------------------------------------------------
-    // Dependencies
-    // --------------------------------------------------------------------------
-
     @Autowired
     protected SchemaValidator schemaValidator;
 
@@ -373,6 +368,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
+
+        prePatchEntity( persistedObject, patchedObject );
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
 
@@ -932,7 +929,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     {
     }
 
-    protected void prePatchEntity( T entity )
+    protected void prePatchEntity( T entity, T newEntity )
+        throws Exception
+    {
+    }
+
+    protected void prePatchEntity( T newEntity )
         throws Exception
     {
     }

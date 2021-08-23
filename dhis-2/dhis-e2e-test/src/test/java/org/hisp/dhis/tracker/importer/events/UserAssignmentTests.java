@@ -25,10 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.File;
+
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -43,11 +47,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -81,7 +81,8 @@ public class UserAssignmentTests
         // arrange
         String loggedInUser = loginActions.getLoggedInUserId();
 
-        programActions.programStageActions.enableUserAssignment( programStageId, Boolean.parseBoolean( userAssignmentEnabled ) );
+        programActions.programStageActions.enableUserAssignment( programStageId,
+            Boolean.parseBoolean( userAssignmentEnabled ) );
 
         // act
         String eventId = createEvents( programId, programStageId, loggedInUser )
@@ -120,7 +121,8 @@ public class UserAssignmentTests
         // act
         eventBody.add( "assignedUser", null );
 
-        ApiResponse response = trackerActions.postAndGetJobReport( new JsonObjectBuilder( eventBody ).wrapIntoArray( "events" ),
+        ApiResponse response = trackerActions.postAndGetJobReport(
+            new JsonObjectBuilder( eventBody ).wrapIntoArray( "events" ),
             new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) );
 
         // assert
@@ -135,7 +137,8 @@ public class UserAssignmentTests
     private TrackerApiResponse createEvents( String programId, String programStageId, String assignedUserId )
         throws Exception
     {
-        JsonObject body = new FileReaderUtils().read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
+        JsonObject body = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/events/event.json" ) )
             .replacePropertyValuesWithIds( "event" )
             .replacePropertyValuesWith( "program", programId )
             .replacePropertyValuesWith( "programStage", programStageId )

@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.association.IdentifiableObjectAssociations;
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -229,7 +229,7 @@ public interface CategoryService
      * @return an IdentifiableObjectAssociations representing associations
      *         between each categoryOption in input and orgUnits
      */
-    IdentifiableObjectAssociations getCategoryOptionOrganisationUnitsAssociations( Set<String> categoryOptionsUids );
+    SetValuedMap<String, String> getCategoryOptionOrganisationUnitsAssociations( Set<String> categoryOptionsUids );
 
     // -------------------------------------------------------------------------
     // CategoryCombo

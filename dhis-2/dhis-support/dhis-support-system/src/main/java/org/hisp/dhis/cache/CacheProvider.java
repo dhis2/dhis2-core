@@ -107,4 +107,10 @@ public interface CacheProvider
     <V> Cache<V> createProgramWebHookNotificationTemplateCache();
 
     <V> Cache<V> createProgramStageWebHookNotificationTemplateCache();
+
+    <V> Cache<V> createProgramOrgUnitAssociationCache();
+
+    <V> Cache<V> createCatOptOrgUnitAssociationCache();
+
+    <V> Cache<V> createApiKeyCache();
 }

@@ -25,10 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.File;
+import java.util.stream.Stream;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
@@ -45,12 +50,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -149,7 +149,8 @@ public class EventValidationTests
 
     @ParameterizedTest
     @MethodSource( "provideValidationArguments" )
-    public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId, String errorCode )
+    public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId,
+        String errorCode )
     {
         JsonObject jsonObject = trackerActions.buildEvent( ouId, programId, programStageId );
 
@@ -168,7 +169,7 @@ public class EventValidationTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
         response.validateErrorReport()
-                .body( "errorCode", hasItem( equalTo( "E1079" ) ) );
+            .body( "errorCode", hasItem( equalTo( "E1079" ) ) );
     }
 
     @Test
@@ -183,8 +184,9 @@ public class EventValidationTests
 
     private void setupData()
     {
-        eventProgramStageId = programActions.programStageActions.get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
-            eventProgramId ) )
+        eventProgramStageId = programActions.programStageActions
+            .get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
+                eventProgramId ) )
             .extractString( "programStages.id[0]" );
 
         assertNotNull( eventProgramStageId, "Failed to find a program stage" );
@@ -197,7 +199,8 @@ public class EventValidationTests
         ouIdWithoutAccess = new OrgUnitActions().createOrgUnit();
         new UserActions().grantCurrentUserAccessToOrgUnit( ouIdWithoutAccess );
 
-        enrollment = trackerActions.postAndGetJobReport( trackerActions.buildTeiAndEnrollment( OU_ID, trackerProgramId ) )
+        enrollment = trackerActions
+            .postAndGetJobReport( trackerActions.buildTeiAndEnrollment( OU_ID, trackerProgramId ) )
             .validateSuccessfulImport().extractImportedEnrollments().get( 0 );
     }
 }

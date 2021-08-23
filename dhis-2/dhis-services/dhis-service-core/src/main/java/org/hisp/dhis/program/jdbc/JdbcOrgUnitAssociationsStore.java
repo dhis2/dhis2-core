@@ -28,13 +28,17 @@
 package org.hisp.dhis.program.jdbc;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.collections4.SetValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.hisp.dhis.association.AbstractOrganisationUnitAssociationsQueryBuilder;
-import org.hisp.dhis.association.IdentifiableObjectAssociations;
+import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -49,24 +53,70 @@ public class JdbcOrgUnitAssociationsStore
 
     private final AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
 
-    public IdentifiableObjectAssociations getOrganisationUnitsAssociations( Set<String> uids )
+    private final Cache<Set<String>> orgUnitAssocCache;
+
+    public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids )
     {
 
         Set<String> userOrgUnitPaths = getUserOrgUnitPaths();
 
         return jdbcTemplate.query(
-            queryBuilder.buildSqlQuery( uids, userOrgUnitPaths, currentUserService.getCurrentUser() ),
+            queryBuilder.buildSqlQuery( programUids, userOrgUnitPaths, currentUserService.getCurrentUser() ),
             resultSet -> {
-                IdentifiableObjectAssociations identifiableObjectAssociations = new IdentifiableObjectAssociations();
+                SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<String, String>();
                 while ( resultSet.next() )
                 {
-                    identifiableObjectAssociations.addAllAssociations(
+                    setValuedMap.putAll(
                         resultSet.getString( 1 ),
                         Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
 
                 }
-                return identifiableObjectAssociations;
+                return setValuedMap;
             } );
+    }
+
+    public SetValuedMap<String, String> getOrganisationUnitsAssociations( Set<String> uids )
+    {
+        SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<String, String>();
+
+        boolean cached = true;
+        for ( String uid : uids )
+        {
+            Optional<Set<String>> orgUnitUids = orgUnitAssocCache.get( uid );
+            if ( !orgUnitUids.isPresent() )
+            {
+                cached = false;
+                break;
+            }
+            else
+            {
+                setValuedMap.putAll( uid, orgUnitUids.get() );
+            }
+        }
+
+        if ( cached )
+        {
+            return setValuedMap;
+        }
+        else
+        {
+            setValuedMap.clear();
+            jdbcTemplate.query(
+                queryBuilder.buildSqlQueryForRawAssociation( uids ),
+                resultSet -> {
+                    while ( resultSet.next() )
+                    {
+                        setValuedMap.putAll(
+                            resultSet.getString( 1 ),
+                            Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
+                        orgUnitAssocCache.put( resultSet.getString( 1 ),
+                            new HashSet<String>( setValuedMap.get( resultSet.getString( 1 ) ) ) );
+
+                    }
+                    return setValuedMap;
+                } );
+            return setValuedMap;
+        }
     }
 
     private Set<String> getUserOrgUnitPaths()

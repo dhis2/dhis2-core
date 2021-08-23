@@ -29,23 +29,35 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
+
+import lombok.AllArgsConstructor;
 
 import org.hibernate.Session;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComparator;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.GeoUtils;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
+@AllArgsConstructor
 public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<OrganisationUnit>
 {
+
+    private final OrganisationUnitService organisationUnitService;
+
+    private final AclService aclService;
+
     @Override
     public void preCommit( ObjectBundle bundle )
     {
@@ -101,13 +113,63 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
     public void validate( OrganisationUnit organisationUnit, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
-        if ( organisationUnit.getClosedDate() != null
-            && organisationUnit.getClosedDate().before( organisationUnit.getOpeningDate() ) )
+        validateOpeningClosingDate( organisationUnit, addReports );
+        validatePotentialMove( organisationUnit, bundle, addReports );
+    }
+
+    private void validateOpeningClosingDate( OrganisationUnit object, Consumer<ErrorReport> addReports )
+    {
+        if ( object.getClosedDate() != null && object.getClosedDate().before( object.getOpeningDate() ) )
         {
-            addReports
-                .accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013, organisationUnit.getClosedDate(),
-                    organisationUnit.getOpeningDate() ) );
+            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E4013,
+                object.getClosedDate(), object.getOpeningDate() ) );
         }
+    }
+
+    private void validatePotentialMove( OrganisationUnit unit, ObjectBundle bundle, Consumer<ErrorReport> addReports )
+    {
+        User user = bundle.getUser();
+        if ( user == null || user.isSuper() || !bundle.isPersisted( unit ) )
+        {
+            return; // not an update or always permitted for superuser
+        }
+        OrganisationUnit oldParent = bundle.getPreheat().get( bundle.getPreheatIdentifier(), unit ).getParent();
+        OrganisationUnit newParent = unit.getParent();
+        if ( Objects.equals( getNullableUid( oldParent ), getNullableUid( newParent ) ) )
+        {
+            return; // not a move
+        }
+        if ( !user.isAuthorized( "F_ORGANISATIONUNIT_MOVE" ) )
+        {
+            addReports.accept(
+                new ErrorReport( OrganisationUnit.class, ErrorCode.E1515, user.getUid() ) );
+            return;
+        }
+        if ( !aclService.canWrite( user, unit ) )
+        {
+            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1516, user.getUid(),
+                getUidOrName( unit ) ) );
+        }
+        if ( oldParent != null && !aclService.canWrite( user, oldParent ) )
+        {
+            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1517, user.getUid(),
+                getUidOrName( unit ), getUidOrName( oldParent ) ) );
+        }
+        if ( newParent != null && !aclService.canWrite( user, newParent ) )
+        {
+            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1518, user.getUid(),
+                getUidOrName( unit ), getUidOrName( newParent ) ) );
+        }
+    }
+
+    private String getNullableUid( OrganisationUnit unit )
+    {
+        return unit == null ? null : unit.getUid();
+    }
+
+    private String getUidOrName( OrganisationUnit unit )
+    {
+        return unit.getUid() != null ? unit.getUid() : unit.getName();
     }
 
     private void setSRID( OrganisationUnit organisationUnit )

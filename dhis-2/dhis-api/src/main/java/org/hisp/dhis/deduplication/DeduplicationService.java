@@ -43,8 +43,6 @@ public interface DeduplicationService
 
     List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query );
 
-    List<PotentialDuplicate> getPotentialDuplicateByTei( String tei, DeduplicationStatus status );
-
     void addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
 
     void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
