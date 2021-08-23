@@ -27,59 +27,35 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the {@link DataSetController} using (mocked) REST requests.
+ * Tests the {@link AppController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-public class DataSetControllerTest extends DhisControllerConvenienceTest
+public class AppControllerTest extends DhisControllerConvenienceTest
 {
-    private String dsId;
-
-    @Before
-    public void setUp()
+    @Test
+    public void testGetApps()
     {
-        dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+        HttpResponse response = GET( "/apps" );
+        JsonArray apps = response.content( HttpStatus.OK );
+        assertTrue( apps.isArray() );
     }
 
     @Test
-    public void testGetVersion()
+    public void testGetApps_KeyNotFound()
     {
-        JsonObject info = GET( "/dataSets/{id}/version", dsId ).content( HttpStatus.OK );
-        assertTrue( info.isObject() );
-        assertEquals( 1, info.size() );
-        assertEquals( 0, info.getNumber( "version" ).intValue() );
-    }
-
-    @Test
-    public void testGetFormJson()
-    {
-        String ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
-        JsonObject info = GET( "/dataSets/{id}/form?ou={ou}", dsId, ouId ).content( HttpStatus.OK );
-        assertTrue( info.isObject() );
-        assertTrue( info.has( "label", "options", "groups" ) );
-        assertEquals( "My data set", info.getString( "label" ).string() );
-        JsonObject options = info.getObject( "options" );
-        assertEquals( 0, options.getNumber( "openPeriodsAfterCoEndDate" ).intValue() );
-        assertEquals( 0, options.getNumber( "openFuturePeriods" ).intValue() );
-        assertEquals( 0, options.getNumber( "expiryDays" ).intValue() );
-        assertEquals( "Monthly", options.getString( "periodType" ).string() );
-        JsonArray groups = info.getArray( "groups" );
-        assertTrue( groups.isArray() );
-        assertEquals( 1, groups.size() );
+        HttpResponse response = GET( "/apps?key=xyz" );
+        assertEquals( HttpStatus.NOT_FOUND, response.status() );
+        assertFalse( response.hasBody() );
     }
 }

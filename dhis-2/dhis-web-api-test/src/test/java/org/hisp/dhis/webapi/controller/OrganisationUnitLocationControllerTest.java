@@ -29,57 +29,44 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Before;
+import org.hisp.dhis.webapi.json.JsonBoolean;
+import org.hisp.dhis.webapi.json.JsonDocument.JsonNodeType;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the {@link DataSetController} using (mocked) REST requests.
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.organisationunit.OrganisationUnitLocationController}
+ * using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-public class DataSetControllerTest extends DhisControllerConvenienceTest
+public class OrganisationUnitLocationControllerTest extends DhisControllerConvenienceTest
 {
-    private String dsId;
-
-    @Before
-    public void setUp()
+    @Test
+    public void testGetParentByLocation()
     {
-        dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+        JsonArray parents = GET( "/organisationUnitLocations/orgUnitByLocation?longitude=23.1&latitude=56.2" )
+            .content( HttpStatus.OK );
+        assertTrue( parents.isArray() );
+        assertTrue( parents.isEmpty() );
     }
 
     @Test
-    public void testGetVersion()
-    {
-        JsonObject info = GET( "/dataSets/{id}/version", dsId ).content( HttpStatus.OK );
-        assertTrue( info.isObject() );
-        assertEquals( 1, info.size() );
-        assertEquals( 0, info.getNumber( "version" ).intValue() );
-    }
-
-    @Test
-    public void testGetFormJson()
+    public void testCheckLocationWithinOrgUnit()
     {
         String ouId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
 
-        JsonObject info = GET( "/dataSets/{id}/form?ou={ou}", dsId, ouId ).content( HttpStatus.OK );
-        assertTrue( info.isObject() );
-        assertTrue( info.has( "label", "options", "groups" ) );
-        assertEquals( "My data set", info.getString( "label" ).string() );
-        JsonObject options = info.getObject( "options" );
-        assertEquals( 0, options.getNumber( "openPeriodsAfterCoEndDate" ).intValue() );
-        assertEquals( 0, options.getNumber( "openFuturePeriods" ).intValue() );
-        assertEquals( 0, options.getNumber( "expiryDays" ).intValue() );
-        assertEquals( "Monthly", options.getString( "periodType" ).string() );
-        JsonArray groups = info.getArray( "groups" );
-        assertTrue( groups.isArray() );
-        assertEquals( 1, groups.size() );
+        JsonBoolean isWithin = GET(
+            "/organisationUnitLocations/locationWithinOrgUnitBoundary?longitude=23.1&latitude=56.2&orgUnitUid={ou}",
+            ouId ).content( HttpStatus.OK );
+        assertEquals( JsonNodeType.BOOLEAN, isWithin.node().getType() );
+        assertFalse( isWithin.booleanValue() );
     }
 }
