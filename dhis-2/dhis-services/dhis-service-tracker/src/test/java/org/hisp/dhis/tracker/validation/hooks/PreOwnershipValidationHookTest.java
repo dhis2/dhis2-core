@@ -128,6 +128,8 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
         programStage = createProgramStage( 'A', program );
         programStage.setUid( PS_ID );
         when( ctx.getProgramStage( PS_ID ) ).thenReturn( programStage );
+
+        when( ctx.getOwnerOrganisationUnit( TEI_ID, PROGRAM_ID ) ).thenReturn( organisationUnit );
     }
 
     @Test
