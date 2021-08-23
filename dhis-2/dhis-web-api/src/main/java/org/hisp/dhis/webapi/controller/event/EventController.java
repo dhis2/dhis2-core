@@ -232,6 +232,7 @@ public class EventController
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false ) Boolean skipRelationship,
         @RequestParam( required = false ) List<OrderCriteria> order,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
@@ -271,7 +272,8 @@ public class EventController
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
-            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
+            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted,
+            skipRelationship );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
 
@@ -306,6 +308,7 @@ public class EventController
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false ) Boolean skipRelationship,
         @RequestParam( required = false ) List<OrderCriteria> order,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
@@ -345,7 +348,8 @@ public class EventController
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
-            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
+            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted,
+            skipRelationship );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
         Grid grid = eventService.getEventsGrid( params );
@@ -379,6 +383,7 @@ public class EventController
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false ) Boolean skipRelationship,
         @RequestParam( required = false ) List<OrderCriteria> order,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
@@ -418,7 +423,8 @@ public class EventController
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
-            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
+            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted,
+            skipRelationship );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
         Grid grid = eventService.getEventsGrid( params );
@@ -453,6 +459,7 @@ public class EventController
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false ) Boolean skipRelationship,
         @RequestParam( required = false ) List<OrderCriteria> order,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
@@ -492,7 +499,8 @@ public class EventController
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
-            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
+            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted,
+            skipRelationship );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
         Grid grid = eventService.getEventsGrid( params );
@@ -663,6 +671,7 @@ public class EventController
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) List<OrderCriteria> order,
         @RequestParam( required = false ) Boolean skipEventId,
+        @RequestParam( required = false ) Boolean skipRelationship,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model )
         throws WebMessageException
@@ -677,7 +686,7 @@ public class EventController
             null, null, null, eventStatus, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ),
             null, true, null, skipEventId, null, null, null,
-            null, false, includeDeleted );
+            null, false, includeDeleted, skipRelationship );
 
         return eventRowService.getEventRows( params );
     }

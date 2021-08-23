@@ -77,7 +77,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -98,12 +97,9 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
@@ -118,7 +114,6 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.JpaQueryUtils;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -142,6 +137,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -150,8 +147,6 @@ import com.google.common.collect.ImmutableMap;
 @Repository( "org.hisp.dhis.dxf2.events.event.EventStore" )
 public class JdbcEventStore implements EventStore
 {
-    private static final String RELATIONSHIP_QUERY = "select relationshipid from relationshipitem where programstageinstanceid=";
-
     private static final String PSI_EVENT_COMMENT_QUERY = "select psic.programstageinstanceid    as psic_id," +
         " psinote.trackedentitycommentid as psinote_id," +
         " psinote.commenttext            as psinote_value," +
@@ -276,9 +271,12 @@ public class JdbcEventStore implements EventStore
 
     private final Environment env;
 
+    private final org.hisp.dhis.dxf2.events.trackedentity.store.EventStore eventStore;
+
     public JdbcEventStore( StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate,
         @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper,
-        CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager, Environment env )
+        CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager, Environment env,
+        org.hisp.dhis.dxf2.events.trackedentity.store.EventStore eventStore )
     {
         checkNotNull( statementBuilder );
         checkNotNull( jdbcTemplate );
@@ -286,6 +284,7 @@ public class JdbcEventStore implements EventStore
         checkNotNull( identifiableObjectManager );
         checkNotNull( jsonMapper );
         checkNotNull( env );
+        checkNotNull( eventStore );
 
         this.statementBuilder = statementBuilder;
         this.jdbcTemplate = jdbcTemplate;
@@ -293,6 +292,7 @@ public class JdbcEventStore implements EventStore
         this.manager = identifiableObjectManager;
         this.jsonMapper = jsonMapper;
         this.env = env;
+        this.eventStore = eventStore;
 
     }
 
@@ -473,12 +473,15 @@ public class JdbcEventStore implements EventStore
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
 
-            List<Long> relationshipIds = jdbcTemplate.queryForList( RELATIONSHIP_QUERY + rowSet.getLong( "psi_id" ),
-                Long.class );
+            if ( !params.isSkipRelationship() )
+            {
+                Long eventId = rowSet.getLong( "psi_id" );
 
-            relationshipIds.stream()
-                .filter( Objects::nonNull )
-                .forEach( id -> event.getRelationships().add( getRelationship( id ) ) );
+                Multimap<String, org.hisp.dhis.dxf2.events.trackedentity.Relationship> relationships = eventStore
+                    .getRelationships( Lists.newArrayList( eventId ) );
+
+                relationships.entries().forEach( r -> event.getRelationships().add( r.getValue() ) );
+            }
         }
 
         IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
@@ -502,57 +505,6 @@ public class JdbcEventStore implements EventStore
         }
 
         return events;
-    }
-
-    private org.hisp.dhis.dxf2.events.trackedentity.Relationship getRelationship( Long relationshipId )
-    {
-        Relationship relationshipDto = manager.get( Relationship.class, relationshipId );
-
-        org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship = new org.hisp.dhis.dxf2.events.trackedentity.Relationship();
-        relationship.setBidirectional( relationshipDto.getRelationshipType().isBidirectional() );
-        relationship.setCreated( DateUtils.getIso8601NoTz( relationshipDto.getCreated() ) );
-        relationship.setLastUpdated( DateUtils.getIso8601NoTz( relationshipDto.getLastUpdated() ) );
-        relationship.setRelationshipType( relationshipDto.getRelationshipType().getUid() );
-        relationship.setRelationshipName( relationshipDto.getRelationshipType().getName() );
-        relationship.setRelationship( relationshipDto.getUid() );
-
-        relationship.setFrom( mapRelationshipItem( relationshipDto.getFrom() ) );
-        relationship.setTo( mapRelationshipItem( relationshipDto.getTo() ) );
-
-        return relationship;
-    }
-
-    private RelationshipItem mapRelationshipItem( org.hisp.dhis.relationship.RelationshipItem itemDto )
-    {
-        RelationshipItem relationshipItem = new RelationshipItem();
-
-        Enrollment enrollment = null;
-        Event event = null;
-        TrackedEntityInstance tei = null;
-
-        if ( itemDto.hasEnrollment() )
-        {
-            enrollment = new Enrollment();
-            enrollment.setEnrollment( itemDto.getProgramInstance().getUid() );
-        }
-
-        if ( itemDto.hasEvent() )
-        {
-            event = new Event();
-            event.setEvent( itemDto.getProgramStageInstance().getUid() );
-        }
-
-        if ( itemDto.hasTrackedEntityInstance() )
-        {
-            tei = new TrackedEntityInstance();
-            tei.setTrackedEntityInstance( itemDto.getTrackedEntityInstance().getUid() );
-        }
-
-        relationshipItem.setTrackedEntityInstance( tei );
-        relationshipItem.setEvent( event );
-        relationshipItem.setEnrollment( enrollment );
-
-        return relationshipItem;
     }
 
     @Override
@@ -637,6 +589,7 @@ public class JdbcEventStore implements EventStore
         List<EventRow> eventRows = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
+
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         log.debug( "Event query SQL: " + sql );
