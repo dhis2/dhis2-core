@@ -89,7 +89,7 @@ public class FieldFilterParser
 
                     if ( isAlphanumericOrSpecial( token ) )
                     {
-                        if ( !(StringUtils.containsAny( ":", "~", "|" )) )
+                        if ( !(StringUtils.containsAny( token, ":", "~", "|" )) )
                         {
                             transformerBuilder.append( token );
                         }
