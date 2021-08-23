@@ -58,6 +58,8 @@ package org.hisp.dhis.deduplication.hibernate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.List;
+
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -71,7 +73,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.sun.tools.javac.util.List;
+import com.google.common.collect.Lists;
 
 public class HibernatePotentialDuplicateStoreTest
     extends IntegrationTestBase
@@ -149,7 +151,7 @@ public class HibernatePotentialDuplicateStoreTest
     @Test
     public void moveTrackedEntityAttributeValuesSingleTea()
     {
-        List<String> teas = List.of( trackedEntityAttributeA.getUid() );
+        List<String> teas = Lists.newArrayList( trackedEntityAttributeA.getUid() );
 
         transactionTemplate.execute( status -> {
             potentialDuplicateStore.moveTrackedEntityAttributeValues( original.getUid(), duplicate.getUid(), teas );
@@ -197,7 +199,7 @@ public class HibernatePotentialDuplicateStoreTest
     @Test
     public void moveTrackedEntityAttributeValuesMultipleTeas()
     {
-        List<String> teas = List.of( trackedEntityAttributeA.getUid(), trackedEntityAttributeB.getUid() );
+        List<String> teas = Lists.newArrayList( trackedEntityAttributeA.getUid(), trackedEntityAttributeB.getUid() );
 
         transactionTemplate.execute( status -> {
             potentialDuplicateStore.moveTrackedEntityAttributeValues( original.getUid(), duplicate.getUid(), teas );
