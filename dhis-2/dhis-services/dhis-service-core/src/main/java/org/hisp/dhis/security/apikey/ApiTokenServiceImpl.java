@@ -31,15 +31,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.CodeGenerator.getRandomSecureToken;
 
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
 
 import org.apache.commons.lang3.StringUtils;
-
 import org.hisp.dhis.user.User;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
