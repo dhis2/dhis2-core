@@ -121,7 +121,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     public ApiToken initToken( ApiToken token )
     {
-        String randomSecureToken = getRandomSecureToken( 32 ).replaceAll( "[-_]", "x" );
+        String randomSecureToken = getRandomSecureToken( 24 ).replaceAll( "[-_]", "x" );
 
         CRC32 crc = new CRC32();
         byte[] bytes = randomSecureToken.getBytes();
