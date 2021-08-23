@@ -160,4 +160,39 @@ public class HibernatePotentialDuplicateStore
     {
         return;
     }
+
+    @Override
+    public void moveTrackedEntityAttributeValues( String originalUid, String duplicateUid,
+        List<String> trackedEntityAttributes )
+    {
+
+        String removeOldValuesSQL = "DELETE FROM trackedentityattributevalue "
+            + "WHERE trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
+            + ") AND trackedentityattributeid IN ("
+            + "SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid IN (:teas)"
+            + ")";
+
+        String moveNewValuesSQL = "UPDATE trackedentityattributevalue "
+            + "SET trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
+            + ") WHERE trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
+            + ") AND trackedentityattributeid IN ("
+            + "SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid IN (:teas)"
+            + ")";
+
+        getSession()
+            .createNativeQuery( removeOldValuesSQL )
+            .setParameter( "original", originalUid )
+            .setParameterList( "teas", trackedEntityAttributes )
+            .executeUpdate();
+
+        getSession()
+            .createNativeQuery( moveNewValuesSQL )
+            .setParameter( "original", originalUid )
+            .setParameter( "duplicate", duplicateUid )
+            .setParameterList( "teas", trackedEntityAttributes )
+            .executeUpdate();
+    }
 }
