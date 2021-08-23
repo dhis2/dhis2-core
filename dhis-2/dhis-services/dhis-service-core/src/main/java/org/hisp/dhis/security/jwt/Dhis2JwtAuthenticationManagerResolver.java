@@ -66,10 +66,24 @@ import org.springframework.stereotype.Component;
 import com.nimbusds.jwt.JWTParser;
 
 /**
+ * Represent a custom AuthenticationManagerResolver to resolve authenticate JWT
+ * bearer token requests. This class will look up the corresponding issuer
+ * configuration ({@link DhisOidcClientRegistration}), based on the JWT "issuer"
+ * field information in the token and create a new
+ * {@link DhisJwtAuthenticationProvider} with the resolved config looked up in
+ * the {@link DhisOidcProviderRepository}
+ *
+ * <p>
+ * It will also create the authentication method to be called for authenticating
+ * the request.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @see org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver.DhisJwtAuthenticationProvider
+ * @see org.hisp.dhis.security.oidc.DhisOidcProviderRepository
+ * @see AuthenticationManagerResolver
  */
 @Component
-public class DhisJwtAuthenticationManagerResolver implements AuthenticationManagerResolver<HttpServletRequest>
+public class Dhis2JwtAuthenticationManagerResolver implements AuthenticationManagerResolver<HttpServletRequest>
 {
     @Autowired
     private UserService userService;
@@ -100,6 +114,22 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
         return getAuthenticationManager( issuer );
     }
 
+    /**
+     * Looks for a DhisOidcClientRegistration in the DhisOidcProviderRepository
+     * that matches the input JWT "issuer". It creates a new
+     * DhisJwtAuthenticationProvider if it finds a matching config.
+     * <p>
+     * The DhisJwtAuthenticationProvider is configured with a custom
+     * {@link Converter} that "converts" the incoming JWT token into a
+     * {@link DhisJwtAuthenticationToken}.
+     * <p>
+     * It also configures a JWT decoder that "decodes" incoming JSON string into
+     * a JWT token ({@link Jwt}
+     *
+     * @param issuer JWT issuer to look up
+     *
+     * @return a DhisJwtAuthenticationProvider
+     */
     private AuthenticationManager getAuthenticationManager( String issuer )
     {
         return this.authenticationManagers.computeIfAbsent( issuer, s -> {
@@ -110,9 +140,10 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
                 throw new InvalidBearerTokenException( "Invalid issuer" );
             }
 
-            return new DhisJwtAuthenticationProvider(
-                getDecoder( issuer ),
-                getConverter( clientRegistration ) )::authenticate;
+            Converter<Jwt, DhisJwtAuthenticationToken> authConverter = getConverter( clientRegistration );
+            JwtDecoder decoder = getDecoder( issuer );
+
+            return new DhisJwtAuthenticationProvider( decoder, authConverter )::authenticate;
         } );
     }
 
@@ -189,6 +220,7 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
                 throw new InvalidBearerTokenException( "Invalid token" );
             }
 
+            token.setAuthenticated( true );
             token.setDetails( bearer.getDetails() );
 
             return token;

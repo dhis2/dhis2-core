@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.singletonMap;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
@@ -39,7 +40,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -178,8 +178,10 @@ public class DataSetController
     }
 
     @GetMapping( "/{uid}/version" )
-    public void getVersion( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
-        HttpServletResponse response )
+    @ResponseBody
+    @ResponseStatus( HttpStatus.OK )
+    public Map<String, Integer> getVersion( @PathVariable( "uid" ) String uid,
+        @RequestParam Map<String, String> parameters )
         throws Exception
     {
         DataSet dataSet = manager.get( DataSet.class, uid );
@@ -189,10 +191,7 @@ public class DataSetController
             throw new WebMessageException( conflict( "Data set does not exist: " + uid ) );
         }
 
-        Map<String, Integer> versionMap = new HashMap<>();
-        versionMap.put( "version", dataSet.getVersion() );
-
-        renderService.toJson( response.getOutputStream(), versionMap );
+        return singletonMap( "version", dataSet.getVersion() );
     }
 
     @PostMapping( "/{uid}/version" )
@@ -266,13 +265,15 @@ public class DataSetController
     }
 
     @GetMapping( value = "/{uid}/form", produces = APPLICATION_JSON_VALUE )
-    public void getFormJson(
+    @ResponseBody
+    @ResponseStatus( HttpStatus.OK )
+    public Form getFormJson(
         @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnit,
         @RequestParam( value = "pe", required = false ) String period,
         @RequestParam( value = "categoryOptions", required = false ) String categoryOptions,
         @RequestParam( required = false ) boolean metaData,
-        TranslateParams translateParams, HttpServletResponse response )
+        TranslateParams translateParams )
         throws IOException,
         WebMessageException
     {
@@ -293,9 +294,7 @@ public class DataSetController
 
         Period pe = PeriodType.getPeriodFromIsoString( period );
 
-        Form form = getForm( dataSets, ou, pe, categoryOptions, metaData );
-
-        renderService.toJson( response.getOutputStream(), form );
+        return getForm( dataSets, ou, pe, categoryOptions, metaData );
     }
 
     @GetMapping( value = "/{uid}/form", produces = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )

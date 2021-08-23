@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.singletonMap;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -64,7 +65,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -202,22 +203,14 @@ public class SystemSettingController
         return String.valueOf( getSystemSettingOrTranslation( key, locale ) );
     }
 
-    @GetMapping( value = "/{key}", produces = { ContextUtils.CONTENT_TYPE_JSON,
-        ContextUtils.CONTENT_TYPE_HTML } )
-    public @ResponseBody void getSystemSettingOrTranslationAsJson( @PathVariable( "key" ) String key,
-        @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response )
-        throws IOException
+    @GetMapping( value = "/{key}", produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
+    public @ResponseBody ResponseEntity<Map<String, Serializable>> getSystemSettingOrTranslationAsJson(
+        @PathVariable( "key" ) String key,
+        @RequestParam( value = "locale", required = false ) String locale )
     {
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-
-        Serializable systemSettingValue = getSystemSettingOrTranslation( key, locale );
-
-        Map<String, Serializable> settingMap = new HashMap<>();
-        settingMap.put( key, systemSettingValue );
-
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        renderService.toJson( response.getOutputStream(), settingMap );
+        return ResponseEntity.ok()
+            .cacheControl( CacheControl.noCache().cachePrivate() )
+            .body( singletonMap( key, getSystemSettingOrTranslation( key, locale ) ) );
     }
 
     private Serializable getSystemSettingOrTranslation( String key, String locale )
@@ -275,17 +268,13 @@ public class SystemSettingController
         return Optional.empty();
     }
 
-    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON,
-        ContextUtils.CONTENT_TYPE_HTML } )
-    public void getSystemSettingsJson( @RequestParam( value = "key", required = false ) Set<String> keys,
-        HttpServletResponse response )
-        throws IOException
+    @GetMapping( produces = { APPLICATION_JSON_VALUE, ContextUtils.CONTENT_TYPE_HTML } )
+    public ResponseEntity<Map<String, Serializable>> getSystemSettingsJson(
+        @RequestParam( value = "key", required = false ) Set<String> keys )
     {
-        Set<SettingKey> settingKeys = getSettingKeysToFetch( keys );
-
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        renderService.toJson( response.getOutputStream(), systemSettingManager.getSystemSettings( settingKeys ) );
+        return ResponseEntity.ok()
+            .cacheControl( CacheControl.noCache().cachePrivate() )
+            .body( systemSettingManager.getSystemSettings( getSettingKeysToFetch( keys ) ) );
     }
 
     @GetMapping( produces = "application/javascript" )
@@ -295,7 +284,7 @@ public class SystemSettingController
     {
         Set<SettingKey> settingKeys = getSettingKeysToFetch( keys );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJsonP( response.getOutputStream(), systemSettingManager.getSystemSettings( settingKeys ),
             callback );

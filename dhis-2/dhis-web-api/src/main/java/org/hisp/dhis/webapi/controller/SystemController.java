@@ -29,8 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
@@ -68,6 +68,7 @@ import org.hisp.dhis.webapi.webdomain.ObjectCount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -173,42 +174,31 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/tasks", produces = { "*/*", APPLICATION_JSON_VALUE } )
-    public void getTasksJson( HttpServletResponse response )
-        throws IOException
+    public ResponseEntity<Map<JobType, Map<String, Deque<Notification>>>> getTasksJson()
     {
-        setNoStore( response );
-        response.setContentType( CONTENT_TYPE_JSON );
-
-        renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( notifier.getNotifications() );
     }
 
     @GetMapping( value = "/tasks/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
-    public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
-        throws IOException
+    public ResponseEntity<Map<String, Deque<Notification>>> getTasksExtendedJson(
+        @PathVariable( "jobType" ) String jobType )
     {
         Map<String, Deque<Notification>> notifications = jobType == null
             ? emptyMap()
             : notifier.getNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ) );
 
-        setNoStore( response );
-        response.setContentType( CONTENT_TYPE_JSON );
-
-        renderService.toJson( response.getOutputStream(), notifications );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( notifications );
     }
 
     @GetMapping( value = "/tasks/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
-    public void getTaskJsonByUid( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
-        HttpServletResponse response )
-        throws IOException
+    public ResponseEntity<Collection<Notification>> getTaskJsonByUid( @PathVariable( "jobType" ) String jobType,
+        @PathVariable( "jobId" ) String jobId )
     {
         Collection<Notification> notifications = jobType == null
             ? emptyList()
             : notifier.getNotificationsByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
 
-        setNoStore( response );
-        response.setContentType( CONTENT_TYPE_JSON );
-
-        renderService.toJson( response.getOutputStream(), notifications );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( notifications );
     }
 
     // -------------------------------------------------------------------------
@@ -216,49 +206,35 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/taskSummaries/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
-    public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
-        throws IOException
+    public ResponseEntity<Map<String, Object>> getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType )
     {
         if ( jobType != null )
         {
-            Object summary = notifier.getJobSummariesForJobType( JobType.valueOf( jobType.toUpperCase() ) );
-
-            handleSummary( response, summary );
-            return;
+            Map<String, Object> summary = notifier
+                .getJobSummariesForJobType( JobType.valueOf( jobType.toUpperCase() ) );
+            if ( summary != null )
+            {
+                return ResponseEntity.ok().cacheControl( noStore() ).body( summary );
+            }
         }
-
-        setNoStore( response );
-        response.setContentType( CONTENT_TYPE_JSON );
+        return ResponseEntity.ok().cacheControl( noStore() ).build();
     }
 
     @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
-    public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
-        HttpServletResponse response )
-        throws IOException
+    public ResponseEntity<Object> getTaskSummaryJson( @PathVariable( "jobType" ) String jobType,
+        @PathVariable( "jobId" ) String jobId )
     {
         if ( jobType != null )
         {
             Object summary = notifier.getJobSummaryByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
 
-            handleSummary( response, summary );
+            if ( summary != null )
+            {
+                return ResponseEntity.ok().cacheControl( noStore() ).body( summary );
+            }
         }
 
-        setNoStore( response );
-        response.setContentType( CONTENT_TYPE_JSON );
-    }
-
-    private void handleSummary( HttpServletResponse response, Object summary )
-        throws IOException
-    {
-        if ( summary instanceof ImportSummary )
-        {
-            ImportSummary importSummary = (ImportSummary) summary;
-            renderService.toJson( response.getOutputStream(), importSummary );
-        }
-        else
-        {
-            renderService.toJson( response.getOutputStream(), summary );
-        }
+        return ResponseEntity.ok().cacheControl( noStore() ).build();
     }
 
     // -------------------------------------------------------------------------
