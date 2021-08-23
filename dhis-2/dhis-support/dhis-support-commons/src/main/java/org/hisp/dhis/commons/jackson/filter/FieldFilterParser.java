@@ -221,17 +221,8 @@ public class FieldFilterParser
     {
         String token = fieldSplit[idx];
 
-        if ( "~".equals( token ) )
-        {
-            return true;
-        }
-        else if ( "|".equals( token ) )
-        {
-            return true;
-        }
-
-        // use lookahead to verify it's a :: transformer
-        return fieldSplit.length > 1 && ":".equals( fieldSplit[idx] ) && ":".equals( fieldSplit[idx + 1] );
+        return StringUtils.containsAny( token, "~", "|" )
+            || (fieldSplit.length > 1 && ":".equals( fieldSplit[idx] ) && ":".equals( fieldSplit[idx + 1] ));
     }
 
     private static String toFullPath( String field, Stack<String> path )
