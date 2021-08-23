@@ -140,10 +140,10 @@ public class DefaultProgramNotificationTemplateService implements ProgramNotific
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional
     public List<ProgramNotificationTemplate> getProgramNotificationTemplates(
         ProgramNotificationTemplateParam programNotificationTemplateParam )
     {
-        return null;
+        return store.getProgramNotificationTemplates( programNotificationTemplateParam );
     }
 }

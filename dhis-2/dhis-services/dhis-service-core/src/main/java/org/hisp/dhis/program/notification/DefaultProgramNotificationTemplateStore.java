@@ -122,13 +122,14 @@ public class DefaultProgramNotificationTemplateStore
     @Override
     public Long countProgramNotificationTemplates( ProgramNotificationTemplateParam param )
     {
-        NativeQuery<Long> query = getSession().createNativeQuery(
-            "select count(programnotificationtemplateid) from programnotificationtemplate where programstageid = :psid or  programid = :pid",
-            Long.class );
-        query.setParameter( PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : null );
-        query.setParameter( PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : null );
+        NativeQuery<BigInteger> query = getSession().createNativeQuery(
+            "select count(*) from programnotificationtemplate where programstageid = :psid or  programid = :pid",
+                BigInteger.class );
+        query.setParameter( PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0 );
+        query.setParameter( PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0 );
 
-        return query.getSingleResult();
+        return query.getSingleResult().longValue();
+
     }
 
     @Override
@@ -137,8 +138,9 @@ public class DefaultProgramNotificationTemplateStore
         NativeQuery<ProgramNotificationTemplate> query = getSession().createNativeQuery(
             "select * from programnotificationtemplate where programstageid = :psid or  programid = :pid",
             ProgramNotificationTemplate.class );
-        query.setParameter( PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : null );
-        query.setParameter( PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : null );
+
+        query.setParameter( PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0 );
+        query.setParameter( PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0 );
 
         return query.getResultList();
     }
