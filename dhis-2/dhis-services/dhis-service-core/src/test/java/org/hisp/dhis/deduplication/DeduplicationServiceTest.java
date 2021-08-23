@@ -228,22 +228,6 @@ public class DeduplicationServiceTest
         assertTrue( deduplicationService.isAutoMergeable( trackedEntityInstanceA, trackedEntityInstanceB ) );
     }
 
-    @Test( expected = PotentialDuplicateException.class )
-    public void shouldThrowMissingTeiA()
-    {
-        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) ).thenReturn( null );
-
-        deduplicationService.isAutoMergeable( trackedEntityInstanceA, trackedEntityInstanceB );
-    }
-
-    @Test( expected = PotentialDuplicateException.class )
-    public void shouldThrowMissingTeiAB()
-    {
-        when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) ).thenReturn( null );
-
-        deduplicationService.isAutoMergeable( trackedEntityInstanceA, trackedEntityInstanceB );
-    }
-
     private TrackedEntityAttributeValue getTrackedEntityAttributeValue( String uid, String name,
         TrackedEntityInstance trackedEntityInstance )
     {
