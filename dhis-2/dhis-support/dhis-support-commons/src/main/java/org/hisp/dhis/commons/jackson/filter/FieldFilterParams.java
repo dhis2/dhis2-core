@@ -30,35 +30,20 @@ package org.hisp.dhis.commons.jackson.filter;
 import java.util.List;
 import java.util.Set;
 
+import lombok.Builder;
+import lombok.Data;
+
 import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen
  */
+@Data
+@Builder
 public class FieldFilterParams<T>
 {
     private final List<T> objects;
 
-    private final Set<String> filters;
-
-    public FieldFilterParams( List<T> objects, Set<String> filters )
-    {
-        this.objects = objects;
-        this.filters = filters;
-    }
-
-    public FieldFilterParams( List<T> objects )
-    {
-        this( objects, Sets.newHashSet( "*" ) );
-    }
-
-    public List<T> getObjects()
-    {
-        return objects;
-    }
-
-    public Set<String> getFilters()
-    {
-        return filters;
-    }
+    @Builder.Default
+    private final Set<String> filters = Sets.newHashSet( "*" );
 }

@@ -30,6 +30,8 @@ package org.hisp.dhis.commons.jackson.filter;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -41,15 +43,11 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
  * @author Morten Olav Hansen
  */
 @Component
+@AllArgsConstructor
 public class FieldFilterManager
 {
+    @Qualifier( "jsonMapper" )
     private final ObjectMapper jsonMapper;
-
-    public FieldFilterManager(
-        @Qualifier( "jsonMapper" ) ObjectMapper jsonMapper )
-    {
-        this.jsonMapper = jsonMapper;
-    }
 
     public List<ObjectNode> toObjectNode( FieldFilterParams<?> params )
     {
