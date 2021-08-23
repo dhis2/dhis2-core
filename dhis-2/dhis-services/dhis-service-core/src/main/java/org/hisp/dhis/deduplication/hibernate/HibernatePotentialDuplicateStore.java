@@ -158,7 +158,8 @@ public class HibernatePotentialDuplicateStore
     @Override
     public void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject )
     {
-        return;
+        moveTrackedEntityAttributeValues( original.getUid(), duplicate.getUid(),
+            mergeObject.getTrackedEntityAttributes() );
     }
 
     @Override
