@@ -51,16 +51,19 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
  * Base class for convenient testing of the web API on basis of
- * {@link JsonResponse}, with JWT token
+ * {@link JsonResponse}, with API tokens. This class differs from
+ * {@link DhisControllerConvenienceTest} in that this base class also includes
+ * the {@link FilterChainProxy} so that we can authenticate the request like it
+ * would in a normal running server.
  *
  * @author Morten Svanæs
  */
 @RunWith( SpringRunner.class )
 @WebAppConfiguration
-@ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithJwtTokenAuth.class } )
+@ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithAuth.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
-public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenienceTest implements WebClient
+public abstract class DhisControllerWithApiTokenAuthTest extends DhisConvenienceTest implements WebClient
 {
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -74,7 +77,7 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenience
     protected MockMvc mvc;
 
     @Before
-    public final void setup()
+    public void setup()
         throws Exception
     {
         userService = _userService;

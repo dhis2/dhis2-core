@@ -126,7 +126,7 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
         return currentUser;
     }
 
-    private void switchContextToUser( User user )
+    protected void switchContextToUser( User user )
     {
         injectSecurityContext( user );
 

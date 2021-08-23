@@ -25,50 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.orgunitprofile;
-
-import java.util.List;
-
-import javax.annotation.Nullable;
-
-import org.hisp.dhis.feedback.ErrorReport;
+package org.hisp.dhis.webapi.security.apikey;
 
 /**
- * Main interface for org unit profile management.
- *
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface OrgUnitProfileService
+public class ApiTokenConstraintsValidationFailedException extends ApiTokenAuthenticationException
 {
-    /**
-     * Saves or updates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     */
-    void saveOrgUnitProfile( OrgUnitProfile profile );
-
-    /**
-     * Validates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     * @return a list of {@link ErrorReport}.
-     */
-    List<ErrorReport> validateOrgUnitProfile( OrgUnitProfile profile );
-
-    /**
-     * Retrieves the current {@link OrgUnitProfile}. If no profile is set, an
-     * empty profile object is returned.
-     *
-     * @return the {@link OrgUnitProfile}, never null.
-     */
-    OrgUnitProfile getOrgUnitProfile();
-
-    /**
-     * Retrieves data for the current {@link OrgUnitProfile}.
-     *
-     * @param orgUnit org unit identifier.
-     * @param isoPeriod the ISO period, optional.
-     * @return the {@link OrgUnitProfileData}.
-     */
-    OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod );
+    public ApiTokenConstraintsValidationFailedException( String msg )
+    {
+        super( ApiTokenErrors.invalidToken( msg ) );
+    }
 }

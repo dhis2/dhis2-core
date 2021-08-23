@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2002-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.orgunitprofile;
+package org.hisp.dhis.webapi.security.apikey;
 
-import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.server.resource.BearerTokenErrorCodes;
 
-import javax.annotation.Nullable;
-
-import org.hisp.dhis.feedback.ErrorReport;
-
-/**
- * Main interface for org unit profile management.
- *
- * @author Lars Helge Overland
- */
-public interface OrgUnitProfileService
+public final class ApiTokenErrors
 {
-    /**
-     * Saves or updates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     */
-    void saveOrgUnitProfile( OrgUnitProfile profile );
 
-    /**
-     * Validates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     * @return a list of {@link ErrorReport}.
-     */
-    List<ErrorReport> validateOrgUnitProfile( OrgUnitProfile profile );
+    private static final ApiTokenError DEFAULT_INVALID_REQUEST = invalidRequest( "Invalid request" );
 
-    /**
-     * Retrieves the current {@link OrgUnitProfile}. If no profile is set, an
-     * empty profile object is returned.
-     *
-     * @return the {@link OrgUnitProfile}, never null.
-     */
-    OrgUnitProfile getOrgUnitProfile();
+    private static final ApiTokenError DEFAULT_INVALID_TOKEN = invalidToken( "Invalid token" );
 
-    /**
-     * Retrieves data for the current {@link OrgUnitProfile}.
-     *
-     * @param orgUnit org unit identifier.
-     * @param isoPeriod the ISO period, optional.
-     * @return the {@link OrgUnitProfileData}.
-     */
-    OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod );
+    private ApiTokenErrors()
+    {
+    }
+
+    public static ApiTokenError invalidRequest( String message )
+    {
+        try
+        {
+            return new ApiTokenError( BearerTokenErrorCodes.INVALID_REQUEST, HttpStatus.BAD_REQUEST, message,
+                null );
+        }
+        catch ( IllegalArgumentException ex )
+        {
+            return DEFAULT_INVALID_REQUEST;
+        }
+    }
+
+    public static ApiTokenError invalidToken( String message )
+    {
+        try
+        {
+            return new ApiTokenError( BearerTokenErrorCodes.INVALID_TOKEN, HttpStatus.UNAUTHORIZED, message,
+                null );
+        }
+        catch ( IllegalArgumentException ex )
+        {
+            return DEFAULT_INVALID_TOKEN;
+        }
+    }
+
 }

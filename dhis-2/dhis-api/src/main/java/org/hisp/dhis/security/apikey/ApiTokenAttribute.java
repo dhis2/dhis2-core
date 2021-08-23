@@ -25,50 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.orgunitprofile;
+package org.hisp.dhis.security.apikey;
 
-import java.util.List;
+import java.io.Serializable;
 
-import javax.annotation.Nullable;
+import org.hisp.dhis.common.DxfNamespaces;
 
-import org.hisp.dhis.feedback.ErrorReport;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * Main interface for org unit profile management.
- *
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface OrgUnitProfileService
+@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
+@JsonSubTypes( {
+    @JsonSubTypes.Type( value = IpAllowedList.class, name = "IpAllowedList" ),
+    @JsonSubTypes.Type( value = RefererAllowedList.class, name = "RefererAllowedList" ),
+    @JsonSubTypes.Type( value = MethodAllowedList.class, name = "MethodAllowedList" ) } )
+@JacksonXmlRootElement( localName = "apiTokenAttribute", namespace = DxfNamespaces.DXF_2_0 )
+public abstract class ApiTokenAttribute implements Serializable
 {
-    /**
-     * Saves or updates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     */
-    void saveOrgUnitProfile( OrgUnitProfile profile );
+    @JsonProperty
+    protected final String type;
 
-    /**
-     * Validates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     * @return a list of {@link ErrorReport}.
-     */
-    List<ErrorReport> validateOrgUnitProfile( OrgUnitProfile profile );
-
-    /**
-     * Retrieves the current {@link OrgUnitProfile}. If no profile is set, an
-     * empty profile object is returned.
-     *
-     * @return the {@link OrgUnitProfile}, never null.
-     */
-    OrgUnitProfile getOrgUnitProfile();
-
-    /**
-     * Retrieves data for the current {@link OrgUnitProfile}.
-     *
-     * @param orgUnit org unit identifier.
-     * @param isoPeriod the ISO period, optional.
-     * @return the {@link OrgUnitProfileData}.
-     */
-    OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod );
+    protected ApiTokenAttribute( String type )
+    {
+        this.type = type;
+    }
 }

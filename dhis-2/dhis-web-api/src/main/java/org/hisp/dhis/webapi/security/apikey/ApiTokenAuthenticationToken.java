@@ -25,50 +25,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.orgunitprofile;
+package org.hisp.dhis.webapi.security.apikey;
 
-import java.util.List;
+import java.util.Collections;
 
-import javax.annotation.Nullable;
-
-import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.security.apikey.ApiToken;
+import org.hisp.dhis.user.UserCredentials;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 
 /**
- * Main interface for org unit profile management.
- *
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface OrgUnitProfileService
+public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
 {
-    /**
-     * Saves or updates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     */
-    void saveOrgUnitProfile( OrgUnitProfile profile );
+    private String tokenKey;
 
-    /**
-     * Validates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     * @return a list of {@link ErrorReport}.
-     */
-    List<ErrorReport> validateOrgUnitProfile( OrgUnitProfile profile );
+    private ApiToken tokenRef;
 
-    /**
-     * Retrieves the current {@link OrgUnitProfile}. If no profile is set, an
-     * empty profile object is returned.
-     *
-     * @return the {@link OrgUnitProfile}, never null.
-     */
-    OrgUnitProfile getOrgUnitProfile();
+    private UserCredentials userCredentials;
 
-    /**
-     * Retrieves data for the current {@link OrgUnitProfile}.
-     *
-     * @param orgUnit org unit identifier.
-     * @param isoPeriod the ISO period, optional.
-     * @return the {@link OrgUnitProfileData}.
-     */
-    OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod );
+    public ApiTokenAuthenticationToken( String tokenKey )
+    {
+        super( Collections.emptyList() );
+        this.tokenKey = tokenKey;
+    }
+
+    public ApiTokenAuthenticationToken( ApiToken token, UserCredentials userCredentials )
+    {
+        super( Collections.emptyList() );
+        this.tokenRef = token;
+        this.userCredentials = userCredentials;
+    }
+
+    @Override
+    public UserCredentials getCredentials()
+    {
+        return this.userCredentials;
+    }
+
+    @Override
+    public UserDetails getPrincipal()
+    {
+        return this.userCredentials;
+    }
+
+    public String getTokenKey()
+    {
+        return tokenKey;
+    }
+
+    public void setTokenKey( String tokenKey )
+    {
+        this.tokenKey = tokenKey;
+    }
+
+    public ApiToken getToken()
+    {
+        return this.tokenRef;
+    }
 }

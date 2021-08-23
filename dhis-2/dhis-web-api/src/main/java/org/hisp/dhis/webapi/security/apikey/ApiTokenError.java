@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2002-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.orgunitprofile;
+package org.hisp.dhis.webapi.security.apikey;
 
-import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.util.Assert;
 
-import javax.annotation.Nullable;
-
-import org.hisp.dhis.feedback.ErrorReport;
-
-/**
- * Main interface for org unit profile management.
- *
- * @author Lars Helge Overland
- */
-public interface OrgUnitProfileService
+public final class ApiTokenError extends OAuth2Error
 {
-    /**
-     * Saves or updates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     */
-    void saveOrgUnitProfile( OrgUnitProfile profile );
+    private final HttpStatus httpStatus;
 
-    /**
-     * Validates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     * @return a list of {@link ErrorReport}.
-     */
-    List<ErrorReport> validateOrgUnitProfile( OrgUnitProfile profile );
+    public ApiTokenError( String errorCode, HttpStatus httpStatus, String description, String errorUri )
+    {
+        super( errorCode, description, errorUri );
+        Assert.notNull( httpStatus, "httpStatus cannot be null" );
+        this.httpStatus = httpStatus;
+    }
 
-    /**
-     * Retrieves the current {@link OrgUnitProfile}. If no profile is set, an
-     * empty profile object is returned.
-     *
-     * @return the {@link OrgUnitProfile}, never null.
-     */
-    OrgUnitProfile getOrgUnitProfile();
-
-    /**
-     * Retrieves data for the current {@link OrgUnitProfile}.
-     *
-     * @param orgUnit org unit identifier.
-     * @param isoPeriod the ISO period, optional.
-     * @return the {@link OrgUnitProfileData}.
-     */
-    OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod );
+    public HttpStatus getHttpStatus()
+    {
+        return httpStatus;
+    }
 }

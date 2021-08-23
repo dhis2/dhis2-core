@@ -25,50 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.orgunitprofile;
+package org.hisp.dhis.hibernate.jsonb.type;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
+import org.hisp.dhis.security.apikey.ApiTokenAttribute;
 
-import org.hisp.dhis.feedback.ErrorReport;
+import com.fasterxml.jackson.core.type.TypeReference;
 
-/**
- * Main interface for org unit profile management.
- *
- * @author Lars Helge Overland
- */
-public interface OrgUnitProfileService
+public class ApiKeyAttributeJsonBinaryType extends JsonBinaryType
 {
-    /**
-     * Saves or updates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     */
-    void saveOrgUnitProfile( OrgUnitProfile profile );
+    public ApiKeyAttributeJsonBinaryType()
+    {
+        super();
+        writer = MAPPER.writerFor( new TypeReference<List<ApiTokenAttribute>>()
+        {
+        } );
+        reader = MAPPER.readerFor( new TypeReference<List<ApiTokenAttribute>>()
+        {
+        } );
+        returnedClass = ApiTokenAttribute.class;
+    }
 
-    /**
-     * Validates the {@link OrgUnitProfile}.
-     *
-     * @param profile the {@link OrgUnitProfile}.
-     * @return a list of {@link ErrorReport}.
-     */
-    List<ErrorReport> validateOrgUnitProfile( OrgUnitProfile profile );
-
-    /**
-     * Retrieves the current {@link OrgUnitProfile}. If no profile is set, an
-     * empty profile object is returned.
-     *
-     * @return the {@link OrgUnitProfile}, never null.
-     */
-    OrgUnitProfile getOrgUnitProfile();
-
-    /**
-     * Retrieves data for the current {@link OrgUnitProfile}.
-     *
-     * @param orgUnit org unit identifier.
-     * @param isoPeriod the ISO period, optional.
-     * @return the {@link OrgUnitProfileData}.
-     */
-    OrgUnitProfileData getOrgUnitProfileData( String orgUnit, @Nullable String isoPeriod );
+    @Override
+    protected void init( Class<?> klass )
+    {
+        returnedClass = klass;
+        writer = MAPPER.writerFor( new TypeReference<List<ApiTokenAttribute>>()
+        {
+        } );
+        reader = MAPPER.readerFor( new TypeReference<List<ApiTokenAttribute>>()
+        {
+        } );
+    }
 }
