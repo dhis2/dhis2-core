@@ -25,11 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.metadata.orgunits;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.*;
+
+import java.io.File;
+import java.util.List;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -44,10 +46,8 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.util.List;
-
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -91,8 +91,7 @@ public class OrgUnitProfileTests
 
         // act
         orgUnitProfileActions.post(
-            new JsonObjectBuilder( profileBody ).addArray( "attributes", array ).build()
-        ).validate().statusCode( 204 );
+            new JsonObjectBuilder( profileBody ).addArray( "attributes", array ).build() ).validate().statusCode( 200 );
 
         // assert
         orgUnitProfileActions.get().validate().body( "attributes", hasSize( greaterThanOrEqualTo( 1 ) ) );
@@ -125,8 +124,7 @@ public class OrgUnitProfileTests
 
         // act
         orgUnitProfileActions.post(
-            profileBody
-        ).validate().statusCode( 204 );
+            profileBody ).validate().statusCode( 200 );
 
         // assert
         orgUnitProfileActions.get().validate().body( "groupSets", hasSize( greaterThanOrEqualTo( 1 ) ) );
@@ -153,8 +151,7 @@ public class OrgUnitProfileTests
         datItems.forEach( p -> array.add( p ) );
 
         orgUnitProfileActions.post(
-            new JsonObjectBuilder().addArray( "dataItems", array ).build()
-        ).validate().statusCode( 204 );
+            new JsonObjectBuilder().addArray( "dataItems", array ).build() ).validate().statusCode( 200 );
 
         orgUnitProfileActions.get().validate().body( "dataItems", hasSize( greaterThanOrEqualTo( 1 ) ) );
 

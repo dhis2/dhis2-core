@@ -25,10 +25,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.helpers.matchers;
 
-import com.google.gson.JsonObject;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.hisp.dhis.helpers.JsonParserUtils;
@@ -36,6 +34,8 @@ import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -67,8 +67,7 @@ public class MatchesJson
     public static MatchesJson matchesJSON( final Object obj )
     {
         return new MatchesJson( toJSONString(
-            obj
-        ) );
+            obj ) );
     }
 
     @Override

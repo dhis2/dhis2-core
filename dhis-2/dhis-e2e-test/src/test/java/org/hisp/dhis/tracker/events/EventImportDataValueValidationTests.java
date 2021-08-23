@@ -25,10 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.File;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
@@ -45,11 +49,7 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -183,12 +183,12 @@ public class EventImportDataValueValidationTests
         JsonObject jsonObject = new JsonObjectBuilder(
             new FileReaderUtils()
                 .readJsonAndGenerateData( new File( "src/test/resources/tracker/eventProgram.json" ) ) )
-            .addPropertyByJsonPath( "programStages[0].program.id", programId )
-            .addPropertyByJsonPath( "programs[0].id", programId )
-            .addPropertyByJsonPath( "programs[0].programStages[0].id", programStageId )
-            .addPropertyByJsonPath( "programStages[0].id", programStageId )
-            .addPropertyByJsonPath( "programStages[0].programStageDataElements", null )
-            .build();
+                    .addPropertyByJsonPath( "programStages[0].program.id", programId )
+                    .addPropertyByJsonPath( "programs[0].id", programId )
+                    .addPropertyByJsonPath( "programs[0].programStages[0].id", programStageId )
+                    .addPropertyByJsonPath( "programStages[0].id", programStageId )
+                    .addPropertyByJsonPath( "programStages[0].programStageDataElements", null )
+                    .build();
 
         new MetadataActions().importAndValidateMetadata( jsonObject );
 
@@ -208,8 +208,7 @@ public class EventImportDataValueValidationTests
             .addArray( "dataValues", new JsonObjectBuilder()
                 .addProperty( "dataElement", dataElementId )
                 .addProperty( "value", value )
-                .build()
-            );
+                .build() );
 
     }
 }

@@ -25,25 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.actions.metadata;
 
-import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class DataElementActions extends RestApiActions
 {
-    public DataElementActions( )
+    public DataElementActions()
     {
         super( "/dataElements" );
     }
 
-    public JsonObject body(String aggregationType, String domainType, String valueType ) {
+    public JsonObject body( String aggregationType, String domainType, String valueType )
+    {
         return JsonObjectBuilder.jsonObject()
             .addProperty( "name", DataGenerator.randomEntityName() )
             .addProperty( "shortName", DataGenerator.randomEntityName() )
@@ -54,4 +55,3 @@ public class DataElementActions extends RestApiActions
     }
 
 }
-

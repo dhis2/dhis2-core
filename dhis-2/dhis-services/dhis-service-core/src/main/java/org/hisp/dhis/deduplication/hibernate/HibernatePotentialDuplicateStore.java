@@ -64,7 +64,7 @@ public class HibernatePotentialDuplicateStore
 
         return Optional.ofNullable( query.getTeis() ).filter( teis -> !teis.isEmpty() ).map( teis -> {
             Query<Long> hibernateQuery = getTypedQuery(
-                queryString + " and pr.teiA in (:uids) or pr.teiB in (:uids)" );
+                queryString + " and ( pr.teiA in (:uids) or pr.teiB in (:uids) )" );
 
             hibernateQuery.setParameterList( "uids", teis );
 
@@ -88,7 +88,7 @@ public class HibernatePotentialDuplicateStore
 
         return Optional.ofNullable( query.getTeis() ).filter( teis -> !teis.isEmpty() ).map( teis -> {
             Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
-                queryString + " and pr.teiA in (:uids) or pr.teiB in (:uids)" );
+                queryString + " and ( pr.teiA in (:uids) or pr.teiB in (:uids) )" );
 
             hibernateQuery.setParameterList( "uids", teis );
 
@@ -103,19 +103,6 @@ public class HibernatePotentialDuplicateStore
 
             return hibernateQuery.getResultList();
         } );
-    }
-
-    @Override
-    public List<PotentialDuplicate> getAllByTei( String tei, DeduplicationStatus status )
-    {
-        Query<PotentialDuplicate> query = getTypedQuery(
-            "from PotentialDuplicate pr where pr.status in (:status) and ( pr.teiA = :tei or pr.teiB = :tei )" );
-
-        query.setParameter( "tei", tei );
-
-        setStatusParameter( status, query );
-
-        return query.getResultList();
     }
 
     private void setStatusParameter( DeduplicationStatus status, Query<?> hibernateQuery )

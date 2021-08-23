@@ -25,10 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.deduplication;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.*;
+
+import java.util.Arrays;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
@@ -43,9 +45,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.Arrays;
-
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -98,7 +98,8 @@ public class PotentialDuplicatesTests
         potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=ALL" ) )
             .validate()
             .body( "identifiableObjects", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "identifiableObjects.status", allOf( hasItem( "OPEN" ), hasItem( "INVALID" ), hasItem( "MERGED" ) ) );
+            .body( "identifiableObjects.status",
+                allOf( hasItem( "OPEN" ), hasItem( "INVALID" ), hasItem( "MERGED" ) ) );
     }
 
     @Test
@@ -106,7 +107,7 @@ public class PotentialDuplicatesTests
     {
         potentialDuplicatesActions.createPotentialDuplicate( null, createTei(), "OPEN" )
             .validate()
-            .statusCode( not( 200 ) )
+            .statusCode( equalTo( 400 ) )
             .body( "status", equalTo( "ERROR" ) )
             .body( "message", containsStringIgnoringCase( "missing required input property" ) );
     }
@@ -125,7 +126,8 @@ public class PotentialDuplicatesTests
 
         String duplicateId = response.extractString( "id" );
 
-        response = potentialDuplicatesActions.update( duplicateId + "?status=" + newStatus, new JsonObjectBuilder().build() );
+        response = potentialDuplicatesActions.update( duplicateId + "?status=" + newStatus,
+            new JsonObjectBuilder().build() );
 
         if ( shouldUpdate )
         {
@@ -138,6 +140,44 @@ public class PotentialDuplicatesTests
         }
 
         response.validate().statusCode( 400 ).body( "status", equalTo( "ERROR" ) );
+    }
+
+    @Test
+    public void shouldGetDuplicatesByTei()
+    {
+        String teiA = createTei();
+        String teiB = createTei();
+        String teiC = createTei();
+        String teiD = createTei();
+
+        potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" ).validate().statusCode( 200 );
+        potentialDuplicatesActions.createPotentialDuplicate( teiC, teiA, "INVALID" ).validate().statusCode( 200 );
+        potentialDuplicatesActions.createPotentialDuplicate( teiD, teiA, "OPEN" ).validate().statusCode( 200 );
+
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "teis=" + teiA ) )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 2 ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiB + "," + teiC, "status=ALL") )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 2 ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=INVALID" ) )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 1 ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=OPEN" ) )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 2 ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=MERGED" ) )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 0 ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=ALL" ) )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 3 ) );
     }
 
     private String createTei()

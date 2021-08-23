@@ -27,20 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
-import java.util.Collections;
 
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -50,15 +45,12 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
-import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceSyncStrategyImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -148,89 +140,5 @@ public class TrackedEntityInstanceControllerTest
 
         verify( trackedEntityInstanceSyncStrategy, times( 0 ) ).mergeOrDeleteTrackedEntityInstances( any() );
         verify( trackedEntityInstanceAsyncStrategy, times( 1 ) ).mergeOrDeleteTrackedEntityInstances( any() );
-    }
-
-    @Test
-    public void shouldFlagPotentialDuplicate()
-        throws Exception
-    {
-        String uid = "uid";
-
-        ArgumentCaptor<TrackedEntityInstance> trackedEntityInstanceArgumentCaptor = ArgumentCaptor
-            .forClass( TrackedEntityInstance.class );
-
-        when( instanceService.getTrackedEntityInstance( uid ) ).thenReturn( new TrackedEntityInstance() );
-
-        mockMvc.perform( put( ENDPOINT + "/" + uid + PD_ENDPOINT )
-            .contentType( MediaType.APPLICATION_JSON ).param( "flag", "true" )
-            .content( "{}" ) )
-            .andExpect( status().isOk() );
-
-        verify( instanceService ).updateTrackedEntityInstance( trackedEntityInstanceArgumentCaptor.capture() );
-        assertTrue( trackedEntityInstanceArgumentCaptor.getValue().isPotentialDuplicate() );
-
-        reset( instanceService );
-
-        when( instanceService.getTrackedEntityInstance( uid ) ).thenReturn( new TrackedEntityInstance() );
-
-        mockMvc.perform( put( ENDPOINT + "/" + uid + PD_ENDPOINT )
-            .contentType( MediaType.APPLICATION_JSON ).param( "flag", "false" )
-            .content( "{}" ) )
-            .andExpect( status().isOk() );
-
-        verify( instanceService ).updateTrackedEntityInstance( trackedEntityInstanceArgumentCaptor.capture() );
-        assertFalse( trackedEntityInstanceArgumentCaptor.getValue().isPotentialDuplicate() );
-    }
-
-    @Test
-    public void shouldThrowInvalidPotentialDuplicateFlag()
-        throws Exception
-    {
-        String uid = "uid";
-
-        mockMvc.perform( put( ENDPOINT + "/" + uid + PD_ENDPOINT )
-            .contentType( MediaType.APPLICATION_JSON ).param( "flag", "invalid flag" )
-            .content( "{}" ) )
-            .andExpect( status().isBadRequest() )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
-
-        verify( instanceService, times( 0 ) ).updateTrackedEntityInstance( trackedEntityInstance );
-    }
-
-    @Test
-    public void shouldThrowFlagPotentialDuplicateMissingTeiAccess()
-        throws Exception
-    {
-        String uid = "uid";
-
-        when( instanceService.getTrackedEntityInstance( uid ) ).thenReturn( trackedEntityInstance );
-
-        when( trackerAccessManager.canWrite( user, trackedEntityInstance ) )
-            .thenReturn( Collections.singletonList( "Read error" ) );
-
-        mockMvc.perform( put( ENDPOINT + "/" + uid + PD_ENDPOINT )
-            .contentType( MediaType.APPLICATION_JSON ).param( "flag", "true" )
-            .content( "{}" ) )
-            .andExpect( status().isForbidden() )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof OperationNotAllowedException ) );
-
-        verify( instanceService, times( 0 ) ).updateTrackedEntityInstance( trackedEntityInstance );
-    }
-
-    @Test
-    public void shouldThrowFlagPotentialDuplicateInvalidTei()
-        throws Exception
-    {
-        String uid = "uid";
-
-        when( instanceService.getTrackedEntityInstance( uid ) ).thenReturn( null );
-
-        mockMvc.perform( put( ENDPOINT + "/" + uid + PD_ENDPOINT )
-            .contentType( MediaType.APPLICATION_JSON ).param( "flag", "true" )
-            .content( "{}" ) )
-            .andExpect( status().isNotFound() )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
-
-        verify( instanceService, times( 0 ) ).updateTrackedEntityInstance( trackedEntityInstance );
     }
 }

@@ -33,6 +33,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import org.hisp.dhis.organisationunit.FeatureType;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -92,8 +94,14 @@ public class OrgUnitInfo
     private String phoneNumber;
 
     @JsonProperty
+    private FeatureType featureType;
+
+    @JsonProperty
     private Double longitude;
 
     @JsonProperty
     private Double latitude;
+
+    @JsonProperty
+    private String imageId;
 }
