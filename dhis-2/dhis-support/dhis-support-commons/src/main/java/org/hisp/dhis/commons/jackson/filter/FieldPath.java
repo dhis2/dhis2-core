@@ -41,7 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 @AllArgsConstructor
 public class FieldPath
 {
-    private final static String FIELD_PATH_SEPARATOR = ".";
+    private static final String FIELD_PATH_SEPARATOR = ".";
 
     /**
      * Name of field (excluding path).
