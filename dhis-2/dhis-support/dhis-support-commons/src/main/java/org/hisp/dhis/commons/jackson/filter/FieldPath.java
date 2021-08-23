@@ -29,14 +29,16 @@ package org.hisp.dhis.commons.jackson.filter;
 
 import java.util.List;
 
-import lombok.Data;
-
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+
+import lombok.Data;
 
 /**
  * @author Morten Olav Hansen
  */
 @Data
+@AllArgsConstructor
 public class FieldPath
 {
     private final static String FIELD_PATH_SEPARATOR = ".";
@@ -55,6 +57,13 @@ public class FieldPath
      * Transformer to apply to field, can be null.
      */
     private final FieldTransformer transformer;
+
+    public FieldPath( String name, List<String> path )
+    {
+        this.name = name;
+        this.path = path;
+        this.transformer = null;
+    }
 
     /**
      * @return Dot separated path + field name (i.e. path.to.field)
