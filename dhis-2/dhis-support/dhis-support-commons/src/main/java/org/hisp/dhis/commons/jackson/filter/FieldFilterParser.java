@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.commons.jackson.filter;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
@@ -50,9 +52,13 @@ public class FieldFilterParser
 
     private static Set<String> expandField( String field, String prefix )
     {
+        List<FieldPath> fieldPaths = new ArrayList<>();
         Set<String> output = new HashSet<>();
         Stack<String> path = new Stack<>();
         StringBuilder builder = new StringBuilder();
+
+        String transformerName = null;
+        List<String> transformerParameters = null;
 
         if ( prefix != null )
         {
@@ -60,10 +66,63 @@ public class FieldFilterParser
             path.push( prefix );
         }
 
-        for ( String token : field.split( "" ) )
+        String[] fieldSplit = field.split( "" );
+
+        for ( int idx = 0; idx < fieldSplit.length; idx++ )
         {
-            if ( isFieldSeparator( token ) )
+            String token = fieldSplit[idx];
+
+            if ( isTransformer( fieldSplit, idx ) )
             {
+                output.add( toFullPath( builder.toString(), path ) );
+
+                boolean insideParameters = false;
+
+                StringBuilder transformerBuilder = new StringBuilder();
+
+                transformerName = null;
+                transformerParameters = new ArrayList<>();
+
+                for ( ; idx < fieldSplit.length; idx++ )
+                {
+                    token = fieldSplit[idx];
+
+                    if ( isAlphanumericOrSpecial( token ) )
+                    {
+                        if ( !(":".equals( token ) || "~".equals( token ) || "|".equals( token )) )
+                        {
+                            transformerBuilder.append( token );
+                        }
+                    }
+                    else if ( isParameterStart( token ) )
+                    {
+                        insideParameters = true;
+
+                        transformerName = transformerBuilder.toString();
+                        transformerBuilder = new StringBuilder();
+                    }
+                    else if ( insideParameters && isParameterSeparator( token ) )
+                    {
+                        transformerParameters.add( transformerBuilder.toString() );
+                        transformerBuilder = new StringBuilder();
+                    }
+                    else if ( (insideParameters && isParameterEnd( token )) )
+                    {
+                        transformerParameters.add( transformerBuilder.toString() );
+                        break;
+                    }
+                    else if ( isFieldSeparator( token ) || (token.equals( "[" ) && !insideParameters) )
+                    {
+                        idx--;
+                        break;
+                    }
+                }
+            }
+            else if ( isFieldSeparator( token ) )
+            {
+                FieldPath fieldPath = getFieldPath( builder, path, transformerName, transformerParameters );
+                fieldPaths.add( fieldPath );
+
                 output.add( toFullPath( builder.toString(), path ) );
                 builder = new StringBuilder();
             }
@@ -74,6 +133,9 @@ public class FieldFilterParser
             }
             else if ( isBlockEnd( token ) )
             {
+                FieldPath fieldPath = getFieldPath( builder, path, transformerName, transformerParameters );
+                fieldPaths.add( fieldPath );
+
                 output.add( toFullPath( builder.toString(), path ) );
                 output.add( path.pop() );
 
@@ -87,10 +149,27 @@ public class FieldFilterParser
 
         if ( builder.length() > 0 )
         {
+            FieldPath fieldPath = getFieldPath( builder, path, transformerName, transformerParameters );
+            fieldPaths.add( fieldPath );
+
             output.add( toFullPath( builder.toString(), path ) );
         }
 
         return output;
+    }
+
+    private static FieldPath getFieldPath(
+        StringBuilder fieldNameBuilder, Stack<String> path,
+        String transformerName, List<String> transformerParameters )
+    {
+        FieldTransformer transformer = null;
+
+        if ( transformerName != null )
+        {
+            transformer = new FieldTransformer( transformerName, transformerParameters );
+        }
+
+        return new FieldPath( fieldNameBuilder.toString(), path, transformer );
     }
 
     private static Set<String> expandField( String field )
@@ -108,6 +187,25 @@ public class FieldFilterParser
         return token != null && StringUtils.containsAny( token, "]", ")" );
     }
 
+    // please be aware that this also could mean both block start, and parameter
+    // start depending on context
+    private static boolean isParameterStart( String token )
+    {
+        return token != null && StringUtils.containsAny( token, "(" );
+    }
+
+    // please be aware that this also could mean both block end, and parameter
+    // end depending on context
+    private static boolean isParameterEnd( String token )
+    {
+        return token != null && StringUtils.containsAny( token, ")" );
+    }
+
+    private static boolean isParameterSeparator( String token )
+    {
+        return token != null && StringUtils.containsAny( token, ";" );
+    }
+
     private static boolean isFieldSeparator( String token )
     {
         return token != null && StringUtils.containsAny( token, "," );
@@ -116,7 +214,24 @@ public class FieldFilterParser
     private static boolean isAlphanumericOrSpecial( String token )
     {
         return StringUtils.isAlphanumeric( token )
-            || StringUtils.containsAny( token, "*", ":", ";", "{", "}", "~", "!" );
+            || StringUtils.containsAny( token, "*", ":", "{", "}", "~", "!", "|" );
+    }
+
+    private static boolean isTransformer( String[] fieldSplit, int idx )
+    {
+        String token = fieldSplit[idx];
+
+        if ( "~".equals( token ) )
+        {
+            return true;
+        }
+        else if ( "|".equals( token ) )
+        {
+            return true;
+        }
+
+        // use lookahead to verify it's a :: transformer
+        return fieldSplit.length > 1 && ":".equals( fieldSplit[idx] ) && ":".equals( fieldSplit[idx + 1] );
     }
 
     private static String toFullPath( String field, Stack<String> path )

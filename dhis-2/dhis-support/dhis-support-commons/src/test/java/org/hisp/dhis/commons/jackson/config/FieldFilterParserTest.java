@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.commons.jackson.config;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
@@ -112,5 +113,27 @@ public class FieldFilterParserTest
 
         assertTrue( fields.contains( "prefix.aaa.a" ) );
         assertTrue( fields.contains( "prefix.bbb.b" ) );
+    }
+
+    @Test
+    public void testParseWithTransformer1()
+    {
+        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "name::x(a;b),id~y(a;b;c),code|z(t)" ) );
+
+        assertTrue( fields.contains( "name" ) );
+        assertTrue( fields.contains( "id" ) );
+        assertTrue( fields.contains( "code" ) );
+        assertFalse( fields.contains( "name::x(a;b)" ) );
+        assertFalse( fields.contains( "id~y(a;b;c)" ) );
+        assertFalse( fields.contains( "code|z(t)" ) );
+    }
+
+    @Test
+    public void testParseWithTransformer2()
+    {
+        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "groups[name::x(a;b)]" ) );
+
+        assertTrue( fields.contains( "groups" ) );
+        assertTrue( fields.contains( "groups.name" ) );
     }
 }
