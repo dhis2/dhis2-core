@@ -51,7 +51,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
  * Base class for convenient testing of the web API on basis of
- * {@link JsonResponse}.
+ * {@link JsonResponse}, with JWT token
  *
  * @author Morten Svanæs
  */
@@ -78,6 +78,7 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenience
         throws Exception
     {
         userService = _userService;
+
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding( "UTF-8" );
         characterEncodingFilter.setForceEncoding( true );

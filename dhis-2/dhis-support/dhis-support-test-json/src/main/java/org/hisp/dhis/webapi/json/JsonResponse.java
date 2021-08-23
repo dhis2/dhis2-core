@@ -90,6 +90,11 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
         this.path = path;
     }
 
+    public JsonDocument getJsonDocument()
+    {
+        return this.content;
+    }
+
     private <T> T value( JsonNodeType expected, Function<JsonNode, T> get, Function<JsonPathException, T> orElse )
     {
         try

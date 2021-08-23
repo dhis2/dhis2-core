@@ -27,19 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,29 +64,21 @@ public class SynchronizationController
     @Autowired
     private RestTemplate restTemplate;
 
-    @Autowired
-    private RenderService renderService;
-
     @PreAuthorize( "hasRole('ALL') or hasRole('F_EXPORT_DATA')" )
-    @PostMapping( "/dataPush" )
-    public void execute( HttpServletResponse response )
+    @PostMapping( value = "/dataPush", produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public ImportConflicts execute()
         throws IOException
     {
-        ImportConflicts summary = synchronizationManager.executeDataValuePush();
-
-        response.setContentType( CONTENT_TYPE_JSON );
-        renderService.toJson( response.getOutputStream(), summary );
+        return synchronizationManager.executeDataValuePush();
     }
 
     @PreAuthorize( "hasRole('ALL')" )
-    @PostMapping( "/metadataPull" )
-    public void importMetaData( @RequestBody String url, HttpServletResponse response )
-        throws IOException
+    @PostMapping( value = "/metadataPull", produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public ImportReport importMetaData( @RequestBody String url )
     {
-        ImportReport importReport = synchronizationManager.executeMetadataPull( url );
-
-        response.setContentType( CONTENT_TYPE_JSON );
-        renderService.toJson( response.getOutputStream(), importReport );
+        return synchronizationManager.executeMetadataPull( url );
     }
 
     @GetMapping( value = "/availability", produces = APPLICATION_JSON_VALUE )

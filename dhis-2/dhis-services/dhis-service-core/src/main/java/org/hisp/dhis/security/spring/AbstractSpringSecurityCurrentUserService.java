@@ -58,7 +58,7 @@ public abstract class AbstractSpringSecurityCurrentUserService implements Curren
         // This is the state before the user is authenticated.
         if ( principal instanceof String )
         {
-            if ( !"anonymousUser".equals( (String) principal ) )
+            if ( !"anonymousUser".equals( principal ) )
             {
                 return null;
             }

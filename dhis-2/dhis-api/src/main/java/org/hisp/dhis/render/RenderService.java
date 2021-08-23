@@ -43,6 +43,10 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public interface RenderService
 {
+    /**
+     * NOTE: Please do not use this in controllers to return an HTTP call
+     * handler method result as JSON. Instead, return the value from the method.
+     */
     void toJson( OutputStream output, Object value )
         throws IOException;
 
