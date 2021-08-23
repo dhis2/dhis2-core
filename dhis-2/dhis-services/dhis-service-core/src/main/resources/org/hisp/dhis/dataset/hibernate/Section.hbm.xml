@@ -54,7 +54,7 @@
 
     <property name="showColumnTotals" />
 
-    <property name="disableDataElementAutoGroup" />
+    <property name="disableDataElementAutoGroup" table="disabledataelementautogroup" />
 
     <!-- Dynamic attribute values -->
 
