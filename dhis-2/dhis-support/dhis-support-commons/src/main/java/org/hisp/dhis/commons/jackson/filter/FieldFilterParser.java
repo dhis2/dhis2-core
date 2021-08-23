@@ -191,24 +191,24 @@ public class FieldFilterParser
     // start depending on context
     private static boolean isParameterStart( String token )
     {
-        return token != null && StringUtils.containsAny( token, "(" );
+        return StringUtils.containsAny( token, "(" );
     }
 
     // please be aware that this also could mean both block end, and parameter
     // end depending on context
     private static boolean isParameterEnd( String token )
     {
-        return token != null && StringUtils.containsAny( token, ")" );
+        return StringUtils.containsAny( token, ")" );
     }
 
     private static boolean isParameterSeparator( String token )
     {
-        return token != null && StringUtils.containsAny( token, ";" );
+        return StringUtils.containsAny( token, ";" );
     }
 
     private static boolean isFieldSeparator( String token )
     {
-        return token != null && StringUtils.containsAny( token, "," );
+        return StringUtils.containsAny( token, "," );
     }
 
     private static boolean isAlphanumericOrSpecial( String token )
