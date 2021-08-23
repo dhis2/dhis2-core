@@ -50,6 +50,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramInstance;
@@ -585,14 +586,6 @@ public class TrackerPreheat
         return Optional.empty();
     }
 
-    @Override
-    public String toString()
-    {
-        return new StringJoiner( ", ", TrackerPreheat.class.getSimpleName() + "[", "]" )
-            .add( "map=" + map )
-            .toString();
-    }
-
     public void addProgramOwners( List<TrackedEntityProgramOwnerOrgUnit> tepos )
     {
         tepos.forEach( tepo -> addProgramOwner( tepo.getTrackedEntityInstanceId(), tepo.getProgramId(), tepo ) );
@@ -608,5 +601,28 @@ public class TrackerPreheat
         }
 
         programOwner.get( teiUid ).put( programUid, tepo );
+    }
+
+    public void updateProgramOwner( String teiUid, String programUid,
+        OrganisationUnit orgUnit )
+    {
+        if ( !programOwner.containsKey( teiUid ) )
+        {
+            programOwner.put( teiUid, new HashMap<>() );
+        }
+        if ( !programOwner.get( teiUid ).containsKey( programUid ) )
+        {
+            TrackedEntityProgramOwnerOrgUnit tepo = new TrackedEntityProgramOwnerOrgUnit( 0, teiUid, programUid,
+                orgUnit );
+            programOwner.get( teiUid ).put( programUid, tepo );
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        return new StringJoiner( ", ", TrackerPreheat.class.getSimpleName() + "[", "]" )
+            .add( "map=" + map )
+            .toString();
     }
 }
