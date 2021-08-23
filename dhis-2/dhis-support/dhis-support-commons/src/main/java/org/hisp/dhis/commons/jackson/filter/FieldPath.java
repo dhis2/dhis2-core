@@ -30,9 +30,9 @@ package org.hisp.dhis.commons.jackson.filter;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-
 import lombok.Data;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Morten Olav Hansen
