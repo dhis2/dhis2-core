@@ -136,4 +136,14 @@ public class FieldFilterParserTest
         assertTrue( fields.contains( "groups" ) );
         assertTrue( fields.contains( "groups.name" ) );
     }
+
+    @Test
+    public void testParseWithTransformer3()
+    {
+        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "groups[name::x(a;b), code~y(a)]" ) );
+
+        assertTrue( fields.contains( "groups" ) );
+        assertTrue( fields.contains( "groups.name" ) );
+        assertTrue( fields.contains( "groups.code" ) );
+    }
 }
