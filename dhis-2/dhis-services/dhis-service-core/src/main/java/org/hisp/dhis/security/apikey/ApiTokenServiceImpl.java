@@ -28,11 +28,12 @@
 package org.hisp.dhis.security.apikey;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.CodeGenerator.getRandomSecureToken;
 
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.CRC32;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
@@ -120,12 +121,16 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     public ApiToken initToken( ApiToken token )
     {
-        SecureRandom random = new SecureRandom();
-        byte[] r = new byte[256];
-        random.nextBytes( r );
+        String randomSecureToken = getRandomSecureToken( 24 ).replaceAll( "[-_]", "x" );
 
-        String keyAsSha512Hex = Hashing.sha512().hashBytes( r ).toString();
-        token.setKey( keyAsSha512Hex );
+        CRC32 crc = new CRC32();
+        byte[] bytes = randomSecureToken.getBytes();
+        crc.update( bytes, 0, bytes.length );
+        long checksum = crc.getValue();
+
+        randomSecureToken = "d2p_" + randomSecureToken + checksum;
+
+        token.setKey( randomSecureToken );
 
         if ( token.getExpire() == null )
         {
