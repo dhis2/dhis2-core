@@ -30,6 +30,7 @@ package org.hisp.dhis.program.notification;
 import java.math.BigInteger;
 import java.util.List;
 
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
@@ -120,16 +121,14 @@ public class DefaultProgramNotificationTemplateStore
     }
 
     @Override
-    public Long countProgramNotificationTemplates( ProgramNotificationTemplateParam param )
+    public int countProgramNotificationTemplates( ProgramNotificationTemplateParam param )
     {
-        NativeQuery<BigInteger> query = getSession().createNativeQuery(
-            "select count(*) from programnotificationtemplate where programstageid = :psid or  programid = :pid",
-            BigInteger.class );
+        Query query = getSession().createNativeQuery(
+            "select count(*) from programnotificationtemplate where programstageid = :psid or  programid = :pid" );
         query.setParameter( PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0 );
         query.setParameter( PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0 );
 
-        return query.getSingleResult().longValue();
-
+        return ((Number) query.getSingleResult()).intValue();
     }
 
     @Override

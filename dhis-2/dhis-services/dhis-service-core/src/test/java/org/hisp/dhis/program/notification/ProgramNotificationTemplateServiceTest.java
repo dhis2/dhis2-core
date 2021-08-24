@@ -33,7 +33,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-public class ProgramNotificationTemplateServiceTest extends IntegrationTestBase
+public class ProgramNotificationTemplateServiceTest extends DhisSpringTest
 {
     private Program program;
 
@@ -123,5 +123,20 @@ public class ProgramNotificationTemplateServiceTest extends IntegrationTestBase
         assertTrue( templates.contains( pnt1 ) );
         assertTrue( templates.contains( pnt2 ) );
         assertFalse( templates.contains( pnt3 ) );
+    }
+
+    @Test
+    public void testCountProgramNotificationTemplates()
+    {
+        ProgramNotificationTemplateParam param = ProgramNotificationTemplateParam.builder().program( program ).build();
+        ProgramNotificationTemplateParam param2 = ProgramNotificationTemplateParam.builder()
+            .programStage( programStage ).build();
+
+        assertEquals( programNotificationTemplateService
+            .getProgramNotificationTemplates( param ).size(),
+            programNotificationTemplateService.countProgramNotificationTemplates( param ) );
+        assertEquals( programNotificationTemplateService
+            .getProgramNotificationTemplates( param2 ).size(),
+            programNotificationTemplateService.countProgramNotificationTemplates( param2 ) );
     }
 }

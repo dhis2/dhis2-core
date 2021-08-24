@@ -134,13 +134,13 @@ public class DefaultProgramNotificationTemplateService implements ProgramNotific
 
     @Override
     @Transactional( readOnly = true )
-    public Long countProgramNotificationTemplates( ProgramNotificationTemplateParam param )
+    public int countProgramNotificationTemplates( ProgramNotificationTemplateParam param )
     {
         return store.countProgramNotificationTemplates( param );
     }
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public List<ProgramNotificationTemplate> getProgramNotificationTemplates(
         ProgramNotificationTemplateParam programNotificationTemplateParam )
     {
