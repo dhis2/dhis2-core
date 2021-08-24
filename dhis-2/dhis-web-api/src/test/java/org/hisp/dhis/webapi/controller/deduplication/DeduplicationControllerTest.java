@@ -32,9 +32,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.util.Collections;
-import java.util.List;
-
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.deduplication.DeduplicationService;
@@ -152,31 +149,6 @@ public class DeduplicationControllerTest
 
         assertEquals( teiA, pd.getTeiA() );
         verify( deduplicationService ).getPotentialDuplicateByUid( uid );
-    }
-
-    @Test
-    public void getPotentialDuplicateByTei()
-        throws NotFoundException,
-        BadRequestException,
-        OperationNotAllowedException
-    {
-        when( deduplicationService.getPotentialDuplicateByTei( eq( teiA ), any() ) )
-            .thenReturn( Collections.singletonList( new PotentialDuplicate( teiA, teiB ) ) );
-
-        List<PotentialDuplicate> pd = deduplicationController.getPotentialDuplicateByTei( teiA,
-            DeduplicationStatus.INVALID.name() );
-
-        assertEquals( 1, pd.size() );
-        verify( deduplicationService ).getPotentialDuplicateByTei( teiA, DeduplicationStatus.INVALID );
-    }
-
-    @Test( expected = BadRequestException.class )
-    public void shouldThrowGetPotentialDuplicateByTeiMissingStatus()
-        throws NotFoundException,
-        BadRequestException,
-        OperationNotAllowedException
-    {
-        deduplicationController.getPotentialDuplicateByTei( teiA, null );
     }
 
     @Test

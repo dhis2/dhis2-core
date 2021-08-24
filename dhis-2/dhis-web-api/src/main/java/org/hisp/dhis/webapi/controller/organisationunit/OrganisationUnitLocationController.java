@@ -33,8 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.ValueType;
@@ -50,6 +48,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author James Chang <jamesbchang@gmail.com>
@@ -72,12 +71,12 @@ public class OrganisationUnitLocationController
      * Get Organisation Units within a distance from a location
      */
     @GetMapping( value = "/withinRange", produces = { "*/*", APPLICATION_JSON_VALUE } )
-    public void getEntitiesWithinRange(
+    @ResponseBody
+    public List<OrganisationUnit> getEntitiesWithinRange(
         @RequestParam Double longitude,
         @RequestParam Double latitude,
         @RequestParam Double distance,
-        @RequestParam( required = false ) String orgUnitGroupSetId, HttpServletResponse response )
-        throws Exception
+        @RequestParam( required = false ) String orgUnitGroupSetId )
     {
         List<OrganisationUnit> entityList = new ArrayList<>(
             organisationUnitService.getOrganisationUnitWithinDistance( longitude, latitude, distance ) );
@@ -115,7 +114,7 @@ public class OrganisationUnitLocationController
             organisationUnit.removeAllOrganisationUnitGroups();
         }
 
-        renderService.toJson( response.getOutputStream(), entityList );
+        return entityList;
     }
 
     /**
@@ -123,12 +122,12 @@ public class OrganisationUnitLocationController
      * shape.
      */
     @GetMapping( value = "/orgUnitByLocation", produces = { "*/*", APPLICATION_JSON_VALUE } )
-    public void getParentByLocation(
+    @ResponseBody
+    public List<OrganisationUnit> getParentByLocation(
         @RequestParam Double longitude,
         @RequestParam Double latitude,
         @RequestParam( required = false ) String topOrgUnit,
-        @RequestParam( required = false ) Integer targetLevel, HttpServletResponse response )
-        throws Exception
+        @RequestParam( required = false ) Integer targetLevel )
     {
         List<OrganisationUnit> entityList = new ArrayList<>(
             organisationUnitService.getOrganisationUnitByCoordinate( longitude, latitude, topOrgUnit, targetLevel ) );
@@ -144,16 +143,16 @@ public class OrganisationUnitLocationController
             organisationUnit.removeAllOrganisationUnitGroups();
         }
 
-        renderService.toJson( response.getOutputStream(), entityList );
+        return entityList;
     }
 
     /**
      * Check if the location lies within the organisation unit boundary
      */
     @GetMapping( value = "/locationWithinOrgUnitBoundary", produces = { "*/*", APPLICATION_JSON_VALUE } )
-    public void checkLocationWithinOrgUnit( @RequestParam String orgUnitUid,
-        @RequestParam Double longitude, @RequestParam Double latitude, HttpServletResponse response )
-        throws Exception
+    @ResponseBody
+    public boolean checkLocationWithinOrgUnit( @RequestParam String orgUnitUid,
+        @RequestParam Double longitude, @RequestParam Double latitude )
     {
         boolean withinOrgUnit = false;
 
@@ -167,6 +166,6 @@ public class OrganisationUnitLocationController
             withinOrgUnit = true;
         }
 
-        renderService.toJson( response.getOutputStream(), withinOrgUnit );
+        return withinOrgUnit;
     }
 }

@@ -27,64 +27,62 @@
  */
 package org.hisp.dhis.user.sharing;
 
-import java.io.Serializable;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.sharing.AccessObject;
 import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@AllArgsConstructor
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
 public class UserAccess
-    implements Serializable
+    extends AccessObject
 {
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private String access;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private String id;
+    public UserAccess( String access, String id )
+    {
+        super( access, id );
+    }
 
     public UserAccess( User user, String access )
     {
-        this.access = access;
-        this.id = user.getUid();
+        super( access, user.getUid() );
     }
 
+    /**
+     * This is for backward compatibility with legacy
+     * {@link org.hisp.dhis.user.UserAccess}
+     */
     public UserAccess( org.hisp.dhis.user.UserAccess userAccess )
     {
-        this.access = userAccess.getAccess();
-        this.id = userAccess.getUid();
+        super( userAccess.getAccess(), userAccess.getUid() );
     }
 
     public void setUser( User user )
     {
-        this.id = user.getUid();
+        setId( user.getUid() );
     }
 
     public org.hisp.dhis.user.UserAccess toDtoObject()
     {
         org.hisp.dhis.user.UserAccess userAccess = new org.hisp.dhis.user.UserAccess();
-        userAccess.setUid( this.id );
-        userAccess.setAccess( this.access );
+        userAccess.setUid( getId() );
+        userAccess.setAccess( getAccess() );
         User user = new User();
-        user.setUid( this.id );
+        user.setUid( getId() );
         userAccess.setUser( user );
-        userAccess.setUid( this.id );
+        userAccess.setUid( getId() );
 
         return userAccess;
+    }
+
+    @Override
+    public UserAccess copy()
+    {
+        return new UserAccess( this.access, this.id );
     }
 }

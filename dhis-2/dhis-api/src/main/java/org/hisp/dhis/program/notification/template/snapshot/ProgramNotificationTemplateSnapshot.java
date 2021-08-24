@@ -36,13 +36,17 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Data
 @EqualsAndHashCode( callSuper = true )
 public class ProgramNotificationTemplateSnapshot extends IdentifiableObjectSnapshot
 {
 
+    @JsonProperty
     private NotificationTrigger notificationTrigger;
 
+    @JsonProperty
     private ProgramNotificationRecipient notificationRecipient;
 
     private IdentifiableObjectSnapshot recipientDataElement;
@@ -51,16 +55,20 @@ public class ProgramNotificationTemplateSnapshot extends IdentifiableObjectSnaps
 
     private UserGroupSnapshot recipientUserGroup;
 
+    @JsonProperty
     private String subjectTemplate;
 
+    @JsonProperty
     private String messageTemplate;
 
+    @JsonProperty
     private Set<DeliveryChannel> deliveryChannels;
 
     private Boolean notifyUsersInHierarchyOnly;
 
     private Boolean notifyParentOrganisationUnitOnly;
 
+    @JsonProperty
     private boolean sendRepeatable;
 
 }

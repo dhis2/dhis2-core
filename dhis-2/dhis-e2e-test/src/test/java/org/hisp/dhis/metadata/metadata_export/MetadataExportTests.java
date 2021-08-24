@@ -25,8 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.metadata.metadata_export;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.emptyArray;
+import static org.hamcrest.Matchers.not;
 
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -36,10 +39,6 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.not;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -75,7 +74,8 @@ public class MetadataExportTests
         metadataActions.get().validate()
             .statusCode( 409 )
             .body( "message",
-                equalTo( "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority." ) );
+                equalTo(
+                    "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority." ) );
     }
 
     @Test

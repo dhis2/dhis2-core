@@ -25,10 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.relationships;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.RestApiActions;
@@ -49,16 +58,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -83,9 +83,15 @@ public class RelationshipsTests
     private static Stream<Arguments> provideRelationshipData()
     {
         return Stream.of(
-            Arguments.arguments( "HrS7b5Lis6E", "event", events.get( 0 ), "trackedEntity", teis.get( 0 ) ), //event to tei
-            Arguments.arguments( "HrS7b5Lis6w", "trackedEntity", teis.get( 0 ), "event", events.get( 0 ) ), // tei to event
-            Arguments.arguments( "HrS7b5Lis6P", "event", events.get( 0 ), "event", events.get( 1 ) ), // event to event
+            Arguments.arguments( "HrS7b5Lis6E", "event", events.get( 0 ), "trackedEntity", teis.get( 0 ) ), // event
+                                                                                                            // to
+                                                                                                            // tei
+            Arguments.arguments( "HrS7b5Lis6w", "trackedEntity", teis.get( 0 ), "event", events.get( 0 ) ), // tei
+                                                                                                            // to
+                                                                                                            // event
+            Arguments.arguments( "HrS7b5Lis6P", "event", events.get( 0 ), "event", events.get( 1 ) ), // event
+                                                                                                      // to
+                                                                                                      // event
             Arguments.arguments( "xLmPUYJX8Ks", "trackedEntity", teis.get( 0 ), "trackedEntity",
                 teis.get( 1 ) ) ); // tei to tei
     }
@@ -96,12 +102,13 @@ public class RelationshipsTests
             Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 1 ), teis.get( 0 ), true, 1,
                 "bi: reversed direction should import 1" ),
             Arguments
-                .of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), false, 1, "uni: same direction should import 1" ),
+                .of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), false, 1,
+                    "uni: same direction should import 1" ),
             Arguments
-                .of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), true, 1, "bi: same direction should import 1" ),
+                .of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), true, 1,
+                    "bi: same direction should import 1" ),
             Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 1 ), teis.get( 0 ), false, 2,
-                "uni: reversed direction should import 2" )
-        );
+                "uni: reversed direction should import 2" ) );
     }
 
     @BeforeAll
@@ -150,7 +157,8 @@ public class RelationshipsTests
 
         // assert
         response.validateErrorReport();
-        assertThat( trackerActions.get( "/relationships/" + relationshipId ).getBody(), matchesJSON( relationshipBody ) );
+        assertThat( trackerActions.get( "/relationships/" + relationshipId ).getBody(),
+            matchesJSON( relationshipBody ) );
     }
 
     @ParameterizedTest
@@ -376,7 +384,8 @@ public class RelationshipsTests
         // arrange
         String relationshipTypeId = relationshipTypeActions.get( "", new QueryParamsBuilder()
             .addAll( "filter=fromConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE",
-                "filter=toConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE", "filter=bidirectional:eq:" + bidirectional,
+                "filter=toConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE",
+                "filter=bidirectional:eq:" + bidirectional,
                 "filter=name:like:TA" ) )
             .extractString( "relationshipTypes.id[0]" );
 
@@ -418,7 +427,8 @@ public class RelationshipsTests
         {
         case "trackedEntity":
         {
-            return trackerActions.get( "/trackedEntities/" + id, new QueryParamsBuilder().add( "fields=relationships" ) );
+            return trackerActions.get( "/trackedEntities/" + id,
+                new QueryParamsBuilder().add( "fields=relationships" ) );
         }
 
         case "event":
@@ -433,7 +443,8 @@ public class RelationshipsTests
         }
     }
 
-    private void validateRelationship( ApiResponse response, String relationshipTypeId, String fromInstance, String fromInstanceId,
+    private void validateRelationship( ApiResponse response, String relationshipTypeId, String fromInstance,
+        String fromInstanceId,
         String toInstance, String toInstanceId, String relationshipId )
     {
         String bodyPrefix = "";

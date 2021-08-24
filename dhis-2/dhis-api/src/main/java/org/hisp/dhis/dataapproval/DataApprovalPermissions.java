@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataapproval;
 
+import java.util.Date;
+
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -46,6 +48,10 @@ public class DataApprovalPermissions
     private boolean mayReadData;
 
     private transient String state;
+
+    private transient String approvedBy;
+
+    private transient Date approvedAt;
 
     public DataApprovalPermissions()
     {
@@ -119,6 +125,28 @@ public class DataApprovalPermissions
     public void setState( String state )
     {
         this.state = state;
+    }
+
+    @JsonProperty
+    public String getApprovedBy()
+    {
+        return approvedBy;
+    }
+
+    public void setApprovedBy( String approvedBy )
+    {
+        this.approvedBy = approvedBy;
+    }
+
+    @JsonProperty
+    public Date getApprovedAt()
+    {
+        return approvedAt;
+    }
+
+    public void setApprovedAt( Date approvedAt )
+    {
+        this.approvedAt = approvedAt;
     }
 
     // ----------------------------------------------------------------------

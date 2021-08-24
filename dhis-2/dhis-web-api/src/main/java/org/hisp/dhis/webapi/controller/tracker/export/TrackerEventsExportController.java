@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -101,7 +102,7 @@ public class TrackerEventsExportController
 
         if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
         {
-            return new PagingWrapper<>();
+            return new PagingWrapper<org.hisp.dhis.tracker.domain.Event>().withInstances( Collections.emptyList() );
         }
 
         Events events = eventService.getEvents( eventSearchParams );

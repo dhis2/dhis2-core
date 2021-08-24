@@ -25,10 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.metadata.metadata_import;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.equalTo;
+
+import java.io.File;
+import java.io.IOException;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
@@ -41,10 +44,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-import java.io.IOException;
-
-import static org.hamcrest.Matchers.equalTo;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -83,7 +83,8 @@ public class MetadataImportImportStrategyTests
     @Test
     public void shouldCreateMetadataWithCodeIdentifier()
     {
-        JsonObject object = JsonObjectBuilder.jsonObject( DataGenerator.generateObjectForEndpoint( "/dataElementGroup" ) )
+        JsonObject object = JsonObjectBuilder
+            .jsonObject( DataGenerator.generateObjectForEndpoint( "/dataElementGroup" ) )
             .addProperty( "code", "TA_CODE_DATAELEMENT_GROUP" )
             .addArray( "userGroupAccesses",
                 new JsonObjectBuilder().addProperty( "access", "rw------" )
