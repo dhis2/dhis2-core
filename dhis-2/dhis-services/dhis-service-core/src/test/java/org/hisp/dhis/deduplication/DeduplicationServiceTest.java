@@ -93,9 +93,6 @@ public class DeduplicationServiceTest
     {
         potentialDuplicate = new PotentialDuplicate( teiA, teiB );
 
-        when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) ).thenReturn( trackedEntityInstanceA );
-        when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) ).thenReturn( trackedEntityInstanceB );
-
         String uidPerson = "uidPerson";
 
         TrackedEntityType trackedEntityPerson = new TrackedEntityType();
