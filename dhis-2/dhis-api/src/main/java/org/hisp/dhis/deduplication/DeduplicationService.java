@@ -59,4 +59,7 @@ public interface DeduplicationService
 
     boolean merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject );
 
+    boolean hasInvalidReference( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+        MergeObject mergeObject );
+
 }
