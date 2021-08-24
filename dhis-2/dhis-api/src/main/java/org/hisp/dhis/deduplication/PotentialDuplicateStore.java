@@ -48,4 +48,6 @@ public interface PotentialDuplicateStore
     void moveTrackedEntityAttributeValues( String originalUid, String duplicateUid,
         List<String> trackedEntityAttributes );
 
+    void moveRelationships( String originalUid, String duplicateUid, List<String> relationships );
+
 }

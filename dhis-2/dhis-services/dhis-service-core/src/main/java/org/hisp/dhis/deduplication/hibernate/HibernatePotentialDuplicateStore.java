@@ -160,6 +160,7 @@ public class HibernatePotentialDuplicateStore
     {
         moveTrackedEntityAttributeValues( original.getUid(), duplicate.getUid(),
             mergeObject.getTrackedEntityAttributes() );
+        moveRelationships( original.getUid(), duplicate.getUid(), mergeObject.getRelationships() );
     }
 
     @Override
@@ -194,6 +195,26 @@ public class HibernatePotentialDuplicateStore
             .setParameter( "original", originalUid )
             .setParameter( "duplicate", duplicateUid )
             .setParameterList( "teas", trackedEntityAttributes )
+            .executeUpdate();
+    }
+
+    @Override
+    public void moveRelationships( String originalUid, String duplicateUid, List<String> relationships )
+    {
+        String moveRelationships = "UPDATE relationshipitem "
+            + "SET trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
+            + ") WHERE trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
+            + ") AND relationshipid IN ("
+            + "SELECT relationshipid FROM relationship WHERE uid IN (:relationships)"
+            + ")";
+
+        getSession()
+            .createNativeQuery( moveRelationships )
+            .setParameter( "original", originalUid )
+            .setParameter( "duplicate", duplicateUid )
+            .setParameterList( "relationships", relationships )
             .executeUpdate();
     }
 }

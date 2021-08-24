@@ -75,7 +75,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
-public class HibernatePotentialDuplicateStoreTest
+public class PotentialDuplicateStoreTEAVTest
     extends IntegrationTestBase
 {
     @Autowired
