@@ -44,11 +44,6 @@ import org.apache.commons.lang3.StringUtils;
  *         Pattern builder class. Provides string builders used to append
  *         segments of a random pattern.
  *
- *         For numeric patterns that are longer than 1 digit, we also have
- *         builders that contains all zeros or partial zeros beacuase random
- *         digits are generated from BigInteger that has no leading zeros, so we
- *         need also to consider zero leading cases.
- *
  *         For alphanumeric, we have some corner cases:
  *
  *         - '*' : it shuffles between lower and upper case and gets a number
@@ -57,6 +52,11 @@ import org.apache.commons.lang3.StringUtils;
  *         - 'x' or 'X' : in UUID random string gets the letter ( and make it
  *         upper case for 'X' ) but if we find a number, it gets the alphabetic
  *         char at that position in order to maintain random pattern
+ *
+ *         For numeric patterns that are longer than 1 digit, we also have
+ *         builders that contains all zeros or partial zeros beacuase random
+ *         digits are generated from BigInteger that has no leading zeros, so we
+ *         need to consider zero leading cases.
  *
  *         For digits:
  *
@@ -69,9 +69,8 @@ import org.apache.commons.lang3.StringUtils;
  *         In case of 1 digit, we just generate random numbers in range 0 - 9
  *
  */
-public class PatternBuilder
+public class RandomPatternBuilder
 {
-
     private final List<Character> lowercase = IntStream.range( 0, 26 ).mapToObj( n -> (char) (n + 'a') )
         .collect( Collectors.toList() );
 
@@ -88,7 +87,7 @@ public class PatternBuilder
 
     private final boolean hasOnlyDigits;
 
-    public PatternBuilder( String segmentParameter )
+    public RandomPatternBuilder( String segmentParameter )
     {
         this.isOneOrZeroDigit = !segmentParameter.contains( "##" );
 
@@ -102,7 +101,6 @@ public class PatternBuilder
             if ( this.hasOnlyDigits )
                 this.allZeroDigitPatternBuilder.append( StringUtils.repeat( '0', segmentParameter.length() ) );
         }
-
     }
 
     public List<StringBuilder> getPatternBuilders()

@@ -56,7 +56,7 @@ import org.springframework.stereotype.Service;
  *
  *         * = digit or lower case or upper case
  *
- *         see {@link PatternBuilder}
+ *         see {@link RandomPatternBuilder}
  */
 @Service
 @Setter( AccessLevel.PROTECTED )
@@ -82,7 +82,7 @@ public class RandomGeneratorService implements Callable<List<String>>
             patterns.add( segmentParameter.substring( matcher.start(), matcher.end() ) );
         }
 
-        PatternBuilder patternBuilder = new PatternBuilder( segmentParameter );
+        RandomPatternBuilder patternBuilder = new RandomPatternBuilder( segmentParameter );
 
         for ( int j = 0; j < RANDOM_GENERATION_CHUNK; j++ )
         {
