@@ -182,12 +182,6 @@ public class DataSetStoreTest
         assertContainsOnly( dataSetStore.getDataSetsNotAssignedToOrganisationUnits(), dataSetA, dataSetC );
     }
 
-    @Test
-    public void testDataSetSection()
-    {
-
-    }
-
     private OrganisationUnit addOrganisationUnit( char uniqueCharacter )
     {
         OrganisationUnit unit = createOrganisationUnit( uniqueCharacter );
