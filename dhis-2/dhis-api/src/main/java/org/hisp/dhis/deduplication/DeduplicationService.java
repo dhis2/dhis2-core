@@ -57,4 +57,6 @@ public interface DeduplicationService
 
     MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate );
 
+    boolean merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject );
+
 }
