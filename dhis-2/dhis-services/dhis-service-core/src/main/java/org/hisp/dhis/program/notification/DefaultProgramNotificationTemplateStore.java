@@ -124,7 +124,7 @@ public class DefaultProgramNotificationTemplateStore
     {
         NativeQuery<BigInteger> query = getSession().createNativeQuery(
             "select count(*) from programnotificationtemplate where programstageid = :psid or  programid = :pid",
-                BigInteger.class );
+            BigInteger.class );
         query.setParameter( PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0 );
         query.setParameter( PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0 );
 
