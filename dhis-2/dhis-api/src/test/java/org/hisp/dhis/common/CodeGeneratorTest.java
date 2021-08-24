@@ -59,7 +59,6 @@ public class CodeGeneratorTest
             // Test uniqueness
             assertTrue( codes.add( code ) );
         }
-        System.out.println( CodeGenerator.generateUid() );
     }
 
     @Test
