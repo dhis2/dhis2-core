@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.commons.jackson.filter;
 
-import java.util.Set;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
@@ -41,11 +41,11 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
  */
 public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter
 {
-    private final Set<String> fieldFilters;
+    private final List<FieldPath> fieldPaths;
 
-    public FieldFilterSimpleBeanPropertyFilter( Set<String> fieldFilters )
+    public FieldFilterSimpleBeanPropertyFilter( List<FieldPath> fieldPaths )
     {
-        this.fieldFilters = fieldFilters;
+        this.fieldPaths = fieldPaths;
     }
 
     @Override
@@ -62,7 +62,17 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     protected boolean include( final PropertyWriter writer, final JsonGenerator jgen )
     {
-        return fieldFilters.contains( getPath( writer, jgen ) ) || fieldFilters.contains( "*" );
+        for ( FieldPath fieldPath : fieldPaths )
+        {
+            String path = fieldPath.toFullPath();
+
+            if ( path.contains( getPath( writer, jgen ) ) || path.contains( "*" ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private String getPath( PropertyWriter writer, JsonGenerator jgen )

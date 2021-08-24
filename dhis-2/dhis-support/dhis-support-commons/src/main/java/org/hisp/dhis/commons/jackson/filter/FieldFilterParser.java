@@ -40,17 +40,17 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class FieldFilterParser
 {
-    public static Set<String> parse( Set<String> fields )
+    public static List<FieldPath> parse( Set<String> fields )
     {
-        return new HashSet<>( expandField( StringUtils.join( fields, "," ) ) );
+        return expandField( StringUtils.join( fields, "," ) );
     }
 
-    public static Set<String> parseWithPrefix( Set<String> fields, String prefix )
+    public static List<FieldPath> parseWithPrefix( Set<String> fields, String prefix )
     {
-        return new HashSet<>( expandField( StringUtils.join( fields, "," ), prefix ) );
+        return expandField( StringUtils.join( fields, "," ), prefix );
     }
 
-    private static Set<String> expandField( String field, String prefix )
+    private static List<FieldPath> expandField( String field, String prefix )
     {
         List<FieldPath> fieldPaths = new ArrayList<>();
         Set<String> output = new HashSet<>();
@@ -155,7 +155,7 @@ public class FieldFilterParser
             output.add( toFullPath( builder.toString(), path ) );
         }
 
-        return output;
+        return fieldPaths;
     }
 
     private static FieldPath getFieldPath(
@@ -172,7 +172,7 @@ public class FieldFilterParser
         return new FieldPath( fieldNameBuilder.toString(), path, transformer );
     }
 
-    private static Set<String> expandField( String field )
+    private static List<FieldPath> expandField( String field )
     {
         return expandField( field, null );
     }

@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.commons.jackson.filter;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Set;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -44,105 +41,120 @@ public class FieldFilterParserTest
     @Test
     public void testDepth0Filters()
     {
-        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "id, name", "    abc" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( Sets.newHashSet( "id, name", "    abc" ) );
 
-        assertTrue( fields.contains( "id" ) );
-        assertTrue( fields.contains( "name" ) );
-        assertTrue( fields.contains( "abc" ) );
+        assertFieldPathContains( fieldPaths, "id" );
+        assertFieldPathContains( fieldPaths, "name" );
+        assertFieldPathContains( fieldPaths, "abc" );
     }
 
     @Test
     public void testDepth1Filters()
     {
-        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "id,name,group[id,name]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( Sets.newHashSet( "id,name,group[id,name]" ) );
 
-        assertTrue( fields.contains( "id" ) );
-        assertTrue( fields.contains( "name" ) );
-        assertTrue( fields.contains( "group.id" ) );
-        assertTrue( fields.contains( "group.name" ) );
+        assertFieldPathContains( fieldPaths, "id" );
+        assertFieldPathContains( fieldPaths, "name" );
+        assertFieldPathContains( fieldPaths, "group.id" );
+        assertFieldPathContains( fieldPaths, "group.name" );
     }
 
     @Test
     public void testDepthXFilters()
     {
-        Set<String> fields = FieldFilterParser
+        List<FieldPath> fieldPaths = FieldFilterParser
             .parse( Sets.newHashSet( "id,name,group[id,name]", "group[id,name,group[id,name,group[id,name]]]" ) );
 
-        assertTrue( fields.contains( "id" ) );
-        assertTrue( fields.contains( "name" ) );
-        assertTrue( fields.contains( "group.id" ) );
-        assertTrue( fields.contains( "group.name" ) );
-        assertTrue( fields.contains( "group.group.id" ) );
-        assertTrue( fields.contains( "group.group.name" ) );
-        assertTrue( fields.contains( "group.group.group.id" ) );
-        assertTrue( fields.contains( "group.group.group.name" ) );
+        assertFieldPathContains( fieldPaths, "id" );
+        assertFieldPathContains( fieldPaths, "name" );
+        assertFieldPathContains( fieldPaths, "group.id" );
+        assertFieldPathContains( fieldPaths, "group.name" );
+        assertFieldPathContains( fieldPaths, "group.group.id" );
+        assertFieldPathContains( fieldPaths, "group.group.name" );
+        assertFieldPathContains( fieldPaths, "group.group.group.id" );
+        assertFieldPathContains( fieldPaths, "group.group.group.name" );
     }
 
     @Test
     public void testOnlyBlockFilters()
     {
-        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "group[id,name]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( Sets.newHashSet( "group[id,name]" ) );
 
-        assertTrue( fields.contains( "group.id" ) );
-        assertTrue( fields.contains( "group.name" ) );
+        assertFieldPathContains( fieldPaths, "group.id" );
+        assertFieldPathContains( fieldPaths, "group.name" );
     }
 
     @Test
     public void testOnlySpringBlockFilters()
     {
-        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "group[id", "name]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( Sets.newHashSet( "group[id", "name]" ) );
 
-        assertTrue( fields.contains( "group.id" ) );
-        assertTrue( fields.contains( "group.name" ) );
+        assertFieldPathContains( fieldPaths, "group.id" );
+        assertFieldPathContains( fieldPaths, "group.name" );
     }
 
     @Test
     public void testParseWithPrefix1()
     {
-        Set<String> fields = FieldFilterParser.parseWithPrefix( Sets.newHashSet( "a", "b" ), "prefix" );
+        List<FieldPath> fieldPaths = FieldFilterParser.parseWithPrefix( Sets.newHashSet( "a", "b" ), "prefix" );
 
-        assertTrue( fields.contains( "prefix.a" ) );
-        assertTrue( fields.contains( "prefix.b" ) );
+        assertFieldPathContains( fieldPaths, "prefix.a" );
+        assertFieldPathContains( fieldPaths, "prefix.b" );
     }
 
     @Test
     public void testParseWithPrefix2()
     {
-        Set<String> fields = FieldFilterParser.parseWithPrefix( Sets.newHashSet( "aaa[a],bbb[b]" ), "prefix" );
+        List<FieldPath> fieldPaths = FieldFilterParser.parseWithPrefix( Sets.newHashSet( "aaa[a],bbb[b]" ), "prefix" );
 
-        assertTrue( fields.contains( "prefix.aaa.a" ) );
-        assertTrue( fields.contains( "prefix.bbb.b" ) );
+        assertFieldPathContains( fieldPaths, "prefix.aaa.a" );
+        assertFieldPathContains( fieldPaths, "prefix.bbb.b" );
     }
 
     @Test
     public void testParseWithTransformer1()
     {
-        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "name::x(a;b),id~y(a;b;c),code|z(t)" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( Sets.newHashSet( "name::x(a;b),id~y(a;b;c),code|z(t)" ) );
 
-        assertTrue( fields.contains( "name" ) );
-        assertTrue( fields.contains( "id" ) );
-        assertTrue( fields.contains( "code" ) );
-        assertFalse( fields.contains( "name::x(a;b)" ) );
-        assertFalse( fields.contains( "id~y(a;b;c)" ) );
-        assertFalse( fields.contains( "code|z(t)" ) );
+        assertFieldPathContains( fieldPaths, "name" );
+        assertFieldPathContains( fieldPaths, "id" );
+        assertFieldPathContains( fieldPaths, "code" );
+        assertFieldPathContains( fieldPaths, "name::x(a;b)" );
+        assertFieldPathContains( fieldPaths, "id~y(a;b;c)" );
+        assertFieldPathContains( fieldPaths, "code|z(t)" );
     }
 
     @Test
     public void testParseWithTransformer2()
     {
-        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "groups[name::x(a;b)]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( Sets.newHashSet( "groups[name::x(a;b)]" ) );
 
-        assertTrue( fields.contains( "groups" ) );
-        assertTrue( fields.contains( "groups.name" ) );
+        assertFieldPathContains( fieldPaths, "groups" );
+        assertFieldPathContains( fieldPaths, "groups.name" );
     }
 
     @Test
     public void testParseWithTransformer3()
     {
-        Set<String> fields = FieldFilterParser.parse( Sets.newHashSet( "groups[name::x(a;b), code~y(a)]" ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( Sets.newHashSet( "groups[name::x(a;b), code~y(a)]" ) );
 
-        assertTrue( fields.contains( "groups" ) );
-        assertTrue( fields.contains( "groups.name" ) );
-        assertTrue( fields.contains( "groups.code" ) );
+        assertFieldPathContains( fieldPaths, "groups" );
+        assertFieldPathContains( fieldPaths, "groups.name" );
+        assertFieldPathContains( fieldPaths, "groups.code" );
+    }
+
+    private boolean assertFieldPathContains( List<FieldPath> fieldPaths, String expected )
+    {
+        for ( FieldPath fieldPath : fieldPaths )
+        {
+            String path = fieldPath.toFullPath();
+
+            if ( path.contains( expected ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
