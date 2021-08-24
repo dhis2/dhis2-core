@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -230,11 +231,11 @@ public class LoadFormAction
         return sectionCombos;
     }
 
-    private Map<String, Long> customSectionCategoryCombos = new HashMap<>();
+    private Map<String, Long> orderedSectionCategoryCombos = new HashMap<>();
 
-    public Map<String, Long> getCustomSectionCategoryCombos()
+    public Map<String, Long> getOrderedSectionCategoryCombos()
     {
-        return customSectionCategoryCombos;
+        return orderedSectionCategoryCombos;
     }
 
     private Map<String, Boolean> greyedFields = new HashMap<>();
@@ -251,7 +252,7 @@ public class LoadFormAction
         return dataSet;
     }
 
-    private Map<String, Collection<DataElement>> sectionCategoryComboDataElements = new HashMap<>();
+    private Map<String, Collection<DataElement>> sectionCategoryComboDataElements = new LinkedHashMap<>();
 
     public Map<String, Collection<DataElement>> getSectionCategoryComboDataElements()
     {
@@ -479,56 +480,24 @@ public class LoadFormAction
 
     private void processSectionForUserOrdering( Section section )
     {
-        Long currentCategoryCombo = null;
+        Map<String, Collection<DataElement>> sectionOrderedCategoryCombos = section
+            .getOrderedDataElementsByCategoryCombo();
 
         List<String> sectionCategoryCombos = new ArrayList<>();
 
-        List<DataElement> groups = new ArrayList<>();
-
-        int counter = 0;
-
-        for ( DataElement dataElement : section.getDataElements() )
+        for ( Map.Entry<String, Collection<DataElement>> entry : sectionOrderedCategoryCombos.entrySet() )
         {
-            Long cc = dataElement.getCategoryCombo().getId();
+            String key = entry.getKey();
+            String[] split = key.split( "-" );
 
-            if ( currentCategoryCombo == null )
+            if ( split.length > 0 )
             {
-                currentCategoryCombo = cc;
+                sectionCategoryComboDataElements.put( section.getId() + "-" + key, entry.getValue() );
+
+                sectionCategoryCombos.add( key );
+
+                orderedSectionCategoryCombos.put( key, Long.parseLong( split[1] ) );
             }
-
-            if ( cc.equals( currentCategoryCombo ) )
-            {
-                groups.add( dataElement );
-            }
-            else
-            {
-                sectionCategoryComboDataElements
-                    .put( section.getId() + "-" + currentCategoryCombo + "-" + counter,
-                        new ArrayList<>( groups ) );
-
-                sectionCategoryCombos.add( currentCategoryCombo + "-" + counter );
-
-                customSectionCategoryCombos.put( currentCategoryCombo + "-" + counter, currentCategoryCombo );
-
-                currentCategoryCombo = cc;
-
-                groups = new ArrayList<>();
-
-                groups.add( dataElement );
-
-                counter++;
-            }
-        }
-
-        if ( !sectionCategoryComboDataElements.keySet()
-            .contains( section.getId() + "-" + currentCategoryCombo + "-" + counter ) )
-        {
-            sectionCategoryComboDataElements.put( section.getId() + "-" + currentCategoryCombo + "-" + counter,
-                new ArrayList<>( groups ) );
-
-            sectionCategoryCombos.add( currentCategoryCombo + "-" + counter );
-
-            customSectionCategoryCombos.put( currentCategoryCombo + "-" + counter, currentCategoryCombo );
         }
 
         sectionCombos.put( section.getId(), sectionCategoryCombos );
@@ -543,7 +512,7 @@ public class LoadFormAction
             sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId(),
                 section.getDataElementsByCategoryCombo( categoryCombo ) );
 
-            customSectionCategoryCombos.put( String.valueOf( categoryCombo.getId() ), categoryCombo.getId() );
+            orderedSectionCategoryCombos.put( String.valueOf( categoryCombo.getId() ), categoryCombo.getId() );
         }
 
         sectionCombos.put( section.getId(),

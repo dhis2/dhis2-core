@@ -43,7 +43,7 @@
 
         #foreach( $catComboId in $categoryComboIds )
             #set( $seCbId = "${section.id}-${catComboId}" )
-            #set( $categoryComboId = $customSectionCategoryCombos.get( $catComboId ) )
+            #set( $categoryComboId = $orderedSectionCategoryCombos.get( $catComboId ) )
             #set( $dataElements = $sectionCategoryComboDataElements.get( $seCbId ) )
             #set( $optionCombos = $orderedCategoryOptionCombos.get( $categoryComboId )  )
             <table id="sectionTable" class="sectionTable" cellspacing="0">

@@ -28,8 +28,11 @@
 package org.hisp.dhis.dataset;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.category.CategoryCombo;
@@ -132,6 +135,55 @@ public class Section
         }
 
         return dataElements;
+    }
+
+    public Map<String, Collection<DataElement>> getOrderedDataElementsByCategoryCombo()
+    {
+        Map<String, Collection<DataElement>> dataElementsByCategoryCombo = new LinkedHashMap<>();
+
+        Long currentCategoryCombo = null;
+
+        List<DataElement> groups = new ArrayList<>();
+
+        int counter = 0;
+
+        for ( DataElement dataElement : this.getDataElements() )
+        {
+            Long cc = dataElement.getCategoryCombo().getId();
+
+            if ( currentCategoryCombo == null )
+            {
+                currentCategoryCombo = cc;
+            }
+
+            if ( cc.equals( currentCategoryCombo ) )
+            {
+                groups.add( dataElement );
+            }
+            else
+            {
+                dataElementsByCategoryCombo
+                    .put( this.getId() + "-" + currentCategoryCombo + "-" + counter,
+                        new ArrayList<>( groups ) );
+
+                currentCategoryCombo = cc;
+
+                groups = new ArrayList<>();
+
+                groups.add( dataElement );
+
+                counter++;
+            }
+        }
+
+        if ( !dataElementsByCategoryCombo.keySet()
+            .contains( this.getId() + "-" + currentCategoryCombo + "-" + counter ) )
+        {
+            dataElementsByCategoryCombo.put( this.getId() + "-" + currentCategoryCombo + "-" + counter,
+                new ArrayList<>( groups ) );
+        }
+
+        return dataElementsByCategoryCombo;
     }
 
     // -------------------------------------------------------------------------
