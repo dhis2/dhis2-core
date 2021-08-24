@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.commons.jackson.filter;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.List;
 
 import org.junit.Test;
@@ -119,9 +121,6 @@ public class FieldFilterParserTest
         assertFieldPathContains( fieldPaths, "name" );
         assertFieldPathContains( fieldPaths, "id" );
         assertFieldPathContains( fieldPaths, "code" );
-        assertFieldPathContains( fieldPaths, "name::x(a;b)" );
-        assertFieldPathContains( fieldPaths, "id~y(a;b;c)" );
-        assertFieldPathContains( fieldPaths, "code|z(t)" );
     }
 
     @Test
@@ -143,18 +142,21 @@ public class FieldFilterParserTest
         assertFieldPathContains( fieldPaths, "groups.code" );
     }
 
-    private boolean assertFieldPathContains( List<FieldPath> fieldPaths, String expected )
+    private void assertFieldPathContains( List<FieldPath> fieldPaths, String expected )
     {
+        boolean condition = false;
+
         for ( FieldPath fieldPath : fieldPaths )
         {
             String path = fieldPath.toFullPath();
 
-            if ( path.contains( expected ) )
+            if ( path.startsWith( expected ) )
             {
-                return true;
+                condition = true;
+                break;
             }
         }
 
-        return false;
+        assertTrue( condition );
     }
 }

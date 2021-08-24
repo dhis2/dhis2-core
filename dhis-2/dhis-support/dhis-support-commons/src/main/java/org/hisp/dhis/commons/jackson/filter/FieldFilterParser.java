@@ -169,7 +169,7 @@ public class FieldFilterParser
             transformer = new FieldTransformer( transformerName, transformerParameters );
         }
 
-        return new FieldPath( fieldNameBuilder.toString(), path, transformer );
+        return new FieldPath( fieldNameBuilder.toString(), new ArrayList<>( path ), transformer );
     }
 
     private static List<FieldPath> expandField( String field )
