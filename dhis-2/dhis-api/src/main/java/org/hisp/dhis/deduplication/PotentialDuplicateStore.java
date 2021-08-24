@@ -43,4 +43,9 @@ public interface PotentialDuplicateStore
 
     void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject );
 
+    void moveTrackedEntityAttributeValues( String originalUid, String duplicateUid,
+        List<String> trackedEntityAttributes );
+
+    void moveRelationships( String originalUid, String duplicateUid, List<String> relationships );
+
 }

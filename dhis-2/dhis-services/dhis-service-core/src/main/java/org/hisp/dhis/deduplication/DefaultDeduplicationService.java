@@ -104,7 +104,7 @@ public class DefaultDeduplicationService
         if ( isAutoMergeable( original, duplicate ) )
         {
             MergeObject mergeObject = generateMergeObject( original, duplicate );
-            potentialDuplicateStore.merge( original, duplicate, mergeObject );
+            merge( original, duplicate, mergeObject );
             return true;
         }
 
@@ -139,6 +139,14 @@ public class DefaultDeduplicationService
     public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
         return null;
+    }
+
+    @Override
+    public boolean merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject )
+    {
+        // TODO: Check access
+        potentialDuplicateStore.merge( original, duplicate, mergeObject );
+        return true;
     }
 
     private boolean sameAttributesAreEquals( Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA,
