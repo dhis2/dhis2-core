@@ -51,7 +51,9 @@ public class FieldFilterManager
 
     public List<ObjectNode> toObjectNode( FieldFilterParams<?> params )
     {
-        SimpleFilterProvider filterProvider = getSimpleFilterProvider( params );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
+
+        SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
 
         List<ObjectNode> objectNodes = new ArrayList<>();
@@ -67,11 +69,10 @@ public class FieldFilterManager
         return objectNodes;
     }
 
-    private SimpleFilterProvider getSimpleFilterProvider( FieldFilterParams<?> params )
+    private SimpleFilterProvider getSimpleFilterProvider( List<FieldPath> fieldPaths )
     {
         SimpleFilterProvider filterProvider = new SimpleFilterProvider();
-        filterProvider.addFilter( "field-filter",
-            new FieldFilterSimpleBeanPropertyFilter( FieldFilterParser.parse( params.getFilters() ) ) );
+        filterProvider.addFilter( "field-filter", new FieldFilterSimpleBeanPropertyFilter( fieldPaths ) );
 
         return filterProvider;
     }
