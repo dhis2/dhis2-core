@@ -58,7 +58,7 @@ public class CascadeSharingReport
      * Number of DashboardItem updated for cascade sharing
      */
     @JsonProperty
-    private int countUpdatedDashBoardItems = 0;
+    private int countUpdatedDashboardItems = 0;
 
     /**
      * Map contains objects that will be updated for cascade sharing.
@@ -85,7 +85,7 @@ public class CascadeSharingReport
 
     public void incUpdatedDashboardItem()
     {
-        countUpdatedDashBoardItems++;
+        countUpdatedDashboardItems++;
     }
 
     public boolean hasErrors()
