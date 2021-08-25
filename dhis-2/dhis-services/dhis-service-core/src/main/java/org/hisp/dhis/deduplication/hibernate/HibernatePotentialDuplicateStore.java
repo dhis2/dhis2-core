@@ -38,8 +38,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deduplication.ConflictPotentialDuplicateException;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
-import org.hisp.dhis.deduplication.ForbiddenPotentialDuplicateException;
 import org.hisp.dhis.deduplication.MergeObject;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
@@ -135,7 +135,7 @@ public class HibernatePotentialDuplicateStore
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
         if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
-            throw new ForbiddenPotentialDuplicateException(
+            throw new ConflictPotentialDuplicateException(
                 "Can't search for pair of potential duplicates: teiA and teiB must not be null" );
 
         NativeQuery<BigInteger> query = getSession()
