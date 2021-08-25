@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.reservedvalue;
 
-import static org.hisp.dhis.util.Constants.*;
+import static org.hisp.dhis.util.Constants.RESERVED_VALUE_GENERATION_ATTEMPT;
+import static org.hisp.dhis.util.Constants.RESERVED_VALUE_GENERATION_TIMEOUT;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
@@ -38,7 +43,12 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.textpattern.*;
+import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.textpattern.TextPatternGenerationException;
+import org.hisp.dhis.textpattern.TextPatternMethod;
+import org.hisp.dhis.textpattern.TextPatternSegment;
+import org.hisp.dhis.textpattern.TextPatternService;
+import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -118,7 +128,6 @@ public class DefaultReservedValueService
             boolean isPersistable = generatedSegment.getMethod().isPersistable();
             try
             {
-
                 while ( attemptsLeft-- > 0 && numberOfValuesLeftToGenerate > 0 )
                 {
                     if ( System.currentTimeMillis() - startTime >= RESERVED_VALUE_GENERATION_TIMEOUT )
@@ -145,12 +154,14 @@ public class DefaultReservedValueService
                     if ( isPersistable )
                     {
                         List<ReservedValue> availableValues = reservedValueStore.getAvailableValues( reservedValue,
-                            resolvedPatterns );
+                            resolvedPatterns.stream().distinct().collect( Collectors.toList() ) );
 
                         List<ReservedValue> requiredValues = availableValues.subList( 0,
                             Math.min( availableValues.size(), numberOfReservations ) );
 
-                        reservedValueStore.bulkInsertReservedValues( requiredValues );
+                        reservedValueStore.bulkInsertReservedValues(
+                            requiredValues );
+
                         resultList.addAll( requiredValues );
                     }
                     else

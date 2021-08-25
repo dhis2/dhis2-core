@@ -27,13 +27,21 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Arrays.stream;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -43,6 +51,9 @@ import org.springframework.http.HttpStatus;
  */
 public class SystemSettingControllerTest extends DhisControllerConvenienceTest
 {
+    @Autowired
+    private SystemSettingManager systemSettingManager;
+
     @Test
     public void testSetSystemSettingOrTranslation_NoSuchObject()
     {
@@ -105,5 +116,43 @@ public class SystemSettingControllerTest extends DhisControllerConvenienceTest
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Key(s) is not supported: xyz, abc",
             POST( "/systemSettings", "{'xyz':'en','abc':'foo'}" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testGetSystemSettingOrTranslationAsJson()
+    {
+        assertStatus( HttpStatus.OK, POST( "/systemSettings/keyUiLocale?value=de" ) );
+
+        JsonObject setting = GET( "/systemSettings/keyUiLocale" ).content( HttpStatus.OK );
+        assertTrue( setting.isObject() );
+        assertEquals( 1, setting.size() );
+        assertEquals( "de", setting.getString( "keyUiLocale" ).string() );
+    }
+
+    @Test
+    public void testGetSystemSettingsJson()
+    {
+        assertStatus( HttpStatus.OK, POST( "/systemSettings/keyUiLocale?value=de" ) );
+
+        JsonObject setting = GET( "/systemSettings?key=keyUiLocale" ).content( HttpStatus.OK );
+        assertTrue( setting.isObject() );
+        assertEquals( 1, setting.size() );
+        assertEquals( "de", setting.getString( "keyUiLocale" ).string() );
+
+    }
+
+    @Test
+    public void testGetSystemSettingsJson_AllKeys()
+    {
+        assertStatus( HttpStatus.OK, POST( "/systemSettings/keyUiLocale?value=de" ) );
+
+        JsonObject setting = GET( "/systemSettings" ).content( HttpStatus.OK );
+        assertTrue( setting.isObject() );
+        stream( SettingKey.values() )
+            .filter( key -> !key.isConfidential() && key.getDefaultValue() != null )
+            .forEach( key -> assertTrue( key.getName(), setting.get( key.getName() ).exists() ) );
+        stream( SettingKey.values() )
+            .filter( SettingKey::isConfidential )
+            .forEach( key -> assertFalse( key.getName(), setting.get( key.getName() ).exists() ) );
     }
 }

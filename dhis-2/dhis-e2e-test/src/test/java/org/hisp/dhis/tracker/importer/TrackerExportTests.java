@@ -25,8 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer;
+
+import static org.hamcrest.Matchers.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -35,13 +41,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -73,12 +72,15 @@ public class TrackerExportTests
     private Stream<Arguments> provideParams()
     {
         return Stream.of( new Arguments[] {
-            Arguments.of( "/trackedEntities/" + teiId, "enrollments.createdAt,relationships[from.trackedEntity,to.trackedEntity]",
+            Arguments.of( "/trackedEntities/" + teiId,
+                "enrollments.createdAt,relationships[from.trackedEntity,to.trackedEntity]",
                 null ),
             Arguments.of( "/trackedEntities/" + teiId, "trackedEntity,enrollments", null ),
             Arguments.of( "/enrollments/" + enrollmentId, "program,status,enrolledAt", null ),
-            Arguments.of( "/enrollments/" + enrollmentId, "**", "enrollment,updatedAt,createdAt,occurredAt,enrolledAt", null ),
-            Arguments.of( "/trackedEntities/" + teiId, "*", "attributes,enrollments[createdAt,events],trackedEntity,orgUnit" ),
+            Arguments.of( "/enrollments/" + enrollmentId, "**", "enrollment,updatedAt,createdAt,occurredAt,enrolledAt",
+                null ),
+            Arguments.of( "/trackedEntities/" + teiId, "*",
+                "attributes,enrollments[createdAt,events],trackedEntity,orgUnit" ),
             Arguments.of( "/trackedEntities/" + teiId, "**", "attributes,enrollments[createdAt,events]" ),
             Arguments.of( "/events/" + eventId, "enrollment,createdAt", null ),
             Arguments.of( "/relationships/" + relationshipId, "from,to.trackedEntity[*]", null )
@@ -100,8 +102,7 @@ public class TrackerExportTests
             p -> {
                 response.validate()
                     .body( p, allOf( not( nullValue() ), not( contains( nullValue() ) ), not( emptyIterable() ) ) );
-            }
-        );
+            } );
     }
 
     private List<String> splitFields( String fields )

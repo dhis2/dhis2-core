@@ -86,13 +86,6 @@ public class DefaultDeduplicationService
 
     @Override
     @Transactional( readOnly = true )
-    public List<PotentialDuplicate> getPotentialDuplicateByTei( String tei, DeduplicationStatus status )
-    {
-        return potentialDuplicateStore.getAllByTei( tei, status );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public int countPotentialDuplicates( PotentialDuplicateQuery query )
     {
 

@@ -27,94 +27,59 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.junit.Assert;
-import org.junit.Rule;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonArray;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-import com.google.common.net.HttpHeaders;
 
 /**
- * Unit tests for {@link DataSetController}.
+ * Tests the {@link DataSetController} using (mocked) REST requests.
  *
- * @author Volker Schmidt
+ * @author Jan Bernitt
  */
-public class DataSetControllerTest
+public class DataSetControllerTest extends DhisControllerConvenienceTest
 {
-    @Mock
-    private ContextService contextService;
+    private String dsId;
 
-    @Mock
-    private MetadataExportService exportService;
-
-    @Mock
-    private DataSetService service;
-
-    @Mock
-    private DataSet dataSet;
-
-    @InjectMocks
-    private DataSetController controller;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Test
-    public void getWithDependencies()
-        throws Exception
+    @Before
+    public void setUp()
     {
-        getWithDependencies( false );
+        dsId = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
     }
 
     @Test
-    public void getWithDependenciesAsDownload()
-        throws Exception
+    public void testGetVersion()
     {
-        getWithDependencies( true );
+        JsonObject info = GET( "/dataSets/{id}/version", dsId ).content( HttpStatus.OK );
+        assertTrue( info.isObject() );
+        assertEquals( 1, info.size() );
+        assertEquals( 0, info.getNumber( "version" ).intValue() );
     }
 
-    private void getWithDependencies( boolean download )
-        throws Exception
+    @Test
+    public void testGetFormJson()
     {
-        final Map<String, List<String>> parameterValuesMap = new HashMap<>();
-        final MetadataExportParams exportParams = new MetadataExportParams();
-        final RootNode rootNode = new RootNode( "test" );
+        String ouId = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
 
-        Mockito.when( service.getDataSet( Mockito.eq( "88dshgdga" ) ) ).thenReturn( dataSet );
-        Mockito.when( contextService.getParameterValuesMap() ).thenReturn( parameterValuesMap );
-        Mockito.when( exportService.getParamsFromMap( Mockito.same( parameterValuesMap ) ) ).thenReturn( exportParams );
-        Mockito
-            .when( exportService.getMetadataWithDependenciesAsNode( Mockito.same( dataSet ),
-                Mockito.same( exportParams ) ) )
-            .thenReturn( rootNode );
-
-        final ResponseEntity<RootNode> responseEntity = controller.getDataSetWithDependencies( "88dshgdga", download );
-        Assert.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
-        Assert.assertSame( rootNode, responseEntity.getBody() );
-        if ( download )
-        {
-            Assert.assertEquals( "attachment; filename=metadata",
-                responseEntity.getHeaders().getFirst( HttpHeaders.CONTENT_DISPOSITION ) );
-        }
-        else
-        {
-            Assert.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
-        }
+        JsonObject info = GET( "/dataSets/{id}/form?ou={ou}", dsId, ouId ).content( HttpStatus.OK );
+        assertTrue( info.isObject() );
+        assertTrue( info.has( "label", "options", "groups" ) );
+        assertEquals( "My data set", info.getString( "label" ).string() );
+        JsonObject options = info.getObject( "options" );
+        assertEquals( 0, options.getNumber( "openPeriodsAfterCoEndDate" ).intValue() );
+        assertEquals( 0, options.getNumber( "openFuturePeriods" ).intValue() );
+        assertEquals( 0, options.getNumber( "expiryDays" ).intValue() );
+        assertEquals( "Monthly", options.getString( "periodType" ).string() );
+        JsonArray groups = info.getArray( "groups" );
+        assertTrue( groups.isArray() );
+        assertEquals( 1, groups.size() );
     }
 }

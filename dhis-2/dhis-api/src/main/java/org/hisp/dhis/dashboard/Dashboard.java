@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dashboard;
 
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.dashboard.design.ItemConfig;
+import org.hisp.dhis.dashboard.design.Layout;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -51,6 +55,10 @@ public class Dashboard
     public static final int MAX_ITEMS = 40;
 
     private List<DashboardItem> items = new ArrayList<>();
+
+    private Layout layout;
+
+    private ItemConfig itemConfig;
 
     /**
      * Whether filter dimensions are restricted for the dashboard. The allowed
@@ -181,6 +189,30 @@ public class Dashboard
     public void setItems( List<DashboardItem> items )
     {
         this.items = items;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public Layout getLayout()
+    {
+        return layout;
+    }
+
+    public void setLayout( Layout layout )
+    {
+        this.layout = layout;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public ItemConfig getItemConfig()
+    {
+        return itemConfig;
+    }
+
+    public void setItemConfig( ItemConfig itemConfig )
+    {
+        this.itemConfig = itemConfig;
     }
 
     @JsonProperty

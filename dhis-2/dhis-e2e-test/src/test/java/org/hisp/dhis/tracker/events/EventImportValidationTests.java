@@ -25,10 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.stream.Stream;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
@@ -42,10 +45,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -75,7 +75,8 @@ public class EventImportValidationTests
             Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId,
                 "Program is not assigned to this organisation unit" ),
             Arguments.arguments( ouId, null, eventProgramStageId, "Event.program does not point to a valid program" ),
-            Arguments.arguments( ouId, trackerProgramId, null, "Event.programStage does not point to a valid programStage" ) );
+            Arguments.arguments( ouId, trackerProgramId, null,
+                "Event.programStage does not point to a valid programStage" ) );
     }
 
     @BeforeAll
@@ -91,7 +92,8 @@ public class EventImportValidationTests
 
     @ParameterizedTest
     @MethodSource( "provideValidationArguments" )
-    public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId, String message )
+    public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId,
+        String message )
     {
         JsonObject jsonObject = eventActions.createEventBody( ouId, programId, programStageId );
 
@@ -121,8 +123,9 @@ public class EventImportValidationTests
 
     private void setupData()
     {
-        eventProgramStageId = programActions.programStageActions.get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
-            eventProgramId ) )
+        eventProgramStageId = programActions.programStageActions
+            .get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
+                eventProgramId ) )
             .extractString( "programStages.id[0]" );
 
         assertNotNull( eventProgramStageId, "Failed to find a program stage" );

@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.events;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -99,7 +98,7 @@ public class UserAssignmentFilterTests
         userId = userActions.addUser( userUsername, userPassword );
         userActions.grantUserAccessToOrgUnit( userId, orgUnit );
         userActions.addUserToUserGroup( userId, Constants.USER_GROUP_ID );
-        userActions.addRoleToUser( userId, Constants.USER_ROLE_ID);
+        userActions.addRoleToUser( userId, Constants.USER_ROLE_ID );
 
         eventsBody = getEventsBody( programId, "l8oDIfJJhtg", userId );
     }
@@ -179,8 +178,10 @@ public class UserAssignmentFilterTests
         changeEventStatus( eventId, status );
 
         // act
-        ApiResponse filteredEvents = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT&status=" + status );
-        ApiResponse activeEvents = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT&status=ACTIVE" );
+        ApiResponse filteredEvents = eventActions
+            .get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT&status=" + status );
+        ApiResponse activeEvents = eventActions
+            .get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT&status=ACTIVE" );
 
         // assert
         filteredEvents.validate().statusCode( 200 )
@@ -197,7 +198,7 @@ public class UserAssignmentFilterTests
     private ApiResponse createEvents( Object body )
         throws Exception
     {
-        ApiResponse eventResponse = eventActions.post( body, new QueryParamsBuilder().add(  "skipCache=true" ) );
+        ApiResponse eventResponse = eventActions.post( body, new QueryParamsBuilder().add( "skipCache=true" ) );
 
         eventResponse.validate().statusCode( 200 );
 

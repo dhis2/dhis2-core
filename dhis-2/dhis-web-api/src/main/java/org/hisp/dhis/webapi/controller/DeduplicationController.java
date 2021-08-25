@@ -117,30 +117,6 @@ public class DeduplicationController
         return rootNode;
     }
 
-    @GetMapping( value = "/tei/{tei}" )
-    public List<PotentialDuplicate> getPotentialDuplicateByTei( @PathVariable String tei,
-        @RequestParam( value = "status", defaultValue = "ALL", required = false ) String status )
-        throws NotFoundException,
-        OperationNotAllowedException,
-        BadRequestException,
-        HttpStatusCodeException
-    {
-        canReadTei( tei );
-
-        checkDeduplicationStatusRequestParam( status );
-
-        List<PotentialDuplicate> potentialDuplicateList = deduplicationService.getPotentialDuplicateByTei( tei,
-            DeduplicationStatus.valueOf( status ) );
-
-        for ( PotentialDuplicate potentialDuplicate : potentialDuplicateList )
-        {
-            canReadTei( potentialDuplicate.getTeiA() );
-            canReadTei( potentialDuplicate.getTeiB() );
-        }
-
-        return potentialDuplicateList;
-    }
-
     @GetMapping( value = "/{id}" )
     public PotentialDuplicate getPotentialDuplicateById(
         @PathVariable String id )

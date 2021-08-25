@@ -67,7 +67,7 @@ public class MeControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetAuthorities()
     {
-        assertEquals( singletonList( "ALL" ), GET( "/me/authorities" ).content().stringValues() );
+        assertEquals( singletonList( "ALL" ), GET( "/me/authorities" ).content( HttpStatus.OK ).stringValues() );
     }
 
     @Test
@@ -80,16 +80,16 @@ public class MeControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testHasAuthority()
     {
-        assertTrue( GET( "/me/authorities/ALL" ).content().booleanValue() );
+        assertTrue( GET( "/me/authorities/ALL" ).content( HttpStatus.OK ).booleanValue() );
 
         switchToNewUser( "Kalle" ); // with no authorities
-        assertFalse( GET( "/me/authorities/missing" ).content().booleanValue() );
+        assertFalse( GET( "/me/authorities/missing" ).content( HttpStatus.OK ).booleanValue() );
     }
 
     @Test
     public void testGetSettings()
     {
-        JsonObject settings = GET( "/me/settings" ).content();
+        JsonObject settings = GET( "/me/settings" ).content( HttpStatus.OK );
 
         assertTrue( settings.isObject() );
         assertFalse( settings.isEmpty() );
@@ -100,7 +100,8 @@ public class MeControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetSetting()
     {
-        assertEquals( "en", GET( "/me/settings/{key}", "keyUiLocale" ).content().string() );
+        assertEquals( "en", GET( "/me/settings/{key}", "keyUiLocale" )
+            .content( HttpStatus.OK ).string() );
     }
 
     @Test
@@ -199,6 +200,6 @@ public class MeControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetApprovalLevels()
     {
-        assertTrue( GET( "/me/dataApprovalLevels" ).content().isArray() );
+        assertTrue( GET( "/me/dataApprovalLevels" ).content( HttpStatus.OK ).isArray() );
     }
 }

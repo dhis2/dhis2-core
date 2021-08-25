@@ -67,6 +67,8 @@ public class Section
 
     private boolean showColumnTotals;
 
+    private boolean disableDataElementAutoGroup;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -237,5 +239,17 @@ public class Section
     public void setShowColumnTotals( boolean showColumnTotals )
     {
         this.showColumnTotals = showColumnTotals;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDisableDataElementAutoGroup()
+    {
+        return disableDataElementAutoGroup;
+    }
+
+    public void setDisableDataElementAutoGroup( boolean disableDataElementAutoGroup )
+    {
+        this.disableDataElementAutoGroup = disableDataElementAutoGroup;
     }
 }

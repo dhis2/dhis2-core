@@ -25,10 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.tei;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.*;
+
+import java.io.File;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -42,9 +44,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-
-import static org.hamcrest.CoreMatchers.*;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -113,7 +113,8 @@ public class TeiUpdateTests
             .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
 
         ApiResponse response = trackerActions
-            .postAndGetJobReport( teiBody, new QueryParamsBuilder().add( String.format( "importStrategy=%s", importStrategy ) ) );
+            .postAndGetJobReport( teiBody,
+                new QueryParamsBuilder().add( String.format( "importStrategy=%s", importStrategy ) ) );
 
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "ERROR" ) )

@@ -25,43 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.association;
+package org.hisp.dhis.webapi.security.apikey;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import lombok.Data;
-
-@Data
-public class IdentifiableObjectAssociations
-    extends HashMap<String, Set<String>>
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public class ApiTokenExpiredException extends ApiTokenAuthenticationException
 {
-    public IdentifiableObjectAssociations()
+    public ApiTokenExpiredException( String error )
     {
-        super();
+        super( ApiTokenErrors.invalidToken( error ) );
     }
-
-    public void addAllAssociations( String from, List<String> tos )
-    {
-        Set<String> associated = getCurrentAssociationsOrCreate( from );
-        associated.addAll( tos.stream()
-            .filter( Objects::nonNull )
-            .collect( Collectors.toSet() ) );
-    }
-
-    private Set<String> getCurrentAssociationsOrCreate( String from )
-    {
-        Set<String> associated = get( from );
-        if ( Objects.isNull( associated ) )
-        {
-            associated = new HashSet<>();
-            put( from, associated );
-        }
-        return associated;
-    }
-
 }
