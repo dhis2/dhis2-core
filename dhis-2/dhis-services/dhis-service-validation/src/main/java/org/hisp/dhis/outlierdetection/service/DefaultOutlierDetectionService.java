@@ -33,8 +33,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -42,7 +40,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionMetadata;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
@@ -52,11 +49,15 @@ import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.system.util.JacksonCsvUtils;
 import org.springframework.stereotype.Service;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
 @Service
+@AllArgsConstructor
 public class DefaultOutlierDetectionService
     implements OutlierDetectionService
 {
@@ -68,14 +69,7 @@ public class DefaultOutlierDetectionService
 
     private final MinMaxOutlierDetectionManager minMaxOutlierDetection;
 
-    public DefaultOutlierDetectionService( IdentifiableObjectManager idObjectManager,
-        ZScoreOutlierDetectionManager zScoreOutlierDetection,
-        MinMaxOutlierDetectionManager minMaxOutlierDetection )
-    {
-        this.idObjectManager = idObjectManager;
-        this.zScoreOutlierDetection = zScoreOutlierDetection;
-        this.minMaxOutlierDetection = minMaxOutlierDetection;
-    }
+    private final ModifiedZScoreOutlierDetectionManager modifiedZScoreDetection;
 
     @Override
     public void validate( OutlierDetectionRequest request )
@@ -145,7 +139,7 @@ public class DefaultOutlierDetectionService
         // Re-fetch data elements to maintain access control
 
         List<String> de = dataSets.stream()
-            .map( ds -> ds.getDataElements() )
+            .map( DataSet::getDataElements )
             .flatMap( Collection::stream )
             .filter( d -> d.getValueType().isNumeric() )
             .map( DataElement::getUid )
@@ -234,16 +228,15 @@ public class DefaultOutlierDetectionService
      */
     private List<OutlierValue> getOutliers( OutlierDetectionRequest request )
     {
-        if ( request.getAlgorithm() == OutlierDetectionAlgorithm.Z_SCORE )
+        switch ( request.getAlgorithm() )
         {
+        case Z_SCORE:
             return zScoreOutlierDetection.getOutlierValues( request );
-        }
-        else if ( request.getAlgorithm() == OutlierDetectionAlgorithm.MIN_MAX )
-        {
+        case MIN_MAX:
             return minMaxOutlierDetection.getOutlierValues( request );
-        }
-        else
-        {
+        case MOD_Z_SCORE:
+            return modifiedZScoreDetection.getOutlierValues( request );
+        default:
             throw new IllegalStateException( String.format(
                 "Outlier detection algorithm not supported: %s", request.getAlgorithm() ) );
         }
