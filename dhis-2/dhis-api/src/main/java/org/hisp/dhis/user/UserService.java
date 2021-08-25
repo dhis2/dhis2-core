@@ -437,6 +437,13 @@ public interface UserService
      */
     List<User> getExpiringUsers();
 
+    /**
+     * @param inDays number of days to include
+     * @return list of those users that are about to expire in the provided
+     *         number of days (or less) and which have an email configured
+     */
+    List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays );
+
     void set2FA( User user, Boolean twoFA );
 
     /**
