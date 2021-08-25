@@ -30,6 +30,7 @@ package org.hisp.dhis.user;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -437,6 +438,13 @@ public interface UserService
      */
     List<User> getExpiringUsers();
 
+    /**
+     * @param inDays number of days to include
+     * @return list of those users that are about to expire in the provided
+     *         number of days (or less) and which have an email configured
+     */
+    List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays );
+
     void set2FA( User user, Boolean twoFA );
 
     /**
@@ -465,6 +473,22 @@ public interface UserService
      * @return number of users disabled
      */
     int disableUsersInactiveSince( Date inactiveSince );
+
+    /**
+     * Selects all users where the {@link UserCredentials#getLastLogin()} is
+     * before or equal to the provided pivot {@link Date}.
+     *
+     * Does a comparable query to {@link #disableUsersInactiveSince(Date)} but
+     * instead of disabling the found uses it returns them (without making a
+     * change).
+     *
+     * @see #disableUsersInactiveSince(Date)
+     *
+     * @param inactiveSince the most recent point in time that is considered *
+     *        inactive together with accounts only active further in the past.
+     * @return user emails that were inactive since the provided date
+     */
+    Set<String> findUsersInactiveSince( Date inactiveSince );
 
     /**
      * Get user display name by concat( firstname,' ', surname ) Return null if
