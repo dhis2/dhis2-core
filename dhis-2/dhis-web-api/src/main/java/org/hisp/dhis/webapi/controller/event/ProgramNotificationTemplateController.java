@@ -75,7 +75,7 @@ public class ProgramNotificationTemplateController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL')" )
-    @GetMapping( produces = { "application/json" } )
+    @GetMapping( produces = { "application/json" }, value = "/filter" )
     public @ResponseBody PagingWrapper<ProgramNotificationTemplate> getProgramNotificationTemplates(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
