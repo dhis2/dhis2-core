@@ -81,6 +81,13 @@ public interface UserStore
     List<User> getExpiringUsers( UserQueryParams userQueryParams );
 
     /**
+     * @param inDays number of days to include
+     * @return list of those users that are about to expire in the provided
+     *         number of days (or less) and which have an email configured
+     */
+    List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays );
+
+    /**
      * Returns UserCredentials for given username.
      *
      * @param username username for which the UserCredentials will be returned

@@ -39,6 +39,7 @@ import javax.annotation.Nullable;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserQueryParams;
@@ -366,6 +367,12 @@ public class MockUserService
 
     @Override
     public List<User> getExpiringUsers()
+    {
+        return null;
+    }
+
+    @Override
+    public List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays )
     {
         return null;
     }

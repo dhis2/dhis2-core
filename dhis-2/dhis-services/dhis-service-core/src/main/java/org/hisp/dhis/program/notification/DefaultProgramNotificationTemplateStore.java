@@ -30,6 +30,7 @@ package org.hisp.dhis.program.notification;
 import java.math.BigInteger;
 import java.util.List;
 
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
@@ -115,6 +116,30 @@ public class DefaultProgramNotificationTemplateStore
             ProgramNotificationTemplate.class );
         query.setParameter( PROGRAM_STAGE_ID, programStage.getId() );
         query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
+
+        return query.getResultList();
+    }
+
+    @Override
+    public int countProgramNotificationTemplates( ProgramNotificationTemplateParam param )
+    {
+        Query query = getSession().createNativeQuery(
+            "select count(*) from programnotificationtemplate where programstageid = :psid or  programid = :pid" );
+        query.setParameter( PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0 );
+        query.setParameter( PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0 );
+
+        return ((Number) query.getSingleResult()).intValue();
+    }
+
+    @Override
+    public List<ProgramNotificationTemplate> getProgramNotificationTemplates( ProgramNotificationTemplateParam param )
+    {
+        NativeQuery<ProgramNotificationTemplate> query = getSession().createNativeQuery(
+            "select * from programnotificationtemplate where programstageid = :psid or  programid = :pid",
+            ProgramNotificationTemplate.class );
+
+        query.setParameter( PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0 );
+        query.setParameter( PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0 );
 
         return query.getResultList();
     }

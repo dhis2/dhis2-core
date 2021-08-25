@@ -593,6 +593,35 @@ public class UserServiceTest
     }
 
     @Test
+    public void testGetExpiringUserAccounts()
+    {
+        ZonedDateTime now = ZonedDateTime.now();
+        Date inFiveDays = Date.from( now.plusDays( 5 ).toInstant() );
+        Date inSixDays = Date.from( now.plusDays( 6 ).toInstant() );
+        Date inEightDays = Date.from( now.plusDays( 8 ).toInstant() );
+        User userA = addUser( 'A' );
+        addUser( 'B', UserCredentials::setAccountExpiry, inFiveDays );
+        User userC = addUser( 'C' );
+        addUser( 'D', UserCredentials::setAccountExpiry, inSixDays );
+        addUser( 'E', UserCredentials::setAccountExpiry, inEightDays );
+
+        List<UserAccountExpiryInfo> soonExpiringAccounts = userService.getExpiringUserAccounts( 7 );
+        Set<String> soonExpiringAccountNames = soonExpiringAccounts.stream()
+            .map( UserAccountExpiryInfo::getUsername ).collect( toSet() );
+        assertEquals( new HashSet<>( asList( "UsernameB", "UsernameD" ) ), soonExpiringAccountNames );
+
+        soonExpiringAccounts = userService.getExpiringUserAccounts( 9 );
+        soonExpiringAccountNames = soonExpiringAccounts.stream()
+            .map( UserAccountExpiryInfo::getUsername ).collect( toSet() );
+        assertEquals( new HashSet<>( asList( "UsernameB", "UsernameD", "UsernameE" ) ), soonExpiringAccountNames );
+
+        for ( UserAccountExpiryInfo expiryInfo : soonExpiringAccounts )
+        {
+            assertEquals( expiryInfo.getUsername().replace( "Username", "Email" ), expiryInfo.getEmail() );
+        }
+    }
+
+    @Test
     public void testDisableUsersInactiveSince()
     {
         ZonedDateTime now = ZonedDateTime.now();

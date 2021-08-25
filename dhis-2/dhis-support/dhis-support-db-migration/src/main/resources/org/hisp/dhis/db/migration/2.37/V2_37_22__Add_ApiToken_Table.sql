@@ -1,5 +1,5 @@
 -- This script relates to the task https://jira.dhis2.org/browse/DHIS2-11418
-CREATE TABLE api_token
+CREATE TABLE IF NOT EXISTS api_token
 (
     apiTokenId    bigint                      not null primary key,
     uid           character varying(11)       not null unique,

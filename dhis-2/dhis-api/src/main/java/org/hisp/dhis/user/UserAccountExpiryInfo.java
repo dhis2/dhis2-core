@@ -25,53 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.user;
 
 import java.util.Date;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * @author Zubair Asghar
+ * Bean used when finding user accounts that are soon to expire.
+ *
+ * @author Jan Bernitt
  */
-
-@Data
-@NoArgsConstructor
-public class ProgramNotificationInstanceParam extends BaseNotificationParam
+@Getter
+@AllArgsConstructor
+public final class UserAccountExpiryInfo
 {
-    @Builder
-    public ProgramNotificationInstanceParam( Integer page, Integer pageSize, boolean skipPaging,
-        ProgramInstance programInstance, ProgramStageInstance programStageInstance, Date scheduledAt )
-    {
-        super( page, pageSize, skipPaging );
-        this.programInstance = programInstance;
-        this.programStageInstance = programStageInstance;
-        this.scheduledAt = scheduledAt;
-    }
+    private final String username;
 
-    private ProgramInstance programInstance;
+    private final String email;
 
-    private ProgramStageInstance programStageInstance;
-
-    private Date scheduledAt;
-
-    public boolean hasProgramInstance()
-    {
-        return programInstance != null;
-    }
-
-    public boolean hasProgramStageInstance()
-    {
-        return programStageInstance != null;
-    }
-
-    public boolean hasScheduledAt()
-    {
-        return scheduledAt != null;
-    }
+    private final Date accountExpiry;
 }
