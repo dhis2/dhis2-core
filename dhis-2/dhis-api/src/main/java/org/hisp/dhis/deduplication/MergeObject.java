@@ -29,29 +29,18 @@ package org.hisp.dhis.deduplication;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MergeObject
 {
     private List<String> trackedEntityAttributes;
 
     private List<String> relationships;
-
-    public List<String> getTrackedEntityAttributes()
-    {
-        return trackedEntityAttributes;
-    }
-
-    public void setTrackedEntityAttributes( List<String> trackedEntityAttributes )
-    {
-        this.trackedEntityAttributes = trackedEntityAttributes;
-    }
-
-    public List<String> getRelationships()
-    {
-        return relationships;
-    }
-
-    public void setRelationships( List<String> relationships )
-    {
-        this.relationships = relationships;
-    }
 }

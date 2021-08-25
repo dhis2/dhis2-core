@@ -48,6 +48,8 @@ public class DefaultDeduplicationService
 
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
+    private final DeduplicationHelper deduplicationHelper;
+
     @Override
     @Transactional( readOnly = true )
     public PotentialDuplicate getPotentialDuplicateById( long id )
@@ -99,20 +101,22 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    public boolean autoMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    public void autoMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
-        if ( isAutoMergeable( original, duplicate ) )
-        {
-            MergeObject mergeObject = generateMergeObject( original, duplicate );
-            merge( original, duplicate, mergeObject );
-            return true;
-        }
+        if ( !isAutoMergeable( original, duplicate ) )
+            throw new ConflictPotentialDuplicateException( "Potential Duplicate is not automatically mergeable" );
 
-        return false;
+        MergeObject mergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
+        merge( original, duplicate, mergeObject );
     }
 
     @Override
-    public boolean isAutoMergeable( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    public void manualMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject )
+    {
+        //
+    }
+
+    private boolean isAutoMergeable( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
         if ( enrolledSameProgram( original, duplicate ) )
             return false;
@@ -135,18 +139,13 @@ public class DefaultDeduplicationService
         return !sameAttributesAreEquals( trackedEntityAttributeValueA, trackedEntityAttributeValueB );
     }
 
-    @Override
-    public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    private void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject )
     {
-        return null;
-    }
+        if ( !deduplicationHelper.hasUserAccess( original, duplicate, mergeObject ) )
+            throw new ForbiddenPotentialDuplicateException( "No merging access for user" );
 
-    @Override
-    public boolean merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject )
-    {
-        // TODO: Check access
         potentialDuplicateStore.merge( original, duplicate, mergeObject );
-        return true;
+        potentialDuplicateStore.removeTrackedEntity( duplicate );
     }
 
     private boolean sameAttributesAreEquals( Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA,
