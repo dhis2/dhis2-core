@@ -162,11 +162,11 @@ public class FieldFilterParser
         StringBuilder fieldNameBuilder, Stack<String> path,
         String transformerName, List<String> transformerParameters )
     {
-        FieldTransformer transformer = null;
+        FieldPathTransformer transformer = null;
 
         if ( transformerName != null )
         {
-            transformer = new FieldTransformer( transformerName, transformerParameters );
+            transformer = new FieldPathTransformer( transformerName, transformerParameters );
         }
 
         return new FieldPath( fieldNameBuilder.toString(), new ArrayList<>( path ), transformer );

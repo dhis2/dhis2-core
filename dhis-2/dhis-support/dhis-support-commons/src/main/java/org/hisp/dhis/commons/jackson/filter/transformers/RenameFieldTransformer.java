@@ -25,51 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.filter;
+package org.hisp.dhis.commons.jackson.filter.transformers;
 
-import java.util.List;
+import org.hisp.dhis.commons.jackson.filter.FieldPathTransformer;
+import org.hisp.dhis.commons.jackson.filter.FieldTransformer;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-import org.apache.commons.lang3.StringUtils;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen
  */
-@Data
-@AllArgsConstructor
-public class FieldPath
+public class RenameFieldTransformer implements FieldTransformer
 {
-    private static final String FIELD_PATH_SEPARATOR = ".";
+    private final FieldPathTransformer fieldPathTransformer;
 
-    /**
-     * Name of field (excluding path).
-     */
-    private final String name;
-
-    /**
-     * Path to reach field name, can be empty for root level fields.
-     */
-    private final List<String> path;
-
-    /**
-     * Transformer to apply to field, can be null.
-     */
-    private final FieldPathTransformer transformer;
-
-    public FieldPath( String name, List<String> path )
+    public RenameFieldTransformer( FieldPathTransformer fieldPathTransformer )
     {
-        this.name = name;
-        this.path = path;
-        this.transformer = null;
+        this.fieldPathTransformer = fieldPathTransformer;
     }
 
-    /**
-     * @return Dot separated path + field name (i.e. path.to.field)
-     */
-    public String toFullPath()
+    @Override
+    public JsonNode apply( String key, JsonNode value, JsonNode parent )
     {
-        return path.isEmpty() ? name : StringUtils.join( path, FIELD_PATH_SEPARATOR ) + FIELD_PATH_SEPARATOR + name;
+        if ( fieldPathTransformer.getParameters().isEmpty() && !parent.isObject() )
+        {
+            return value;
+        }
+
+        value = ((ObjectNode) parent).remove( key );
+        ((ObjectNode) parent).set( fieldPathTransformer.getParameters().get( 0 ), value );
+
+        return value;
     }
 }

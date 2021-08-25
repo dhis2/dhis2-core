@@ -29,47 +29,15 @@ package org.hisp.dhis.commons.jackson.filter;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Morten Olav Hansen
  */
 @Data
-@AllArgsConstructor
-public class FieldPath
+public class FieldPathTransformer
 {
-    private static final String FIELD_PATH_SEPARATOR = ".";
-
-    /**
-     * Name of field (excluding path).
-     */
     private final String name;
 
-    /**
-     * Path to reach field name, can be empty for root level fields.
-     */
-    private final List<String> path;
-
-    /**
-     * Transformer to apply to field, can be null.
-     */
-    private final FieldPathTransformer transformer;
-
-    public FieldPath( String name, List<String> path )
-    {
-        this.name = name;
-        this.path = path;
-        this.transformer = null;
-    }
-
-    /**
-     * @return Dot separated path + field name (i.e. path.to.field)
-     */
-    public String toFullPath()
-    {
-        return path.isEmpty() ? name : StringUtils.join( path, FIELD_PATH_SEPARATOR ) + FIELD_PATH_SEPARATOR + name;
-    }
+    private final List<String> parameters;
 }

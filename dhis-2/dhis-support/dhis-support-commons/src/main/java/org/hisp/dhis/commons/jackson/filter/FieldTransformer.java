@@ -27,17 +27,13 @@
  */
 package org.hisp.dhis.commons.jackson.filter;
 
-import java.util.List;
-
-import lombok.Data;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Morten Olav Hansen
  */
-@Data
-public class FieldTransformer
+@FunctionalInterface
+public interface FieldTransformer
 {
-    private final String name;
-
-    private final List<String> parameters;
+    JsonNode apply( String key, JsonNode value, JsonNode parent );
 }

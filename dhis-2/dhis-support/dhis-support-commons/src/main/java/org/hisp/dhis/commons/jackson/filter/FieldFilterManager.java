@@ -28,10 +28,13 @@
 package org.hisp.dhis.commons.jackson.filter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.commons.jackson.filter.transformers.RenameFieldTransformer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -57,12 +60,24 @@ public class FieldFilterManager
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
 
         List<ObjectNode> objectNodes = new ArrayList<>();
+        Map<String, FieldTransformer> transformerMap = getTransformerMap( fieldPaths );
 
         for ( Object object : params.getObjects() )
         {
             ObjectNode objectNode = objectMapper.valueToTree( object );
 
-            // TODO apply transformations
+            List<String> fieldNames = new ArrayList<>();
+            objectNode.fieldNames().forEachRemaining( fieldNames::add );
+
+            for ( String fieldName : fieldNames )
+            {
+                if ( transformerMap.containsKey( fieldName ) )
+                {
+                    FieldTransformer transformer = transformerMap.get( fieldName );
+                    transformer.apply( fieldName, objectNode.get( fieldName ), objectNode );
+                }
+            }
+
             objectNodes.add( objectNode );
         }
 
@@ -75,5 +90,28 @@ public class FieldFilterManager
         filterProvider.addFilter( "field-filter", new FieldFilterSimpleBeanPropertyFilter( fieldPaths ) );
 
         return filterProvider;
+    }
+
+    private Map<String, FieldTransformer> getTransformerMap( List<FieldPath> fieldPaths )
+    {
+        Map<String, FieldTransformer> map = new HashMap<>();
+
+        for ( FieldPath fieldPath : fieldPaths )
+        {
+            if ( fieldPath.getTransformer() != null )
+            {
+                switch ( fieldPath.getTransformer().getName() )
+                {
+                case "rename":
+                    map.put( fieldPath.toFullPath(), new RenameFieldTransformer( fieldPath.getTransformer() ) );
+                    break;
+                default:
+                    // invalid transformer
+                    break;
+                }
+            }
+        }
+
+        return map;
     }
 }
