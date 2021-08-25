@@ -171,7 +171,7 @@ public class DeduplicationServiceIntegrationTest
         assertTrue( deduplicationService.exists( potentialDuplicate ) );
     }
 
-    @Test( expected = PotentialDuplicateException.class )
+    @Test( expected = ConflictPotentialDuplicateException.class )
     public void testShouldThrowWhenMissingTeiBProperty()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
@@ -180,7 +180,7 @@ public class DeduplicationServiceIntegrationTest
         assertTrue( deduplicationService.exists( new PotentialDuplicate( teiA, null ) ) );
     }
 
-    @Test( expected = PotentialDuplicateException.class )
+    @Test( expected = ConflictPotentialDuplicateException.class )
     public void testShouldThrowWhenMissingTeiAProperty()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
