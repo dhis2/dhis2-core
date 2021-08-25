@@ -34,8 +34,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.render.RenderService;

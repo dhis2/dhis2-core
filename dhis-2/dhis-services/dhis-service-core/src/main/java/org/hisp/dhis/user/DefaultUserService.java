@@ -788,6 +788,12 @@ public class DefaultUserService
     }
 
     @Override
+    public List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays )
+    {
+        return userStore.getExpiringUserAccounts( inDays );
+    }
+
+    @Override
     @Transactional
     public void set2FA( User user, Boolean twoFa )
     {

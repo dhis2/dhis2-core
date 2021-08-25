@@ -30,6 +30,7 @@ package org.hisp.dhis.startup;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
+import static org.hisp.dhis.scheduling.JobType.ACCOUNT_EXPIRY_ALERT;
 import static org.hisp.dhis.scheduling.JobType.CREDENTIALS_EXPIRY_ALERT;
 import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
 import static org.hisp.dhis.scheduling.JobType.DATA_STATISTICS;
@@ -63,39 +64,43 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 @Slf4j
 public class SchedulerStart extends AbstractStartupRoutine
 {
-    private final String CRON_DAILY_2AM = "0 0 2 ? * *";
+    private static final String CRON_DAILY_2AM = "0 0 2 ? * *";
 
-    private final String CRON_DAILY_7AM = "0 0 7 ? * *";
+    private static final String CRON_DAILY_7AM = "0 0 7 ? * *";
 
-    private final String LEADER_JOB_CRON_FORMAT = "0 0/%s * * * *";
+    private static final String LEADER_JOB_CRON_FORMAT = "0 0/%s * * * *";
 
-    private final String DEFAULT_FILE_RESOURCE_CLEANUP_UID = "pd6O228pqr0";
+    private static final String DEFAULT_FILE_RESOURCE_CLEANUP_UID = "pd6O228pqr0";
 
-    private final String DEFAULT_FILE_RESOURCE_CLEANUP = "File resource clean up";
+    private static final String DEFAULT_FILE_RESOURCE_CLEANUP = "File resource clean up";
 
-    private final String DEFAULT_DATA_STATISTICS_UID = "BFa3jDsbtdO";
+    private static final String DEFAULT_DATA_STATISTICS_UID = "BFa3jDsbtdO";
 
-    private final String DEFAULT_DATA_STATISTICS = "Data statistics";
+    private static final String DEFAULT_DATA_STATISTICS = "Data statistics";
 
-    private final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION_UID = "Js3vHn2AVuG";
+    private static final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION_UID = "Js3vHn2AVuG";
 
-    private final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION = "Validation result notification";
+    private static final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION = "Validation result notification";
 
-    private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT_UID = "sHMedQF7VYa";
+    private static final String DEFAULT_CREDENTIALS_EXPIRY_ALERT_UID = "sHMedQF7VYa";
 
-    private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT = "Credentials expiry alert";
+    private static final String DEFAULT_CREDENTIALS_EXPIRY_ALERT = "Credentials expiry alert";
 
-    private final String DEFAULT_DATA_SET_NOTIFICATION_UID = "YvAwAmrqAtN";
+    private static final String DEFAULT_DATA_SET_NOTIFICATION_UID = "YvAwAmrqAtN";
 
-    private final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
+    private static final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
 
-    private final String DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES_UID = "uwWCT2BMmlq";
+    private static final String DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES_UID = "uwWCT2BMmlq";
 
-    private final String DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES = "Remove expired or used reserved values";
+    private static final String DEFAULT_REMOVE_EXPIRED_OR_USED_RESERVED_VALUES = "Remove expired or used reserved values";
 
-    private final String DEFAULT_LEADER_ELECTION_UID = "MoUd5BTQ3lY";
+    private static final String DEFAULT_LEADER_ELECTION_UID = "MoUd5BTQ3lY";
 
-    private final String DEFAULT_LEADER_ELECTION = "Leader election in cluster";
+    private static final String DEFAULT_LEADER_ELECTION = "Leader election in cluster";
+
+    private static final String DEFAULT_ACCOUNT_EXPIRY_ALERT_UID = "fUWM1At1TUx";
+
+    private static final String DEFAULT_ACCOUNT_EXPIRY_ALERT = "User account expiry alert";
 
     private final SystemSettingManager systemSettingManager;
 
@@ -212,6 +217,15 @@ public class SchedulerStart extends AbstractStartupRoutine
             credentialsExpiryAlert.setLeaderOnlyJob( true );
             credentialsExpiryAlert.setUid( DEFAULT_CREDENTIALS_EXPIRY_ALERT_UID );
             addAndScheduleJob( credentialsExpiryAlert );
+        }
+
+        if ( verifyNoJobExist( DEFAULT_ACCOUNT_EXPIRY_ALERT, jobConfigurations ) )
+        {
+            JobConfiguration accountExpiryAlert = new JobConfiguration( DEFAULT_ACCOUNT_EXPIRY_ALERT,
+                ACCOUNT_EXPIRY_ALERT, CRON_DAILY_2AM, null );
+            accountExpiryAlert.setLeaderOnlyJob( true );
+            accountExpiryAlert.setUid( DEFAULT_ACCOUNT_EXPIRY_ALERT_UID );
+            addAndScheduleJob( accountExpiryAlert );
         }
 
         if ( verifyNoJobExist( DEFAULT_DATA_SET_NOTIFICATION, jobConfigurations ) )

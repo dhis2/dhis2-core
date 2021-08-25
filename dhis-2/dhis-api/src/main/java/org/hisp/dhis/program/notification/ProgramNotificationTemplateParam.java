@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.program.notification;
 
-import java.util.Date;
-
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Zubair Asghar
@@ -42,36 +40,28 @@ import org.hisp.dhis.program.ProgramStageInstance;
 
 @Data
 @NoArgsConstructor
-public class ProgramNotificationInstanceParam extends BaseNotificationParam
+public class ProgramNotificationTemplateParam extends BaseNotificationParam
 {
     @Builder
-    public ProgramNotificationInstanceParam( Integer page, Integer pageSize, boolean skipPaging,
-        ProgramInstance programInstance, ProgramStageInstance programStageInstance, Date scheduledAt )
+    public ProgramNotificationTemplateParam( Integer page, Integer pageSize, boolean skipPaging, Program program,
+        ProgramStage programStage )
     {
         super( page, pageSize, skipPaging );
-        this.programInstance = programInstance;
-        this.programStageInstance = programStageInstance;
-        this.scheduledAt = scheduledAt;
+        this.program = program;
+        this.programStage = programStage;
     }
 
-    private ProgramInstance programInstance;
+    private Program program;
 
-    private ProgramStageInstance programStageInstance;
+    private ProgramStage programStage;
 
-    private Date scheduledAt;
-
-    public boolean hasProgramInstance()
+    public boolean hasProgram()
     {
-        return programInstance != null;
+        return this.program != null;
     }
 
-    public boolean hasProgramStageInstance()
+    public boolean hasProgramStage()
     {
-        return programStageInstance != null;
-    }
-
-    public boolean hasScheduledAt()
-    {
-        return scheduledAt != null;
+        return this.programStage != null;
     }
 }
