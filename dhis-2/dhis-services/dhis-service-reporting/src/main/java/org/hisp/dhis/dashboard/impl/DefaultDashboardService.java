@@ -58,7 +58,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.visualization.SimpleVisualizationView;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationStore;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -92,27 +91,23 @@ public class DefaultDashboardService
 
     private final DashboardItemStore dashboardItemStore;
 
-    private final VisualizationStore visualizationStore;
-
     private final AppManager appManager;
 
     public DefaultDashboardService(
         @Qualifier( "org.hisp.dhis.dashboard.DashboardStore" ) HibernateIdentifiableObjectStore<Dashboard> dashboardStore,
         IdentifiableObjectManager objectManager, UserService userService, DashboardItemStore dashboardItemStore,
-        VisualizationStore visualizationStore, AppManager appManager )
+        AppManager appManager )
     {
         checkNotNull( dashboardStore );
         checkNotNull( objectManager );
         checkNotNull( userService );
         checkNotNull( dashboardItemStore );
-        checkNotNull( visualizationStore );
         checkNotNull( appManager );
 
         this.dashboardStore = dashboardStore;
         this.objectManager = objectManager;
         this.userService = userService;
         this.dashboardItemStore = dashboardItemStore;
-        this.visualizationStore = visualizationStore;
         this.appManager = appManager;
     }
 
@@ -145,8 +140,8 @@ public class DefaultDashboardService
 
         result.setUsers( userService.getAllUsersBetweenByName( query, 0,
             getMax( DashboardItemType.USERS, maxTypes, count, maxCount ) ) );
-        result.setVisualizations( convertFrom( visualizationStore.getAllLikeName( words, 0,
-            getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
+        result.setVisualizations( convertFrom( objectManager.getBetweenLikeName( Visualization.class, words, 0,
+            getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) ) );
         result.setEventCharts( objectManager.getBetweenLikeName( EventChart.class, words, 0,
             getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenLikeName( Map.class, words, 0,
@@ -218,11 +213,6 @@ public class DefaultDashboardService
             item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
             dashboard.getItems().add( 0, item );
         }
-        else if ( DashboardItemType.CHART.equals( type ) )
-        {
-            item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
-            dashboard.getItems().add( 0, item );
-        }
         else if ( DashboardItemType.EVENT_CHART.equals( type ) )
         {
             item.setEventChart( objectManager.get( EventChart.class, contentUid ) );
@@ -231,11 +221,6 @@ public class DefaultDashboardService
         else if ( DashboardItemType.MAP.equals( type ) )
         {
             item.setMap( objectManager.get( Map.class, contentUid ) );
-            dashboard.getItems().add( 0, item );
-        }
-        else if ( DashboardItemType.REPORT_TABLE.equals( type ) )
-        {
-            item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
             dashboard.getItems().add( 0, item );
         }
         else if ( DashboardItemType.EVENT_REPORT.equals( type ) )
