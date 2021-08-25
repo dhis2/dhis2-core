@@ -32,17 +32,11 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -393,141 +387,6 @@ public class DataSetServiceTest
         assertEquals( dataSetA, dataElementA.getDataSetElements().iterator().next().getDataSet() );
         assertEquals( 1, dataElementB.getDataSetElements().size() );
         assertEquals( dataSetA, dataElementB.getDataSetElements().iterator().next().getDataSet() );
-    }
-
-    // -------------------------------------------------------------------------
-    // DataSet Section
-    // -------------------------------------------------------------------------
-
-    @Test
-    public void testDataSetSection()
-    {
-
-        CategoryOption categoryOptionA = new CategoryOption( "OptionA" );
-        CategoryOption categoryOptionB = new CategoryOption( "OptionB" );
-        CategoryOption categoryOptionC = new CategoryOption( "OptionC" );
-        CategoryOption categoryOptionD = new CategoryOption( "OptionD" );
-        CategoryOption categoryOptionE = new CategoryOption( "OptionE" );
-        CategoryOption categoryOptionF = new CategoryOption( "OptionF" );
-        CategoryOption categoryOptionG = new CategoryOption( "OptionG" );
-
-        categoryService.addCategoryOption( categoryOptionA );
-        categoryService.addCategoryOption( categoryOptionB );
-        categoryService.addCategoryOption( categoryOptionC );
-        categoryService.addCategoryOption( categoryOptionD );
-        categoryService.addCategoryOption( categoryOptionE );
-        categoryService.addCategoryOption( categoryOptionF );
-        categoryService.addCategoryOption( categoryOptionG );
-
-        Category categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
-        Category categoryB = createCategory( 'B', categoryOptionC, categoryOptionD );
-        Category categoryC = createCategory( 'C', categoryOptionE, categoryOptionF );
-
-        categoryService.addCategory( categoryA );
-        categoryService.addCategory( categoryB );
-        categoryService.addCategory( categoryC );
-
-        List<Category> categoriesAB = new ArrayList<>();
-        List<Category> categoriesABC = new ArrayList<>();
-
-        categoriesAB.add( categoryA );
-        categoriesAB.add( categoryB );
-
-        categoriesABC.add( categoryA );
-        categoriesABC.add( categoryB );
-        categoriesABC.add( categoryC );
-
-        CategoryCombo categoryComboAB = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION,
-            categoriesAB );
-        CategoryCombo categoryComboABC = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION,
-            categoriesABC );
-
-        long catAB = categoryService.addCategoryCombo( categoryComboAB );
-        long catABC = categoryService.addCategoryCombo( categoryComboABC );
-        long catDefault = categoryService.getDefaultCategoryCombo().getId();
-
-        DataElement dataElementC = createDataElement( 'C', categoryComboAB );
-        DataElement dataElementD = createDataElement( 'D', categoryComboAB );
-        DataElement dataElementE = createDataElement( 'E' );
-        DataElement dataElementF = createDataElement( 'F', categoryComboABC );
-        DataElement dataElementG = createDataElement( 'G', categoryComboABC );
-        DataElement dataElementH = createDataElement( 'H', categoryComboAB );
-        DataElement dataElementI = createDataElement( 'I', categoryComboABC );
-
-        dataElementService.addDataElement( dataElementC );
-        dataElementService.addDataElement( dataElementD );
-        dataElementService.addDataElement( dataElementE );
-        dataElementService.addDataElement( dataElementF );
-        dataElementService.addDataElement( dataElementG );
-        dataElementService.addDataElement( dataElementH );
-        dataElementService.addDataElement( dataElementI );
-
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        dataSetA.addDataSetElement( dataElementA );
-        dataSetA.addDataSetElement( dataElementB );
-        dataSetA.addDataSetElement( dataElementC );
-        dataSetA.addDataSetElement( dataElementD );
-        dataSetA.addDataSetElement( dataElementE );
-        dataSetA.addDataSetElement( dataElementF );
-        dataSetA.addDataSetElement( dataElementG );
-        dataSetA.addDataSetElement( dataElementH );
-        dataSetA.addDataSetElement( dataElementI );
-
-        Section section = new Section();
-        List<DataElement> dataElements = new ArrayList<>();
-        dataElements.add( dataElementA );
-        dataElements.add( dataElementB );
-        dataElements.add( dataElementC );
-        dataElements.add( dataElementD );
-        dataElements.add( dataElementE );
-        dataElements.add( dataElementF );
-        dataElements.add( dataElementG );
-        dataElements.add( dataElementH );
-        dataElements.add( dataElementI );
-
-        section.setDataElements( dataElements );
-
-        dataSetA.getSections().add( section );
-
-        long idA = dataSetService.addDataSet( dataSetA );
-
-        DataSet ds = dataSetService.getDataSet( idA );
-
-        assertNotNull( ds );
-
-        assertEquals( 9, ds.getDataSetElements().size() );
-        assertEquals( 1, ds.getSections().size() );
-
-        Section sec = ds.getSections().iterator().next();
-        assertEquals( 9, sec.getDataElements().size() );
-
-        Map<String, Collection<DataElement>> orderedDataElements = sec.getOrderedDataElementsByCategoryCombo();
-
-        List<String> keys = new ArrayList<>( orderedDataElements.keySet() );
-
-        assertEquals( 6, orderedDataElements.keySet().size() );
-
-        String key1 = sec.getId() + "-" + catDefault + "-" + "0";
-        String key2 = sec.getId() + "-" + catAB + "-" + "1";
-        String key3 = sec.getId() + "-" + catDefault + "-" + "2";
-        String key4 = sec.getId() + "-" + catABC + "-" + "3";
-        String key5 = sec.getId() + "-" + catAB + "-" + "4";
-        String key6 = sec.getId() + "-" + catABC + "-" + "5";
-
-        assertEquals( key1, keys.get( 0 ) );
-        assertEquals( key2, keys.get( 1 ) );
-        assertEquals( key3, keys.get( 2 ) );
-        assertEquals( key4, keys.get( 3 ) );
-        assertEquals( key5, keys.get( 4 ) );
-        assertEquals( key6, keys.get( 5 ) );
-
-        assertEquals( 2, orderedDataElements.get( key1 ).size() );
-        assertEquals( 2, orderedDataElements.get( key2 ).size() );
-        assertEquals( 1, orderedDataElements.get( key3 ).size() );
-        assertEquals( 2, orderedDataElements.get( key4 ).size() );
-        assertEquals( 1, orderedDataElements.get( key5 ).size() );
-        assertEquals( 1, orderedDataElements.get( key6 ).size() );
-
     }
 
     // -------------------------------------------------------------------------

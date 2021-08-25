@@ -55,6 +55,7 @@ import org.hisp.dhis.dataset.FormType;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
+import org.hisp.dhis.dxf2.util.SectionUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -117,6 +118,9 @@ public class LoadFormAction
     {
         this.i18n = i18n;
     }
+
+    @Autowired
+    private SectionUtils sectionUtils;
 
     // -------------------------------------------------------------------------
     // Input
@@ -480,12 +484,11 @@ public class LoadFormAction
 
     private void processSectionForUserOrdering( Section section )
     {
-        Map<String, Collection<DataElement>> sectionOrderedCategoryCombos = section
-            .getOrderedDataElementsByCategoryCombo();
+        Map<String, Collection<DataElement>> orderedDataElementsMap = sectionUtils.getOrderedDataElementsMap( section );
 
         List<String> sectionCategoryCombos = new ArrayList<>();
 
-        for ( Map.Entry<String, Collection<DataElement>> entry : sectionOrderedCategoryCombos.entrySet() )
+        for ( Map.Entry<String, Collection<DataElement>> entry : orderedDataElementsMap.entrySet() )
         {
             String key = entry.getKey();
             String[] split = key.split( "-" );
