@@ -42,12 +42,16 @@ import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
+import org.hisp.dhis.sharing.CascadeSharingParameters;
+import org.hisp.dhis.sharing.CascadeSharingReport;
+import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -62,6 +66,9 @@ public class DashboardController
 {
     @Autowired
     private DashboardService dashboardService;
+
+    @Autowired
+    private CascadeSharingService cascadeSharingService;
 
     // -------------------------------------------------------------------------
     // Search
@@ -101,6 +108,23 @@ public class DashboardController
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dashboard, download );
+    }
+
+    @PostMapping( "cascadeSharing/{uid}" )
+    public @ResponseBody CascadeSharingReport cascadeSharing( @PathVariable( "uid" ) String dashboardId,
+        @RequestParam( required = false ) boolean dryRun, @RequestParam( required = false ) boolean atomic )
+        throws WebMessageException
+    {
+        Dashboard dashboard = dashboardService.getDashboard( dashboardId );
+
+        if ( dashboard == null )
+        {
+            throw new WebMessageException( notFound( "Dashboard not found for uid: " + dashboardId ) );
+        }
+
+        return cascadeSharingService.cascadeSharing( dashboard,
+            CascadeSharingParameters.builder().user( currentUserService.getCurrentUser() )
+                .atomic( atomic ).dryRun( dryRun ).build() );
     }
 
     @Override

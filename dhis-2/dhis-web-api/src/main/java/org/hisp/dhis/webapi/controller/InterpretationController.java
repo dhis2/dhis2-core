@@ -133,49 +133,6 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     // Interpretation create
     // -------------------------------------------------------------------------
 
-    @Deprecated
-    @PostMapping( value = "/reportTable/{uid}", consumes = { "text/html", "text/plain" } )
-    @ResponseBody
-    public WebMessage writeReportTableInterpretation( @PathVariable( "uid" ) String visualizationUid,
-        @RequestParam( value = "pe", required = false ) String isoPeriod,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text )
-        throws WebMessageException
-    {
-        Visualization visualization = idObjectManager.get( Visualization.class, visualizationUid );
-
-        if ( visualization == null )
-        {
-            return conflict( "Report table does not exist or is not accessible: " + visualizationUid );
-        }
-
-        Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
-
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
-            currentUserService.getCurrentUser() );
-
-        return createInterpretation( new Interpretation( visualization, period, orgUnit, text ) );
-    }
-
-    @Deprecated
-    @PostMapping( value = "/chart/{uid}", consumes = { "text/html", "text/plain" } )
-    @ResponseBody
-    public WebMessage writeChartInterpretation( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text )
-        throws WebMessageException
-    {
-        Visualization visualization = idObjectManager.get( Visualization.class, uid );
-
-        if ( visualization == null )
-        {
-            return conflict( "Chart does not exist or is not accessible: " + uid );
-        }
-
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
-            currentUserService.getCurrentUser() );
-
-        return createInterpretation( new Interpretation( visualization, orgUnit, text ) );
-    }
-
     @PostMapping( value = "/visualization/{uid}", consumes = { "text/html", "text/plain" } )
     @ResponseBody
     public WebMessage writeVisualizationInterpretation( @PathVariable( "uid" )

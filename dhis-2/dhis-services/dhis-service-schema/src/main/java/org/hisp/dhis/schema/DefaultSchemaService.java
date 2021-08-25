@@ -198,6 +198,7 @@ public class DefaultSchemaService
         .add( new ProgramInstanceSchemaDescriptor() )
         .add( new ProgramStageInstanceFilterSchemaDescriptor() )
         .add( new VisualizationSchemaDescriptor() )
+        .add( new ApiTokenSchemaDescriptor() )
         .build();
 
     private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

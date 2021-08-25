@@ -47,6 +47,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.metadata.MetadataExportException;
@@ -68,6 +69,8 @@ import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
+import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
+import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -262,7 +265,8 @@ public class CrudControllerAdvice
         throw ex;
     }
 
-    @ExceptionHandler( { BadRequestException.class, IllegalArgumentException.class, SchemaPathException.class } )
+    @ExceptionHandler( { BadRequestException.class, IllegalArgumentException.class, SchemaPathException.class,
+        JsonPatchException.class } )
     @ResponseBody
     public WebMessage handleBadRequest( Exception exception )
     {
@@ -327,6 +331,19 @@ public class CrudControllerAdvice
 
             return createWebMessage( bearerTokenError.getErrorCode(),
                 bearerTokenError.getDescription(), Status.ERROR, status );
+        }
+        return unauthorized( ex.getMessage() );
+    }
+
+    @ExceptionHandler( ApiTokenAuthenticationException.class )
+    @ResponseBody
+    public WebMessage handleApiTokenAuthenticationException( ApiTokenAuthenticationException ex )
+    {
+        ApiTokenError apiTokenError = ex.getError();
+        if ( apiTokenError != null )
+        {
+            return createWebMessage( apiTokenError.getDescription(), Status.ERROR,
+                apiTokenError.getHttpStatus() );
         }
         return unauthorized( ex.getMessage() );
     }

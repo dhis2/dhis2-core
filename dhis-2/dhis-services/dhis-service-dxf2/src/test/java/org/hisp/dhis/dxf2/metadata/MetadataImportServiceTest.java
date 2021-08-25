@@ -622,7 +622,10 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         User user = createUser( 'A' );
         manager.save( user );
 
-        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user ) );
+        User userA = manager.get( User.class, user.getUid() );
+        assertNotNull( userA );
+
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( userA ) );
         manager.save( userGroup );
 
         userGroup = manager.get( UserGroup.class, "ugabcdefghA" );

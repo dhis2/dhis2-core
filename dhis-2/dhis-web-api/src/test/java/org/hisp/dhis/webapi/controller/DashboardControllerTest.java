@@ -35,6 +35,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
+import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -57,6 +58,9 @@ public class DashboardControllerTest
 
     @Mock
     private DashboardService dashboardService;
+
+    @Mock
+    private CascadeSharingService cascadeSharingService;
 
     @Mock
     protected IdentifiableObjectManager manager;
