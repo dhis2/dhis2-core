@@ -123,7 +123,7 @@ public class PotentialDuplicateStoreRelationshipTest
         relationshipTypeBiDirectional = createRelationshipType( 'A' );
         relationshipTypeUniDirectional = createRelationshipType( 'B' );
 
-        relationshipTypeUniDirectional.setBidirectional( true );
+        relationshipTypeBiDirectional.setBidirectional( true );
         relationshipTypeUniDirectional.setBidirectional( false );
 
         relationshipTypeService.addRelationshipType( relationshipTypeBiDirectional );
