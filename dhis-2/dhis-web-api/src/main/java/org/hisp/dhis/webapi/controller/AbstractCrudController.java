@@ -369,6 +369,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
 
+        prePatchEntity( persistedObject, patchedObject );
+
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
 
         if ( !parameterValuesMap.containsKey( "importReportMode" ) )
@@ -927,7 +929,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     {
     }
 
-    protected void prePatchEntity( T entity )
+    protected void prePatchEntity( T entity, T newEntity )
+        throws Exception
+    {
+    }
+
+    protected void prePatchEntity( T newEntity )
         throws Exception
     {
     }

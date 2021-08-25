@@ -155,7 +155,7 @@
     <json-path.version>2.4.0</json-path.version>
     <jsmpp-X.version>2.1.0-RELEASE</jsmpp-X.version>
     <jboss-logging.version>3.4.1.Final</jboss-logging.version>
-    <jsoup.version>1.11.3</jsoup.version>
+    <jsoup.version>1.14.2</jsoup.version>
 
     <!-- Embedded Jetty -->
     <jetty.version>9.4.41.v20210516</jetty.version>
@@ -231,6 +231,7 @@
     <dhis-antlr-expression-parser.version>1.0.17</dhis-antlr-expression-parser.version>
     <ow2.asm.version>9.0</ow2.asm.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
+    <gson.version>2.8.2</gson.version>
   </properties>
 
   <distributionManagement>
@@ -1557,6 +1558,11 @@
       </dependency>
 
       <!-- Apache jClouds -->
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>${gson.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.jclouds</groupId>
         <artifactId>jclouds-core</artifactId>
