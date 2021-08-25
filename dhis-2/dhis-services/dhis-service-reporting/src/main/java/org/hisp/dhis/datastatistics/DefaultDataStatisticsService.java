@@ -45,7 +45,6 @@ import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationStore;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -80,9 +79,6 @@ public class DefaultDataStatisticsService
 
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
-
-    @Autowired
-    private VisualizationStore visualizationStore;
 
     // -------------------------------------------------------------------------
     // DataStatisticsService implementation
