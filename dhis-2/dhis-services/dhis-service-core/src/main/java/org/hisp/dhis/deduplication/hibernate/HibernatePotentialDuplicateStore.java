@@ -255,5 +255,7 @@ public class HibernatePotentialDuplicateStore
             getSession().update( r );
             relationshipStore.delete( r );
         } );
+
+        getSession().flush();
     }
 }
