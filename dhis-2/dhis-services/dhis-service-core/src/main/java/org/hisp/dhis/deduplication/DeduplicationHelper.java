@@ -27,13 +27,21 @@
  */
 package org.hisp.dhis.deduplication;
 
-/**
- * @author Luca Cambi <luca@dhis2.org>
- */
-public class PotentialDuplicateException extends RuntimeException
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.stereotype.Component;
+
+@Component
+public class DeduplicationHelper
 {
-    public PotentialDuplicateException( String message )
+
+    public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
-        super( message );
+        return null;
+    }
+
+    public boolean hasUserAccess( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+        MergeObject mergeObject )
+    {
+        return false;
     }
 }

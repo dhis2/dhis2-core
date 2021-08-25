@@ -27,29 +27,18 @@
  */
 package org.hisp.dhis.deduplication;
 
-import java.util.List;
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
-public interface DeduplicationService
+/**
+ * @author Luca Cambi <luca@dhis2.org>
+ */
+@Getter
+public class PotentialDuplicateException extends RuntimeException
 {
-    PotentialDuplicate getPotentialDuplicateById( long id );
-
-    PotentialDuplicate getPotentialDuplicateByUid( String uid );
-
-    List<PotentialDuplicate> getAllPotentialDuplicates();
-
-    int countPotentialDuplicates( PotentialDuplicateQuery query );
-
-    boolean exists( PotentialDuplicate potentialDuplicate );
-
-    List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query );
-
-    void addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
-
-    void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
-
-    void autoMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate );
-
-    void manualMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject );
+    public PotentialDuplicateException( String message )
+    {
+        super( message );
+    }
 }
