@@ -36,10 +36,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Luca Cambi <luca@dhis2.org>
  */
 @Getter
-@ResponseStatus( HttpStatus.CONFLICT )
-public class ConflictPotentialDuplicateException extends RuntimeException
+@ResponseStatus( HttpStatus.FORBIDDEN )
+public class ForbiddenPotentialDuplicateException extends RuntimeException
 {
-    public ConflictPotentialDuplicateException( String message )
+    public ForbiddenPotentialDuplicateException( String message )
     {
         super( message );
     }
