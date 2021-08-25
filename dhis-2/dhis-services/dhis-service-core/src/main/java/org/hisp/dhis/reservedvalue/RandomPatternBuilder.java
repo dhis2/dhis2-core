@@ -54,7 +54,7 @@ import org.apache.commons.lang3.StringUtils;
  *         char at that position in order to maintain random pattern
  *
  *         For numeric patterns that are longer than 1 digit, we also have
- *         builders that contains all zeros or partial zeros beacuase random
+ *         builders that contains all zeros or partial zeros because random
  *         digits are generated from BigInteger that has no leading zeros, so we
  *         need to consider zero leading cases.
  *
@@ -71,10 +71,10 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class RandomPatternBuilder
 {
-    private final List<Character> lowercase = IntStream.range( 0, 26 ).mapToObj( n -> (char) (n + 'a') )
+    private final List<Character> lowercase = IntStream.rangeClosed( 'a', 'z' ).mapToObj( c -> (char) c )
         .collect( Collectors.toList() );
 
-    private final List<Character> uppercase = IntStream.range( 0, 26 ).mapToObj( n -> (char) (n + 'A') )
+    private final List<Character> uppercase = IntStream.rangeClosed( 'A', 'Z' ).mapToObj( c -> (char) c )
         .collect( Collectors.toList() );
 
     private StringBuilder zeroPrefixDigitPatternBuilder;
@@ -175,32 +175,27 @@ public class RandomPatternBuilder
         int i = 0;
         while ( i < pattern.length() )
         {
+            char c;
             if ( Character.isLetter( randomUUIDForAll.charAt( i ) ) )
             {
                 if ( isUpper )
                 {
-                    for ( StringBuilder builder : stringBuilders )
-                    {
-                        builder.append( Character.toUpperCase( randomUUIDForAll.charAt( i ) ) );
-                    }
+                    c = Character.toUpperCase( randomUUIDForAll.charAt( i ) );
+                    stringBuilders.forEach( sb -> sb.append( c ) );
                     isUpper = false;
                 }
                 else
                 {
-                    for ( StringBuilder builder : stringBuilders )
-                    {
-                        builder.append( randomUUIDForAll.charAt( i ) );
-                    }
+                    c = randomUUIDForAll.charAt( i );
+                    stringBuilders.forEach( sb -> sb.append( c ) );
                     isUpper = true;
                 }
 
             }
             else if ( Character.isDigit( randomUUIDForAll.charAt( i ) ) )
             {
-                for ( StringBuilder builder : stringBuilders )
-                {
-                    builder.append( randomUUIDForAll.charAt( i ) );
-                }
+                c = randomUUIDForAll.charAt( i );
+                stringBuilders.forEach( sb -> sb.append( c ) );
             }
 
             i++;
