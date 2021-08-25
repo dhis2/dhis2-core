@@ -49,6 +49,14 @@
     <param name="clazz">org.hisp.dhis.visualization.OutlierAnalysis</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jblDashboardLayout">
+    <param name="clazz">org.hisp.dhis.dashboard.design.Layout</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbDashboardItemConfig">
+    <param name="clazz">org.hisp.dhis.dashboard.design.ItemConfig</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbTextPattern">
     <param name="clazz">org.hisp.dhis.textpattern.TextPattern</param>
   </typedef>
