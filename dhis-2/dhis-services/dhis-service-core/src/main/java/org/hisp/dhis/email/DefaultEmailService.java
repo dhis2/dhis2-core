@@ -105,7 +105,7 @@ public class DefaultEmailService
     @Override
     public OutboundMessageResponse sendTestEmail()
     {
-        String instanceName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+        String instanceName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
 
         Email email = new Email( TEST_EMAIL_SUBJECT, TEST_EMAIL_TEXT + instanceName, null,
             Sets.newHashSet( currentUserService.getCurrentUser() ) );
@@ -118,8 +118,8 @@ public class DefaultEmailService
     {
         OutboundMessageResponse response = new OutboundMessageResponse();
 
-        String recipient = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_NOTIFICATIONS_EMAIL );
-        String appTitle = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+        String recipient = systemSettingManager.getStringSetting( SettingKey.SYSTEM_NOTIFICATIONS_EMAIL );
+        String appTitle = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
 
         if ( recipient == null || !ValidationUtils.emailIsValid( recipient ) )
         {

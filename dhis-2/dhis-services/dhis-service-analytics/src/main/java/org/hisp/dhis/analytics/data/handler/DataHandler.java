@@ -1076,7 +1076,7 @@ public class DataHandler
         int optimalQueries = getWithin( getProcessNo(), 1, MAX_QUERIES );
 
         int maxLimit = params.isIgnoreLimit() ? 0
-            : (Integer) systemSettingManager.getSystemSetting( ANALYTICS_MAX_LIMIT );
+            : systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT );
 
         Timer timer = new Timer().start().disablePrint();
 
@@ -1150,7 +1150,7 @@ public class DataHandler
      */
     private int getProcessNo()
     {
-        Integer cores = (Integer) systemSettingManager.getSystemSetting( DATABASE_SERVER_CPUS );
+        Integer cores = systemSettingManager.getIntegerSetting( DATABASE_SERVER_CPUS );
 
         return (cores == null || cores == 0) ? getCpuCores() : cores;
     }

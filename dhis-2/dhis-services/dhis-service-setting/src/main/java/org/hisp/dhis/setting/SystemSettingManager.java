@@ -29,9 +29,13 @@ package org.hisp.dhis.setting;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
  * @author Stian Strandli
@@ -73,11 +77,9 @@ public interface SystemSettingManager
      * @param key the system setting key.
      * @return the setting value.
      */
-    Serializable getSystemSetting( SettingKey key );
-
     default <T extends Serializable> T getSystemSetting( SettingKey key, Class<T> as )
     {
-        return as.cast( getSystemSetting( key ) );
+        return as.cast( getSystemSetting( key, key.getClazz() ) );
     }
 
     /**
@@ -87,7 +89,7 @@ public interface SystemSettingManager
      * @param key the system setting key.
      * @return the setting value.
      */
-    Serializable getSystemSetting( SettingKey key, Serializable defaultValue );
+    <T extends Serializable> T getSystemSetting( SettingKey key, T defaultValue );
 
     /**
      * Returns the translation for given setting key and locale or empty
@@ -129,39 +131,118 @@ public interface SystemSettingManager
      */
     void invalidateCache();
 
-    // -------------------------------------------------------------------------
-    // Specific methods
-    // -------------------------------------------------------------------------
-
     List<String> getFlags();
-
-    String getFlagImage();
-
-    String getEmailHostName();
-
-    int getEmailPort();
-
-    String getEmailUsername();
-
-    boolean getEmailTls();
-
-    String getEmailSender();
-
-    boolean accountRecoveryEnabled();
-
-    boolean selfRegistrationNoRecaptcha();
-
-    boolean emailConfigured();
-
-    boolean systemNotificationEmailValid();
-
-    boolean hideUnapprovedDataInAnalytics();
-
-    String googleAnalyticsUA();
-
-    Integer credentialsExpires();
 
     boolean isConfidential( String name );
 
     boolean isTranslatable( String name );
+
+    // -------------------------------------------------------------------------
+    // Typed methods
+    // -------------------------------------------------------------------------
+
+    default String getStringSetting( SettingKey key )
+    {
+        return getSystemSetting( key, String.class );
+    }
+
+    default Integer getIntegerSetting( SettingKey key )
+    {
+        return getSystemSetting( key, Integer.class );
+    }
+
+    default int getIntSetting( SettingKey key )
+    {
+        return getSystemSetting( key, Integer.class );
+    }
+
+    default Boolean getBooleanSetting( SettingKey key )
+    {
+        return getSystemSetting( key, Boolean.class );
+    }
+
+    default boolean getBoolSetting( SettingKey key )
+    {
+        return getSystemSetting( key, Boolean.class );
+    }
+
+    default Date getDateSetting( SettingKey key )
+    {
+        return getSystemSetting( key, Date.class );
+    }
+
+    // -------------------------------------------------------------------------
+    // Specific methods
+    // -------------------------------------------------------------------------
+
+    default String getFlagImage()
+    {
+        String flag = getStringSetting( SettingKey.FLAG );
+        return flag != null ? flag + ".png" : null;
+    }
+
+    default String getEmailHostName()
+    {
+        return StringUtils.trimToNull( getStringSetting( SettingKey.EMAIL_HOST_NAME ) );
+    }
+
+    default int getEmailPort()
+    {
+        return getIntSetting( SettingKey.EMAIL_PORT );
+    }
+
+    default String getEmailUsername()
+    {
+        return StringUtils.trimToNull( getStringSetting( SettingKey.EMAIL_USERNAME ) );
+    }
+
+    default boolean getEmailTls()
+    {
+        return getBoolSetting( SettingKey.EMAIL_TLS );
+    }
+
+    default String getEmailSender()
+    {
+        return StringUtils.trimToNull( getStringSetting( SettingKey.EMAIL_SENDER ) );
+    }
+
+    default boolean accountRecoveryEnabled()
+    {
+        return getBoolSetting( SettingKey.ACCOUNT_RECOVERY );
+    }
+
+    default boolean selfRegistrationNoRecaptcha()
+    {
+        return getBoolSetting( SettingKey.SELF_REGISTRATION_NO_RECAPTCHA );
+    }
+
+    default boolean emailConfigured()
+    {
+        return StringUtils.isNotBlank( getEmailHostName() )
+            && StringUtils.isNotBlank( getEmailUsername() );
+    }
+
+    default boolean systemNotificationEmailValid()
+    {
+        String address = getStringSetting( SettingKey.SYSTEM_NOTIFICATIONS_EMAIL );
+
+        return address != null && ValidationUtils.emailIsValid( address );
+    }
+
+    default boolean hideUnapprovedDataInAnalytics()
+    {
+        // -1 means approval is disabled
+        return getIntSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD ) >= 0;
+    }
+
+    default String googleAnalyticsUA()
+    {
+        return StringUtils.trimToNull( getStringSetting( SettingKey.GOOGLE_ANALYTICS_UA ) );
+    }
+
+    default Integer credentialsExpires()
+    {
+        return getIntegerSetting( SettingKey.CREDENTIALS_EXPIRES );
+    }
+
 }

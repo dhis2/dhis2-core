@@ -97,7 +97,7 @@ public class ContinuousAnalyticsTableJob
 
         Date now = new Date();
         Date defaultNextFullUpdate = DateUtils.getNextDate( fullUpdateHourOfDay, now );
-        Date nextFullUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE,
+        Date nextFullUpdate = systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE,
             defaultNextFullUpdate );
 
         log.info(

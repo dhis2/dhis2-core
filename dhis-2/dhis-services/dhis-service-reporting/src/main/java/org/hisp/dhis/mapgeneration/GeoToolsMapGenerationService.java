@@ -31,7 +31,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -237,8 +241,8 @@ public class GeoToolsMapGenerationService
         }
         else if ( mapView.getRelatives() != null )
         {
-            AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager
-                .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+            AnalyticsFinancialYearStartKey financialYearStart = systemSettingManager
+                .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class );
             period = mapView.getRelatives().getRelativePeriods( date, null, false, financialYearStart ).get( 0 );
         }
 

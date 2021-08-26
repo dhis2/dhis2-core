@@ -100,8 +100,8 @@ public class CredentialsExpiryAlertJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        boolean isExpiryAlertEnabled = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT );
+        boolean isExpiryAlertEnabled = systemSettingManager
+            .getBoolSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT );
 
         if ( !isExpiryAlertEnabled )
         {
@@ -163,8 +163,7 @@ public class CredentialsExpiryAlertJob
 
     private int getRemainingDays( UserCredentials userCredentials )
     {
-        int daysBeforeChangeRequired = (Integer) systemSettingManager.getSystemSetting( SettingKey.CREDENTIALS_EXPIRES )
-            * 30;
+        int daysBeforeChangeRequired = systemSettingManager.getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
 
         Date passwordLastUpdated = userCredentials.getPasswordLastUpdated();
 

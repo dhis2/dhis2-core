@@ -153,7 +153,7 @@ public class StaticContentController
             throw new WebMessageException( notFound( "Key does not exist." ) );
         }
 
-        final boolean useCustomFile = (boolean) systemSettingManager.getSystemSetting( KEY_WHITELIST_MAP.get( key ) );
+        final boolean useCustomFile = systemSettingManager.getBoolSetting( KEY_WHITELIST_MAP.get( key ) );
 
         if ( useCustomFile )
         {
@@ -190,7 +190,7 @@ public class StaticContentController
             throw new WebMessageException( notFound( "Key does not exist." ) );
         }
 
-        boolean useCustomFile = (boolean) systemSettingManager.getSystemSetting( KEY_WHITELIST_MAP.get( key ) );
+        boolean useCustomFile = systemSettingManager.getBoolSetting( KEY_WHITELIST_MAP.get( key ) );
 
         if ( !useCustomFile ) // Serve default
         {

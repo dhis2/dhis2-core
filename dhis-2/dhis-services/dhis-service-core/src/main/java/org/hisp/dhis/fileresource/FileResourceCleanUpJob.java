@@ -74,8 +74,8 @@ public class FileResourceCleanUpJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager
-            .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+        FileResourceRetentionStrategy retentionStrategy = systemSettingManager
+            .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.class );
 
         List<Pair<String, String>> deletedOrphans = new ArrayList<>();
 

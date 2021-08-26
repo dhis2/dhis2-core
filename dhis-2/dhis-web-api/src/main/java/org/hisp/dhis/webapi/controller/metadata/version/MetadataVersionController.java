@@ -350,8 +350,7 @@ public class MetadataVersionController
 
     private boolean isMetadataVersioningEnabled()
     {
-        Boolean setting = (Boolean) systemSettingManager.getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
-        return setting.booleanValue();
+        return systemSettingManager.getBoolSetting( SettingKey.METADATAVERSION_ENABLED );
     }
 
     private RootNode getMetadataVersionsAsNode( List<MetadataVersion> versions )

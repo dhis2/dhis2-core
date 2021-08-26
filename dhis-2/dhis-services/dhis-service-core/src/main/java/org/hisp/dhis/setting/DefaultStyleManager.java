@@ -110,7 +110,7 @@ public class DefaultStyleManager
     @Override
     public String getSystemStyle()
     {
-        return (String) systemSettingManager.getSystemSetting( SettingKey.STYLE );
+        return systemSettingManager.getStringSetting( SettingKey.STYLE );
     }
 
     @Override

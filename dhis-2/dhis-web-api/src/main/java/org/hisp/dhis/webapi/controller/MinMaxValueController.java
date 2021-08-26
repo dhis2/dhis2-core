@@ -114,7 +114,7 @@ public class MinMaxValueController
             dataElements.addAll( dataSet.getDataElements() );
         }
 
-        Double factor = (Double) this.systemSettingManager.getSystemSetting( SettingKey.FACTOR_OF_DEVIATION );
+        Double factor = this.systemSettingManager.getSystemSetting( SettingKey.FACTOR_OF_DEVIATION, Double.class );
 
         this.minMaxDataAnalysisService.generateMinMaxValues( organisationUnit, dataElements, factor );
 

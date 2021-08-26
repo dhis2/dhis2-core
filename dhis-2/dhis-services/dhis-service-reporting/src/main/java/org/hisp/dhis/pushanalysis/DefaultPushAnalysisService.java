@@ -37,7 +37,12 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 
 import javax.imageio.ImageIO;
@@ -50,7 +55,11 @@ import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.fileresource.*;
+import org.hisp.dhis.fileresource.ExternalFileResource;
+import org.hisp.dhis.fileresource.ExternalFileResourceService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapgeneration.MapUtils;
@@ -314,7 +323,8 @@ public class DefaultPushAnalysisService
         DateFormat dateFormat = new SimpleDateFormat( "MMMM dd, yyyy" );
         itemHtml.put( "date", dateFormat.format( Calendar.getInstance().getTime() ) );
         itemHtml.put( "instanceBaseUrl", dhisConfigurationProvider.getServerBaseUrl() );
-        itemHtml.put( "instanceName", (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE ) );
+        itemHtml.put( "instanceName",
+            systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE ) );
 
         // ----------------------------------------------------------------------
         // Set up template context, including pre-processed dashboard items

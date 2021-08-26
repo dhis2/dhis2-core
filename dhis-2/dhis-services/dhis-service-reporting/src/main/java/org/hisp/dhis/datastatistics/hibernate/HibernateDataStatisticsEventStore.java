@@ -158,7 +158,7 @@ public class HibernateDataStatisticsEventStore
             "from datastatisticsevent dse " +
             "where dse.favoriteuid = ?";
 
-        if ( !(boolean) systemSettingManager.getSystemSetting( COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS ) )
+        if ( !systemSettingManager.getBoolSetting( COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS ) )
         {
             sql += " and dse.eventtype != '" + DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW.name() + "'";
         }
