@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -629,7 +629,14 @@ public class DefaultDimensionService
     {
         if ( id.getPeriodOffset() != 0 )
         {
-            return SerializationUtils.clone( item );
+            try
+            {
+                return (BaseDimensionalItemObject) BeanUtils.cloneBean( item );
+            }
+            catch ( Exception e )
+            {
+                return null;
+            }
         }
 
         return item;
