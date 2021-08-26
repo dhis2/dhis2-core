@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
@@ -59,7 +59,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class AccountExpiryAlertJob extends AbstractJob
+public class AccountExpiryAlertJob implements Job
 {
     @Override
     public JobType getJobType()

@@ -29,7 +29,7 @@ package org.hisp.dhis.predictor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
@@ -39,8 +39,7 @@ import org.springframework.stereotype.Component;
  * @author Henning Håkonsen
  */
 @Component( "predictorJob" )
-public class PredictorJob
-    extends AbstractJob
+public class PredictorJob implements Job
 {
     private final PredictionService predictionService;
 
