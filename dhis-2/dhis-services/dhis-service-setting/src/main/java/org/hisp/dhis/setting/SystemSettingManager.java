@@ -77,9 +77,10 @@ public interface SystemSettingManager
      * @param key the system setting key.
      * @return the setting value.
      */
+    @SuppressWarnings( "unchecked" )
     default <T extends Serializable> T getSystemSetting( SettingKey key, Class<T> as )
     {
-        return as.cast( getSystemSetting( key, key.getClazz() ) );
+        return (T) getSystemSetting( key, key.getDefaultValue() );
     }
 
     /**
