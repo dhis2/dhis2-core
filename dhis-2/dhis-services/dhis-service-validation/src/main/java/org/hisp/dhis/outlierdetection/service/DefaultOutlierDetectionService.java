@@ -33,6 +33,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -48,9 +51,6 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionService;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.system.util.JacksonCsvUtils;
 import org.springframework.stereotype.Service;
-
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -68,8 +68,6 @@ public class DefaultOutlierDetectionService
     private final ZScoreOutlierDetectionManager zScoreOutlierDetection;
 
     private final MinMaxOutlierDetectionManager minMaxOutlierDetection;
-
-    private final ModifiedZScoreOutlierDetectionManager modifiedZScoreDetection;
 
     @Override
     public void validate( OutlierDetectionRequest request )
@@ -231,11 +229,10 @@ public class DefaultOutlierDetectionService
         switch ( request.getAlgorithm() )
         {
         case Z_SCORE:
+        case MOD_Z_SCORE:
             return zScoreOutlierDetection.getOutlierValues( request );
         case MIN_MAX:
             return minMaxOutlierDetection.getOutlierValues( request );
-        case MOD_Z_SCORE:
-            return modifiedZScoreDetection.getOutlierValues( request );
         default:
             throw new IllegalStateException( String.format(
                 "Outlier detection algorithm not supported: %s", request.getAlgorithm() ) );

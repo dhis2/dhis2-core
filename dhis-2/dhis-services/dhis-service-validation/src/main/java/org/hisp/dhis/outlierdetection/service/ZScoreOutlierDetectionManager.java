@@ -39,6 +39,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.outlierdetection.Order;
+import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.period.PeriodType;
@@ -52,6 +54,12 @@ import org.springframework.stereotype.Repository;
 /**
  * Manager for database queries related to outlier data detection based on
  * z-score.
+ *
+ * This both implements the {@link OutlierDetectionAlgorithm#Z_SCORE} and
+ * {@link OutlierDetectionAlgorithm#MOD_Z_SCORE}. Usual z-score uses the mean as
+ * middle value whereas the modified z-score uses the median as middle value or
+ * more mathematically correct as the <em>measure of central tendency</em>.
+ *
  *
  * @author Lars Helge Overland
  */
@@ -79,17 +87,26 @@ public class ZScoreOutlierDetectionManager
         final String dataStartDateClause = getDataStartDateClause( request.getDataStartDate() );
         final String dataEndDateClause = getDataEndDateClause( request.getDataEndDate() );
 
+        final boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
+        final String middleStatsCalc = modifiedZ
+            ? "PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY dv.value::double precision)"
+            : "avg(dv.value::double precision)";
+
+        String order = request.getOrderBy() == Order.MEAN_ABS_DEV
+            ? "middleValue_abs_dev"
+            : request.getOrderBy().getKey();
+
         // @formatter:off
         final String sql =
             "select dvs.de_uid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, " +
                 "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, dvs.follow_up, " +
                 "dvs.pe_start_date, dvs.pt_name, " +
-                "stats.mean as mean, " +
+                "stats.middleValue as middleValue, " +
                 "stats.std_dev as std_dev, " +
-                "abs(dvs.value::double precision - stats.mean) as mean_abs_dev, " +
-                "abs(dvs.value::double precision - stats.mean) / stats.std_dev as z_score, " +
-                "stats.mean - (stats.std_dev * :threshold) as lower_bound, " +
-                "stats.mean + (stats.std_dev * :threshold) as upper_bound " +
+                "abs(dvs.value::double precision - stats.middleValue) as middleValue_abs_dev, " +
+                "abs(dvs.value::double precision - stats.middleValue) / stats.std_dev as z_score, " +
+                "stats.middleValue - (stats.std_dev * :threshold) as lower_bound, " +
+                "stats.middleValue + (stats.std_dev * :threshold) as upper_bound " +
             // Data value query
             "from (" +
                 "select dv.dataelementid, dv.sourceid, dv.periodid, " +
@@ -111,12 +128,12 @@ public class ZScoreOutlierDetectionManager
                 "and " + ouPathClause + " " +
                 "and dv.deleted is false" +
             ") as dvs " +
-            // Mean and std dev mapping query
+            // Mean or Median and std dev mapping query
             "inner join (" +
                 "select dv.dataelementid as dataelementid, dv.sourceid as sourceid, " +
                 "dv.categoryoptioncomboid as categoryoptioncomboid, " +
                 "dv.attributeoptioncomboid as attributeoptioncomboid, " +
-                "avg(dv.value::double precision) as mean, " +
+                middleStatsCalc +" as middleValue, "+
                 "stddev_pop(dv.value::double precision) as std_dev " +
                 "from datavalue dv " +
                 "inner join period pe on dv.periodid = pe.periodid " +
@@ -135,9 +152,9 @@ public class ZScoreOutlierDetectionManager
             "and dvs.attributeoptioncomboid = stats.attributeoptioncomboid " +
             "where stats.std_dev != 0.0 " +
             // Filter on z-score threshold
-            "and (abs(dvs.value::double precision - stats.mean) / stats.std_dev) >= :threshold " +
+            "and (abs(dvs.value::double precision - stats.middleValue) / stats.std_dev) >= :threshold " +
             // Order and limit
-            "order by " + request.getOrderBy().getKey() + " desc " +
+            "order by " + order + " desc " +
             "limit :max_results;";
         // @formatter:on
 
@@ -154,7 +171,7 @@ public class ZScoreOutlierDetectionManager
 
         try
         {
-            return jdbcTemplate.query( sql, params, getRowMapper( calendar ) );
+            return jdbcTemplate.query( sql, params, getRowMapper( calendar, modifiedZ ) );
         }
         catch ( DataIntegrityViolationException ex )
         {
@@ -173,7 +190,7 @@ public class ZScoreOutlierDetectionManager
      * @param calendar the {@link Calendar}.
      * @return a {@link RowMapper}.
      */
-    private RowMapper<OutlierValue> getRowMapper( final Calendar calendar )
+    private RowMapper<OutlierValue> getRowMapper( final Calendar calendar, boolean modifiedZ )
     {
         return ( rs, rowNum ) -> {
             final OutlierValue outlier = new OutlierValue();
@@ -191,9 +208,16 @@ public class ZScoreOutlierDetectionManager
             outlier.setAoc( rs.getString( "aoc_uid" ) );
             outlier.setAocName( rs.getString( "aoc_name" ) );
             outlier.setValue( rs.getDouble( "value" ) );
-            outlier.setMean( rs.getDouble( "mean" ) );
+            if ( modifiedZ )
+            {
+                outlier.setMedian( rs.getDouble( "middleValue" ) );
+            }
+            else
+            {
+                outlier.setMean( rs.getDouble( "middleValue" ) );
+            }
             outlier.setStdDev( rs.getDouble( "std_dev" ) );
-            outlier.setAbsDev( rs.getDouble( "mean_abs_dev" ) );
+            outlier.setAbsDev( rs.getDouble( "middleValue_abs_dev" ) );
             outlier.setZScore( rs.getDouble( "z_score" ) );
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
