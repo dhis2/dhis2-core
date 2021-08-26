@@ -29,7 +29,10 @@ package org.hisp.dhis.user.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
+import static java.time.ZoneId.systemDefault;
+import static java.util.stream.Collectors.toSet;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,6 +73,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
@@ -125,6 +129,19 @@ public class HibernateUserStore
     public List<User> getExpiringUsers( UserQueryParams params )
     {
         return extractUserQueryUsers( getUserQuery( params, null, false ).list() );
+    }
+
+    @Override
+    public List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays )
+    {
+        Date expiryLookAheadDate = Date.from( LocalDate.now().plusDays( inDays )
+            .atStartOfDay( systemDefault() ).toInstant() );
+        String hql = "select new org.hisp.dhis.user.UserAccountExpiryInfo(uc.username, u.email, uc.accountExpiry) " +
+            "from User u inner join u.userCredentials uc " +
+            "where u.email is not null and uc.disabled = false and uc.accountExpiry <= :expiryLookAheadDate";
+        return getSession().createQuery( hql, UserAccountExpiryInfo.class )
+            .setParameter( "expiryLookAheadDate", expiryLookAheadDate )
+            .list();
     }
 
     @Override
@@ -568,6 +585,17 @@ public class HibernateUserStore
             builder.lessThanOrEqualTo( uc.get( "lastLogin" ), inactiveSince ) ) );
         update.set( DISABLED_COLUMN, true );
         return getSession().createQuery( update ).executeUpdate();
+    }
+
+    @Override
+    public Set<String> findUsersInactiveSince( Date inactiveSince )
+    {
+        String hql = "select u.email " +
+            "from User u inner join u.userCredentials uc " +
+            "where u.email is not null and uc.disabled = false and uc.lastLogin <= :since";
+        return getSession().createQuery( hql, String.class )
+            .setParameter( "since", inactiveSince ).stream()
+            .collect( toSet() );
     }
 
     @Override

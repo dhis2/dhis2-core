@@ -25,53 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.dashboard.design;
 
-import java.util.Date;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import lombok.Builder;
+import java.io.Serializable;
+import java.util.List;
+
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * @author Zubair Asghar
+ * Represents the possible positions for a dashboard item in the context of a
+ * layout.
+ *
+ * @author maikel arabori
  */
-
 @Data
-@NoArgsConstructor
-public class ProgramNotificationInstanceParam extends BaseNotificationParam
+public class Layout implements Serializable
 {
-    @Builder
-    public ProgramNotificationInstanceParam( Integer page, Integer pageSize, boolean skipPaging,
-        ProgramInstance programInstance, ProgramStageInstance programStageInstance, Date scheduledAt )
-    {
-        super( page, pageSize, skipPaging );
-        this.programInstance = programInstance;
-        this.programStageInstance = programStageInstance;
-        this.scheduledAt = scheduledAt;
-    }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private Spacing spacing;
 
-    private ProgramInstance programInstance;
-
-    private ProgramStageInstance programStageInstance;
-
-    private Date scheduledAt;
-
-    public boolean hasProgramInstance()
-    {
-        return programInstance != null;
-    }
-
-    public boolean hasProgramStageInstance()
-    {
-        return programStageInstance != null;
-    }
-
-    public boolean hasScheduledAt()
-    {
-        return scheduledAt != null;
-    }
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "columns", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "column", namespace = DXF_2_0 )
+    private List<Column> columns;
 }

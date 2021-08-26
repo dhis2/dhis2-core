@@ -29,6 +29,7 @@ package org.hisp.dhis.user;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.setting.SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS;
@@ -592,6 +593,35 @@ public class UserServiceTest
     }
 
     @Test
+    public void testGetExpiringUserAccounts()
+    {
+        ZonedDateTime now = ZonedDateTime.now();
+        Date inFiveDays = Date.from( now.plusDays( 5 ).toInstant() );
+        Date inSixDays = Date.from( now.plusDays( 6 ).toInstant() );
+        Date inEightDays = Date.from( now.plusDays( 8 ).toInstant() );
+        User userA = addUser( 'A' );
+        addUser( 'B', UserCredentials::setAccountExpiry, inFiveDays );
+        User userC = addUser( 'C' );
+        addUser( 'D', UserCredentials::setAccountExpiry, inSixDays );
+        addUser( 'E', UserCredentials::setAccountExpiry, inEightDays );
+
+        List<UserAccountExpiryInfo> soonExpiringAccounts = userService.getExpiringUserAccounts( 7 );
+        Set<String> soonExpiringAccountNames = soonExpiringAccounts.stream()
+            .map( UserAccountExpiryInfo::getUsername ).collect( toSet() );
+        assertEquals( new HashSet<>( asList( "UsernameB", "UsernameD" ) ), soonExpiringAccountNames );
+
+        soonExpiringAccounts = userService.getExpiringUserAccounts( 9 );
+        soonExpiringAccountNames = soonExpiringAccounts.stream()
+            .map( UserAccountExpiryInfo::getUsername ).collect( toSet() );
+        assertEquals( new HashSet<>( asList( "UsernameB", "UsernameD", "UsernameE" ) ), soonExpiringAccountNames );
+
+        for ( UserAccountExpiryInfo expiryInfo : soonExpiringAccounts )
+        {
+            assertEquals( expiryInfo.getUsername().replace( "Username", "Email" ), expiryInfo.getEmail() );
+        }
+    }
+
+    @Test
     public void testDisableUsersInactiveSince()
     {
         ZonedDateTime now = ZonedDateTime.now();
@@ -622,5 +652,28 @@ public class UserServiceTest
         List<User> users = userService.getUsers( params );
         assertEquals( new HashSet<>( asList( userA.getUid(), userB.getUid() ) ),
             users.stream().map( User::getUid ).collect( toSet() ) );
+    }
+
+    @Test
+    public void testFindUsersInactiveSince()
+    {
+        ZonedDateTime now = ZonedDateTime.now();
+        Date twoMonthsAgo = Date.from( now.minusMonths( 2 ).toInstant() );
+        Date threeMonthAgo = Date.from( now.minusMonths( 3 ).toInstant() );
+        Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
+        Date twentyTwoDaysAgo = Date.from( now.minusDays( 22 ).toInstant() );
+
+        User userA = addUser( 'A', UserCredentials::setLastLogin, threeMonthAgo );
+        User userB = addUser( 'B', credentials -> {
+            credentials.setDisabled( true );
+            credentials.setLastLogin( fourMonthAgo );
+        } );
+
+        addUser( 'C', UserCredentials::setLastLogin, twentyTwoDaysAgo );
+        addUser( 'D' );
+
+        assertEquals( singleton( "EmailA" ), userService.findUsersInactiveSince( twoMonthsAgo ) );
+        assertEquals( new HashSet<>( asList( "EmailA", "EmailC" ) ),
+            userService.findUsersInactiveSince( Date.from( now.minusDays( 10 ).toInstant() ) ) );
     }
 }
