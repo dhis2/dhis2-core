@@ -101,7 +101,7 @@ public class SendScheduledMessageJob implements Job
                 "SMS gateway configuration does not exist" );
         }
 
-        return super.validate();
+        return Job.super.validate();
     }
 
     // -------------------------------------------------------------------------

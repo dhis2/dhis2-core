@@ -137,7 +137,7 @@ public class CredentialsExpiryAlertJob implements Job
                 "EMAIL gateway configuration does not exist" );
         }
 
-        return super.validate();
+        return Job.super.validate();
     }
 
     private void sendExpiryAlert( Map<String, String> content )
