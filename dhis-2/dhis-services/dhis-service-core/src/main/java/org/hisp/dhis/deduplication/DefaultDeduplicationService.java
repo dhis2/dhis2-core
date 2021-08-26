@@ -104,7 +104,7 @@ public class DefaultDeduplicationService
     public void autoMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
         if ( !isAutoMergeable( original, duplicate ) )
-            throw new ConflictPotentialDuplicateException( "Potential Duplicate is not automatically mergeable" );
+            throw new PotentialDuplicateConflictException( "Potential Duplicate is not automatically mergeable" );
 
         MergeObject mergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
         merge( original, duplicate, mergeObject );
@@ -113,7 +113,7 @@ public class DefaultDeduplicationService
     @Override
     public void manualMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject )
     {
-        //
+        throw new RuntimeException( "Manual merge not yet implemented" );
     }
 
     private boolean isAutoMergeable( TrackedEntityInstance original, TrackedEntityInstance duplicate )
@@ -142,7 +142,7 @@ public class DefaultDeduplicationService
     private void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject )
     {
         if ( !deduplicationHelper.hasUserAccess( original, duplicate, mergeObject ) )
-            throw new ForbiddenPotentialDuplicateException( "No merging access for user" );
+            throw new PotentialDuplicateForbiddenException( "No merging access for user" );
 
         potentialDuplicateStore.merge( original, duplicate, mergeObject );
         potentialDuplicateStore.removeTrackedEntity( duplicate );

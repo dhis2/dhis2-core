@@ -37,9 +37,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Getter
 @ResponseStatus( HttpStatus.CONFLICT )
-public class ConflictPotentialDuplicateException extends RuntimeException
+public class PotentialDuplicateConflictException extends RuntimeException
 {
-    public ConflictPotentialDuplicateException( String message )
+    public PotentialDuplicateConflictException( String message )
     {
         super( message );
     }

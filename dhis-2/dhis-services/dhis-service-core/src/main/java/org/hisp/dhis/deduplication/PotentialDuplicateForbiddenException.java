@@ -37,9 +37,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Getter
 @ResponseStatus( HttpStatus.FORBIDDEN )
-public class ForbiddenPotentialDuplicateException extends RuntimeException
+public class PotentialDuplicateForbiddenException extends RuntimeException
 {
-    public ForbiddenPotentialDuplicateException( String message )
+    public PotentialDuplicateForbiddenException( String message )
     {
         super( message );
     }

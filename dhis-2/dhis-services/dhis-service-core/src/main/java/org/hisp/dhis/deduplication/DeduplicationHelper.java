@@ -42,6 +42,6 @@ public class DeduplicationHelper
     public boolean hasUserAccess( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         MergeObject mergeObject )
     {
-        return false;
+        throw new RuntimeException( "User access not yet implemented" );
     }
 }
