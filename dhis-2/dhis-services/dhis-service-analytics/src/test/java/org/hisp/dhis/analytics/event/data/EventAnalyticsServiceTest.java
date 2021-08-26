@@ -244,7 +244,7 @@ public class EventAnalyticsServiceTest
 
             Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( params );
 
-            AnalyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, results.get( key ) );
+            AnalyticsTestUtils.assertResultGrid( key, aggregatedDataValueGrid, results.get( key ) );
         }
     }
 

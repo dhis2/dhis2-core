@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dimension;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
