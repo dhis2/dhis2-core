@@ -101,12 +101,12 @@ public class ZScoreOutlierDetectionManager
             "select dvs.de_uid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, " +
                 "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, dvs.follow_up, " +
                 "dvs.pe_start_date, dvs.pt_name, " +
-                "stats.middleValue as middleValue, " +
+                "stats.middle_value as middle_value, " +
                 "stats.std_dev as std_dev, " +
-                "abs(dvs.value::double precision - stats.middleValue) as middle_value_abs_dev, " +
-                "abs(dvs.value::double precision - stats.middleValue) / stats.std_dev as z_score, " +
-                "stats.middleValue - (stats.std_dev * :threshold) as lower_bound, " +
-                "stats.middleValue + (stats.std_dev * :threshold) as upper_bound " +
+                "abs(dvs.value::double precision - stats.middle_value) as middle_value_abs_dev, " +
+                "abs(dvs.value::double precision - stats.middle_value) / stats.std_dev as z_score, " +
+                "stats.middle_value - (stats.std_dev * :threshold) as lower_bound, " +
+                "stats.middle_value + (stats.std_dev * :threshold) as upper_bound " +
             // Data value query
             "from (" +
                 "select dv.dataelementid, dv.sourceid, dv.periodid, " +
@@ -133,7 +133,7 @@ public class ZScoreOutlierDetectionManager
                 "select dv.dataelementid as dataelementid, dv.sourceid as sourceid, " +
                 "dv.categoryoptioncomboid as categoryoptioncomboid, " +
                 "dv.attributeoptioncomboid as attributeoptioncomboid, " +
-                middle_stats_calc +" as middleValue, "+
+                middle_stats_calc +" as middle_value, "+
                 "stddev_pop(dv.value::double precision) as std_dev " +
                 "from datavalue dv " +
                 "inner join period pe on dv.periodid = pe.periodid " +
@@ -152,7 +152,7 @@ public class ZScoreOutlierDetectionManager
             "and dvs.attributeoptioncomboid = stats.attributeoptioncomboid " +
             "where stats.std_dev != 0.0 " +
             // Filter on z-score threshold
-            "and (abs(dvs.value::double precision - stats.middleValue) / stats.std_dev) >= :threshold " +
+            "and (abs(dvs.value::double precision - stats.middle_value) / stats.std_dev) >= :threshold " +
             // Order and limit
             "order by " + order + " desc " +
             "limit :max_results;";
@@ -210,11 +210,11 @@ public class ZScoreOutlierDetectionManager
             outlier.setValue( rs.getDouble( "value" ) );
             if ( modifiedZ )
             {
-                outlier.setMedian( rs.getDouble( "middleValue" ) );
+                outlier.setMedian( rs.getDouble( "middle_value" ) );
             }
             else
             {
-                outlier.setMean( rs.getDouble( "middleValue" ) );
+                outlier.setMean( rs.getDouble( "middle_value" ) );
             }
             outlier.setStdDev( rs.getDouble( "std_dev" ) );
             outlier.setAbsDev( rs.getDouble( "middle_value_abs_dev" ) );
