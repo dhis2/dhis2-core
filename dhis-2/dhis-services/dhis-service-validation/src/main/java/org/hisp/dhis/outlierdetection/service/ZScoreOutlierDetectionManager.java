@@ -88,12 +88,12 @@ public class ZScoreOutlierDetectionManager
         final String dataEndDateClause = getDataEndDateClause( request.getDataEndDate() );
 
         final boolean modifiedZ = request.getAlgorithm() == OutlierDetectionAlgorithm.MOD_Z_SCORE;
-        final String middleStatsCalc = modifiedZ
-            ? "PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY dv.value::double precision)"
+        final String middle_stats_calc = modifiedZ
+            ? "percentile_cont(0.5) within group(order by dv.value::double precision)"
             : "avg(dv.value::double precision)";
 
         String order = request.getOrderBy() == Order.MEAN_ABS_DEV
-            ? "middleValue_abs_dev"
+            ? "middle_value_abs_dev"
             : request.getOrderBy().getKey();
 
         // @formatter:off
@@ -103,7 +103,7 @@ public class ZScoreOutlierDetectionManager
                 "dvs.pe_start_date, dvs.pt_name, " +
                 "stats.middleValue as middleValue, " +
                 "stats.std_dev as std_dev, " +
-                "abs(dvs.value::double precision - stats.middleValue) as middleValue_abs_dev, " +
+                "abs(dvs.value::double precision - stats.middleValue) as middle_value_abs_dev, " +
                 "abs(dvs.value::double precision - stats.middleValue) / stats.std_dev as z_score, " +
                 "stats.middleValue - (stats.std_dev * :threshold) as lower_bound, " +
                 "stats.middleValue + (stats.std_dev * :threshold) as upper_bound " +
@@ -133,7 +133,7 @@ public class ZScoreOutlierDetectionManager
                 "select dv.dataelementid as dataelementid, dv.sourceid as sourceid, " +
                 "dv.categoryoptioncomboid as categoryoptioncomboid, " +
                 "dv.attributeoptioncomboid as attributeoptioncomboid, " +
-                middleStatsCalc +" as middleValue, "+
+                middle_stats_calc +" as middleValue, "+
                 "stddev_pop(dv.value::double precision) as std_dev " +
                 "from datavalue dv " +
                 "inner join period pe on dv.periodid = pe.periodid " +
@@ -217,7 +217,7 @@ public class ZScoreOutlierDetectionManager
                 outlier.setMean( rs.getDouble( "middleValue" ) );
             }
             outlier.setStdDev( rs.getDouble( "std_dev" ) );
-            outlier.setAbsDev( rs.getDouble( "middleValue_abs_dev" ) );
+            outlier.setAbsDev( rs.getDouble( "middle_value_abs_dev" ) );
             outlier.setZScore( rs.getDouble( "z_score" ) );
             outlier.setLowerBound( rs.getDouble( "lower_bound" ) );
             outlier.setUpperBound( rs.getDouble( "upper_bound" ) );
