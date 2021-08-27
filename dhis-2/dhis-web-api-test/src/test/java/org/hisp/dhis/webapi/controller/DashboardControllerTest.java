@@ -36,6 +36,7 @@ import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -62,6 +63,9 @@ public class DashboardControllerTest
 
     @Mock
     private MetadataExportService exportService;
+
+    @Mock
+    private CascadeSharingService cascadeSharingService;
 
     @Mock
     private DashboardService service;

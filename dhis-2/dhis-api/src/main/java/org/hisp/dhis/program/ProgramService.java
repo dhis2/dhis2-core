@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.hisp.dhis.association.IdentifiableObjectAssociations;
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -169,7 +169,7 @@ public interface ProgramService
      * @return A object of {@link IdentifiableObjectAssociations} containing
      *         association for each programUid
      */
-    IdentifiableObjectAssociations getProgramOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids );
+    SetValuedMap<String, String> getProgramOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids );
 
     /**
      * Get all the organisation unit associated for a set of program uids. This
@@ -181,5 +181,5 @@ public interface ProgramService
      * @return A object of {@link IdentifiableObjectAssociations} containing
      *         association for each programUid
      */
-    IdentifiableObjectAssociations getProgramOrganisationUnitsAssociations( Set<String> programUids );
+    SetValuedMap<String, String> getProgramOrganisationUnitsAssociations( Set<String> programUids );
 }

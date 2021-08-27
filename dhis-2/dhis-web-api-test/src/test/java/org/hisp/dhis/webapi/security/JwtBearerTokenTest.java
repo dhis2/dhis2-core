@@ -28,15 +28,13 @@
 package org.hisp.dhis.webapi.security;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-import static org.hisp.dhis.webapi.WebClient.JwtToken;
+import static org.hisp.dhis.webapi.WebClient.JwtTokenHeader;
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.security.jwt.DhisJwtAuthenticationManagerResolver;
+import org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
@@ -60,9 +58,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
@@ -101,17 +99,15 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
 
     public static final String DEFAULT_MAPPING_CLAIM = "email";
 
+    private static final RSAKey RSA_KEY = TestJwks.DEFAULT_RSA_JWK;
+
     @Autowired
     private DhisOidcProviderRepository dhisOidcProviderRepository;
 
     @Autowired
-    private DhisJwtAuthenticationManagerResolver dhisJwtAuthenticationManagerResolver;
-
-    private static List<JWK> jwkList;
+    private Dhis2JwtAuthenticationManagerResolver dhis2JwtAuthenticationManagerResolver;
 
     private static JwtUtils jwsEncoder;
-
-    private static final RSAKey defaultRSA = TestJwks.DEFAULT_RSA_JWK;
 
     private static NimbusJwtDecoder jwtDecoder;
 
@@ -121,20 +117,17 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
     {
         DhisWebApiWebSecurityConfig.setApiContextPath( "" );
 
-        jwkList = new ArrayList<>();
-        jwkList.add( defaultRSA );
-
         JWKSource<SecurityContext> jwkSource = ( jwkSelector, securityContext ) -> jwkSelector
-            .select( new JWKSet( jwkList ) );
-        jwsEncoder = new JwtUtils( jwkSource );
+            .select( new JWKSet( ImmutableList.of( RSA_KEY ) ) );
 
-        jwtDecoder = NimbusJwtDecoder.withPublicKey( defaultRSA.toRSAPublicKey() ).build();
+        jwsEncoder = new JwtUtils( jwkSource );
+        jwtDecoder = NimbusJwtDecoder.withPublicKey( RSA_KEY.toRSAPublicKey() ).build();
     }
 
     @Before
     public void setUp()
     {
-        dhisJwtAuthenticationManagerResolver.setJwtDecoder( jwtDecoder );
+        dhis2JwtAuthenticationManagerResolver.setJwtDecoder( jwtDecoder );
 
         dhisOidcProviderRepository.clear();
     }
@@ -155,7 +148,7 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         Jwt encodedJws = createJwt( TEST_PROVIDER_ONE_URI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL );
 
         assertEquals( "JWT", encodedJws.getHeaders().get( JoseHeaderNames.TYP ) );
-        assertEquals( defaultRSA.getKeyID(), encodedJws.getHeaders().get( JoseHeaderNames.KID ) );
+        assertEquals( RSA_KEY.getKeyID(), encodedJws.getHeaders().get( JoseHeaderNames.KID ) );
         assertNotNull( encodedJws.getId() );
 
         String tokenValue = encodedJws.getTokenValue();
@@ -173,7 +166,7 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         String tokenValue = createJwt( TEST_PROVIDER_ONE_URI, CLIENT_ID_1, "email", "openiduser@oidc.org" )
             .getTokenValue();
 
-        JsonUser user = GET( "/me?fields=settings,id", JwtToken( tokenValue ) ).content().as( JsonUser.class );
+        JsonUser user = GET( "/me?fields=settings,id", JwtTokenHeader( tokenValue ) ).content().as( JsonUser.class );
         assertEquals( openIDUser.getUid(), user.getId() );
     }
 
@@ -181,19 +174,19 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
     public void testMalformedToken()
     {
         assertInvalidTokenError( "Invalid JWT serialization: Missing dot delimiter(s)",
-            GET( "/me", JwtToken( "NOT_A_JWT_TOKEN" ) ) );
+            GET( "/me", JwtTokenHeader( "NOT_A_JWT_TOKEN" ) ) );
     }
 
     @Test
     public void testExpiredToken()
     {
-        dhisJwtAuthenticationManagerResolver.setJwtDecoder( null );
+        dhis2JwtAuthenticationManagerResolver.setJwtDecoder( null );
 
         setupGoogleProvider( GOOGLE_CLIENT_ID );
 
         assertInvalidTokenError(
             "An error occurred while attempting to decode the Jwt: Signed JWT rejected: Another algorithm expected, or no matching key(s) found",
-            GET( "/me", JwtToken( EXPIRED_GOOGLE_JWT_TOKEN ) ) );
+            GET( "/me", JwtTokenHeader( EXPIRED_GOOGLE_JWT_TOKEN ) ) );
     }
 
     @Test
@@ -206,7 +199,7 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
 
         assertInvalidTokenError(
             "Found no matching DHIS2 user for the mapping claim:'email' with the value:'admin@dhis2.org'",
-            GET( "/me", JwtToken( tokenValue ) ) );
+            GET( "/me", JwtTokenHeader( tokenValue ) ) );
     }
 
     @Test
@@ -219,7 +212,7 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         String tokenValue = createJwt( providerURI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL ).getTokenValue();
 
         assertInvalidTokenError( "Invalid audience",
-            GET( "/me", JwtToken( tokenValue ) ) );
+            GET( "/me", JwtTokenHeader( tokenValue ) ) );
     }
 
     private void assertInvalidTokenError( String expected, HttpResponse response )

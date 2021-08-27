@@ -30,7 +30,7 @@ package org.hisp.dhis.validation.notification;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -43,8 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Stian Sandvold
  */
 @Component( "validationResultNotificationJob" )
-public class ValidationResultNotificationJob
-    extends AbstractJob
+public class ValidationResultNotificationJob implements Job
 {
     private final ValidationNotificationService notificationService;
 

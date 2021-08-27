@@ -76,6 +76,9 @@ public class TrackedEntity
     private boolean deleted;
 
     @JsonProperty
+    private boolean potentialDuplicate;
+
+    @JsonProperty
     private Geometry geometry;
 
     @JsonProperty

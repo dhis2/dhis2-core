@@ -54,6 +54,8 @@
 
     <property name="showColumnTotals" />
 
+    <property name="disableDataElementAutoGroup" column="disabledataelementautogroup" />
+
     <!-- Dynamic attribute values -->
 
     <property name="attributeValues" type="jsbAttributeValues"/>

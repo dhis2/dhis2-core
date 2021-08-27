@@ -33,9 +33,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasKey;
-
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */

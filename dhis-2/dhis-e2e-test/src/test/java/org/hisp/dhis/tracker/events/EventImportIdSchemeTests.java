@@ -25,11 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.events;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.File;
+import java.util.stream.Stream;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
@@ -47,12 +51,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.number.OrderingComparison.greaterThan;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -86,8 +86,7 @@ public class EventImportIdSchemeTests
             Arguments.arguments( "CODE", "code" ),
             Arguments.arguments( "NAME", "name" ),
             Arguments.arguments( "UID", "id" ),
-            Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID, "attributeValues.value[0]" )
-        );
+            Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID, "attributeValues.value[0]" ) );
     }
 
     @BeforeAll
@@ -177,7 +176,8 @@ public class EventImportIdSchemeTests
     {
 
         ATTRIBUTE_ID = attributeActions.createUniqueAttribute( "TEXT", "organisationUnit", "program" );
-        //programAttributeId = attributeActions.createUniqueAttribute( "program", "TEXT" );
+        // programAttributeId = attributeActions.createUniqueAttribute(
+        // "program", "TEXT" );
 
         assertNotNull( ATTRIBUTE_ID, "Failed to setup attribute" );
         OrgUnit orgUnit = orgUnitActions.generateDummy();
@@ -190,12 +190,14 @@ public class EventImportIdSchemeTests
 
         programActions.addOrganisationUnits( PROGRAM_ID, orgUnitId ).validate().statusCode( 200 );
 
-        orgUnitActions.update( orgUnitId, addAttributeValuePayload( orgUnitActions.get( orgUnitId ).getBody(), ATTRIBUTE_ID,
-            ATTRIBUTE_VALUE ) )
+        orgUnitActions
+            .update( orgUnitId, addAttributeValuePayload( orgUnitActions.get( orgUnitId ).getBody(), ATTRIBUTE_ID,
+                ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
 
-        programActions.update( PROGRAM_ID, addAttributeValuePayload( programActions.get( PROGRAM_ID ).getBody(), ATTRIBUTE_ID,
-            ATTRIBUTE_VALUE ) )
+        programActions
+            .update( PROGRAM_ID, addAttributeValuePayload( programActions.get( PROGRAM_ID ).getBody(), ATTRIBUTE_ID,
+                ATTRIBUTE_VALUE ) )
             .validate().statusCode( 200 );
     }
 
