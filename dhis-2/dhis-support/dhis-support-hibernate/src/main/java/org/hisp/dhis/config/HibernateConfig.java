@@ -134,6 +134,11 @@ public class HibernateConfig
             (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON.getKey() ) ) );
         dataSource.setIdleConnectionTestPeriod( Integer.parseInt(
             (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD.getKey() ) ) );
+        dataSource.setPreferredTestQuery(
+            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_TEST_QUERY.getKey() ) );
+        dataSource.setNumHelperThreads(
+            Integer
+                .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_NUM_THREADS.getKey() ) ) );
 
         return dataSource;
     }
