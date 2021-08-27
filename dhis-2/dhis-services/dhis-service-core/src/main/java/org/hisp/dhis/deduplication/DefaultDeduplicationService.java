@@ -159,6 +159,12 @@ public class DefaultDeduplicationService
         potentialDuplicateStore.moveRelationships( original.getUid(), duplicate.getUid(),
             mergeObject.getRelationships() );
         potentialDuplicateStore.removeTrackedEntity( duplicate );
+        updateTeiAndPotentialDuplicate( deduplicationMergeRequest, original );
+    }
+
+    private void updateTeiAndPotentialDuplicate( DeduplicationMergeRequest deduplicationMergeRequest,
+        TrackedEntityInstance original )
+    {
         updateOriginalTei( original );
         updatePotentialDuplicateStatus( deduplicationMergeRequest.getPotentialDuplicateUid() );
     }
