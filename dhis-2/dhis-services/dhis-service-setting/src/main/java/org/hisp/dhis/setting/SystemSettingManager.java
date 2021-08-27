@@ -75,6 +75,11 @@ public interface SystemSettingManager
      */
     Serializable getSystemSetting( SettingKey key );
 
+    default <T extends Serializable> T getSystemSetting( SettingKey key, Class<T> as )
+    {
+        return as.cast( getSystemSetting( key ) );
+    }
+
     /**
      * Returns the system setting value for the given key. If no value exists,
      * returns the default value as defined by the given default value.

@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.deduplication;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -126,18 +129,7 @@ public class DeduplicationServiceIntegrationTest
     }
 
     @Test
-    public void testGetPotentialDuplicateByTei()
-    {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
-        deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
-        assertEquals( Collections.singletonList( potentialDuplicate ),
-            deduplicationService.getPotentialDuplicateByTei( teiA, DeduplicationStatus.INVALID ) );
-    }
-
-    @Test
-    public void testGetPotentialDuplicateByTeiDifferentStatus()
+    public void testGetPotentialDuplicateDifferentStatus()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
@@ -147,8 +139,12 @@ public class DeduplicationServiceIntegrationTest
         potentialDuplicate1.setStatus( DeduplicationStatus.MERGED );
         deduplicationService.addPotentialDuplicate( potentialDuplicate1 );
 
+        PotentialDuplicateQuery potentialDuplicateQuery = new PotentialDuplicateQuery();
+        potentialDuplicateQuery.setTeis( Collections.singletonList( teiB ) );
+        potentialDuplicateQuery.setStatus( DeduplicationStatus.INVALID );
+
         assertEquals( Collections.singletonList( potentialDuplicate ),
-            deduplicationService.getPotentialDuplicateByTei( teiB, DeduplicationStatus.INVALID ) );
+            deduplicationService.getAllPotentialDuplicatesBy( potentialDuplicateQuery ) );
     }
 
     @Test

@@ -216,7 +216,7 @@ public class LoadFormAction
         return orderedCategoryCombos;
     }
 
-    private Map<Long, Collection<Long>> sectionCombos = new HashMap<>();
+    private Map<Long, Collection<String>> sectionCombos = new HashMap<>();
 
     private Map<String, Boolean> optionComboAccessMap = new HashMap<>();
 
@@ -225,9 +225,16 @@ public class LoadFormAction
         return optionComboAccessMap;
     }
 
-    public Map<Long, Collection<Long>> getSectionCombos()
+    public Map<Long, Collection<String>> getSectionCombos()
     {
         return sectionCombos;
+    }
+
+    private Map<String, Long> customSectionCategoryCombos = new HashMap<>();
+
+    public Map<String, Long> getCustomSectionCategoryCombos()
+    {
+        return customSectionCategoryCombos;
     }
 
     private Map<String, Boolean> greyedFields = new HashMap<>();
@@ -425,12 +432,12 @@ public class LoadFormAction
 
             organisationUnits.addAll( organisationUnitChildren );
 
-            getSectionForm( dataElements, dataSet );
+            getSectionForm( dataSet );
 
             formType = FormType.SECTION_MULTIORG;
         }
 
-        getSectionForm( dataElements, dataSet );
+        getSectionForm( dataSet );
 
         return formType.toString();
     }
@@ -439,7 +446,7 @@ public class LoadFormAction
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void getSectionForm( Collection<DataElement> dataElements, DataSet dataSet )
+    private void getSectionForm( DataSet dataSet )
     {
         sections = new ArrayList<>( dataSet.getSections() );
 
@@ -449,16 +456,14 @@ public class LoadFormAction
         {
             if ( !section.getCategoryCombos().isEmpty() )
             {
-                List<CategoryCombo> sortedCategoryCombos = getSortedCategoryCombos( section.getCategoryCombos() );
-
-                for ( CategoryCombo categoryCombo : sortedCategoryCombos )
+                if ( section.isDisableDataElementAutoGroup() )
                 {
-                    sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId(),
-                        section.getDataElementsByCategoryCombo( categoryCombo ) );
+                    processSectionForUserOrdering( section );
                 }
-
-                sectionCombos.put( section.getId(),
-                    sortedCategoryCombos.stream().map( CategoryCombo::getId ).collect( Collectors.toList() ) );
+                else
+                {
+                    processSectionForAutoOrdering( section );
+                }
             }
 
             for ( DataElementOperand operand : section.getGreyedFields() )
@@ -470,6 +475,80 @@ public class LoadFormAction
                 }
             }
         }
+    }
+
+    private void processSectionForUserOrdering( Section section )
+    {
+        Long currentCategoryCombo = null;
+
+        List<String> sectionCategoryCombos = new ArrayList<>();
+
+        List<DataElement> groups = new ArrayList<>();
+
+        int counter = 0;
+
+        for ( DataElement dataElement : section.getDataElements() )
+        {
+            Long cc = dataElement.getCategoryCombo().getId();
+
+            if ( currentCategoryCombo == null )
+            {
+                currentCategoryCombo = cc;
+            }
+
+            if ( cc.equals( currentCategoryCombo ) )
+            {
+                groups.add( dataElement );
+            }
+            else
+            {
+                sectionCategoryComboDataElements
+                    .put( section.getId() + "-" + currentCategoryCombo + "-" + counter,
+                        new ArrayList<>( groups ) );
+
+                sectionCategoryCombos.add( currentCategoryCombo + "-" + counter );
+
+                customSectionCategoryCombos.put( currentCategoryCombo + "-" + counter, currentCategoryCombo );
+
+                currentCategoryCombo = cc;
+
+                groups = new ArrayList<>();
+
+                groups.add( dataElement );
+
+                counter++;
+            }
+        }
+
+        if ( !sectionCategoryComboDataElements.keySet()
+            .contains( section.getId() + "-" + currentCategoryCombo + "-" + counter ) )
+        {
+            sectionCategoryComboDataElements.put( section.getId() + "-" + currentCategoryCombo + "-" + counter,
+                new ArrayList<>( groups ) );
+
+            sectionCategoryCombos.add( currentCategoryCombo + "-" + counter );
+
+            customSectionCategoryCombos.put( currentCategoryCombo + "-" + counter, currentCategoryCombo );
+        }
+
+        sectionCombos.put( section.getId(), sectionCategoryCombos );
+    }
+
+    private void processSectionForAutoOrdering( Section section )
+    {
+        List<CategoryCombo> sortedCategoryCombos = getSortedCategoryCombos( section.getCategoryCombos() );
+
+        for ( CategoryCombo categoryCombo : sortedCategoryCombos )
+        {
+            sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId(),
+                section.getDataElementsByCategoryCombo( categoryCombo ) );
+
+            customSectionCategoryCombos.put( String.valueOf( categoryCombo.getId() ), categoryCombo.getId() );
+        }
+
+        sectionCombos.put( section.getId(),
+            sortedCategoryCombos.stream().map( ca -> String.valueOf( ca.getId() ) )
+                .collect( Collectors.toList() ) );
     }
 
     private List<CategoryCombo> getCategoryCombos( List<DataElement> dataElements, DataSet dataSet )

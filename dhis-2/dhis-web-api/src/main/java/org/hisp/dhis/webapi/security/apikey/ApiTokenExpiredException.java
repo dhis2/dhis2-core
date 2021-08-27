@@ -25,22 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
-
-import org.hisp.dhis.feedback.ErrorReport;
+package org.hisp.dhis.webapi.security.apikey;
 
 /**
- * All jobs related to the system extends AbstractJob and can override the
- * validate method.
- *
- * @author Henning Håkonsen
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public abstract class AbstractJob
-    implements Job
+public class ApiTokenExpiredException extends ApiTokenAuthenticationException
 {
-    @Override
-    public ErrorReport validate()
+    public ApiTokenExpiredException( String error )
     {
-        return null;
+        super( ApiTokenErrors.invalidToken( error ) );
     }
 }

@@ -77,6 +77,8 @@ public class TrackedEntityInstance
 
     private Boolean deleted = false;
 
+    private Boolean potentialDuplicate = false;
+
     private FeatureType featureType = FeatureType.NONE;
 
     private String coordinates;
@@ -347,6 +349,18 @@ public class TrackedEntityInstance
     public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
     {
         this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isPotentialDuplicate()
+    {
+        return potentialDuplicate;
+    }
+
+    public void setPotentialDuplicate( Boolean potentialDuplicate )
+    {
+        this.potentialDuplicate = potentialDuplicate;
     }
 
     @Override

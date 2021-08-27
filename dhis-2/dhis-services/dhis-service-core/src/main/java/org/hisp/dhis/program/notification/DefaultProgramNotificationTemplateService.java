@@ -131,4 +131,19 @@ public class DefaultProgramNotificationTemplateService implements ProgramNotific
     {
         return store.getProgramStageLinkedToWebHookNotifications( programStage );
     }
+
+    @Override
+    @Transactional( readOnly = true )
+    public int countProgramNotificationTemplates( ProgramNotificationTemplateParam param )
+    {
+        return store.countProgramNotificationTemplates( param );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<ProgramNotificationTemplate> getProgramNotificationTemplates(
+        ProgramNotificationTemplateParam programNotificationTemplateParam )
+    {
+        return store.getProgramNotificationTemplates( programNotificationTemplateParam );
+    }
 }

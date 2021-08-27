@@ -45,6 +45,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -62,23 +63,44 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
     @Mock
     private AttributeOptionComboLoader attributeOptionComboLoader;
 
+    @Mock
+    private ProgramStageInstanceSupplier programStageInstanceSupplier;
+
     private Map<String, Program> programMap;
+
+    private Map<String, ProgramStageInstance> programStageInstanceMap;
 
     private Event event;
 
     private Program program;
 
+    private ProgramStageInstance programStageInstance;
+
+    private CategoryOptionCombo coc;
+
     @Before
     public void setUp()
     {
-        this.subject = new CategoryOptionComboSupplier( jdbcTemplate, programSupplier, attributeOptionComboLoader );
+        this.subject = new CategoryOptionComboSupplier( jdbcTemplate, programSupplier, attributeOptionComboLoader,
+            programStageInstanceSupplier );
         programMap = new HashMap<>();
+        programStageInstanceMap = new HashMap<>();
 
         // create a Program for the ProgramSupplier
         program = new Program();
         program.setId( 999L );
         program.setUid( "prabcde" );
         programMap.put( "prabcde", program );
+
+        // create a ProgramStageInstance for the ProgramStageInstanceSupplier
+        coc = new CategoryOptionCombo();
+        coc.setUid( "coc1" );
+
+        programStageInstance = new ProgramStageInstance();
+        programStageInstance.setId( 888L );
+        programStageInstance.setUid( "psuid1" );
+        programStageInstance.setAttributeOptionCombo( coc );
+        programStageInstanceMap.put( "psuid1", programStageInstance );
 
         // create event to import
         event = new Event();
@@ -123,6 +145,12 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
          * fetch the coc
          */
         case5( ImportOptions.getDefaultImportOptions() );
+
+        /*
+         * Case 6: Event does not have 'attributeCategoryOptions' and program
+         * stage instance (persisted event) is used to fetch the coc
+         */
+        case6( ImportOptions.getDefaultImportOptions() );
     }
 
     private void case1( ImportOptions importOptions )
@@ -226,6 +254,29 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
         Map<String, CategoryOptionCombo> map = subject.get( importOptions, singletonList( event ) );
 
         CategoryOptionCombo categoryOptionCombo = map.get( event.getUid() );
+        assertThat( categoryOptionCombo, is( notNullValue() ) );
+        assertThat( categoryOptionCombo.getUid(), is( coc.getUid() ) );
+    }
+
+    private void case6( ImportOptions importOptions )
+    {
+        when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
+
+        when( programStageInstanceSupplier.get( eq( importOptions ), anyList() ) )
+            .thenReturn( programStageInstanceMap );
+
+        when( attributeOptionComboLoader.getCategoryOptionCombo(
+            importOptions.getIdSchemes().getCategoryOptionComboIdScheme(),
+            programStageInstance.getAttributeOptionCombo().getUid() ) )
+                .thenReturn( coc );
+
+        Event eventWithoutAoc = new Event();
+        eventWithoutAoc.setUid( "psuid1" );
+        eventWithoutAoc.setProgram( program.getUid() );
+
+        Map<String, CategoryOptionCombo> map = subject.get( importOptions, singletonList( eventWithoutAoc ) );
+
+        CategoryOptionCombo categoryOptionCombo = map.get( eventWithoutAoc.getUid() );
         assertThat( categoryOptionCombo, is( notNullValue() ) );
         assertThat( categoryOptionCombo.getUid(), is( coc.getUid() ) );
     }

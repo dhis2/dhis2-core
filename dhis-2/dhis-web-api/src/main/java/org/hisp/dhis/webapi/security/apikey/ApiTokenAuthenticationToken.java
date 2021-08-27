@@ -25,43 +25,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.association;
+package org.hisp.dhis.webapi.security.apikey;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Collections;
 
-import lombok.Data;
+import org.hisp.dhis.security.apikey.ApiToken;
+import org.hisp.dhis.user.UserCredentials;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 
-@Data
-public class IdentifiableObjectAssociations
-    extends HashMap<String, Set<String>>
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
 {
-    public IdentifiableObjectAssociations()
+    private String tokenKey;
+
+    private ApiToken tokenRef;
+
+    private UserCredentials userCredentials;
+
+    public ApiTokenAuthenticationToken( String tokenKey )
     {
-        super();
+        super( Collections.emptyList() );
+        this.tokenKey = tokenKey;
     }
 
-    public void addAllAssociations( String from, List<String> tos )
+    public ApiTokenAuthenticationToken( ApiToken token, UserCredentials userCredentials )
     {
-        Set<String> associated = getCurrentAssociationsOrCreate( from );
-        associated.addAll( tos.stream()
-            .filter( Objects::nonNull )
-            .collect( Collectors.toSet() ) );
+        super( Collections.emptyList() );
+        this.tokenRef = token;
+        this.userCredentials = userCredentials;
     }
 
-    private Set<String> getCurrentAssociationsOrCreate( String from )
+    @Override
+    public UserCredentials getCredentials()
     {
-        Set<String> associated = get( from );
-        if ( Objects.isNull( associated ) )
-        {
-            associated = new HashSet<>();
-            put( from, associated );
-        }
-        return associated;
+        return this.userCredentials;
     }
 
+    @Override
+    public UserDetails getPrincipal()
+    {
+        return this.userCredentials;
+    }
+
+    public String getTokenKey()
+    {
+        return tokenKey;
+    }
+
+    public void setTokenKey( String tokenKey )
+    {
+        this.tokenKey = tokenKey;
+    }
+
+    public ApiToken getToken()
+    {
+        return this.tokenRef;
+    }
 }
