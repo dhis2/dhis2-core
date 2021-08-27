@@ -173,7 +173,7 @@ public class DeduplicationController
     @ResponseStatus( value = HttpStatus.OK )
     public void mergePotentialDuplicate(
         @PathVariable String id,
-        @RequestParam( defaultValue = "MANUAL", value = "mergeStrategy" ) MergeStrategy mergeStrategy,
+        @RequestParam( defaultValue = "MANUAL" ) MergeStrategy mergeStrategy,
         @RequestBody MergeObject mergeObject )
         throws NotFoundException,
         ConflictException

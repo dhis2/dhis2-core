@@ -192,9 +192,6 @@ public class DeduplicationControllerTest
     @Test
     public void postPotentialDuplicateInvalidUidTeiB()
     {
-        when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
-            Lists.newArrayList() );
-
         try
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, "invalid" ) );
