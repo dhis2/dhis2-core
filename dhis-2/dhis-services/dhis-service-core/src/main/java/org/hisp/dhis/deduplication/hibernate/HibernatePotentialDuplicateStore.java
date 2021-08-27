@@ -256,6 +256,8 @@ public class HibernatePotentialDuplicateStore
             relationshipStore.delete( r );
         } );
 
+        // TODO This flush shouldn't be here. We need to test if at runtime
+        // commit happens without it and in case move it at test level.
         getSession().flush();
     }
 }
