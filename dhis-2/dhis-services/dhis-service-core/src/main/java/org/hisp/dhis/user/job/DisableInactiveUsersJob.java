@@ -36,7 +36,7 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.email.EmailService;
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
@@ -49,7 +49,7 @@ import org.springframework.stereotype.Component;
  */
 @AllArgsConstructor
 @Component( "disableInactiveUsersJob" )
-public class DisableInactiveUsersJob extends AbstractJob
+public class DisableInactiveUsersJob implements Job
 {
     private final UserService userService;
 

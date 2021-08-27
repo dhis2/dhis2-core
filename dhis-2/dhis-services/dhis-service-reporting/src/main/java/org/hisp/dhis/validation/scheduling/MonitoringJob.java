@@ -42,7 +42,7 @@ import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
@@ -64,8 +64,7 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @Component( "monitoringJob" )
-public class MonitoringJob
-    extends AbstractJob
+public class MonitoringJob implements Job
 {
     private final ValidationService validationService;
 

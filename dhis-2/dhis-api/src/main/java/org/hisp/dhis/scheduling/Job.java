@@ -44,5 +44,8 @@ public interface Job
 
     void execute( JobConfiguration jobConfiguration );
 
-    ErrorReport validate();
+    default ErrorReport validate()
+    {
+        return null;
+    }
 }
