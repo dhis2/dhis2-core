@@ -146,30 +146,38 @@ public class PotentialDuplicatesTests
     public void shouldGetDuplicatesByTei()
     {
         String teiA = createTei();
+        String teiB = createTei();
+        String teiC = createTei();
+        String teiD = createTei();
 
-        potentialDuplicatesActions.createPotentialDuplicate( teiA, createTei(), "OPEN" ).validate().statusCode( 200 );
-        potentialDuplicatesActions.createPotentialDuplicate( createTei(), teiA, "INVALID" ).validate()
-            .statusCode( 200 );
+        potentialDuplicatesActions.createPotentialDuplicate( teiA, teiB, "OPEN" ).validate().statusCode( 200 );
+        potentialDuplicatesActions.createPotentialDuplicate( teiC, teiA, "INVALID" ).validate().statusCode( 200 );
+        potentialDuplicatesActions.createPotentialDuplicate( teiD, teiA, "OPEN" ).validate().statusCode( 200 );
 
-        potentialDuplicatesActions.get( "/tei/" + teiA )
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "teis=" + teiA ) )
             .validate().statusCode( 200 )
-            .body( "", hasSize( 2 ) );
+            .body( "identifiableObjects", hasSize( 2 ) );
 
-        potentialDuplicatesActions.get( "/tei/" + teiA + "?status=INVALID" )
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiB + "," + teiC, "status=ALL") )
             .validate().statusCode( 200 )
-            .body( "", hasSize( 1 ) );
+            .body( "identifiableObjects", hasSize( 2 ) );
 
-        potentialDuplicatesActions.get( "/tei/" + teiA + "?status=OPEN" )
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=INVALID" ) )
             .validate().statusCode( 200 )
-            .body( "", hasSize( 1 ) );
+            .body( "identifiableObjects", hasSize( 1 ) );
 
-        potentialDuplicatesActions.get( "/tei/" + teiA + "?status=MERGED" )
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=OPEN" ) )
             .validate().statusCode( 200 )
-            .body( "", hasSize( 0 ) );
+            .body( "identifiableObjects", hasSize( 2 ) );
 
-        potentialDuplicatesActions.get( "/tei/" + teiA + "?status=ALL" )
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=MERGED" ) )
             .validate().statusCode( 200 )
-            .body( "", hasSize( 2 ) );
+            .body( "identifiableObjects", hasSize( 0 ) );
+
+        potentialDuplicatesActions.get( "", new QueryParamsBuilder().addAll( "teis=" + teiA, "status=ALL" ) )
+            .validate().statusCode( 200 )
+            .body( "identifiableObjects", hasSize( 3 ) );
     }
 
     private String createTei()

@@ -127,30 +127,6 @@ public class DeduplicationController
         return rootNode;
     }
 
-    @GetMapping( value = "/tei/{tei}" )
-    public List<PotentialDuplicate> getPotentialDuplicateByTei( @PathVariable String tei,
-        @RequestParam( value = "status", defaultValue = "ALL", required = false ) String status )
-        throws NotFoundException,
-        OperationNotAllowedException,
-        BadRequestException,
-        HttpStatusCodeException
-    {
-        canReadTei( tei );
-
-        checkDeduplicationStatusRequestParam( status );
-
-        List<PotentialDuplicate> potentialDuplicateList = deduplicationService.getPotentialDuplicateByTei( tei,
-            DeduplicationStatus.valueOf( status ) );
-
-        for ( PotentialDuplicate potentialDuplicate : potentialDuplicateList )
-        {
-            canReadTei( potentialDuplicate.getTeiA() );
-            canReadTei( potentialDuplicate.getTeiB() );
-        }
-
-        return potentialDuplicateList;
-    }
-
     @GetMapping( value = "/{id}" )
     public PotentialDuplicate getPotentialDuplicateById(
         @PathVariable String id )
@@ -197,33 +173,20 @@ public class DeduplicationController
     @ResponseStatus( value = HttpStatus.OK )
     public void mergePotentialDuplicate(
         @PathVariable String id,
-        @RequestParam( value = "MANUAL" ) MergeStrategy mergeStrategy,
+        @RequestParam( defaultValue = "MANUAL" ) MergeStrategy mergeStrategy,
         @RequestBody MergeObject mergeObject )
         throws NotFoundException,
         ConflictException
     {
-
-        PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid( id );
-
-        if ( potentialDuplicate == null )
-        {
-            throw new NotFoundException( "PotentialDuplicate with uid '" + id + "' was not found." );
-        }
+        PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
 
         if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
         {
             throw new ConflictException( "PotentialDuplicate is missing references and cannot be merged." );
         }
 
-        TrackedEntityInstance original = trackedEntityInstanceService
-            .getTrackedEntityInstance( potentialDuplicate.getTeiA() );
-        TrackedEntityInstance duplicate = trackedEntityInstanceService
-            .getTrackedEntityInstance( potentialDuplicate.getTeiB() );
-
-        if ( original == null || duplicate == null )
-        {
-            throw new ConflictException( "One or more Tracked Entities in the Potential Duplicate no longer exist." );
-        }
+        TrackedEntityInstance original = getTei( potentialDuplicate.getTeiA() );
+        TrackedEntityInstance duplicate = getTei( potentialDuplicate.getTeiB() );
 
         if ( original.getCreated().after( duplicate.getCreated() ) )
         {
@@ -234,16 +197,12 @@ public class DeduplicationController
 
         if ( MergeStrategy.MANUAL.equals( mergeStrategy ) )
         {
-            // TODO: manualMerge(original, duplicate, mergeObject);
+            deduplicationService.manualMerge( original, duplicate, mergeObject );
         }
         else
         {
-            if ( !deduplicationService.autoMerge( original, duplicate ) )
-            {
-                throw new ConflictException( "PotentialDuplicate '" + id + "' is not automatically mergable." );
-            }
+            deduplicationService.autoMerge( original, duplicate );
         }
-
     }
 
     private void checkDbAndRequestStatus( PotentialDuplicate potentialDuplicate,
@@ -283,9 +242,13 @@ public class DeduplicationController
         NotFoundException,
         BadRequestException
     {
-        checkValidAndCanReadTei( potentialDuplicate.getTeiA(), "teiA" );
+        checkValidTei( potentialDuplicate.getTeiA(), "teiA" );
 
-        checkValidAndCanReadTei( potentialDuplicate.getTeiB(), "teiB" );
+        checkValidTei( potentialDuplicate.getTeiB(), "teiB" );
+
+        canReadTei( getTei( potentialDuplicate.getTeiA() ) );
+
+        canReadTei( getTei( potentialDuplicate.getTeiB() ) );
 
         checkAlreadyExistingDuplicate( potentialDuplicate );
     }
@@ -300,10 +263,8 @@ public class DeduplicationController
         }
     }
 
-    private void checkValidAndCanReadTei( String tei, String teiFieldName )
-        throws OperationNotAllowedException,
-        NotFoundException,
-        BadRequestException
+    private void checkValidTei( String tei, String teiFieldName )
+        throws BadRequestException
     {
         if ( tei == null )
         {
@@ -314,21 +275,23 @@ public class DeduplicationController
         {
             throw new BadRequestException( "'" + tei + "' is not valid value for property '" + teiFieldName + "'" );
         }
-
-        canReadTei( tei );
     }
 
-    private void canReadTei( String tei )
-        throws OperationNotAllowedException,
-        NotFoundException
+    private TrackedEntityInstance getTei( String tei )
+        throws NotFoundException
     {
-        TrackedEntityInstance trackedEntityInstance = Optional.ofNullable( trackedEntityInstanceService
+        return Optional.ofNullable( trackedEntityInstanceService
             .getTrackedEntityInstance( tei ) )
             .orElseThrow( () -> new NotFoundException( "No tracked entity instance found with id '" + tei + "'." ) );
+    }
 
+    private void canReadTei( TrackedEntityInstance trackedEntityInstance )
+        throws OperationNotAllowedException
+    {
         if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), trackedEntityInstance ).isEmpty() )
         {
-            throw new OperationNotAllowedException( "You don't have read access to '" + tei + "'." );
+            throw new OperationNotAllowedException(
+                "You don't have read access to '" + trackedEntityInstance.getUid() + "'." );
         }
     }
 }

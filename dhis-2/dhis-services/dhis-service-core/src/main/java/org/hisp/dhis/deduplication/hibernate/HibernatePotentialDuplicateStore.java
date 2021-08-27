@@ -39,11 +39,12 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
-import org.hisp.dhis.deduplication.MergeObject;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
-import org.hisp.dhis.deduplication.PotentialDuplicateException;
+import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
@@ -56,11 +57,15 @@ public class HibernatePotentialDuplicateStore
     extends HibernateIdentifiableObjectStore<PotentialDuplicate>
     implements PotentialDuplicateStore
 {
+    private RelationshipStore relationshipStore;
+
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
+        RelationshipStore relationshipStore )
     {
         super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
+        this.relationshipStore = relationshipStore;
     }
 
     @Override
@@ -70,7 +75,7 @@ public class HibernatePotentialDuplicateStore
 
         return Optional.ofNullable( query.getTeis() ).filter( teis -> !teis.isEmpty() ).map( teis -> {
             Query<Long> hibernateQuery = getTypedQuery(
-                queryString + " and pr.teiA in (:uids) or pr.teiB in (:uids)" );
+                queryString + " and ( pr.teiA in (:uids) or pr.teiB in (:uids) )" );
 
             hibernateQuery.setParameterList( "uids", teis );
 
@@ -94,7 +99,7 @@ public class HibernatePotentialDuplicateStore
 
         return Optional.ofNullable( query.getTeis() ).filter( teis -> !teis.isEmpty() ).map( teis -> {
             Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
-                queryString + " and pr.teiA in (:uids) or pr.teiB in (:uids)" );
+                queryString + " and ( pr.teiA in (:uids) or pr.teiB in (:uids) )" );
 
             hibernateQuery.setParameterList( "uids", teis );
 
@@ -109,19 +114,6 @@ public class HibernatePotentialDuplicateStore
 
             return hibernateQuery.getResultList();
         } );
-    }
-
-    @Override
-    public List<PotentialDuplicate> getAllByTei( String tei, DeduplicationStatus status )
-    {
-        Query<PotentialDuplicate> query = getTypedQuery(
-            "from PotentialDuplicate pr where pr.status in (:status) and ( pr.teiA = :tei or pr.teiB = :tei )" );
-
-        query.setParameter( "tei", tei );
-
-        setStatusParameter( status, query );
-
-        return query.getResultList();
     }
 
     private void setStatusParameter( DeduplicationStatus status, Query<?> hibernateQuery )
@@ -142,7 +134,7 @@ public class HibernatePotentialDuplicateStore
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
         if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
-            throw new PotentialDuplicateException(
+            throw new PotentialDuplicateConflictException(
                 "Can't search for pair of potential duplicates: teiA and teiB must not be null" );
 
         NativeQuery<BigInteger> query = getSession()
@@ -153,14 +145,6 @@ public class HibernatePotentialDuplicateStore
         query.setParameter( "teib", potentialDuplicate.getTeiB() );
 
         return query.getSingleResult().intValue() != 0;
-    }
-
-    @Override
-    public void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject )
-    {
-        moveTrackedEntityAttributeValues( original.getUid(), duplicate.getUid(),
-            mergeObject.getTrackedEntityAttributes() );
-        moveRelationships( original.getUid(), duplicate.getUid(), mergeObject.getRelationships() );
     }
 
     @Override
@@ -201,7 +185,7 @@ public class HibernatePotentialDuplicateStore
     @Override
     public void moveRelationships( String originalUid, String duplicateUid, List<String> relationships )
     {
-        String moveRelationships = "UPDATE relationshipitem "
+        String moveRelationshipsSQL = "UPDATE relationshipitem "
             + "SET trackedentityinstanceid = ("
             + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
             + ") WHERE trackedentityinstanceid = ("
@@ -211,10 +195,61 @@ public class HibernatePotentialDuplicateStore
             + ")";
 
         getSession()
-            .createNativeQuery( moveRelationships )
+            .createNativeQuery( moveRelationshipsSQL )
             .setParameter( "original", originalUid )
             .setParameter( "duplicate", duplicateUid )
             .setParameterList( "relationships", relationships )
             .executeUpdate();
+    }
+
+    @Override
+    public void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance )
+    {
+        removeRelationships( trackedEntityInstance );
+
+        removeTrackedEntityAttributeValues( trackedEntityInstance );
+
+        removeTrackedEntityInstance( trackedEntityInstance );
+    }
+
+    private void removeTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    {
+        String removeTrackedEntityInstanceSQL = "DELETE FROM trackedentityinstance " +
+            "WHERE trackedentityinstanceid = (" +
+            "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
+            + ") ";
+
+        getSession().createNativeQuery( removeTrackedEntityInstanceSQL )
+            .setParameter( "duplicate", trackedEntityInstance.getUid() )
+            .executeUpdate();
+    }
+
+    private void removeTrackedEntityAttributeValues( TrackedEntityInstance trackedEntityInstance )
+    {
+        String removeTrackedEntityAttributeValueSQL = "DELETE FROM trackedentityattributevalue " +
+            "WHERE trackedentityinstanceid = (" +
+            "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
+            + ") ";
+
+        getSession().createNativeQuery( removeTrackedEntityAttributeValueSQL )
+            .setParameter( "duplicate", trackedEntityInstance.getUid() )
+            .executeUpdate();
+    }
+
+    private void removeRelationships( TrackedEntityInstance trackedEntityInstance )
+    {
+        List<Relationship> relationship = relationshipStore.getByTrackedEntityInstance( trackedEntityInstance );
+
+        relationship.forEach( r -> {
+            r.setFrom( null );
+            r.setTo( null );
+
+            relationshipStore.delete( r );
+        } );
+
+        // TODO This flush shouldn't be here. We might want to test if, at
+        // runtime, commit happens without it and in case move it at test
+        // level?.
+        getSession().flush();
     }
 }

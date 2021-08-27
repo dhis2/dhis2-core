@@ -27,29 +27,21 @@
  */
 package org.hisp.dhis.deduplication;
 
-import java.util.List;
-
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.stereotype.Component;
 
-public interface DeduplicationService
+@Component
+public class DeduplicationHelper
 {
-    PotentialDuplicate getPotentialDuplicateById( long id );
 
-    PotentialDuplicate getPotentialDuplicateByUid( String uid );
+    public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    {
+        return null;
+    }
 
-    List<PotentialDuplicate> getAllPotentialDuplicates();
-
-    int countPotentialDuplicates( PotentialDuplicateQuery query );
-
-    boolean exists( PotentialDuplicate potentialDuplicate );
-
-    List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query );
-
-    void addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
-
-    void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
-
-    void autoMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate );
-
-    void manualMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject );
+    public boolean hasUserAccess( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+        MergeObject mergeObject )
+    {
+        throw new RuntimeException( "User access not yet implemented" );
+    }
 }
