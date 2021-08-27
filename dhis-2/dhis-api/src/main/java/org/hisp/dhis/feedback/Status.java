@@ -34,5 +34,6 @@ public enum Status
 {
     OK,
     WARNING,
-    ERROR
+    ERROR,
+    CONFLICT
 }
