@@ -185,6 +185,7 @@ public class DeduplicationServiceTest
 
         deduplicationService.autoMerge( deduplicationMergeRequest );
 
+        verify( deduplicationHelper ).hasUserAccess( trackedEntityInstanceA, trackedEntityInstanceB, mergeObject );
         verify( deduplicationHelper ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );
         verify( potentialDuplicateStore ).moveTrackedEntityAttributeValues( trackedEntityInstanceA.getUid(),
             trackedEntityInstanceB.getUid(), mergeObject.getTrackedEntityAttributes() );
@@ -310,6 +311,7 @@ public class DeduplicationServiceTest
 
         deduplicationService.autoMerge( deduplicationMergeRequest );
 
+        verify( deduplicationHelper ).hasUserAccess( trackedEntityInstanceA, trackedEntityInstanceB, mergeObject );
         verify( deduplicationHelper ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );
         verify( potentialDuplicateStore ).moveTrackedEntityAttributeValues( trackedEntityInstanceA.getUid(),
             trackedEntityInstanceB.getUid(), mergeObject.getTrackedEntityAttributes() );

@@ -113,6 +113,7 @@ public class DefaultDeduplicationService
 
         MergeObject mergeObject = deduplicationHelper.generateMergeObject( deduplicationMergeRequest.getOriginal(),
             deduplicationMergeRequest.getDuplicate() );
+        deduplicationMergeRequest.setMergeObject( mergeObject );
         merge( deduplicationMergeRequest );
     }
 
