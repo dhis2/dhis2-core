@@ -55,7 +55,7 @@ public class ProgramRuleActionControllerTest extends DhisControllerConvenienceTe
     @Test
     public void testGetDataExpressionDescription_NoSuchProgram()
     {
-        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
+        assertWebMessage( "OK", 409, "ERROR", "Expression is not valid",
             POST( "/programRuleActions/data/expression/description?programId=xyz", "70" ).content( HttpStatus.OK ) );
     }
 }
