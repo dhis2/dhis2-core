@@ -101,6 +101,7 @@ public class DefaultDeduplicationService
     }
 
     @Override
+    @Transactional
     public void autoMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
         if ( !isAutoMergeable( original, duplicate ) )
