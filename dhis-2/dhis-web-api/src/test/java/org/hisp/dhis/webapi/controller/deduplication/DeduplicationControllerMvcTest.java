@@ -44,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Collections;
 import java.util.Date;
 
+import org.hisp.dhis.deduplication.DeduplicationMergeRequest;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.MergeObject;
@@ -56,7 +57,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.webapi.controller.DeduplicationController;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -108,6 +108,8 @@ public class DeduplicationControllerMvcTest
     @InjectMocks
     private DeduplicationController deduplicationController;
 
+    private DeduplicationMergeRequest deduplicationMergeRequest;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String teiA = "trackedentA";
@@ -117,6 +119,10 @@ public class DeduplicationControllerMvcTest
     @Before
     public void setUp()
     {
+        deduplicationMergeRequest = DeduplicationMergeRequest.builder().potentialDuplicateUid( "uid" )
+            .original( trackedEntityInstanceA ).duplicate( trackedEntityInstanceB )
+            .mergeObject( MergeObject.builder().build() ).build();
+
         mockMvc = MockMvcBuilders.standaloneSetup( deduplicationController ).build();
 
         lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
@@ -297,8 +303,8 @@ public class DeduplicationControllerMvcTest
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() );
 
-        verify( deduplicationService ).autoMerge( trackedEntityInstanceA, trackedEntityInstanceB );
-        verify( deduplicationService, times( 0 ) ).manualMerge( any(), any(), any() );
+        verify( deduplicationService ).autoMerge( deduplicationMergeRequest );
+        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeRequest );
     }
 
     @Test
@@ -323,8 +329,8 @@ public class DeduplicationControllerMvcTest
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() );
 
-        verify( deduplicationService, times( 0 ) ).autoMerge( any(), any() );
-        verify( deduplicationService ).manualMerge( trackedEntityInstanceA, trackedEntityInstanceB, mergeObject );
+        verify( deduplicationService, times( 0 ) ).autoMerge( deduplicationMergeRequest );
+        verify( deduplicationService ).manualMerge( deduplicationMergeRequest );
     }
 
     @Test
@@ -341,7 +347,7 @@ public class DeduplicationControllerMvcTest
         when( trackedEntityInstanceB.getCreated() ).thenReturn( new Date() );
 
         doThrow( new PotentialDuplicateForbiddenException( "Forbidden" ) ).when( deduplicationService )
-            .autoMerge( trackedEntityInstanceA, trackedEntityInstanceB );
+            .autoMerge( deduplicationMergeRequest );
 
         MergeObject mergeObject = MergeObject.builder().build();
 
@@ -354,8 +360,8 @@ public class DeduplicationControllerMvcTest
             .andExpect(
                 result -> assertTrue( result.getResolvedException() instanceof PotentialDuplicateForbiddenException ) );
 
-        verify( deduplicationService ).autoMerge( trackedEntityInstanceA, trackedEntityInstanceB );
-        verify( deduplicationService, times( 0 ) ).manualMerge( any(), any(), any() );
+        verify( deduplicationService ).autoMerge( deduplicationMergeRequest );
+        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeRequest );
     }
 
     @Test
@@ -372,7 +378,7 @@ public class DeduplicationControllerMvcTest
         when( trackedEntityInstanceB.getCreated() ).thenReturn( new Date() );
 
         doThrow( new PotentialDuplicateConflictException( "Conflict" ) ).when( deduplicationService )
-            .autoMerge( trackedEntityInstanceA, trackedEntityInstanceB );
+            .autoMerge( deduplicationMergeRequest );
 
         MergeObject mergeObject = MergeObject.builder().build();
 
@@ -385,7 +391,7 @@ public class DeduplicationControllerMvcTest
             .andExpect(
                 result -> assertTrue( result.getResolvedException() instanceof PotentialDuplicateConflictException ) );
 
-        verify( deduplicationService ).autoMerge( trackedEntityInstanceA, trackedEntityInstanceB );
-        verify( deduplicationService, times( 0 ) ).manualMerge( any(), any(), any() );
+        verify( deduplicationService ).autoMerge( deduplicationMergeRequest );
+        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeRequest );
     }
 }
