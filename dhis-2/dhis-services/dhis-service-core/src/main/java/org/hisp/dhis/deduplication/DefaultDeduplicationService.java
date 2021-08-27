@@ -145,7 +145,10 @@ public class DefaultDeduplicationService
         if ( !deduplicationHelper.hasUserAccess( original, duplicate, mergeObject ) )
             throw new PotentialDuplicateForbiddenException( "No merging access for user" );
 
-        potentialDuplicateStore.merge( original, duplicate, mergeObject );
+        potentialDuplicateStore.moveTrackedEntityAttributeValues( original.getUid(), duplicate.getUid(),
+            mergeObject.getTrackedEntityAttributes() );
+        potentialDuplicateStore.moveRelationships( original.getUid(), duplicate.getUid(),
+            mergeObject.getRelationships() );
         potentialDuplicateStore.removeTrackedEntity( duplicate );
     }
 

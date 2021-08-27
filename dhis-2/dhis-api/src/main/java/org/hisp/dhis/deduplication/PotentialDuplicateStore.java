@@ -41,8 +41,6 @@ public interface PotentialDuplicateStore
 
     boolean exists( PotentialDuplicate potentialDuplicate );
 
-    void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject );
-
     void moveTrackedEntityAttributeValues( String originalUid, String duplicateUid,
         List<String> trackedEntityAttributes );
 

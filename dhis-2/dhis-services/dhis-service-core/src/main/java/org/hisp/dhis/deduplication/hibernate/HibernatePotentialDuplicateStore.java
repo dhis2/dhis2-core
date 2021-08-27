@@ -39,7 +39,6 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
-import org.hisp.dhis.deduplication.MergeObject;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
@@ -149,14 +148,6 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
-    public void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject )
-    {
-        moveTrackedEntityAttributeValues( original.getUid(), duplicate.getUid(),
-            mergeObject.getTrackedEntityAttributes() );
-        moveRelationships( original.getUid(), duplicate.getUid(), mergeObject.getRelationships() );
-    }
-
-    @Override
     public void moveTrackedEntityAttributeValues( String originalUid, String duplicateUid,
         List<String> trackedEntityAttributes )
     {
@@ -214,7 +205,7 @@ public class HibernatePotentialDuplicateStore
     @Override
     public void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance )
     {
-        removeRelationShips( trackedEntityInstance );
+        removeRelationships( trackedEntityInstance );
 
         removeTrackedEntityAttributeValues( trackedEntityInstance );
 
@@ -245,7 +236,7 @@ public class HibernatePotentialDuplicateStore
             .executeUpdate();
     }
 
-    private void removeRelationShips( TrackedEntityInstance trackedEntityInstance )
+    private void removeRelationships( TrackedEntityInstance trackedEntityInstance )
     {
         List<Relationship> relationship = relationshipStore.getByTrackedEntityInstance( trackedEntityInstance );
 
