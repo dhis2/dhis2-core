@@ -306,7 +306,8 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
-    public Set<DimensionalItemObject> getIndicatorDimensionalItemObjects( Collection<Indicator> indicators )
+    public Map<DimensionalItemId, DimensionalItemObject> getIndicatorDimensionalItemMap(
+        Collection<Indicator> indicators )
     {
         Set<DimensionalItemId> itemIds = indicators.stream()
             .flatMap( i -> Stream.of( i.getNumerator(), i.getDenominator() ) )
@@ -314,7 +315,7 @@ public class DefaultExpressionService
             .flatMap( Set::stream )
             .collect( Collectors.toSet() );
 
-        return dimensionService.getDataDimensionalItemObjects( itemIds );
+        return dimensionService.getDataDimensionalItemObjectMap( itemIds );
     }
 
     @Override
@@ -352,8 +353,8 @@ public class DefaultExpressionService
 
     @Override
     public IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
-        Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
-        Map<String, Integer> orgUnitCountMap )
+        Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
+        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap )
     {
         if ( indicator == null || indicator.getNumerator() == null || indicator.getDenominator() == null )
         {
@@ -363,10 +364,10 @@ public class DefaultExpressionService
         Integer days = periods != null ? getDaysFromPeriods( periods ) : null;
 
         Double denominatorValue = getExpressionValue( indicator.getDenominator(), INDICATOR_EXPRESSION,
-            valueMap, constantMap, orgUnitCountMap, days, SKIP_IF_ALL_VALUES_MISSING );
+            itemMap, valueMap, constantMap, orgUnitCountMap, days, SKIP_IF_ALL_VALUES_MISSING );
 
         Double numeratorValue = getExpressionValue( indicator.getNumerator(), INDICATOR_EXPRESSION,
-            valueMap, constantMap, orgUnitCountMap, days, SKIP_IF_ALL_VALUES_MISSING );
+            itemMap, valueMap, constantMap, orgUnitCountMap, days, SKIP_IF_ALL_VALUES_MISSING );
 
         if ( denominatorValue != null && denominatorValue != 0d && numeratorValue != null )
         {
@@ -440,6 +441,12 @@ public class DefaultExpressionService
     @Override
     public String getExpressionDescription( String expression, ParseType parseType )
     {
+        return getExpressionDescription( expression, parseType, parseType.getDataType() );
+    }
+
+    @Override
+    public String getExpressionDescription( String expression, ParseType parseType, DataType dataType )
+    {
         if ( isEmpty( expression ) )
         {
             return "";
@@ -448,7 +455,7 @@ public class DefaultExpressionService
         CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_GET_DESCRIPTIONS,
             DEFAULT_SAMPLE_PERIODS, getConstantMap(), NEVER_SKIP );
 
-        visit( expression, parseType.getDataType(), visitor, false );
+        visit( expression, dataType, visitor, false );
 
         Map<String, String> itemDescriptions = visitor.getItemDescriptions();
 
@@ -504,25 +511,17 @@ public class DefaultExpressionService
     }
 
     @Override
-    public Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression, ParseType parseType )
-    {
-        Set<DimensionalItemId> itemIds = getExpressionDimensionalItemIds( expression, parseType );
-
-        return dimensionService.getDataDimensionalItemObjects( itemIds );
-    }
-
-    @Override
-    public void getExpressionDimensionalItemObjects( String expression, ParseType parseType,
-        Set<DimensionalItemObject> items,
-        Set<DimensionalItemObject> sampleItems )
+    public void getExpressionDimensionalItemMaps( String expression, ParseType parseType, DataType dataType,
+        Map<DimensionalItemId, DimensionalItemObject> itemMap,
+        Map<DimensionalItemId, DimensionalItemObject> sampleItemMap )
     {
         Set<DimensionalItemId> itemIds = new HashSet<>();
         Set<DimensionalItemId> sampleItemIds = new HashSet<>();
 
         getExpressionDimensionalItemIds( expression, parseType, itemIds, sampleItemIds );
 
-        items.addAll( dimensionService.getDataDimensionalItemObjects( itemIds ) );
-        sampleItems.addAll( dimensionService.getDataDimensionalItemObjects( sampleItemIds ) );
+        itemMap.putAll( dimensionService.getDataDimensionalItemObjectMap( itemIds ) );
+        sampleItemMap.putAll( dimensionService.getDataDimensionalItemObjectMap( sampleItemIds ) );
     }
 
     @Override
@@ -560,26 +559,37 @@ public class DefaultExpressionService
     public Object getExpressionValue( String expression, ParseType parseType )
     {
         return getExpressionValue( expression, parseType,
-            new HashMap<>(), new HashMap<>(), new HashMap<>(),
+            new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(),
             null, NEVER_SKIP, DEFAULT_SAMPLE_PERIODS, new MapMap<>() );
     }
 
     @Override
     public Double getExpressionValue( String expression, ParseType parseType,
-        Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
-        Map<String, Integer> orgUnitCountMap, Integer days,
-        MissingValueStrategy missingValueStrategy )
+        Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
+        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap,
+        Integer days, MissingValueStrategy missingValueStrategy )
     {
-        return castDouble( getExpressionValue( expression, parseType, valueMap, constantMap,
+        return castDouble( getExpressionValue( expression, parseType, itemMap, valueMap, constantMap,
             orgUnitCountMap, days, missingValueStrategy, DEFAULT_SAMPLE_PERIODS, new MapMap<>() ) );
     }
 
     @Override
     public Object getExpressionValue( String expression, ParseType parseType,
-        Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
-        Map<String, Integer> orgUnitCountMap, Integer days,
-        MissingValueStrategy missingValueStrategy,
-        List<Period> samplePeriods, MapMap<Period, DimensionalItemObject, Double> periodValueMap )
+        Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
+        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap,
+        Integer days, MissingValueStrategy missingValueStrategy, List<Period> samplePeriods,
+        MapMap<Period, DimensionalItemObject, Object> periodValueMap )
+    {
+        return getExpressionValue( expression, parseType, itemMap, valueMap, constantMap, orgUnitCountMap,
+            days, missingValueStrategy, samplePeriods, periodValueMap, parseType.getDataType() );
+    }
+
+    @Override
+    public Object getExpressionValue( String expression, ParseType parseType,
+        Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
+        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap,
+        Integer days, MissingValueStrategy missingValueStrategy, List<Period> samplePeriods,
+        MapMap<Period, DimensionalItemObject, Object> periodValueMap, DataType dataType )
     {
         if ( isEmpty( expression ) )
         {
@@ -589,8 +599,9 @@ public class DefaultExpressionService
         CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_EVALUATE,
             samplePeriods, constantMap, missingValueStrategy );
 
-        visitor.setItemValueMap( convertToIdentifierMap( valueMap ) );
-        visitor.setPeriodItemValueMap( convertToIdentifierPeriodMap( periodValueMap ) );
+        visitor.setDimItemMap( itemMap );
+        visitor.setItemValueMap( valueMap );
+        visitor.setPeriodItemValueMap( periodValueMap );
         visitor.setOrgUnitCountMap( orgUnitCountMap );
 
         if ( days != null )
@@ -598,7 +609,7 @@ public class DefaultExpressionService
             visitor.setDays( Double.valueOf( days ) );
         }
 
-        Object value = visit( expression, parseType.getDataType(), visitor, true );
+        Object value = visit( expression, dataType, visitor, true );
 
         int itemsFound = visitor.getItemsFound();
         int itemValuesFound = visitor.getItemValuesFound();
@@ -620,7 +631,7 @@ public class DefaultExpressionService
         case NEVER_SKIP:
             if ( value == null )
             {
-                switch ( parseType.getDataType() )
+                switch ( dataType )
                 {
                 case NUMERIC:
                     return 0d;
@@ -812,48 +823,5 @@ public class DefaultExpressionService
         return periods.stream()
             .filter( Objects::nonNull )
             .mapToInt( Period::getDaysInPeriod ).sum();
-    }
-
-    /**
-     * Converts a Map of {@see DimensionalItemObject} and values into a Map of
-     * {@see DimensionalItemObject} identifier and value.
-     *
-     * If the {@see DimensionalItemObject} has a Period offset set, the value of
-     * the offset is added to the Map key:
-     *
-     * [identifier.periodOffset]
-     *
-     *
-     * @param valueMap a Map
-     * @return a Map of DimensionalItemObject and value
-     */
-    private Map<String, Double> convertToIdentifierMap( Map<DimensionalItemObject, Double> valueMap )
-    {
-        return valueMap.entrySet().stream().collect(
-            Collectors.toMap(
-                e -> e.getKey().getDimensionItem()
-                    + (e.getKey().getPeriodOffset() == 0 ? "" : "." + e.getKey().getPeriodOffset()),
-                Map.Entry::getValue ) );
-    }
-
-    /**
-     * Converts a Map of Maps of {@see Period}, {@see DimensionalItemObject} and
-     * values into a Map of Maps of {@see Period}, {@see DimensionalItemObject}
-     * identifier and value
-     *
-     * @param periodValueMap a Map of Maps
-     *
-     */
-    private MapMap<Period, String, Double> convertToIdentifierPeriodMap(
-        MapMap<Period, DimensionalItemObject, Double> periodValueMap )
-    {
-        MapMap<Period, String, Double> periodItemValueMap = new MapMap<>();
-
-        for ( Period p : periodValueMap.keySet() )
-        {
-            periodItemValueMap.put( p, periodValueMap.get( p ).entrySet().stream().collect(
-                Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue ) ) );
-        }
-        return periodItemValueMap;
     }
 }

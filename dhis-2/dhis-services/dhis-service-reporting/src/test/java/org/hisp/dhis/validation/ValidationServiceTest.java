@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -61,6 +62,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -1492,6 +1494,49 @@ public class ValidationServiceTest
         Collection<ValidationResult> reference = new HashSet<>();
 
         reference.add( new ValidationResult( rule, periodA, sourceA, defaultCombo, 20.0, 10.0, dayInPeriodA ) );
+
+        assertResultsEquals( reference, results );
+    }
+
+    @Test
+    public void testValidateBooleanIsNull()
+    {
+        DataElement deP = createDataElement( 'P', ValueType.TRUE_ONLY, AggregationType.NONE );
+        DataElement deQ = createDataElement( 'Q', ValueType.TRUE_ONLY, AggregationType.NONE );
+        DataElement deR = createDataElement( 'R', ValueType.TRUE_ONLY, AggregationType.NONE );
+
+        dataElementService.addDataElement( deP );
+        dataElementService.addDataElement( deQ );
+        dataElementService.addDataElement( deR );
+
+        dataSetMonthly.addDataSetElement( deP );
+        dataSetMonthly.addDataSetElement( deQ );
+        dataSetMonthly.addDataSetElement( deR );
+
+        dataSetService.updateDataSet( dataSetMonthly );
+
+        useDataValue( deP, periodA, sourceA, "true" );
+        useDataValue( deQ, periodA, sourceA, "true" );
+
+        Expression expressionLeft = new Expression(
+            "if(isNull(#{" + deP.getUid() + "}),0,1) + " +
+                "if(isNull(#{" + deQ.getUid() + "}),0,1) + " +
+                "if(isNull(#{" + deR.getUid() + "}),0,1)",
+            "exprLeft" );
+
+        Expression expressionRight = new Expression( "1", "exprRight" );
+
+        ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
+
+        validationRuleService.saveValidationRule( rule );
+
+        Collection<ValidationResult> results = validationService
+            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA )
+                .build() );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( rule, periodA, sourceA, defaultCombo, 2.0, 1.0, dayInPeriodA ) );
 
         assertResultsEquals( reference, results );
     }

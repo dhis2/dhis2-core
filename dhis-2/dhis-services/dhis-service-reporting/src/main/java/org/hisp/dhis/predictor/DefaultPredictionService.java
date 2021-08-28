@@ -29,24 +29,35 @@ package org.hisp.dhis.predictor;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
+import static org.hisp.dhis.predictor.PredictionFormatter.formatPrediction;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
+import static org.hisp.dhis.system.util.MathUtils.addDoubleObjects;
+import static org.hisp.dhis.system.util.ValidationUtils.getObjectValue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
@@ -74,7 +85,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -259,17 +269,22 @@ public class DefaultPredictionService
         Expression generator = predictor.getGenerator();
         Expression skipTest = predictor.getSampleSkipTest();
         DataElement outputDataElement = predictor.getOutput();
+        DataType expressionDataType = DataType.fromValueType( outputDataElement.getValueType() );
 
-        Set<DimensionalItemObject> outputPeriodItems = new HashSet<>();
-        Set<DimensionalItemObject> sampledItems = new HashSet<>();
-        expressionService.getExpressionDimensionalItemObjects( generator.getExpression(), PREDICTOR_EXPRESSION,
-            outputPeriodItems, sampledItems );
+        Map<DimensionalItemId, DimensionalItemObject> outputPeriodItemMap = new HashMap<>();
+        Map<DimensionalItemId, DimensionalItemObject> sampledItemMap = new HashMap<>();
+        expressionService.getExpressionDimensionalItemMaps( generator.getExpression(),
+            PREDICTOR_EXPRESSION, expressionDataType, outputPeriodItemMap, sampledItemMap );
         if ( skipTest != null )
         {
-            expressionService.getExpressionDimensionalItemObjects( skipTest.getExpression(), PREDICTOR_SKIP_TEST,
-                sampledItems, sampledItems );
+            expressionService.getExpressionDimensionalItemMaps( skipTest.getExpression(),
+                PREDICTOR_SKIP_TEST, DataType.BOOLEAN, sampledItemMap, sampledItemMap );
         }
-        Set<DimensionalItemObject> items = Sets.union( outputPeriodItems, sampledItems );
+        Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>( outputPeriodItemMap );
+        itemMap.putAll( sampledItemMap );
+        Set<DimensionalItemObject> outputPeriodItems = new HashSet<>( outputPeriodItemMap.values() );
+        Set<DimensionalItemObject> sampledItems = new HashSet<>( sampledItemMap.values() );
+        Set<DimensionalItemObject> items = new HashSet<>( itemMap.values() );
         Map<String, Constant> constantMap = constantService.getConstantMap();
         List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
@@ -335,7 +350,7 @@ public class DefaultPredictionService
             orgUnits.sort( Comparator.comparing( OrganisationUnit::getPath ) );
 
             oldPredictionFetcher.init( currentUserOrgUnits, orgUnitLevel.getLevel(), orgUnits,
-                outputPeriodSet, new HashSet<>(), predictionDeoSet );
+                outputPeriodSet, Sets.newHashSet( outputDataElement ), predictionDeoSet );
 
             dataValueFetcher.init( currentUserOrgUnits, orgUnitLevel.getLevel(), orgUnits,
                 existingQueryPeriods, dataElements, dataElementOperands );
@@ -345,9 +360,9 @@ public class DefaultPredictionService
 
             for ( OrganisationUnit orgUnit : orgUnits )
             {
-                MapMap<Period, DimensionalItemObject, Double> nonAocData = analyticsFetcher.getNonAocData( orgUnit );
+                MapMap<Period, DimensionalItemObject, Object> nonAocData = analyticsFetcher.getNonAocData( orgUnit );
 
-                MapMapMap<String, Period, DimensionalItemObject, Double> aocData = analyticsFetcher
+                MapMapMap<String, Period, DimensionalItemObject, Object> aocData = analyticsFetcher
                     .getAocData( orgUnit );
 
                 List<DataValue> dataValues = dataValueFetcher.getDataValues( orgUnit );
@@ -363,12 +378,12 @@ public class DefaultPredictionService
 
                 for ( String aoc : attributeOptionCombos )
                 {
-                    MapMap<Period, DimensionalItemObject, Double> periodValueMap = firstNonNull( aocData.get( aoc ),
+                    MapMap<Period, DimensionalItemObject, Object> periodValueMap = firstNonNull( aocData.get( aoc ),
                         new MapMap<>() );
 
                     periodValueMap.putMap( nonAocData );
 
-                    Set<Period> skippedPeriods = getSkippedPeriods( allSamplePeriods, periodValueMap, skipTest,
+                    Set<Period> skippedPeriods = getSkippedPeriods( allSamplePeriods, itemMap, periodValueMap, skipTest,
                         constantMap );
 
                     // Predict for each output period.
@@ -379,7 +394,7 @@ public class DefaultPredictionService
 
                         samplePeriods.removeAll( skippedPeriods );
 
-                        Map<DimensionalItemObject, Double> valueMap = firstNonNull( periodValueMap.get( outputPeriod ),
+                        Map<DimensionalItemObject, Object> valueMap = firstNonNull( periodValueMap.get( outputPeriod ),
                             new HashMap<>() );
 
                         if ( requireData && !dataIsPresent( outputPeriodItems, valueMap, sampledItems, samplePeriods,
@@ -388,24 +403,24 @@ public class DefaultPredictionService
                             continue;
                         }
 
-                        Double value = castDouble( expressionService.getExpressionValue( generator.getExpression(),
-                            PREDICTOR_EXPRESSION, valueMap, constantMap, null,
+                        Object value = expressionService.getExpressionValue( generator.getExpression(),
+                            PREDICTOR_EXPRESSION, itemMap, valueMap, constantMap, null,
                             outputPeriod.getDaysInPeriod(), generator.getMissingValueStrategy(),
-                            samplePeriods, periodValueMap ) );
+                            samplePeriods, periodValueMap, expressionDataType );
 
                         carryPredictionForward( value, outputPeriod, forwardReference, periodValueMap );
 
-                        if ( value != null && !value.isNaN() && !value.isInfinite() &&
-                            !dataValueIsZeroAndInsignificant( Double.toString( value ), outputDataElement ) )
+                        if ( value != null || generator.getMissingValueStrategy() == NEVER_SKIP )
                         {
-                            String valueString = outputDataElement.getValueType().isInteger()
-                                ? Long.toString( Math.round( value ) )
-                                : Double.toString( MathUtils.roundFraction( value, 4 ) );
+                            String valueString = formatPrediction( value, outputDataElement );
 
-                            predictions.add( new DataValue( outputDataElement,
-                                outputPeriod, orgUnit, outputOptionCombo,
-                                cocMap.get( aoc, () -> categoryService.getCategoryOptionCombo( aoc ) ),
-                                valueString, storedBy, now, null ) );
+                            if ( valueString != null )
+                            {
+                                predictions.add( new DataValue( outputDataElement,
+                                    outputPeriod, orgUnit, outputOptionCombo,
+                                    cocMap.get( aoc, () -> categoryService.getCategoryOptionCombo( aoc ) ),
+                                    valueString, storedBy, now, null ) );
+                            }
                         }
                     }
                 }
@@ -499,12 +514,12 @@ public class DefaultPredictionService
      * @param items the items we will need for expression evaluation.
      */
     private void addDataValuesToAocData( List<DataValue> dataValues,
-        MapMapMap<String, Period, DimensionalItemObject, Double> aocData,
+        MapMapMap<String, Period, DimensionalItemObject, Object> aocData,
         Set<DimensionalItemObject> items )
     {
         for ( DataValue dv : dataValues )
         {
-            Double value = getDoubleValue( dv );
+            Object value = getObjectValue( dv.getValue(), dv.getDataElement().getValueType() );
 
             if ( value != null )
             {
@@ -520,34 +535,7 @@ public class DefaultPredictionService
     }
 
     /**
-     * Returns the value of a datavalue as a Double, if it can be done.
-     *
-     * @param dv the datavalue
-     * @return the Double value
-     */
-    private Double getDoubleValue( DataValue dv )
-    {
-        if ( dv.isDeleted() || dv.getValue() == null )
-        {
-            return null;
-        }
-
-        Double value;
-
-        try
-        {
-            value = Double.parseDouble( dv.getValue() );
-        }
-        catch ( NumberFormatException e )
-        {
-            value = null;
-        }
-
-        return value;
-    }
-
-    /**
-     * Add the DataElementOperand or the DataElement value to the existing data.
+     * Adds the DataElementOperand or the DataElement value to existing data.
      * <p>
      * This is needed because we may get multiple data values that need to be
      * aggregated to the same item value. In the case of a
@@ -566,16 +554,16 @@ public class DefaultPredictionService
      * @param aocData the datavalue map by attribute option combo to add to.
      */
     private void addToData( DimensionalItemObject item, Set<DimensionalItemObject> items,
-        DataValue dv, double value, MapMapMap<String, Period, DimensionalItemObject, Double> aocData )
+        DataValue dv, Object value, MapMapMap<String, Period, DimensionalItemObject, Object> aocData )
     {
         if ( !items.contains( item ) )
         {
             return;
         }
 
-        Double valueSoFar = aocData.getValue( dv.getAttributeOptionCombo().getUid(), dv.getPeriod(), item );
+        Object valueSoFar = aocData.getValue( dv.getAttributeOptionCombo().getUid(), dv.getPeriod(), item );
 
-        Double valueToStore = (valueSoFar == null) ? value : value + valueSoFar;
+        Object valueToStore = (valueSoFar == null) ? value : addDoubleObjects( value, valueSoFar );
 
         aocData.putEntry( dv.getAttributeOptionCombo().getUid(), dv.getPeriod(), item, valueToStore );
     }
@@ -589,7 +577,7 @@ public class DefaultPredictionService
      * @return set of attribute option combos to use for an orgUnit.
      */
     Set<String> getAttributeOptionCombos(
-        MapMapMap<String, Period, DimensionalItemObject, Double> itemMap,
+        MapMapMap<String, Period, DimensionalItemObject, Object> itemMap,
         CategoryOptionCombo defaultCategoryOptionCombo )
     {
         Set<String> attributeOptionCombos = new HashSet<>( itemMap.keySet() );
@@ -625,7 +613,8 @@ public class DefaultPredictionService
      * @return the sample periods to be skipped.
      */
     Set<Period> getSkippedPeriods( Set<Period> allSamplePeriods,
-        MapMap<Period, DimensionalItemObject, Double> aocData,
+        Map<DimensionalItemId, DimensionalItemObject> itemMap,
+        MapMap<Period, DimensionalItemObject, Object> aocData,
         Expression skipTest, Map<String, Constant> constantMap )
     {
         Set<Period> skippedPeriods = new HashSet<>();
@@ -639,7 +628,7 @@ public class DefaultPredictionService
         {
             if ( aocData.get( p ) != null
                 && Boolean.TRUE == expressionService.getExpressionValue( skipTest.getExpression(),
-                    PREDICTOR_SKIP_TEST, aocData.get( p ), constantMap, null,
+                    PREDICTOR_SKIP_TEST, itemMap, aocData.get( p ), constantMap, null,
                     p.getDaysInPeriod(), skipTest.getMissingValueStrategy(),
                     DEFAULT_SAMPLE_PERIODS, new MapMap<>() ) )
             {
@@ -805,9 +794,9 @@ public class DefaultPredictionService
      * @param predictionReference the item for the prediction, if any.
      * @param periodValueMap the value map according to period.
      */
-    private void carryPredictionForward( Double value, Period outputPeriod,
+    private void carryPredictionForward( Object value, Period outputPeriod,
         DimensionalItemObject predictionReference,
-        MapMap<Period, DimensionalItemObject, Double> periodValueMap )
+        MapMap<Period, DimensionalItemObject, Object> periodValueMap )
     {
         if ( predictionReference != null )
         {
@@ -829,9 +818,9 @@ public class DefaultPredictionService
      */
 
     private boolean dataIsPresent( Set<DimensionalItemObject> outputPeriodItems,
-        Map<DimensionalItemObject, Double> valueMap,
+        Map<DimensionalItemObject, Object> valueMap,
         Set<DimensionalItemObject> sampledItems, List<Period> samplePeriods,
-        MapMap<Period, DimensionalItemObject, Double> periodValueMap )
+        MapMap<Period, DimensionalItemObject, Object> periodValueMap )
     {
         if ( presentIn( outputPeriodItems, valueMap ) )
         {
@@ -840,7 +829,7 @@ public class DefaultPredictionService
 
         for ( Period p : samplePeriods )
         {
-            Map<DimensionalItemObject, Double> pValueMap = periodValueMap.get( p );
+            Map<DimensionalItemObject, Object> pValueMap = periodValueMap.get( p );
 
             if ( pValueMap != null && presentIn( sampledItems, pValueMap ) )
             {
@@ -858,7 +847,7 @@ public class DefaultPredictionService
      * @param valueMap map of values.
      * @return true if any items in map, else false.
      */
-    private boolean presentIn( Set<DimensionalItemObject> items, Map<DimensionalItemObject, Double> valueMap )
+    private boolean presentIn( Set<DimensionalItemObject> items, Map<DimensionalItemObject, Object> valueMap )
     {
         return !Sets.intersection( items, valueMap.keySet() ).isEmpty();
     }
