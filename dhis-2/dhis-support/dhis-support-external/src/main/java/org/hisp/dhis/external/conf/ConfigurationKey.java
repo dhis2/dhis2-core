@@ -65,6 +65,8 @@ public enum ConfigurationKey
     CONNECTION_POOL_TIMEOUT( "connection.pool.timeout", String.valueOf( SECONDS.toMillis( 30 ) ), false ),
     CONNECTION_POOL_VALIDATION_TIMEOUT( "connection.pool.validation_timeout", String.valueOf( SECONDS.toMillis( 5 ) ),
         false ),
+    CONNECTION_POOL_NUM_THREADS( "connection.pool.num.helper.threads", "3", false ),
+    CONNECTION_POOL_TEST_QUERY( "connection.pool.preferred.test.query" ),
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
     LDAP_MANAGER_DN( "ldap.manager.dn", "", false ),
     LDAP_MANAGER_PASSWORD( "ldap.manager.password", "", true ),
