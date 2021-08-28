@@ -626,7 +626,7 @@ public class MathUtils
      */
     public static Object addDoubleObjects( Object o1, Object o2 )
     {
-        if ( o1 instanceof Double && o1 instanceof Double )
+        if ( o1 instanceof Double && o2 instanceof Double )
         {
             return (Double) o1 + (Double) o2;
         }
