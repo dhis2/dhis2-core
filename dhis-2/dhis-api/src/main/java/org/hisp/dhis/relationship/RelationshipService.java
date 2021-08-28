@@ -87,6 +87,8 @@ public interface RelationshipService
 
     Relationship getRelationship( String uid );
 
+    List<Relationship> getRelationships( List<String> uids );
+
     default List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
         boolean skipAccessValidation )
     {

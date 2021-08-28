@@ -27,12 +27,35 @@
  */
 package org.hisp.dhis.deduplication;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.relationship.RelationshipService;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class DeduplicationHelper
 {
+    private final CurrentUserService currentUserService;
+
+    private final AclService aclService;
+
+    private final RelationshipService relationshipService;
+
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
+
+    private final OrganisationUnitService organisationUnitService;
 
     public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
@@ -42,6 +65,45 @@ public class DeduplicationHelper
     public boolean hasUserAccess( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         MergeObject mergeObject )
     {
-        throw new RuntimeException( "User access not yet implemented" );
+        User user = currentUserService.getCurrentUser();
+
+        if ( user == null || !(user.isAuthorized( "ALL" ) || user.isAuthorized( "F_TRACKED_ENTITY_MERGE" )) )
+        {
+            return false;
+        }
+
+        if ( !aclService.canDataWrite( user, original.getTrackedEntityType() ) ||
+            !aclService.canDataWrite( user, duplicate.getTrackedEntityType() ) )
+        {
+            return false;
+        }
+
+        List<RelationshipType> relationshipTypes = relationshipService
+            .getRelationships( mergeObject.getRelationships() )
+            .stream()
+            .map( r -> r.getRelationshipType() )
+            .distinct()
+            .collect( Collectors.toList() );
+
+        if ( relationshipTypes.stream().anyMatch( rt -> !aclService.canDataWrite( user, rt ) ) )
+        {
+            return false;
+        }
+
+        List<TrackedEntityAttribute> trackedEntityAttributes = trackedEntityAttributeService
+            .getTrackedEntityAttributes( mergeObject.getTrackedEntityAttributes() );
+
+        if ( trackedEntityAttributes.stream().anyMatch( attr -> !aclService.canDataWrite( user, attr ) ) )
+        {
+            return false;
+        }
+
+        if ( !organisationUnitService.isInUserHierarchyCached( user, original.getOrganisationUnit() ) ||
+            !organisationUnitService.isInUserHierarchyCached( user, duplicate.getOrganisationUnit() ) )
+        {
+            return false;
+        }
+
+        return true;
     }
 }
