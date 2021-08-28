@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.deduplication;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
@@ -40,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.deduplication.DeduplicationMergeRequest;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.MergeObject;
@@ -195,13 +196,16 @@ public class DeduplicationController
             duplicate = t;
         }
 
+        DeduplicationMergeRequest deduplicationRequest = DeduplicationMergeRequest.builder().potentialDuplicateUid( id )
+            .mergeObject( mergeObject ).original( original ).duplicate( duplicate ).build();
+
         if ( MergeStrategy.MANUAL.equals( mergeStrategy ) )
         {
-            deduplicationService.manualMerge( original, duplicate, mergeObject );
+            deduplicationService.manualMerge( deduplicationRequest );
         }
         else
         {
-            deduplicationService.autoMerge( original, duplicate );
+            deduplicationService.autoMerge( deduplicationRequest );
         }
     }
 

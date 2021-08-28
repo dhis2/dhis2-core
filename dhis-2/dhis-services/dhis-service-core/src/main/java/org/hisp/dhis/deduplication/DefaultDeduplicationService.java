@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.deduplication;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -36,6 +37,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +51,8 @@ public class DefaultDeduplicationService
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     private final DeduplicationHelper deduplicationHelper;
+
+    private final CurrentUserService currentUserService;
 
     @Override
     @Transactional( readOnly = true )
@@ -102,17 +106,19 @@ public class DefaultDeduplicationService
 
     @Override
     @Transactional
-    public void autoMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    public void autoMerge( DeduplicationMergeRequest deduplicationMergeRequest )
     {
-        if ( !isAutoMergeable( original, duplicate ) )
+        if ( !isAutoMergeable( deduplicationMergeRequest.getOriginal(), deduplicationMergeRequest.getDuplicate() ) )
             throw new PotentialDuplicateConflictException( "Potential Duplicate is not automatically mergeable" );
 
-        MergeObject mergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
-        merge( original, duplicate, mergeObject );
+        MergeObject mergeObject = deduplicationHelper.generateMergeObject( deduplicationMergeRequest.getOriginal(),
+            deduplicationMergeRequest.getDuplicate() );
+        deduplicationMergeRequest.setMergeObject( mergeObject );
+        merge( deduplicationMergeRequest );
     }
 
     @Override
-    public void manualMerge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject )
+    public void manualMerge( DeduplicationMergeRequest deduplicationMergeRequest )
     {
         throw new RuntimeException( "Manual merge not yet implemented" );
     }
@@ -140,8 +146,12 @@ public class DefaultDeduplicationService
         return !sameAttributesAreEquals( trackedEntityAttributeValueA, trackedEntityAttributeValueB );
     }
 
-    private void merge( TrackedEntityInstance original, TrackedEntityInstance duplicate, MergeObject mergeObject )
+    private void merge( DeduplicationMergeRequest deduplicationMergeRequest )
     {
+        TrackedEntityInstance original = deduplicationMergeRequest.getOriginal();
+        TrackedEntityInstance duplicate = deduplicationMergeRequest.getDuplicate();
+        MergeObject mergeObject = deduplicationMergeRequest.getMergeObject();
+
         if ( !deduplicationHelper.hasUserAccess( original, duplicate, mergeObject ) )
             throw new PotentialDuplicateForbiddenException( "No merging access for user" );
 
@@ -150,6 +160,28 @@ public class DefaultDeduplicationService
         potentialDuplicateStore.moveRelationships( original.getUid(), duplicate.getUid(),
             mergeObject.getRelationships() );
         potentialDuplicateStore.removeTrackedEntity( duplicate );
+        updateTeiAndPotentialDuplicate( deduplicationMergeRequest, original );
+    }
+
+    private void updateTeiAndPotentialDuplicate( DeduplicationMergeRequest deduplicationMergeRequest,
+        TrackedEntityInstance original )
+    {
+        updateOriginalTei( original );
+        updatePotentialDuplicateStatus( deduplicationMergeRequest.getPotentialDuplicateUid() );
+    }
+
+    private void updatePotentialDuplicateStatus( String potentialDuplicateUid )
+    {
+        PotentialDuplicate potentialDuplicate = getPotentialDuplicateByUid( potentialDuplicateUid );
+        potentialDuplicate.setStatus( DeduplicationStatus.MERGED );
+        updatePotentialDuplicate( potentialDuplicate );
+    }
+
+    private void updateOriginalTei( TrackedEntityInstance original )
+    {
+        original.setLastUpdated( new Date() );
+        original.setLastUpdatedBy( currentUserService.getCurrentUser() );
+        trackedEntityInstanceService.updateTrackedEntityInstance( original );
     }
 
     private boolean sameAttributesAreEquals( Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA,
