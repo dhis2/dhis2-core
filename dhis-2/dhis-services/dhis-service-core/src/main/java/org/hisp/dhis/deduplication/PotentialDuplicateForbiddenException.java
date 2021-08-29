@@ -27,20 +27,20 @@
  */
 package org.hisp.dhis.deduplication;
 
-import java.util.List;
+import lombok.Getter;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class MergeObject
+/**
+ * @author Luca Cambi <luca@dhis2.org>
+ */
+@Getter
+@ResponseStatus( HttpStatus.FORBIDDEN )
+public class PotentialDuplicateForbiddenException extends RuntimeException
 {
-    private List<String> trackedEntityAttributes;
-
-    private List<String> relationships;
+    public PotentialDuplicateForbiddenException( String message )
+    {
+        super( message );
+    }
 }

@@ -27,20 +27,20 @@
  */
 package org.hisp.dhis.deduplication;
 
-import java.util.List;
-
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class MergeObject
+public class DeduplicationMergeRequest
 {
-    private List<String> trackedEntityAttributes;
+    private TrackedEntityInstance original;
 
-    private List<String> relationships;
+    private TrackedEntityInstance duplicate;
+
+    private MergeObject mergeObject;
+
+    private String potentialDuplicateUid;
 }

@@ -32,9 +32,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.util.Collections;
-import java.util.List;
-
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.deduplication.DeduplicationService;
@@ -47,7 +44,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.DeduplicationController;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
@@ -155,31 +151,6 @@ public class DeduplicationControllerTest
     }
 
     @Test
-    public void getPotentialDuplicateByTei()
-        throws NotFoundException,
-        BadRequestException,
-        OperationNotAllowedException
-    {
-        when( deduplicationService.getPotentialDuplicateByTei( eq( teiA ), any() ) )
-            .thenReturn( Collections.singletonList( new PotentialDuplicate( teiA, teiB ) ) );
-
-        List<PotentialDuplicate> pd = deduplicationController.getPotentialDuplicateByTei( teiA,
-            DeduplicationStatus.INVALID.name() );
-
-        assertEquals( 1, pd.size() );
-        verify( deduplicationService ).getPotentialDuplicateByTei( teiA, DeduplicationStatus.INVALID );
-    }
-
-    @Test( expected = BadRequestException.class )
-    public void shouldThrowGetPotentialDuplicateByTeiMissingStatus()
-        throws NotFoundException,
-        BadRequestException,
-        OperationNotAllowedException
-    {
-        deduplicationController.getPotentialDuplicateByTei( teiA, null );
-    }
-
-    @Test
     public void postPotentialDuplicate()
         throws OperationNotAllowedException,
         ConflictException,
@@ -220,9 +191,6 @@ public class DeduplicationControllerTest
     @Test
     public void postPotentialDuplicateInvalidUidTeiB()
     {
-        when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
-            Lists.newArrayList() );
-
         try
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, "invalid" ) );
