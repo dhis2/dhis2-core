@@ -261,6 +261,10 @@ public class DefaultHibernateConfigurationProvider
             ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN.getKey(), props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT ),
             ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_QUERY ),
+            ConfigurationKey.CONNECTION_POOL_TEST_QUERY.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_NUM_THREADS ),
+            ConfigurationKey.CONNECTION_POOL_NUM_THREADS.getKey(), props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ),
             ConfigurationKey.ENCRYPTION_PASSWORD.getKey(), props );
 
