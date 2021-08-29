@@ -34,7 +34,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 @Data
 @Builder
-public class DeduplicationMergeRequest
+public class DeduplicationMergeParams
 {
     private TrackedEntityInstance original;
 
@@ -42,5 +42,5 @@ public class DeduplicationMergeRequest
 
     private MergeObject mergeObject;
 
-    private String potentialDuplicateUid;
+    private PotentialDuplicate potentialDuplicate;
 }

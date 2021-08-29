@@ -47,7 +47,7 @@ public interface DeduplicationService
 
     void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
 
-    void autoMerge( DeduplicationMergeRequest deduplicationRequest );
+    void autoMerge( DeduplicationMergeParams deduplicationRequest );
 
-    void manualMerge( DeduplicationMergeRequest deduplicationRequest );
+    void manualMerge( DeduplicationMergeParams deduplicationRequest );
 }

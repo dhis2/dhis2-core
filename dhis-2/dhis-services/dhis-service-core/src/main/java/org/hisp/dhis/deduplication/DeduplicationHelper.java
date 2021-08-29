@@ -57,6 +57,11 @@ public class DeduplicationHelper
 
     private final OrganisationUnitService organisationUnitService;
 
+    public boolean hasInvalidReferences( DeduplicationMergeParams params )
+    {
+        return false;
+    }
+
     public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
         return null;

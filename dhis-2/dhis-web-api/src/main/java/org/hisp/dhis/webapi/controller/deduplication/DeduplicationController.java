@@ -40,13 +40,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.deduplication.DeduplicationMergeRequest;
-import org.hisp.dhis.deduplication.DeduplicationService;
-import org.hisp.dhis.deduplication.DeduplicationStatus;
-import org.hisp.dhis.deduplication.MergeObject;
-import org.hisp.dhis.deduplication.MergeStrategy;
-import org.hisp.dhis.deduplication.PotentialDuplicate;
-import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
+import org.hisp.dhis.deduplication.*;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.Node;
@@ -181,6 +175,11 @@ public class DeduplicationController
     {
         PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
 
+        if ( potentialDuplicate == null )
+        {
+            throw new NotFoundException( "PotentialDuplicate with uid '" + id + "' not found." );
+        }
+
         if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
         {
             throw new ConflictException( "PotentialDuplicate is missing references and cannot be merged." );
@@ -189,6 +188,9 @@ public class DeduplicationController
         TrackedEntityInstance original = getTei( potentialDuplicate.getTeiA() );
         TrackedEntityInstance duplicate = getTei( potentialDuplicate.getTeiB() );
 
+        /*
+         * We always treat the oldest tei as the original.
+         */
         if ( original.getCreated().after( duplicate.getCreated() ) )
         {
             TrackedEntityInstance t = original;
@@ -196,16 +198,27 @@ public class DeduplicationController
             duplicate = t;
         }
 
-        DeduplicationMergeRequest deduplicationRequest = DeduplicationMergeRequest.builder().potentialDuplicateUid( id )
-            .mergeObject( mergeObject ).original( original ).duplicate( duplicate ).build();
+        DeduplicationMergeParams params = DeduplicationMergeParams.builder()
+            .potentialDuplicate( potentialDuplicate )
+            .mergeObject( mergeObject )
+            .original( original )
+            .duplicate( duplicate )
+            .build();
 
-        if ( MergeStrategy.MANUAL.equals( mergeStrategy ) )
+        try
         {
-            deduplicationService.manualMerge( deduplicationRequest );
+            if ( MergeStrategy.MANUAL.equals( mergeStrategy ) )
+            {
+                deduplicationService.manualMerge( params );
+            }
+            else
+            {
+                deduplicationService.autoMerge( params );
+            }
         }
-        else
+        catch ( PotentialDuplicateConflictException ex )
         {
-            deduplicationService.autoMerge( deduplicationRequest );
+            throw new ConflictException( ex.getMessage() );
         }
     }
 
