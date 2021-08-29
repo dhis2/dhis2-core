@@ -120,7 +120,7 @@ public class DefaultDeduplicationService
     @Transactional
     public void manualMerge( DeduplicationMergeParams deduplicationMergeParams )
     {
-        if ( deduplicationHelper.hasInvalidReferences( deduplicationMergeParams ) )
+        if ( deduplicationHelper.hasInvalidReference( deduplicationMergeParams ) )
         {
             throw new PotentialDuplicateConflictException(
                 "The submitted payload contains invalid references and cannot be merged." );
@@ -238,4 +238,5 @@ public class DefaultDeduplicationService
     {
         potentialDuplicateStore.save( potentialDuplicate );
     }
+
 }
