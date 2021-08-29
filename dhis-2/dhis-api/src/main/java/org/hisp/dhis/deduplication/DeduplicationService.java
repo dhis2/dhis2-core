@@ -29,6 +29,8 @@ package org.hisp.dhis.deduplication;
 
 import java.util.List;
 
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+
 public interface DeduplicationService
 {
     PotentialDuplicate getPotentialDuplicateById( long id );
