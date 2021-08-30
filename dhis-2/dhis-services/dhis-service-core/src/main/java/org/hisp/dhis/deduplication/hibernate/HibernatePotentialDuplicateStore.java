@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
@@ -44,9 +43,6 @@ import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -231,93 +227,5 @@ public class HibernatePotentialDuplicateStore
     public void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance )
     {
         trackedEntityInstanceStore.delete( trackedEntityInstance );
-        // removeRelationships( trackedEntityInstance );
-        //
-        // removeTrackedEntityAttributeValues( trackedEntityInstance );
-        //
-        // if ( !trackedEntityInstance.getProgramInstances().isEmpty() ){
-        // Set<ProgramStageInstance> events =
-        // trackedEntityInstance.getProgramInstances()
-        // .stream()
-        // .flatMap( e -> e.getProgramStageInstances().stream() )
-        // .collect(Collectors.toSet());
-        // if (!events.isEmpty()){
-        // removeEvents( events );
-        // }
-        // removeEnrollments( trackedEntityInstance.getProgramInstances() );
-        // }
-        //
-        // removeTrackedEntityInstance( trackedEntityInstance );
-    }
-
-    private void removeEvents( Set<ProgramStageInstance> programStageInstances )
-    {
-        List<String> eventUids = programStageInstances
-            .stream()
-            .map( e -> e.getUid() )
-            .collect( Collectors.toList() );
-
-        String removeProgramStageInstancesSQL = "DELETE FROM programstageinstance " +
-            " WHERE uid in (:events) ";
-
-        getSession().createNativeQuery( removeProgramStageInstancesSQL )
-            .setParameter( "events", eventUids )
-            .executeUpdate();
-    }
-
-    private void removeEnrollments( Set<ProgramInstance> programInstances )
-    {
-        List<String> enrollmentUids = programInstances
-            .stream()
-            .map( e -> e.getUid() )
-            .collect( Collectors.toList() );
-
-        String removeProgramInstancesSQL = "DELETE FROM programinstance " +
-            " WHERE uid in (:enrollments) ";
-
-        getSession().createNativeQuery( removeProgramInstancesSQL )
-            .setParameter( "enrollments", enrollmentUids )
-            .executeUpdate();
-    }
-
-    private void removeTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
-    {
-        String removeTrackedEntityInstanceSQL = "DELETE FROM trackedentityinstance " +
-            "WHERE trackedentityinstanceid = (" +
-            "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
-            + ") ";
-
-        getSession().createNativeQuery( removeTrackedEntityInstanceSQL )
-            .setParameter( "duplicate", trackedEntityInstance.getUid() )
-            .executeUpdate();
-    }
-
-    private void removeTrackedEntityAttributeValues( TrackedEntityInstance trackedEntityInstance )
-    {
-        String removeTrackedEntityAttributeValueSQL = "DELETE FROM trackedentityattributevalue " +
-            "WHERE trackedentityinstanceid = (" +
-            "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
-            + ") ";
-
-        getSession().createNativeQuery( removeTrackedEntityAttributeValueSQL )
-            .setParameter( "duplicate", trackedEntityInstance.getUid() )
-            .executeUpdate();
-    }
-
-    private void removeRelationships( TrackedEntityInstance trackedEntityInstance )
-    {
-        List<Relationship> relationship = relationshipStore.getByTrackedEntityInstance( trackedEntityInstance );
-
-        relationship.forEach( r -> {
-            r.setFrom( null );
-            r.setTo( null );
-
-            relationshipStore.delete( r );
-        } );
-
-        // TODO This flush shouldn't be here. We might want to test if, at
-        // runtime, commit happens without it and in case move it at test
-        // level?.
-        getSession().flush();
     }
 }

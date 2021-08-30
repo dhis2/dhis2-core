@@ -208,8 +208,6 @@ public class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalInte
         assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( control1.getUid() ) );
         assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( control2.getUid() ) );
 
-        dbmsManager.clearSession();
-
         removeTrackedEntity( duplicate );
 
         assertNull( programInstanceService.getProgramInstance( programInstance2.getUid() ) );
