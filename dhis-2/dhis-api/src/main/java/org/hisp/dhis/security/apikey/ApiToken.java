@@ -53,28 +53,11 @@ public class ApiToken extends BaseIdentifiableObject implements MetadataObject
          */
     }
 
-    public enum ApiTokenType
-    {
-        PERSONAL_ACCESS_TOKEN( "d2p" );
-
-        private String prefix;
-
-        ApiTokenType( String prefix )
-        {
-            this.prefix = prefix;
-        }
-
-        public String getPrefix()
-        {
-            return prefix;
-        }
-    }
-
     private String key;
 
     private Integer version;
 
-    private Integer type;
+    private ApiTokenType type;
 
     private Long expire;
 
@@ -108,13 +91,13 @@ public class ApiToken extends BaseIdentifiableObject implements MetadataObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.INTEGER )
-    public Integer getType()
+    @Property( PropertyType.TEXT )
+    public ApiTokenType getType()
     {
         return type;
     }
 
-    public void setType( Integer type )
+    public void setType( ApiTokenType type )
     {
         this.type = type;
     }

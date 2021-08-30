@@ -52,6 +52,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.security.apikey.ApiTokenType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -141,7 +142,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
         validateBeforeCreate( apiToken );
 
         // We only make personal access tokens for now
-        apiToken.setType( ApiToken.ApiTokenType.PERSONAL_ACCESS_TOKEN.ordinal() );
+        apiToken.setType( ApiTokenType.PERSONAL_ACCESS_TOKEN );
         // Generate key and set default values
         apiTokenService.initToken( apiToken );
 

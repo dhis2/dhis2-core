@@ -84,7 +84,7 @@ public class ApiTokenServiceImplTest extends DhisSpringTest
     public ApiToken createAndSaveToken()
     {
         final ApiToken token = new ApiToken();
-        token.setType( ApiToken.ApiTokenType.PERSONAL_ACCESS_TOKEN.ordinal() );
+        token.setType( ApiTokenType.PERSONAL_ACCESS_TOKEN );
         final ApiToken object = apiTokenService.initToken( token );
         apiTokenStore.save( object );
 

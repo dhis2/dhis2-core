@@ -125,10 +125,8 @@ public class ApiTokenServiceImpl implements ApiTokenService
         Preconditions.checkNotNull( token );
         Preconditions.checkNotNull( token.getType() );
 
-        ApiToken.ApiTokenType tokenType = ApiToken.ApiTokenType.values()[token.getType()];
-
-        token.setType( tokenType.ordinal() );
         token.setVersion( 1 );
+
         if ( token.getExpire() == null )
         {
             token.setExpire( System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_IN_MILLIS );
@@ -143,9 +141,9 @@ public class ApiTokenServiceImpl implements ApiTokenService
         crc.update( bytes, 0, bytes.length );
         long checksumLong = crc.getValue();
 
-        token.setKey( String.format( "%s_%s%010d", tokenType.getPrefix(), randomSecureToken, checksumLong ) );
+        token.setKey( String.format( "%s_%s%010d", token.getType().getPrefix(), randomSecureToken, checksumLong ) );
 
-        Preconditions.checkArgument( token.getKey().length() == 46,
+        Preconditions.checkArgument( token.getKey().length() == 48,
             "Could not create new token, please try again." );
 
         return token;
