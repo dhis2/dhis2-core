@@ -80,7 +80,7 @@ public interface SystemSettingManager
     @SuppressWarnings( "unchecked" )
     default <T extends Serializable> T getSystemSetting( SettingKey key, Class<T> as )
     {
-        return (T) getSystemSetting( key, key.getDefaultValue() );
+        return as.cast( getSystemSetting( key, key.getDefaultValue() ) );
     }
 
     /**
