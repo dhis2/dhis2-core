@@ -28,6 +28,7 @@
 package org.hisp.dhis.deduplication;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
@@ -59,7 +60,40 @@ public class DeduplicationHelper
 
     public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
-        return null;
+        if ( duplicate == null )
+        {
+            return null;
+        }
+
+        MergeObject mergeObject = new MergeObject();
+
+        Set<String> existingTrackedEntityAttributes = original.getTrackedEntityAttributeValues().stream()
+            .map( teav -> teav.getAttribute().getUid() ).collect( Collectors.toSet() );
+
+        List<String> trackedEntityAttributes = duplicate.getTrackedEntityAttributeValues().stream()
+            .map( teav -> teav.getAttribute().getUid() )
+            .filter( tea -> !existingTrackedEntityAttributes.contains( tea ) )
+            .collect( Collectors.toList() );
+
+        if ( !trackedEntityAttributes.isEmpty() )
+        {
+            mergeObject.setTrackedEntityAttributes( trackedEntityAttributes );
+        }
+
+        Set<String> existingRelationships = original.getRelationshipItems().stream()
+            .map( rel -> rel.getTrackedEntityInstance().getUid() ).collect( Collectors.toSet() );
+
+        List<String> relationships = duplicate.getRelationshipItems().stream()
+            .map( ri -> ri.getTrackedEntityInstance().getUid() )
+            .filter( tei -> !existingRelationships.contains( tei ) && !original.getUid().equals( tei ) )
+            .collect( Collectors.toList() );
+
+        if ( !relationships.isEmpty() )
+        {
+            mergeObject.setRelationships( relationships );
+        }
+
+        return mergeObject;
     }
 
     public boolean hasUserAccess( TrackedEntityInstance original, TrackedEntityInstance duplicate,
