@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.datastatistics;
 
+import static java.util.Calendar.DATE;
+import static java.util.Calendar.MILLISECOND;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -44,6 +47,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,7 +152,13 @@ public class DefaultDataStatisticsService
     @Override
     public long saveDataStatisticsSnapshot()
     {
-        return saveDataStatistics( getDataStatisticsSnapshot( new Date() ) );
+        // This ensures we set a date in the format "2021-08-28 23:59:59.999".
+        // So the query will compare against the full day, instead of the
+        // default 2021-08-28 00:00:00.000.
+        Date day = DateUtils.calculateDateFrom( new Date(), 1, DATE );
+        day = DateUtils.calculateDateFrom( day, -1, MILLISECOND );
+
+        return saveDataStatistics( getDataStatisticsSnapshot( day ) );
     }
 
     @Override
