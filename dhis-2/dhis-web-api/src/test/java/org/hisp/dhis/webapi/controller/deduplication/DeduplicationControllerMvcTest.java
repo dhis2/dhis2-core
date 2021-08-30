@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Collections;
 import java.util.Date;
 
-import org.hisp.dhis.deduplication.DeduplicationMergeRequest;
+import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.MergeObject;
@@ -108,7 +108,7 @@ public class DeduplicationControllerMvcTest
     @InjectMocks
     private DeduplicationController deduplicationController;
 
-    private DeduplicationMergeRequest deduplicationMergeRequest;
+    private DeduplicationMergeParams deduplicationMergeParams;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -119,7 +119,8 @@ public class DeduplicationControllerMvcTest
     @Before
     public void setUp()
     {
-        deduplicationMergeRequest = DeduplicationMergeRequest.builder().potentialDuplicateUid( "uid" )
+        deduplicationMergeParams = DeduplicationMergeParams.builder()
+            .potentialDuplicate( new PotentialDuplicate( teiA, teiB ) )
             .original( trackedEntityInstanceA ).duplicate( trackedEntityInstanceB )
             .mergeObject( MergeObject.builder().build() ).build();
 
@@ -303,8 +304,8 @@ public class DeduplicationControllerMvcTest
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() );
 
-        verify( deduplicationService ).autoMerge( deduplicationMergeRequest );
-        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeRequest );
+        verify( deduplicationService ).autoMerge( deduplicationMergeParams );
+        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeParams );
     }
 
     @Test
@@ -329,8 +330,8 @@ public class DeduplicationControllerMvcTest
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() );
 
-        verify( deduplicationService, times( 0 ) ).autoMerge( deduplicationMergeRequest );
-        verify( deduplicationService ).manualMerge( deduplicationMergeRequest );
+        verify( deduplicationService, times( 0 ) ).autoMerge( deduplicationMergeParams );
+        verify( deduplicationService ).manualMerge( deduplicationMergeParams );
     }
 
     @Test
@@ -347,7 +348,7 @@ public class DeduplicationControllerMvcTest
         when( trackedEntityInstanceB.getCreated() ).thenReturn( new Date() );
 
         doThrow( new PotentialDuplicateForbiddenException( "Forbidden" ) ).when( deduplicationService )
-            .autoMerge( deduplicationMergeRequest );
+            .autoMerge( deduplicationMergeParams );
 
         MergeObject mergeObject = MergeObject.builder().build();
 
@@ -360,8 +361,8 @@ public class DeduplicationControllerMvcTest
             .andExpect(
                 result -> assertTrue( result.getResolvedException() instanceof PotentialDuplicateForbiddenException ) );
 
-        verify( deduplicationService ).autoMerge( deduplicationMergeRequest );
-        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeRequest );
+        verify( deduplicationService ).autoMerge( deduplicationMergeParams );
+        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeParams );
     }
 
     @Test
@@ -378,7 +379,7 @@ public class DeduplicationControllerMvcTest
         when( trackedEntityInstanceB.getCreated() ).thenReturn( new Date() );
 
         doThrow( new PotentialDuplicateConflictException( "Conflict" ) ).when( deduplicationService )
-            .autoMerge( deduplicationMergeRequest );
+            .autoMerge( deduplicationMergeParams );
 
         MergeObject mergeObject = MergeObject.builder().build();
 
@@ -391,7 +392,7 @@ public class DeduplicationControllerMvcTest
             .andExpect(
                 result -> assertTrue( result.getResolvedException() instanceof PotentialDuplicateConflictException ) );
 
-        verify( deduplicationService ).autoMerge( deduplicationMergeRequest );
-        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeRequest );
+        verify( deduplicationService ).autoMerge( deduplicationMergeParams );
+        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeParams );
     }
 }

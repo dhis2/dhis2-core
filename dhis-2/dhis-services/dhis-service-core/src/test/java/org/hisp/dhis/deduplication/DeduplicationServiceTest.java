@@ -83,11 +83,9 @@ public class DeduplicationServiceTest
     @Mock
     private CurrentUserService currentUserService;
 
-    private DeduplicationMergeRequest deduplicationMergeRequest;
+    private DeduplicationMergeParams deduplicationMergeParams;
 
     private PotentialDuplicate potentialDuplicate;
-
-    private static final String potentialDuplicateId = "uid";
 
     private static final String sexUid = "sexAttributUid";
 
@@ -106,7 +104,7 @@ public class DeduplicationServiceTest
     {
         potentialDuplicate = new PotentialDuplicate( "original", "duplicate" );
 
-        deduplicationMergeRequest = DeduplicationMergeRequest.builder().potentialDuplicateUid( potentialDuplicateId )
+        deduplicationMergeParams = DeduplicationMergeParams.builder().potentialDuplicate( potentialDuplicate )
             .original( trackedEntityInstanceA ).duplicate( trackedEntityInstanceB )
             .mergeObject( MergeObject.builder().build() ).build();
 
@@ -180,10 +178,7 @@ public class DeduplicationServiceTest
         when( deduplicationHelper.generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB ) )
             .thenReturn( mergeObject );
 
-        when( deduplicationService.getPotentialDuplicateByUid( deduplicationMergeRequest.getPotentialDuplicateUid() ) )
-            .thenReturn( potentialDuplicate );
-
-        deduplicationService.autoMerge( deduplicationMergeRequest );
+        deduplicationService.autoMerge( deduplicationMergeParams );
 
         verify( deduplicationHelper ).hasUserAccess( trackedEntityInstanceA, trackedEntityInstanceB, mergeObject );
         verify( deduplicationHelper ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );
@@ -209,7 +204,7 @@ public class DeduplicationServiceTest
 
         assertThrows(
             PotentialDuplicateConflictException.class,
-            () -> deduplicationService.autoMerge( deduplicationMergeRequest ) );
+            () -> deduplicationService.autoMerge( deduplicationMergeParams ) );
 
         verify( deduplicationHelper, times( 0 ) ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );
         verify( trackedEntityInstanceService, times( 0 ) ).updateTrackedEntityInstance( any() );
@@ -222,13 +217,13 @@ public class DeduplicationServiceTest
         when( trackedEntityInstanceA.isDeleted() ).thenReturn( true );
 
         assertThrows( PotentialDuplicateConflictException.class,
-            () -> deduplicationService.autoMerge( deduplicationMergeRequest ) );
+            () -> deduplicationService.autoMerge( deduplicationMergeParams ) );
 
         when( trackedEntityInstanceA.isDeleted() ).thenReturn( false );
         when( trackedEntityInstanceB.isDeleted() ).thenReturn( true );
 
         assertThrows( PotentialDuplicateConflictException.class,
-            () -> deduplicationService.autoMerge( deduplicationMergeRequest ) );
+            () -> deduplicationService.autoMerge( deduplicationMergeParams ) );
 
         verify( deduplicationHelper, times( 0 ) ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );
         verify( trackedEntityInstanceService, times( 0 ) ).updateTrackedEntityInstance( any() );
@@ -247,7 +242,7 @@ public class DeduplicationServiceTest
         when( programInstanceB.getProgram() ).thenReturn( program );
 
         assertThrows( PotentialDuplicateConflictException.class,
-            () -> deduplicationService.autoMerge( deduplicationMergeRequest ) );
+            () -> deduplicationService.autoMerge( deduplicationMergeParams ) );
 
         verify( deduplicationHelper, times( 0 ) ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );
         verify( trackedEntityInstanceService, times( 0 ) ).updateTrackedEntityInstance( any() );
@@ -268,7 +263,7 @@ public class DeduplicationServiceTest
             .thenReturn( new HashSet<>( Arrays.asList( sexAttributeValueB, nameAttributeValueB ) ) );
 
         assertThrows( PotentialDuplicateConflictException.class,
-            () -> deduplicationService.autoMerge( deduplicationMergeRequest ) );
+            () -> deduplicationService.autoMerge( deduplicationMergeParams ) );
 
         verify( deduplicationHelper, times( 0 ) ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );
         verify( trackedEntityInstanceService, times( 0 ) ).updateTrackedEntityInstance( any() );
@@ -287,7 +282,7 @@ public class DeduplicationServiceTest
             .thenReturn( false );
 
         assertThrows( PotentialDuplicateForbiddenException.class,
-            () -> deduplicationService.autoMerge( deduplicationMergeRequest ) );
+            () -> deduplicationService.autoMerge( deduplicationMergeParams ) );
 
         verify( deduplicationHelper ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );
         verify( deduplicationHelper ).hasUserAccess( trackedEntityInstanceA, trackedEntityInstanceB, mergeObject );
@@ -306,10 +301,7 @@ public class DeduplicationServiceTest
         when( deduplicationHelper.generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB ) )
             .thenReturn( mergeObject );
 
-        when( deduplicationService.getPotentialDuplicateByUid( deduplicationMergeRequest.getPotentialDuplicateUid() ) )
-            .thenReturn( potentialDuplicate );
-
-        deduplicationService.autoMerge( deduplicationMergeRequest );
+        deduplicationService.autoMerge( deduplicationMergeParams );
 
         verify( deduplicationHelper ).hasUserAccess( trackedEntityInstanceA, trackedEntityInstanceB, mergeObject );
         verify( deduplicationHelper ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );

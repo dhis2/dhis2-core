@@ -30,7 +30,6 @@ package org.hisp.dhis.deduplication;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -107,27 +106,35 @@ public class DefaultDeduplicationService
 
     @Override
     @Transactional
-    public void autoMerge( DeduplicationMergeRequest deduplicationMergeRequest )
+    public void autoMerge( DeduplicationMergeParams params )
     {
-        if ( !isAutoMergeable( deduplicationMergeRequest.getOriginal(), deduplicationMergeRequest.getDuplicate() ) )
-            throw new PotentialDuplicateConflictException( "Potential Duplicate is not automatically mergeable" );
+        if ( !isAutoMergeable( params.getOriginal(), params.getDuplicate() ) )
+            throw new PotentialDuplicateConflictException( "PotentialDuplicate can not be merged automatically." );
 
-        MergeObject mergeObject = deduplicationHelper.generateMergeObject( deduplicationMergeRequest.getOriginal(),
-            deduplicationMergeRequest.getDuplicate() );
-        deduplicationMergeRequest.setMergeObject( mergeObject );
-        merge( deduplicationMergeRequest );
+        params.setMergeObject( deduplicationHelper.generateMergeObject( params.getOriginal(), params.getDuplicate() ) );
+
+        merge( params );
     }
 
     @Override
-    public void manualMerge( DeduplicationMergeRequest deduplicationMergeRequest )
+    @Transactional
+    public void manualMerge( DeduplicationMergeParams deduplicationMergeParams )
     {
-        throw new RuntimeException( "Manual merge not yet implemented" );
+        if ( deduplicationHelper.hasInvalidReference( deduplicationMergeParams ) )
+        {
+            throw new PotentialDuplicateConflictException(
+                "The submitted payload contains invalid references and cannot be merged." );
+        }
+
+        merge( deduplicationMergeParams );
     }
 
     private boolean isAutoMergeable( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
         if ( enrolledSameProgram( original, duplicate ) )
+        {
             return false;
+        }
 
         if ( !original.getTrackedEntityType().equals( duplicate.getTrackedEntityType() ) )
         {
@@ -147,35 +154,35 @@ public class DefaultDeduplicationService
         return !sameAttributesAreEquals( trackedEntityAttributeValueA, trackedEntityAttributeValueB );
     }
 
-    private void merge( DeduplicationMergeRequest deduplicationMergeRequest )
+    private void merge( DeduplicationMergeParams deduplicationMergeParams )
     {
-        TrackedEntityInstance original = deduplicationMergeRequest.getOriginal();
-        TrackedEntityInstance duplicate = deduplicationMergeRequest.getDuplicate();
-        MergeObject mergeObject = deduplicationMergeRequest.getMergeObject();
+        TrackedEntityInstance original = deduplicationMergeParams.getOriginal();
+        TrackedEntityInstance duplicate = deduplicationMergeParams.getDuplicate();
+        MergeObject mergeObject = deduplicationMergeParams.getMergeObject();
 
         if ( !deduplicationHelper.hasUserAccess( original, duplicate, mergeObject ) )
-            throw new PotentialDuplicateForbiddenException( "No merging access for user" );
+            throw new PotentialDuplicateForbiddenException(
+                "You have insufficient access to merge the PotentialDuplicate." );
 
         potentialDuplicateStore.moveTrackedEntityAttributeValues( original.getUid(), duplicate.getUid(),
             mergeObject.getTrackedEntityAttributes() );
         potentialDuplicateStore.moveRelationships( original.getUid(), duplicate.getUid(),
             mergeObject.getRelationships() );
         potentialDuplicateStore.removeTrackedEntity( duplicate );
-        updateTeiAndPotentialDuplicate( deduplicationMergeRequest, original );
+        updateTeiAndPotentialDuplicate( deduplicationMergeParams, original );
     }
 
-    private void updateTeiAndPotentialDuplicate( DeduplicationMergeRequest deduplicationMergeRequest,
+    private void updateTeiAndPotentialDuplicate( DeduplicationMergeParams deduplicationMergeParams,
         TrackedEntityInstance original )
     {
         updateOriginalTei( original );
-        updatePotentialDuplicateStatus( deduplicationMergeRequest.getPotentialDuplicateUid() );
+        updatePotentialDuplicateStatus( deduplicationMergeParams.getPotentialDuplicate() );
     }
 
-    private void updatePotentialDuplicateStatus( String potentialDuplicateUid )
+    private void updatePotentialDuplicateStatus( PotentialDuplicate potentialDuplicate )
     {
-        PotentialDuplicate potentialDuplicate = getPotentialDuplicateByUid( potentialDuplicateUid );
         potentialDuplicate.setStatus( DeduplicationStatus.MERGED );
-        updatePotentialDuplicate( potentialDuplicate );
+        potentialDuplicateStore.update( potentialDuplicate );
     }
 
     private void updateOriginalTei( TrackedEntityInstance original )
@@ -230,36 +237,6 @@ public class DefaultDeduplicationService
     public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
         potentialDuplicateStore.save( potentialDuplicate );
-    }
-
-    @Override
-    public boolean hasInvalidReference( TrackedEntityInstance original, TrackedEntityInstance duplicate,
-        MergeObject mergeObject )
-    {
-
-        Set<String> validTrackedEntityAttributes = duplicate.getTrackedEntityAttributeValues().stream()
-            .map( teav -> teav.getAttribute().getUid() ).collect( Collectors.toSet() );
-
-        Set<String> validRelationships = duplicate.getRelationshipItems().stream()
-            .map( rel -> rel.getTrackedEntityInstance().getUid() ).collect( Collectors.toSet() );
-
-        for ( String tea : mergeObject.getTrackedEntityAttributes() )
-        {
-            if ( !validTrackedEntityAttributes.contains( tea ) )
-            {
-                return true;
-            }
-        }
-
-        for ( String rel : mergeObject.getRelationships() )
-        {
-            if ( original.getUid().equals( rel ) || !validRelationships.contains( rel ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
 }
