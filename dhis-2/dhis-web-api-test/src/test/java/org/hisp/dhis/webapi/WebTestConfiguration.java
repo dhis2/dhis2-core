@@ -76,6 +76,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
@@ -83,7 +84,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
-import org.springframework.security.core.session.SessionRegistryImpl;
 
 import com.google.common.collect.ImmutableMap;
 
