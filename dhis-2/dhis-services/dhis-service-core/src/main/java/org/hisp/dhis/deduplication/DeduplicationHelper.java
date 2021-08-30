@@ -27,19 +27,23 @@
  */
 package org.hisp.dhis.deduplication;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -60,33 +64,22 @@ public class DeduplicationHelper
 
     public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
-        if ( duplicate == null )
+        if ( !duplicate.getTrackedEntityType().equals( original.getTrackedEntityType() ) )
         {
-            return null;
+            throw new PotentialDuplicateForbiddenException(
+                "Potentical Duplicate does not have the same tracked entity type as the original" );
         }
 
         MergeObject mergeObject = new MergeObject();
 
-        Set<String> existingTrackedEntityAttributes = original.getTrackedEntityAttributeValues().stream()
-            .map( teav -> teav.getAttribute().getUid() ).collect( Collectors.toSet() );
+        List<String> attributes = getMergeableAttributes( original, duplicate );
 
-        List<String> trackedEntityAttributes = duplicate.getTrackedEntityAttributeValues().stream()
-            .map( teav -> teav.getAttribute().getUid() )
-            .filter( tea -> !existingTrackedEntityAttributes.contains( tea ) )
-            .collect( Collectors.toList() );
+        List<String> relationships = getMergeableRelationships( original, duplicate );
 
-        if ( !trackedEntityAttributes.isEmpty() )
+        if ( !attributes.isEmpty() )
         {
-            mergeObject.setTrackedEntityAttributes( trackedEntityAttributes );
+            mergeObject.setTrackedEntityAttributes( attributes );
         }
-
-        Set<String> existingRelationships = original.getRelationshipItems().stream()
-            .map( rel -> rel.getTrackedEntityInstance().getUid() ).collect( Collectors.toSet() );
-
-        List<String> relationships = duplicate.getRelationshipItems().stream()
-            .map( ri -> ri.getTrackedEntityInstance().getUid() )
-            .filter( tei -> !existingRelationships.contains( tei ) && !original.getUid().equals( tei ) )
-            .collect( Collectors.toList() );
 
         if ( !relationships.isEmpty() )
         {
@@ -139,5 +132,71 @@ public class DeduplicationHelper
         }
 
         return true;
+    }
+
+    private List<String> getMergeableAttributes( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    {
+        Map<String, String> existingTeavs = original.getTrackedEntityAttributeValues().stream()
+            .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), TrackedEntityAttributeValue::getValue ) );
+
+        List<String> attributes = new ArrayList<>();
+
+        for ( TrackedEntityAttributeValue teav : duplicate.getTrackedEntityAttributeValues() )
+        {
+            String existingVal = existingTeavs.get( teav.getAttribute().getUid() );
+
+            if ( existingVal != null )
+            {
+                if ( !existingVal.equals( teav.getValue() ) )
+                {
+                    throw new PotentialDuplicateConflictException(
+                        "Potential Duplicate contains conflicting value and cannot be merged." );
+                }
+            }
+            else
+            {
+                attributes.add( teav.getAttribute().getUid() );
+            }
+        }
+
+        return attributes;
+    }
+
+    private List<String> getMergeableRelationships( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    {
+        Map<String, Relationship> existingRelationships = original.getRelationshipItems().stream()
+            .collect( Collectors.toMap( ri -> ri.getRelationship().getUid(), RelationshipItem::getRelationship ) );
+
+        List<String> relationships = new ArrayList<>();
+
+        for ( RelationshipItem ri : duplicate.getRelationshipItems() )
+        {
+            Relationship existing = existingRelationships.get( ri.getRelationship().getUid() );
+
+            if ( existing != null )
+            {
+                if ( !existing.equals( ri.getRelationship() ) )
+                {
+                    throw new PotentialDuplicateConflictException(
+                        "Potential Duplicate contains conflicting reference and cannot be merged." );
+                }
+            }
+            else
+            {
+                TrackedEntityInstance from = ri.getRelationship().getFrom().getTrackedEntityInstance();
+                TrackedEntityInstance to = ri.getRelationship().getTo().getTrackedEntityInstance();
+
+                if ( (from != null && from.getUid().equals( original.getUid() ))
+                    || (to != null && to.getUid().equals( original.getUid() )) )
+                {
+                    throw new PotentialDuplicateConflictException(
+                        "Potential Duplicate leads to self reference." );
+                }
+
+                relationships.add( ri.getRelationship().getUid() );
+            }
+        }
+
+        return relationships;
     }
 }
