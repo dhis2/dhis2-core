@@ -144,6 +144,8 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
         // Validate input values is ok
         validateBeforeCreate( apiToken );
 
+        // We only make personal access tokens for now
+        apiToken.setType( ApiToken.ApiTokenType.PERSONAL_ACCESS_TOKEN.ordinal() );
         // Generate key and set default values
         apiTokenService.initToken( apiToken );
 

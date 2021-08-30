@@ -53,6 +53,23 @@ public class ApiToken extends BaseIdentifiableObject implements MetadataObject
          */
     }
 
+    public enum ApiTokenType
+    {
+        PERSONAL_ACCESS_TOKEN( "d2p" );
+
+        private String prefix;
+
+        ApiTokenType( String prefix )
+        {
+            this.prefix = prefix;
+        }
+
+        public String getPrefix()
+        {
+            return prefix;
+        }
+    }
+
     private String key;
 
     private Integer version;

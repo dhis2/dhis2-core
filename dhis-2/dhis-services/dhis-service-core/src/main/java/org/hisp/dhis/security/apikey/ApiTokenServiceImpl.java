@@ -121,24 +121,28 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     public ApiToken initToken( ApiToken token )
     {
-        String randomSecureToken = getRandomSecureToken( 24 ).replaceAll( "[-_]", "x" );
+        Preconditions.checkNotNull( token );
+        Preconditions.checkNotNull( token.getType() );
 
-        CRC32 crc = new CRC32();
-        byte[] bytes = randomSecureToken.getBytes();
-        crc.update( bytes, 0, bytes.length );
-        long checksum = crc.getValue();
+        ApiToken.ApiTokenType tokenType = ApiToken.ApiTokenType.values()[token.getType()];
 
-        randomSecureToken = "d2p_" + randomSecureToken + checksum;
-
-        token.setKey( randomSecureToken );
-
+        token.setType( tokenType.ordinal() );
+        token.setVersion( 1 );
         if ( token.getExpire() == null )
         {
             token.setExpire( System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_IN_MILLIS );
         }
 
-        token.setVersion( 1 );
-        token.setType( 1 );
+        String randomSecureToken = getRandomSecureToken( 24 ).replaceAll( "[-_]", "x" );
+        byte[] bytes = randomSecureToken.getBytes();
+        CRC32 crc = new CRC32();
+        crc.update( bytes, 0, bytes.length );
+        long checksum = crc.getValue();
+
+        token.setKey( tokenType.getPrefix() + "_" + randomSecureToken + checksum );
+
+        // Double check that token has valid length
+        Preconditions.checkArgument( token.getKey().length() == 46, "Could not create new token, please try again." );
 
         return token;
     }
