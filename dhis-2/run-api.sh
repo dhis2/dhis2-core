@@ -46,5 +46,5 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   exit 0;
 fi
 
-mvn clean install -o -Pdev -Pjdk11 -T 100C -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
+mvn clean install -Pdev -Pjdk11 -T 100C -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
 java -Ddhis2.home=$DHIS2_HOME -Djetty.host=$DHIS2_HOSTNAME -Djetty.http.port=$DHIS2_PORT -jar ./dhis-web-embedded-jetty/target/dhis-web-embedded-jetty.jar
