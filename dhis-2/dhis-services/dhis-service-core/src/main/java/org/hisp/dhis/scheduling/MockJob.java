@@ -33,8 +33,7 @@ import org.springframework.stereotype.Component;
  * @author Henning Håkonsen
  */
 @Component( "mockJob" )
-public class MockJob
-    extends AbstractJob
+public class MockJob implements Job
 {
     @Override
     public JobType getJobType()

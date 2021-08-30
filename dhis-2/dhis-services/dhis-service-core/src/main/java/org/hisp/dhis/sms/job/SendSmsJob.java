@@ -33,7 +33,7 @@ import java.util.HashSet;
 
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
@@ -45,8 +45,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component( "sendSmsJob" )
-public class SendSmsJob
-    extends AbstractJob
+public class SendSmsJob implements Job
 {
     private final MessageSender smsSender;
 

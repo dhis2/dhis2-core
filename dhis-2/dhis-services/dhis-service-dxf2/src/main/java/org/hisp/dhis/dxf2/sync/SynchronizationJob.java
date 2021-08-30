@@ -33,12 +33,12 @@ import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public abstract class SynchronizationJob extends AbstractJob
+public abstract class SynchronizationJob implements Job
 {
     protected Optional<ErrorReport> validateRemoteServerAvailability( SynchronizationManager synchronizationManager,
         Class<?> klass )
