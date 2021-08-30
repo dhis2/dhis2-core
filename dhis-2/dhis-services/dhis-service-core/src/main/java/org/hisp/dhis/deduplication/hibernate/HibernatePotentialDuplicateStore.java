@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
@@ -43,10 +44,13 @@ import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -59,13 +63,16 @@ public class HibernatePotentialDuplicateStore
 {
     private RelationshipStore relationshipStore;
 
+    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        RelationshipStore relationshipStore )
+        RelationshipStore relationshipStore, TrackedEntityInstanceStore trackedEntityInstanceStore )
     {
         super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
         this.relationshipStore = relationshipStore;
+        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
     }
 
     @Override
@@ -203,13 +210,74 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
+    public void moveEnrollments( String originalUid, String duplicateUid, List<String> enrollments )
+    {
+        String moveEnrollmentsSQL = "UPDATE programinstance "
+            + "SET trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
+            + ") WHERE trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
+            + ") AND uid IN (:enrollments)";
+
+        getSession()
+            .createNativeQuery( moveEnrollmentsSQL )
+            .setParameter( "original", originalUid )
+            .setParameter( "duplicate", duplicateUid )
+            .setParameterList( "enrollments", enrollments )
+            .executeUpdate();
+    }
+
+    @Override
     public void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance )
     {
-        removeRelationships( trackedEntityInstance );
+        trackedEntityInstanceStore.delete( trackedEntityInstance );
+        // removeRelationships( trackedEntityInstance );
+        //
+        // removeTrackedEntityAttributeValues( trackedEntityInstance );
+        //
+        // if ( !trackedEntityInstance.getProgramInstances().isEmpty() ){
+        // Set<ProgramStageInstance> events =
+        // trackedEntityInstance.getProgramInstances()
+        // .stream()
+        // .flatMap( e -> e.getProgramStageInstances().stream() )
+        // .collect(Collectors.toSet());
+        // if (!events.isEmpty()){
+        // removeEvents( events );
+        // }
+        // removeEnrollments( trackedEntityInstance.getProgramInstances() );
+        // }
+        //
+        // removeTrackedEntityInstance( trackedEntityInstance );
+    }
 
-        removeTrackedEntityAttributeValues( trackedEntityInstance );
+    private void removeEvents( Set<ProgramStageInstance> programStageInstances )
+    {
+        List<String> eventUids = programStageInstances
+            .stream()
+            .map( e -> e.getUid() )
+            .collect( Collectors.toList() );
 
-        removeTrackedEntityInstance( trackedEntityInstance );
+        String removeProgramStageInstancesSQL = "DELETE FROM programstageinstance " +
+            " WHERE uid in (:events) ";
+
+        getSession().createNativeQuery( removeProgramStageInstancesSQL )
+            .setParameter( "events", eventUids )
+            .executeUpdate();
+    }
+
+    private void removeEnrollments( Set<ProgramInstance> programInstances )
+    {
+        List<String> enrollmentUids = programInstances
+            .stream()
+            .map( e -> e.getUid() )
+            .collect( Collectors.toList() );
+
+        String removeProgramInstancesSQL = "DELETE FROM programinstance " +
+            " WHERE uid in (:enrollments) ";
+
+        getSession().createNativeQuery( removeProgramInstancesSQL )
+            .setParameter( "enrollments", enrollmentUids )
+            .executeUpdate();
     }
 
     private void removeTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )

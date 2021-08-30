@@ -43,4 +43,6 @@ public class MergeObject
     private List<String> trackedEntityAttributes;
 
     private List<String> relationships;
+
+    private List<String> enrollments;
 }
