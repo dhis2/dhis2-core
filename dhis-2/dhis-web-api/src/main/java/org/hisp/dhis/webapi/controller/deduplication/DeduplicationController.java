@@ -175,7 +175,7 @@ public class DeduplicationController
     public void mergePotentialDuplicate(
         @PathVariable String id,
         @RequestParam( defaultValue = "MANUAL" ) MergeStrategy mergeStrategy,
-        @RequestBody MergeObject mergeObject )
+        @RequestBody( required = false ) MergeObject mergeObject )
         throws NotFoundException,
         ConflictException
     {
@@ -198,6 +198,14 @@ public class DeduplicationController
             original = duplicate;
             duplicate = t;
         }
+
+        if ( mergeObject == null )
+        {
+            mergeObject = new MergeObject();
+        }
+
+        // This sets collections to empty lists if no lists are defined.
+        mergeObject.init();
 
         DeduplicationMergeParams params = DeduplicationMergeParams.builder()
             .potentialDuplicate( potentialDuplicate )
