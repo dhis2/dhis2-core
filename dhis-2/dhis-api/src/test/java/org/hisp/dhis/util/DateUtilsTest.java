@@ -88,7 +88,12 @@ public class DateUtilsTest
     @Test
     public void testDateTimeIsValid()
     {
+        assertTrue( dateTimeIsValid( "2021-08-30T13:35:18.985541Z" ) );
+        assertTrue( dateTimeIsValid( "2021-08-30T13:35:18.985541" ) );
+        assertTrue( dateTimeIsValid( "2021-08-30T13:35:18.8712Z" ) );
+        assertTrue( dateTimeIsValid( "2021-08-30T13:35:18.8712" ) );
         assertTrue( dateTimeIsValid( "2000-01-01T10:00:00.000Z" ) );
+        assertTrue( dateTimeIsValid( "2021-08-30T13:35:18.985" ) );
         assertTrue( dateTimeIsValid( "2000-01-01T10:00:00.000+05:30" ) );
         assertTrue( dateTimeIsValid( "2000-01-01T10:00:00Z" ) );
         assertTrue( dateTimeIsValid( "2000-01-01T10:00:00+05:30" ) );
