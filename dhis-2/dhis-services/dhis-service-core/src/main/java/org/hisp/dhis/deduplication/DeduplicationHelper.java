@@ -70,20 +70,19 @@ public class DeduplicationHelper
                 "Potentical Duplicate does not have the same tracked entity type as the original" );
         }
 
-        MergeObject mergeObject = new MergeObject();
-
         List<String> attributes = getMergeableAttributes( original, duplicate );
 
         List<String> relationships = getMergeableRelationships( original, duplicate );
 
-        if ( !attributes.isEmpty() )
-        {
-            mergeObject.setTrackedEntityAttributes( attributes );
-        }
+        MergeObject mergeObject = MergeObject.builder()
+            .trackedEntityAttributes( attributes )
+            .relationships( relationships )
+            .build();
 
-        if ( !relationships.isEmpty() )
+        if ( mergeObject.getTrackedEntityAttributes().isEmpty() && mergeObject.getRelationships().isEmpty() )
         {
-            mergeObject.setRelationships( relationships );
+            throw new PotentialDuplicateNullException(
+                "Potentical Duplicate is null hence nothing to merge" );
         }
 
         return mergeObject;
@@ -190,7 +189,7 @@ public class DeduplicationHelper
                     || (to != null && to.getUid().equals( original.getUid() )) )
                 {
                     throw new PotentialDuplicateConflictException(
-                        "Potential Duplicate leads to self reference." );
+                        "Potential Duplicate leads to self reference and cannot be merged" );
                 }
 
                 relationships.add( ri.getRelationship().getUid() );

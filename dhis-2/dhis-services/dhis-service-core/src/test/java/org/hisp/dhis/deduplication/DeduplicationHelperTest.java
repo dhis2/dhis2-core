@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.deduplication;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +40,7 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
@@ -45,6 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.junit.Before;
@@ -228,6 +232,121 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         assertFalse( hasUserAccess );
     }
 
+    @Test( expected = PotentialDuplicateForbiddenException.class )
+    public void shouldFailGenerateMergeObjectDifferentTrackedEntityType()
+    {
+        deduplicationHelper.generateMergeObject( getTeiA(), getTeiB() );
+    }
+
+    @Test( expected = PotentialDuplicateConflictException.class )
+    public void shouldFailGenerateMergeObjectConflictingValue()
+    {
+        TrackedEntityInstance original = getTeiA();
+
+        TrackedEntityAttributeValue attributeValueOriginal = new TrackedEntityAttributeValue();
+        attributeValueOriginal.setAttribute( attribute );
+        attributeValueOriginal.setEntityInstance( original );
+        attributeValueOriginal.setValue( "Attribute-Original" );
+
+        original.getTrackedEntityAttributeValues().add( attributeValueOriginal );
+
+        TrackedEntityInstance duplicate = getTeiA();
+
+        TrackedEntityAttributeValue attributeValueDuplicate = new TrackedEntityAttributeValue();
+        attributeValueDuplicate.setAttribute( attribute );
+        attributeValueDuplicate.setEntityInstance( duplicate );
+        attributeValueDuplicate.setValue( "Attribute-Duplicate" );
+
+        duplicate.getTrackedEntityAttributeValues().add( attributeValueDuplicate );
+
+        deduplicationHelper.generateMergeObject( original, duplicate );
+    }
+
+    @Test( expected = PotentialDuplicateNullException.class )
+    public void shouldFailGenerateMergeObjectNull()
+    {
+        TrackedEntityInstance original = getTeiA();
+
+        TrackedEntityAttributeValue attributeValueOriginal = new TrackedEntityAttributeValue();
+        attributeValueOriginal.setAttribute( attribute );
+        attributeValueOriginal.setEntityInstance( original );
+        attributeValueOriginal.setValue( "Attribute-Original" );
+
+        original.getTrackedEntityAttributeValues().add( attributeValueOriginal );
+
+        deduplicationHelper.generateMergeObject( original, original );
+    }
+
+    @Test
+    public void shoudGenerateMergeObjectForAttribute()
+    {
+        TrackedEntityInstance original = getTeiA();
+
+        TrackedEntityAttributeValue attributeValueOriginal = new TrackedEntityAttributeValue();
+        attributeValueOriginal.setAttribute( attribute );
+        attributeValueOriginal.setEntityInstance( original );
+        attributeValueOriginal.setValue( "Attribute-Original" );
+
+        original.getTrackedEntityAttributeValues().add( attributeValueOriginal );
+
+        TrackedEntityInstance duplicate = getTeiA();
+
+        TrackedEntityAttributeValue attributeValueDuplicate = new TrackedEntityAttributeValue();
+        TrackedEntityAttribute duplicateAttribute = createTrackedEntityAttribute( 'B' );
+        attributeValueDuplicate.setAttribute( duplicateAttribute );
+        attributeValueDuplicate.setEntityInstance( duplicate );
+        attributeValueDuplicate.setValue( "Attribute-Duplicate" );
+
+        duplicate.getTrackedEntityAttributeValues().add( attributeValueDuplicate );
+
+        MergeObject mergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
+
+        assertFalse( mergeObject.getTrackedEntityAttributes().isEmpty() );
+
+        mergeObject.getTrackedEntityAttributes().forEach( a -> assertEquals( duplicateAttribute.getUid(), a ) );
+    }
+
+    @Test
+    public void testMergeObjectRelationship()
+    {
+        TrackedEntityInstance original = getTeiA();
+
+        TrackedEntityInstance another = getTeiA();
+
+        TrackedEntityInstance duplicate = getTeiA();
+
+        Relationship anotherBaseRelationship = getRelationship();
+
+        RelationshipItem relationshipItemAnotherTo = getRelationshipItem( anotherBaseRelationship, another );
+        RelationshipItem relationshipItemAnotherFrom = getRelationshipItem( anotherBaseRelationship, duplicate );
+
+        Relationship anotherRelationship = getRelationship( relationshipItemAnotherTo, relationshipItemAnotherFrom );
+        RelationshipItem anotherRelationshipItem = getRelationshipItem( anotherRelationship, duplicate );
+
+        duplicate.getRelationshipItems().add( anotherRelationshipItem );
+
+        MergeObject mergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
+
+        assertTrue( mergeObject.getTrackedEntityAttributes().isEmpty() );
+
+        assertFalse( mergeObject.getRelationships().isEmpty() );
+
+        mergeObject.getRelationships().forEach( r -> assertEquals( anotherRelationship.getUid(), r ) );
+
+        Relationship baseRelationship = getRelationship();
+
+        RelationshipItem relationshipItemTo = getRelationshipItem( baseRelationship, original );
+        RelationshipItem relationshipItemFrom = getRelationshipItem( baseRelationship, duplicate );
+
+        Relationship relationship = getRelationship( relationshipItemTo, relationshipItemFrom );
+        RelationshipItem relationshipItem = getRelationshipItem( relationship, duplicate );
+
+        duplicate.getRelationshipItems().add( relationshipItem );
+
+        assertThrows( PotentialDuplicateConflictException.class,
+            () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
+    }
+
     private List<Relationship> getRelationships()
     {
         Relationship relationshipA = new Relationship();
@@ -260,5 +379,33 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     private User getNoMergeAuthsUser()
     {
         return createUser( 'A', Lists.newArrayList( "USELESS_AUTH" ) );
+    }
+
+    private Relationship getRelationship()
+    {
+        Relationship relationship = new Relationship();
+        relationship.setAutoFields();
+        relationship.setRelationshipType( relationshipType );
+
+        return relationship;
+    }
+
+    private Relationship getRelationship( RelationshipItem to, RelationshipItem from )
+    {
+        Relationship relationship = getRelationship();
+        relationship.setTo( to );
+        relationship.setFrom( from );
+
+        return relationship;
+    }
+
+    private RelationshipItem getRelationshipItem( Relationship relationship,
+        TrackedEntityInstance trackedEntityInstance )
+    {
+        RelationshipItem relationshipItem = new RelationshipItem();
+        relationshipItem.setRelationship( relationship );
+        relationshipItem.setTrackedEntityInstance( trackedEntityInstance );
+
+        return relationshipItem;
     }
 }
