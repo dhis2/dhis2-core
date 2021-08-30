@@ -28,6 +28,7 @@
 package org.hisp.dhis.deduplication.hibernate;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,13 +38,21 @@ import java.util.stream.Collectors;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
+import org.hisp.dhis.deduplication.MergeObject;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -57,15 +66,18 @@ public class HibernatePotentialDuplicateStore
     extends HibernateIdentifiableObjectStore<PotentialDuplicate>
     implements PotentialDuplicateStore
 {
-    private RelationshipStore relationshipStore;
+    private final RelationshipStore relationshipStore;
+
+    private final AuditManager auditManager;
 
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        RelationshipStore relationshipStore )
+        RelationshipStore relationshipStore, AuditManager auditManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
         this.relationshipStore = relationshipStore;
+        this.auditManager = auditManager;
     }
 
     @Override
@@ -251,5 +263,46 @@ public class HibernatePotentialDuplicateStore
         // runtime, commit happens without it and in case move it at test
         // level?.
         getSession().flush();
+    }
+
+    @Override
+    public void auditMerge( DeduplicationMergeParams params )
+    {
+        TrackedEntityInstance original = params.getOriginal();
+        TrackedEntityInstance duplicate = params.getDuplicate();
+        MergeObject mergeObject = params.getMergeObject();
+
+        auditManager.send( Audit.builder()
+            .auditScope( AuditScope.TRACKER )
+            .auditType( AuditType.UPDATE )
+            .createdAt( LocalDateTime.now() )
+            .object( original )
+            .uid( original.getUid() )
+            .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, original ) )
+            .build() );
+
+        mergeObject.getRelationships().forEach( rel -> {
+            duplicate.getRelationshipItems().stream()
+                .map( RelationshipItem::getRelationship )
+                .filter( r -> r.getUid().equals( rel ) )
+                .findAny()
+                .ifPresent( relationship -> auditManager.send( Audit.builder()
+                    .auditScope( AuditScope.TRACKER )
+                    .auditType( AuditType.UPDATE )
+                    .createdAt( LocalDateTime.now() )
+                    .object( relationship )
+                    .uid( rel )
+                    .auditableEntity( new AuditableEntity( Relationship.class, relationship ) )
+                    .build() ) );
+        } );
+
+        auditManager.send( Audit.builder()
+            .auditScope( AuditScope.TRACKER )
+            .auditType( AuditType.DELETE )
+            .createdAt( LocalDateTime.now() )
+            .object( duplicate )
+            .uid( duplicate.getUid() )
+            .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, duplicate ) )
+            .build() );
     }
 }

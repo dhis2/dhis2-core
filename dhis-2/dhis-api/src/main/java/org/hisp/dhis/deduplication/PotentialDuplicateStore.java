@@ -47,4 +47,6 @@ public interface PotentialDuplicateStore
     void moveRelationships( String originalUid, String duplicateUid, List<String> relationships );
 
     void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance );
+
+    void auditMerge( DeduplicationMergeParams params );
 }
