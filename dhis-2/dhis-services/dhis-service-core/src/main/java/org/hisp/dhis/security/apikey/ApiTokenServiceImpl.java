@@ -119,6 +119,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
         // Invalidate cache here or let cache expire ?
     }
 
+    @Override
     public ApiToken initToken( ApiToken token )
     {
         Preconditions.checkNotNull( token );

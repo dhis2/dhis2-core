@@ -343,6 +343,7 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private SessionRegistry sessionRegistry;
 
+        @Override
         public void configure( AuthenticationManagerBuilder auth )
         {
             auth.authenticationProvider( customLdapAuthenticationProvider );
@@ -393,6 +394,7 @@ public class DhisWebApiWebSecurityConfig
          * This method configures almost everything security related to /api
          * endpoints
          */
+        @Override
         protected void configure( HttpSecurity http )
             throws Exception
         {
