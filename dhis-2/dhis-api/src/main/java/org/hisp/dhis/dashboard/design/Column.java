@@ -25,22 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.dashboard.design;
 
-import org.hisp.dhis.feedback.ErrorReport;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
+import java.io.Serializable;
+
+import lombok.Data;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * All jobs related to the system extends AbstractJob and can override the
- * validate method.
+ * Represents a column in the context of a layout.
  *
- * @author Henning Håkonsen
+ * @author maikel arabori
  */
-public abstract class AbstractJob
-    implements Job
+@Data
+public class Column implements Serializable
 {
-    @Override
-    public ErrorReport validate()
-    {
-        return null;
-    }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private Integer index;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private Integer span;
 }

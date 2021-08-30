@@ -34,8 +34,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.render.RenderService;
@@ -81,7 +79,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testCreate()
-        throws IOException
     {
         final JsonObject jsonObject = assertApiTokenCreatedResponse(
             POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/", "{}" ) );
@@ -90,7 +87,8 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
         final String key = jsonObject.getString( "key" ).string();
 
         assertNotNull( uid );
-        assertEquals( 128, key.length() );
+
+        assertEquals( 46, key.length() );
 
         final ApiToken token = fetchAsEntity( uid );
 
@@ -99,7 +97,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testCreateApiToken()
-        throws IOException
     {
         final String uid = createNewTokenWithAttributes();
 
@@ -149,7 +146,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testPatchApiTokenIntegerProperty()
-        throws IOException
     {
         final String uid = createNewTokenWithAttributes();
 
@@ -166,7 +162,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testPatchApiTokenAttributesProperty()
-        throws IOException
     {
         final String uid = createNewTokenWithAttributes();
 
@@ -188,7 +183,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testCantModifyKeyPatch()
-        throws IOException
     {
         final ApiToken newToken = createNewEmptyToken();
 
@@ -213,7 +207,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testCantAddInvalidIpPut()
-        throws IOException
     {
         final ApiToken token = createNewEmptyToken();
         token.addIpToAllowedList( "X.1.1.1" );
@@ -226,7 +219,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testCantAddInvalidIpPatch()
-        throws IOException
     {
         final ApiToken token = createNewEmptyToken();
 
@@ -261,7 +253,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testCanModifyWithPut()
-        throws IOException
     {
         final ApiToken newToken = createNewEmptyToken();
 
@@ -295,7 +286,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testCantModifyKeyPut()
-        throws IOException
     {
         final ApiToken newToken = createNewEmptyToken();
 
@@ -313,7 +303,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testCantModifyOthers()
-        throws IOException
     {
         final ApiToken newToken = createNewEmptyToken();
 
@@ -329,7 +318,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testDelete()
-        throws IOException
     {
         final ApiToken newToken = createNewEmptyToken();
 
@@ -342,7 +330,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testCantDeleteOtherTokens()
-        throws IOException
     {
         final ApiToken newToken = createNewEmptyToken();
 
@@ -363,7 +350,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     @Test
     public void testCreateAndFetchWithAnotherUser()
-        throws IOException
     {
         final ApiToken newToken = createNewEmptyToken();
 
@@ -378,7 +364,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
     }
 
     private ApiToken createNewEmptyToken()
-        throws IOException
     {
         final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/", "{}" );
         final String uid = assertStatus( HttpStatus.CREATED,
@@ -399,15 +384,6 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
     private ApiToken fetchAsEntity( String uid )
     {
         return apiTokenService.getWithUid( uid );
-    }
-
-    private ApiToken fetchDeserialize( String uid )
-        throws IOException
-    {
-        final String json = GET( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{uid}", uid )
-            .content().getJsonDocument().toString();
-
-        return renderService.fromJson( json, ApiToken.class );
     }
 
     public static JsonObject assertApiTokenCreatedResponse( HttpResponse actual )
