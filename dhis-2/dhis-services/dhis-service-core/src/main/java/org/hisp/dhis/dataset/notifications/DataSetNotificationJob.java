@@ -33,7 +33,7 @@ import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
 import java.util.Date;
 
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -45,8 +45,7 @@ import org.springframework.stereotype.Component;
  * Created by zubair@dhis2.org on 21.07.17.
  */
 @Component( "dataSetNotificationJob" )
-public class DataSetNotificationJob
-    extends AbstractJob
+public class DataSetNotificationJob implements Job
 {
     private DataSetNotificationService dataSetNotificationService;
 
