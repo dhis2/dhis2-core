@@ -204,9 +204,6 @@ public class DeduplicationController
             mergeObject = new MergeObject();
         }
 
-        // This sets collections to empty lists if no lists are defined.
-        mergeObject.init();
-
         DeduplicationMergeParams params = DeduplicationMergeParams.builder()
             .potentialDuplicate( potentialDuplicate )
             .mergeObject( mergeObject )

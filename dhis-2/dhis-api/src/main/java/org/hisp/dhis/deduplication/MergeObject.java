@@ -41,21 +41,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MergeObject
 {
-    private List<String> trackedEntityAttributes;
+    private List<String> trackedEntityAttributes = new ArrayList<>();
 
-    private List<String> relationships;
-
-    public void init()
-    {
-        if ( trackedEntityAttributes == null )
-        {
-            trackedEntityAttributes = new ArrayList<>();
-        }
-
-        if ( relationships == null )
-        {
-            relationships = new ArrayList<>();
-        }
-    }
-
+    private List<String> relationships = new ArrayList<>();
 }
