@@ -40,7 +40,13 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.deduplication.*;
+import org.hisp.dhis.deduplication.DeduplicationMergeParams;
+import org.hisp.dhis.deduplication.DeduplicationService;
+import org.hisp.dhis.deduplication.DeduplicationStatus;
+import org.hisp.dhis.deduplication.MergeObject;
+import org.hisp.dhis.deduplication.MergeStrategy;
+import org.hisp.dhis.deduplication.PotentialDuplicate;
+import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.Node;
@@ -175,11 +181,6 @@ public class DeduplicationController
     {
         PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
 
-        if ( potentialDuplicate == null )
-        {
-            throw new NotFoundException( "PotentialDuplicate with uid '" + id + "' not found." );
-        }
-
         if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
         {
             throw new ConflictException( "PotentialDuplicate is missing references and cannot be merged." );
@@ -205,20 +206,13 @@ public class DeduplicationController
             .duplicate( duplicate )
             .build();
 
-        try
+        if ( MergeStrategy.MANUAL.equals( mergeStrategy ) )
         {
-            if ( MergeStrategy.MANUAL.equals( mergeStrategy ) )
-            {
-                deduplicationService.manualMerge( params );
-            }
-            else
-            {
-                deduplicationService.autoMerge( params );
-            }
+            deduplicationService.manualMerge( params );
         }
-        catch ( PotentialDuplicateConflictException ex )
+        else
         {
-            throw new ConflictException( ex.getMessage() );
+            deduplicationService.autoMerge( params );
         }
     }
 

@@ -58,7 +58,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.Before;
@@ -391,7 +390,7 @@ public class DeduplicationControllerMvcTest
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isConflict() )
             .andExpect(
-                result -> assertTrue( result.getResolvedException() instanceof ConflictException ) );
+                result -> assertTrue( result.getResolvedException() instanceof PotentialDuplicateConflictException ) );
 
         verify( deduplicationService ).autoMerge( deduplicationMergeParams );
         verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeParams );
