@@ -269,8 +269,11 @@
     <repository>
       <id>DHIS2_MAVEN_REPO_MIRROR</id>
       <url>https://raw.githubusercontent.com/dhis2/maven-repo-mirror/master/</url>
-      <snapshots>
+      <releases>
         <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
         <updatePolicy>daily</updatePolicy>
       </snapshots>
     </repository>
