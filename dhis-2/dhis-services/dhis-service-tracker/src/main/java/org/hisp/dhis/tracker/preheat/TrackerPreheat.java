@@ -178,7 +178,11 @@ public class TrackerPreheat
 
     /**
      * Internal map of all existing TrackedEntityProgramOwner. Used for
-     * ownership validations and updating.
+     * ownership validations and updating. The root key of this map is the
+     * trackedEntityInstance UID. The value of the root map is another map which
+     * holds a key-value combination where the key is the program UID and the
+     * value is an object of {@link TrackedEntityProgramOwnerOrgUnit} holding
+     * the ownership OrganisationUnit
      */
     @Getter
     @Setter
@@ -603,7 +607,7 @@ public class TrackerPreheat
         programOwner.get( teiUid ).put( programUid, tepo );
     }
 
-    public void updateProgramOwner( String teiUid, String programUid,
+    public void addProgramOwner( String teiUid, String programUid,
         OrganisationUnit orgUnit )
     {
         if ( !programOwner.containsKey( teiUid ) )
@@ -612,7 +616,7 @@ public class TrackerPreheat
         }
         if ( !programOwner.get( teiUid ).containsKey( programUid ) )
         {
-            TrackedEntityProgramOwnerOrgUnit tepo = new TrackedEntityProgramOwnerOrgUnit( 0, teiUid, programUid,
+            TrackedEntityProgramOwnerOrgUnit tepo = new TrackedEntityProgramOwnerOrgUnit( teiUid, programUid,
                 orgUnit );
             programOwner.get( teiUid ).put( programUid, tepo );
         }

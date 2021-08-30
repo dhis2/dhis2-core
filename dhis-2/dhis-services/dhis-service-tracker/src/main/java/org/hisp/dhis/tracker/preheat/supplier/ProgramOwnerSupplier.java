@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.mappers.OrganisationUnitMapper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -92,6 +94,11 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
 
         List<TrackedEntityProgramOwnerOrgUnit> tepos = trackedEntityProgramOwnerStore
             .getTrackedEntityProgramOwnerOrgUnits( teiIds, programIds );
+
+        tepos = tepos.stream().map(
+            tepo -> new TrackedEntityProgramOwnerOrgUnit( tepo.getTrackedEntityInstanceId(), tepo.getProgramId(),
+                OrganisationUnitMapper.INSTANCE.map( tepo.getOrganisationUnit() ) ) )
+            .collect( Collectors.toList() );
 
         preheat.addProgramOwners( tepos );
     }

@@ -110,7 +110,7 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
     protected void updatePreheat( TrackerPreheat preheat, ProgramInstance programInstance )
     {
         preheat.putEnrollments( TrackerIdScheme.UID, Collections.singletonList( programInstance ) );
-        preheat.updateProgramOwner( programInstance.getEntityInstance().getUid(), programInstance.getProgram().getUid(),
+        preheat.addProgramOwner( programInstance.getEntityInstance().getUid(), programInstance.getProgram().getUid(),
             programInstance.getOrganisationUnit() );
     }
 

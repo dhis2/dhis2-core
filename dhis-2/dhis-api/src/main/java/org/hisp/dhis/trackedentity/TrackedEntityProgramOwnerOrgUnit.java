@@ -27,40 +27,18 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
+@Getter
+@RequiredArgsConstructor
 public class TrackedEntityProgramOwnerOrgUnit
 {
-
-    private final long id;
-
     private final String trackedEntityInstanceId;
 
     private final String programId;
 
     private final OrganisationUnit organisationUnit;
-
-    public TrackedEntityProgramOwnerOrgUnit( long id, String trackedEntityInstanceId, String programId,
-        OrganisationUnit organisationUnit )
-    {
-        this.id = id;
-        this.trackedEntityInstanceId = trackedEntityInstanceId;
-        this.programId = programId;
-        this.organisationUnit = organisationUnit;
-    }
-
-    public String getTrackedEntityInstanceId()
-    {
-        return trackedEntityInstanceId;
-    }
-
-    public String getProgramId()
-    {
-        return programId;
-    }
-
-    public OrganisationUnit getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
 }

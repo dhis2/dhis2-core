@@ -99,30 +99,12 @@ public class HibernateTrackedEntityProgramOwnerStore
         Query<TrackedEntityProgramOwnerIds> q = getQuery( hql, TrackedEntityProgramOwnerIds.class );
 
         List<TrackedEntityProgramOwnerIds> trackedEntityProgramOwnerIds = new ArrayList<>();
-        for ( List<Long> partition : teiIdsPartitions )
-        {
+
+        q.setParameter( "programId", programId );
+        teiIdsPartitions.forEach( partition -> {
             q.setParameterList( "teiIds", partition );
-            q.setParameter( "programId", programId );
-
             trackedEntityProgramOwnerIds.addAll( q.list() );
-        }
-        return trackedEntityProgramOwnerIds;
-    }
-
-    @Override
-    public List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUids( List<Long> teiIds )
-    {
-        List<List<Long>> teiIdsPartitions = Lists.partition( teiIds, 20000 );
-        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerIds(tepo.entityInstance.uid, tepo.program.uid, tepo.organisationUnit.uid) from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds)";
-        Query<TrackedEntityProgramOwnerIds> q = getQuery( hql, TrackedEntityProgramOwnerIds.class );
-
-        List<TrackedEntityProgramOwnerIds> trackedEntityProgramOwnerIds = new ArrayList<>();
-        for ( List<Long> partition : teiIdsPartitions )
-        {
-            q.setParameterList( "teiIds", partition );
-
-            trackedEntityProgramOwnerIds.addAll( q.list() );
-        }
+        } );
         return trackedEntityProgramOwnerIds;
     }
 
@@ -139,7 +121,7 @@ public class HibernateTrackedEntityProgramOwnerStore
 
         Iterable<List<Long>> teiIdsPartitions = Iterables.partition( teiIds, 20000 );
 
-        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit(tepo.id, tepo.entityInstance.uid, tepo.program.uid, tepo.organisationUnit) from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id in (:programIds)";
+        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit( tepo.entityInstance.uid, tepo.program.uid, tepo.organisationUnit) from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id in (:programIds)";
 
         Query<TrackedEntityProgramOwnerOrgUnit> q = getQuery( hql, TrackedEntityProgramOwnerOrgUnit.class );
 
