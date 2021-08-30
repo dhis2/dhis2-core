@@ -134,15 +134,18 @@ public class ApiTokenServiceImpl implements ApiTokenService
         }
 
         String randomSecureToken = getRandomSecureToken( 24 ).replaceAll( "[-_]", "x" );
+        Preconditions.checkArgument( randomSecureToken.length() == 32,
+            "Could not create new token, please try again." + randomSecureToken.length() );
+
         byte[] bytes = randomSecureToken.getBytes();
         CRC32 crc = new CRC32();
         crc.update( bytes, 0, bytes.length );
-        long checksum = crc.getValue();
+        long checksumLong = crc.getValue();
 
-        token.setKey( tokenType.getPrefix() + "_" + randomSecureToken + checksum );
+        token.setKey( String.format( "%s_%s%010d", tokenType.getPrefix(), randomSecureToken, checksumLong ) );
 
-        // Double check that token has valid length
-        Preconditions.checkArgument( token.getKey().length() == 46, "Could not create new token, please try again." );
+        Preconditions.checkArgument( token.getKey().length() == 46,
+            "Could not create new token, please try again." );
 
         return token;
     }
