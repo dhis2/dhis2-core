@@ -29,20 +29,25 @@ package org.hisp.dhis.webapi.security;
 
 import static org.hisp.dhis.webapi.WebClient.ApiTokenHeader;
 import static org.hisp.dhis.webapi.WebClient.Header;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
+import org.hisp.dhis.security.apikey.ApiTokenType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.DhisControllerWithApiTokenAuthTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -95,6 +100,7 @@ public class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTe
     private TokenAndKey createNewToken()
     {
         ApiToken token = new ApiToken();
+        token.setType( ApiTokenType.PERSONAL_ACCESS_TOKEN );
         token = apiTokenService.initToken( token );
         apiTokenStore.save( token );
 
@@ -201,6 +207,21 @@ public class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTe
         apiToken.setExpire( System.currentTimeMillis() - 36000 );
 
         assertEquals( "Failed to authenticate API token, token has expired.",
+            GET( URI, ApiTokenHeader( key ) )
+                .error( HttpStatus.UNAUTHORIZED ).getMessage() );
+    }
+
+    @Test
+    public void testAuthWithDisabledUser()
+    {
+        final TokenAndKey tokenAndKey = createNewToken();
+        final String key = tokenAndKey.key;
+
+        UserCredentials userCredentials = adminUser.getUserCredentials();
+        userCredentials.setDisabled( true );
+        userService.updateUserCredentials( userCredentials );
+
+        assertEquals( "The API token is disabled or locked.",
             GET( URI, ApiTokenHeader( key ) )
                 .error( HttpStatus.UNAUTHORIZED ).getMessage() );
     }
