@@ -120,9 +120,6 @@ public class DefaultDeduplicationService
     @Transactional
     public void manualMerge( DeduplicationMergeParams deduplicationMergeParams )
     {
-        // This sets collections to empty lists if no lists are defined.
-        // deduplicationMergeParams.getMergeObject().init();
-
         if ( deduplicationHelper.hasInvalidReference( deduplicationMergeParams ) )
         {
             throw new PotentialDuplicateConflictException(
