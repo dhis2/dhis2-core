@@ -123,7 +123,9 @@ public class EventDataValuesValidationHook
         ProgramStage programStage, DataValue dataValue, Event event )
     {
         if ( dataValue.getValue() != null || !needsToValidateDataValues( event, programStage ) )
+        {
             return;
+        }
 
         Optional<ProgramStageDataElement> optionalPsde = Optional.of( programStage )
             .map( ps -> ps.getProgramStageDataElements().stream() ).flatMap( psdes -> psdes
