@@ -29,8 +29,6 @@ package org.hisp.dhis.deduplication;
 
 import java.util.List;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
 public interface DeduplicationService
 {
     PotentialDuplicate getPotentialDuplicateById( long id );
@@ -49,10 +47,7 @@ public interface DeduplicationService
 
     void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
 
-    void autoMerge( DeduplicationMergeRequest deduplicationRequest );
+    void autoMerge( DeduplicationMergeParams deduplicationRequest );
 
-    boolean hasInvalidReference( TrackedEntityInstance original, TrackedEntityInstance duplicate,
-        MergeObject mergeObject );
-
-    void manualMerge( DeduplicationMergeRequest deduplicationRequest );
+    void manualMerge( DeduplicationMergeParams deduplicationRequest );
 }

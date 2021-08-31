@@ -30,6 +30,7 @@ package org.hisp.dhis.deduplication;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
@@ -61,6 +62,37 @@ public class DeduplicationHelper
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
     private final OrganisationUnitService organisationUnitService;
+
+    public boolean hasInvalidReference( DeduplicationMergeParams params )
+    {
+        TrackedEntityInstance original = params.getOriginal();
+        TrackedEntityInstance duplicate = params.getDuplicate();
+        MergeObject mergeObject = params.getMergeObject();
+
+        Set<String> validTrackedEntityAttributes = duplicate.getTrackedEntityAttributeValues().stream()
+            .map( teav -> teav.getAttribute().getUid() ).collect( Collectors.toSet() );
+
+        Set<String> validRelationships = duplicate.getRelationshipItems().stream()
+            .map( rel -> rel.getTrackedEntityInstance().getUid() ).collect( Collectors.toSet() );
+
+        for ( String tea : mergeObject.getTrackedEntityAttributes() )
+        {
+            if ( !validTrackedEntityAttributes.contains( tea ) )
+            {
+                return true;
+            }
+        }
+
+        for ( String rel : mergeObject.getRelationships() )
+        {
+            if ( original.getUid().equals( rel ) || !validRelationships.contains( rel ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {

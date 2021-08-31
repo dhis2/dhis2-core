@@ -40,7 +40,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.deduplication.DeduplicationMergeRequest;
+import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.MergeObject;
@@ -175,7 +175,7 @@ public class DeduplicationController
     public void mergePotentialDuplicate(
         @PathVariable String id,
         @RequestParam( defaultValue = "MANUAL" ) MergeStrategy mergeStrategy,
-        @RequestBody MergeObject mergeObject )
+        @RequestBody( required = false ) MergeObject mergeObject )
         throws NotFoundException,
         ConflictException
     {
@@ -189,6 +189,9 @@ public class DeduplicationController
         TrackedEntityInstance original = getTei( potentialDuplicate.getTeiA() );
         TrackedEntityInstance duplicate = getTei( potentialDuplicate.getTeiB() );
 
+        /*
+         * We always treat the oldest tei as the original.
+         */
         if ( original.getCreated().after( duplicate.getCreated() ) )
         {
             TrackedEntityInstance t = original;
@@ -196,16 +199,25 @@ public class DeduplicationController
             duplicate = t;
         }
 
-        DeduplicationMergeRequest deduplicationRequest = DeduplicationMergeRequest.builder().potentialDuplicateUid( id )
-            .mergeObject( mergeObject ).original( original ).duplicate( duplicate ).build();
+        if ( mergeObject == null )
+        {
+            mergeObject = new MergeObject();
+        }
+
+        DeduplicationMergeParams params = DeduplicationMergeParams.builder()
+            .potentialDuplicate( potentialDuplicate )
+            .mergeObject( mergeObject )
+            .original( original )
+            .duplicate( duplicate )
+            .build();
 
         if ( MergeStrategy.MANUAL.equals( mergeStrategy ) )
         {
-            deduplicationService.manualMerge( deduplicationRequest );
+            deduplicationService.manualMerge( params );
         }
         else
         {
-            deduplicationService.autoMerge( deduplicationRequest );
+            deduplicationService.autoMerge( params );
         }
     }
 
