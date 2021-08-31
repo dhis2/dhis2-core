@@ -267,6 +267,10 @@
 
     <property name="hideEmptyColumns"/>
 
+    <property name="fixColumnHeaders"/>
+
+    <property name="fixRowHeaders"/>
+
     <property name="hideLegend"/>
 
     <property name="noSpaceBetweenColumns"/>

@@ -845,9 +845,7 @@
   <package name="dhis-web-commons-about" extends="dhis-web-commons" namespace="/dhis-web-commons-about">
 
     <action name="about" class="org.hisp.dhis.about.action.AboutAction">
-      <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-commons/about/about.vm</param>
-      <param name="menu">/dhis-web-commons/about/menu.vm</param>
+      <result name="success" type="redirect">/dhis-web-user-profile/#/aboutPage</result>
     </action>
 
     <action name="help" class="org.hisp.dhis.commons.action.NoAction">
