@@ -262,21 +262,6 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         deduplicationHelper.generateMergeObject( original, duplicate );
     }
 
-    @Test( expected = PotentialDuplicateNullException.class )
-    public void shouldFailGenerateMergeObjectNull()
-    {
-        TrackedEntityInstance original = getTeiA();
-
-        TrackedEntityAttributeValue attributeValueOriginal = new TrackedEntityAttributeValue();
-        attributeValueOriginal.setAttribute( attribute );
-        attributeValueOriginal.setEntityInstance( original );
-        attributeValueOriginal.setValue( "Attribute-Original" );
-
-        original.getTrackedEntityAttributeValues().add( attributeValueOriginal );
-
-        deduplicationHelper.generateMergeObject( original, original );
-    }
-
     @Test
     public void shoudGenerateMergeObjectForAttribute()
     {

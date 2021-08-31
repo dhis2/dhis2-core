@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -187,37 +186,21 @@ public class DeduplicationHelper
 
     private List<String> getMergeableRelationships( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
-        Map<String, Relationship> existingRelationships = original.getRelationshipItems().stream()
-            .collect( Collectors.toMap( ri -> ri.getRelationship().getUid(), RelationshipItem::getRelationship ) );
-
         List<String> relationships = new ArrayList<>();
 
         for ( RelationshipItem ri : duplicate.getRelationshipItems() )
         {
-            Relationship existing = existingRelationships.get( ri.getRelationship().getUid() );
+            TrackedEntityInstance from = ri.getRelationship().getFrom().getTrackedEntityInstance();
+            TrackedEntityInstance to = ri.getRelationship().getTo().getTrackedEntityInstance();
 
-            if ( existing != null )
+            if ( (from != null && from.getUid().equals( original.getUid() ))
+                || (to != null && to.getUid().equals( original.getUid() )) )
             {
-                if ( !existing.equals( ri.getRelationship() ) )
-                {
-                    throw new PotentialDuplicateConflictException(
-                        "Potential Duplicate contains conflicting reference and cannot be merged." );
-                }
+                throw new PotentialDuplicateConflictException(
+                    "Potential Duplicate leads to self reference and cannot be merged" );
             }
-            else
-            {
-                TrackedEntityInstance from = ri.getRelationship().getFrom().getTrackedEntityInstance();
-                TrackedEntityInstance to = ri.getRelationship().getTo().getTrackedEntityInstance();
 
-                if ( (from != null && from.getUid().equals( original.getUid() ))
-                    || (to != null && to.getUid().equals( original.getUid() )) )
-                {
-                    throw new PotentialDuplicateConflictException(
-                        "Potential Duplicate leads to self reference and cannot be merged" );
-                }
-
-                relationships.add( ri.getRelationship().getUid() );
-            }
+            relationships.add( ri.getRelationship().getUid() );
         }
 
         return relationships;
