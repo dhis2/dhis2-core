@@ -95,6 +95,8 @@ public enum SettingKey
     GOOGLE_ANALYTICS_UA( "googleAnalyticsUA" ),
     CREDENTIALS_EXPIRES( "credentialsExpires", 0, Integer.class ),
     CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlert", false, Boolean.class ),
+    ACCOUNT_EXPIRES_IN_DAYS( "accountExpiresInDays", 7, Integer.class ),
+    ACCOUNT_EXPIRY_ALERT( "accountExpiryAlert", false, Boolean.class ),
     SELF_REGISTRATION_NO_RECAPTCHA( "keySelfRegistrationNoRecaptcha", Boolean.FALSE, Boolean.class ),
     RECAPTCHA_SECRET( "recaptchaSecret", "6LcVwT0UAAAAAAtMWnPoerWwLx_DSwrcEncHCiWu", String.class, true, false ),
     RECAPTCHA_SITE( "recaptchaSite", "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5", String.class, true, false ),

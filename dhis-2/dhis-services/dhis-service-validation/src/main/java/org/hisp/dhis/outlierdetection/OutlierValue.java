@@ -80,6 +80,9 @@ public class OutlierValue
     private Double mean;
 
     @JsonProperty
+    private Double median;
+
+    @JsonProperty
     private Double stdDev;
 
     @JsonProperty

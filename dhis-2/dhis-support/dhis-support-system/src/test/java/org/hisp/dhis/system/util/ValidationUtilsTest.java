@@ -234,7 +234,13 @@ public class ValidationUtilsTest
         assertNotNull( dataValueIsValid( "Date", de ) );
 
         de.setValueType( ValueType.DATETIME );
-        assertNull( dataValueIsValid( "2013-04-01T11:00:00.000Z", de ) );
+        assertNull( dataValueIsValid( "2021-08-30T13:53:33.767412Z", de ) );
+        assertNull( dataValueIsValid( "2021-08-30T13:53:33.767412", de ) );
+        assertNull( dataValueIsValid( "2013-04-01T11:12:05.5417Z", de ) );
+        assertNull( dataValueIsValid( "2013-04-01T11:12:05.5417", de ) );
+        assertNull( dataValueIsValid( "2013-04-01T11:12:02.541Z", de ) );
+        assertNull( dataValueIsValid( "2021-08-30T13:53:33.741", de ) );
+        assertNull( dataValueIsValid( "2013-04-01T11:12:00", de ) );
         assertNotNull( dataValueIsValid( "2013-04-01", de ) );
         assertNotNull( dataValueIsValid( "abcd", de ) );
     }

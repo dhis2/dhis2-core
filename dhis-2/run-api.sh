@@ -39,10 +39,12 @@ echo -e "Port: $DHIS2_PORT\n"
 [ ! -d $DHIS2_HOME ] && echo "DHIS2_HOME directory '$DHIS2_HOME' DOES NOT exists, aborting..." && exit 1;
 [ ! -f "$DHIS2_HOME/dhis.conf" ] && echo "dhis.conf in directory '$DHIS2_HOME' DOES NOT exists, aborting..." && exit 1;
 
-read -p "Do you wan to compile first? (if yes press y/Y to continue) " -n 1 -r
+read -p "Do you want to skip compile? (if yes press y/Y) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  mvn clean install -Pdev -Pjdk11 -T 100C -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
+  java -Ddhis2.home=$DHIS2_HOME -Djetty.host=$DHIS2_HOSTNAME -Djetty.http.port=$DHIS2_PORT -jar ./dhis-web-embedded-jetty/target/dhis-web-embedded-jetty.jar
+  exit 0;
 fi
 
+mvn clean install -Pdev -Pjdk11 -T 100C -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
 java -Ddhis2.home=$DHIS2_HOME -Djetty.host=$DHIS2_HOSTNAME -Djetty.http.port=$DHIS2_PORT -jar ./dhis-web-embedded-jetty/target/dhis-web-embedded-jetty.jar

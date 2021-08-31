@@ -27,11 +27,17 @@
  */
 package org.hisp.dhis.webapi;
 
+import java.beans.PropertyVetoException;
+import java.sql.SQLException;
 import java.util.Date;
 
+import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.config.DataSourceConfig;
 import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.config.HibernateConfig;
@@ -40,8 +46,12 @@ import org.hisp.dhis.config.ServiceConfig;
 import org.hisp.dhis.config.StartupConfig;
 import org.hisp.dhis.config.StoreConfig;
 import org.hisp.dhis.configuration.NotifierConfiguration;
+import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.h2.H2SqlFunction;
+import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.leader.election.LeaderManager;
@@ -53,7 +63,6 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
-import org.hisp.dhis.security.config.DhisWebCommonsWebSecurityConfig;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
 import org.springframework.context.annotation.Bean;
@@ -67,6 +76,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
@@ -98,7 +108,6 @@ import com.google.common.collect.ImmutableMap;
     StoreConfig.class,
     LeaderElectionConfiguration.class,
     NotifierConfiguration.class,
-    DhisWebCommonsWebSecurityConfig.class,
     org.hisp.dhis.setting.config.ServiceConfig.class,
     org.hisp.dhis.external.config.ServiceConfig.class,
     org.hisp.dhis.dxf2.config.ServiceConfig.class,
@@ -114,8 +123,49 @@ import com.google.common.collect.ImmutableMap;
     StartupConfig.class
 } )
 @Transactional
+@Slf4j
 public class WebTestConfiguration
 {
+    @Bean
+    public static SessionRegistryImpl sessionRegistry()
+    {
+        return new org.springframework.security.core.session.SessionRegistryImpl();
+    }
+
+    @Bean( "actualDataSource" )
+    public DataSource actualDataSource( HibernateConfigurationProvider hibernateConfigurationProvider )
+    {
+        final DhisConfigurationProvider config = dhisConfigurationProvider();
+        String jdbcUrl = config.getProperty( ConfigurationKey.CONNECTION_URL );
+        String username = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
+        String dbPoolType = config.getProperty( ConfigurationKey.DB_POOL_TYPE );
+
+        DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
+        builder.dhisConfig( config );
+        builder.hibernateConfig( hibernateConfigurationProvider );
+        builder.dbPoolType( dbPoolType );
+
+        try
+        {
+            final DataSource dbPool = DatabasePoolUtils.createDbPool( builder.build() );
+
+            // H2 JSON functions
+            H2SqlFunction.registerH2Functions( dbPool );
+
+            return dbPool;
+        }
+        catch ( SQLException | PropertyVetoException e )
+        {
+            String message = String.format( "Connection test failed for main database pool, " +
+                "jdbcUrl: '%s', user: '%s'", jdbcUrl, username );
+
+            log.error( message );
+            log.error( DebugUtils.getStackTrace( e ) );
+
+            throw new IllegalStateException( message, e );
+        }
+    }
+
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {

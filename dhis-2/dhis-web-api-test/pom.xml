@@ -97,6 +97,7 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-api</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -174,12 +175,6 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-test-json</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-commons</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.jayway.jsonpath</groupId>
