@@ -7,6 +7,7 @@ pipeline {
     }
 
     environment {
+        GITHUB_TOKEN = credentials('github-token')
         DHIS2_VERSION = ''
         DOCKER_HUB_CORE_REPOSITORY = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_HUB_BASE_REPOSITORY = "${DOCKER_HUB_OWNER}/base-dev"
@@ -73,6 +74,7 @@ pipeline {
         stage('Build image') {
             steps {
                 script {
+                    sh "./run-cve-patcher.sh"
                     DOCKER_BASE_IMAGE_FULL_NAME = "${DOCKER_HUB_BASE_REPOSITORY}:${DOCKER_IMAGE_TAG}"
                     echo "Will tag base image as ${DOCKER_BASE_IMAGE_FULL_NAME}"
 
