@@ -1113,6 +1113,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         MapView mapView = map.getMapViews().get( 0 );
         assertNotNull( mapView );
         assertEquals( "#ddeeff", mapView.getNoDataColor() );
+        assertEquals( "#aabbcc", mapView.getOrganisationUnitColor() );
         assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
     }
 
