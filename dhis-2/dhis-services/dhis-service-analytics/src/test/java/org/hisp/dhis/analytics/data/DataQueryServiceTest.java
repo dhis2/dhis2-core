@@ -33,6 +33,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,7 +44,6 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -84,6 +84,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -917,21 +918,22 @@ public class DataQueryServiceTest
     @Test
     public void testGetFromAnalyticalObjectA()
     {
-        Chart chart = new Chart();
-        chart.setSeries( DimensionalObject.DATA_X_DIM_ID );
-        chart.setCategory( DimensionalObject.ORGUNIT_DIM_ID );
-        chart.getFilterDimensions().add( DimensionalObject.PERIOD_DIM_ID );
+        final Visualization visualization = new Visualization();
 
-        chart.addDataDimensionItem( deA );
-        chart.addDataDimensionItem( deB );
-        chart.addDataDimensionItem( deC );
+        visualization.setRowDimensions( Arrays.asList( DimensionalObject.ORGUNIT_DIM_ID ) );
+        visualization.setColumnDimensions( Arrays.asList( DimensionalObject.DATA_X_DIM_ID ) );
+        visualization.getFilterDimensions().add( DimensionalObject.PERIOD_DIM_ID );
 
-        chart.getOrganisationUnits().add( ouA );
-        chart.getOrganisationUnits().add( ouB );
+        visualization.addDataDimensionItem( deA );
+        visualization.addDataDimensionItem( deB );
+        visualization.addDataDimensionItem( deC );
 
-        chart.getPeriods().add( PeriodType.getPeriodFromIsoString( "2012" ) );
+        visualization.getOrganisationUnits().add( ouA );
+        visualization.getOrganisationUnits().add( ouB );
 
-        DataQueryParams params = dataQueryService.getFromAnalyticalObject( chart );
+        visualization.getPeriods().add( PeriodType.getPeriodFromIsoString( "2012" ) );
+
+        DataQueryParams params = dataQueryService.getFromAnalyticalObject( visualization );
 
         assertNotNull( params );
         assertEquals( 3, params.getDataElements().size() );
@@ -944,23 +946,24 @@ public class DataQueryServiceTest
     @Test
     public void testGetFromAnalyticalObjectB()
     {
-        Chart chart = new Chart();
-        chart.setSeries( DimensionalObject.DATA_X_DIM_ID );
-        chart.setCategory( ouGroupSetA.getUid() );
-        chart.getFilterDimensions().add( DimensionalObject.PERIOD_DIM_ID );
+        final Visualization visualization = new Visualization();
 
-        chart.addDataDimensionItem( deA );
-        chart.addDataDimensionItem( deB );
-        chart.addDataDimensionItem( deC );
+        visualization.setColumnDimensions( Arrays.asList( DimensionalObject.DATA_X_DIM_ID ) );
+        visualization.setRowDimensions( Arrays.asList( ouGroupSetA.getUid() ) );
+        visualization.getFilterDimensions().add( DimensionalObject.PERIOD_DIM_ID );
+
+        visualization.addDataDimensionItem( deA );
+        visualization.addDataDimensionItem( deB );
+        visualization.addDataDimensionItem( deC );
 
         OrganisationUnitGroupSetDimension ouGroupSetDim = new OrganisationUnitGroupSetDimension();
         ouGroupSetDim.setDimension( ouGroupSetA );
         ouGroupSetDim.setItems( Lists.newArrayList( ouGroupA, ouGroupB, ouGroupC ) );
-        chart.getOrganisationUnitGroupSetDimensions().add( ouGroupSetDim );
+        visualization.getOrganisationUnitGroupSetDimensions().add( ouGroupSetDim );
 
-        chart.getPeriods().add( PeriodType.getPeriodFromIsoString( "2012" ) );
+        visualization.getPeriods().add( PeriodType.getPeriodFromIsoString( "2012" ) );
 
-        DataQueryParams params = dataQueryService.getFromAnalyticalObject( chart );
+        DataQueryParams params = dataQueryService.getFromAnalyticalObject( visualization );
 
         assertNotNull( params );
         assertEquals( 3, params.getDataElements().size() );
@@ -973,23 +976,24 @@ public class DataQueryServiceTest
     @Test
     public void testGetFromAnalyticalObjectC()
     {
-        Chart chart = new Chart();
-        chart.setSeries( DimensionalObject.DATA_X_DIM_ID );
-        chart.setCategory( ouGroupSetA.getUid() );
-        chart.getFilterDimensions().add( DimensionalObject.PERIOD_DIM_ID );
+        final Visualization visualization = new Visualization();
 
-        chart.addDataDimensionItem( deA );
-        chart.addDataDimensionItem( pdA );
-        chart.addDataDimensionItem( pdB );
+        visualization.setColumnDimensions( Arrays.asList( DimensionalObject.DATA_X_DIM_ID ) );
+        visualization.setRowDimensions( Arrays.asList( ouGroupSetA.getUid() ) );
+        visualization.getFilterDimensions().add( DimensionalObject.PERIOD_DIM_ID );
+
+        visualization.addDataDimensionItem( deA );
+        visualization.addDataDimensionItem( pdA );
+        visualization.addDataDimensionItem( pdB );
 
         OrganisationUnitGroupSetDimension ouGroupSetDim = new OrganisationUnitGroupSetDimension();
         ouGroupSetDim.setDimension( ouGroupSetA );
         ouGroupSetDim.setItems( Lists.newArrayList( ouGroupA, ouGroupB, ouGroupC ) );
-        chart.getOrganisationUnitGroupSetDimensions().add( ouGroupSetDim );
+        visualization.getOrganisationUnitGroupSetDimensions().add( ouGroupSetDim );
 
-        chart.getPeriods().add( PeriodType.getPeriodFromIsoString( "2012" ) );
+        visualization.getPeriods().add( PeriodType.getPeriodFromIsoString( "2012" ) );
 
-        DataQueryParams params = dataQueryService.getFromAnalyticalObject( chart );
+        DataQueryParams params = dataQueryService.getFromAnalyticalObject( visualization );
 
         assertNotNull( params );
         assertEquals( 1, params.getDataElements().size() );

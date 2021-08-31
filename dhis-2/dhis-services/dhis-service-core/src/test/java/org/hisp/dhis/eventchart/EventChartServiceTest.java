@@ -30,9 +30,9 @@ package org.hisp.dhis.eventchart;
 import static org.junit.Assert.*;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -62,13 +62,13 @@ public class EventChartServiceTest
     {
         EventChart ecA = new EventChart( "ecA" );
         ecA.setProgram( prA );
-        ecA.setType( ChartType.COLUMN );
+        ecA.setType( VisualizationType.COLUMN );
         EventChart ecB = new EventChart( "ecB" );
         ecB.setProgram( prA );
-        ecB.setType( ChartType.COLUMN );
+        ecB.setType( VisualizationType.COLUMN );
         EventChart ecC = new EventChart( "ecC" );
         ecC.setProgram( prA );
-        ecC.setType( ChartType.COLUMN );
+        ecC.setType( VisualizationType.COLUMN );
 
         long idA = eventChartService.saveEventChart( ecA );
         long idB = eventChartService.saveEventChart( ecB );
@@ -84,13 +84,13 @@ public class EventChartServiceTest
     {
         EventChart ecA = new EventChart( "ecA" );
         ecA.setProgram( prA );
-        ecA.setType( ChartType.COLUMN );
+        ecA.setType( VisualizationType.COLUMN );
         EventChart ecB = new EventChart( "ecB" );
         ecB.setProgram( prA );
-        ecB.setType( ChartType.COLUMN );
+        ecB.setType( VisualizationType.COLUMN );
         EventChart ecC = new EventChart( "ecC" );
         ecC.setProgram( prA );
-        ecC.setType( ChartType.COLUMN );
+        ecC.setType( VisualizationType.COLUMN );
 
         long idA = eventChartService.saveEventChart( ecA );
         long idB = eventChartService.saveEventChart( ecB );

@@ -43,7 +43,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.SetMap;
@@ -94,7 +93,6 @@ import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
@@ -852,17 +850,6 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleChart(
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Chart chart )
-    {
-        if ( chart == null )
-            return metadata;
-        metadata.putValue( Chart.class, chart );
-        handleAttributes( metadata, chart );
-
-        return metadata;
-    }
-
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEventChart(
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, EventChart eventChart )
     {
@@ -905,17 +892,6 @@ public class DefaultMetadataExportService implements MetadataExportService
         handleAttributes( metadata, map );
 
         map.getMapViews().forEach( mapView -> handleMapView( metadata, mapView ) );
-
-        return metadata;
-    }
-
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleReportTable(
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, ReportTable reportTable )
-    {
-        if ( reportTable == null )
-            return metadata;
-        metadata.putValue( ReportTable.class, reportTable );
-        handleAttributes( metadata, reportTable );
 
         return metadata;
     }
@@ -987,11 +963,9 @@ public class DefaultMetadataExportService implements MetadataExportService
         handleAttributes( metadata, dashboardItem );
 
         handleVisualization( metadata, dashboardItem.getVisualization() );
-        handleChart( metadata, dashboardItem.getChart() );
         handleEventChart( metadata, dashboardItem.getEventChart() );
         handleEventReport( metadata, dashboardItem.getEventReport() );
         handleMap( metadata, dashboardItem.getMap() );
-        handleReportTable( metadata, dashboardItem.getReportTable() );
         handleEmbbedItem( metadata, dashboardItem.getEmbeddedItem() );
 
         dashboardItem.getReports().forEach( report -> handleReport( metadata, report ) );

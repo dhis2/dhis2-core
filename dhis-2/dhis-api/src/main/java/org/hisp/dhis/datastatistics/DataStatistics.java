@@ -42,10 +42,6 @@ public class DataStatistics
 {
     private Double mapViews;
 
-    private Double chartViews;
-
-    private Double reportTableViews;
-
     private Double visualizationViews;
 
     private Double eventReportViews;
@@ -61,10 +57,6 @@ public class DataStatistics
     private Double totalViews;
 
     private Double savedMaps;
-
-    private Double savedCharts;
-
-    private Double savedReportTables;
 
     private Double savedVisualizations;
 
@@ -86,15 +78,13 @@ public class DataStatistics
     {
     }
 
-    public DataStatistics( Double mapViews, Double chartViews, Double reportTableViews, Double visualizationViews,
+    public DataStatistics( Double mapViews, Double visualizationViews,
         Double eventReportViews, Double eventChartViews, Double dashboardViews, Double passiveDashboardViews,
-        Double dataSetReportViews, Double totalViews, Double savedMaps, Double savedCharts, Double savedReportTables,
-        Double savedVisualizations, Double savedEventReports, Double savedEventCharts, Double savedDashboards,
-        Double savedIndicators, Double savedDataValues, Integer activeUsers, Integer users )
+        Double dataSetReportViews, Double totalViews, Double savedMaps, Double savedVisualizations,
+        Double savedEventReports, Double savedEventCharts, Double savedDashboards, Double savedIndicators,
+        Double savedDataValues, Integer activeUsers, Integer users )
     {
         this.mapViews = mapViews;
-        this.chartViews = chartViews;
-        this.reportTableViews = reportTableViews;
         this.visualizationViews = visualizationViews;
         this.eventReportViews = eventReportViews;
         this.eventChartViews = eventChartViews;
@@ -103,8 +93,6 @@ public class DataStatistics
         this.dataSetReportViews = dataSetReportViews;
         this.totalViews = totalViews;
         this.savedMaps = savedMaps;
-        this.savedCharts = savedCharts;
-        this.savedReportTables = savedReportTables;
         this.savedVisualizations = savedVisualizations;
         this.savedEventReports = savedEventReports;
         this.savedEventCharts = savedEventCharts;
@@ -135,28 +123,6 @@ public class DataStatistics
     public void setMapViews( Double mapViews )
     {
         this.mapViews = mapViews;
-    }
-
-    @JsonProperty
-    public Double getChartViews()
-    {
-        return chartViews;
-    }
-
-    public void setChartViews( Double chartViews )
-    {
-        this.chartViews = chartViews;
-    }
-
-    @JsonProperty
-    public Double getReportTableViews()
-    {
-        return reportTableViews;
-    }
-
-    public void setReportTableViews( Double reportTableViews )
-    {
-        this.reportTableViews = reportTableViews;
     }
 
     @JsonProperty
@@ -248,28 +214,6 @@ public class DataStatistics
     }
 
     @JsonProperty
-    public Double getSavedCharts()
-    {
-        return savedCharts;
-    }
-
-    public void setSavedCharts( Double savedCharts )
-    {
-        this.savedCharts = savedCharts;
-    }
-
-    @JsonProperty
-    public Double getSavedReportTables()
-    {
-        return savedReportTables;
-    }
-
-    public void setSavedReportTables( Double savedReportTables )
-    {
-        this.savedReportTables = savedReportTables;
-    }
-
-    @JsonProperty
     public Double getSavedVisualizations()
     {
         return savedVisualizations;
@@ -352,8 +296,6 @@ public class DataStatistics
     {
         return super.toString() + "DataStatistics{" +
             "mapViews=" + mapViews +
-            ", chartViews=" + chartViews +
-            ", reportTableViews=" + reportTableViews +
             ", visualizationViews=" + visualizationViews +
             ", eventReportViews=" + eventReportViews +
             ", eventChartViews=" + eventChartViews +
@@ -361,8 +303,6 @@ public class DataStatistics
             ", passiveDashboardViews=" + passiveDashboardViews +
             ", totalViews=" + totalViews +
             ", savedMaps=" + savedMaps +
-            ", savedCharts=" + savedCharts +
-            ", savedReportTables=" + savedReportTables +
             ", savedVisualizations=" + savedVisualizations +
             ", savedEventReports=" + savedEventReports +
             ", savedEventCharts=" + savedEventCharts +

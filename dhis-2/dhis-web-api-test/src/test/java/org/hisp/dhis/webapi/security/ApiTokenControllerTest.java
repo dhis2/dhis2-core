@@ -84,15 +84,16 @@ public class ApiTokenControllerTest extends DhisControllerConvenienceTest
             POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/", "{}" ) );
 
         final String uid = jsonObject.getString( "uid" ).string();
-        final String key = jsonObject.getString( "key" ).string();
+        final String rawKey = jsonObject.getString( "key" ).string();
 
         assertNotNull( uid );
+        assertNotNull( rawKey );
 
-        assertEquals( 46, key.length() );
+        assertEquals( 48, rawKey.length() );
 
         final ApiToken token = fetchAsEntity( uid );
-
-        assertEquals( 64, token.getKey().length() );
+        String hashedKey = token.getKey();
+        assertEquals( 64, hashedKey.length() );
     }
 
     @Test

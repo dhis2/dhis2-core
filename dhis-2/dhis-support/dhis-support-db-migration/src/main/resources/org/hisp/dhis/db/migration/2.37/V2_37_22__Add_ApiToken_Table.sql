@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS api_token
     lastUpdatedBy bigint                      not null,
     createdBy     bigint                      not null,
     version       int4                        not null,
-    type          int4                        not null,
+    type          character varying(50)       NOT NULL,
     expire        bigint                      not null,
     key           character varying(128)      not null,
     attributes    JSONB default '{}'::JSONB,
