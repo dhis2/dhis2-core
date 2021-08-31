@@ -27,28 +27,33 @@
  */
 package org.hisp.dhis.deduplication;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface PotentialDuplicateStore
-    extends IdentifiableObjectStore<PotentialDuplicate>
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+@Data
+@Builder
+@JsonDeserialize( builder = MergeObject.MergeObjectBuilder.class )
+@NoArgsConstructor
+@AllArgsConstructor
+public class MergeObject
 {
-    int getCountByQuery( PotentialDuplicateQuery query );
+    @Builder.Default
+    @JsonProperty
+    private List<String> trackedEntityAttributes = new ArrayList<>();
 
-    List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query );
+    @Builder.Default
+    @JsonProperty
+    private List<String> relationships = new ArrayList<>();
 
-    boolean exists( PotentialDuplicate potentialDuplicate );
-
-    void moveTrackedEntityAttributeValues( String originalUid, String duplicateUid,
-        List<String> trackedEntityAttributes );
-
-    void moveRelationships( String originalUid, String duplicateUid, List<String> relationships );
-
-    void moveEnrollments( String originalUid, String duplicateUid, List<String> enrollments );
-
-    void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance );
-
-    void auditMerge( DeduplicationMergeParams params );
+    @Builder.Default
+    @JsonProperty
+    private List<String> enrollments = new ArrayList<>();
 }

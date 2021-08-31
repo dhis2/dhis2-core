@@ -27,28 +27,20 @@
  */
 package org.hisp.dhis.deduplication;
 
-import java.util.List;
+import lombok.Builder;
+import lombok.Data;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
-public interface PotentialDuplicateStore
-    extends IdentifiableObjectStore<PotentialDuplicate>
+@Data
+@Builder
+public class DeduplicationMergeParams
 {
-    int getCountByQuery( PotentialDuplicateQuery query );
+    private TrackedEntityInstance original;
 
-    List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query );
+    private TrackedEntityInstance duplicate;
 
-    boolean exists( PotentialDuplicate potentialDuplicate );
+    private MergeObject mergeObject;
 
-    void moveTrackedEntityAttributeValues( String originalUid, String duplicateUid,
-        List<String> trackedEntityAttributes );
-
-    void moveRelationships( String originalUid, String duplicateUid, List<String> relationships );
-
-    void moveEnrollments( String originalUid, String duplicateUid, List<String> enrollments );
-
-    void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance );
-
-    void auditMerge( DeduplicationMergeParams params );
+    private PotentialDuplicate potentialDuplicate;
 }
