@@ -272,8 +272,8 @@ public class DefaultPredictionService
         Set<DimensionalItemObject> sampledItems = new HashSet<>();
         expressionService.getExpressionDimensionalItemObjects( generator.getExpression(), PREDICTOR_EXPRESSION,
             outputPeriodItems, sampledItems );
-        Set<String> orgUnitGroupIds =
-            expressionService.getExpressionOrgUnitGroupIds( generator.getExpression(), PREDICTOR_EXPRESSION );
+        Set<String> orgUnitGroupIds = expressionService.getExpressionOrgUnitGroupIds( generator.getExpression(),
+            PREDICTOR_EXPRESSION );
         if ( skipTest != null )
         {
             expressionService.getExpressionDimensionalItemObjects(

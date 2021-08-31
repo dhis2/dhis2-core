@@ -1590,7 +1590,8 @@ public class PredictionServiceTest
         dataValueBatchHandler.flush();
 
         Expression expression = new Expression(
-            "if(orgUnit.ancestor( " + sourceC.getUid() + " , " + sourceD.getUid() + " ), #{" + dataElementA.getUid() + "}, 64)",
+            "if(orgUnit.ancestor( " + sourceC.getUid() + " , " + sourceD.getUid() + " ), #{" + dataElementA.getUid()
+                + "}, 64)",
             "description", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
 
         Set<OrganisationUnitLevel> allLevels = Sets.newHashSet( orgUnitLevel1, orgUnitLevel2, orgUnitLevel3 );
@@ -1623,7 +1624,8 @@ public class PredictionServiceTest
         dataValueBatchHandler.flush();
 
         Expression expression = new Expression(
-            "if(orgUnit.group( " + ouGroupA.getUid() + " , " + ouGroupB.getUid() + " ), #{" + dataElementA.getUid() + "}, 64)",
+            "if(orgUnit.group( " + ouGroupA.getUid() + " , " + ouGroupB.getUid() + " ), #{" + dataElementA.getUid()
+                + "}, 64)",
             "description", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
 
         Set<OrganisationUnitLevel> allLevels = Sets.newHashSet( orgUnitLevel1, orgUnitLevel2, orgUnitLevel3 );
