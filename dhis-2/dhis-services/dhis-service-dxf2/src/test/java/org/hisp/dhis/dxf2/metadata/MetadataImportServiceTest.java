@@ -49,7 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
@@ -855,8 +854,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( programStage.getProgramStageSections() );
 
         assertNotNull( manager.get( ProgramStageSection.class, "JwcV2ZifEQf" ) );
-
-        CategoryCombo categoryCombo = manager.get( CategoryCombo.class, "faV8QvLgIwB" );
 
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/programstage_with_removed_section.json" ).getInputStream(),
