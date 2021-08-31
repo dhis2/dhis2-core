@@ -27,19 +27,23 @@
  */
 package org.hisp.dhis.dimension;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_12_MONTHS;
-import static org.junit.Assert.*;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -561,33 +565,40 @@ public class DimensionServiceTest
         assertEquals( 3, objects.size() );
         for ( DimensionalItemObject object : objects )
         {
-            assertThat( object.getPeriodOffset(), is( 1 ) );
+            assertEquals( 1, object.getPeriodOffset() );
         }
     }
 
     @Test
-    public void testGetDataDimensionalItemObjectsReturnsItemWithOffsetLargerThanZero()
+    public void testGetDataDimensionalItemObjectsReturnsItemWithAllOffsets()
     {
         // Given
-        int offset = 1;
         Set<DimensionalItemId> dimensionalItemIds = new HashSet<>();
 
         dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid() ) );
         dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid() ) );
         dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid() ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid(), offset ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid(), offset ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid(), offset ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid(), 1 ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid(), 1 ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid(), 1 ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid(), 2 ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid(), 2 ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid(), 2 ) );
 
         // When
         Set<DimensionalItemObject> objects = dimensionService.getDataDimensionalItemObjects( dimensionalItemIds );
 
         // Then
-        assertEquals( 3, objects.size() );
-        for ( DimensionalItemObject object : objects )
-        {
-            assertThat( object.getPeriodOffset(), is( 1 ) );
-        }
+        assertContainsOnly( objects,
+            dataElementWithOffset( deA, 0 ),
+            dataElementWithOffset( deB, 0 ),
+            dataElementWithOffset( deC, 0 ),
+            dataElementWithOffset( deA, 1 ),
+            dataElementWithOffset( deB, 1 ),
+            dataElementWithOffset( deC, 1 ),
+            dataElementWithOffset( deA, 2 ),
+            dataElementWithOffset( deB, 2 ),
+            dataElementWithOffset( deC, 2 ) );
     }
 
     @Test
@@ -641,5 +652,18 @@ public class DimensionServiceTest
 
         assertEquals( lsA, dim.getLegendSet() );
         assertEquals( psA, dim.getProgramStage() );
+    }
+
+    // --------------------------------------------------------------------------
+    // Supportive methods
+    // --------------------------------------------------------------------------
+
+    private DataElement dataElementWithOffset( DataElement dataElement, int periodOffset )
+    {
+        DataElement de = SerializationUtils.clone( dataElement );
+
+        de.setPeriodOffset( periodOffset );
+
+        return de;
     }
 }

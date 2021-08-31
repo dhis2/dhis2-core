@@ -71,12 +71,13 @@ public class AnalyticsTestUtils
      * Test if values from keyValue corresponds with values in
      * aggregatedResultMapping. Also test for null values.
      *
+     * @param scenario test scenario being run
      * @param aggregatedResultData aggregated results
      * @param keyValue expected results
      */
-    public static void assertResultGrid( Grid aggregatedResultData, Map<String, Double> keyValue )
+    public static void assertResultGrid( String scenario, Grid aggregatedResultData, Map<String, Double> keyValue )
     {
-        assertNotNull( aggregatedResultData );
+        assertNotNull( "Scenario '" + scenario + "' returned null Grid", aggregatedResultData );
 
         for ( int i = 0; i < aggregatedResultData.getRows().size(); i++ )
         {
@@ -97,10 +98,10 @@ public class AnalyticsTestUtils
             Double expected = keyValue.get( key.toString() );
             Double actual = Double.parseDouble( aggregatedResultData.getValue( i, numberOfDimensions ).toString() );
 
-            assertNotNull( "Did not find '" + key + "' in provided results", expected );
+            assertNotNull( "Scenario " + scenario + " did not find " + key + " in provided results", expected );
             assertNotNull( aggregatedResultData.getRow( i ) );
-            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
-                actual );
+            assertEquals( "Scenario " + scenario + " value for " + key + " was " + actual + ", not expected "
+                + expected, expected, actual );
         }
     }
 
@@ -109,10 +110,11 @@ public class AnalyticsTestUtils
      * aggregatedDataValueMapping. Also test for null values, and "" as key in
      * aggregatedDataValueMapping
      *
+     * @param scenario test scenario being run
      * @param aggregatedResultMapping aggregated values
      * @param keyValue expected results
      */
-    public static void assertResultMapping( Map<String, Object> aggregatedResultMapping,
+    public static void assertResultMapping( String scenario, Map<String, Object> aggregatedResultMapping,
         Map<String, Double> keyValue )
     {
         assertNotNull( aggregatedResultMapping );
@@ -125,9 +127,9 @@ public class AnalyticsTestUtils
             Double expected = keyValue.get( key );
             Double actual = (Double) entry.getValue();
 
-            assertNotNull( "Did not find '" + key + "' in provided results", expected );
-            assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected,
-                actual );
+            assertNotNull( "Scenario " + scenario + " did not find " + key + " in provided results", expected );
+            assertEquals( "Scenario " + scenario + " value for " + key + " was " + actual + ", not expected "
+                + expected, expected, actual );
         }
     }
 

@@ -25,47 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cache;
+package org.hisp.dhis.utils;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * Provides cache builder to build instances.
- *
- * @author Ameen Mohamed
+ * @author Jan Bernitt
  */
-public interface CacheProvider
+public final class Assertions
 {
-    /**
-     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a
-     * cache that stores the valueType specified.
-     *
-     * @param valueType The class type of values to be stored in cache.
-     * @return A cache builder instance for the specified value type. Returns a
-     *         {@link ExtendedCacheBuilder}.
-     */
-    <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType );
+    private Assertions()
+    {
+        throw new UnsupportedOperationException( "util" );
+    }
 
-    /**
-     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a
-     * cache that stores the Map of keyType and valueType specified.
-     *
-     * @param valueType The class type of values to be stored in cache.
-     * @return A cache builder instance for the specified value type. Returns a
-     *         {@link ExtendedCacheBuilder}.
-     */
-    <K, V> ExtendedCacheBuilder<Map<K, V>> newCacheBuilder( Class<K> keyType, Class<V> valueType );
+    @SafeVarargs
+    public static <E> void assertContainsOnly( Collection<E> actual, E... expected )
+    {
+        assertEquals( expected.length, actual.size() );
 
-    /**
-     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a
-     * cache that stores the Map of keyType and value is a Set holding items of
-     * the specified valueType.
-     *
-     * @param valueType The class type of the individual items in the value set
-     *        to be stored in cache.
-     * @return A cache builder instance for the specified value type. Returns a
-     *         {@link ExtendedCacheBuilder}.
-     */
-    <V> ExtendedCacheBuilder<Set<V>> newCacheBuilderForSet( Class<V> valueType );
+        for ( E e : expected )
+        {
+            assertTrue( "Expected " + e.toString() + " in " + actual.toString(), actual.contains( e ) );
+        }
+    }
+
+    public static <K, V> void assertMapEquals( Map<K, V> expected, Map<K, V> actual )
+    {
+        for ( Map.Entry<K, V> e : expected.entrySet() )
+        {
+            assertEquals( "Expected value not in " + actual.toString(),
+                e.getValue(), actual.get( e.getKey() ) );
+        }
+
+        for ( Map.Entry<K, V> e : actual.entrySet() )
+        {
+            assertEquals( "Did not expect value in " + actual.toString(),
+                e.getValue(), expected.get( e.getKey() ) );
+        }
+    }
 }

@@ -60,6 +60,8 @@ public enum ConfigurationKey
     CONNECTION_POOL_IDLE_CON_TEST_PERIOD( "connection.pool.idle.con.test.period", "0", false ),
     CONNECTION_POOL_TEST_ON_CHECKOUT( "connection.pool.test.on.checkout", Constants.FALSE, false ),
     CONNECTION_POOL_TEST_ON_CHECKIN( "connection.pool.test.on.checkin", Constants.TRUE, false ),
+    CONNECTION_POOL_NUM_THREADS( "connection.pool.num.helper.threads", "3", false ),
+    CONNECTION_POOL_TEST_QUERY( "connection.pool.preferred.test.query" ),
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
     LDAP_MANAGER_DN( "ldap.manager.dn", "", false ),
     LDAP_MANAGER_PASSWORD( "ldap.manager.password", "", true ),
