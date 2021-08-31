@@ -1541,7 +1541,8 @@ public class ValidationServiceTest
             "if(orgUnit.ancestor(" + sourceB.getUid() + "), #{" + dataElementA.getUid() + "}, 20)", "left" );
         Expression expressionRight = new Expression(
             "if(orgUnit.ancestor(" + sourceC.getUid() + "," + sourceD.getUid() + "), #{" + dataElementB.getUid()
-                + "}, 30)", "right" );
+                + "}, 30)",
+            "right" );
 
         ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
 
@@ -1582,7 +1583,8 @@ public class ValidationServiceTest
             "if(orgUnit.group( " + orgUnitGroupA.getUid() + " ), #{" + dataElementA.getUid() + "}, 20)", "left" );
         Expression expressionRight = new Expression(
             "if(orgUnit.group( " + orgUnitGroupB.getUid() + " , " + orgUnitGroupC.getUid() + " ), #{"
-                + dataElementB.getUid() + "}, 30)", "right" );
+                + dataElementB.getUid() + "}, 30)",
+            "right" );
 
         ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
 
