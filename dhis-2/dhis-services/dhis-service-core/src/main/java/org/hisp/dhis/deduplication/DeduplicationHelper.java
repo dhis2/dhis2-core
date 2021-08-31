@@ -36,9 +36,9 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
