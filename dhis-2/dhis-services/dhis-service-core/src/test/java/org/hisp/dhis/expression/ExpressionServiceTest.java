@@ -582,8 +582,8 @@ public class ExpressionServiceTest
             .getExpressionDimensionalItemObjects( expr, parseType );
 
         Object value = expressionService.getExpressionValue( expr, parseType,
-            valueMap, constantMap, ORG_UNIT_COUNT_MAP, DAYS, missingValueStrategy,
-            TEST_SAMPLE_PERIODS, samples );
+            valueMap, constantMap, ORG_UNIT_COUNT_MAP, null, DAYS, missingValueStrategy,
+            null, TEST_SAMPLE_PERIODS, samples );
 
         return result( value, items );
     }
