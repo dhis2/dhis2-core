@@ -339,6 +339,9 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage defaultExceptionHandler( Exception ex )
     {
+        // We print the stacktrace so it shows up in the logs, so we can more
+        // easily understand 500-issues.
+        ex.printStackTrace();
         return error( getExceptionMessage( ex ) );
     }
 

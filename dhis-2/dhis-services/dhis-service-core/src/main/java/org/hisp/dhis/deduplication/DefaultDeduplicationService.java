@@ -160,11 +160,11 @@ public class DefaultDeduplicationService
         return !sameAttributesAreEquals( trackedEntityAttributeValueA, trackedEntityAttributeValueB );
     }
 
-    private void merge( DeduplicationMergeParams deduplicationMergeParams )
+    private void merge( DeduplicationMergeParams params )
     {
-        TrackedEntityInstance original = deduplicationMergeParams.getOriginal();
-        TrackedEntityInstance duplicate = deduplicationMergeParams.getDuplicate();
-        MergeObject mergeObject = deduplicationMergeParams.getMergeObject();
+        TrackedEntityInstance original = params.getOriginal();
+        TrackedEntityInstance duplicate = params.getDuplicate();
+        MergeObject mergeObject = params.getMergeObject();
 
         if ( !deduplicationHelper.hasUserAccess( original, duplicate, mergeObject ) )
             throw new PotentialDuplicateForbiddenException(
@@ -177,7 +177,8 @@ public class DefaultDeduplicationService
         potentialDuplicateStore.moveEnrollments( original.getUid(), duplicate.getUid(),
             mergeObject.getEnrollments() );
         potentialDuplicateStore.removeTrackedEntity( duplicate );
-        updateTeiAndPotentialDuplicate( deduplicationMergeParams, original );
+        updateTeiAndPotentialDuplicate( params, original );
+        potentialDuplicateStore.auditMerge( params );
     }
 
     private boolean haveSameEnrollment( Set<ProgramInstance> originalEnrollments,
