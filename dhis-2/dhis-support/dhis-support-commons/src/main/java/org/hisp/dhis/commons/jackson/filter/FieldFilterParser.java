@@ -125,11 +125,16 @@ public class FieldFilterParser
 
                 output.add( toFullPath( builder.toString(), path ) );
                 builder = new StringBuilder();
+                transformerName = null;
             }
             else if ( isBlockStart( token ) )
             {
+                FieldPath fieldPath = getFieldPath( builder, path, transformerName, transformerParameters );
+                fieldPaths.add( fieldPath );
+
                 path.push( builder.toString() );
                 builder = new StringBuilder();
+                transformerName = null;
             }
             else if ( isBlockEnd( token ) )
             {
@@ -140,6 +145,7 @@ public class FieldFilterParser
                 output.add( path.pop() );
 
                 builder = new StringBuilder();
+                transformerName = null;
             }
             else if ( isAlphanumericOrSpecial( token ) )
             {

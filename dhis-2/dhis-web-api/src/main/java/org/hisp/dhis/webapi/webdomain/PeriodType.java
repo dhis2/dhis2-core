@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
-import lombok.Data;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.commons.jackson.filter.FieldFilterMixin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+import lombok.Data;
 
 /**
  * @author Morten Olav Hansen
@@ -49,6 +52,8 @@ public class PeriodType implements FieldFilterMixin
     private final String isoFormat;
 
     private final int frequencyOrder;
+
+    private final List<PeriodType> periodTypes = new ArrayList<>();
 
     public PeriodType( org.hisp.dhis.period.PeriodType periodType )
     {
@@ -80,5 +85,11 @@ public class PeriodType implements FieldFilterMixin
     public int getFrequencyOrder()
     {
         return frequencyOrder;
+    }
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<PeriodType> getPeriodTypes()
+    {
+        return periodTypes;
     }
 }

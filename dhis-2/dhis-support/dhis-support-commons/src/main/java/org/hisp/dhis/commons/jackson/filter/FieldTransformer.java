@@ -35,5 +35,5 @@ import com.fasterxml.jackson.databind.JsonNode;
 @FunctionalInterface
 public interface FieldTransformer
 {
-    JsonNode apply( String key, JsonNode value, JsonNode parent );
+    JsonNode apply( String path, JsonNode value, JsonNode parent );
 }

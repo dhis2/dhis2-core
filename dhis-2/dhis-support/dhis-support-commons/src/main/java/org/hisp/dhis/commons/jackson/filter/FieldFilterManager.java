@@ -32,15 +32,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.commons.jackson.filter.transformers.RenameFieldTransformer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Morten Olav Hansen
@@ -58,30 +60,59 @@ public class FieldFilterManager
 
         SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
+        Map<String, FieldTransformer> fieldTransformers = getTransformerMap( fieldPaths );
 
         List<ObjectNode> objectNodes = new ArrayList<>();
-        Map<String, FieldTransformer> transformerMap = getTransformerMap( fieldPaths );
 
         for ( Object object : params.getObjects() )
         {
             ObjectNode objectNode = objectMapper.valueToTree( object );
+            applyTransformers( objectNode, null, "", fieldTransformers );
+
+            objectNodes.add( objectNode );
+        }
+
+        return objectNodes;
+    }
+
+    private void applyTransformers( JsonNode node, JsonNode parent, String path,
+        Map<String, FieldTransformer> fieldTransformers )
+    {
+        if ( parent != null && !parent.isArray() && !path.isEmpty() )
+        {
+            FieldTransformer fieldTransformer = fieldTransformers.get( path.substring( 1 ) );
+
+            if ( fieldTransformer != null )
+            {
+                fieldTransformer.apply( path.substring( 1 ), node, parent );
+            }
+        }
+
+        if ( node.isObject() )
+        {
+            ObjectNode objectNode = (ObjectNode) node;
 
             List<String> fieldNames = new ArrayList<>();
             objectNode.fieldNames().forEachRemaining( fieldNames::add );
 
             for ( String fieldName : fieldNames )
             {
-                if ( transformerMap.containsKey( fieldName ) )
-                {
-                    FieldTransformer transformer = transformerMap.get( fieldName );
-                    transformer.apply( fieldName, objectNode.get( fieldName ), objectNode );
-                }
+                applyTransformers( objectNode.get( fieldName ), objectNode, path + "." + fieldName, fieldTransformers );
             }
-
-            objectNodes.add( objectNode );
         }
+        else if ( node.isArray() )
+        {
+            ArrayNode arrayNode = (ArrayNode) node;
 
-        return objectNodes;
+            for ( JsonNode item : arrayNode )
+            {
+                applyTransformers( item, arrayNode, path, fieldTransformers );
+            }
+        }
+        else
+        {
+
+        }
     }
 
     private SimpleFilterProvider getSimpleFilterProvider( List<FieldPath> fieldPaths )

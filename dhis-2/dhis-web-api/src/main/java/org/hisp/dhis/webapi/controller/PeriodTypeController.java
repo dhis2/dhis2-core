@@ -78,6 +78,13 @@ public class PeriodTypeController
             .map( PeriodType::new )
             .collect( Collectors.toList() );
 
+        for ( PeriodType periodType : periodTypes )
+        {
+            periodType.getPeriodTypes().addAll( periodService.getAllPeriodTypes().stream()
+                .map( PeriodType::new )
+                .collect( Collectors.toList() ) );
+        }
+
         FieldFilterParams<PeriodType> params = FieldFilterParams.<PeriodType> builder()
             .objects( periodTypes )
             .filters( fields )

@@ -27,14 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.*;
 
 import java.beans.PropertyEditorSupport;
 import java.util.Date;
@@ -356,6 +349,7 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage defaultExceptionHandler( Exception ex )
     {
+        ex.printStackTrace();
         return error( getExceptionMessage( ex ) );
     }
 

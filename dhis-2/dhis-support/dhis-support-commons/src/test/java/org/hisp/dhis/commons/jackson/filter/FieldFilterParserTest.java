@@ -142,6 +142,56 @@ public class FieldFilterParserTest
         assertFieldPathContains( fieldPaths, "groups.code" );
     }
 
+    @Test
+    public void testParseWithTransformer4()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( Sets.newHashSet( "name::rename(n),groups[name]" ) );
+
+        assertFieldPathContains( fieldPaths, "name", true );
+        assertFieldPathContains( fieldPaths, "groups" );
+        assertFieldPathContains( fieldPaths, "groups.name", false );
+    }
+
+    @Test
+    public void testParseWithTransformer5()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser
+            .parse( Sets.newHashSet( "name::rename(n),groups::rename(g)[name::rename(n)]" ) );
+
+        assertFieldPathContains( fieldPaths, "name", true );
+        assertFieldPathContains( fieldPaths, "groups", true );
+        assertFieldPathContains( fieldPaths, "groups.name", true );
+    }
+
+    @Test
+    public void testParseWithTransformer6()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser
+            .parse( Sets.newHashSet( "name::rename(n),groups::rename(g)[name]" ) );
+
+        assertFieldPathContains( fieldPaths, "name", true );
+        assertFieldPathContains( fieldPaths, "groups", true );
+        assertFieldPathContains( fieldPaths, "groups.name", false );
+    }
+
+    private void assertFieldPathContains( List<FieldPath> fieldPaths, String expected, boolean hasTransformer )
+    {
+        boolean condition = false;
+
+        for ( FieldPath fieldPath : fieldPaths )
+        {
+            String path = fieldPath.toFullPath();
+
+            if ( path.startsWith( expected ) )
+            {
+                condition = fieldPath.getTransformer() != null == hasTransformer;
+                break;
+            }
+        }
+
+        assertTrue( condition );
+    }
+
     private void assertFieldPathContains( List<FieldPath> fieldPaths, String expected )
     {
         boolean condition = false;
