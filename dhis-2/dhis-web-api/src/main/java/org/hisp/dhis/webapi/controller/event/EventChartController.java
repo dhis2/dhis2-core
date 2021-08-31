@@ -31,14 +31,15 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -52,6 +53,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.descriptors.EventChartSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.ChartService;
+import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -130,7 +133,8 @@ public class EventChartController
 
         OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
 
-        JFreeChart jFreeChart = chartService.getJFreeChart( chart, date, unit, i18nManager.getI18nFormat() );
+        JFreeChart jFreeChart = chartService.getJFreeChart( new PlotData( chart ), date, unit,
+            i18nManager.getI18nFormat() );
 
         String filename = CodecUtils.filenameEncode( chart.getName() ) + ".png";
 
@@ -190,5 +194,12 @@ public class EventChartController
         chart.getColumnDimensions().addAll( getDimensions( chart.getColumns() ) );
         chart.getRowDimensions().addAll( getDimensions( chart.getRows() ) );
         chart.getFilterDimensions().addAll( getDimensions( chart.getFilters() ) );
+    }
+
+    public static void main( String[] args )
+    {
+        List<String> l = new ArrayList<>( null );
+
+        System.out.println( l );
     }
 }

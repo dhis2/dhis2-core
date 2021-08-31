@@ -39,7 +39,6 @@ import java.util.Set;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppType;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -54,13 +53,11 @@ import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.visualization.SimpleVisualizationView;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationStore;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -94,27 +91,23 @@ public class DefaultDashboardService
 
     private final DashboardItemStore dashboardItemStore;
 
-    private final VisualizationStore visualizationStore;
-
     private final AppManager appManager;
 
     public DefaultDashboardService(
         @Qualifier( "org.hisp.dhis.dashboard.DashboardStore" ) HibernateIdentifiableObjectStore<Dashboard> dashboardStore,
         IdentifiableObjectManager objectManager, UserService userService, DashboardItemStore dashboardItemStore,
-        VisualizationStore visualizationStore, AppManager appManager )
+        AppManager appManager )
     {
         checkNotNull( dashboardStore );
         checkNotNull( objectManager );
         checkNotNull( userService );
         checkNotNull( dashboardItemStore );
-        checkNotNull( visualizationStore );
         checkNotNull( appManager );
 
         this.dashboardStore = dashboardStore;
         this.objectManager = objectManager;
         this.userService = userService;
         this.dashboardItemStore = dashboardItemStore;
-        this.visualizationStore = visualizationStore;
         this.appManager = appManager;
     }
 
@@ -147,16 +140,12 @@ public class DefaultDashboardService
 
         result.setUsers( userService.getAllUsersBetweenByName( query, 0,
             getMax( DashboardItemType.USERS, maxTypes, count, maxCount ) ) );
-        result.setVisualizations( convertFrom( visualizationStore.getAllLikeName( words, 0,
-            getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
-        result.setCharts( visualizationStore.getChartsLikeName( words, 0,
-            getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
+        result.setVisualizations( convertFrom( objectManager.getBetweenLikeName( Visualization.class, words, 0,
+            getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) ) );
         result.setEventCharts( objectManager.getBetweenLikeName( EventChart.class, words, 0,
             getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenLikeName( Map.class, words, 0,
             getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
-        result.setReportTables( visualizationStore.getPivotTablesLikeName( words, 0,
-            getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
         result.setEventReports( objectManager.getBetweenLikeName( EventReport.class, words, 0,
             getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
         result.setReports( objectManager.getBetweenLikeName( Report.class, words, 0,
@@ -176,14 +165,10 @@ public class DefaultDashboardService
 
         result.setVisualizations( convertFrom( objectManager.getBetweenSorted( Visualization.class, 0,
             getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
-        result.setCharts(
-            visualizationStore.getCharts( 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
         result.setEventCharts( objectManager.getBetweenSorted( EventChart.class, 0,
             getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenSorted( Map.class, 0,
             getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
-        result.setReportTables( visualizationStore.getPivotTables( 0,
-            getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
         result.setEventReports( objectManager.getBetweenSorted( EventReport.class, 0,
             getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
         result.setReports( objectManager.getBetweenSorted( Report.class, 0,
@@ -228,11 +213,6 @@ public class DefaultDashboardService
             item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
             dashboard.getItems().add( 0, item );
         }
-        else if ( DashboardItemType.CHART.equals( type ) )
-        {
-            item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
-            dashboard.getItems().add( 0, item );
-        }
         else if ( DashboardItemType.EVENT_CHART.equals( type ) )
         {
             item.setEventChart( objectManager.get( EventChart.class, contentUid ) );
@@ -241,11 +221,6 @@ public class DefaultDashboardService
         else if ( DashboardItemType.MAP.equals( type ) )
         {
             item.setMap( objectManager.get( Map.class, contentUid ) );
-            dashboard.getItems().add( 0, item );
-        }
-        else if ( DashboardItemType.REPORT_TABLE.equals( type ) )
-        {
-            item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
             dashboard.getItems().add( 0, item );
         }
         else if ( DashboardItemType.EVENT_REPORT.equals( type ) )
@@ -320,11 +295,6 @@ public class DefaultDashboardService
             item.setVisualization( objectManager.get( Visualization.class, item.getVisualization().getUid() ) );
         }
 
-        if ( item.getChart() != null )
-        {
-            item.setVisualization( objectManager.get( Visualization.class, item.getChart().getUid() ) );
-        }
-
         if ( item.getEventChart() != null )
         {
             item.setEventChart( objectManager.get( EventChart.class, item.getEventChart().getUid() ) );
@@ -333,11 +303,6 @@ public class DefaultDashboardService
         if ( item.getMap() != null )
         {
             item.setMap( objectManager.get( Map.class, item.getMap().getUid() ) );
-        }
-
-        if ( item.getReportTable() != null )
-        {
-            item.setVisualization( objectManager.get( Visualization.class, item.getReportTable().getUid() ) );
         }
 
         if ( item.getEventReport() != null )
@@ -439,20 +404,6 @@ public class DefaultDashboardService
     public List<DashboardItem> getVisualizationDashboardItems( Visualization visualization )
     {
         return dashboardItemStore.getVisualizationDashboardItems( visualization );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DashboardItem> getReportTableDashboardItems( ReportTable reportTable )
-    {
-        return dashboardItemStore.getReportTableDashboardItems( reportTable );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DashboardItem> getChartDashboardItems( Chart chart )
-    {
-        return dashboardItemStore.getChartDashboardItems( chart );
     }
 
     @Override
