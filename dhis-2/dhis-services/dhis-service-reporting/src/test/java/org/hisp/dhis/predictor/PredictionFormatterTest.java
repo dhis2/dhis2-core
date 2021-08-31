@@ -49,32 +49,11 @@ import org.junit.Test;
 public class PredictionFormatterTest
     extends DhisConvenienceTest
 {
-    private DataElement deNumber;
-
-    private DataElement deInteger;
-
-    private DataElement deText;
-
-    private DataElement deBoolean;
-
-    private DataElement deDate;
-
-    private DataElement deFileResource;
-
-    @Before
-    public void initTest()
-    {
-        deNumber = createDataElement( 'N', NUMBER, NONE );
-        deInteger = createDataElement( 'I', INTEGER, NONE );
-        deText = createDataElement( 'T', TEXT, NONE );
-        deBoolean = createDataElement( 'B', BOOLEAN, NONE );
-        deDate = createDataElement( 'D', DATE, NONE );
-        deFileResource = createDataElement( 'F', FILE_RESOURCE, NONE );
-    }
-
     @Test
     public void testFormatPredictionNumber()
     {
+        DataElement deNumber = createDataElement( 'N', NUMBER, NONE );
+
         assertEquals( "1234568.0", formatPrediction( 1234567.89, deNumber ) );
         assertEquals( "3.142", formatPrediction( 3.14159265359, deNumber ) );
 
@@ -95,11 +74,13 @@ public class PredictionFormatterTest
     @Test
     public void testFormatPredictionInteger()
     {
+        DataElement deInteger = createDataElement( 'I', INTEGER, NONE );
+
         assertEquals( "1234568", formatPrediction( 1234567.89, deInteger ) );
         assertEquals( "3", formatPrediction( 3.14159265359, deInteger ) );
 
         assertNull( formatPrediction( 0.0, deInteger ) );
-        assertNull( formatPrediction( null, deNumber ) );
+        assertNull( formatPrediction( null, deInteger ) );
         assertNull( formatPrediction( 100, deInteger ) ); // Value is not Double
         assertNull( formatPrediction( "Text", deInteger ) );
         assertNull( formatPrediction( Double.NaN, deInteger ) );
@@ -115,6 +96,8 @@ public class PredictionFormatterTest
     @Test
     public void testFormatPredictionText()
     {
+        DataElement deText = createDataElement( 'T', TEXT, NONE );
+
         assertEquals( "Some text", formatPrediction( "Some text", deText ) );
         assertEquals( "2021-09-10", formatPrediction( "2021-09-10", deText ) );
         assertEquals( "1234568.0", formatPrediction( 1234567.89, deText ) );
@@ -133,6 +116,8 @@ public class PredictionFormatterTest
     @Test
     public void testFormatPredictionBoolean()
     {
+        DataElement deBoolean = createDataElement( 'B', BOOLEAN, NONE );
+
         assertEquals( "true", formatPrediction( true, deBoolean ) );
         assertEquals( "false", formatPrediction( false, deBoolean ) );
         assertEquals( "false", formatPrediction( null, deBoolean ) );
@@ -144,6 +129,8 @@ public class PredictionFormatterTest
     @Test
     public void testFormatPredictionDate()
     {
+        DataElement deDate = createDataElement( 'D', DATE, NONE );
+
         assertEquals( "2021-09-10", formatPrediction( "2021-09-10", deDate ) );
 
         assertNull( formatPrediction( null, deDate ) );
@@ -155,6 +142,8 @@ public class PredictionFormatterTest
     @Test
     public void testFormatPredictionOther()
     {
+        DataElement deFileResource = createDataElement( 'F', FILE_RESOURCE, NONE );
+
         assertNull( formatPrediction( null, deFileResource ) );
         assertNull( formatPrediction( 100.0, deFileResource ) );
         assertNull( formatPrediction( "Some text", deFileResource ) );
