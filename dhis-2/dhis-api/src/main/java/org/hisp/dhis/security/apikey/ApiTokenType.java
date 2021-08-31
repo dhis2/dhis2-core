@@ -25,42 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
-
-import org.hisp.dhis.reporttable.ReportTable;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-
-import com.google.common.collect.Lists;
+package org.hisp.dhis.security.apikey;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ReportTableSchemaDescriptor implements SchemaDescriptor
+public enum ApiTokenType
 {
-    public static final String SINGULAR = "reportTable";
+    PERSONAL_ACCESS_TOKEN( "d2pat" );
 
-    public static final String PLURAL = "reportTables";
+    private final String prefix;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    public static final String F_REPORTTABLE_PUBLIC_ADD = "F_REPORTTABLE_PUBLIC_ADD";
-
-    public static final String F_REPORTTABLE_EXTERNAL = "F_REPORTTABLE_EXTERNAL";
-
-    @Override
-    public Schema getSchema()
+    ApiTokenType( String prefix )
     {
-        Schema schema = new Schema( ReportTable.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 2000 );
-        schema.setImplicitPrivateAuthority( true );
+        this.prefix = prefix;
+    }
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( F_REPORTTABLE_PUBLIC_ADD ) ) );
-        schema.add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( F_REPORTTABLE_EXTERNAL ) ) );
-
-        return schema;
+    public String getPrefix()
+    {
+        return prefix;
     }
 }

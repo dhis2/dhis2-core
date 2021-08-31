@@ -91,22 +91,6 @@ public class InterpretationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testWriteReportTableInterpretation()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Report table does not exist or is not accessible: xyz",
-            POST( "/interpretations/reportTable/xyz?pe=2021&ou=" + ouId, "text/plain:text" )
-                .content( HttpStatus.CONFLICT ) );
-    }
-
-    @Test
-    public void testWriteChartInterpretation()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Chart does not exist or is not accessible: xyz",
-            POST( "/interpretations/chart/xyz?pe=2021&ou=" + ouId, "text/plain:text" )
-                .content( HttpStatus.CONFLICT ) );
-    }
-
-    @Test
     public void testWriteVisualizationInterpretation()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Visualization does not exist or is not accessible: xyz",

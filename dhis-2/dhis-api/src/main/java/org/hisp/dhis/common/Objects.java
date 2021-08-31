@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.common;
 
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
@@ -49,7 +48,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
@@ -82,10 +80,8 @@ public enum Objects
     DATAVALUE( "dataValue", DataValue.class ),
     USER( "user", User.class ),
     USERGROUP( "userGroup", UserGroup.class ),
-    REPORTTABLE( "reportTable", ReportTable.class ),
     VISUALIZATION( "visualization", Visualization.class ),
     REPORT( "report", Report.class ),
-    CHART( "chart", Chart.class ),
     MAP( "map", Map.class ),
     DASHBOARD( "dashboard", Dashboard.class ),
     PROGRAM( "program", Program.class ),

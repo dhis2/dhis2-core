@@ -107,32 +107,6 @@ public class HibernateDbmsManager
 
         emptyTable( "report" );
 
-        emptyTable( "reporttable_categorydimensions" );
-        emptyTable( "reporttable_categoryoptiongroupsetdimensions" );
-        emptyTable( "reporttable_columns" );
-        emptyTable( "reporttable_datadimensionitems" );
-        emptyTable( "reporttable_dataelementgroupsetdimensions" );
-        emptyTable( "reporttable_filters" );
-        emptyTable( "reporttable_itemorgunitgroups" );
-        emptyTable( "reporttable_organisationunits" );
-        emptyTable( "reporttable_orgunitgroupsetdimensions" );
-        emptyTable( "reporttable_orgunitlevels" );
-        emptyTable( "reporttable_periods" );
-        emptyTable( "reporttable_rows" );
-        emptyTable( "reporttable" );
-
-        emptyTable( "chart_categorydimensions" );
-        emptyTable( "chart_categoryoptiongroupsetdimensions" );
-        emptyTable( "chart_datadimensionitems" );
-        emptyTable( "chart_dataelementgroupsetdimensions" );
-        emptyTable( "chart_filters" );
-        emptyTable( "chart_itemorgunitgroups" );
-        emptyTable( "chart_organisationunits" );
-        emptyTable( "chart_orgunitgroupsetdimensions" );
-        emptyTable( "chart_orgunitlevels" );
-        emptyTable( "chart_periods" );
-        emptyTable( "chart" );
-
         emptyTable( "visualization_yearlyseries" );
         emptyTable( "visualization_rows" );
         emptyTable( "visualization_periods" );

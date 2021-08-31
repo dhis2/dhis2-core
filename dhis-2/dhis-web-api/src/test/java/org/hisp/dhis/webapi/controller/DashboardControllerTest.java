@@ -98,9 +98,9 @@ public class DashboardControllerTest
     public void verifyEndpointWithMaxArg()
         throws Exception
     {
-        mockMvc.perform( get( ENDPOINT ).param( "max", "CHART" ) ).andExpect( status().isOk() );
+        mockMvc.perform( get( ENDPOINT ).param( "max", "VISUALIZATION" ) ).andExpect( status().isOk() );
 
-        verify( dashboardService ).search( Sets.newHashSet( DashboardItemType.CHART ), null, null );
+        verify( dashboardService ).search( Sets.newHashSet( DashboardItemType.VISUALIZATION ), null, null );
     }
 
     @Test
@@ -109,12 +109,12 @@ public class DashboardControllerTest
     {
         mockMvc.perform(
             get( ENDPOINT )
-                .param( "max", "CHART" )
+                .param( "max", "VISUALIZATION" )
                 .param( "count", "10" )
                 .param( "maxCount", "20" ) )
             .andExpect( status().isOk() );
 
-        verify( dashboardService ).search( Sets.newHashSet( DashboardItemType.CHART ), 10, 20 );
+        verify( dashboardService ).search( Sets.newHashSet( DashboardItemType.VISUALIZATION ), 10, 20 );
     }
 
     @Test
@@ -132,10 +132,10 @@ public class DashboardControllerTest
     {
         mockMvc.perform(
             get( ENDPOINT + "/alfa" )
-                .param( "max", "CHART" ) )
+                .param( "max", "VISUALIZATION" ) )
             .andExpect( status().isOk() );
 
-        verify( dashboardService ).search( "alfa", Sets.newHashSet( DashboardItemType.CHART ), null, null );
+        verify( dashboardService ).search( "alfa", Sets.newHashSet( DashboardItemType.VISUALIZATION ), null, null );
     }
 
     @Test
@@ -144,12 +144,11 @@ public class DashboardControllerTest
     {
         mockMvc.perform(
             get( ENDPOINT + "/alfa" )
-                .param( "max", "CHART" )
+                .param( "max", "VISUALIZATION" )
                 .param( "count", "10" )
                 .param( "maxCount", "20" ) )
             .andExpect( status().isOk() );
 
-        verify( dashboardService ).search( "alfa", Sets.newHashSet( DashboardItemType.CHART ), 10, 20 );
+        verify( dashboardService ).search( "alfa", Sets.newHashSet( DashboardItemType.VISUALIZATION ), 10, 20 );
     }
-
 }
