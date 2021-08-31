@@ -38,6 +38,7 @@ import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.Relationship;
@@ -353,6 +354,42 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
 
         assertThrows( PotentialDuplicateConflictException.class,
             () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
+    }
+
+    @Test
+    public void shouldGenerateMergeObjectWIthEnrollments()
+    {
+        TrackedEntityInstance original = getTeiA();
+        Program programA = createProgram( 'A' );
+        ProgramInstance programInstanceA = createProgramInstance( programA, original, organisationUnitA );
+        programInstanceA.setUid( "programInstanceA" );
+        original.getProgramInstances().add( programInstanceA );
+
+        TrackedEntityInstance duplicate = getTeiA();
+        Program programB = createProgram( 'B' );
+        ProgramInstance programInstanceB = createProgramInstance( programB, duplicate, organisationUnitA );
+        programInstanceB.setUid( "programInstanceB" );
+        duplicate.getProgramInstances().add( programInstanceB );
+
+        MergeObject generatedMergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
+
+        assertEquals( "programInstanceB", generatedMergeObject.getEnrollments().get( 0 ) );
+    }
+
+    @Test( expected = PotentialDuplicateConflictException.class )
+    public void shouldFailGenerateMergeObjectEnrollmentsSameProgram()
+    {
+        TrackedEntityInstance original = getTeiA();
+
+        Program program = createProgram( 'A' );
+        ProgramInstance programInstanceA = createProgramInstance( program, original, organisationUnitA );
+        original.getProgramInstances().add( programInstanceA );
+
+        TrackedEntityInstance duplicate = getTeiA();
+        ProgramInstance programInstanceB = createProgramInstance( program, duplicate, organisationUnitA );
+        duplicate.getProgramInstances().add( programInstanceB );
+
+        deduplicationHelper.generateMergeObject( original, duplicate );
     }
 
     private List<Relationship> getRelationships()
