@@ -37,6 +37,8 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
@@ -61,6 +63,8 @@ public class DeduplicationHelper
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
     private final OrganisationUnitService organisationUnitService;
+
+    private ProgramInstanceService programInstanceService;
 
     public boolean hasInvalidReference( DeduplicationMergeParams params )
     {
@@ -87,6 +91,19 @@ public class DeduplicationHelper
             if ( original.getUid().equals( rel ) || !validRelationships.contains( rel ) )
             {
                 return true;
+            }
+        }
+
+        Set<String> programs = programInstanceService.getProgramInstances( mergeObject.getEnrollments() )
+            .stream()
+            .map( e -> e.getProgram().getUid() )
+            .collect( Collectors.toSet() );
+
+        for ( ProgramInstance programInstance : original.getProgramInstances() )
+        {
+            if ( programs.contains( programInstance.getProgram().getUid() ) )
+            {
+                return false;
             }
         }
 
@@ -143,6 +160,13 @@ public class DeduplicationHelper
             .getTrackedEntityAttributes( mergeObject.getTrackedEntityAttributes() );
 
         if ( trackedEntityAttributes.stream().anyMatch( attr -> !aclService.canDataWrite( user, attr ) ) )
+        {
+            return false;
+        }
+
+        List<ProgramInstance> enrollments = programInstanceService.getProgramInstances( mergeObject.getEnrollments() );
+
+        if ( enrollments.stream().anyMatch( e -> !aclService.canDataWrite( user, e ) ) )
         {
             return false;
         }

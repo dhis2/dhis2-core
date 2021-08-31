@@ -53,4 +53,7 @@ public class MergeObject
     @JsonProperty
     private List<String> relationships = new ArrayList<>();
 
+    @Builder.Default
+    @JsonProperty
+    private List<String> enrollments = new ArrayList<>();
 }

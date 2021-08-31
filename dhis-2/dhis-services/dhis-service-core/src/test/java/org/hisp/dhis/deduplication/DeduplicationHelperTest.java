@@ -33,12 +33,13 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
@@ -81,6 +82,9 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     @Mock
     private OrganisationUnitService organisationUnitService;
 
+    @Mock
+    private ProgramInstanceService programInstanceService;
+
     private OrganisationUnit organisationUnitA;
 
     private OrganisationUnit organisationUnitB;
@@ -93,6 +97,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
 
     private TrackedEntityAttribute attribute;
 
+    private ProgramInstance programInstance;
+
     private MergeObject mergeObject;
 
     private User user;
@@ -101,7 +107,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     public void setUp()
     {
         List<String> relationshipUids = Lists.newArrayList( "REL_A", "REL_B" );
-        ArrayList<String> attributeUids = Lists.newArrayList( "ATTR_A", "ATTR_B" );
+        List<String> attributeUids = Lists.newArrayList( "ATTR_A", "ATTR_B" );
+        List<String> enrollmentUids = Lists.newArrayList( "PI_A", "PI_B" );
 
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
@@ -109,9 +116,11 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         trackedEntityTypeB = createTrackedEntityType( 'B' );
         relationshipType = createRelationshipType( 'A' );
         attribute = createTrackedEntityAttribute( 'A' );
+        programInstance = createProgramInstance( createProgram( 'A' ), getTeiA(), organisationUnitA );
         mergeObject = MergeObject.builder()
             .relationships( relationshipUids )
             .trackedEntityAttributes( attributeUids )
+            .enrollments( enrollmentUids )
             .build();
         user = createUser( 'A', Lists.newArrayList( "F_TRACKED_ENTITY_MERGE" ) );
 
@@ -120,8 +129,10 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityTypeB ) ).thenReturn( true );
         when( aclService.canDataWrite( user, relationshipType ) ).thenReturn( true );
         when( aclService.canDataWrite( user, attribute ) ).thenReturn( true );
+        when( aclService.canDataWrite( user, programInstance ) ).thenReturn( true );
         when( relationshipService.getRelationships( relationshipUids ) ).thenReturn( getRelationships() );
         when( trackedEntityAttributeService.getTrackedEntityAttributes( attributeUids ) ).thenReturn( getAttributes() );
+        when( programInstanceService.getProgramInstances( enrollmentUids ) ).thenReturn( getEnrollments() );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitA ) ).thenReturn( true );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitB ) ).thenReturn( true );
     }
@@ -200,6 +211,18 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     public void shouldNotHasUserAccessWhenUserHasNoAccessToAttribute()
     {
         when( aclService.canDataWrite( user, attribute ) ).thenReturn( false );
+
+        boolean hasUserAccess = deduplicationHelper.hasUserAccess(
+            getTeiA(), getTeiB(),
+            mergeObject );
+
+        assertFalse( hasUserAccess );
+    }
+
+    @Test
+    public void shouldNotHasUserAccessWhenUserHasNoAccessToProgramInstance()
+    {
+        when( aclService.canDataWrite( user, programInstance ) ).thenReturn( false );
 
         boolean hasUserAccess = deduplicationHelper.hasUserAccess(
             getTeiA(), getTeiB(),
@@ -343,6 +366,11 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     private List<TrackedEntityAttribute> getAttributes()
     {
         return Lists.newArrayList( attribute );
+    }
+
+    private List<ProgramInstance> getEnrollments()
+    {
+        return Lists.newArrayList( programInstance );
     }
 
     private TrackedEntityInstance getTeiA()

@@ -53,6 +53,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import com.google.common.collect.Sets;
+
 @RunWith( MockitoJUnitRunner.class )
 public class DeduplicationServiceTest
 {
@@ -201,6 +203,26 @@ public class DeduplicationServiceTest
         trackedEntityOther.setUid( uidOther );
 
         when( trackedEntityInstanceB.getTrackedEntityType() ).thenReturn( trackedEntityOther );
+
+        assertThrows(
+            PotentialDuplicateConflictException.class,
+            () -> deduplicationService.autoMerge( deduplicationMergeParams ) );
+
+        verify( deduplicationHelper, times( 0 ) ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );
+        verify( trackedEntityInstanceService, times( 0 ) ).updateTrackedEntityInstance( any() );
+        verify( potentialDuplicateStore, times( 0 ) ).update( any() );
+    }
+
+    @Test
+    public void shouldNotBeAutoMergeableSameProgramInstance()
+    {
+        Program program = new Program();
+        program.setUid( "programUid" );
+        when( programInstanceA.getProgram() ).thenReturn( program );
+        when( programInstanceB.getProgram() ).thenReturn( program );
+
+        when( trackedEntityInstanceA.getProgramInstances() ).thenReturn( Sets.newHashSet( programInstanceA ) );
+        when( trackedEntityInstanceB.getProgramInstances() ).thenReturn( Sets.newHashSet( programInstanceB ) );
 
         assertThrows(
             PotentialDuplicateConflictException.class,
