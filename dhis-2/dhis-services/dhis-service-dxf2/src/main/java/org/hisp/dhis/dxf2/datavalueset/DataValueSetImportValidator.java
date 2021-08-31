@@ -154,7 +154,6 @@ public class DataValueSetImportValidator
         register( DataValueSetImportValidator::checkDataValueStrictCategoryOptionCombos );
         register( DataValueSetImportValidator::checkDataValueStrictAttrOptionCombos );
         register( DataValueSetImportValidator::checkDataValueStrictOrgUnits );
-        register( DataValueSetImportValidator::checkDataValueIsNotZeroAndInsignificant );
         register( DataValueSetImportValidator::checkDataValueStoredByIsValid );
         register( DataValueSetImportValidator::checkDataValuePeriodWithinAttrOptionComboRange );
         register( DataValueSetImportValidator::checkDataValueOrgUnitValidForAttrOptionCombo );
@@ -360,10 +359,11 @@ public class DataValueSetImportValidator
     private static void validateDataValueIsDefined( DataValue dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        if ( dataValue.isNullValue() && !dataValue.isDeletedValue() )
+        if ( dataValue.isNullValue() && !dataValue.isDeletedValue()
+            && !context.getImportOptions().getImportStrategy().isDelete() )
         {
-            context.addConflict( valueContext.getIndex(),
-                DataValueImportConflict.DATA_ELEMENT_VALUE_NOT_DEFINED, dataValue.getDataElement() );
+            context.addConflict( valueContext.getIndex(), DataValueImportConflict.DATA_ELEMENT_VALUE_NOT_DEFINED,
+                dataValue.getDataElement() );
         }
     }
 
@@ -514,19 +514,6 @@ public class DataValueSetImportValidator
         {
             context.addConflict( valueContext.getIndex(),
                 DataValueImportConflict.ORG_UNIT_STRICT, dataValue.getOrgUnit(), dataValue.getDataElement() );
-        }
-    }
-
-    private static void checkDataValueIsNotZeroAndInsignificant( DataValue dataValue, ImportContext context,
-        DataSetContext dataSetContext, DataValueContext valueContext )
-    {
-        boolean zeroAndInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant(
-            dataValue.getValue(), valueContext.getDataElement() );
-
-        if ( zeroAndInsignificant )
-        {
-            // Ignore value
-            context.getSummary().skipValue();
         }
     }
 

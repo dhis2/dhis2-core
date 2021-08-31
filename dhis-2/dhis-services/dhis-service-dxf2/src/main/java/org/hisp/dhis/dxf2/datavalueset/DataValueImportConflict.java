@@ -82,7 +82,8 @@ public enum DataValueImportConflict implements ImportConflictDescriptor
         OrganisationUnit.class, Period.class, CategoryOptionCombo.class, DataSet.class ),
     PERIOD_NOT_OPEN_FOR_DATA_SET( ErrorCode.E7643, "period", Period.class, DataSet.class ),
     PERIOD_NOT_CONFORM_TO_OPEN_PERIODS( ErrorCode.E7644, "period", Period.class ),
-    FILE_RESOURCE_NOT_FOUND( ErrorCode.E7645, "dataElement", DataElement.class );
+    FILE_RESOURCE_NOT_FOUND( ErrorCode.E7645, "dataElement", DataElement.class ),
+    DELETED_VALUE_CHANGED( ErrorCode.E7646, "value" );
 
     private final ErrorCode errorCode;
 
