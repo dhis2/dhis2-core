@@ -51,7 +51,6 @@ import org.hisp.dhis.webapi.mvc.messageconverter.ExcelMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonPMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.PdfMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,14 +176,6 @@ public class MvcTestConfig implements WebMvcConfigurer
         converters.add( new StringHttpMessageConverter() );
         converters.add( new ByteArrayHttpMessageConverter() );
         converters.add( new FormHttpMessageConverter() );
-
-        converters.add( renderServiceMessageConverter() );
-    }
-
-    @Bean
-    public RenderServiceMessageConverter renderServiceMessageConverter()
-    {
-        return new RenderServiceMessageConverter();
     }
 
     @Bean
