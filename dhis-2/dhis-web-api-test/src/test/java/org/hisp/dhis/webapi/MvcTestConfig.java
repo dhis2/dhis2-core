@@ -54,6 +54,7 @@ import org.hisp.dhis.webapi.mvc.messageconverter.PdfMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -62,6 +63,8 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -74,6 +77,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -92,6 +96,14 @@ public class MvcTestConfig implements WebMvcConfigurer
 
     @Autowired
     private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
+
+    @Autowired
+    @Qualifier( "jsonMapper" )
+    private ObjectMapper jsonMapper;
+
+    @Autowired
+    @Qualifier( "xmlMapper" )
+    private ObjectMapper xmlMapper;
 
     @Bean
     public CustomRequestMappingHandlerMapping requestMappingHandlerMapping()
@@ -176,6 +188,9 @@ public class MvcTestConfig implements WebMvcConfigurer
         converters.add( new StringHttpMessageConverter() );
         converters.add( new ByteArrayHttpMessageConverter() );
         converters.add( new FormHttpMessageConverter() );
+
+        converters.add( new MappingJackson2HttpMessageConverter( jsonMapper ) );
+        converters.add( new MappingJackson2XmlHttpMessageConverter( xmlMapper ) );
     }
 
     @Bean
