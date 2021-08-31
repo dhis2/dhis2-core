@@ -166,7 +166,7 @@ public class ValidationUtilsTest
 
         assertFalse( hexColorCodeIsValid( "#Ka3412" ) );
         assertFalse( hexColorCodeIsValid( "#b1a3cc22" ) );
-        assertFalse( hexColorCodeIsValid( "#3AF" ) );
+        assertFalse( hexColorCodeIsValid( "#3AM" ) );
         assertFalse( hexColorCodeIsValid( "#aabb" ) );
     }
 
