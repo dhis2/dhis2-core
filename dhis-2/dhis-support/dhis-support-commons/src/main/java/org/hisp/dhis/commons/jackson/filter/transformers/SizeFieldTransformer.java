@@ -77,6 +77,10 @@ public class SizeFieldTransformer implements FieldTransformer
         {
             ((ObjectNode) parent).put( key, value.asLong() );
         }
+        else if ( value.isDouble() || value.isFloat() )
+        {
+            ((ObjectNode) parent).put( key, value.asDouble() );
+        }
 
         return value;
     }
