@@ -88,8 +88,8 @@ public class SqlSelectElementProvider
                                             Optional<Expression> expr = function.getParameters().getExpressions()
                                                 .stream().findFirst();
                                             expr.ifPresent( expression -> columnElementList
-                                                .add( new ColumnElement( function.getName() + "(ax." +
-                                                    expression + ")", item.getAlias().getName() ) ) );
+                                                .add( new ColumnElement( function.getName() + "(1)",
+                                                    item.getAlias().getName() ) ) );
                                         }
                                     } );
                                 }

@@ -68,7 +68,8 @@ public class SqlFromElementProvider
                                 public void visit( Table table )
                                 {
                                     tableElementList
-                                        .add( new TableElement( table.getName(), table.getAlias().toString() ) );
+                                        .add( new TableElement( tableElementList.size(), table.getName(),
+                                            table.getAlias().toString() ) );
                                 }
                             } );
                         }

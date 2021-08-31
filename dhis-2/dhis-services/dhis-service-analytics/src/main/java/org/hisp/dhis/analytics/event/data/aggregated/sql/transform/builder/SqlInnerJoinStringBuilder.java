@@ -59,10 +59,16 @@ public class SqlInnerJoinStringBuilder
         return provider.apply( sqlStatement )
             .stream()
             .distinct()
-            .map( ij -> "inner join " + ij.getTableElement().getName() + " as " +
-                ij.getTableElement().getAlias() +
-                " on " + ij.getOnElement().getLeftExpression() + "=" +
-                ij.getTableElement().getAlias() + ".pi" )
+            .map( ij -> {
+                String tableName = ij.getTableElement().getIndex() == 0
+                    ? "mv_" + ij.getTableElement().getName() + "_" + ij.getTableElement().getAlias()
+                    : ij.getTableElement().getName();
+
+                return "inner join " + tableName + " as " +
+                    ij.getTableElement().getAlias() +
+                    " on " + ij.getOnElement().getLeftExpression() + "=" +
+                    ij.getTableElement().getAlias() + ".pi";
+            } )
             .collect( Collectors.joining( "\n" ) ) + "\n";
     }
 }

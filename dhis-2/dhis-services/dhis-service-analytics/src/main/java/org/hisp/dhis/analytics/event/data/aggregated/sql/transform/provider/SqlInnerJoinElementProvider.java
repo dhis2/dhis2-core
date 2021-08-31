@@ -103,9 +103,12 @@ public class SqlInnerJoinElementProvider
                                                             .replace( "\"", "" ) );
                                                     }
                                                 } ) );
+
                                             innerJoinElementList.add(
-                                                new InnerJoinElement( new TableElement( sbTableName.toString(),
-                                                    sbAlias.toString().replace( "count(", "" ).replace( ")", "" ) ),
+                                                new InnerJoinElement(
+                                                    new TableElement( innerJoinElementList.size(),
+                                                        sbTableName.toString(),
+                                                        sbAlias.toString().replace( "count(", "" ).replace( ")", "" ) ),
                                                     new OnElement( "ax.pi", sbAlias + ".pi" ) ) );
                                         }
                                     } );

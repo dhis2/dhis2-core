@@ -29,10 +29,11 @@ package org.hisp.dhis.analytics.event.data.aggregated.sql.transform.provider;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
+import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.CastExpression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.StringValue;
@@ -52,21 +53,28 @@ import org.hisp.dhis.analytics.event.data.aggregated.sql.transform.model.element
 /**
  * @author Dusan Bernat
  */
-public class SqlYearlyExpressionProvider
+public class SqlLatestExpressionProvider
 {
     public FunctionXt<String, List<PredicateElement>> getProvider()
     {
 
         return sqlStatement -> {
 
-            List<PredicateElement> yearlies = new ArrayList<>();
-
             SqlInnerJoinElementProvider sqlInnerJoinElementProvider = new SqlInnerJoinElementProvider();
 
             Statement select = CCJSqlParserUtil.parse( sqlStatement );
 
-            List<InnerJoinElement> innerJoinElementList = sqlInnerJoinElementProvider.getProvider()
-                .apply( sqlStatement );
+            StringBuilder from = new StringBuilder();
+
+            StringBuilder to = new StringBuilder();
+
+            Optional<InnerJoinElement> innerJoinElement = sqlInnerJoinElementProvider.getProvider()
+                .apply( sqlStatement ).stream().findFirst();
+
+            if ( !innerJoinElement.isPresent() )
+            {
+                throw new JSQLParserException();
+            }
 
             select.accept( new StatementVisitorAdapter()
             {
@@ -78,37 +86,32 @@ public class SqlYearlyExpressionProvider
                         @Override
                         public void visit( PlainSelect plainSelect )
                         {
-                            List<String> years = new ArrayList<>();
                             plainSelect.getWhere().accept( new ExpressionVisitorAdapter()
                             {
                                 @Override
                                 public void visit( MinorThan expr )
                                 {
-                                    expr.accept( getVisitorForMinorThen( years ) );
+                                    expr.accept( getVisitorForMinorThen( to ) );
                                 }
 
                                 @Override
                                 public void visit( GreaterThanEquals expr )
                                 {
-                                    expr.accept( getVisitorForGreaterThenEquals( years ) );
+                                    expr.accept( getVisitorForGreaterThenEquals( from ) );
                                 }
                             } );
-
-                            yearlies.addAll( innerJoinElementList.stream()
-                                .map( el -> new PredicateElement( el.getTableElement().getAlias() + ".yearly",
-                                    years.stream().distinct().collect( Collectors.joining( ", " ) ),
-                                    "in", "and" ) )
-                                .collect( Collectors.toList() ) );
                         }
                     } );
                 }
             } );
 
-            return yearlies.stream().distinct().collect( Collectors.toList() );
+            return Collections.singletonList(
+                new PredicateElement( innerJoinElement.get().getTableElement().getAlias() + ".latest ",
+                    from + " and " + to, "between", "and" ) );
         };
     }
 
-    private static ExpressionVisitorAdapter getVisitorForGreaterThenEquals( List<String> years )
+    private static ExpressionVisitorAdapter getVisitorForGreaterThenEquals( StringBuilder from )
     {
         return new ExpressionVisitorAdapter()
         {
@@ -122,9 +125,7 @@ public class SqlYearlyExpressionProvider
                     {
                         try
                         {
-                            LocalDate ld = LocalDate
-                                .parse( value.toString().replace( "'", "" ) );
-                            years.add( "'" + ld.getYear() + "'" );
+                            from.append( value );
                         }
                         catch ( DateTimeParseException ignored )
                         {
@@ -135,7 +136,7 @@ public class SqlYearlyExpressionProvider
         };
     }
 
-    private static ExpressionVisitorAdapter getVisitorForMinorThen( List<String> years )
+    private static ExpressionVisitorAdapter getVisitorForMinorThen( StringBuilder to )
     {
         return new ExpressionVisitorAdapter()
         {
@@ -150,11 +151,8 @@ public class SqlYearlyExpressionProvider
                         try
                         {
                             LocalDate ld = LocalDate
-                                .parse( value.toString().replace( "'", "" ) );
-                            if ( ld.getMonthValue() > 1 || ld.getDayOfYear() > 1 )
-                            {
-                                years.add( "'" + ld.getYear() + "'" );
-                            }
+                                .parse( value.toString().replace( "'", "" ) ).minusDays( 1 );
+                            to.append( "'" ).append( ld ).append( "'" );
                         }
                         catch ( DateTimeParseException ignored )
                         {

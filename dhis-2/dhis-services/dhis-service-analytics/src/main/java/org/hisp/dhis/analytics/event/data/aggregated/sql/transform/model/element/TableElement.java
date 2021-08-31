@@ -37,6 +37,9 @@ import lombok.Getter;
 public class TableElement
 {
     @Getter
+    private final int index;
+
+    @Getter
     private final String name;
 
     @Getter

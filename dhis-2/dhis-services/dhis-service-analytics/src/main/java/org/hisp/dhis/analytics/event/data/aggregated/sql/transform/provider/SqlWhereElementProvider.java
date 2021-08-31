@@ -45,11 +45,18 @@ public class SqlWhereElementProvider
             List<PredicateElement> predicateElementList = new ArrayList<>();
 
             predicateElementList.add( new SqlUidLevelExpressionProvider().getProvider().apply( sqlStatement ) );
-            predicateElementList.addAll( new SqlIsNotNullExpressionProvider().getProvider().apply( sqlStatement ) );
+            predicateElementList.addAll( new SqlLatestExpressionProvider().getProvider().apply( sqlStatement ) );
+            // predicateElementList.addAll( new
+            // SqlIsNotNullExpressionProvider().getProvider().apply(
+            // sqlStatement ) );
             predicateElementList
                 .addAll( new SqlProgramStageExpressionProvider().getProvider().apply( sqlStatement ) );
-            predicateElementList.addAll( new SqlYearlyExpressionProvider().getProvider().apply( sqlStatement ) );
-            predicateElementList.addAll( new SqlPeriodExpressionProvider().getProvider().apply( sqlStatement ) );
+            // predicateElementList.addAll( new
+            // SqlYearlyExpressionProvider().getProvider().apply( sqlStatement )
+            // );
+            // predicateElementList.addAll( new
+            // SqlPeriodExpressionProvider().getProvider().apply( sqlStatement )
+            // );
             predicateElementList
                 .addAll( new SqlEventValueExpressionProvider().getProvider().apply( sqlStatement ) );
             predicateElementList
