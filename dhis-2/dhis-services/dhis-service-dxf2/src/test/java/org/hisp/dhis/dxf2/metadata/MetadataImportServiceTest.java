@@ -1092,6 +1092,16 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( "test1", maps.get( 0 ).getName() );
         assertEquals( 1, maps.get( 0 ).getMapViews().size() );
 
+        org.hisp.dhis.mapping.Map map = manager.get( org.hisp.dhis.mapping.Map.class, "LTNgXfzTFTv" );
+        assertNotNull( map );
+        assertEquals( 1, map.getMapViews().size() );
+
+        MapView mapView = map.getMapViews().get( 0 );
+        assertNotNull( mapView );
+        assertEquals( "#ddeeff", mapView.getNoDataColor() );
+        assertEquals( "#aabbcc", mapView.getOrganisationUnitColor() );
+        assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
+
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/map_update.json" ).getInputStream(), RenderFormat.JSON );
 
@@ -1103,11 +1113,11 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
-        org.hisp.dhis.mapping.Map map = manager.get( org.hisp.dhis.mapping.Map.class, "LTNgXfzTFTv" );
+        map = manager.get( org.hisp.dhis.mapping.Map.class, "LTNgXfzTFTv" );
         assertNotNull( map );
         assertEquals( 1, map.getMapViews().size() );
 
-        MapView mapView = map.getMapViews().get( 0 );
+        mapView = map.getMapViews().get( 0 );
         assertNotNull( mapView );
         assertEquals( "#ddeeff", mapView.getNoDataColor() );
         assertEquals( "#aabbcc", mapView.getOrganisationUnitColor() );
