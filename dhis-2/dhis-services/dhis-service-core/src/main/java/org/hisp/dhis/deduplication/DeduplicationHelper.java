@@ -106,18 +106,10 @@ public class DeduplicationHelper
 
         List<String> relationships = getMergeableRelationships( original, duplicate );
 
-        MergeObject mergeObject = MergeObject.builder()
+        return MergeObject.builder()
             .trackedEntityAttributes( attributes )
             .relationships( relationships )
             .build();
-
-        if ( mergeObject.getTrackedEntityAttributes().isEmpty() && mergeObject.getRelationships().isEmpty() )
-        {
-            throw new PotentialDuplicateNullException(
-                "Potentical Duplicate is null hence nothing to merge" );
-        }
-
-        return mergeObject;
     }
 
     public boolean hasUserAccess( TrackedEntityInstance original, TrackedEntityInstance duplicate,
