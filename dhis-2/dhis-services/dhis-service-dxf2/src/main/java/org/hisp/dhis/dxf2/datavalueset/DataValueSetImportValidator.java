@@ -359,8 +359,7 @@ public class DataValueSetImportValidator
     private static void validateDataValueIsDefined( DataValue dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        if ( dataValue.isNullValue() && !dataValue.isDeletedValue()
-            && !context.getImportOptions().getImportStrategy().isDelete() )
+        if ( dataValue.isNullValue() && !dataValue.isDeletedValue() && !context.getStrategy().isDelete() )
         {
             context.addConflict( valueContext.getIndex(), DataValueImportConflict.DATA_ELEMENT_VALUE_NOT_DEFINED,
                 dataValue.getDataElement() );
