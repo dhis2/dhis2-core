@@ -76,10 +76,12 @@ public class ValidationUtils
 
     private static final Pattern TIME_OF_DAY_PATTERN = Pattern.compile( "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$" );
 
-    private static final Pattern BBOX_PATTERN = Pattern
-        .compile( "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
+    private static final Pattern BBOX_PATTERN = Pattern.compile(
+        "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
 
     private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9].?){4,14}[0-9]$" );
+
+    private static final Pattern HEX_COLOR_CODE_PATTERN = Pattern.compile( "^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$" );
 
     public static final String NOT_VALID_VALUE_TYPE_CLASS = "not_valid_value_type_class";
 
@@ -176,11 +178,22 @@ public class ValidationUtils
      * Validates whether a string is valid for the HH:mm time format.
      *
      * @param time the time string
-     * @return true if the time string is valid, false otherwise
+     * @return true if the time string is valid, false otherwise.
      */
     public static boolean timeIsValid( String time )
     {
         return TIME_OF_DAY_PATTERN.matcher( time ).matches();
+    }
+
+    /**
+     * Validates whether a string is a valid hex color code.
+     *
+     * @param hex the hex color code string.
+     * @return true if the string is valid, false otherwise.
+     */
+    public static boolean hexColorCodeIsValid( String hex )
+    {
+        return HEX_COLOR_CODE_PATTERN.matcher( hex ).matches();
     }
 
     /**
