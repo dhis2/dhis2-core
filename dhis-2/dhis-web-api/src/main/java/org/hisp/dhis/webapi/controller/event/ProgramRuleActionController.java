@@ -93,7 +93,7 @@ public class ProgramRuleActionController
             description = result.getException().getMessage();
         }
 
-        return new DescriptiveWebMessage( Status.CONFLICT, HttpStatus.CONFLICT )
+        return new DescriptiveWebMessage( Status.ERROR, HttpStatus.CONFLICT )
             .setDescription( description )
             .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
     }

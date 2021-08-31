@@ -55,7 +55,7 @@ public class ProgramRuleActionControllerTest extends DhisControllerConvenienceTe
     @Test
     public void testGetDataExpressionDescription_NoSuchProgram()
     {
-        assertWebMessage( "Conflict", 409, "CONFLICT", "Expression is not valid",
+        assertWebMessage( "Conflict", 409, "ERROR", "Expression is not valid",
             POST( "/programRuleActions/data/expression/description?programId=xyz", "70" )
                 .content( HttpStatus.CONFLICT ) );
     }
@@ -66,7 +66,7 @@ public class ProgramRuleActionControllerTest extends DhisControllerConvenienceTe
         String pId = assertStatus( HttpStatus.CREATED,
             POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
 
-        assertWebMessage( "Conflict", 409, "CONFLICT", "Expression is not valid",
+        assertWebMessage( "Conflict", 409, "ERROR", "Expression is not valid",
             POST( "/programRuleActions/data/expression/description?programId=" + pId, "1 + " )
                 .content( HttpStatus.CONFLICT ) );
     }
