@@ -176,7 +176,8 @@ public class DeduplicationController
 
         if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
         {
-            throw new PotentialDuplicateConflictException( "PotentialDuplicate is missing references and cannot be merged." );
+            throw new PotentialDuplicateConflictException(
+                "PotentialDuplicate is missing references and cannot be merged." );
         }
 
         TrackedEntityInstance original = getTei( potentialDuplicate.getTeiA() );
