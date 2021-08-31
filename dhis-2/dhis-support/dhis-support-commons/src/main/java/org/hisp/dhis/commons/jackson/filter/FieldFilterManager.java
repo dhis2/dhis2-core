@@ -35,6 +35,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.commons.jackson.filter.transformers.RenameFieldTransformer;
+import org.hisp.dhis.commons.jackson.filter.transformers.SizeFieldTransformer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -60,7 +61,7 @@ public class FieldFilterManager
 
         SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
-        Map<String, FieldTransformer> fieldTransformers = getTransformerMap( fieldPaths );
+        Map<String, FieldTransformer> fieldTransformers = getTransformers( fieldPaths );
 
         List<ObjectNode> objectNodes = new ArrayList<>();
 
@@ -109,10 +110,6 @@ public class FieldFilterManager
                 applyTransformers( item, arrayNode, path, fieldTransformers );
             }
         }
-        else
-        {
-
-        }
     }
 
     private SimpleFilterProvider getSimpleFilterProvider( List<FieldPath> fieldPaths )
@@ -123,7 +120,7 @@ public class FieldFilterManager
         return filterProvider;
     }
 
-    private Map<String, FieldTransformer> getTransformerMap( List<FieldPath> fieldPaths )
+    private Map<String, FieldTransformer> getTransformers( List<FieldPath> fieldPaths )
     {
         Map<String, FieldTransformer> map = new HashMap<>();
 
@@ -135,6 +132,9 @@ public class FieldFilterManager
                 {
                 case "rename":
                     map.put( fieldPath.toFullPath(), new RenameFieldTransformer( fieldPath.getTransformer() ) );
+                    break;
+                case "size":
+                    map.put( fieldPath.toFullPath(), new SizeFieldTransformer( fieldPath.getTransformer() ) );
                     break;
                 default:
                     // invalid transformer
