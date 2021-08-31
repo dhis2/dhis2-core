@@ -40,13 +40,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.deduplication.DeduplicationMergeParams;
-import org.hisp.dhis.deduplication.DeduplicationService;
-import org.hisp.dhis.deduplication.DeduplicationStatus;
-import org.hisp.dhis.deduplication.MergeObject;
-import org.hisp.dhis.deduplication.MergeStrategy;
-import org.hisp.dhis.deduplication.PotentialDuplicate;
-import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
+import org.hisp.dhis.deduplication.*;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.Node;
@@ -176,14 +170,14 @@ public class DeduplicationController
         @PathVariable String id,
         @RequestParam( defaultValue = "MANUAL" ) MergeStrategy mergeStrategy,
         @RequestBody( required = false ) MergeObject mergeObject )
-        throws NotFoundException,
-        ConflictException
+        throws NotFoundException
     {
         PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
 
         if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
         {
-            throw new ConflictException( "PotentialDuplicate is missing references and cannot be merged." );
+            throw new PotentialDuplicateConflictException(
+                "PotentialDuplicate is missing references and cannot be merged." );
         }
 
         TrackedEntityInstance original = getTei( potentialDuplicate.getTeiA() );

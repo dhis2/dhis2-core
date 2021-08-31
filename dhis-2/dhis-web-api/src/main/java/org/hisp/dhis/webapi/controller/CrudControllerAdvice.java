@@ -48,6 +48,8 @@ import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
+import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
+import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.metadata.MetadataExportException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportException;
@@ -329,6 +331,20 @@ public class CrudControllerAdvice
                 bearerTokenError.getDescription(), Status.ERROR, status );
         }
         return unauthorized( ex.getMessage() );
+    }
+
+    @ExceptionHandler( { PotentialDuplicateConflictException.class } )
+    @ResponseBody
+    public WebMessage handlePotentialDuplicateConflictRequest( Exception exception )
+    {
+        return conflict( exception.getMessage() );
+    }
+
+    @ExceptionHandler( { PotentialDuplicateForbiddenException.class } )
+    @ResponseBody
+    public WebMessage handlePotentialDuplicateForbiddenRequest( Exception exception )
+    {
+        return forbidden( exception.getMessage() );
     }
 
     /**
