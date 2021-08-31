@@ -40,7 +40,6 @@ import static org.junit.Assert.assertNull;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
