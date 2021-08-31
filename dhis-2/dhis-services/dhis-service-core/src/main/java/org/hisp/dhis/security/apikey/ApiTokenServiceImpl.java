@@ -119,26 +119,32 @@ public class ApiTokenServiceImpl implements ApiTokenService
         // Invalidate cache here or let cache expire ?
     }
 
+    @Override
     public ApiToken initToken( ApiToken token )
     {
-        String randomSecureToken = getRandomSecureToken( 24 ).replaceAll( "[-_]", "x" );
+        Preconditions.checkNotNull( token );
+        Preconditions.checkNotNull( token.getType() );
 
-        CRC32 crc = new CRC32();
-        byte[] bytes = randomSecureToken.getBytes();
-        crc.update( bytes, 0, bytes.length );
-        long checksum = crc.getValue();
-
-        randomSecureToken = "d2p_" + randomSecureToken + checksum;
-
-        token.setKey( randomSecureToken );
+        token.setVersion( 1 );
 
         if ( token.getExpire() == null )
         {
             token.setExpire( System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_IN_MILLIS );
         }
 
-        token.setVersion( 1 );
-        token.setType( 1 );
+        String randomSecureToken = getRandomSecureToken( 24 ).replaceAll( "[-_]", "x" );
+        Preconditions.checkArgument( randomSecureToken.length() == 32,
+            "Could not create new token, please try again." + randomSecureToken.length() );
+
+        byte[] bytes = randomSecureToken.getBytes();
+        CRC32 crc = new CRC32();
+        crc.update( bytes, 0, bytes.length );
+        long checksumLong = crc.getValue();
+
+        token.setKey( String.format( "%s_%s%010d", token.getType().getPrefix(), randomSecureToken, checksumLong ) );
+
+        Preconditions.checkArgument( token.getKey().length() == 48,
+            "Could not create new token, please try again." );
 
         return token;
     }
