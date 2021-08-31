@@ -38,7 +38,6 @@ import java.util.Set;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.common.ValueType;
@@ -68,6 +67,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -269,7 +269,7 @@ public class TranslationServiceTest
 
         EventChart ecA = new EventChart( "ecA" );
         ecA.setProgram( prA );
-        ecA.setType( ChartType.COLUMN );
+        ecA.setType( VisualizationType.COLUMN );
         ecA.setBaseLineLabel( "BaseLineLabel" );
         ecA.setDomainAxisLabel( "DomainAxisLabel" );
         ecA.setRangeAxisLabel( "RangeAxisLabel" );

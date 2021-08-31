@@ -122,8 +122,6 @@ public class SharingController
     public ResponseEntity<Sharing> getSharing( @RequestParam String type, @RequestParam String id )
         throws WebMessageException
     {
-        type = getSharingType( type );
-
         if ( !aclService.isShareable( type ) )
         {
             throw new WebMessageException( conflict( "Type " + type + " is not supported." ) );
@@ -237,8 +235,6 @@ public class SharingController
     public WebMessage postSharing( @RequestParam String type, @RequestParam String id, HttpServletRequest request )
         throws Exception
     {
-        type = getSharingType( type );
-
         Class<? extends IdentifiableObject> sharingClass = aclService.classForType( type );
 
         if ( sharingClass == null || !aclService.isClassShareable( sharingClass ) )
@@ -498,22 +494,4 @@ public class SharingController
         programStage.setCreatedBy( program.getCreatedBy() );
         manager.update( programStage );
     }
-
-    /**
-     * This method is being used only during the deprecation process of the
-     * Pivot/ReportTable API. It must be removed once the process is complete.
-     *
-     * @return "visualization" if the given type is equals to "reportTable" or
-     *         "chart", otherwise it returns the given type itself.
-     */
-    @Deprecated
-    private String getSharingType( final String type )
-    {
-        if ( "reportTable".equalsIgnoreCase( type ) || "chart".equalsIgnoreCase( type ) )
-        {
-            return "visualization";
-        }
-        return type;
-    }
-
 }
