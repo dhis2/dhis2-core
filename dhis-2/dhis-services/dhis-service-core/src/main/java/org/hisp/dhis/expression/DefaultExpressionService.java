@@ -58,6 +58,8 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MEDIAN;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.N_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_ANCESTOR;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_GROUP;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.OUG_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERCENTILE_CONT;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.R_BRACE;
@@ -106,11 +108,15 @@ import org.hisp.dhis.expression.dataitem.DimItemProgramIndicator;
 import org.hisp.dhis.expression.dataitem.DimItemReportingRate;
 import org.hisp.dhis.expression.dataitem.ItemDays;
 import org.hisp.dhis.expression.dataitem.ItemOrgUnitGroup;
+import org.hisp.dhis.expression.function.FunctionOrgUnitAncestor;
+import org.hisp.dhis.expression.function.FunctionOrgUnitGroup;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
@@ -155,6 +161,8 @@ public class DefaultExpressionService
 
     private final ConstantService constantService;
 
+    private final OrganisationUnitService organisationUnitService;
+
     private final OrganisationUnitGroupService organisationUnitGroupService;
 
     private final DimensionService dimensionService;
@@ -165,7 +173,7 @@ public class DefaultExpressionService
     // Static data
     // -------------------------------------------------------------------------
 
-    private static final ImmutableMap<Integer, ExpressionItem> VALIDATION_RULE_EXPRESSION_ITEMS = ImmutableMap
+    private static final ImmutableMap<Integer, ExpressionItem> BASE_EXPRESSION_ITEMS = ImmutableMap
         .<Integer, ExpressionItem> builder()
         .putAll( COMMON_EXPRESSION_ITEMS )
         .put( HASH_BRACE, new DimItemDataElementAndOperand() )
@@ -175,6 +183,13 @@ public class DefaultExpressionService
         .put( OUG_BRACE, new ItemOrgUnitGroup() )
         .put( R_BRACE, new DimItemReportingRate() )
         .put( DAYS, new ItemDays() )
+        .build();
+
+    private static final ImmutableMap<Integer, ExpressionItem> VALIDATION_RULE_EXPRESSION_ITEMS = ImmutableMap
+        .<Integer, ExpressionItem> builder()
+        .putAll( BASE_EXPRESSION_ITEMS )
+        .put( ORGUNIT_ANCESTOR, new FunctionOrgUnitAncestor() )
+        .put( ORGUNIT_GROUP, new FunctionOrgUnitGroup() )
         .build();
 
     private static final ImmutableMap<Integer, ExpressionItem> PREDICTOR_EXPRESSION_ITEMS = ImmutableMap
@@ -194,7 +209,7 @@ public class DefaultExpressionService
 
     private static final ImmutableMap<Integer, ExpressionItem> INDICATOR_EXPRESSION_ITEMS = ImmutableMap
         .<Integer, ExpressionItem> builder()
-        .putAll( VALIDATION_RULE_EXPRESSION_ITEMS )
+        .putAll( BASE_EXPRESSION_ITEMS )
         .put( N_BRACE, new DimItemIndicator() )
         .build();
 
@@ -241,8 +256,8 @@ public class DefaultExpressionService
     public DefaultExpressionService(
         @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
         DataElementService dataElementService, ConstantService constantService,
-        OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService,
-        IdentifiableObjectManager idObjectManager, CacheProvider cacheProvider )
+        OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,
+        DimensionService dimensionService, IdentifiableObjectManager idObjectManager, CacheProvider cacheProvider )
     {
         checkNotNull( expressionStore );
         checkNotNull( dataElementService );
@@ -255,6 +270,7 @@ public class DefaultExpressionService
         this.dataElementService = dataElementService;
         this.constantService = constantService;
         this.organisationUnitGroupService = organisationUnitGroupService;
+        this.organisationUnitService = organisationUnitService;
         this.dimensionService = dimensionService;
         this.idObjectManager = idObjectManager;
         this.constantMapCache = cacheProvider.createAllConstantsCache();
@@ -363,10 +379,10 @@ public class DefaultExpressionService
         Integer days = periods != null ? getDaysFromPeriods( periods ) : null;
 
         Double denominatorValue = getExpressionValue( indicator.getDenominator(), INDICATOR_EXPRESSION,
-            valueMap, constantMap, orgUnitCountMap, days, SKIP_IF_ALL_VALUES_MISSING );
+            valueMap, constantMap, orgUnitCountMap, null, days, SKIP_IF_ALL_VALUES_MISSING, null );
 
         Double numeratorValue = getExpressionValue( indicator.getNumerator(), INDICATOR_EXPRESSION,
-            valueMap, constantMap, orgUnitCountMap, days, SKIP_IF_ALL_VALUES_MISSING );
+            valueMap, constantMap, orgUnitCountMap, null, days, SKIP_IF_ALL_VALUES_MISSING, null );
 
         if ( denominatorValue != null && denominatorValue != 0d && numeratorValue != null )
         {
@@ -538,47 +554,51 @@ public class DefaultExpressionService
     @Override
     public Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( String expression, ParseType parseType )
     {
-        if ( isEmpty( expression ) )
-        {
-            return new HashSet<>();
-        }
-
-        CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION, ITEM_GET_ORG_UNIT_GROUPS,
-            DEFAULT_SAMPLE_PERIODS, getConstantMap(), NEVER_SKIP );
-
-        visit( expression, parseType.getDataType(), visitor, true );
-
-        Set<String> orgUnitGroupIds = visitor.getOrgUnitGroupIds();
-
-        return orgUnitGroupIds.stream()
+        return getExpressionOrgUnitGroupIds( expression, parseType ).stream()
             .map( organisationUnitGroupService::getOrganisationUnitGroup )
             .filter( Objects::nonNull )
             .collect( Collectors.toSet() );
     }
 
     @Override
+    public Set<String> getExpressionOrgUnitGroupIds( String expression, ParseType parseType )
+    {
+        if ( isEmpty( expression ) )
+        {
+            return new HashSet<>();
+        }
+
+        CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_GET_ORG_UNIT_GROUPS,
+            DEFAULT_SAMPLE_PERIODS, getConstantMap(), NEVER_SKIP );
+
+        visit( expression, parseType.getDataType(), visitor, true );
+
+        return visitor.getOrgUnitGroupIds();
+    }
+
+    @Override
     public Object getExpressionValue( String expression, ParseType parseType )
     {
         return getExpressionValue( expression, parseType,
-            new HashMap<>(), new HashMap<>(), new HashMap<>(),
-            null, NEVER_SKIP, DEFAULT_SAMPLE_PERIODS, new MapMap<>() );
+            new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(),
+            null, NEVER_SKIP, null, DEFAULT_SAMPLE_PERIODS, new MapMap<>() );
     }
 
     @Override
     public Double getExpressionValue( String expression, ParseType parseType,
         Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
-        Map<String, Integer> orgUnitCountMap, Integer days,
-        MissingValueStrategy missingValueStrategy )
+        Map<String, Integer> orgUnitCountMap, Map<String, OrganisationUnitGroup> orgUnitGroupMap, Integer days,
+        MissingValueStrategy missingValueStrategy, OrganisationUnit orgUnit )
     {
-        return castDouble( getExpressionValue( expression, parseType, valueMap, constantMap,
-            orgUnitCountMap, days, missingValueStrategy, DEFAULT_SAMPLE_PERIODS, new MapMap<>() ) );
+        return castDouble( getExpressionValue( expression, parseType, valueMap, constantMap, orgUnitCountMap,
+            orgUnitGroupMap, days, missingValueStrategy, orgUnit, DEFAULT_SAMPLE_PERIODS, new MapMap<>() ) );
     }
 
     @Override
     public Object getExpressionValue( String expression, ParseType parseType,
         Map<DimensionalItemObject, Double> valueMap, Map<String, Constant> constantMap,
-        Map<String, Integer> orgUnitCountMap, Integer days,
-        MissingValueStrategy missingValueStrategy,
+        Map<String, Integer> orgUnitCountMap, Map<String, OrganisationUnitGroup> orgUnitGroupMap, Integer days,
+        MissingValueStrategy missingValueStrategy, OrganisationUnit orgUnit,
         List<Period> samplePeriods, MapMap<Period, DimensionalItemObject, Double> periodValueMap )
     {
         if ( isEmpty( expression ) )
@@ -592,6 +612,8 @@ public class DefaultExpressionService
         visitor.setItemValueMap( convertToIdentifierMap( valueMap ) );
         visitor.setPeriodItemValueMap( convertToIdentifierPeriodMap( periodValueMap ) );
         visitor.setOrgUnitCountMap( orgUnitCountMap );
+        visitor.setOrgUnitGroupMap( orgUnitGroupMap );
+        visitor.setOrganisationUnit( orgUnit );
 
         if ( days != null )
         {
@@ -664,6 +686,7 @@ public class DefaultExpressionService
             .withItemMethod( itemMethod )
             .withConstantMap( constantMap )
             .withDimensionService( dimensionService )
+            .withOrganisationUnitService( organisationUnitService )
             .withOrganisationUnitGroupService( organisationUnitGroupService )
             .withSamplePeriods( samplePeriods )
             .withMissingValueStrategy( missingValueStrategy )

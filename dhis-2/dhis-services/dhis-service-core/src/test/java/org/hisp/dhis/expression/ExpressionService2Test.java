@@ -84,6 +84,7 @@ import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -118,6 +119,9 @@ public class ExpressionService2Test extends DhisSpringTest
 
     @Mock
     private ConstantService constantService;
+
+    @Mock
+    private OrganisationUnitService organisationUnitService;
 
     @Mock
     private OrganisationUnitGroupService organisationUnitGroupService;
@@ -244,7 +248,7 @@ public class ExpressionService2Test extends DhisSpringTest
     public void setUp()
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
-            organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
+            organisationUnitService, organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
 
         rnd = new BeanRandomizer();
 
@@ -667,28 +671,23 @@ public class ExpressionService2Test extends DhisSpringTest
         Map<String, Integer> orgUnitCountMap = new HashMap<>();
         orgUnitCountMap.put( groupA.getUid(), groupA.getMembers().size() );
 
-        assertEquals( 46d, target
-            .getExpressionValue( expressionA, INDICATOR_EXPRESSION, valueMap, constantMap(), null, null, NEVER_SKIP ),
-            DELTA );
-        assertEquals( 17d,
-            target
-                .getExpressionValue( expressionD, INDICATOR_EXPRESSION, valueMap, constantMap(), null, 5, NEVER_SKIP ),
-            DELTA );
-        assertEquals( 24d, target
-            .getExpressionValue( expressionE, INDICATOR_EXPRESSION, valueMap, constantMap(), null, null, NEVER_SKIP ),
-            DELTA );
-        assertEquals( 36d, target
-            .getExpressionValue( expressionH, INDICATOR_EXPRESSION, valueMap, constantMap(), orgUnitCountMap, null,
-                NEVER_SKIP ),
-            DELTA );
-        assertEquals( 10d, target
-            .getExpressionValue( expressionN, INDICATOR_EXPRESSION, valueMap, constantMap(), orgUnitCountMap, null,
-                NEVER_SKIP ),
-            DELTA );
-        assertEquals( 54d, target
-            .getExpressionValue( expressionR, INDICATOR_EXPRESSION, valueMap, constantMap(), orgUnitCountMap, null,
-                NEVER_SKIP ),
-            DELTA );
+        assertEquals( 46d, target.getExpressionValue( expressionA, INDICATOR_EXPRESSION,
+            valueMap, constantMap(), null, null, null, NEVER_SKIP, null ), DELTA );
+
+        assertEquals( 17d, target.getExpressionValue( expressionD, INDICATOR_EXPRESSION,
+            valueMap, constantMap(), null, null, 5, NEVER_SKIP, null ), DELTA );
+
+        assertEquals( 24d, target.getExpressionValue( expressionE, INDICATOR_EXPRESSION,
+            valueMap, constantMap(), null, null, null, NEVER_SKIP, null ), DELTA );
+
+        assertEquals( 36d, target.getExpressionValue( expressionH, INDICATOR_EXPRESSION,
+            valueMap, constantMap(), orgUnitCountMap, null, null, NEVER_SKIP, null ), DELTA );
+
+        assertEquals( 10d, target.getExpressionValue( expressionN, INDICATOR_EXPRESSION,
+            valueMap, constantMap(), orgUnitCountMap, null, null, NEVER_SKIP, null ), DELTA );
+
+        assertEquals( 54d, target.getExpressionValue( expressionR, INDICATOR_EXPRESSION,
+            valueMap, constantMap(), orgUnitCountMap, null, null, NEVER_SKIP, null ), DELTA );
     }
 
     @Test
