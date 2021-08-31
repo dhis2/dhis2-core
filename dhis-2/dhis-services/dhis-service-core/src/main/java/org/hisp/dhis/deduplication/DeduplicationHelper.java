@@ -103,7 +103,7 @@ public class DeduplicationHelper
         {
             if ( programs.contains( programInstance.getProgram().getUid() ) )
             {
-                return false;
+                return true;
             }
         }
 
@@ -122,9 +122,12 @@ public class DeduplicationHelper
 
         List<String> relationships = getMergeableRelationships( original, duplicate );
 
+        List<String> enrollments = getMergeableEnrollments( original, duplicate );
+
         return MergeObject.builder()
             .trackedEntityAttributes( attributes )
             .relationships( relationships )
+            .enrollments( enrollments )
             .build();
     }
 
@@ -228,5 +231,28 @@ public class DeduplicationHelper
         }
 
         return relationships;
+    }
+
+    private List<String> getMergeableEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    {
+        List<String> enrollments = new ArrayList<>();
+
+        Set<String> programs = original.getProgramInstances()
+            .stream()
+            .map( e -> e.getProgram().getUid() )
+            .collect( Collectors.toSet() );
+
+        for ( ProgramInstance programInstance : duplicate.getProgramInstances() )
+        {
+            if ( programs.contains( programInstance.getProgram().getUid() ) )
+            {
+                throw new PotentialDuplicateConflictException(
+                    "Potential Duplicate contains enrollments with the same program" +
+                        " and cannot be merged." );
+            }
+            enrollments.add( programInstance.getUid() );
+        }
+
+        return enrollments;
     }
 }
