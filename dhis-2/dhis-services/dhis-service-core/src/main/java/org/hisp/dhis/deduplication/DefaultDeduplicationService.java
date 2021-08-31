@@ -30,6 +30,7 @@ package org.hisp.dhis.deduplication;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -146,6 +147,11 @@ public class DefaultDeduplicationService
             return false;
         }
 
+        if ( haveSameEnrollment( original.getProgramInstances(), duplicate.getProgramInstances() ) )
+        {
+            return false;
+        }
+
         Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA = original
             .getTrackedEntityAttributeValues();
         Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB = duplicate
@@ -168,9 +174,24 @@ public class DefaultDeduplicationService
             mergeObject.getTrackedEntityAttributes() );
         potentialDuplicateStore.moveRelationships( original.getUid(), duplicate.getUid(),
             mergeObject.getRelationships() );
+        potentialDuplicateStore.moveEnrollments( original.getUid(), duplicate.getUid(),
+            mergeObject.getEnrollments() );
         potentialDuplicateStore.removeTrackedEntity( duplicate );
         updateTeiAndPotentialDuplicate( params, original );
         potentialDuplicateStore.auditMerge( params );
+    }
+
+    private boolean haveSameEnrollment( Set<ProgramInstance> originalEnrollments,
+        Set<ProgramInstance> duplicateEnrollments )
+    {
+        Set<String> originalPrograms = originalEnrollments.stream().map( e -> e.getProgram().getUid() )
+            .collect( Collectors.toSet() );
+        Set<String> duplicatePrograms = duplicateEnrollments.stream().map( e -> e.getProgram().getUid() )
+            .collect( Collectors.toSet() );
+
+        originalPrograms.retainAll( duplicatePrograms );
+
+        return !originalPrograms.isEmpty();
     }
 
     private void updateTeiAndPotentialDuplicate( DeduplicationMergeParams deduplicationMergeParams,

@@ -56,6 +56,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -70,13 +71,17 @@ public class HibernatePotentialDuplicateStore
 
     private final AuditManager auditManager;
 
+    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        RelationshipStore relationshipStore, AuditManager auditManager )
+        RelationshipStore relationshipStore, TrackedEntityInstanceStore trackedEntityInstanceStore,
+        AuditManager auditManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
         this.relationshipStore = relationshipStore;
+        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.auditManager = auditManager;
     }
 
@@ -215,54 +220,27 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
+    public void moveEnrollments( String originalUid, String duplicateUid, List<String> enrollments )
+    {
+        String moveEnrollmentsSQL = "UPDATE programinstance "
+            + "SET trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
+            + ") WHERE trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
+            + ") AND uid IN (:enrollments)";
+
+        getSession()
+            .createNativeQuery( moveEnrollmentsSQL )
+            .setParameter( "original", originalUid )
+            .setParameter( "duplicate", duplicateUid )
+            .setParameterList( "enrollments", enrollments )
+            .executeUpdate();
+    }
+
+    @Override
     public void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance )
     {
-        removeRelationships( trackedEntityInstance );
-
-        removeTrackedEntityAttributeValues( trackedEntityInstance );
-
-        removeTrackedEntityInstance( trackedEntityInstance );
-    }
-
-    private void removeTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
-    {
-        String removeTrackedEntityInstanceSQL = "DELETE FROM trackedentityinstance " +
-            "WHERE trackedentityinstanceid = (" +
-            "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
-            + ") ";
-
-        getSession().createNativeQuery( removeTrackedEntityInstanceSQL )
-            .setParameter( "duplicate", trackedEntityInstance.getUid() )
-            .executeUpdate();
-    }
-
-    private void removeTrackedEntityAttributeValues( TrackedEntityInstance trackedEntityInstance )
-    {
-        String removeTrackedEntityAttributeValueSQL = "DELETE FROM trackedentityattributevalue " +
-            "WHERE trackedentityinstanceid = (" +
-            "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
-            + ") ";
-
-        getSession().createNativeQuery( removeTrackedEntityAttributeValueSQL )
-            .setParameter( "duplicate", trackedEntityInstance.getUid() )
-            .executeUpdate();
-    }
-
-    private void removeRelationships( TrackedEntityInstance trackedEntityInstance )
-    {
-        List<Relationship> relationship = relationshipStore.getByTrackedEntityInstance( trackedEntityInstance );
-
-        relationship.forEach( r -> {
-            r.setFrom( null );
-            r.setTo( null );
-
-            relationshipStore.delete( r );
-        } );
-
-        // TODO This flush shouldn't be here. We might want to test if, at
-        // runtime, commit happens without it and in case move it at test
-        // level?.
-        getSession().flush();
+        trackedEntityInstanceStore.delete( trackedEntityInstance );
     }
 
     @Override
