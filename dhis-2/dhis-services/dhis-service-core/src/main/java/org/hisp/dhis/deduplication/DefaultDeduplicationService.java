@@ -176,6 +176,13 @@ public class DefaultDeduplicationService
             mergeObject.getRelationships() );
         potentialDuplicateStore.moveEnrollments( original.getUid(), duplicate.getUid(),
             mergeObject.getEnrollments() );
+
+        List<ProgramInstance> programInstancesToRemove = duplicate.getProgramInstances()
+            .stream()
+            .filter( e -> mergeObject.getEnrollments().contains( e.getUid() ) )
+            .collect( Collectors.toList() );
+        duplicate.getProgramInstances().removeAll( programInstancesToRemove );
+
         potentialDuplicateStore.removeTrackedEntity( duplicate );
         updateTeiAndPotentialDuplicate( params, original );
         potentialDuplicateStore.auditMerge( params );
