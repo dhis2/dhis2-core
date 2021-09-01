@@ -31,6 +31,8 @@ import org.hisp.dhis.commons.jackson.filter.FieldPathTransformer;
 import org.hisp.dhis.commons.jackson.filter.FieldTransformer;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen
@@ -47,17 +49,38 @@ public class PluckFieldTransformer implements FieldTransformer
     @Override
     public JsonNode apply( String path, JsonNode value, JsonNode parent )
     {
-        if ( fieldPathTransformer.getParameters().isEmpty() && !parent.isObject() )
+        if ( !parent.isObject() )
         {
             return value;
         }
 
+        String pluckFieldName = "id";
+
+        if ( !fieldPathTransformer.getParameters().isEmpty() )
+        {
+            pluckFieldName = fieldPathTransformer.getParameters().get( 0 );
+        }
+
         String fieldName = getFieldName( path );
 
-        /*
-         * value = ((ObjectNode) parent).remove( fieldName ); ((ObjectNode)
-         * parent).set( fieldPathTransformer.getParameters().get( 0 ), value );
-         */
+        if ( value.isArray() )
+        {
+            ArrayNode arrayNode = ((ArrayNode) value).arrayNode();
+
+            for ( JsonNode node : value )
+            {
+                if ( node.isObject() && node.has( pluckFieldName ) )
+                {
+                    arrayNode.add( node.get( pluckFieldName ) );
+                }
+                else
+                {
+                    arrayNode.add( node );
+                }
+            }
+
+            ((ObjectNode) parent).replace( fieldName, arrayNode );
+        }
 
         return value;
     }
