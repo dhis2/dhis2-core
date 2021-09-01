@@ -30,7 +30,10 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
-import static org.hisp.dhis.system.notification.NotificationLevel.*;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import java.io.InputStream;
@@ -40,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -1116,7 +1120,7 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            if ( dataValue.isNullValue() && !dataValue.isDeletedValue() )
+            if ( dataValue.isNullValue() && !dataValue.isDeletedValue() && !strategy.isDelete() )
             {
                 summary.getConflicts().add( new ImportConflict( "Value",
                     "Data value or comment not specified for data element: " + dataElement.getUid() ) );
@@ -1228,14 +1232,6 @@ public class DefaultDataValueSetService
                     "Data element: " + dataElement.getUid()
                         + " must be assigned through data sets to organisation unit: " + orgUnit.getUid() ) );
                 continue;
-            }
-
-            boolean zeroAndInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant( dataValue.getValue(),
-                dataElement );
-
-            if ( zeroAndInsignificant )
-            {
-                continue; // Ignore value
             }
 
             String storedByValid = ValidationUtils.storedByIsValid( dataValue.getStoredBy() );
@@ -1397,6 +1393,22 @@ public class DefaultDataValueSetService
                 internalValue.setCreated( existingValue.getCreated() );
             }
 
+            boolean zeroAndInsignificant = dataValueIsZeroAndInsignificant( dataValue.getValue(),
+                dataElement );
+
+            if ( zeroAndInsignificant && (existingValue == null || strategy.isCreate()) )
+            {
+                continue; // Ignore value
+            }
+
+            if ( strategy.isDelete() && existingValue != null && dataValue.getValue() != null
+                && !Objects.equals( existingValue.getValue(), dataValue.getValue() ) )
+            {
+                summary.getConflicts().add( new ImportConflict( "value",
+                    "Data value is deleted and at the same time assigned a new value different to the current one" ) );
+                continue; // Ignore value
+            }
+
             // -----------------------------------------------------------------
             // Check soft deleted data values on update and import
             // -----------------------------------------------------------------
@@ -1407,7 +1419,8 @@ public class DefaultDataValueSetService
                 {
                     AuditType auditType = AuditType.UPDATE;
 
-                    if ( internalValue.isNullValue() || internalValue.isDeleted() )
+                    if ( internalValue.isNullValue() || internalValue.isDeleted()
+                        || dataValueIsZeroAndInsignificant( dataValue.getValue(), dataElement ) )
                     {
                         internalValue.setDeleted( true );
 
