@@ -1,5 +1,5 @@
 
-#parse( "dhis-web-approval/renderDataSetReportHeader.vm" )
+#parse( "dhis-web-approval-classic/renderDataSetReportHeader.vm" )
 
 #set( $css = "cde cde-$!{selectedDataSet.dataEntryForm.style}" )
 <div class="${css}">
