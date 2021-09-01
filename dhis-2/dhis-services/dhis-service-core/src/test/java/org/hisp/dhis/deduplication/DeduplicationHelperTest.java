@@ -29,6 +29,8 @@ package org.hisp.dhis.deduplication;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
@@ -141,11 +143,11 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     @Test
     public void shouldHasUserAccess()
     {
-        boolean hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.hasUserAccess(
             getTeiA(), getTeiB(),
             mergeObject );
 
-        assertTrue( hasUserAccess );
+        assertNull( hasUserAccess );
     }
 
     @Test
@@ -153,11 +155,12 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( currentUserService.getCurrentUser() ).thenReturn( null );
 
-        boolean hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.hasUserAccess(
             getTeiA(), getTeiB(),
             mergeObject );
 
-        assertFalse( hasUserAccess );
+        assertNotNull( hasUserAccess );
+        assertEquals( "Missing required authority for merging tracked entities.", hasUserAccess );
     }
 
     @Test
@@ -165,11 +168,12 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( currentUserService.getCurrentUser() ).thenReturn( getNoMergeAuthsUser() );
 
-        boolean hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.hasUserAccess(
             getTeiA(), getTeiB(),
             mergeObject );
 
-        assertFalse( hasUserAccess );
+        assertNotNull( hasUserAccess );
+        assertEquals( "Missing required authority for merging tracked entities.", hasUserAccess );
     }
 
     @Test
@@ -177,11 +181,12 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( aclService.canDataWrite( user, trackedEntityTypeA ) ).thenReturn( false );
 
-        boolean hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.hasUserAccess(
             getTeiA(), getTeiB(),
             mergeObject );
 
-        assertFalse( hasUserAccess );
+        assertNotNull( hasUserAccess );
+        assertEquals( "Missing data write access to Tracked Entity Type.", hasUserAccess );
     }
 
     @Test
@@ -189,11 +194,12 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( aclService.canDataWrite( user, trackedEntityTypeB ) ).thenReturn( false );
 
-        boolean hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.hasUserAccess(
             getTeiA(), getTeiB(),
             mergeObject );
 
-        assertFalse( hasUserAccess );
+        assertNotNull( hasUserAccess );
+        assertEquals( "Missing data write access to Tracked Entity Type.", hasUserAccess );
     }
 
     @Test
@@ -201,11 +207,12 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( aclService.canDataWrite( user, relationshipType ) ).thenReturn( false );
 
-        boolean hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.hasUserAccess(
             getTeiA(), getTeiB(),
             mergeObject );
 
-        assertFalse( hasUserAccess );
+        assertNotNull( hasUserAccess );
+        assertEquals( "Missing data write access to one or more Relationship Types.", hasUserAccess );
     }
 
     @Test
@@ -213,11 +220,12 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( aclService.canDataWrite( user, attribute ) ).thenReturn( false );
 
-        boolean hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.hasUserAccess(
             getTeiA(), getTeiB(),
             mergeObject );
 
-        assertFalse( hasUserAccess );
+        assertNotNull( hasUserAccess );
+        assertEquals( "Missing data write access to one or more Tracked Entity Attributes.", hasUserAccess );
     }
 
     @Test
@@ -225,11 +233,12 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( aclService.canDataWrite( user, programInstance ) ).thenReturn( false );
 
-        boolean hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.hasUserAccess(
             getTeiA(), getTeiB(),
             mergeObject );
 
-        assertFalse( hasUserAccess );
+        assertNotNull( hasUserAccess );
+        assertEquals( "Missing data write access to one or more Programs.", hasUserAccess );
     }
 
     @Test
@@ -237,11 +246,12 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitA ) ).thenReturn( false );
 
-        boolean hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.hasUserAccess(
             getTeiA(), getTeiB(),
             mergeObject );
 
-        assertFalse( hasUserAccess );
+        assertNotNull( hasUserAccess );
+        assertEquals( "Missing access to organisation unit of one or both entities.", hasUserAccess );
     }
 
     @Test
@@ -249,11 +259,12 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitB ) ).thenReturn( false );
 
-        boolean hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.hasUserAccess(
             getTeiA(), getTeiB(),
             mergeObject );
 
-        assertFalse( hasUserAccess );
+        assertNotNull( hasUserAccess );
+        assertEquals( "Missing access to organisation unit of one or both entities.", hasUserAccess );
     }
 
     @Test( expected = PotentialDuplicateForbiddenException.class )

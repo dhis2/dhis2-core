@@ -119,7 +119,7 @@ public class DeduplicationServiceTest
         when( trackedEntityInstanceA.getTrackedEntityType() ).thenReturn( trackedEntityPerson );
         when( trackedEntityInstanceB.getTrackedEntityType() ).thenReturn( trackedEntityPerson );
         when( deduplicationHelper.hasUserAccess( any(), any(), any() ) )
-            .thenReturn( true );
+            .thenReturn( null );
 
         setUpPrograms();
 
@@ -301,7 +301,7 @@ public class DeduplicationServiceTest
             .thenReturn( mergeObject );
 
         when( deduplicationHelper.hasUserAccess( trackedEntityInstanceA, trackedEntityInstanceB, mergeObject ) )
-            .thenReturn( false );
+            .thenReturn( "error" );
 
         assertThrows( PotentialDuplicateForbiddenException.class,
             () -> deduplicationService.autoMerge( deduplicationMergeParams ) );
