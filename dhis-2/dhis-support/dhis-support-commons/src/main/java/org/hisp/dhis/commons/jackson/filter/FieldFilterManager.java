@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.commons.jackson.filter.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.commons.jackson.filter.transformers.IsNotEmptyFieldTransformer;
+import org.hisp.dhis.commons.jackson.filter.transformers.PluckFieldTransformer;
 import org.hisp.dhis.commons.jackson.filter.transformers.RenameFieldTransformer;
 import org.hisp.dhis.commons.jackson.filter.transformers.SizeFieldTransformer;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -136,13 +137,16 @@ public class FieldFilterManager
                     map.put( fieldPath.toFullPath(), new RenameFieldTransformer( fieldPath.getTransformer() ) );
                     break;
                 case "size":
-                    map.put( fieldPath.toFullPath(), new SizeFieldTransformer( fieldPath.getTransformer() ) );
+                    map.put( fieldPath.toFullPath(), new SizeFieldTransformer() );
                     break;
                 case "isEmpty":
-                    map.put( fieldPath.toFullPath(), new IsEmptyFieldTransformer( fieldPath.getTransformer() ) );
+                    map.put( fieldPath.toFullPath(), new IsEmptyFieldTransformer() );
                     break;
                 case "isNotEmpty":
-                    map.put( fieldPath.toFullPath(), new IsNotEmptyFieldTransformer( fieldPath.getTransformer() ) );
+                    map.put( fieldPath.toFullPath(), new IsNotEmptyFieldTransformer() );
+                    break;
+                case "pluck":
+                    map.put( fieldPath.toFullPath(), new PluckFieldTransformer( fieldPath.getTransformer() ) );
                     break;
                 default:
                     // invalid transformer

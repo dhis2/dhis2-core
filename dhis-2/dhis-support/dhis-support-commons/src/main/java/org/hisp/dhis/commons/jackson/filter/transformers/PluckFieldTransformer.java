@@ -27,30 +27,37 @@
  */
 package org.hisp.dhis.commons.jackson.filter.transformers;
 
+import org.hisp.dhis.commons.jackson.filter.FieldPathTransformer;
 import org.hisp.dhis.commons.jackson.filter.FieldTransformer;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen
  */
-public class IsEmptyFieldTransformer implements FieldTransformer
+public class PluckFieldTransformer implements FieldTransformer
 {
+    private final FieldPathTransformer fieldPathTransformer;
+
+    public PluckFieldTransformer( FieldPathTransformer fieldPathTransformer )
+    {
+        this.fieldPathTransformer = fieldPathTransformer;
+    }
+
     @Override
     public JsonNode apply( String path, JsonNode value, JsonNode parent )
     {
-        if ( !parent.isObject() )
+        if ( fieldPathTransformer.getParameters().isEmpty() && !parent.isObject() )
         {
             return value;
         }
 
         String fieldName = getFieldName( path );
 
-        if ( value.isArray() )
-        {
-            ((ObjectNode) parent).put( fieldName, value.isEmpty() );
-        }
+        /*
+         * value = ((ObjectNode) parent).remove( fieldName ); ((ObjectNode)
+         * parent).set( fieldPathTransformer.getParameters().get( 0 ), value );
+         */
 
         return value;
     }
