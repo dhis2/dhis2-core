@@ -35,6 +35,8 @@ import java.util.Stack;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.common.collect.Lists;
+
 /**
  * @author Morten Olav Hansen
  */
@@ -180,7 +182,8 @@ public class FieldFilterParser
             transformer = new FieldPathTransformer( transformerName, transformerParameters );
         }
 
-        return new FieldPath( fieldNameBuilder.toString(), new ArrayList<>( path ), transformer );
+        return new FieldPath( fieldNameBuilder.toString(), new ArrayList<>( path ),
+            Lists.newArrayList( transformer ) );
     }
 
     private static List<FieldPath> expandField( String field )

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.commons.jackson.filter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -54,15 +55,15 @@ public class FieldPath
     private final List<String> path;
 
     /**
-     * Transformer to apply to field, can be null.
+     * Transformers to apply to field, can be empty.
      */
-    private final FieldPathTransformer transformer;
+    private final List<FieldPathTransformer> transformers;
 
     public FieldPath( String name, List<String> path )
     {
         this.name = name;
         this.path = path;
-        this.transformer = null;
+        this.transformers = new ArrayList<>();
     }
 
     /**
