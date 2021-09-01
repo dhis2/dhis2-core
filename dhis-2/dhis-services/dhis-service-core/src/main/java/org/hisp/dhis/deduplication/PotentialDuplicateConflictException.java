@@ -27,12 +27,19 @@
  */
 package org.hisp.dhis.deduplication;
 
+import lombok.Getter;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class PotentialDuplicateException extends RuntimeException
+@Getter
+@ResponseStatus( HttpStatus.CONFLICT )
+public class PotentialDuplicateConflictException extends RuntimeException
 {
-    public PotentialDuplicateException( String message )
+    public PotentialDuplicateConflictException( String message )
     {
         super( message );
     }

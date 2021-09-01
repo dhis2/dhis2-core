@@ -141,8 +141,10 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
@@ -1747,6 +1749,25 @@ public abstract class DhisConvenienceTest
         relationshipType.setFromConstraint( psiConstraint );
         relationshipType.setToConstraint( teiConstraint );
         return relationshipType;
+    }
+
+    public static Relationship createTeiToTeiRelationship( TrackedEntityInstance from, TrackedEntityInstance to,
+        RelationshipType relationshipType )
+    {
+        Relationship relationship = new Relationship();
+        RelationshipItem _from = new RelationshipItem();
+        RelationshipItem _to = new RelationshipItem();
+
+        _from.setTrackedEntityInstance( from );
+        _to.setTrackedEntityInstance( to );
+
+        relationship.setRelationshipType( relationshipType );
+        relationship.setFrom( _from );
+        relationship.setTo( _to );
+
+        relationship.setAutoFields();
+
+        return relationship;
     }
 
     public static RelationshipType createPersonToPersonRelationshipType( char uniqueCharacter, Program program,

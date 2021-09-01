@@ -162,6 +162,13 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional( readOnly = true )
+    public List<ProgramInstance> getProgramInstances( List<String> uids )
+    {
+        return programInstanceStore.getByUid( uids );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public boolean programInstanceExists( String uid )
     {
         return programInstanceStore.exists( uid );

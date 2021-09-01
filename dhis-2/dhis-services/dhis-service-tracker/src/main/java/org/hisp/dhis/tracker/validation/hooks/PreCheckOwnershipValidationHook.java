@@ -108,6 +108,8 @@ public class PreCheckOwnershipValidationHook
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
         Program program = context.getProgram( enrollment.getProgram() );
+        OrganisationUnit ownerOrgUnit = context.getOwnerOrganisationUnit( enrollment.getTrackedEntity(),
+            enrollment.getProgram() );
 
         if ( strategy.isDelete() )
         {
@@ -120,7 +122,7 @@ public class PreCheckOwnershipValidationHook
         }
 
         trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
-            enrollment.getTrackedEntity(), getOrgUnitFromTei( context, enrollment.getTrackedEntity() ) );
+            enrollment.getTrackedEntity(), getOrgUnitFromTei( context, enrollment.getTrackedEntity() ), ownerOrgUnit );
     }
 
     @Override
@@ -140,22 +142,24 @@ public class PreCheckOwnershipValidationHook
         String teiUid = getTeiUidFromEvent( context, event, program );
 
         CategoryOptionCombo categoryOptionCombo = context.getCategoryOptionCombo( event.getAttributeOptionCombo() );
-
+        OrganisationUnit ownerOrgUnit = context.getOwnerOrganisationUnit( teiUid, program.getUid() );
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
             ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
             TrackedEntityInstance entityInstance = programStageInstance.getProgramInstance().getEntityInstance();
             validateUpdateAndDeleteEvent( reporter, event, programStageInstance,
-                entityInstance == null ? null : entityInstance.getUid() );
+                entityInstance == null ? null : entityInstance.getUid(), ownerOrgUnit );
         }
         else
         {
+
             validateCreateEvent( reporter, user,
                 categoryOptionCombo,
                 programStage,
                 teiUid,
                 organisationUnit,
+                ownerOrgUnit,
                 program, event.isCreatableInSearchScope() );
         }
     }
@@ -168,7 +172,8 @@ public class PreCheckOwnershipValidationHook
 
     protected void validateCreateEvent( ValidationErrorReporter reporter, User actingUser,
         CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
-        OrganisationUnit organisationUnit, Program program, boolean isCreatableInSearchScope )
+        OrganisationUnit organisationUnit, OrganisationUnit ownerOrgUnit, Program program,
+        boolean isCreatableInSearchScope )
     {
         checkNotNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
         checkNotNull( actingUser, USER_CANT_BE_NULL );
@@ -178,7 +183,8 @@ public class PreCheckOwnershipValidationHook
 
         programStage = noProgramStageAndProgramIsWithoutReg ? program.getProgramStageByStage( 1 ) : programStage;
 
-        trackerImportAccessManager.checkEventWriteAccess( reporter, programStage, organisationUnit, categoryOptionCombo,
+        trackerImportAccessManager.checkEventWriteAccess( reporter, programStage, organisationUnit, ownerOrgUnit,
+            categoryOptionCombo,
             teiUid, isCreatableInSearchScope ); // TODO: calculate correct
                                                 // isCreatableInSearchScope
                                                 // value
@@ -186,7 +192,7 @@ public class PreCheckOwnershipValidationHook
 
     protected void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, Event event,
         ProgramStageInstance programStageInstance,
-        String teiUid )
+        String teiUid, OrganisationUnit ownerOrgUnit )
     {
         TrackerImportStrategy strategy = reporter.getValidationContext().getStrategy( event );
         User user = reporter.getValidationContext().getBundle().getUser();
@@ -196,8 +202,9 @@ public class PreCheckOwnershipValidationHook
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
         trackerImportAccessManager.checkEventWriteAccess( reporter, programStageInstance.getProgramStage(),
-            programStageInstance.getOrganisationUnit(), programStageInstance.getAttributeOptionCombo(), teiUid,
-            programStageInstance.isCreatableInSearchScope() );
+            programStageInstance.getOrganisationUnit(), ownerOrgUnit,
+            programStageInstance.getAttributeOptionCombo(),
+            teiUid, programStageInstance.isCreatableInSearchScope() );
 
         if ( strategy.isUpdate()
             && EventStatus.COMPLETED == programStageInstance.getStatus()

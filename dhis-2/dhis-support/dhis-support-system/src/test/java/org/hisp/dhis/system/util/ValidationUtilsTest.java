@@ -251,6 +251,7 @@ public class ValidationUtilsTest
         assertFalse( isValidHexColor( "abcpqr" ) );
         assertFalse( isValidHexColor( "#qwerty" ) );
         assertFalse( isValidHexColor( "FFAB#O" ) );
+        assertFalse( isValidHexColor( "#aaee88ee" ) );
 
         assertTrue( isValidHexColor( "#FF0" ) );
         assertTrue( isValidHexColor( "#FF0000" ) );

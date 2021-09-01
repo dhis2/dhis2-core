@@ -286,10 +286,7 @@ public class EnrollmentSecurityImportValidationTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1102 ) ) ) );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
 
         assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );

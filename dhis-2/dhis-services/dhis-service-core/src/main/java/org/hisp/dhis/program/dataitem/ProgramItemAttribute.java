@@ -57,7 +57,7 @@ public class ProgramItemAttribute
 
         visitor.getItemDescriptions().put( ctx.getText(), attribute.getDisplayName() );
 
-        return ValidationUtils.getSubstitutionValue( attribute.getValueType() );
+        return ValidationUtils.getNullReplacementValue( attribute.getValueType() );
     }
 
     @Override

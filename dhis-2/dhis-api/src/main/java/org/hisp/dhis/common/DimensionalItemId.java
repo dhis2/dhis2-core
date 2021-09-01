@@ -68,7 +68,7 @@ public class DimensionalItemId
     private String id2;
 
     /**
-     * The item decomposed to single ids
+     * The item as parsed from the expression
      */
     private String item;
 

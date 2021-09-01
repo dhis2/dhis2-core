@@ -152,6 +152,11 @@ public class MapView
      */
     private String noDataColor;
 
+    /**
+     * Color in hex format.
+     */
+    private String organisationUnitColor;
+
     private Integer radiusLow;
 
     private Integer radiusHigh;
@@ -553,9 +558,25 @@ public class MapView
         return noDataColor;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = 7, max = 7 )
     public void setNoDataColor( String noDataColor )
     {
         this.noDataColor = noDataColor;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = 7, max = 7 )
+    public String getOrganisationUnitColor()
+    {
+        return organisationUnitColor;
+    }
+
+    public void setOrganisationUnitColor( String organisationUnitColor )
+    {
+        this.organisationUnitColor = organisationUnitColor;
     }
 
     @JsonProperty
