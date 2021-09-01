@@ -30,10 +30,10 @@ package org.hisp.dhis.deduplication;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -54,6 +54,8 @@ public class DefaultDeduplicationService
     private final DeduplicationHelper deduplicationHelper;
 
     private final CurrentUserService currentUserService;
+
+    private final AuditManager auditManager;
 
     @Override
     @Transactional( readOnly = true )
@@ -147,11 +149,6 @@ public class DefaultDeduplicationService
             return false;
         }
 
-        if ( haveSameEnrollment( original.getProgramInstances(), duplicate.getProgramInstances() ) )
-        {
-            return false;
-        }
-
         Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA = original
             .getTrackedEntityAttributeValues();
         Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB = duplicate
@@ -170,35 +167,15 @@ public class DefaultDeduplicationService
             throw new PotentialDuplicateForbiddenException(
                 "You have insufficient access to merge the PotentialDuplicate." );
 
-        potentialDuplicateStore.moveTrackedEntityAttributeValues( original.getUid(), duplicate.getUid(),
+        potentialDuplicateStore.moveTrackedEntityAttributeValues( original, duplicate,
             mergeObject.getTrackedEntityAttributes() );
-        potentialDuplicateStore.moveRelationships( original.getUid(), duplicate.getUid(),
+        potentialDuplicateStore.moveRelationships( original, duplicate,
             mergeObject.getRelationships() );
-        potentialDuplicateStore.moveEnrollments( original.getUid(), duplicate.getUid(),
+        potentialDuplicateStore.moveEnrollments( original, duplicate,
             mergeObject.getEnrollments() );
-
-        List<ProgramInstance> programInstancesToRemove = duplicate.getProgramInstances()
-            .stream()
-            .filter( e -> mergeObject.getEnrollments().contains( e.getUid() ) )
-            .collect( Collectors.toList() );
-        duplicate.getProgramInstances().removeAll( programInstancesToRemove );
 
         potentialDuplicateStore.removeTrackedEntity( duplicate );
         updateTeiAndPotentialDuplicate( params, original );
-        potentialDuplicateStore.auditMerge( params );
-    }
-
-    private boolean haveSameEnrollment( Set<ProgramInstance> originalEnrollments,
-        Set<ProgramInstance> duplicateEnrollments )
-    {
-        Set<String> originalPrograms = originalEnrollments.stream().map( e -> e.getProgram().getUid() )
-            .collect( Collectors.toSet() );
-        Set<String> duplicatePrograms = duplicateEnrollments.stream().map( e -> e.getProgram().getUid() )
-            .collect( Collectors.toSet() );
-
-        originalPrograms.retainAll( duplicatePrograms );
-
-        return !originalPrograms.isEmpty();
     }
 
     private void updateTeiAndPotentialDuplicate( DeduplicationMergeParams deduplicationMergeParams,
@@ -253,7 +230,8 @@ public class DefaultDeduplicationService
             {
                 for ( ProgramInstance programInstanceB : trackedEntityInstanceB.getProgramInstances() )
                 {
-                    if ( programInstanceA.getProgram().equals( programInstanceB.getProgram() ) )
+                    if ( !programInstanceA.isDeleted()
+                        && programInstanceA.getProgram().equals( programInstanceB.getProgram() ) )
                         return true;
                 }
             }
