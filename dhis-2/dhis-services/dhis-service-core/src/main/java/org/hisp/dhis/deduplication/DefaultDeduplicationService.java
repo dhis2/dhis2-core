@@ -127,7 +127,7 @@ public class DefaultDeduplicationService
         if ( invalidReference != null )
         {
             throw new PotentialDuplicateConflictException(
-                "Insufficient access: " + invalidReference );
+                "Merging conflict: " + invalidReference );
         }
 
         merge( deduplicationMergeParams );
@@ -172,7 +172,7 @@ public class DefaultDeduplicationService
         String accessError = deduplicationHelper.getUserAccessErrors( original, duplicate, mergeObject );
         if ( accessError != null )
             throw new PotentialDuplicateForbiddenException(
-                "Could not merge: " + accessError );
+                "Insufficient access: " + accessError );
 
         potentialDuplicateStore.moveTrackedEntityAttributeValues( original.getUid(), duplicate.getUid(),
             mergeObject.getTrackedEntityAttributes() );
