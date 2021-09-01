@@ -87,7 +87,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getAttributeOptionComb
 import static org.hisp.dhis.common.DimensionalObjectUtils.getCategoryOptionCombos;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElements;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItem;
-import static org.hisp.dhis.common.DimensionalObjectUtils.replaceOperandTotalsWithDataElements;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
@@ -133,6 +132,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemObjectValue;
+import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -231,7 +231,7 @@ public class DataHandler
                 .retainDataDimension( INDICATOR )
                 .withIncludeNumDen( false ).build();
 
-            List<Indicator> indicators = asTypedList( dataSourceParams.getIndicators() );
+            List<Indicator> indicators = resolveIndicatorExpressions( dataSourceParams );
 
             // Try to get filters periods from dimension (pe), or else fall back
             // to "startDate/endDate" periods
@@ -251,8 +251,11 @@ public class DataHandler
 
             List<List<DimensionItem>> dimensionItemPermutations = dataSourceParams.getDimensionItemPermutations();
 
+            Map<DimensionalItemId, DimensionalItemObject> itemMap = expressionService
+                .getIndicatorDimensionalItemMap( indicators );
+
             Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap(
-                dataSourceParams );
+                params, new ArrayList<>( itemMap.values() ) );
 
             handleEmptyDimensionItemPermutations( dimensionItemPermutations );
 
@@ -260,8 +263,8 @@ public class DataHandler
             {
                 for ( List<DimensionItem> dimensionItems : dimensionItemPermutations )
                 {
-                    IndicatorValue value = getIndicatorValue( filterPeriods, constantMap, permutationOrgUnitTargetMap,
-                        permutationDimensionItemValueMap, indicator, dimensionItems );
+                    IndicatorValue value = getIndicatorValue( filterPeriods, constantMap, itemMap,
+                        permutationOrgUnitTargetMap, permutationDimensionItemValueMap, indicator, dimensionItems );
 
                     addIndicatorValuesToGrid( params, grid, dataSourceParams, indicator, dimensionItems, value );
                 }
@@ -278,9 +281,11 @@ public class DataHandler
      *        See @{{@link ConstantService#getConstantMap()}}.
      * @param permutationOrgUnitTargetMap the org unit permutation map. See
      *        {@link #getOrgUnitTargetMap(DataQueryParams, Collection)}.
+     * @param itemMap Every dimensional item to process.
      * @param permutationDimensionItemValueMap the dimension item permutation
      *        map. See
-     *        {@link #getPermutationDimensionItemValueMap(DataQueryParams)}.
+     *        {@link #getPermutationDimensionItemValueMap(DataQueryParams,
+     *        List<DimensionalItemObject>)}.
      * @param indicator the input Indicator where the IndicatorValue will be
      *        based.
      * @param dimensionItems the dimensional items permutation map. See
@@ -288,13 +293,14 @@ public class DataHandler
      * @return the IndicatorValue
      */
     private IndicatorValue getIndicatorValue( List<Period> filterPeriods, Map<String, Constant> constantMap,
+        Map<DimensionalItemId, DimensionalItemObject> itemMap,
         Map<String, Map<String, Integer>> permutationOrgUnitTargetMap,
-        Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap, Indicator indicator,
-        List<DimensionItem> dimensionItems )
+        Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap,
+        Indicator indicator, List<DimensionItem> dimensionItems )
     {
         String permKey = asItemKey( dimensionItems );
 
-        final List<DimensionItemObjectValue> valueMap = permutationDimensionItemValueMap
+        final List<DimensionItemObjectValue> values = permutationDimensionItemValueMap
             .getOrDefault( permKey, new ArrayList<>() );
 
         List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
@@ -308,8 +314,8 @@ public class DataHandler
             ? permutationOrgUnitTargetMap.get( ou )
             : null;
 
-        return expressionService.getIndicatorValueObject( indicator, periods,
-            convertToDimItemValueMap( valueMap ), constantMap, orgUnitCountMap );
+        return expressionService.getIndicatorValueObject( indicator, periods, itemMap,
+            convertToDimItemValueMap( values ), constantMap, orgUnitCountMap );
     }
 
     /**
@@ -845,11 +851,12 @@ public class DataHandler
      *
      * @param params the {@link DataQueryParams}.
      */
-    private Map<String, List<DimensionItemObjectValue>> getPermutationDimensionItemValueMap( DataQueryParams params )
+    private Map<String, List<DimensionItemObjectValue>> getPermutationDimensionItemValueMap(
+        DataQueryParams params, List<DimensionalItemObject> items )
     {
-        List<Indicator> indicators = asTypedList( params.getIndicators() );
+        MultiValuedMap<String, DimensionItemObjectValue> aggregatedDataMap = getAggregatedDataValueMap( params, items );
 
-        return getPermutationDimensionalItemValueMap( getAggregatedDataValueMap( params, indicators ) );
+        return getPermutationDimensionalItemValueMap( aggregatedDataMap );
     }
 
     /**
@@ -940,14 +947,16 @@ public class DataHandler
     }
 
     /**
-     * Resolves the numerator and denominator expressions of the given
-     * indicators.
+     * Resolves the numerator and denominator expressions of indicators in the
+     * data query.
      *
-     * @param indicators the list of indicators.
-     * @return the given list of indicators.
+     * @param params the {@link DataQueryParams}.
+     * @return the resolved list of indicators.
      */
-    private List<Indicator> resolveIndicatorExpressions( List<Indicator> indicators )
+    private List<Indicator> resolveIndicatorExpressions( DataQueryParams params )
     {
+        List<Indicator> indicators = asTypedList( params.getIndicators() );
+
         for ( Indicator indicator : indicators )
         {
             indicator.setNumerator( resolver.resolve( indicator.getNumerator() ) );
@@ -965,21 +974,16 @@ public class DataHandler
      * Indicators, an exception is thrown.
      *
      * @param params the {@link DataQueryParams}.
-     * @param indicators the list of indicators.
+     * @param items the list of {@link DimensionalItemObject}.
      * @return a dimensional items to aggregate values map.
      */
     private MultiValuedMap<String, DimensionItemObjectValue> getAggregatedDataValueMap( DataQueryParams params,
-        List<Indicator> indicators )
+        List<DimensionalItemObject> items )
     {
-        List<DimensionalItemObject> items = newArrayList(
-            expressionService.getIndicatorDimensionalItemObjects( resolveIndicatorExpressions( indicators ) ) );
-
         if ( items.isEmpty() )
         {
             return new ArrayListValuedHashMap<>();
         }
-
-        items = replaceOperandTotalsWithDataElements( items );
 
         DimensionalObject dimension = new BaseDimensionalObject(
             DATA_X_DIM_ID, DATA_X, null, DISPLAY_NAME_DATA_X, items );
