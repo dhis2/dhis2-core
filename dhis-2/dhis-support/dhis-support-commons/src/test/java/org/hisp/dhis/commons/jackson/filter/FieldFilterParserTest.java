@@ -174,6 +174,16 @@ public class FieldFilterParserTest
         assertFieldPathContains( fieldPaths, "groups.name", false );
     }
 
+    @Test
+    public void testParseWithTransformer7()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser
+            .parse( Sets.newHashSet( "name::size,group::isEmpty" ) );
+
+        assertFieldPathContains( fieldPaths, "name", true );
+        assertFieldPathContains( fieldPaths, "group", true );
+    }
+
     private void assertFieldPathContains( List<FieldPath> fieldPaths, String expected, boolean hasTransformer )
     {
         boolean condition = false;

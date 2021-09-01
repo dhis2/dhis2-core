@@ -117,6 +117,11 @@ public class FieldFilterParser
                         break;
                     }
                 }
+
+                if ( transformerBuilder.length() > 0 )
+                {
+                    transformerName = transformerBuilder.toString();
+                }
             }
             else if ( isFieldSeparator( token ) )
             {
