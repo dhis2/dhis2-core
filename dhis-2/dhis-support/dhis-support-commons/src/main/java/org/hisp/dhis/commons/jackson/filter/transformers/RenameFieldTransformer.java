@@ -53,15 +53,9 @@ public class RenameFieldTransformer implements FieldTransformer
             return value;
         }
 
-        int idx = path.lastIndexOf( '.' );
-        String key = path;
+        String fieldName = getFieldName( path );
 
-        if ( idx > -1 )
-        {
-            key = path.substring( idx + 1 );
-        }
-
-        value = ((ObjectNode) parent).remove( key );
+        value = ((ObjectNode) parent).remove( fieldName );
         ((ObjectNode) parent).set( fieldPathTransformer.getParameters().get( 0 ), value );
 
         return value;

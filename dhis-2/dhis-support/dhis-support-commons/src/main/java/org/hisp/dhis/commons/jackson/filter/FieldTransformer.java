@@ -36,4 +36,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 public interface FieldTransformer
 {
     JsonNode apply( String path, JsonNode value, JsonNode parent );
+
+    default String getFieldName( String path )
+    {
+        int idx = path.lastIndexOf( '.' );
+        String key = path;
+
+        if ( idx > -1 )
+        {
+            key = path.substring( idx + 1 );
+        }
+
+        return key;
+    }
 }

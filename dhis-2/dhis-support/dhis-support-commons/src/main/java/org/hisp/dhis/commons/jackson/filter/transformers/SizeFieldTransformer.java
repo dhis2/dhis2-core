@@ -53,33 +53,27 @@ public class SizeFieldTransformer implements FieldTransformer
             return value;
         }
 
-        int idx = path.lastIndexOf( '.' );
-        String key = path;
-
-        if ( idx > -1 )
-        {
-            key = path.substring( idx + 1 );
-        }
+        String fieldName = getFieldName( path );
 
         if ( value.isArray() )
         {
-            ((ObjectNode) parent).put( key, value.size() );
+            ((ObjectNode) parent).put( fieldName, value.size() );
         }
         else if ( value.isTextual() )
         {
-            ((ObjectNode) parent).put( key, value.asText().length() );
+            ((ObjectNode) parent).put( fieldName, value.asText().length() );
         }
         else if ( value.isInt() )
         {
-            ((ObjectNode) parent).put( key, value.asInt() );
+            ((ObjectNode) parent).put( fieldName, value.asInt() );
         }
         else if ( value.isLong() )
         {
-            ((ObjectNode) parent).put( key, value.asLong() );
+            ((ObjectNode) parent).put( fieldName, value.asLong() );
         }
         else if ( value.isDouble() || value.isFloat() )
         {
-            ((ObjectNode) parent).put( key, value.asDouble() );
+            ((ObjectNode) parent).put( fieldName, value.asDouble() );
         }
 
         return value;

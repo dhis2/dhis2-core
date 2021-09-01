@@ -53,17 +53,11 @@ public class IsNotEmptyFieldTransformer implements FieldTransformer
             return value;
         }
 
-        int idx = path.lastIndexOf( '.' );
-        String key = path;
-
-        if ( idx > -1 )
-        {
-            key = path.substring( idx + 1 );
-        }
+        String fieldName = getFieldName( path );
 
         if ( value.isArray() )
         {
-            ((ObjectNode) parent).put( key, !value.isEmpty() );
+            ((ObjectNode) parent).put( fieldName, !value.isEmpty() );
         }
 
         return value;
