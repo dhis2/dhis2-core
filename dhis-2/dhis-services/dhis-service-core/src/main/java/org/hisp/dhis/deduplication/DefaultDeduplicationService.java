@@ -30,10 +30,10 @@ package org.hisp.dhis.deduplication;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -54,8 +54,6 @@ public class DefaultDeduplicationService
     private final DeduplicationHelper deduplicationHelper;
 
     private final CurrentUserService currentUserService;
-
-    private final AuditManager auditManager;
 
     @Override
     @Transactional( readOnly = true )
@@ -134,17 +132,17 @@ public class DefaultDeduplicationService
 
     private boolean isAutoMergeable( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
-        if ( enrolledSameProgram( original, duplicate ) )
-        {
-            return false;
-        }
-
         if ( !original.getTrackedEntityType().equals( duplicate.getTrackedEntityType() ) )
         {
             return false;
         }
 
         if ( original.isDeleted() || duplicate.isDeleted() )
+        {
+            return false;
+        }
+
+        if ( haveSameEnrollment( original.getProgramInstances(), duplicate.getProgramInstances() ) )
         {
             return false;
         }
@@ -176,6 +174,24 @@ public class DefaultDeduplicationService
 
         potentialDuplicateStore.removeTrackedEntity( duplicate );
         updateTeiAndPotentialDuplicate( params, original );
+        potentialDuplicateStore.auditMerge( params );
+    }
+
+    private boolean haveSameEnrollment( Set<ProgramInstance> originalEnrollments,
+        Set<ProgramInstance> duplicateEnrollments )
+    {
+        Set<String> originalPrograms = originalEnrollments.stream()
+            .filter( e -> !e.isDeleted() )
+            .map( e -> e.getProgram().getUid() )
+            .collect( Collectors.toSet() );
+        Set<String> duplicatePrograms = duplicateEnrollments.stream()
+            .filter( e -> !e.isDeleted() )
+            .map( e -> e.getProgram().getUid() )
+            .collect( Collectors.toSet() );
+
+        originalPrograms.retainAll( duplicatePrograms );
+
+        return !originalPrograms.isEmpty();
     }
 
     private void updateTeiAndPotentialDuplicate( DeduplicationMergeParams deduplicationMergeParams,
@@ -214,25 +230,6 @@ public class DefaultDeduplicationService
                     && !teavA.getValue().equals( teavB.getValue() ) )
                 {
                     return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean enrolledSameProgram( TrackedEntityInstance trackedEntityInstanceA,
-        TrackedEntityInstance trackedEntityInstanceB )
-    {
-        if ( !trackedEntityInstanceA.getProgramInstances().isEmpty()
-            && !trackedEntityInstanceB.getProgramInstances().isEmpty() )
-        {
-            for ( ProgramInstance programInstanceA : trackedEntityInstanceA.getProgramInstances() )
-            {
-                for ( ProgramInstance programInstanceB : trackedEntityInstanceB.getProgramInstances() )
-                {
-                    if ( !programInstanceA.isDeleted()
-                        && programInstanceA.getProgram().equals( programInstanceB.getProgram() ) )
-                        return true;
                 }
             }
         }
