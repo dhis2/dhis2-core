@@ -31,7 +31,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -244,7 +243,7 @@ public class PredictionDataValueFetcherTest
                 throw new NullPointerException();
             } );
 
-            fetcher.init( new HashSet<>(), 1, new ArrayList<>(), new HashSet<>(), new HashSet<>(), new HashSet<>() );
+            fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, new HashSet<>() );
         }
         catch ( Exception ex )
         {
@@ -266,7 +265,7 @@ public class PredictionDataValueFetcherTest
                 return null;
             } );
 
-            fetcher.init( new HashSet<>(), 1, new ArrayList<>(), new HashSet<>(), new HashSet<>(), new HashSet<>() );
+            fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, new HashSet<>() );
         }
         catch ( Exception ex )
         {

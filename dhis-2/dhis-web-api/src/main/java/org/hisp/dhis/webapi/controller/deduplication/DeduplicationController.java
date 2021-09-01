@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.deduplication;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
@@ -40,9 +40,13 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
+import org.hisp.dhis.deduplication.MergeObject;
+import org.hisp.dhis.deduplication.MergeStrategy;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
+import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -61,7 +65,15 @@ import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import com.google.common.collect.Lists;
@@ -159,6 +171,47 @@ public class DeduplicationController
         deduplicationService.updatePotentialDuplicate( potentialDuplicate );
     }
 
+    @PostMapping( value = "/{id}/merge" )
+    @ResponseStatus( value = HttpStatus.OK )
+    public void mergePotentialDuplicate(
+        @PathVariable String id,
+        @RequestParam( defaultValue = "MANUAL" ) MergeStrategy mergeStrategy,
+        @RequestBody( required = false ) MergeObject mergeObject )
+        throws NotFoundException
+    {
+        PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
+
+        if ( potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null )
+        {
+            throw new PotentialDuplicateConflictException(
+                "PotentialDuplicate is missing references and cannot be merged." );
+        }
+
+        TrackedEntityInstance original = getTei( potentialDuplicate.getOriginal() );
+        TrackedEntityInstance duplicate = getTei( potentialDuplicate.getDuplicate() );
+
+        if ( mergeObject == null )
+        {
+            mergeObject = new MergeObject();
+        }
+
+        DeduplicationMergeParams params = DeduplicationMergeParams.builder()
+            .potentialDuplicate( potentialDuplicate )
+            .mergeObject( mergeObject )
+            .original( original )
+            .duplicate( duplicate )
+            .build();
+
+        if ( MergeStrategy.MANUAL.equals( mergeStrategy ) )
+        {
+            deduplicationService.manualMerge( params );
+        }
+        else
+        {
+            deduplicationService.autoMerge( params );
+        }
+    }
+
     private void checkDbAndRequestStatus( PotentialDuplicate potentialDuplicate,
         DeduplicationStatus deduplicationStatus )
         throws BadRequestException
@@ -196,9 +249,13 @@ public class DeduplicationController
         NotFoundException,
         BadRequestException
     {
-        checkValidAndCanReadTei( potentialDuplicate.getTeiA(), "teiA" );
+        checkValidTei( potentialDuplicate.getOriginal(), "original" );
 
-        checkValidAndCanReadTei( potentialDuplicate.getTeiB(), "teiB" );
+        checkValidTei( potentialDuplicate.getDuplicate(), "duplicate" );
+
+        canReadTei( getTei( potentialDuplicate.getOriginal() ) );
+
+        canReadTei( getTei( potentialDuplicate.getDuplicate() ) );
 
         checkAlreadyExistingDuplicate( potentialDuplicate );
     }
@@ -208,15 +265,13 @@ public class DeduplicationController
     {
         if ( deduplicationService.exists( potentialDuplicate ) )
         {
-            throw new ConflictException( "'" + potentialDuplicate.getTeiA() + "' " + "and '"
-                + potentialDuplicate.getTeiB() + " is already marked as a potential duplicate" );
+            throw new ConflictException( "'" + potentialDuplicate.getOriginal() + "' " + "and '"
+                + potentialDuplicate.getDuplicate() + " is already marked as a potential duplicate" );
         }
     }
 
-    private void checkValidAndCanReadTei( String tei, String teiFieldName )
-        throws OperationNotAllowedException,
-        NotFoundException,
-        BadRequestException
+    private void checkValidTei( String tei, String teiFieldName )
+        throws BadRequestException
     {
         if ( tei == null )
         {
@@ -227,21 +282,23 @@ public class DeduplicationController
         {
             throw new BadRequestException( "'" + tei + "' is not valid value for property '" + teiFieldName + "'" );
         }
-
-        canReadTei( tei );
     }
 
-    private void canReadTei( String tei )
-        throws OperationNotAllowedException,
-        NotFoundException
+    private TrackedEntityInstance getTei( String tei )
+        throws NotFoundException
     {
-        TrackedEntityInstance trackedEntityInstance = Optional.ofNullable( trackedEntityInstanceService
+        return Optional.ofNullable( trackedEntityInstanceService
             .getTrackedEntityInstance( tei ) )
             .orElseThrow( () -> new NotFoundException( "No tracked entity instance found with id '" + tei + "'." ) );
+    }
 
+    private void canReadTei( TrackedEntityInstance trackedEntityInstance )
+        throws OperationNotAllowedException
+    {
         if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), trackedEntityInstance ).isEmpty() )
         {
-            throw new OperationNotAllowedException( "You don't have read access to '" + tei + "'." );
+            throw new OperationNotAllowedException(
+                "You don't have read access to '" + trackedEntityInstance.getUid() + "'." );
         }
     }
 }
