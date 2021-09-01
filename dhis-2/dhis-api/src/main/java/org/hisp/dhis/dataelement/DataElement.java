@@ -94,11 +94,6 @@ public class DataElement extends BaseDimensionalItemObject
     private ValueTypeOptions valueTypeOptions;
 
     /**
-     * The name to appear in forms.
-     */
-    private String formName;
-
-    /**
      * The domain of this DataElement; e.g. DataElementDomainType.AGGREGATE or
      * DataElementDomainType.TRACKER.
      */
