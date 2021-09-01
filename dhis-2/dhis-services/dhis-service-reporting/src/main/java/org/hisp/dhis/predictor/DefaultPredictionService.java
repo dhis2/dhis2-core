@@ -634,7 +634,7 @@ public class DefaultPredictionService
     Set<Period> getSkippedPeriods( Set<Period> allSamplePeriods,
         Map<DimensionalItemId, DimensionalItemObject> itemMap, MapMap<Period, DimensionalItemObject, Object> aocData,
         Expression skipTest, Map<String, Constant> constantMap, Map<String, OrganisationUnitGroup> orgUnitGroupMap,
-        OrganisationUnit orgUnit  )
+        OrganisationUnit orgUnit )
     {
         Set<Period> skippedPeriods = new HashSet<>();
 
