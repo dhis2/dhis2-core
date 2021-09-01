@@ -30,13 +30,14 @@ package org.hisp.dhis.commons.jackson.filter.transformers;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.Collections;
+
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.jackson.filter.FieldPathTransformer;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sun.tools.javac.util.List;
 
 /**
  * @author Morten Olav Hansen
@@ -53,7 +54,8 @@ public class RenameFieldFilterTest
         objectNode.put( "b", 123 );
         objectNode.put( "c", 123 );
 
-        FieldPathTransformer fieldPathTransformer = new FieldPathTransformer( "rename", List.of( "aaa" ) );
+        FieldPathTransformer fieldPathTransformer = new FieldPathTransformer( "rename",
+            Collections.singletonList( "aaa" ) );
 
         RenameFieldTransformer transformer = new RenameFieldTransformer( fieldPathTransformer );
         transformer.apply( "a", objectNode.get( "a" ), objectNode );
