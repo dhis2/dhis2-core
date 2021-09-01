@@ -30,21 +30,33 @@ package org.hisp.dhis.webapi.controller.deduplication;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Collections;
+import java.util.Date;
 
+import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
+import org.hisp.dhis.deduplication.MergeObject;
+import org.hisp.dhis.deduplication.MergeStrategy;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
+import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
+import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.webapi.controller.DeduplicationController;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -87,8 +99,16 @@ public class DeduplicationControllerMvcTest
     @Mock
     private ContextService contextService;
 
+    @Mock
+    private TrackedEntityInstance trackedEntityInstanceA;
+
+    @Mock
+    private TrackedEntityInstance trackedEntityInstanceB;
+
     @InjectMocks
     private DeduplicationController deduplicationController;
+
+    private DeduplicationMergeParams deduplicationMergeParams;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -99,12 +119,17 @@ public class DeduplicationControllerMvcTest
     @Before
     public void setUp()
     {
+        deduplicationMergeParams = DeduplicationMergeParams.builder()
+            .potentialDuplicate( new PotentialDuplicate( teiA, teiB ) )
+            .original( trackedEntityInstanceA ).duplicate( trackedEntityInstanceB )
+            .mergeObject( MergeObject.builder().build() ).build();
+
         mockMvc = MockMvcBuilders.standaloneSetup( deduplicationController ).build();
 
         lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
-            .thenReturn( new TrackedEntityInstance() );
+            .thenReturn( trackedEntityInstanceA );
         lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) )
-            .thenReturn( new TrackedEntityInstance() );
+            .thenReturn( trackedEntityInstanceB );
 
         lenient().when( trackerAccessManager.canRead( any(), any( TrackedEntityInstance.class ) ) ).thenReturn(
             Lists.newArrayList() );
@@ -255,5 +280,119 @@ public class DeduplicationControllerMvcTest
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isNotFound() )
             .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
+    }
+
+    @Test
+    public void shouldMergePotentialDuplicate()
+        throws Exception
+    {
+        String uid = "uid";
+
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
+
+        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
+
+        when( trackedEntityInstanceA.getCreated() ).thenReturn( new Date() );
+        when( trackedEntityInstanceB.getCreated() ).thenReturn( new Date() );
+
+        MergeObject mergeObject = MergeObject.builder().build();
+
+        mockMvc.perform( post( ENDPOINT + "/" + uid + "/merge" )
+            .content( objectMapper.writeValueAsString( mergeObject ) )
+            .param( "mergeStrategy", MergeStrategy.AUTO.name() )
+            .contentType( MediaType.APPLICATION_JSON )
+            .accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isOk() );
+
+        verify( deduplicationService ).autoMerge( deduplicationMergeParams );
+        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeParams );
+    }
+
+    @Test
+    public void shouldManualMergePotentialDuplicate()
+        throws Exception
+    {
+        String uid = "uid";
+
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
+
+        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
+
+        when( trackedEntityInstanceA.getCreated() ).thenReturn( new Date() );
+        when( trackedEntityInstanceB.getCreated() ).thenReturn( new Date() );
+
+        MergeObject mergeObject = MergeObject.builder().build();
+
+        mockMvc.perform( post( ENDPOINT + "/" + uid + "/merge" )
+            .content( objectMapper.writeValueAsString( mergeObject ) )
+            .param( "mergeStrategy", MergeStrategy.MANUAL.name() )
+            .contentType( MediaType.APPLICATION_JSON )
+            .accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isOk() );
+
+        verify( deduplicationService, times( 0 ) ).autoMerge( deduplicationMergeParams );
+        verify( deduplicationService ).manualMerge( deduplicationMergeParams );
+    }
+
+    @Test
+    public void shouldThrowAutoMergeForbiddenException()
+        throws Exception
+    {
+        String uid = "uid";
+
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
+
+        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
+
+        when( trackedEntityInstanceA.getCreated() ).thenReturn( new Date() );
+        when( trackedEntityInstanceB.getCreated() ).thenReturn( new Date() );
+
+        doThrow( new PotentialDuplicateForbiddenException( "Forbidden" ) ).when( deduplicationService )
+            .autoMerge( deduplicationMergeParams );
+
+        MergeObject mergeObject = MergeObject.builder().build();
+
+        mockMvc.perform( post( ENDPOINT + "/" + uid + "/merge" )
+            .content( objectMapper.writeValueAsString( mergeObject ) )
+            .param( "mergeStrategy", MergeStrategy.AUTO.name() )
+            .contentType( MediaType.APPLICATION_JSON )
+            .accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isForbidden() )
+            .andExpect(
+                result -> assertTrue( result.getResolvedException() instanceof PotentialDuplicateForbiddenException ) );
+
+        verify( deduplicationService ).autoMerge( deduplicationMergeParams );
+        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeParams );
+    }
+
+    @Test
+    public void shouldThrowAutoMergeConflictException()
+        throws Exception
+    {
+        String uid = "uid";
+
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
+
+        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
+
+        when( trackedEntityInstanceA.getCreated() ).thenReturn( new Date() );
+        when( trackedEntityInstanceB.getCreated() ).thenReturn( new Date() );
+
+        doThrow( new PotentialDuplicateConflictException( "Conflict" ) ).when( deduplicationService )
+            .autoMerge( deduplicationMergeParams );
+
+        MergeObject mergeObject = MergeObject.builder().build();
+
+        mockMvc.perform( post( ENDPOINT + "/" + uid + "/merge" )
+            .content( objectMapper.writeValueAsString( mergeObject ) )
+            .param( "mergeStrategy", MergeStrategy.AUTO.name() )
+            .contentType( MediaType.APPLICATION_JSON )
+            .accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isConflict() )
+            .andExpect(
+                result -> assertTrue( result.getResolvedException() instanceof PotentialDuplicateConflictException ) );
+
+        verify( deduplicationService ).autoMerge( deduplicationMergeParams );
+        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeParams );
     }
 }

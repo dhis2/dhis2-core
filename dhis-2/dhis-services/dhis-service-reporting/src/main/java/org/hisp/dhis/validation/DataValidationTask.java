@@ -31,8 +31,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+import static org.hisp.dhis.system.util.MathUtils.addDoubleObjects;
 import static org.hisp.dhis.system.util.MathUtils.roundSignificant;
 import static org.hisp.dhis.system.util.MathUtils.zeroIfNull;
+import static org.hisp.dhis.system.util.ValidationUtils.getObjectValue;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,7 +43,6 @@ import javax.persistence.PersistenceException;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -128,9 +129,9 @@ public class DataValidationTask
     private ValidationRuleExtended ruleX; // Current rule extended.
 
     // Data for current period and all rules being evaluated:
-    private MapMapMap<Long, String, DimensionalItemObject, Double> dataMap;
+    private MapMapMap<Long, String, DimensionalItemObject, Object> dataMap;
 
-    private MapMapMap<Long, String, DimensionalItemObject, Double> slidingWindowDataMap;
+    private MapMapMap<Long, String, DimensionalItemObject, Object> slidingWindowDataMap;
 
     @Override
     public void init( List<OrganisationUnit> orgUnits, ValidationRunContext context, AnalyticsService analyticsService )
@@ -216,12 +217,11 @@ public class DataValidationTask
             return;
         }
 
-        MapMap<String, DimensionalItemObject, Double> leftSideValueMap = getValueMap( ruleX.getLeftSlidingWindow() );
-        MapMap<String, DimensionalItemObject, Double> rightSideValueMap = getValueMap( ruleX.getRightSlidingWindow() );
+        MapMap<String, DimensionalItemObject, Object> leftValueMap = getValueMap( ruleX.getLeftSlidingWindow() );
+        MapMap<String, DimensionalItemObject, Object> rightValueMap = getValueMap( ruleX.getRightSlidingWindow() );
 
-        Map<String, Double> leftSideValues = getExpressionValueMap( ruleX.getRule().getLeftSide(), leftSideValueMap );
-        Map<String, Double> rightSideValues = getExpressionValueMap( ruleX.getRule().getRightSide(),
-            rightSideValueMap );
+        Map<String, Double> leftSideValues = getExpressionValueMap( ruleX.getRule().getLeftSide(), leftValueMap );
+        Map<String, Double> rightSideValues = getExpressionValueMap( ruleX.getRule().getRightSide(), rightValueMap );
 
         Set<String> attributeOptionCombos = Sets.union( leftSideValues.keySet(), rightSideValues.keySet() );
 
@@ -240,8 +240,8 @@ public class DataValidationTask
             if ( context.processExpressionDetails() )
             {
                 setExpressionDetails(
-                    leftSideValueMap.get( optionCombo ),
-                    rightSideValueMap.get( optionCombo ) );
+                    leftValueMap.get( optionCombo ),
+                    rightValueMap.get( optionCombo ) );
             }
             else
             {
@@ -252,8 +252,8 @@ public class DataValidationTask
         }
     }
 
-    private void setExpressionDetails( Map<DimensionalItemObject, Double> leftSideValues,
-        Map<DimensionalItemObject, Double> rightSideValues )
+    private void setExpressionDetails( Map<DimensionalItemObject, Object> leftSideValues,
+        Map<DimensionalItemObject, Object> rightSideValues )
     {
         setExpressionSideDetails( context.getValidationRuleExpressionDetails().getLeftSide(),
             periodTypeX.getLeftSideItemIds(), leftSideValues );
@@ -263,13 +263,13 @@ public class DataValidationTask
     }
 
     private void setExpressionSideDetails( List<Map<String, String>> detailsSide, Set<DimensionalItemId> sideIds,
-        Map<DimensionalItemObject, Double> valueMap )
+        Map<DimensionalItemObject, Object> valueMap )
     {
         for ( DimensionalItemId itemId : sideIds )
         {
-            DimensionalItemObject itemObject = context.getDimensionItemMap().get( itemId );
+            DimensionalItemObject itemObject = context.getItemMap().get( itemId );
 
-            Double itemValue = valueMap.get( itemObject );
+            Object itemValue = valueMap.get( itemObject );
 
             String itemValueString = itemValue == null
                 ? null
@@ -387,7 +387,7 @@ public class DataValidationTask
         }
     }
 
-    private MapMap<String, DimensionalItemObject, Double> getValueMap( boolean slidingWindow )
+    private MapMap<String, DimensionalItemObject, Object> getValueMap( boolean slidingWindow )
     {
         return slidingWindow
             ? slidingWindowDataMap.get( orgUnitId )
@@ -474,7 +474,7 @@ public class DataValidationTask
      * @return map of values.
      */
     private Map<String, Double> getExpressionValueMap( Expression expression,
-        MapMap<String, DimensionalItemObject, Double> valueMap )
+        MapMap<String, DimensionalItemObject, Object> valueMap )
     {
         Map<String, Double> expressionValueMap = new HashMap<>();
 
@@ -483,20 +483,20 @@ public class DataValidationTask
             return expressionValueMap;
         }
 
-        Map<DimensionalItemObject, Double> nonAocValues = valueMap.get( NON_AOC );
+        Map<DimensionalItemObject, Object> nonAocValues = valueMap.get( NON_AOC );
 
-        for ( Map.Entry<String, Map<DimensionalItemObject, Double>> entry : valueMap.entrySet() )
+        for ( Map.Entry<String, Map<DimensionalItemObject, Object>> entry : valueMap.entrySet() )
         {
-            Map<DimensionalItemObject, Double> values = entry.getValue();
+            Map<DimensionalItemObject, Object> values = entry.getValue();
 
             if ( nonAocValues != null )
             {
                 values.putAll( nonAocValues );
             }
 
-            Double value = expressionService.getExpressionValue( expression.getExpression(),
-                VALIDATION_RULE_EXPRESSION, values, context.getConstantMap(), null,
-                period.getDaysInPeriod(), expression.getMissingValueStrategy() );
+            Double value = expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION,
+                context.getItemMap(), values, context.getConstantMap(), null, context.getOrgUnitGroupMap(),
+                period.getDaysInPeriod(), expression.getMissingValueStrategy(), orgUnit );
 
             if ( MathUtils.isValidDouble( value ) )
             {
@@ -530,7 +530,7 @@ public class DataValidationTask
 
         dataMap = new MapMapMap<>();
 
-        MapMapMap<Long, String, DimensionalItemObject, Long> checkForDuplicates = new MapMapMap<>();
+        MapMapMap<Long, String, DimensionalItemObject, Long> duplicateCheck = new MapMapMap<>();
 
         for ( DeflatedDataValue dv : dataValues )
         {
@@ -540,39 +540,31 @@ public class DataValidationTask
             Period p = getPeriod( dv.getPeriodId() );
             long orgUnitId = dv.getSourceId();
             String attributeOptionComboUid = getAttributeOptionCombo( dv.getAttributeOptionComboId() ).getUid();
-            String valueString = dv.getValue();
-            Double value;
-
-            try
-            {
-                value = Double.parseDouble( valueString );
-            }
-            catch ( NumberFormatException | NullPointerException e )
-            {
-                continue;
-            }
 
             if ( dataElement != null )
             {
-                addValueToDataMap( orgUnitId, attributeOptionComboUid, dataElement, value, p, checkForDuplicates );
+                Object value = getObjectValue( dv.getValue(), dataElement.getValueType() );
+
+                addValueToDataMap( orgUnitId, attributeOptionComboUid, dataElement, value, p, duplicateCheck );
             }
 
             if ( dataElementOperand != null )
             {
-                addValueToDataMap( orgUnitId, attributeOptionComboUid, dataElementOperand, value, p,
-                    checkForDuplicates );
+                Object value = getObjectValue( dv.getValue(), dataElementOperand.getDataElement().getValueType() );
+
+                addValueToDataMap( orgUnitId, attributeOptionComboUid, dataElementOperand, value, p, duplicateCheck );
             }
         }
     }
 
     private void addValueToDataMap( long orgUnitId, String aocUid, DimensionalItemObject dimItemObject,
-        Double value, Period p, MapMapMap<Long, String, DimensionalItemObject, Long> checkForDuplicates )
+        Object value, Period p, MapMapMap<Long, String, DimensionalItemObject, Long> duplicateCheck )
     {
-        double existingValue = ObjectUtils.firstNonNull( dataMap.getValue( orgUnitId, aocUid, dimItemObject ), 0.0 );
+        Object existingValue = dataMap.getValue( orgUnitId, aocUid, dimItemObject );
 
         long periodInterval = p.getEndDate().getTime() - p.getStartDate().getTime();
 
-        Long existingPeriodInterval = checkForDuplicates.getValue( orgUnitId, aocUid, dimItemObject );
+        Long existingPeriodInterval = duplicateCheck.getValue( orgUnitId, aocUid, dimItemObject );
 
         if ( existingPeriodInterval != null )
         {
@@ -582,13 +574,18 @@ public class DataValidationTask
             }
             else if ( existingPeriodInterval > periodInterval )
             {
-                existingValue = 0.0; // Overwrite if for a longer interval
+                existingValue = null; // Overwrite if for a longer interval
             }
         }
 
-        dataMap.putEntry( orgUnitId, aocUid, dimItemObject, value + existingValue );
+        if ( existingValue != null )
+        {
+            value = addDoubleObjects( value, existingValue );
+        }
 
-        checkForDuplicates.putEntry( orgUnitId, aocUid, dimItemObject, periodInterval );
+        dataMap.putEntry( orgUnitId, aocUid, dimItemObject, value );
+
+        duplicateCheck.putEntry( orgUnitId, aocUid, dimItemObject, periodInterval );
     }
 
     /**
@@ -596,7 +593,7 @@ public class DataValidationTask
      *
      * @param hasAttributeOptions whether the event data has attribute options.
      */
-    private MapMapMap<Long, String, DimensionalItemObject, Double> getAnalyticsMap(
+    private MapMapMap<Long, String, DimensionalItemObject, Object> getAnalyticsMap(
         boolean hasAttributeOptions, Set<DimensionalItemObject> analyticsItems )
     {
         if ( analyticsItems.isEmpty() )
@@ -623,7 +620,7 @@ public class DataValidationTask
      *
      * @param hasAttributeOptions whether the event data has attribute options.
      */
-    private MapMapMap<Long, String, DimensionalItemObject, Double> getEventMapForSlidingWindow(
+    private MapMapMap<Long, String, DimensionalItemObject, Object> getEventMapForSlidingWindow(
         boolean hasAttributeOptions, Set<DimensionalItemObject> eventItems )
     {
         if ( eventItems.isEmpty() )
@@ -674,10 +671,10 @@ public class DataValidationTask
      * @param hasAttributeOptions whether the event data has attribute options.
      * @return event data.
      */
-    private MapMapMap<Long, String, DimensionalItemObject, Double> getAnalyticsData(
+    private MapMapMap<Long, String, DimensionalItemObject, Object> getAnalyticsData(
         DataQueryParams params, boolean hasAttributeOptions )
     {
-        MapMapMap<Long, String, DimensionalItemObject, Double> map = new MapMapMap<>();
+        MapMapMap<Long, String, DimensionalItemObject, Object> map = new MapMapMap<>();
 
         Grid grid;
 
@@ -713,7 +710,7 @@ public class DataValidationTask
             String dx = (String) row.get( dxInx );
             String ao = hasAttributeOptions ? (String) row.get( aoInx ) : NON_AOC;
             String ou = (String) row.get( ouInx );
-            Double vl = ((Number) row.get( vlInx )).doubleValue();
+            Object vl = ((Number) row.get( vlInx )).doubleValue();
 
             OrganisationUnit orgUnit = ouLookup.get( ou );
             DimensionalItemObject analyticsItem = dxLookup.get( dx );
