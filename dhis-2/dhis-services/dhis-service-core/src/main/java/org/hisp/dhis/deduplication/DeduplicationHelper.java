@@ -225,8 +225,7 @@ public class DeduplicationHelper
             if ( (from != null && from.getUid().equals( original.getUid() ))
                 || (to != null && to.getUid().equals( original.getUid() )) )
             {
-                throw new PotentialDuplicateConflictException(
-                    "Potential Duplicate leads to self reference and cannot be merged" );
+                continue;
             }
 
             relationships.add( ri.getRelationship().getUid() );
