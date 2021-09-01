@@ -425,6 +425,19 @@ public class ExpressionServiceTest
         orgUnitK.setUid( "OrgUnitUidK" );
         orgUnitL.setUid( "OrgUnitUidL" );
 
+        orgUnitA.setName( "OuA" );
+        orgUnitB.setName( "OuB" );
+        orgUnitC.setName( "OuC" );
+        orgUnitD.setName( "OuD" );
+        orgUnitE.setName( "OuE" );
+        orgUnitF.setName( "OuF" );
+        orgUnitG.setName( "OuG" );
+        orgUnitH.setName( "OuH" );
+        orgUnitI.setName( "OuI" );
+        orgUnitJ.setName( "OuJ" );
+        orgUnitK.setName( "OuK" );
+        orgUnitL.setName( "OuL" );
+
         organisationUnitService.addOrganisationUnit( orgUnitA );
         organisationUnitService.addOrganisationUnit( orgUnitB );
         organisationUnitService.addOrganisationUnit( orgUnitC );
@@ -758,7 +771,7 @@ public class ExpressionServiceTest
     private String getOrgUnitGroups( String expr )
     {
         Set<OrganisationUnitGroup> orgUnitGroups = expressionService.getExpressionOrgUnitGroups( expr,
-            INDICATOR_EXPRESSION );
+            PREDICTOR_EXPRESSION );
 
         List<String> orgUnitGroupNames = orgUnitGroups.stream()
             .map( BaseIdentifiableObject::getName )
@@ -775,7 +788,7 @@ public class ExpressionServiceTest
      */
     private String desc( String expr )
     {
-        return expressionService.getExpressionDescription( expr, INDICATOR_EXPRESSION );
+        return expressionService.getExpressionDescription( expr, PREDICTOR_EXPRESSION );
     }
 
     /**
@@ -1265,6 +1278,8 @@ public class ExpressionServiceTest
         assertEquals( "OugA", getOrgUnitGroups( "OUG{orgUnitGrpA}" ) );
         assertEquals( "OugA, OugB, OugC",
             getOrgUnitGroups( "OUG{orgUnitGrpA} + OUG{orgUnitGrpB} + OUG{orgUnitGrpC}" ) );
+        assertEquals( "OugA, OugB, OugC",
+            getOrgUnitGroups( "if(orgUnit.group(orgUnitGrpA,orgUnitGrpB,orgUnitGrpC),1,0)" ) );
     }
 
     @Test
@@ -1281,6 +1296,10 @@ public class ExpressionServiceTest
         assertEquals( "One half + One quarter", desc( "C{xxxxxxxxx05} + C{xxxxxxxx025}" ) );
         assertEquals( "OugA - OugB", desc( "OUG{orgUnitGrpA} - OUG{orgUnitGrpB}" ) );
         assertEquals( "1 + [Number of days]", desc( "1 + [days]" ) );
+        assertEquals( "if(orgUnit.ancestor(OuA,OuB),1,0)",
+            desc( "if(orgUnit.ancestor(OrgUnitUidA,OrgUnitUidB),1,0)" ) );
+        assertEquals( "if(orgUnit.group(OugA,OugB),1,0)",
+            desc( "if(orgUnit.group(orgUnitGrpA,orgUnitGrpB),1,0)" ) );
     }
 
     @Test
