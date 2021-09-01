@@ -74,6 +74,7 @@ public class FilterUtils
         {
             return null;
         }
+
         collection.removeIf( filter::retain );
 
         return collection;

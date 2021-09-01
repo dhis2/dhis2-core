@@ -61,6 +61,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -462,7 +463,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
             .ruleAction();
 
         assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
-        assertEquals( 1, programNotificationInstanceService.getProgramNotificationInstances( programInstance ).size() );
+        assertEquals( 1,
+            programNotificationInstanceService
+                .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
+                    .programInstance( programInstance ).build() )
+                .size() );
     }
 
     @Test
@@ -500,7 +505,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
 
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
-            .getProgramNotificationInstances( programInstance );
+            .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
+                .programInstance( programInstance ).build() );
 
         assertEquals( 2, instances.size() );
         assertEquals( instances.get( 0 ).getProgramNotificationTemplateId(),

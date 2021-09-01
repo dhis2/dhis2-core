@@ -115,6 +115,13 @@ public class DefaultRelationshipService
 
     @Override
     @Transactional( readOnly = true )
+    public List<Relationship> getRelationships( List<String> uids )
+    {
+        return relationshipStore.getByUid( uids );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )

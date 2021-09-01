@@ -34,8 +34,10 @@ import javax.sql.DataSource;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
+import org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver;
 import org.hisp.dhis.security.jwt.DhisBearerJwtTokenAuthenticationEntryPoint;
-import org.hisp.dhis.security.jwt.DhisJwtAuthenticationManagerResolver;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oauth2.OAuth2AuthorizationServerEnabledCondition;
@@ -47,6 +49,8 @@ import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
 import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
+import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
+import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -176,7 +180,6 @@ public class DhisWebApiWebSecurityConfig
             @Override
             @SuppressWarnings( "unchecked" )
             public void init( HttpSecurity builder )
-                throws Exception
             {
                 // This is a quirk to remove the default
                 // DaoAuthenticationConfigurer,
@@ -192,14 +195,12 @@ public class DhisWebApiWebSecurityConfig
 
         @Override
         public void configure( AuthorizationServerSecurityConfigurer security )
-            throws Exception
         {
             // Intentionally empty
         }
 
         @Override
         public void configure( ClientDetailsServiceConfigurer configurer )
-            throws Exception
         {
             // Intentionally empty
         }
@@ -212,7 +213,6 @@ public class DhisWebApiWebSecurityConfig
 
         @Override
         public void configure( final AuthorizationServerEndpointsConfigurer endpoints )
-            throws Exception
         {
             ProviderManager providerManager = new ProviderManager(
                 ImmutableList.of( twoFactorAuthenticationProvider, customLdapAuthenticationProvider ) );
@@ -264,8 +264,8 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
+        @Override
         public void configure( AuthenticationManagerBuilder auth )
-            throws Exception
         {
             auth.authenticationEventPublisher( authenticationEventPublisher );
         }
@@ -327,16 +327,25 @@ public class DhisWebApiWebSecurityConfig
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
         @Autowired
-        private DhisJwtAuthenticationManagerResolver dhisJwtAuthenticationManagerResolver;
+        private Dhis2JwtAuthenticationManagerResolver dhis2JwtAuthenticationManagerResolver;
 
         @Autowired
         private DhisBearerJwtTokenAuthenticationEntryPoint bearerTokenEntryPoint;
 
         @Autowired
+        private DhisApiTokenAuthenticationEntryPoint apiTokenAuthenticationEntryPoint;
+
+        @Autowired
+        private ApiTokenAuthManager apiTokenAuthManager;
+
+        @Autowired
+        private ApiTokenService apiTokenService;
+
+        @Autowired
         private SessionRegistry sessionRegistry;
 
+        @Override
         public void configure( AuthenticationManagerBuilder auth )
-            throws Exception
         {
             auth.authenticationProvider( customLdapAuthenticationProvider );
             auth.authenticationProvider( twoFactorAuthenticationProvider );
@@ -350,7 +359,7 @@ public class DhisWebApiWebSecurityConfig
          * endpoints. It is used only by the
          * OAuth2AuthenticationProcessingFilter.
          */
-        private AuthenticationManager oauthAuthenticationManager( HttpSecurity http )
+        private AuthenticationManager oauthAuthenticationManager()
         {
             OAuth2AuthenticationManager oauthAuthenticationManager = new OAuth2AuthenticationManager();
             oauthAuthenticationManager.setResourceId( "oauth2-resource" );
@@ -386,7 +395,23 @@ public class DhisWebApiWebSecurityConfig
          * This method configures almost everything security related to /api
          * endpoints
          */
+        @Override
         protected void configure( HttpSecurity http )
+            throws Exception
+        {
+            http.csrf().disable();
+
+            configureMatchers( http );
+            configureOAuthAuthorizationServer( http );
+            configureCorsFilter( http );
+            configureMobileAuthFilter( http );
+            configureApiTokenAuthorizationFilter( http );
+            configureOAuthTokenFilters( http );
+
+            setHttpHeaders( http );
+        }
+
+        private void configureMatchers( HttpSecurity http )
             throws Exception
         {
             String[] activeProfiles = getApplicationContext().getEnvironment().getActiveProfiles();
@@ -395,7 +420,8 @@ public class DhisWebApiWebSecurityConfig
             if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
             {
                 // This config will redirect unauthorized requests to standard
-                // http basic (pop-up login form)
+                // http basic (pop-up login form) Using the default
+                // "AuthenticationEntryPoint"
                 http.antMatcher( "/**" )
                     .authorizeRequests( this::configureAccessRestrictions )
                     .httpBasic();
@@ -423,53 +449,98 @@ public class DhisWebApiWebSecurityConfig
                     .httpBasic()
                     .authenticationEntryPoint( basicAuthenticationEntryPoint() );
             }
+        }
 
-            http.csrf().disable();
-
+        private void configureOAuthAuthorizationServer( HttpSecurity http )
+            throws Exception
+        {
             if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
             {
                 http.exceptionHandling().accessDeniedHandler( new OAuth2AccessDeniedHandler() );
             }
-
-            http
-                .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
-                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
-
-            configureOAuth2TokenFilter( http );
-
-            setHttpHeaders( http );
         }
 
-        private void configureOAuth2TokenFilter( HttpSecurity http )
+        private void configureCorsFilter( HttpSecurity http )
+        {
+            http
+                .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class );
+        }
+
+        private void configureMobileAuthFilter( HttpSecurity http )
+        {
+            http.addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
+        }
+
+        private void configureApiTokenAuthorizationFilter( HttpSecurity http )
+        {
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_API_TOKEN_AUTHENTICATION ) )
+            {
+                Dhis2ApiTokenFilter tokenFilter = new Dhis2ApiTokenFilter( this.apiTokenService,
+                    this.apiTokenAuthManager,
+                    apiTokenAuthenticationEntryPoint, authenticationEventPublisher );
+
+                http.addFilterBefore( tokenFilter, BasicAuthenticationFilter.class );
+            }
+        }
+
+        /**
+         * Enable either deprecated OAuth2 authorization filter or the new JWT
+         * OIDC token filter. They are mutually exclusive and can not both be
+         * added to the chain at the same time.
+         *
+         * @param http HttpSecurity config
+         */
+        private void configureOAuthTokenFilters( HttpSecurity http )
         {
             if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
             {
-                AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
-
-                OAuth2AuthenticationProcessingFilter filter = new OAuth2AuthenticationProcessingFilter();
-                filter.setAuthenticationEntryPoint( authenticationEntryPoint );
-                filter.setAuthenticationManager( oauthAuthenticationManager( http ) );
-                filter.setStateless( false );
-
-                http.addFilterAfter( filter, BasicAuthenticationFilter.class );
+                http.addFilterAfter( getOAuthAuthorizationServerFilter(), BasicAuthenticationFilter.class );
             }
             else if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION ) )
             {
-                http.addFilterAfter( getBearerTokenAuthenticationFilter(), BasicAuthenticationFilter.class );
+                http.addFilterAfter( getJwtBearerTokenAuthenticationFilter(), BasicAuthenticationFilter.class );
             }
         }
 
-        private BearerTokenAuthenticationFilter getBearerTokenAuthenticationFilter()
+        /**
+         * This is the "deprecated" OAuth2 authorization server. It is
+         * deprecated by Spring, but we still use it since there is no
+         * alternative yet. An experimental authorization server is in the
+         * makings, and will hopefully replace this in the future.
+         *
+         * @return OAuth2AuthenticationProcessingFilter to be added to filter
+         *         chain
+         */
+        private OAuth2AuthenticationProcessingFilter getOAuthAuthorizationServerFilter()
+        {
+            AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
+
+            OAuth2AuthenticationProcessingFilter filter = new OAuth2AuthenticationProcessingFilter();
+            filter.setAuthenticationEntryPoint( authenticationEntryPoint );
+            filter.setAuthenticationManager( oauthAuthenticationManager() );
+            filter.setStateless( false );
+
+            return filter;
+        }
+
+        /**
+         * Creates and configures the JWT OIDC bearer token filter
+         *
+         * @return BearerTokenAuthenticationFilter to be added to the filter
+         *         chain
+         */
+        private BearerTokenAuthenticationFilter getJwtBearerTokenAuthenticationFilter()
         {
             BearerTokenAuthenticationFilter jwtFilter = new BearerTokenAuthenticationFilter(
-                dhisJwtAuthenticationManagerResolver );
+                dhis2JwtAuthenticationManagerResolver );
 
             jwtFilter.setAuthenticationEntryPoint( bearerTokenEntryPoint );
             jwtFilter.setBearerTokenResolver( new DefaultBearerTokenResolver() );
 
-            // "Dummy" failure handler to activate auth failed messages being
-            // sent to the
-            // central AuthenticationLoggerListener
+            // "Dummy" failure handler to "activate" the sending of auth failed
+            // messages
+            // to the central auth logger in DHIS2:
+            // "AuthenticationLoggerListener"
             jwtFilter.setAuthenticationFailureHandler( ( request, response, exception ) -> {
                 authenticationEventPublisher.publishAuthenticationFailure( exception,
                     new AbstractAuthenticationToken( null )
@@ -493,6 +564,14 @@ public class DhisWebApiWebSecurityConfig
             return jwtFilter;
         }
 
+        /**
+         * Entrypoint to "re-direct" http basic authentications to the login
+         * form page. Without this, the default http basic pop-up window in the
+         * browser will be used.
+         *
+         * @return DHIS2BasicAuthenticationEntryPoint entryPoint to use in http
+         *         config.
+         */
         @Bean
         public DHIS2BasicAuthenticationEntryPoint basicAuthenticationEntryPoint()
         {

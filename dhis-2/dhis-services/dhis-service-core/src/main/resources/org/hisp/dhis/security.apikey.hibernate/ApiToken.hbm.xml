@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.security.apikey.ApiToken" table="api_token">
+
+        <cache usage="read-write"/>
+
+        <id name="id" column="apiTokenId">
+            <generator class="native" />
+        </id>
+
+        &identifiableProperties;
+
+        <property name="key" column="key" not-null="true" unique="true" length="128"/>
+        <property name="version" column="version" not-null="true" type="integer"/>
+        <property name="type" length="50" not-null="true" >
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.security.apikey.ApiTokenType</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+        <property name="expire" type="long" not-null="true"/>
+        <property name="attributes" type="jbApiKeyAttributesList" not-null="false"/>
+
+        <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="createdby" foreign-key="fk_apitoken_userid" />
+
+        <property name="sharing" type="jsbObjectSharing"/>
+    </class>
+</hibernate-mapping>

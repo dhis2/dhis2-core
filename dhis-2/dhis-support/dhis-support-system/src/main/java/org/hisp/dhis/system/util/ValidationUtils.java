@@ -28,6 +28,7 @@
 package org.hisp.dhis.system.util;
 
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.system.util.MathUtils.parseDouble;
 
 import java.awt.geom.Point2D;
 import java.util.Locale;
@@ -76,8 +77,8 @@ public class ValidationUtils
 
     private static final Pattern TIME_OF_DAY_PATTERN = Pattern.compile( "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$" );
 
-    private static final Pattern BBOX_PATTERN = Pattern
-        .compile( "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
+    private static final Pattern BBOX_PATTERN = Pattern.compile(
+        "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
 
     private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9].?){4,14}[0-9]$" );
 
@@ -176,7 +177,7 @@ public class ValidationUtils
      * Validates whether a string is valid for the HH:mm time format.
      *
      * @param time the time string
-     * @return true if the time string is valid, false otherwise
+     * @return true if the time string is valid, false otherwise.
      */
     public static boolean timeIsValid( String time )
     {
@@ -642,24 +643,24 @@ public class ValidationUtils
     }
 
     /**
-     * Returns a value useful for substitution.
+     * Returns a typed value that can substitute for a null.
      *
      * @param valueType the value type.
-     * @return the object.
+     * @return the null replacement value.
      */
-    public static Object getSubstitutionValue( ValueType valueType )
+    public static Object getNullReplacementValue( ValueType valueType )
     {
-        if ( valueType.isNumeric() || valueType.isBoolean() )
+        if ( valueType.isNumeric() )
         {
-            return 1d;
+            return 0d;
         }
-        else if ( valueType.isDate() )
+        else if ( valueType.isBoolean() )
         {
-            return "2000-01-01";
+            return false;
         }
         else
         {
-            return "A";
+            return "";
         }
     }
 
@@ -686,6 +687,38 @@ public class ValidationUtils
         }
 
         return bool;
+    }
+
+    /**
+     * Returns the value of a datavalue as an Object, if it is numeric, boolean,
+     * text, or date. (Date returns as String.) Otherwise returns null.
+     * <p>
+     * Other object types (e.g. File, Geo) return null for now rather than as a
+     * String, in case we decide to support them in the future as a different
+     * object type (or return a file's contents as a String).
+     *
+     * @param value the string value.
+     * @return the Object value.
+     */
+    public static Object getObjectValue( String value, ValueType valueType )
+    {
+        if ( value != null )
+        {
+            if ( valueType.isNumeric() )
+            {
+                return parseDouble( value );
+            }
+            else if ( valueType.isBoolean() )
+            {
+                return Boolean.parseBoolean( value );
+            }
+            else if ( valueType.isText() || valueType.isDate() )
+            {
+                return value;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -40,6 +40,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -788,6 +789,12 @@ public class DefaultUserService
     }
 
     @Override
+    public List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays )
+    {
+        return userStore.getExpiringUserAccounts( inDays );
+    }
+
+    @Override
     @Transactional
     public void set2FA( User user, Boolean twoFa )
     {
@@ -814,6 +821,13 @@ public class DefaultUserService
             return 0;
         }
         return userStore.disableUsersInactiveSince( inactiveSince );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Set<String> findUsersInactiveSince( Date inactiveSince )
+    {
+        return userStore.findUsersInactiveSince( inactiveSince );
     }
 
     @Override

@@ -101,7 +101,6 @@ public class DefaultSchemaService
         .add( new CategoryOptionGroupSetSchemaDescriptor() )
         .add( new CategoryOptionSchemaDescriptor() )
         .add( new CategorySchemaDescriptor() )
-        .add( new ChartSchemaDescriptor() )
         .add( new ConstantSchemaDescriptor() )
         .add( new DashboardItemSchemaDescriptor() )
         .add( new DashboardSchemaDescriptor() )
@@ -158,7 +157,6 @@ public class DefaultSchemaService
         .add( new ProgramNotificationTemplateSchemaDescriptor() )
         .add( new RelationshipTypeSchemaDescriptor() )
         .add( new ReportSchemaDescriptor() )
-        .add( new ReportTableSchemaDescriptor() )
         .add( new SectionSchemaDescriptor() )
         .add( new SqlViewSchemaDescriptor() )
         .add( new TrackedEntityAttributeSchemaDescriptor() )
@@ -200,6 +198,7 @@ public class DefaultSchemaService
         .add( new ProgramInstanceSchemaDescriptor() )
         .add( new ProgramStageInstanceFilterSchemaDescriptor() )
         .add( new VisualizationSchemaDescriptor() )
+        .add( new ApiTokenSchemaDescriptor() )
         .build();
 
     private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

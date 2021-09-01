@@ -66,6 +66,8 @@ public enum ConfigurationKey
     CONNECTION_POOL_TIMEOUT( "connection.pool.timeout", String.valueOf( SECONDS.toMillis( 30 ) ), false ),
     CONNECTION_POOL_VALIDATION_TIMEOUT( "connection.pool.validation_timeout", String.valueOf( SECONDS.toMillis( 5 ) ),
         false ),
+    CONNECTION_POOL_NUM_THREADS( "connection.pool.num.helper.threads", "3", false ),
+    CONNECTION_POOL_TEST_QUERY( "connection.pool.preferred.test.query" ),
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
     LDAP_MANAGER_DN( "ldap.manager.dn", "", false ),
     LDAP_MANAGER_PASSWORD( "ldap.manager.password", "", true ),
@@ -158,7 +160,8 @@ public enum ConfigurationKey
     DEBEZIUM_DB_NAME( "debezium.db.name", "", false ),
     DEBEZIUM_SLOT_NAME( "debezium.slot.name", "", false ),
     DEBEZIUM_EXCLUDE_LIST( "debezium.exclude.list", "", false ),
-    DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP( "debezium.shutdown_on.connector_stop", Constants.OFF, false );
+    DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP( "debezium.shutdown_on.connector_stop", Constants.OFF, false ),
+    ENABLE_API_TOKEN_AUTHENTICATION( "enable.api_token.authentication", Constants.OFF, false );
 
     private final String key;
 
