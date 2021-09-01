@@ -40,7 +40,14 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.deduplication.*;
+import org.hisp.dhis.deduplication.DeduplicationMergeParams;
+import org.hisp.dhis.deduplication.DeduplicationService;
+import org.hisp.dhis.deduplication.DeduplicationStatus;
+import org.hisp.dhis.deduplication.MergeObject;
+import org.hisp.dhis.deduplication.MergeStrategy;
+import org.hisp.dhis.deduplication.PotentialDuplicate;
+import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
+import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.Node;
@@ -174,24 +181,14 @@ public class DeduplicationController
     {
         PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
 
-        if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
+        if ( potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null )
         {
             throw new PotentialDuplicateConflictException(
                 "PotentialDuplicate is missing references and cannot be merged." );
         }
 
-        TrackedEntityInstance original = getTei( potentialDuplicate.getTeiA() );
-        TrackedEntityInstance duplicate = getTei( potentialDuplicate.getTeiB() );
-
-        /*
-         * We always treat the oldest tei as the original.
-         */
-        if ( original.getCreated().after( duplicate.getCreated() ) )
-        {
-            TrackedEntityInstance t = original;
-            original = duplicate;
-            duplicate = t;
-        }
+        TrackedEntityInstance original = getTei( potentialDuplicate.getOriginal() );
+        TrackedEntityInstance duplicate = getTei( potentialDuplicate.getDuplicate() );
 
         if ( mergeObject == null )
         {
@@ -252,13 +249,13 @@ public class DeduplicationController
         NotFoundException,
         BadRequestException
     {
-        checkValidTei( potentialDuplicate.getTeiA(), "teiA" );
+        checkValidTei( potentialDuplicate.getOriginal(), "original" );
 
-        checkValidTei( potentialDuplicate.getTeiB(), "teiB" );
+        checkValidTei( potentialDuplicate.getDuplicate(), "duplicate" );
 
-        canReadTei( getTei( potentialDuplicate.getTeiA() ) );
+        canReadTei( getTei( potentialDuplicate.getOriginal() ) );
 
-        canReadTei( getTei( potentialDuplicate.getTeiB() ) );
+        canReadTei( getTei( potentialDuplicate.getDuplicate() ) );
 
         checkAlreadyExistingDuplicate( potentialDuplicate );
     }
@@ -268,8 +265,8 @@ public class DeduplicationController
     {
         if ( deduplicationService.exists( potentialDuplicate ) )
         {
-            throw new ConflictException( "'" + potentialDuplicate.getTeiA() + "' " + "and '"
-                + potentialDuplicate.getTeiB() + " is already marked as a potential duplicate" );
+            throw new ConflictException( "'" + potentialDuplicate.getOriginal() + "' " + "and '"
+                + potentialDuplicate.getDuplicate() + " is already marked as a potential duplicate" );
         }
     }
 
