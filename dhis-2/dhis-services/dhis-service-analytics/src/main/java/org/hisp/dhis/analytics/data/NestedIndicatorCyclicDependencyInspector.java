@@ -184,8 +184,8 @@ public class NestedIndicatorCyclicDependencyInspector
 
         if ( !expressionDataElements.isEmpty() )
         {
-            return asTypedList( dimensionService.getDataDimensionalItemObjects( expressionDataElements ).stream()
-                .filter( d -> d.getDimensionItemType().equals( INDICATOR ) ).collect( Collectors.toList() ) );
+            return asTypedList( dimensionService.getDataDimensionalItemObjectMap( expressionDataElements ).values()
+                .stream().filter( d -> d.getDimensionItemType().equals( INDICATOR ) ).collect( Collectors.toList() ) );
         }
         else
         {

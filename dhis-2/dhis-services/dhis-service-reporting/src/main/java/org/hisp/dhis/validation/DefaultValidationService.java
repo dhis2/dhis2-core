@@ -335,7 +335,7 @@ public class DefaultValidationService
             .withPersistResults( parameters.isPersistResults() )
             .withAttributeCombo( parameters.getAttributeOptionCombo() )
             .withDefaultAttributeCombo( categoryService.getDefaultCategoryOptionCombo() )
-            .withDimensionItemMap( dimensionItemMap )
+            .withItemMap( dimensionItemMap )
             .withOrgUnitGroupMap( orgUnitGroupMap )
             .withMaxResults( parameters.getMaxResults() );
 

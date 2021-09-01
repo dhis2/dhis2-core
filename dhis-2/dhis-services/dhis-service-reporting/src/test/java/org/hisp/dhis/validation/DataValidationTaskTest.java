@@ -174,7 +174,7 @@ public class DataValidationTaskTest
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) )
             .thenReturn( deflatedDataValues );
 
-        Map<DimensionalItemObject, Double> vals = new HashMap<>();
+        Map<DimensionalItemObject, Object> vals = new HashMap<>();
         vals.put( deA, 12.4 );
 
         mockExpressionService( leftExpression, vals, ctx, 8.4 );
@@ -224,18 +224,18 @@ public class DataValidationTaskTest
         assertThat( ctx.getValidationResults().size(), is( 0 ) );
     }
 
-    private void mockExpressionService( Expression expression, Map<DimensionalItemObject, Double> vals,
+    private void mockExpressionService( Expression expression, Map<DimensionalItemObject, Object> vals,
         ValidationRunContext ctx, Double val )
     {
-        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
+        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, null, vals,
             ctx.getConstantMap(), null, null, p1.getDaysInPeriod(), expression.getMissingValueStrategy(), ouA ) )
                 .thenReturn( val );
 
-        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
+        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, null, vals,
             ctx.getConstantMap(), null, null, p2.getDaysInPeriod(), expression.getMissingValueStrategy(), ouA ) )
                 .thenReturn( val );
 
-        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
+        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, null, vals,
             ctx.getConstantMap(), null, null, p3.getDaysInPeriod(), expression.getMissingValueStrategy(), ouA ) )
                 .thenReturn( val );
     }

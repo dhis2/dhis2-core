@@ -28,9 +28,8 @@
 package org.hisp.dhis.expression;
 
 import static java.util.Collections.singletonList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.core.IsCollectionContaining.*;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
@@ -41,6 +40,7 @@ import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
 import static org.hisp.dhis.expression.ParseType.*;
+import static org.hisp.dhis.utils.Assertions.assertMapEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -162,6 +163,12 @@ public class ExpressionServiceTest
 
     private static DataElement dataElementE;
 
+    private static DataElement dataElementF;
+
+    private static DataElement dataElementG;
+
+    private static DataElement dataElementH;
+
     private static IndicatorType indicatorTypeB;
 
     private static Indicator indicatorA;
@@ -224,9 +231,9 @@ public class ExpressionServiceTest
 
     private static IndicatorType indicatorTypeA;
 
-    private Map<DimensionalItemObject, Double> valueMap;
+    private Map<DimensionalItemObject, Object> valueMap;
 
-    private MapMap<Period, DimensionalItemObject, Double> samples;
+    private MapMap<Period, DimensionalItemObject, Object> samples;
 
     private Map<String, Constant> constantMap;
 
@@ -256,18 +263,31 @@ public class ExpressionServiceTest
         dataElementC = createDataElement( 'C' );
         dataElementD = createDataElement( 'D' );
         dataElementE = createDataElement( 'E' );
+        dataElementF = createDataElement( 'F' );
+        dataElementG = createDataElement( 'G' );
+        dataElementH = createDataElement( 'H' );
 
         dataElementA.setUid( "dataElemenA" );
         dataElementB.setUid( "dataElemenB" );
         dataElementC.setUid( "dataElemenC" );
         dataElementD.setUid( "dataElemenD" );
         dataElementE.setUid( "dataElemenE" );
+        dataElementF.setUid( "dataElemenF" );
+        dataElementG.setUid( "dataElemenG" );
+        dataElementH.setUid( "dataElemenH" );
 
         dataElementA.setAggregationType( AggregationType.SUM );
         dataElementB.setAggregationType( AggregationType.NONE );
         dataElementC.setAggregationType( AggregationType.SUM );
         dataElementD.setAggregationType( AggregationType.NONE );
         dataElementE.setAggregationType( AggregationType.SUM );
+        dataElementF.setAggregationType( AggregationType.NONE );
+        dataElementG.setAggregationType( AggregationType.NONE );
+        dataElementH.setAggregationType( AggregationType.NONE );
+
+        dataElementF.setValueType( ValueType.TEXT );
+        dataElementG.setValueType( ValueType.DATE );
+        dataElementH.setValueType( ValueType.BOOLEAN );
 
         dataElementC.setDomainType( DataElementDomain.TRACKER );
         dataElementD.setDomainType( DataElementDomain.TRACKER );
@@ -277,12 +297,18 @@ public class ExpressionServiceTest
         dataElementC.setName( "DeC" );
         dataElementD.setName( "DeD" );
         dataElementE.setName( "DeE" );
+        dataElementF.setName( "DeF" );
+        dataElementG.setName( "DeG" );
+        dataElementH.setName( "DeH" );
 
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
         dataElementService.addDataElement( dataElementE );
+        dataElementService.addDataElement( dataElementF );
+        dataElementService.addDataElement( dataElementG );
+        dataElementService.addDataElement( dataElementH );
 
         indicatorTypeB = createIndicatorType( 'B' );
         indicatorService.addIndicatorType( indicatorTypeB );
@@ -325,13 +351,6 @@ public class ExpressionServiceTest
         dataElementOperandE = new DataElementOperand( dataElementA, null, categoryOptionComboB );
         dataElementOperandF = new DataElementOperand( dataElementB, null, categoryOptionComboA );
 
-        dataElementOperandA.setName( "DeoA" );
-        dataElementOperandA.setName( "DeoB" );
-        dataElementOperandA.setName( "DeoC" );
-        dataElementOperandA.setName( "DeoD" );
-        dataElementOperandA.setName( "DeoE" );
-        dataElementOperandA.setName( "DeoF" );
-
         programA = createProgram( 'A' );
         programB = createProgram( 'B' );
 
@@ -346,9 +365,6 @@ public class ExpressionServiceTest
 
         programDataElementA = new ProgramDataElementDimensionItem( programA, dataElementC );
         programDataElementB = new ProgramDataElementDimensionItem( programB, dataElementD );
-
-        programDataElementA.setName( "PdeA" );
-        programDataElementB.setName( "PdeB" );
 
         trackedEntityAttributeA = createTrackedEntityAttribute( 'A', ValueType.NUMBER );
         trackedEntityAttributeB = createTrackedEntityAttribute( 'B', ValueType.NUMBER );
@@ -488,13 +504,6 @@ public class ExpressionServiceTest
         reportingRateE = new ReportingRate( dataSetA, EXPECTED_REPORTS );
         reportingRateF = new ReportingRate( dataSetB );
 
-        reportingRateA.setUid( "reportRateA" );
-        reportingRateB.setUid( "reportRateB" );
-        reportingRateC.setUid( "reportRateC" );
-        reportingRateD.setUid( "reportRateD" );
-        reportingRateE.setUid( "reportRateE" );
-        reportingRateF.setUid( "reportRateF" );
-
         indicatorTypeA = new IndicatorType( "A", 100, false );
 
         Constant constantA = new Constant( "One half", 0.5 );
@@ -508,10 +517,13 @@ public class ExpressionServiceTest
 
         constantMap = constantService.getConstantMap();
 
-        valueMap = new ImmutableMap.Builder<DimensionalItemObject, Double>()
+        valueMap = new ImmutableMap.Builder<DimensionalItemObject, Object>()
 
             .put( dataElementA, 3.0 )
             .put( dataElementB, 13.0 )
+            .put( dataElementF, "Str" )
+            .put( dataElementG, "2022-01-15" )
+            .put( dataElementH, true )
 
             .put( dataElementOperandA, 5.0 )
             .put( dataElementOperandB, 15.0 )
@@ -542,11 +554,11 @@ public class ExpressionServiceTest
 
         samples = new MapMap<>();
 
-        samples.putEntries( samplePeriod1, new ImmutableMap.Builder<DimensionalItemObject, Double>()
+        samples.putEntries( samplePeriod1, new ImmutableMap.Builder<DimensionalItemObject, Object>()
             .put( dataElementC, 2.0 )
             .build() );
 
-        samples.putEntries( samplePeriod2, new ImmutableMap.Builder<DimensionalItemObject, Double>()
+        samples.putEntries( samplePeriod2, new ImmutableMap.Builder<DimensionalItemObject, Object>()
             .put( dataElementB, 1.0 )
             .put( dataElementC, 3.0 )
             .build() );
@@ -565,27 +577,31 @@ public class ExpressionServiceTest
      * @param expr expression to evaluate
      * @param parseType type of expression to parse
      * @param missingValueStrategy strategy to use if item value is missing
+     * @param dataType data type that the expression should return
      * @return result from testing the expression
      */
-    private String eval( String expr, ParseType parseType, MissingValueStrategy missingValueStrategy )
+    private String eval( String expr, ParseType parseType,
+        MissingValueStrategy missingValueStrategy, DataType dataType )
     {
         try
         {
-            expressionService.getExpressionDescription( expr, parseType );
+            expressionService.getExpressionDescription( expr, parseType, dataType );
         }
         catch ( ParserException ex )
         {
             return ex.getMessage();
         }
 
-        Set<DimensionalItemObject> items = expressionService
-            .getExpressionDimensionalItemObjects( expr, parseType );
+        Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
 
-        Object value = expressionService.getExpressionValue( expr, parseType,
-            valueMap, constantMap, ORG_UNIT_COUNT_MAP, null, DAYS, missingValueStrategy,
-            null, TEST_SAMPLE_PERIODS, samples );
+        expressionService.getExpressionDimensionalItemMaps( expr, parseType, dataType,
+            itemMap, itemMap );
 
-        return result( value, items );
+        Object value = expressionService.getExpressionValue( expr, parseType, itemMap, valueMap,
+            constantMap, ORG_UNIT_COUNT_MAP, null, DAYS, missingValueStrategy,
+            null, TEST_SAMPLE_PERIODS, samples, dataType );
+
+        return result( value, itemMap.values() );
     }
 
     /**
@@ -600,11 +616,11 @@ public class ExpressionServiceTest
      */
     private String eval( String expr, MissingValueStrategy missingValueStrategy )
     {
-        return eval( expr, INDICATOR_EXPRESSION, missingValueStrategy );
+        return eval( expr, INDICATOR_EXPRESSION, missingValueStrategy, DataType.NUMERIC );
     }
 
     /**
-     * Evaluates a test predictor expression, against
+     * Evaluates a test predictor numeric expression, against
      * getExpressionDimensionalItemObjects and getExpressionValue. Returns a
      * string containing first the returned value from getExpressionValue, and
      * then the items returned from getExpressionDimensionalItemObjects, if any,
@@ -616,7 +632,23 @@ public class ExpressionServiceTest
      */
     private String evalPredictor( String expr, MissingValueStrategy missingValueStrategy )
     {
-        return eval( expr, PREDICTOR_EXPRESSION, missingValueStrategy );
+        return eval( expr, PREDICTOR_EXPRESSION, missingValueStrategy, DataType.NUMERIC );
+    }
+
+    /**
+     * Evaluates a test predictor expression of a given dataType, against
+     * getExpressionDimensionalItemObjects and getExpressionValue. Returns a
+     * string containing first the returned value from getExpressionValue, and
+     * then the items returned from getExpressionDimensionalItemObjects, if any,
+     * separated by spaces.
+     *
+     * @param expr expression to evaluate
+     * @param dataType strategy to use if item value is missing
+     * @return result from testing the expression
+     */
+    private String evalPredictor( String expr, DataType dataType )
+    {
+        return eval( expr, PREDICTOR_EXPRESSION, SKIP_IF_ANY_VALUE_MISSING, dataType );
     }
 
     /**
@@ -648,7 +680,7 @@ public class ExpressionServiceTest
      * @param items the items returned from getExpressionItems
      * @return the result string
      */
-    private String result( Object value, Set<DimensionalItemObject> items )
+    private String result( Object value, Collection<DimensionalItemObject> items )
     {
         String valueString;
 
@@ -672,6 +704,10 @@ public class ExpressionServiceTest
         else if ( value instanceof String )
         {
             valueString = "'" + value + "'";
+        }
+        else if ( value instanceof Boolean )
+        {
+            valueString = value.toString();
         }
         else
         {
@@ -740,6 +776,18 @@ public class ExpressionServiceTest
     private String desc( String expr )
     {
         return expressionService.getExpressionDescription( expr, INDICATOR_EXPRESSION );
+    }
+
+    /**
+     * Checks the validity of an expresison
+     *
+     * @param expr the expression string
+     * @param parseType type of expression to parse
+     * @return the validation outcome
+     */
+    ExpressionValidationOutcome validity( String expr, ParseType parseType )
+    {
+        return expressionService.expressionIsValid( expr, parseType );
     }
 
     // -------------------------------------------------------------------------
@@ -1060,6 +1108,19 @@ public class ExpressionServiceTest
         assertEquals( "3 DeA", eval( "#{dataElemenA}" ) );
         assertEquals( "13 DeB", eval( "#{dataElemenB}" ) );
 
+        // Data element with non-numeric values
+
+        assertEquals( "'Str' DeF", evalPredictor( "#{dataElemenF}", TEXT ) );
+        assertEquals( "'2022-01-15' DeG", evalPredictor( "#{dataElemenG}", TEXT ) );
+        assertEquals( "true DeH", evalPredictor( "#{dataElemenH}", BOOLEAN ) );
+
+        assertEquals( "0 DeF", eval( "if(#{dataElemenF}=='XYZ',1,0)" ) );
+        assertEquals( "1 DeF", eval( "if(#{dataElemenF}=='Str',1,0)" ) );
+        assertEquals( "0 DeG", eval( "if(#{dataElemenG}<'2022-01-01',1,0)" ) );
+        assertEquals( "1 DeG", eval( "if(#{dataElemenG}<'2022-02-01',1,0)" ) );
+        assertEquals( "0 DeH", eval( "if(!#{dataElemenH},1,0)" ) );
+        assertEquals( "1 DeH", eval( "if(#{dataElemenH},1,0)" ) );
+
         // Data element operand
 
         assertEquals( "5 DeA CocB", eval( "#{dataElemenA.catOptCombB}" ) );
@@ -1235,6 +1296,9 @@ public class ExpressionServiceTest
         assertNull( error( "true && 2" ) );
         assertNull( error( "!5" ) );
         assertNull( error( "true / ( #{dataElemenA} - #{dataElemenB} )" ) );
+        assertNull( error( "#{dataElemenF}" ) );
+        assertNull( error( "#{dataElemenG}" ) );
+        assertNull( error( "#{dataElemenH}" ) );
     }
 
     // -------------------------------------------------------------------------
@@ -1249,16 +1313,25 @@ public class ExpressionServiceTest
         Indicator indicatorD = createIndicator( 'D', indicatorTypeB, "30" );
         Indicator indicatorE = createIndicator( 'E', indicatorTypeB, "N{mindicatorC}*N{mindicatorB}-N{mindicatorD}" );
 
+        DimensionalItemId idB = new DimensionalItemId( DimensionItemType.INDICATOR, indicatorB.getUid() );
+        DimensionalItemId idC = new DimensionalItemId( DimensionItemType.INDICATOR, indicatorC.getUid() );
+        DimensionalItemId idD = new DimensionalItemId( DimensionItemType.INDICATOR, indicatorD.getUid() );
+
         List<Indicator> indicators = singletonList( indicatorE );
 
-        Set<DimensionalItemObject> items = expressionService.getIndicatorDimensionalItemObjects( indicators );
-        assertThat( items, hasSize( 3 ) );
-        assertThat( items, hasItems( indicatorB, indicatorC, indicatorD ) );
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of(
+            idB, indicatorB,
+            idC, indicatorC,
+            idD, indicatorD );
 
+        Map<DimensionalItemId, DimensionalItemObject> itemMap = expressionService
+            .getIndicatorDimensionalItemMap( indicators );
+
+        assertMapEquals( expectedItemMap, itemMap );
     }
 
     @Test
-    public void testGetIndicatorDimensionalItemObjects()
+    public void testGetIndicatorDimensionalItemMap()
     {
         Indicator indicatorA = createIndicator( 'A', indicatorTypeA );
         indicatorA.setNumerator( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}" );
@@ -1270,16 +1343,28 @@ public class ExpressionServiceTest
 
         List<Indicator> indicators = Arrays.asList( indicatorA, indicatorB );
 
-        Set<DimensionalItemObject> items = expressionService.getIndicatorDimensionalItemObjects( indicators );
+        DimensionalItemId id1 = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND,
+            dataElementA.getUid(), categoryOptionComboB.getUid() );
 
-        assertEquals( 4, items.size() );
-        List<String> nameList = items.stream().map( IdentifiableObject::getName )
-            .sorted()
-            .collect( Collectors.toList() );
+        DimensionalItemId id2 = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND,
+            dataElementB.getUid(), categoryOptionComboA.getUid() );
 
-        String names = String.join( ",", nameList );
+        DimensionalItemId id3 = new DimensionalItemId( DimensionItemType.REPORTING_RATE,
+            dataSetA.getUid(), "REPORTING_RATE" );
 
-        assertEquals( "DeA CocB,DeB CocA,DsA - Reporting rate,PA TeaA", names );
+        DimensionalItemId id4 = new DimensionalItemId( DimensionItemType.PROGRAM_ATTRIBUTE,
+            programA.getUid(), trackedEntityAttributeA.getUid() );
+
+        Map<DimensionalItemId, DimensionalItemObject> expectedItemMap = ImmutableMap.of(
+            id1, new DataElementOperand( dataElementA, categoryOptionComboB ),
+            id2, new DataElementOperand( dataElementB, categoryOptionComboA ),
+            id3, new ReportingRate( dataSetA ),
+            id4, new ProgramTrackedEntityAttributeDimensionItem( programA, trackedEntityAttributeA ) );
+
+        Map<DimensionalItemId, DimensionalItemObject> itemMap = expressionService
+            .getIndicatorDimensionalItemMap( indicators );
+
+        assertMapEquals( expectedItemMap, itemMap );
     }
 
     @Test
@@ -1308,7 +1393,7 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testGetIndicatorValueObject()
+    public void testGetIndicatorDimensionalItemMap2()
     {
         Indicator indicatorA = createIndicator( 'A', indicatorTypeA );
         indicatorA.setNumerator( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}" );
@@ -1321,8 +1406,13 @@ public class ExpressionServiceTest
 
         Period period = createPeriod( "20010101" );
 
+        List<Indicator> indicators = Arrays.asList( indicatorA, indicatorB );
+
+        Map<DimensionalItemId, DimensionalItemObject> itemMap = expressionService
+            .getIndicatorDimensionalItemMap( indicators );
+
         IndicatorValue value = expressionService.getIndicatorValueObject( indicatorA,
-            singletonList( period ), valueMap, constantMap, null );
+            singletonList( period ), itemMap, valueMap, constantMap, null );
 
         assertEquals( 2.5, value.getNumeratorValue(), DELTA );
         assertEquals( 5.0, value.getDenominatorValue(), DELTA );
@@ -1331,8 +1421,8 @@ public class ExpressionServiceTest
         assertEquals( 1, value.getDivisor(), DELTA );
         assertEquals( 50.0, value.getValue(), DELTA );
 
-        value = expressionService.getIndicatorValueObject( indicatorB, singletonList( period ), valueMap,
-            constantMap, null );
+        value = expressionService.getIndicatorValueObject( indicatorB,
+            singletonList( period ), itemMap, valueMap, constantMap, null );
 
         assertEquals( 20.0, value.getNumeratorValue(), DELTA );
         assertEquals( 5.0, value.getDenominatorValue(), DELTA );
@@ -1352,7 +1442,6 @@ public class ExpressionServiceTest
 
         indicatorService.addIndicator( indicator );
         return indicator;
-
     }
 
     // -------------------------------------------------------------------------
@@ -1363,38 +1452,47 @@ public class ExpressionServiceTest
     public void testIndicatorExpressionIsValid()
     {
         assertEquals( VALID,
-            expressionService.expressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", INDICATOR_EXPRESSION ) );
-        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService
-            .expressionIsValid( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", INDICATOR_EXPRESSION ) );
-        assertEquals( VALID, expressionService.expressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})",
-            INDICATOR_EXPRESSION ) );
+            validity( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", INDICATOR_EXPRESSION ) );
+
         assertEquals( EXPRESSION_IS_NOT_WELL_FORMED,
-            expressionService.expressionIsValid( "1*", INDICATOR_EXPRESSION ) );
+            validity( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", INDICATOR_EXPRESSION ) );
+
+        assertEquals( VALID,
+            validity( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})", INDICATOR_EXPRESSION ) );
+
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED,
+            validity( "1*", INDICATOR_EXPRESSION ) );
     }
 
     @Test
     public void testValidationRuleExpressionIsValid()
     {
-        assertEquals( VALID, expressionService.expressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}",
-            VALIDATION_RULE_EXPRESSION ) );
-        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService
-            .expressionIsValid( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", VALIDATION_RULE_EXPRESSION ) );
-        assertEquals( VALID, expressionService.expressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})",
-            VALIDATION_RULE_EXPRESSION ) );
+        assertEquals( VALID,
+            validity( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", VALIDATION_RULE_EXPRESSION ) );
+
         assertEquals( EXPRESSION_IS_NOT_WELL_FORMED,
-            expressionService.expressionIsValid( "1*", VALIDATION_RULE_EXPRESSION ) );
+            validity( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", VALIDATION_RULE_EXPRESSION ) );
+
+        assertEquals( VALID,
+            validity( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})", VALIDATION_RULE_EXPRESSION ) );
+
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED,
+            validity( "1*", VALIDATION_RULE_EXPRESSION ) );
     }
 
     @Test
     public void testPredictorExpressionIsValid()
     {
         assertEquals( VALID,
-            expressionService.expressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", PREDICTOR_EXPRESSION ) );
-        assertEquals( VALID, expressionService.expressionIsValid( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})",
-            PREDICTOR_EXPRESSION ) );
-        assertEquals( VALID, expressionService.expressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})",
-            PREDICTOR_EXPRESSION ) );
+            validity( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}", PREDICTOR_EXPRESSION ) );
+
+        assertEquals( VALID,
+            validity( "stddev(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})", PREDICTOR_EXPRESSION ) );
+
+        assertEquals( VALID,
+            validity( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})", PREDICTOR_EXPRESSION ) );
+
         assertEquals( EXPRESSION_IS_NOT_WELL_FORMED,
-            expressionService.expressionIsValid( "1*", PREDICTOR_EXPRESSION ) );
+            validity( "1*", PREDICTOR_EXPRESSION ) );
     }
 }

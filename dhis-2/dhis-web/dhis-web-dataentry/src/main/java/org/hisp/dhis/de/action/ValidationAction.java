@@ -215,6 +215,11 @@ public class ValidationAction
         Period period = periodService.getPeriod( selectedPeriod.getStartDate(), selectedPeriod.getEndDate(),
             selectedPeriod.getPeriodType() );
 
+        if ( period == null )
+        {
+            return SUCCESS;
+        }
+
         List<OrganisationUnit> organisationUnits = new ArrayList<>();
 
         if ( !multiOu )

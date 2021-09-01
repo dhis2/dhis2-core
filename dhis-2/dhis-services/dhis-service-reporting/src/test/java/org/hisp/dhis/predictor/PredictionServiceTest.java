@@ -69,7 +69,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.joda.time.DateTime;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -130,6 +129,18 @@ public class PredictionServiceTest
 
     private DataElement dataElementD;
 
+    private DataElement dataElementE;
+
+    private DataElement dataElementF;
+
+    private DataElement dataElementG;
+
+    private DataElement dataElementH;
+
+    private DataElement dataElementI;
+
+    private DataElement dataElementJ;
+
     private DataElement dataElementX;
 
     private DataElement dataElementY;
@@ -145,8 +156,6 @@ public class PredictionServiceTest
     private Category altCategory;
 
     private CategoryCombo altCategoryCombo;
-
-    private Set<DataElement> dataElements;
 
     private OrganisationUnit sourceA, sourceB, sourceC, sourceD, sourceE, sourceF, sourceG;
 
@@ -200,6 +209,12 @@ public class PredictionServiceTest
         dataElementB = createDataElement( 'B' );
         dataElementC = createDataElement( 'C' );
         dataElementD = createDataElement( 'D' );
+        dataElementE = createDataElement( 'E', ValueType.TEXT, AggregationType.NONE );
+        dataElementF = createDataElement( 'F', ValueType.TEXT, AggregationType.NONE );
+        dataElementG = createDataElement( 'G', ValueType.DATE, AggregationType.NONE );
+        dataElementH = createDataElement( 'H', ValueType.DATE, AggregationType.NONE );
+        dataElementI = createDataElement( 'I', ValueType.BOOLEAN, AggregationType.NONE );
+        dataElementJ = createDataElement( 'J', ValueType.BOOLEAN, AggregationType.NONE );
         dataElementX = createDataElement( 'X', ValueType.NUMBER, AggregationType.NONE );
         dataElementY = createDataElement( 'Y', ValueType.INTEGER, AggregationType.NONE );
         dataElementZ = createDataElement( 'Z', ValueType.INTEGER, AggregationType.NONE );
@@ -208,16 +223,15 @@ public class PredictionServiceTest
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
+        dataElementService.addDataElement( dataElementE );
+        dataElementService.addDataElement( dataElementF );
+        dataElementService.addDataElement( dataElementG );
+        dataElementService.addDataElement( dataElementH );
+        dataElementService.addDataElement( dataElementI );
+        dataElementService.addDataElement( dataElementJ );
         dataElementService.addDataElement( dataElementX );
         dataElementService.addDataElement( dataElementY );
         dataElementService.addDataElement( dataElementZ );
-
-        dataElements = new HashSet<>();
-
-        dataElements.add( dataElementA );
-        dataElements.add( dataElementB );
-        dataElements.add( dataElementC );
-        dataElements.add( dataElementD );
 
         // Org unit hierarchy:
         //
@@ -339,19 +353,19 @@ public class PredictionServiceTest
         return starting.toDate();
     }
 
-    private void useDataValue( DataElement e, Period p, OrganisationUnit s, Number value )
+    private void useDataValue( DataElement e, Period p, OrganisationUnit s, Object value )
     {
         useDataValue( e, p, s, defaultCombo, value );
     }
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, CategoryOptionCombo attributeOptionCombo,
-        Number value )
+        Object value )
     {
         useDataValue( e, p, s, attributeOptionCombo, value, false );
     }
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, CategoryOptionCombo attributeOptionCombo,
-        Number value, boolean deleted )
+        Object value, boolean deleted )
     {
         dataValueBatchHandler.addObject( createDataValue( e, periodService.reloadPeriod( p ), s, defaultCombo,
             attributeOptionCombo, value == null ? null : value.toString(), deleted ) );
@@ -544,7 +558,6 @@ public class PredictionServiceTest
     }
 
     @Test
-    @Ignore
     public void testPredictSequential()
     {
         setupTestData();
@@ -1714,5 +1727,68 @@ public class PredictionServiceTest
 
         assertEquals( "22", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
         assertEquals( "33", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2010, 9 ) ) );
+    }
+
+    @Test
+    public void testPredictString()
+    {
+        useDataValue( dataElementE, makeMonth( 2021, 8 ), sourceA, defaultCombo, "Hello" );
+
+        dataValueBatchHandler.flush();
+
+        String expr = "if( isNull(#{" + dataElementE.getUid() + "}), 'was null', #{" + dataElementE.getUid() + "} )";
+
+        Expression expression = new Expression( expr, "description", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
+
+        Predictor p = createPredictor( dataElementF, defaultCombo, "PredictString",
+            expression, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        predictionService.predict( p, monthStart( 2021, 8 ), monthStart( 2021, 9 ), summary );
+
+        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "Hello", getDataValue( dataElementF, defaultCombo, sourceA, makeMonth( 2021, 8 ) ) );
+    }
+
+    @Test
+    public void testPredictDate()
+    {
+        useDataValue( dataElementG, makeMonth( 2021, 8 ), sourceA, defaultCombo, "2021-09-10" );
+
+        dataValueBatchHandler.flush();
+
+        String expr = "if( isNull(#{" + dataElementG.getUid() + "}), '1999-01-01', #{" + dataElementG.getUid() + "} )";
+
+        Expression expression = new Expression( expr, "description", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
+
+        Predictor p = createPredictor( dataElementH, defaultCombo, "PredictString",
+            expression, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        predictionService.predict( p, monthStart( 2021, 8 ), monthStart( 2021, 9 ), summary );
+
+        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "2021-09-10", getDataValue( dataElementH, defaultCombo, sourceA, makeMonth( 2021, 8 ) ) );
+    }
+
+    @Test
+    public void testPredictBoolean()
+    {
+        useDataValue( dataElementI, makeMonth( 2021, 8 ), sourceA, defaultCombo, "true" );
+
+        dataValueBatchHandler.flush();
+
+        String expr = "if( isNull(#{" + dataElementI.getUid() + "}), 'false', #{" + dataElementI.getUid() + "} )";
+
+        Expression expression = new Expression( expr, "description", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
+
+        Predictor p = createPredictor( dataElementJ, defaultCombo, "PredictString",
+            expression, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        predictionService.predict( p, monthStart( 2021, 8 ), monthStart( 2021, 9 ), summary );
+
+        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "true", getDataValue( dataElementJ, defaultCombo, sourceA, makeMonth( 2021, 8 ) ) );
     }
 }

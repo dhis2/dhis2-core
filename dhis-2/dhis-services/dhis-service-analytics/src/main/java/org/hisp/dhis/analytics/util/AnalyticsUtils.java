@@ -926,8 +926,7 @@ public class AnalyticsUtils
      * Filters a List by Dimensional Item Object identifier and returns one ore
      * more {@see DimensionalItemObject} matching the given identifier
      *
-     * @param dimensionIdentifier a uid to filter {@see DimensionalItemObject}
-     *        on
+     * @param dimensionIdentifier uid to filter {@see DimensionalItemObject} on
      * @param items the filtered List
      * @return a List only containing the {@see DimensionalItemObject} matching
      *         the uid
