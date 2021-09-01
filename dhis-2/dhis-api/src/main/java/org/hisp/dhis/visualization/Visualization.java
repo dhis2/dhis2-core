@@ -78,7 +78,10 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegressionType;
+import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -317,6 +320,16 @@ public class Visualization
     private boolean hideEmptyColumns;
 
     /**
+     * Fixes (or not) the pivot table column headers.
+     */
+    private boolean fixColumnHeaders;
+
+    /**
+     * Fixes (or not) the pivot table row headers.
+     */
+    private boolean fixRowHeaders;
+
+    /**
      * Show/hide the legend. Very likely to be used by graphics/charts.
      */
     private boolean hideLegend;
@@ -385,6 +398,61 @@ public class Visualization
     {
         this();
         this.name = name;
+    }
+
+    /**
+     * Default constructor.
+     *
+     * @param name the name.
+     * @param dataElements the data elements.
+     * @param indicators the indicators.
+     * @param reportingRates the reporting rates.
+     * @param periods the periods. Cannot have the name property set.
+     * @param organisationUnits the organisation units.
+     * @param doIndicators indicating whether indicators should be
+     *        crosstabulated.
+     * @param doPeriods indicating whether periods should be crosstabulated.
+     * @param doUnits indicating whether organisation units should be
+     *        crosstabulated.
+     */
+    public Visualization( String name, List<DataElement> dataElements, List<Indicator> indicators,
+        List<ReportingRate> reportingRates, List<Period> periods,
+        List<OrganisationUnit> organisationUnits,
+        boolean doIndicators, boolean doPeriods, boolean doUnits )
+    {
+        this.name = name;
+        addAllDataDimensionItems( dataElements );
+        addAllDataDimensionItems( indicators );
+        addAllDataDimensionItems( reportingRates );
+        this.periods = periods;
+        this.organisationUnits = organisationUnits;
+
+        if ( doIndicators )
+        {
+            columnDimensions.add( DATA_X_DIM_ID );
+        }
+        else
+        {
+            rowDimensions.add( DATA_X_DIM_ID );
+        }
+
+        if ( doPeriods )
+        {
+            columnDimensions.add( PERIOD_DIM_ID );
+        }
+        else
+        {
+            rowDimensions.add( PERIOD_DIM_ID );
+        }
+
+        if ( doUnits )
+        {
+            columnDimensions.add( ORGUNIT_DIM_ID );
+        }
+        else
+        {
+            rowDimensions.add( ORGUNIT_DIM_ID );
+        }
     }
 
     @Override
@@ -606,6 +674,30 @@ public class Visualization
     public void setHideEmptyColumns( boolean hideEmptyColumns )
     {
         this.hideEmptyColumns = hideEmptyColumns;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public boolean isFixColumnHeaders()
+    {
+        return fixColumnHeaders;
+    }
+
+    public void setFixColumnHeaders( boolean fixColumnHeaders )
+    {
+        this.fixColumnHeaders = fixColumnHeaders;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public boolean isFixRowHeaders()
+    {
+        return fixRowHeaders;
+    }
+
+    public void setFixRowHeaders( boolean fixRowHeaders )
+    {
+        this.fixRowHeaders = fixRowHeaders;
     }
 
     @JsonProperty
@@ -1667,6 +1759,23 @@ public class Visualization
     {
         return !getDataElements().isEmpty() && (columnDimensions.contains( CATEGORYOPTIONCOMBO_DIM_ID )
             || rowDimensions.contains( CATEGORYOPTIONCOMBO_DIM_ID ));
+    }
+
+    public boolean isChart()
+    {
+        return type == VisualizationType.LINE ||
+            type == VisualizationType.COLUMN ||
+            type == VisualizationType.BAR ||
+            type == VisualizationType.AREA ||
+            type == VisualizationType.PIE ||
+            type == VisualizationType.STACKED_COLUMN ||
+            type == VisualizationType.STACKED_BAR ||
+            type == VisualizationType.RADAR ||
+            type == VisualizationType.GAUGE ||
+            type == VisualizationType.YEAR_OVER_YEAR_LINE ||
+            type == VisualizationType.YEAR_OVER_YEAR_COLUMN ||
+            type == VisualizationType.SCATTER ||
+            type == VisualizationType.BUBBLE;
     }
 
     /**

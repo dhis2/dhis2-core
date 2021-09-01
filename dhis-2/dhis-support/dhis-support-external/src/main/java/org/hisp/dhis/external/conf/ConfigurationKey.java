@@ -160,7 +160,8 @@ public enum ConfigurationKey
     DEBEZIUM_DB_NAME( "debezium.db.name", "", false ),
     DEBEZIUM_SLOT_NAME( "debezium.slot.name", "", false ),
     DEBEZIUM_EXCLUDE_LIST( "debezium.exclude.list", "", false ),
-    DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP( "debezium.shutdown_on.connector_stop", Constants.OFF, false );
+    DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP( "debezium.shutdown_on.connector_stop", Constants.OFF, false ),
+    ENABLE_API_TOKEN_AUTHENTICATION( "enable.api_token.authentication", Constants.OFF, false );
 
     private final String key;
 

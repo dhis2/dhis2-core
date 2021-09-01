@@ -494,9 +494,9 @@ public class DataValidationTask
                 values.putAll( nonAocValues );
             }
 
-            Double value = expressionService.getExpressionValue( expression.getExpression(),
-                VALIDATION_RULE_EXPRESSION, context.getItemMap(), values, context.getConstantMap(), null,
-                period.getDaysInPeriod(), expression.getMissingValueStrategy() );
+            Double value = expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION,
+                context.getItemMap(), values, context.getConstantMap(), null, context.getOrgUnitGroupMap(),
+                period.getDaysInPeriod(), expression.getMissingValueStrategy(), orgUnit );
 
             if ( MathUtils.isValidDouble( value ) )
             {

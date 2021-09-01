@@ -46,6 +46,7 @@ import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -76,6 +77,8 @@ public class ValidationRunContext
     private Set<CategoryOption> coDimensionConstraints;
 
     private Map<DimensionalItemId, DimensionalItemObject> itemMap;
+
+    private Map<String, OrganisationUnitGroup> orgUnitGroupMap;
 
     // -------------------------------------------------------------------------
     // Properties to configure analysis
@@ -170,6 +173,11 @@ public class ValidationRunContext
     public Map<DimensionalItemId, DimensionalItemObject> getItemMap()
     {
         return itemMap;
+    }
+
+    public Map<String, OrganisationUnitGroup> getOrgUnitGroupMap()
+    {
+        return orgUnitGroupMap;
     }
 
     public boolean isSendNotifications()
@@ -274,8 +282,7 @@ public class ValidationRunContext
          */
         public ValidationRunContext build()
         {
-            Validate
-                .notNull( this.context.periodTypeXs, "Missing required property 'periodTypeXs'" );
+            Validate.notNull( this.context.periodTypeXs, "Missing required property 'periodTypeXs'" );
             Validate.notNull( this.context.constantMap, "Missing required property 'constantMap'" );
             Validate.notNull( this.context.orgUnits, "Missing required property 'orgUnits'" );
             Validate.notNull( this.context.defaultAttributeCombo, "Missing required property 'defaultAttributeCombo'" );
@@ -383,6 +390,12 @@ public class ValidationRunContext
         public Builder withItemMap( Map<DimensionalItemId, DimensionalItemObject> itemMap )
         {
             this.context.itemMap = itemMap;
+            return this;
+        }
+
+        public Builder withOrgUnitGroupMap( Map<String, OrganisationUnitGroup> orgUnitGroupMap )
+        {
+            this.context.orgUnitGroupMap = orgUnitGroupMap;
             return this;
         }
 

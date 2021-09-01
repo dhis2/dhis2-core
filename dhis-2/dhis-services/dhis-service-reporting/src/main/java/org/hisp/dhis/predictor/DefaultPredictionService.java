@@ -46,7 +46,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -74,6 +76,8 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -116,6 +120,8 @@ public class DefaultPredictionService
 
     private final OrganisationUnitService organisationUnitService;
 
+    private final OrganisationUnitGroupService organisationUnitGroupService;
+
     private final PeriodService periodService;
 
     private final IdentifiableObjectManager idObjectManager;
@@ -130,15 +136,17 @@ public class DefaultPredictionService
 
     public DefaultPredictionService( PredictorService predictorService, ConstantService constantService,
         ExpressionService expressionService, DataValueService dataValueService, CategoryService categoryService,
-        OrganisationUnitService organisationUnitService, PeriodService periodService,
-        IdentifiableObjectManager idObjectManager, AnalyticsService analyticsService, Notifier notifier,
-        BatchHandlerFactory batchHandlerFactory, CurrentUserService currentUserService )
+        OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,
+        PeriodService periodService, IdentifiableObjectManager idObjectManager, AnalyticsService analyticsService,
+        Notifier notifier, BatchHandlerFactory batchHandlerFactory, CurrentUserService currentUserService )
     {
         checkNotNull( predictorService );
         checkNotNull( constantService );
         checkNotNull( expressionService );
         checkNotNull( dataValueService );
         checkNotNull( categoryService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( organisationUnitGroupService );
         checkNotNull( periodService );
         checkNotNull( idObjectManager );
         checkNotNull( analyticsService );
@@ -152,6 +160,7 @@ public class DefaultPredictionService
         this.dataValueService = dataValueService;
         this.categoryService = categoryService;
         this.organisationUnitService = organisationUnitService;
+        this.organisationUnitGroupService = organisationUnitGroupService;
         this.periodService = periodService;
         this.idObjectManager = idObjectManager;
         this.analyticsService = analyticsService;
@@ -275,11 +284,19 @@ public class DefaultPredictionService
         Map<DimensionalItemId, DimensionalItemObject> sampledItemMap = new HashMap<>();
         expressionService.getExpressionDimensionalItemMaps( generator.getExpression(),
             PREDICTOR_EXPRESSION, expressionDataType, outputPeriodItemMap, sampledItemMap );
+        Set<String> orgUnitGroupIds = expressionService.getExpressionOrgUnitGroupIds( generator.getExpression(),
+            PREDICTOR_EXPRESSION );
         if ( skipTest != null )
         {
             expressionService.getExpressionDimensionalItemMaps( skipTest.getExpression(),
                 PREDICTOR_SKIP_TEST, DataType.BOOLEAN, sampledItemMap, sampledItemMap );
+            orgUnitGroupIds.addAll( expressionService.getExpressionOrgUnitGroupIds(
+                skipTest.getExpression(), PREDICTOR_SKIP_TEST ) );
         }
+        Map<String, OrganisationUnitGroup> orgUnitGroupMap = orgUnitGroupIds.stream()
+            .map( organisationUnitGroupService::getOrganisationUnitGroup )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toMap( OrganisationUnitGroup::getUid, g -> g ) );
         Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>( outputPeriodItemMap );
         itemMap.putAll( sampledItemMap );
         Set<DimensionalItemObject> outputPeriodItems = new HashSet<>( outputPeriodItemMap.values() );
@@ -384,7 +401,7 @@ public class DefaultPredictionService
                     periodValueMap.putMap( nonAocData );
 
                     Set<Period> skippedPeriods = getSkippedPeriods( allSamplePeriods, itemMap, periodValueMap, skipTest,
-                        constantMap );
+                        constantMap, orgUnitGroupMap, orgUnit );
 
                     // Predict for each output period.
 
@@ -404,8 +421,8 @@ public class DefaultPredictionService
                         }
 
                         Object value = expressionService.getExpressionValue( generator.getExpression(),
-                            PREDICTOR_EXPRESSION, itemMap, valueMap, constantMap, null,
-                            outputPeriod.getDaysInPeriod(), generator.getMissingValueStrategy(),
+                            PREDICTOR_EXPRESSION, itemMap, valueMap, constantMap, null, orgUnitGroupMap,
+                            outputPeriod.getDaysInPeriod(), generator.getMissingValueStrategy(), orgUnit,
                             samplePeriods, periodValueMap, expressionDataType );
 
                         carryPredictionForward( value, outputPeriod, forwardReference, periodValueMap );
@@ -529,7 +546,6 @@ public class DefaultPredictionService
                 addToData( dataElementOperand, items, dv, value, aocData );
 
                 addToData( dv.getDataElement(), items, dv, value, aocData );
-
             }
         }
     }
@@ -607,15 +623,18 @@ public class DefaultPredictionService
      * Finds sample periods that should be skipped based on the skip test.
      *
      * @param allSamplePeriods all the sample periods.
+     * @param itemMap map of dimensional item id to object in expression.
      * @param aocData data for this attribute option combo.
      * @param skipTest the skip test.
      * @param constantMap constants that may be in the skip expression.
+     * @param orgUnitGroupMap the map of organisation unit groups.
+     * @param orgUnit the current organisation unit.
      * @return the sample periods to be skipped.
      */
     Set<Period> getSkippedPeriods( Set<Period> allSamplePeriods,
-        Map<DimensionalItemId, DimensionalItemObject> itemMap,
-        MapMap<Period, DimensionalItemObject, Object> aocData,
-        Expression skipTest, Map<String, Constant> constantMap )
+        Map<DimensionalItemId, DimensionalItemObject> itemMap, MapMap<Period, DimensionalItemObject, Object> aocData,
+        Expression skipTest, Map<String, Constant> constantMap, Map<String, OrganisationUnitGroup> orgUnitGroupMap,
+        OrganisationUnit orgUnit  )
     {
         Set<Period> skippedPeriods = new HashSet<>();
 
@@ -628,9 +647,9 @@ public class DefaultPredictionService
         {
             if ( aocData.get( p ) != null
                 && Boolean.TRUE == expressionService.getExpressionValue( skipTest.getExpression(),
-                    PREDICTOR_SKIP_TEST, itemMap, aocData.get( p ), constantMap, null,
-                    p.getDaysInPeriod(), skipTest.getMissingValueStrategy(),
-                    DEFAULT_SAMPLE_PERIODS, new MapMap<>() ) )
+                    PREDICTOR_SKIP_TEST, itemMap, aocData.get( p ), constantMap, null, orgUnitGroupMap,
+                    p.getDaysInPeriod(), skipTest.getMissingValueStrategy(), orgUnit,
+                    DEFAULT_SAMPLE_PERIODS, new MapMap<>(), DataType.BOOLEAN ) )
             {
                 skippedPeriods.add( p );
             }

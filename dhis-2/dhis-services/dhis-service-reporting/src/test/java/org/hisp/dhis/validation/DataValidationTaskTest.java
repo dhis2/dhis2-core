@@ -228,15 +228,15 @@ public class DataValidationTaskTest
         ValidationRunContext ctx, Double val )
     {
         when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, null, vals,
-            ctx.getConstantMap(), null, p1.getDaysInPeriod(), expression.getMissingValueStrategy() ) )
+            ctx.getConstantMap(), null, null, p1.getDaysInPeriod(), expression.getMissingValueStrategy(), ouA ) )
                 .thenReturn( val );
 
         when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, null, vals,
-            ctx.getConstantMap(), null, p2.getDaysInPeriod(), expression.getMissingValueStrategy() ) )
+            ctx.getConstantMap(), null, null, p2.getDaysInPeriod(), expression.getMissingValueStrategy(), ouA ) )
                 .thenReturn( val );
 
         when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, null, vals,
-            ctx.getConstantMap(), null, p3.getDaysInPeriod(), expression.getMissingValueStrategy() ) )
+            ctx.getConstantMap(), null, null, p3.getDaysInPeriod(), expression.getMissingValueStrategy(), ouA ) )
                 .thenReturn( val );
     }
 

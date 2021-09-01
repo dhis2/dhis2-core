@@ -77,8 +77,8 @@ public class ValidationUtils
 
     private static final Pattern TIME_OF_DAY_PATTERN = Pattern.compile( "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$" );
 
-    private static final Pattern BBOX_PATTERN = Pattern
-        .compile( "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
+    private static final Pattern BBOX_PATTERN = Pattern.compile(
+        "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
 
     private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9].?){4,14}[0-9]$" );
 
@@ -177,7 +177,7 @@ public class ValidationUtils
      * Validates whether a string is valid for the HH:mm time format.
      *
      * @param time the time string
-     * @return true if the time string is valid, false otherwise
+     * @return true if the time string is valid, false otherwise.
      */
     public static boolean timeIsValid( String time )
     {

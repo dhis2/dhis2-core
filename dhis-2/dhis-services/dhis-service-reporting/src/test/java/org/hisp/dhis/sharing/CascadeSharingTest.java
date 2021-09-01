@@ -28,7 +28,6 @@
 package org.hisp.dhis.sharing;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -42,6 +41,7 @@ import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.visualization.VisualizationType;
 
 import com.google.common.collect.Lists;
 
@@ -99,7 +99,7 @@ public abstract class CascadeSharingTest
         eventChart.setAutoFields();
         eventChart.setName( "eventChart" + name );
         eventChart.setProgram( program );
-        eventChart.setType( ChartType.COLUMN );
+        eventChart.setType( VisualizationType.COLUMN );
         return eventChart;
     }
 

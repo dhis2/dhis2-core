@@ -32,7 +32,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -50,7 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
@@ -542,31 +540,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( 2, dataSet.getTranslations().size() );
     }
 
-    @Test( expected = IllegalArgumentException.class )
-    public void testImportNonExistingEntityObject()
-        throws IOException
-    {
-        User user = createUser( 'A' );
-        manager.save( user );
-
-        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user ) );
-        manager.save( userGroup );
-
-        userGroup = manager.get( UserGroup.class, "ugabcdefghA" );
-        assertNotNull( userGroup );
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_chart_with_accesses.json" ).getInputStream(),
-            RenderFormat.JSON );
-
-        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
-
-        importService.importMetadata( params );
-
-        // Should not get to this point.
-        fail( "The exception org.hibernate.MappingException was expected." );
-    }
-
     @Test
     public void testImportMultiPropertyUniqueness()
         throws IOException
@@ -882,8 +855,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
         assertNotNull( manager.get( ProgramStageSection.class, "JwcV2ZifEQf" ) );
 
-        CategoryCombo categoryCombo = manager.get( CategoryCombo.class, "faV8QvLgIwB" );
-
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/programstage_with_removed_section.json" ).getInputStream(),
             RenderFormat.JSON );
@@ -1121,6 +1092,16 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( "test1", maps.get( 0 ).getName() );
         assertEquals( 1, maps.get( 0 ).getMapViews().size() );
 
+        org.hisp.dhis.mapping.Map map = manager.get( org.hisp.dhis.mapping.Map.class, "LTNgXfzTFTv" );
+        assertNotNull( map );
+        assertEquals( 1, map.getMapViews().size() );
+
+        MapView mapView = map.getMapViews().get( 0 );
+        assertNotNull( mapView );
+        assertEquals( "#ddeeff", mapView.getNoDataColor() );
+        assertEquals( "#aabbcc", mapView.getOrganisationUnitColor() );
+        assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
+
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/map_update.json" ).getInputStream(), RenderFormat.JSON );
 
@@ -1132,13 +1113,14 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
-        org.hisp.dhis.mapping.Map map = manager.get( org.hisp.dhis.mapping.Map.class, "LTNgXfzTFTv" );
+        map = manager.get( org.hisp.dhis.mapping.Map.class, "LTNgXfzTFTv" );
         assertNotNull( map );
         assertEquals( 1, map.getMapViews().size() );
 
-        MapView mapView = map.getMapViews().get( 0 );
+        mapView = map.getMapViews().get( 0 );
         assertNotNull( mapView );
         assertEquals( "#ddeeff", mapView.getNoDataColor() );
+        assertEquals( "#aabbcc", mapView.getOrganisationUnitColor() );
         assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
     }
 

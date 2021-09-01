@@ -88,6 +88,7 @@ import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -122,6 +123,9 @@ public class ExpressionService2Test extends DhisSpringTest
 
     @Mock
     private ConstantService constantService;
+
+    @Mock
+    private OrganisationUnitService organisationUnitService;
 
     @Mock
     private OrganisationUnitGroupService organisationUnitGroupService;
@@ -248,7 +252,7 @@ public class ExpressionService2Test extends DhisSpringTest
     public void setUp()
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
-            organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
+            organisationUnitService, organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
 
         rnd = new BeanRandomizer();
 
@@ -402,7 +406,7 @@ public class ExpressionService2Test extends DhisSpringTest
         Map<DimensionalItemObject, Object> valueMap, Map<String, Integer> orgUnitCountMap, Integer days )
     {
         return target.getExpressionValue( expression, INDICATOR_EXPRESSION, itemMap, valueMap,
-            constantMap(), orgUnitCountMap, days, NEVER_SKIP );
+            constantMap(), orgUnitCountMap, null, days, NEVER_SKIP, null );
     }
 
     @Test

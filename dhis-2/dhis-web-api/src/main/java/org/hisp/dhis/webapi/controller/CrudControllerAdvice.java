@@ -49,6 +49,8 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
+import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
+import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.metadata.MetadataExportException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportException;
@@ -348,6 +350,20 @@ public class CrudControllerAdvice
         return unauthorized( ex.getMessage() );
     }
 
+    @ExceptionHandler( { PotentialDuplicateConflictException.class } )
+    @ResponseBody
+    public WebMessage handlePotentialDuplicateConflictRequest( Exception exception )
+    {
+        return conflict( exception.getMessage() );
+    }
+
+    @ExceptionHandler( { PotentialDuplicateForbiddenException.class } )
+    @ResponseBody
+    public WebMessage handlePotentialDuplicateForbiddenRequest( Exception exception )
+    {
+        return forbidden( exception.getMessage() );
+    }
+
     /**
      * Catches default exception and send back to user, but re-throws internally
      * so it still ends up in server logs.
@@ -356,6 +372,9 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage defaultExceptionHandler( Exception ex )
     {
+        // We print the stacktrace so it shows up in the logs, so we can more
+        // easily understand 500-issues.
+        ex.printStackTrace();
         return error( getExceptionMessage( ex ) );
     }
 

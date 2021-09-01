@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +49,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -90,6 +92,8 @@ public class DefaultValidationService
 
     private final ConstantService constantService;
 
+    private final IdentifiableObjectManager idObjectManager;
+
     private final ValidationNotificationService notificationService;
 
     private final ValidationRuleService validationRuleService;
@@ -104,7 +108,7 @@ public class DefaultValidationService
 
     public DefaultValidationService( PeriodService periodService, OrganisationUnitService organisationUnitService,
         ExpressionService expressionService, DimensionService dimensionService, DataValueService dataValueService,
-        CategoryService categoryService, ConstantService constantService,
+        CategoryService categoryService, ConstantService constantService, IdentifiableObjectManager idObjectManager,
         ValidationNotificationService notificationService, ValidationRuleService validationRuleService,
         ApplicationContext applicationContext, ValidationResultService validationResultService,
         AnalyticsService analyticsService, CurrentUserService currentUserService )
@@ -116,6 +120,7 @@ public class DefaultValidationService
         checkNotNull( dataValueService );
         checkNotNull( categoryService );
         checkNotNull( constantService );
+        checkNotNull( idObjectManager );
         checkNotNull( notificationService );
         checkNotNull( validationRuleService );
         checkNotNull( applicationContext );
@@ -130,6 +135,7 @@ public class DefaultValidationService
         this.dataValueService = dataValueService;
         this.categoryService = categoryService;
         this.constantService = constantService;
+        this.idObjectManager = idObjectManager;
         this.notificationService = notificationService;
         this.validationRuleService = validationRuleService;
         this.applicationContext = applicationContext;
@@ -313,6 +319,8 @@ public class DefaultValidationService
         Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap = addRulesToContext( periodTypeXMap,
             parameters.getValidationRules() );
 
+        Map<String, OrganisationUnitGroup> orgUnitGroupMap = getOrgUnitGroupMap( parameters.getValidationRules() );
+
         removeAnyUnneededPeriodTypes( periodTypeXMap );
 
         ValidationRunContext.Builder builder = ValidationRunContext.newBuilder()
@@ -328,6 +336,7 @@ public class DefaultValidationService
             .withAttributeCombo( parameters.getAttributeOptionCombo() )
             .withDefaultAttributeCombo( categoryService.getDefaultCategoryOptionCombo() )
             .withItemMap( dimensionItemMap )
+            .withOrgUnitGroupMap( orgUnitGroupMap )
             .withMaxResults( parameters.getMaxResults() );
 
         if ( currentUser != null )
@@ -412,6 +421,26 @@ public class DefaultValidationService
         saveObjectsInPeriodTypeX( periodItemIds, dimensionItemMap );
 
         return dimensionItemMap;
+    }
+
+    private Map<String, OrganisationUnitGroup> getOrgUnitGroupMap( Collection<ValidationRule> rules )
+    {
+        Set<String> orgUnitGroupIds = new HashSet<>();
+
+        for ( ValidationRule rule : rules )
+        {
+            orgUnitGroupIds.addAll( expressionService.getExpressionOrgUnitGroupIds( rule.getLeftSide().getExpression(),
+                VALIDATION_RULE_EXPRESSION ) );
+
+            orgUnitGroupIds.addAll( expressionService.getExpressionOrgUnitGroupIds( rule.getRightSide().getExpression(),
+                VALIDATION_RULE_EXPRESSION ) );
+        }
+
+        List<OrganisationUnitGroup> orgUnitGroups = idObjectManager.getNoAcl( OrganisationUnitGroup.class,
+            orgUnitGroupIds );
+
+        return orgUnitGroups.stream()
+            .collect( Collectors.toMap( OrganisationUnitGroup::getUid, g -> g ) );
     }
 
     /**

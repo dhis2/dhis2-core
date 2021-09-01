@@ -54,7 +54,10 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -74,6 +77,8 @@ public class CommonExpressionVisitor
     extends AntlrExpressionVisitor
 {
     private DimensionService dimensionService;
+
+    private OrganisationUnitService organisationUnitService;
 
     private OrganisationUnitGroupService organisationUnitGroupService;
 
@@ -140,6 +145,16 @@ public class CommonExpressionVisitor
      * Organisation unit group counts to use in evaluating an expression.
      */
     Map<String, Integer> orgUnitCountMap = new HashMap<>();
+
+    /**
+     * Organisation unit groups to use in evaluating an expression.
+     */
+    Map<String, OrganisationUnitGroup> orgUnitGroupMap = new HashMap<>();
+
+    /**
+     * The current organisation unit.
+     */
+    OrganisationUnit organisationUnit;
 
     /**
      * Count of days in period to use in evaluating an expression.
@@ -400,6 +415,11 @@ public class CommonExpressionVisitor
         return dimensionService;
     }
 
+    public OrganisationUnitService getOrganisationUnitService()
+    {
+        return organisationUnitService;
+    }
+
     public OrganisationUnitGroupService getOrganisationUnitGroupService()
     {
         return organisationUnitGroupService;
@@ -547,6 +567,26 @@ public class CommonExpressionVisitor
         return itemValueMap;
     }
 
+    public Map<String, OrganisationUnitGroup> getOrgUnitGroupMap()
+    {
+        return orgUnitGroupMap;
+    }
+
+    public void setOrgUnitGroupMap( Map<String, OrganisationUnitGroup> orgUnitGroupMap )
+    {
+        this.orgUnitGroupMap = orgUnitGroupMap;
+    }
+
+    public OrganisationUnit getOrganizationUnit()
+    {
+        return organisationUnit;
+    }
+
+    public void setOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        this.organisationUnit = organisationUnit;
+    }
+
     public void setDimItemMap( Map<DimensionalItemId, DimensionalItemObject> dimItemMap )
     {
         this.dimItemMap = dimItemMap;
@@ -643,6 +683,12 @@ public class CommonExpressionVisitor
         public Builder withDimensionService( DimensionService dimensionService )
         {
             this.visitor.dimensionService = dimensionService;
+            return this;
+        }
+
+        public Builder withOrganisationUnitService( OrganisationUnitService organisationUnitService )
+        {
+            this.visitor.organisationUnitService = organisationUnitService;
             return this;
         }
 

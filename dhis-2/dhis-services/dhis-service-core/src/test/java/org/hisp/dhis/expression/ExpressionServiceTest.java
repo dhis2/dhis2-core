@@ -598,7 +598,8 @@ public class ExpressionServiceTest
             itemMap, itemMap );
 
         Object value = expressionService.getExpressionValue( expr, parseType, itemMap, valueMap,
-            constantMap, ORG_UNIT_COUNT_MAP, DAYS, missingValueStrategy, TEST_SAMPLE_PERIODS, samples, dataType );
+            constantMap, ORG_UNIT_COUNT_MAP, null, DAYS, missingValueStrategy,
+            null, TEST_SAMPLE_PERIODS, samples, dataType );
 
         return result( value, itemMap.values() );
     }

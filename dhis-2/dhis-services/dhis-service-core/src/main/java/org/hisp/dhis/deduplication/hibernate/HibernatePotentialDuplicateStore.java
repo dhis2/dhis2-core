@@ -28,6 +28,7 @@
 package org.hisp.dhis.deduplication.hibernate;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,9 +38,25 @@ import java.util.stream.Collectors;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deduplication.*;
+import org.hisp.dhis.deduplication.DeduplicationMergeParams;
+import org.hisp.dhis.deduplication.DeduplicationStatus;
+import org.hisp.dhis.deduplication.MergeObject;
+import org.hisp.dhis.deduplication.PotentialDuplicate;
+import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
+import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
+import org.hisp.dhis.deduplication.PotentialDuplicateStore;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -50,11 +67,22 @@ public class HibernatePotentialDuplicateStore
     extends HibernateIdentifiableObjectStore<PotentialDuplicate>
     implements PotentialDuplicateStore
 {
+    private final RelationshipStore relationshipStore;
+
+    private final AuditManager auditManager;
+
+    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
+        RelationshipStore relationshipStore, TrackedEntityInstanceStore trackedEntityInstanceStore,
+        AuditManager auditManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
+        this.relationshipStore = relationshipStore;
+        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
+        this.auditManager = auditManager;
     }
 
     @Override
@@ -123,7 +151,7 @@ public class HibernatePotentialDuplicateStore
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
         if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
-            throw new PotentialDuplicateException(
+            throw new PotentialDuplicateConflictException(
                 "Can't search for pair of potential duplicates: teiA and teiB must not be null" );
 
         NativeQuery<BigInteger> query = getSession()
@@ -134,5 +162,125 @@ public class HibernatePotentialDuplicateStore
         query.setParameter( "teib", potentialDuplicate.getTeiB() );
 
         return query.getSingleResult().intValue() != 0;
+    }
+
+    @Override
+    public void moveTrackedEntityAttributeValues( String originalUid, String duplicateUid,
+        List<String> trackedEntityAttributes )
+    {
+
+        String removeOldValuesSQL = "DELETE FROM trackedentityattributevalue "
+            + "WHERE trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
+            + ") AND trackedentityattributeid IN ("
+            + "SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid IN (:teas)"
+            + ")";
+
+        String moveNewValuesSQL = "UPDATE trackedentityattributevalue "
+            + "SET trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
+            + ") WHERE trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
+            + ") AND trackedentityattributeid IN ("
+            + "SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid IN (:teas)"
+            + ")";
+
+        getSession()
+            .createNativeQuery( removeOldValuesSQL )
+            .setParameter( "original", originalUid )
+            .setParameterList( "teas", trackedEntityAttributes )
+            .executeUpdate();
+
+        getSession()
+            .createNativeQuery( moveNewValuesSQL )
+            .setParameter( "original", originalUid )
+            .setParameter( "duplicate", duplicateUid )
+            .setParameterList( "teas", trackedEntityAttributes )
+            .executeUpdate();
+    }
+
+    @Override
+    public void moveRelationships( String originalUid, String duplicateUid, List<String> relationships )
+    {
+        String moveRelationshipsSQL = "UPDATE relationshipitem "
+            + "SET trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
+            + ") WHERE trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
+            + ") AND relationshipid IN ("
+            + "SELECT relationshipid FROM relationship WHERE uid IN (:relationships)"
+            + ")";
+
+        getSession()
+            .createNativeQuery( moveRelationshipsSQL )
+            .setParameter( "original", originalUid )
+            .setParameter( "duplicate", duplicateUid )
+            .setParameterList( "relationships", relationships )
+            .executeUpdate();
+    }
+
+    @Override
+    public void moveEnrollments( String originalUid, String duplicateUid, List<String> enrollments )
+    {
+        String moveEnrollmentsSQL = "UPDATE programinstance "
+            + "SET trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
+            + ") WHERE trackedentityinstanceid = ("
+            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
+            + ") AND uid IN (:enrollments)";
+
+        getSession()
+            .createNativeQuery( moveEnrollmentsSQL )
+            .setParameter( "original", originalUid )
+            .setParameter( "duplicate", duplicateUid )
+            .setParameterList( "enrollments", enrollments )
+            .executeUpdate();
+    }
+
+    @Override
+    public void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance )
+    {
+        trackedEntityInstanceStore.delete( trackedEntityInstance );
+    }
+
+    @Override
+    public void auditMerge( DeduplicationMergeParams params )
+    {
+        TrackedEntityInstance original = params.getOriginal();
+        TrackedEntityInstance duplicate = params.getDuplicate();
+        MergeObject mergeObject = params.getMergeObject();
+
+        auditManager.send( Audit.builder()
+            .auditScope( AuditScope.TRACKER )
+            .auditType( AuditType.UPDATE )
+            .createdAt( LocalDateTime.now() )
+            .object( original )
+            .uid( original.getUid() )
+            .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, original ) )
+            .build() );
+
+        mergeObject.getRelationships().forEach( rel -> {
+            duplicate.getRelationshipItems().stream()
+                .map( RelationshipItem::getRelationship )
+                .filter( r -> r.getUid().equals( rel ) )
+                .findAny()
+                .ifPresent( relationship -> auditManager.send( Audit.builder()
+                    .auditScope( AuditScope.TRACKER )
+                    .auditType( AuditType.UPDATE )
+                    .createdAt( LocalDateTime.now() )
+                    .object( relationship )
+                    .uid( rel )
+                    .auditableEntity( new AuditableEntity( Relationship.class, relationship ) )
+                    .build() ) );
+        } );
+
+        auditManager.send( Audit.builder()
+            .auditScope( AuditScope.TRACKER )
+            .auditType( AuditType.DELETE )
+            .createdAt( LocalDateTime.now() )
+            .object( duplicate )
+            .uid( duplicate.getUid() )
+            .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, duplicate ) )
+            .build() );
     }
 }
