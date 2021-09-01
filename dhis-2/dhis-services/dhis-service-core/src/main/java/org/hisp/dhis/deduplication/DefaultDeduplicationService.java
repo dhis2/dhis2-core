@@ -109,7 +109,7 @@ public class DefaultDeduplicationService
     @Transactional
     public void autoMerge( DeduplicationMergeParams params )
     {
-        String autoMergeConflicts = isAutoMergeable( params.getOriginal(), params.getDuplicate() );
+        String autoMergeConflicts = getAutoMergeConflictErrors( params.getOriginal(), params.getDuplicate() );
         if ( autoMergeConflicts != null )
             throw new PotentialDuplicateConflictException(
                 "PotentialDuplicate can not be merged automatically: " + autoMergeConflicts );
@@ -123,17 +123,17 @@ public class DefaultDeduplicationService
     @Transactional
     public void manualMerge( DeduplicationMergeParams deduplicationMergeParams )
     {
-        String invalidReference = deduplicationHelper.hasInvalidReference( deduplicationMergeParams );
+        String invalidReference = deduplicationHelper.getInvalidReferenceErrors( deduplicationMergeParams );
         if ( invalidReference != null )
         {
             throw new PotentialDuplicateConflictException(
-                "Can not merge: " + invalidReference );
+                "Insufficient access: " + invalidReference );
         }
 
         merge( deduplicationMergeParams );
     }
 
-    private String isAutoMergeable( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    private String getAutoMergeConflictErrors( TrackedEntityInstance original, TrackedEntityInstance duplicate )
     {
         if ( !original.getTrackedEntityType().equals( duplicate.getTrackedEntityType() ) )
         {
@@ -169,7 +169,7 @@ public class DefaultDeduplicationService
         TrackedEntityInstance duplicate = params.getDuplicate();
         MergeObject mergeObject = params.getMergeObject();
 
-        String accessError = deduplicationHelper.hasUserAccess( original, duplicate, mergeObject );
+        String accessError = deduplicationHelper.getUserAccessErrors( original, duplicate, mergeObject );
         if ( accessError != null )
             throw new PotentialDuplicateForbiddenException(
                 "Could not merge: " + accessError );

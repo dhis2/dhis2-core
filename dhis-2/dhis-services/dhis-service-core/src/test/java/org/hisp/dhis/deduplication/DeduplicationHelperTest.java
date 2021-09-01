@@ -143,7 +143,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     @Test
     public void shouldHasUserAccess()
     {
-        String hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
             mergeObject );
 
@@ -155,7 +155,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( currentUserService.getCurrentUser() ).thenReturn( null );
 
-        String hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
             mergeObject );
 
@@ -168,7 +168,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( currentUserService.getCurrentUser() ).thenReturn( getNoMergeAuthsUser() );
 
-        String hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
             mergeObject );
 
@@ -181,7 +181,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( aclService.canDataWrite( user, trackedEntityTypeA ) ).thenReturn( false );
 
-        String hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
             mergeObject );
 
@@ -194,7 +194,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( aclService.canDataWrite( user, trackedEntityTypeB ) ).thenReturn( false );
 
-        String hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
             mergeObject );
 
@@ -207,7 +207,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( aclService.canDataWrite( user, relationshipType ) ).thenReturn( false );
 
-        String hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
             mergeObject );
 
@@ -220,7 +220,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( aclService.canDataWrite( user, attribute ) ).thenReturn( false );
 
-        String hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
             mergeObject );
 
@@ -233,7 +233,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( aclService.canDataWrite( user, programInstance ) ).thenReturn( false );
 
-        String hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
             mergeObject );
 
@@ -246,7 +246,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitA ) ).thenReturn( false );
 
-        String hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
             mergeObject );
 
@@ -259,7 +259,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     {
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitB ) ).thenReturn( false );
 
-        String hasUserAccess = deduplicationHelper.hasUserAccess(
+        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
             mergeObject );
 

@@ -67,7 +67,7 @@ public class DeduplicationHelper
 
     private ProgramInstanceService programInstanceService;
 
-    public String hasInvalidReference( DeduplicationMergeParams params )
+    public String getInvalidReferenceErrors( DeduplicationMergeParams params )
     {
         TrackedEntityInstance original = params.getOriginal();
         TrackedEntityInstance duplicate = params.getDuplicate();
@@ -133,7 +133,7 @@ public class DeduplicationHelper
             .build();
     }
 
-    public String hasUserAccess( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+    public String getUserAccessErrors( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         MergeObject mergeObject )
     {
         User user = currentUserService.getCurrentUser();
