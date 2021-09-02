@@ -241,6 +241,7 @@ public class DeduplicationHelper
 
         Set<String> programs = original.getProgramInstances()
             .stream()
+            .filter( e -> !e.isDeleted() )
             .map( e -> e.getProgram().getUid() )
             .collect( Collectors.toSet() );
 
