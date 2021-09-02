@@ -184,6 +184,18 @@ public class FieldFilterParserTest
         assertFieldPathContains( fieldPaths, "group", true );
     }
 
+    @Test
+    public void testParseWithMultipleTransformers()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser
+            .parse( Sets.newHashSet( "name::size::rename(n)" ) );
+
+        System.err.println( fieldPaths );
+
+        // assertFieldPathContains( fieldPaths, "name", true );
+        // assertFieldPathContains( fieldPaths, "group", true );
+    }
+
     private void assertFieldPathContains( List<FieldPath> fieldPaths, String expected, boolean hasTransformer )
     {
         boolean condition = false;

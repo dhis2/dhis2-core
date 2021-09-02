@@ -64,7 +64,7 @@ public class FieldFilterManager
 
         SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
-        Map<String, FieldTransformer> fieldTransformers = getTransformers( fieldPaths );
+        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
 
         List<ObjectNode> objectNodes = new ArrayList<>();
 
@@ -80,16 +80,12 @@ public class FieldFilterManager
     }
 
     private void applyTransformers( JsonNode node, JsonNode parent, String path,
-        Map<String, FieldTransformer> fieldTransformers )
+        Map<String, List<FieldTransformer>> fieldTransformers )
     {
         if ( parent != null && !parent.isArray() && !path.isEmpty() )
         {
-            FieldTransformer fieldTransformer = fieldTransformers.get( path.substring( 1 ) );
-
-            if ( fieldTransformer != null )
-            {
-                fieldTransformer.apply( path.substring( 1 ), node, parent );
-            }
+            List<FieldTransformer> transformers = fieldTransformers.get( path.substring( 1 ) );
+            transformers.forEach( t -> t.apply( path.substring( 1 ), node, parent ) );
         }
 
         if ( node.isObject() )
@@ -123,30 +119,32 @@ public class FieldFilterManager
         return filterProvider;
     }
 
-    private Map<String, FieldTransformer> getTransformers( List<FieldPath> fieldPaths )
+    private Map<String, List<FieldTransformer>> getTransformers( List<FieldPath> fieldPaths )
     {
-        Map<String, FieldTransformer> map = new HashMap<>();
+        Map<String, List<FieldTransformer>> map = new HashMap<>();
 
         for ( FieldPath fieldPath : fieldPaths )
         {
+            map.put( fieldPath.toFullPath(), new ArrayList<>() );
+
             for ( FieldPathTransformer fieldPathTransformer : fieldPath.getTransformers() )
             {
                 switch ( fieldPathTransformer.getName() )
                 {
                 case "rename":
-                    map.put( fieldPath.toFullPath(), new RenameFieldTransformer( fieldPathTransformer ) );
+                    map.get( fieldPath.toFullPath() ).add( new RenameFieldTransformer( fieldPathTransformer ) );
                     break;
                 case "size":
-                    map.put( fieldPath.toFullPath(), new SizeFieldTransformer() );
+                    map.get( fieldPath.toFullPath() ).add( new SizeFieldTransformer() );
                     break;
                 case "isEmpty":
-                    map.put( fieldPath.toFullPath(), new IsEmptyFieldTransformer() );
+                    map.get( fieldPath.toFullPath() ).add( new IsEmptyFieldTransformer() );
                     break;
                 case "isNotEmpty":
-                    map.put( fieldPath.toFullPath(), new IsNotEmptyFieldTransformer() );
+                    map.get( fieldPath.toFullPath() ).add( new IsNotEmptyFieldTransformer() );
                     break;
                 case "pluck":
-                    map.put( fieldPath.toFullPath(), new PluckFieldTransformer( fieldPathTransformer ) );
+                    map.get( fieldPath.toFullPath() ).add( new PluckFieldTransformer( fieldPathTransformer ) );
                     break;
                 default:
                     // invalid transformer
