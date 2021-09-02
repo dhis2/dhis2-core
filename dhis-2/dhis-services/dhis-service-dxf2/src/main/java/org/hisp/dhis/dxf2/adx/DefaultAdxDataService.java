@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.adx;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
@@ -37,7 +38,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedOutputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -81,6 +81,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSetUrlParams;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -140,53 +141,51 @@ public class DefaultAdxDataService
     // -------------------------------------------------------------------------
 
     @Override
-    public DataExportParams getFromUrl( Set<String> dataSets, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups,
-        Set<String> attributeOptionCombos, boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration,
-        Integer limit, IdSchemes outputIdSchemes )
+    public DataExportParams getFromUrl( DataValueSetUrlParams urlParams )
     {
+        IdSchemes outputIdSchemes = urlParams.getOutputIdSchemes();
         outputIdSchemes.setDefaultIdScheme( IdScheme.CODE );
 
         DataExportParams params = new DataExportParams();
 
-        if ( dataSets != null )
+        if ( !isEmpty( urlParams.getDataSet() ) )
         {
-            params.getDataSets().addAll( getByUidOrCode( DataSet.class, dataSets ) );
+            params.getDataSets().addAll( getByUidOrCode( DataSet.class, urlParams.getDataSet() ) );
         }
 
-        if ( periods != null && !periods.isEmpty() )
+        if ( !isEmpty( urlParams.getPeriod() ) )
         {
-            params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( periods ) ) );
+            params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( urlParams.getPeriod() ) ) );
         }
-        else if ( startDate != null && endDate != null )
+        else if ( urlParams.getStartDate() != null && urlParams.getEndDate() != null )
         {
-            params.setStartDate( startDate );
-            params.setEndDate( endDate );
+            params.setStartDate( urlParams.getStartDate() );
+            params.setEndDate( urlParams.getEndDate() );
         }
 
-        if ( organisationUnits != null )
+        if ( !isEmpty( urlParams.getOrgUnit() ) )
         {
             params.getOrganisationUnits()
-                .addAll( getByUidOrCode( OrganisationUnit.class, organisationUnits ) );
+                .addAll( getByUidOrCode( OrganisationUnit.class, urlParams.getOrgUnit() ) );
         }
 
-        if ( organisationUnitGroups != null )
+        if ( !isEmpty( urlParams.getOrgUnitGroup() ) )
         {
             params.getOrganisationUnitGroups()
-                .addAll( getByUidOrCode( OrganisationUnitGroup.class, organisationUnitGroups ) );
+                .addAll( getByUidOrCode( OrganisationUnitGroup.class, urlParams.getOrgUnitGroup() ) );
         }
 
-        if ( attributeOptionCombos != null )
+        if ( !isEmpty( urlParams.getAttributeOptionCombo() ) )
         {
             params.getAttributeOptionCombos()
-                .addAll( getByUidOrCode( CategoryOptionCombo.class, attributeOptionCombos ) );
+                .addAll( getByUidOrCode( CategoryOptionCombo.class, urlParams.getAttributeOptionCombo() ) );
         }
 
-        params.setIncludeChildren( includeChildren );
-        params.setIncludeDeleted( includeDeleted );
-        params.setLastUpdated( lastUpdated );
-        params.setLastUpdatedDuration( lastUpdatedDuration );
-        params.setLimit( limit );
+        params.setIncludeChildren( urlParams.isChildren() );
+        params.setIncludeDeleted( urlParams.isIncludeDeleted() );
+        params.setLastUpdated( urlParams.getLastUpdated() );
+        params.setLastUpdatedDuration( urlParams.getLastUpdatedDuration() );
+        params.setLimit( urlParams.getLimit() );
         params.setOutputIdSchemes( outputIdSchemes );
 
         return params;

@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
@@ -42,7 +43,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 
 import lombok.AllArgsConstructor;
@@ -200,62 +200,66 @@ public class DefaultDataValueSetService implements DataValueSetService
     // -------------------------------------------------------------------------
 
     @Override
-    public DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods,
-        Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups,
-        Set<String> attributeOptionCombos,
-        boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes outputIdSchemes )
+    public DataExportParams getFromUrl( DataValueSetUrlParams urlParams )
     {
         DataExportParams params = new DataExportParams();
-
-        if ( dataSets != null )
+        IdSchemes inputIdSchemes = urlParams.getInputIdSchemes();
+        if ( !isEmpty( urlParams.getDataSet() ) )
         {
             params.getDataSets().addAll( identifiableObjectManager.getObjects(
-                DataSet.class, IdentifiableProperty.UID, dataSets ) );
+                DataSet.class, IdentifiableProperty.in( inputIdSchemes, IdSchemes::getDataSetIdScheme ),
+                urlParams.getDataSet() ) );
         }
 
-        if ( dataElementGroups != null )
+        if ( !isEmpty( urlParams.getDataElementGroup() ) )
         {
             params.getDataElementGroups().addAll( identifiableObjectManager.getObjects(
-                DataElementGroup.class, IdentifiableProperty.UID, dataElementGroups ) );
+                DataElementGroup.class,
+                IdentifiableProperty.in( inputIdSchemes, IdSchemes::getDataElementGroupIdScheme ),
+                urlParams.getDataElementGroup() ) );
         }
 
-        if ( periods != null && !periods.isEmpty() )
+        if ( !isEmpty( urlParams.getPeriod() ) )
         {
-            params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( periods ) ) );
+            params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( urlParams.getPeriod() ) ) );
         }
-        else if ( startDate != null && endDate != null )
+        else if ( urlParams.getStartDate() != null && urlParams.getEndDate() != null )
         {
             params
-                .setStartDate( startDate )
-                .setEndDate( endDate );
+                .setStartDate( urlParams.getStartDate() )
+                .setEndDate( urlParams.getEndDate() );
         }
 
-        if ( organisationUnits != null )
+        if ( !isEmpty( urlParams.getOrgUnit() ) )
         {
             params.getOrganisationUnits().addAll( identifiableObjectManager.getObjects(
-                OrganisationUnit.class, IdentifiableProperty.UID, organisationUnits ) );
+                OrganisationUnit.class, IdentifiableProperty.in( inputIdSchemes, IdSchemes::getOrgUnitIdScheme ),
+                urlParams.getOrgUnit() ) );
         }
 
-        if ( organisationUnitGroups != null )
+        if ( !isEmpty( urlParams.getOrgUnitGroup() ) )
         {
             params.getOrganisationUnitGroups().addAll( identifiableObjectManager.getObjects(
-                OrganisationUnitGroup.class, IdentifiableProperty.UID, organisationUnitGroups ) );
+                OrganisationUnitGroup.class,
+                IdentifiableProperty.in( inputIdSchemes, IdSchemes::getOrgUnitGroupIdScheme ),
+                urlParams.getOrgUnitGroup() ) );
         }
 
-        if ( attributeOptionCombos != null )
+        if ( !isEmpty( urlParams.getAttributeOptionCombo() ) )
         {
             params.getAttributeOptionCombos().addAll( identifiableObjectManager.getObjects(
-                CategoryOptionCombo.class, IdentifiableProperty.UID, attributeOptionCombos ) );
+                CategoryOptionCombo.class,
+                IdentifiableProperty.in( inputIdSchemes, IdSchemes::getAttributeOptionComboIdScheme ),
+                urlParams.getAttributeOptionCombo() ) );
         }
 
         return params
-            .setIncludeChildren( includeChildren )
-            .setIncludeDeleted( includeDeleted )
-            .setLastUpdated( lastUpdated )
-            .setLastUpdatedDuration( lastUpdatedDuration )
-            .setLimit( limit )
-            .setOutputIdSchemes( outputIdSchemes );
+            .setIncludeChildren( urlParams.isChildren() )
+            .setIncludeDeleted( urlParams.isIncludeDeleted() )
+            .setLastUpdated( urlParams.getLastUpdated() )
+            .setLastUpdatedDuration( urlParams.getLastUpdatedDuration() )
+            .setLimit( urlParams.getLimit() )
+            .setOutputIdSchemes( urlParams.getOutputIdSchemes() );
     }
 
     @Override

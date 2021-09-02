@@ -32,12 +32,14 @@ import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.wildfly.common.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -151,5 +153,17 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
             .content( HttpStatus.OK ).as( JsonImportSummary.class );
         assertEquals( "ImportSummary", summary.getResponseType() );
         assertEquals( "SUCCESS", summary.getStatus() );
+    }
+
+    @Test
+    public void testGetDataValueSetJson()
+    {
+        String ouId = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1'}" ) );
+
+        JsonWebMessage response = GET( "/dataValueSets/?inputOrgUnitIdScheme=CODE&idScheme=NAME&orgUnit={ou}", "OU1" )
+            .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
+        assertEquals( String.format( "User is not allowed to view org unit: `%s`", ouId ), response.getMessage() );
     }
 }

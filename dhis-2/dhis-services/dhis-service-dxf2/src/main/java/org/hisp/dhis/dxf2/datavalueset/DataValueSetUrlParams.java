@@ -1,0 +1,158 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.dxf2.datavalueset;
+
+import java.util.Date;
+import java.util.Set;
+import java.util.function.BiFunction;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableProperty;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public class DataValueSetUrlParams
+{
+
+    Set<String> dataSet;
+
+    Set<String> dataElementGroup;
+
+    Set<String> period;
+
+    Date startDate;
+
+    Date endDate;
+
+    Set<String> orgUnit;
+
+    boolean children;
+
+    Set<String> orgUnitGroup;
+
+    Set<String> attributeOptionCombo;
+
+    boolean includeDeleted;
+
+    Date lastUpdated;
+
+    String lastUpdatedDuration;
+
+    Integer limit;
+
+    /*
+     * Input IdSchemes
+     */
+
+    IdentifiableProperty inputIdScheme;
+
+    IdentifiableProperty inputOrgUnitIdScheme;
+
+    IdentifiableProperty inputDataSetIdScheme;
+
+    IdentifiableProperty inputDataElementGroupIdScheme;
+
+    /*
+     * Output IdSchemes (for backwards compatibility not named with prefix
+     * output)
+     */
+
+    private IdentifiableProperty idScheme;
+
+    private IdentifiableProperty dataElementIdScheme;
+
+    private IdentifiableProperty categoryOptionComboIdScheme;
+
+    private IdentifiableProperty categoryOptionIdScheme;
+
+    private IdentifiableProperty categoryIdScheme;
+
+    private IdentifiableProperty orgUnitIdScheme;
+
+    private IdentifiableProperty programIdScheme;
+
+    private IdentifiableProperty programStageIdScheme;
+
+    private IdentifiableProperty trackedEntityIdScheme;
+
+    private IdentifiableProperty trackedEntityAttributeIdScheme;
+
+    private IdentifiableProperty dataSetIdScheme;
+
+    private IdentifiableProperty attributeOptionComboIdScheme;
+
+    private IdentifiableProperty programStageInstanceIdScheme;
+
+    public IdSchemes getInputIdSchemes()
+    {
+        IdSchemes schemes = new IdSchemes();
+        setNonNull( schemes, inputIdScheme, IdSchemes::setIdScheme );
+        setNonNull( schemes, inputDataElementGroupIdScheme, IdSchemes::setDataElementGroupIdScheme );
+        setNonNull( schemes, inputOrgUnitIdScheme, IdSchemes::setOrgUnitIdScheme );
+        setNonNull( schemes, inputDataSetIdScheme, IdSchemes::setDataSetIdScheme );
+        return schemes;
+    }
+
+    public IdSchemes getOutputIdSchemes()
+    {
+        IdSchemes schemes = new IdSchemes();
+        setNonNull( schemes, idScheme, IdSchemes::setIdScheme );
+        setNonNull( schemes, dataElementIdScheme, IdSchemes::setDataElementIdScheme );
+        setNonNull( schemes, categoryOptionComboIdScheme, IdSchemes::setCategoryOptionComboIdScheme );
+        setNonNull( schemes, categoryOptionIdScheme, IdSchemes::setCategoryOptionIdScheme );
+        setNonNull( schemes, categoryIdScheme, IdSchemes::setCategoryIdScheme );
+        setNonNull( schemes, orgUnitIdScheme, IdSchemes::setOrgUnitIdScheme );
+        setNonNull( schemes, programIdScheme, IdSchemes::setProgramIdScheme );
+        setNonNull( schemes, programStageIdScheme, IdSchemes::setProgramStageIdScheme );
+        setNonNull( schemes, trackedEntityIdScheme, IdSchemes::setTrackedEntityIdScheme );
+        setNonNull( schemes, trackedEntityAttributeIdScheme, IdSchemes::setTrackedEntityAttributeIdScheme );
+        setNonNull( schemes, dataSetIdScheme, IdSchemes::setDataSetIdScheme );
+        setNonNull( schemes, attributeOptionComboIdScheme, IdSchemes::setAttributeOptionComboIdScheme );
+        setNonNull( schemes, programStageInstanceIdScheme, IdSchemes::setProgramStageInstanceIdScheme );
+        return schemes;
+    }
+
+    private static void setNonNull( IdSchemes schemes, IdentifiableProperty idProperty,
+        BiFunction<IdSchemes, String, IdSchemes> setter )
+    {
+        if ( idProperty != null )
+        {
+            setter.apply( schemes, idProperty.name() );
+        }
+    }
+}
