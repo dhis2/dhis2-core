@@ -80,18 +80,16 @@ public class ConfigurationDeletionHandler
 
     private DeletionVeto allowDeleteDataElementGroup( DataElementGroup dataElementGroup )
     {
-        DataElementGroup infrastructuralDataElements = configService.getConfiguration()
-            .getInfrastructuralDataElements();
+        DataElementGroup infraDataElements = configService.getConfiguration().getInfrastructuralDataElements();
 
-        return infrastructuralDataElements != null && infrastructuralDataElements.equals( dataElementGroup ) ? VETO
-            : ACCEPT;
+        return infraDataElements != null && infraDataElements.equals( dataElementGroup ) ? VETO : ACCEPT;
     }
 
     private DeletionVeto allowDeleteIndicatorGroup( IndicatorGroup indicatorGroup )
     {
-        IndicatorGroup infrastructuralIndicators = configService.getConfiguration().getInfrastructuralIndicators();
+        IndicatorGroup infraIndicators = configService.getConfiguration().getInfrastructuralIndicators();
 
-        return infrastructuralIndicators != null && infrastructuralIndicators.equals( indicatorGroup ) ? VETO : ACCEPT;
+        return infraIndicators != null && infraIndicators.equals( indicatorGroup ) ? VETO : ACCEPT;
     }
 
     private DeletionVeto allowDeleteOrganisationUnitLevel( OrganisationUnitLevel level )
