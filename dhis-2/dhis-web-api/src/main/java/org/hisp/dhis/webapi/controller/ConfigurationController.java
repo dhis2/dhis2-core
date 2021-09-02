@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -387,6 +388,62 @@ public class ConfigurationController
     public @ResponseBody String getRemoteServerUsername( Model model, HttpServletRequest request )
     {
         return (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
+    }
+
+    @GetMapping( "/orgUnitMapDefaultGroupSet" )
+    public @ResponseBody OrganisationUnitGroupSet getOrgUnitMapDefaultGroupSet()
+    {
+        return configurationService.getConfiguration().getOrgUnitMapDefaultGroupSet();
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
+    @PostMapping( "/orgUnitMapDefaultGroupSet" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void setOrgUnitMapDefaultGroupSet( @RequestBody String uid )
+        throws NotFoundException
+    {
+        uid = trim( uid );
+
+        OrganisationUnitGroupSet groupSet = identifiableObjectManager.get( OrganisationUnitGroupSet.class, uid );
+
+        if ( groupSet == null )
+        {
+            throw new NotFoundException( "Organisation unit group sets", uid );
+        }
+
+        Configuration config = configurationService.getConfiguration();
+
+        config.setOrgUnitMapDefaultGroupSet( groupSet );
+
+        configurationService.setConfiguration( config );
+    }
+
+    @GetMapping( "/orgUnitMapDefaultLevel" )
+    public @ResponseBody OrganisationUnitLevel getOrgUnitMapDefaultLevel()
+    {
+        return configurationService.getConfiguration().getOrgUnitMapDefaultLevel();
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
+    @PostMapping( "/orgUnitMapDefaultLevel" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void setOrgUnitMapDefaultLevel( @RequestBody String uid )
+        throws NotFoundException
+    {
+        uid = trim( uid );
+
+        OrganisationUnitLevel level = identifiableObjectManager.get( OrganisationUnitLevel.class, uid );
+
+        if ( level == null )
+        {
+            throw new NotFoundException( "Organisation unit level", uid );
+        }
+
+        Configuration config = configurationService.getConfiguration();
+
+        config.setOrgUnitMapDefaultLevel( level );
+
+        configurationService.setConfiguration( config );
     }
 
     @GetMapping( value = "/corsWhitelist", produces = APPLICATION_JSON_VALUE )
