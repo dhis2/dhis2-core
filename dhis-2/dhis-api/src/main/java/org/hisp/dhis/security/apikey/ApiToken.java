@@ -57,7 +57,7 @@ public class ApiToken extends BaseIdentifiableObject implements MetadataObject
 
     private Integer version;
 
-    private Integer type;
+    private ApiTokenType type;
 
     private Long expire;
 
@@ -91,13 +91,12 @@ public class ApiToken extends BaseIdentifiableObject implements MetadataObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.INTEGER )
-    public Integer getType()
+    public ApiTokenType getType()
     {
         return type;
     }
 
-    public void setType( Integer type )
+    public void setType( ApiTokenType type )
     {
         this.type = type;
     }

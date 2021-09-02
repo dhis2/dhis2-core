@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -402,6 +403,12 @@ public class MockUserService
     public int disableUsersInactiveSince( Date inactiveSince )
     {
         throw new UnsupportedOperationException( "Not supported by this mock!" );
+    }
+
+    @Override
+    public Set<String> findUsersInactiveSince( Date inactiveSince )
+    {
+        return null;
     }
 
     @Override

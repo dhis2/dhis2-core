@@ -63,7 +63,6 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
-import org.hisp.dhis.security.config.DhisWebCommonsWebSecurityConfig;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
 import org.springframework.context.annotation.Bean;
@@ -77,6 +76,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
@@ -108,7 +108,6 @@ import com.google.common.collect.ImmutableMap;
     StoreConfig.class,
     LeaderElectionConfiguration.class,
     NotifierConfiguration.class,
-    DhisWebCommonsWebSecurityConfig.class,
     org.hisp.dhis.setting.config.ServiceConfig.class,
     org.hisp.dhis.external.config.ServiceConfig.class,
     org.hisp.dhis.dxf2.config.ServiceConfig.class,
@@ -127,6 +126,12 @@ import com.google.common.collect.ImmutableMap;
 @Slf4j
 public class WebTestConfiguration
 {
+    @Bean
+    public static SessionRegistryImpl sessionRegistry()
+    {
+        return new org.springframework.security.core.session.SessionRegistryImpl();
+    }
+
     @Bean( "actualDataSource" )
     public DataSource actualDataSource( HibernateConfigurationProvider hibernateConfigurationProvider )
     {

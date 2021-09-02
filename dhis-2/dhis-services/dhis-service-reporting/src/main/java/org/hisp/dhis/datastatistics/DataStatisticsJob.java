@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
@@ -42,8 +42,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component( "dataStatisticsJob" )
-public class DataStatisticsJob
-    extends AbstractJob
+public class DataStatisticsJob implements Job
 {
     private final DataStatisticsService dataStatisticsService;
 

@@ -46,18 +46,19 @@ import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
  * This class keeps track of a validation analysis. It contains information
- * about the initial params of the analysis, The current state of the analysis
+ * about the initial params of the analysis, the current state of the analysis
  * and the final results of the analysis.
  *
  * @author Stian Sandvold
  */
-@Component( " org.hisp.dhis.validation.ValidationRunContext" )
+@Component( "org.hisp.dhis.validation.ValidationRunContext" )
 @Scope( "prototype" )
 public class ValidationRunContext
 {
@@ -75,7 +76,9 @@ public class ValidationRunContext
 
     private Set<CategoryOption> coDimensionConstraints;
 
-    private Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap;
+    private Map<DimensionalItemId, DimensionalItemObject> itemMap;
+
+    private Map<String, OrganisationUnitGroup> orgUnitGroupMap;
 
     // -------------------------------------------------------------------------
     // Properties to configure analysis
@@ -167,9 +170,14 @@ public class ValidationRunContext
         return coDimensionConstraints;
     }
 
-    public Map<DimensionalItemId, DimensionalItemObject> getDimensionItemMap()
+    public Map<DimensionalItemId, DimensionalItemObject> getItemMap()
     {
-        return dimensionItemMap;
+        return itemMap;
+    }
+
+    public Map<String, OrganisationUnitGroup> getOrgUnitGroupMap()
+    {
+        return orgUnitGroupMap;
     }
 
     public boolean isSendNotifications()
@@ -274,8 +282,7 @@ public class ValidationRunContext
          */
         public ValidationRunContext build()
         {
-            Validate
-                .notNull( this.context.periodTypeXs, "Missing required property 'periodTypeXs'" );
+            Validate.notNull( this.context.periodTypeXs, "Missing required property 'periodTypeXs'" );
             Validate.notNull( this.context.constantMap, "Missing required property 'constantMap'" );
             Validate.notNull( this.context.orgUnits, "Missing required property 'orgUnits'" );
             Validate.notNull( this.context.defaultAttributeCombo, "Missing required property 'defaultAttributeCombo'" );
@@ -380,9 +387,15 @@ public class ValidationRunContext
             return this;
         }
 
-        public Builder withDimensionItemMap( Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap )
+        public Builder withItemMap( Map<DimensionalItemId, DimensionalItemObject> itemMap )
         {
-            this.context.dimensionItemMap = dimensionItemMap;
+            this.context.itemMap = itemMap;
+            return this;
+        }
+
+        public Builder withOrgUnitGroupMap( Map<String, OrganisationUnitGroup> orgUnitGroupMap )
+        {
+            this.context.orgUnitGroupMap = orgUnitGroupMap;
             return this;
         }
 

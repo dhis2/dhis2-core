@@ -31,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author Jan Bernitt
@@ -50,6 +51,21 @@ public final class Assertions
         for ( E e : expected )
         {
             assertTrue( "Expected " + e.toString() + " in " + actual.toString(), actual.contains( e ) );
+        }
+    }
+
+    public static <K, V> void assertMapEquals( Map<K, V> expected, Map<K, V> actual )
+    {
+        for ( Map.Entry<K, V> e : expected.entrySet() )
+        {
+            assertEquals( "Expected value not in " + actual.toString(),
+                e.getValue(), actual.get( e.getKey() ) );
+        }
+
+        for ( Map.Entry<K, V> e : actual.entrySet() )
+        {
+            assertEquals( "Did not expect value in " + actual.toString(),
+                e.getValue(), expected.get( e.getKey() ) );
         }
     }
 }

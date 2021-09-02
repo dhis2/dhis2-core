@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -360,15 +360,9 @@ public class DefaultDimensionService
     @Override
     public DimensionalItemObject getDataDimensionalItemObject( DimensionalItemId itemId )
     {
-        Set<DimensionalItemObject> itemIds = getDataDimensionalItemObjects( Sets.newHashSet( itemId ) );
+        Collection<DimensionalItemObject> items = getDataDimensionalItemObjectMap( Sets.newHashSet( itemId ) ).values();
 
-        return itemIds.isEmpty() ? null : itemIds.iterator().next();
-    }
-
-    @Override
-    public Set<DimensionalItemObject> getDataDimensionalItemObjects( Set<DimensionalItemId> itemIds )
-    {
-        return new HashSet<>( getDataDimensionalItemObjectMap( itemIds ).values() );
+        return items.isEmpty() ? null : items.iterator().next();
     }
 
     @Override
@@ -629,7 +623,14 @@ public class DefaultDimensionService
     {
         if ( id.getPeriodOffset() != 0 )
         {
-            return SerializationUtils.clone( item );
+            try
+            {
+                return (BaseDimensionalItemObject) BeanUtils.cloneBean( item );
+            }
+            catch ( Exception e )
+            {
+                return null;
+            }
         }
 
         return item;

@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.common.GenericStore;
 
@@ -66,5 +67,8 @@ public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEnti
     List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds, long programId );
 
     List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUids( List<Long> teiIds, long programId );
+
+    List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits( Set<Long> teiIds,
+        Set<Long> programIds );
 
 }

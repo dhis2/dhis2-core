@@ -33,11 +33,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -53,14 +55,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class ApiTokenAuthManager implements AuthenticationManager
 {
-    private ApiTokenService apiTokenService;
+    private final ApiTokenService apiTokenService;
 
-    private UserService userService;
+    private final UserService userService;
 
     private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
 
-    public ApiTokenAuthManager( UserService userService, ApiTokenService apiTokenService, CacheProvider cacheProvider )
+    private final SecurityService securityService;
+
+    public ApiTokenAuthManager( UserService userService, SecurityService securityService,
+        ApiTokenService apiTokenService, CacheProvider cacheProvider )
     {
+        this.securityService = securityService;
         this.userService = userService;
         this.apiTokenService = apiTokenService;
         this.apiTokenCache = cacheProvider.createApiKeyCache();
@@ -73,6 +79,7 @@ public class ApiTokenAuthManager implements AuthenticationManager
         final String tokenKey = ((ApiTokenAuthenticationToken) authentication).getTokenKey();
 
         final Optional<ApiTokenAuthenticationToken> cachedToken = apiTokenCache.getIfPresent( tokenKey );
+
         if ( cachedToken.isPresent() )
         {
             validateTokenExpiry( cachedToken.get().getToken().getExpire() );
@@ -89,28 +96,45 @@ public class ApiTokenAuthManager implements AuthenticationManager
 
             validateTokenExpiry( apiToken.getExpire() );
 
-            final User createdBy = apiToken.getCreatedBy();
-            if ( createdBy == null )
-            {
-                throw new ApiTokenAuthenticationException(
-                    ApiTokenErrors.invalidToken( "The API token does not have any owner." ) );
-            }
+            UserCredentials userCredentials = validateUserCredentials( apiToken );
 
-            UserCredentials userCredentials = userService
-                .getUserCredentialsWithEagerFetchAuthorities( createdBy.getUsername() );
-            if ( userCredentials == null )
-            {
-                throw new ApiTokenAuthenticationException(
-                    ApiTokenErrors.invalidToken( "The API token owner does not exists." ) );
-            }
-
-            ApiTokenAuthenticationToken apiTokenAuthenticationToken = new ApiTokenAuthenticationToken( apiToken,
+            ApiTokenAuthenticationToken authenticationToken = new ApiTokenAuthenticationToken( apiToken,
                 userCredentials );
 
-            apiTokenCache.put( tokenKey, apiTokenAuthenticationToken );
+            apiTokenCache.put( tokenKey, authenticationToken );
 
-            return apiTokenAuthenticationToken;
+            return authenticationToken;
         }
+    }
+
+    private UserCredentials validateUserCredentials( ApiToken apiToken )
+    {
+        User createdBy = apiToken.getCreatedBy();
+        if ( createdBy == null )
+        {
+            throw new ApiTokenAuthenticationException(
+                ApiTokenErrors.invalidToken( "The API token does not have any owner." ) );
+        }
+
+        UserCredentials userCredentials = userService
+            .getUserCredentialsWithEagerFetchAuthorities( createdBy.getUsername() );
+        if ( userCredentials == null )
+        {
+            throw new ApiTokenAuthenticationException(
+                ApiTokenErrors.invalidToken( "The API token owner does not exists." ) );
+        }
+
+        boolean enabled = !userCredentials.isDisabled();
+        boolean credentialsNonExpired = userService.credentialsNonExpired( userCredentials );
+        boolean accountNonLocked = !securityService.isLocked( userCredentials.getUsername() );
+        boolean accountNonExpired = !userService.isAccountExpired( userCredentials );
+
+        if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked, accountNonExpired ) )
+        {
+            throw new ApiTokenAuthenticationException(
+                ApiTokenErrors.invalidToken( "The API token is disabled or locked." ) );
+        }
+        return userCredentials;
     }
 
     private void validateTokenExpiry( Long expiry )

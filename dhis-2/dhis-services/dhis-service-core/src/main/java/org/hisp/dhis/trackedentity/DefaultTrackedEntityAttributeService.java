@@ -179,6 +179,13 @@ public class DefaultTrackedEntityAttributeService
 
     @Override
     @Transactional( readOnly = true )
+    public List<TrackedEntityAttribute> getTrackedEntityAttributes( List<String> uids )
+    {
+        return attributeStore.getByUid( uids );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
         boolean displayOnVisitSchedule )
     {

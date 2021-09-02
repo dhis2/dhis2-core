@@ -100,6 +100,14 @@ public interface ProgramInstanceService
     ProgramInstance getProgramInstance( String uid );
 
     /**
+     * Returns a list of existing ProgramInstances from the provided UIDs
+     *
+     * @param uids PSI UIDs to check
+     * @return ProgramInstance list
+     */
+    List<ProgramInstance> getProgramInstances( List<String> uids );
+
+    /**
      * Checks for the existence of a PI by UID. Deleted values are not taken
      * into account.
      *
