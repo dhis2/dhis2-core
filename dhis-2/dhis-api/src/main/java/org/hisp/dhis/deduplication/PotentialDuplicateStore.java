@@ -41,12 +41,13 @@ public interface PotentialDuplicateStore
 
     boolean exists( PotentialDuplicate potentialDuplicate );
 
-    void moveTrackedEntityAttributeValues( String originalUid, String duplicateUid,
+    void moveTrackedEntityAttributeValues( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         List<String> trackedEntityAttributes );
 
-    void moveRelationships( String originalUid, String duplicateUid, List<String> relationships );
+    void moveRelationships( TrackedEntityInstance originalUid, TrackedEntityInstance duplicateUid,
+        List<String> relationships );
 
-    void moveEnrollments( String originalUid, String duplicateUid, List<String> enrollments );
+    void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate, List<String> enrollments );
 
     void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance );
 
