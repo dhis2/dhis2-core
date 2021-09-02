@@ -31,8 +31,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -327,47 +325,6 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMergeObjectRelationship()
-    {
-        TrackedEntityInstance original = getTeiA();
-
-        TrackedEntityInstance another = getTeiA();
-
-        TrackedEntityInstance duplicate = getTeiA();
-
-        Relationship anotherBaseRelationship = getRelationship();
-
-        RelationshipItem relationshipItemAnotherTo = getRelationshipItem( anotherBaseRelationship, another );
-        RelationshipItem relationshipItemAnotherFrom = getRelationshipItem( anotherBaseRelationship, duplicate );
-
-        Relationship anotherRelationship = getRelationship( relationshipItemAnotherTo, relationshipItemAnotherFrom );
-        RelationshipItem anotherRelationshipItem = getRelationshipItem( anotherRelationship, duplicate );
-
-        duplicate.getRelationshipItems().add( anotherRelationshipItem );
-
-        MergeObject mergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
-
-        assertTrue( mergeObject.getTrackedEntityAttributes().isEmpty() );
-
-        assertFalse( mergeObject.getRelationships().isEmpty() );
-
-        mergeObject.getRelationships().forEach( r -> assertEquals( anotherRelationship.getUid(), r ) );
-
-        Relationship baseRelationship = getRelationship();
-
-        RelationshipItem relationshipItemTo = getRelationshipItem( baseRelationship, original );
-        RelationshipItem relationshipItemFrom = getRelationshipItem( baseRelationship, duplicate );
-
-        Relationship relationship = getRelationship( relationshipItemTo, relationshipItemFrom );
-        RelationshipItem relationshipItem = getRelationshipItem( relationship, duplicate );
-
-        duplicate.getRelationshipItems().add( relationshipItem );
-
-        assertThrows( PotentialDuplicateConflictException.class,
-            () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
-    }
-
-    @Test
     public void shouldGenerateMergeObjectWIthEnrollments()
     {
         TrackedEntityInstance original = getTeiA();
@@ -401,6 +358,94 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         duplicate.getProgramInstances().add( programInstanceB );
 
         deduplicationHelper.generateMergeObject( original, duplicate );
+    }
+
+    @Test
+    public void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTeis()
+    {
+        TrackedEntityInstance teiA = getTeiA();
+        TrackedEntityInstance teiB = getTeiB();
+        TrackedEntityInstance teiC = getTeiC();
+
+        // A->C, B->C
+        RelationshipItem fromA = new RelationshipItem();
+        RelationshipItem toA = new RelationshipItem();
+        RelationshipItem fromB = new RelationshipItem();
+        RelationshipItem toB = new RelationshipItem();
+
+        fromA.setTrackedEntityInstance( teiA );
+        toA.setTrackedEntityInstance( teiC );
+        fromB.setTrackedEntityInstance( teiB );
+        toB.setTrackedEntityInstance( teiC );
+
+        Relationship relA = new Relationship();
+        Relationship relB = new Relationship();
+
+        relA.setAutoFields();
+        relB.setAutoFields();
+
+        relA.setRelationshipType( relationshipType );
+        relB.setRelationshipType( relationshipType );
+
+        relA.setFrom( fromA );
+        relA.setTo( toA );
+        relB.setFrom( fromB );
+        relB.setTo( toB );
+
+        fromA.setRelationship( relA );
+        toA.setRelationship( relA );
+
+        fromB.setRelationship( relB );
+        toB.setRelationship( relB );
+
+        teiA.getRelationshipItems().add( fromA );
+        teiB.getRelationshipItems().add( fromB );
+
+        assertNotNull( deduplicationHelper.getDuplicateRelationshipError( teiA, teiB ) );
+    }
+
+    @Test
+    public void shouldNotFailGetDuplicateRelationshipError()
+    {
+        TrackedEntityInstance teiA = getTeiA();
+        TrackedEntityInstance teiB = getTeiB();
+        TrackedEntityInstance teiC = getTeiC();
+
+        // A->C, C->B
+        RelationshipItem fromA = new RelationshipItem();
+        RelationshipItem toA = new RelationshipItem();
+        RelationshipItem fromB = new RelationshipItem();
+        RelationshipItem toB = new RelationshipItem();
+
+        fromA.setTrackedEntityInstance( teiA );
+        toA.setTrackedEntityInstance( teiC );
+        fromB.setTrackedEntityInstance( teiC );
+        toB.setTrackedEntityInstance( teiB );
+
+        Relationship relA = new Relationship();
+        Relationship relB = new Relationship();
+
+        relA.setAutoFields();
+        relB.setAutoFields();
+
+        relA.setRelationshipType( relationshipType );
+        relB.setRelationshipType( relationshipType );
+
+        relA.setFrom( fromA );
+        relA.setTo( toA );
+        relB.setFrom( fromB );
+        relB.setTo( toB );
+
+        fromA.setRelationship( relA );
+        toA.setRelationship( relA );
+
+        fromB.setRelationship( relB );
+        toB.setRelationship( relB );
+
+        teiA.getRelationshipItems().add( fromA );
+        teiB.getRelationshipItems().add( fromB );
+
+        assertNull( deduplicationHelper.getDuplicateRelationshipError( teiA, teiB ) );
     }
 
     private List<Relationship> getRelationships()
@@ -437,36 +482,17 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         return tei;
     }
 
+    private TrackedEntityInstance getTeiC()
+    {
+        TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnitB );
+        tei.setTrackedEntityType( trackedEntityTypeB );
+
+        return tei;
+    }
+
     private User getNoMergeAuthsUser()
     {
         return createUser( 'A', Lists.newArrayList( "USELESS_AUTH" ) );
     }
 
-    private Relationship getRelationship()
-    {
-        Relationship relationship = new Relationship();
-        relationship.setAutoFields();
-        relationship.setRelationshipType( relationshipType );
-
-        return relationship;
-    }
-
-    private Relationship getRelationship( RelationshipItem to, RelationshipItem from )
-    {
-        Relationship relationship = getRelationship();
-        relationship.setTo( to );
-        relationship.setFrom( from );
-
-        return relationship;
-    }
-
-    private RelationshipItem getRelationshipItem( Relationship relationship,
-        TrackedEntityInstance trackedEntityInstance )
-    {
-        RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setRelationship( relationship );
-        relationshipItem.setTrackedEntityInstance( trackedEntityInstance );
-
-        return relationshipItem;
-    }
 }
