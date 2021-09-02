@@ -28,7 +28,6 @@
 package org.hisp.dhis.commons.jackson.filter;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
@@ -53,16 +52,12 @@ public class FieldFilterParser
     private static List<FieldPath> expandField( String field, String prefix )
     {
         List<FieldPath> fieldPaths = new ArrayList<>();
-        Set<String> output = new HashSet<>();
         Stack<String> path = new Stack<>();
         StringBuilder builder = new StringBuilder();
-
-        String transformerName = null;
-        List<String> transformerParameters = null;
+        List<FieldPathTransformer> fieldPathTransformers = new ArrayList<>();
 
         if ( prefix != null )
         {
-            output.add( prefix );
             path.push( prefix );
         }
 
@@ -74,41 +69,40 @@ public class FieldFilterParser
 
             if ( isTransformer( fieldSplit, idx ) )
             {
-                output.add( toFullPath( builder.toString(), path ) );
-
                 boolean insideParameters = false;
 
-                StringBuilder transformerBuilder = new StringBuilder();
+                StringBuilder transformerNameBuilder = new StringBuilder();
 
-                transformerName = null;
-                transformerParameters = new ArrayList<>();
+                String transformerName = null;
+                List<String> transformerParameters = new ArrayList<>();
 
                 for ( ; idx < fieldSplit.length; idx++ )
                 {
                     token = fieldSplit[idx];
 
+                    if ( (StringUtils.containsAny( token, ":", "~", "|" )) )
+                    {
+                        continue;
+                    }
+
                     if ( isAlphanumericOrSpecial( token ) )
                     {
-                        if ( !(StringUtils.containsAny( token, ":", "~", "|" )) )
-                        {
-                            transformerBuilder.append( token );
-                        }
+                        transformerNameBuilder.append( token );
                     }
                     else if ( isParameterStart( token ) )
                     {
                         insideParameters = true;
-
-                        transformerName = transformerBuilder.toString();
-                        transformerBuilder = new StringBuilder();
+                        transformerName = transformerNameBuilder.toString();
+                        transformerNameBuilder = new StringBuilder();
                     }
                     else if ( insideParameters && isParameterSeparator( token ) )
                     {
-                        transformerParameters.add( transformerBuilder.toString() );
-                        transformerBuilder = new StringBuilder();
+                        transformerParameters.add( transformerNameBuilder.toString() );
+                        transformerNameBuilder = new StringBuilder();
                     }
                     else if ( (insideParameters && isParameterEnd( token )) )
                     {
-                        transformerParameters.add( transformerBuilder.toString() );
+                        transformerParameters.add( transformerNameBuilder.toString() );
                         break;
                     }
                     else if ( isFieldSeparator( token ) || (token.equals( "[" ) && !insideParameters) )
@@ -118,39 +112,36 @@ public class FieldFilterParser
                     }
                 }
 
-                if ( transformerBuilder.length() > 0 )
+                if ( transformerNameBuilder.length() > 0 && transformerParameters.isEmpty() )
                 {
-                    transformerName = transformerBuilder.toString();
+                    transformerName = transformerNameBuilder.toString();
                 }
+
+                fieldPathTransformers.add( new FieldPathTransformer( transformerName,
+                    transformerParameters ) );
             }
             else if ( isFieldSeparator( token ) )
             {
-                FieldPath fieldPath = getFieldPath( builder, path, transformerName, transformerParameters );
-                fieldPaths.add( fieldPath );
+                fieldPaths.add( getFieldPath( builder, path, fieldPathTransformers ) );
 
-                output.add( toFullPath( builder.toString(), path ) );
+                fieldPathTransformers = new ArrayList<>();
                 builder = new StringBuilder();
-                transformerName = null;
             }
             else if ( isBlockStart( token ) )
             {
-                FieldPath fieldPath = getFieldPath( builder, path, transformerName, transformerParameters );
-                fieldPaths.add( fieldPath );
-
+                fieldPaths.add( getFieldPath( builder, path, fieldPathTransformers ) );
                 path.push( builder.toString() );
+
+                fieldPathTransformers = new ArrayList<>();
                 builder = new StringBuilder();
-                transformerName = null;
             }
             else if ( isBlockEnd( token ) )
             {
-                FieldPath fieldPath = getFieldPath( builder, path, transformerName, transformerParameters );
-                fieldPaths.add( fieldPath );
+                fieldPaths.add( getFieldPath( builder, path, fieldPathTransformers ) );
+                path.pop();
 
-                output.add( toFullPath( builder.toString(), path ) );
-                output.add( path.pop() );
-
+                fieldPathTransformers = new ArrayList<>();
                 builder = new StringBuilder();
-                transformerName = null;
             }
             else if ( isAlphanumericOrSpecial( token ) )
             {
@@ -160,26 +151,15 @@ public class FieldFilterParser
 
         if ( builder.length() > 0 )
         {
-            FieldPath fieldPath = getFieldPath( builder, path, transformerName, transformerParameters );
-            fieldPaths.add( fieldPath );
-
-            output.add( toFullPath( builder.toString(), path ) );
+            fieldPaths.add( getFieldPath( builder, path, fieldPathTransformers ) );
         }
 
         return fieldPaths;
     }
 
-    private static FieldPath getFieldPath(
-        StringBuilder fieldNameBuilder, Stack<String> path,
-        String transformerName, List<String> transformerParameters )
+    private static FieldPath getFieldPath( StringBuilder fieldNameBuilder, Stack<String> path,
+        List<FieldPathTransformer> transformers )
     {
-        List<FieldPathTransformer> transformers = new ArrayList<>();
-
-        if ( transformerName != null )
-        {
-            transformers.add( new FieldPathTransformer( transformerName, transformerParameters ) );
-        }
-
         return new FieldPath( fieldNameBuilder.toString(), new ArrayList<>( path ), transformers );
     }
 

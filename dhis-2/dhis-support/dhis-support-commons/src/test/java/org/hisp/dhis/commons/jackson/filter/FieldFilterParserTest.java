@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.commons.jackson.filter;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -182,6 +183,18 @@ public class FieldFilterParserTest
 
         assertFieldPathContains( fieldPaths, "name", true );
         assertFieldPathContains( fieldPaths, "group", true );
+    }
+
+    @Test
+    public void testParseWithTransformer8()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser
+            .parse( Sets.newHashSet( "name::rename(n)" ) );
+
+        assertFieldPathContains( fieldPaths, "name", true );
+
+        FieldPathTransformer fieldPathTransformer = fieldPaths.get( 0 ).getTransformers().get( 0 );
+        assertEquals( "rename", fieldPathTransformer.getName() );
     }
 
     @Test
