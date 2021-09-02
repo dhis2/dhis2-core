@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -1398,14 +1397,6 @@ public class DefaultDataValueSetService
 
             if ( zeroAndInsignificant && (existingValue == null || strategy.isCreate()) )
             {
-                continue; // Ignore value
-            }
-
-            if ( strategy.isDelete() && existingValue != null && dataValue.getValue() != null
-                && !Objects.equals( existingValue.getValue(), dataValue.getValue() ) )
-            {
-                summary.getConflicts().add( new ImportConflict( "value",
-                    "Data value is deleted and at the same time assigned a new value different to the current one" ) );
                 continue; // Ignore value
             }
 

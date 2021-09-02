@@ -238,13 +238,11 @@ public class DataValueSetServiceIntegrationTest
 
         ImportOptions options = ImportOptions.getDefaultImportOptions();
         options.setImportStrategy( ImportStrategy.DELETE );
-        ImportSummary summary = dataValueSetService
-            .saveDataValueSetJson( readFile( "datavalueset/dataValueSetJDeleteNewValue.json" ), options );
-        assertEquals( 1, summary.getConflicts().size() );
-        assertEquals( "Data value is deleted and at the same time assigned a new value different to the current one",
-            summary.getConflicts().iterator().next().getValue() );
+        assertSuccessWithImportedUpdatedDeleted( 0, 0, 1,
+            dataValueSetService.saveDataValueSetJson(
+                readFile( "datavalueset/dataValueSetJDeleteNoValue.json" ), options ) );
 
-        assertDataValuesCount( 1 );
+        assertDataValuesCount( 0 );
     }
 
     @Test
