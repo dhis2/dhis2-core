@@ -100,6 +100,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
@@ -138,7 +139,6 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -308,6 +308,14 @@ public class JdbcEventStore implements EventStore
 
         setAccessiblePrograms( user, params );
 
+        Map<String, List<Relationship>> relationshipsByEventIds = new HashMap<>();
+
+        if ( !params.isSkipRelationship() )
+        {
+            relationshipsByEventIds = eventStore
+                .getRelationshipsByEventIds( Lists.newArrayList( params.getEvents() ) );
+        }
+
         Map<String, Event> eventUidToEventMap = new HashMap<>( params.getPageSizeWithDefault() );
         List<Event> events = new ArrayList<>();
 
@@ -473,14 +481,9 @@ public class JdbcEventStore implements EventStore
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
 
-            if ( !params.isSkipRelationship() )
+            if ( relationshipsByEventIds.containsKey( event.getEvent() ) )
             {
-                Long eventId = rowSet.getLong( "psi_id" );
-
-                Multimap<String, org.hisp.dhis.dxf2.events.trackedentity.Relationship> relationships = eventStore
-                    .getRelationships( Lists.newArrayList( eventId ) );
-
-                relationships.entries().forEach( r -> event.getRelationships().add( r.getValue() ) );
+                event.getRelationships().addAll( relationshipsByEventIds.get( event.getEvent() ) );
             }
         }
 

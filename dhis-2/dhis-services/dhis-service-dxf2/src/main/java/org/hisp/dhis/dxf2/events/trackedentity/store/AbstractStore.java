@@ -124,6 +124,11 @@ public abstract class AbstractStore
         return ArrayListMultimap.create();
     }
 
+    public Map<String, List<Relationship>> getRelationshipsByEventIds( List<String> uids )
+    {
+        return null;
+    }
+
     abstract String getRelationshipEntityColumn();
 
     /**
