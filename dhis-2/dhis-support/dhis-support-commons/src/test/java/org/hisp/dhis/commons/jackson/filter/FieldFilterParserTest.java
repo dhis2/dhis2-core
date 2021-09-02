@@ -194,7 +194,7 @@ public class FieldFilterParserTest
 
             if ( path.startsWith( expected ) )
             {
-                condition = fieldPath.getTransformer() != null == hasTransformer;
+                condition = !fieldPath.getTransformers().isEmpty() == hasTransformer;
                 break;
             }
         }
