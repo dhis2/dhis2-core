@@ -140,7 +140,8 @@ public class ConfigurationController
     public void setFeedbackRecipients( @RequestBody String uid )
         throws NotFoundException
     {
-        uid = StringUtils.remove( uid, "\"" );
+        uid = trim( uid );
+
         UserGroup group = identifiableObjectManager.get( UserGroup.class, uid );
 
         if ( group == null )
@@ -180,7 +181,8 @@ public class ConfigurationController
     public void setOfflineOrganisationUnitLevel( @RequestBody String uid )
         throws NotFoundException
     {
-        uid = StringUtils.remove( uid, "\"" );
+        uid = trim( uid );
+
         OrganisationUnitLevel organisationUnitLevel = identifiableObjectManager.get( OrganisationUnitLevel.class, uid );
 
         if ( organisationUnitLevel == null )
@@ -219,7 +221,8 @@ public class ConfigurationController
     public void setInfrastructuralIndicators( @RequestBody String uid )
         throws NotFoundException
     {
-        uid = StringUtils.remove( uid, "\"" );
+        uid = trim( uid );
+
         IndicatorGroup group = identifiableObjectManager.get( IndicatorGroup.class, uid );
 
         if ( group == null )
@@ -246,7 +249,8 @@ public class ConfigurationController
     public void setInfrastructuralDataElements( @RequestBody String uid )
         throws NotFoundException
     {
-        uid = StringUtils.remove( uid, "\"" );
+        uid = trim( uid );
+
         DataElementGroup group = identifiableObjectManager.get( DataElementGroup.class, uid );
 
         if ( group == null )
@@ -265,6 +269,7 @@ public class ConfigurationController
     public @ResponseBody BaseIdentifiableObject getInfrastructuralPeriodType( Model model, HttpServletRequest request )
     {
         String name = configurationService.getConfiguration().getInfrastructuralPeriodTypeDefaultIfNull().getName();
+
         return new BaseIdentifiableObject( name, name, name );
     }
 
@@ -274,7 +279,8 @@ public class ConfigurationController
     public void setInfrastructuralPeriodType( @RequestBody String name )
         throws NotFoundException
     {
-        name = StringUtils.remove( name, "\"" );
+        name = trim( name );
+
         PeriodType periodType = PeriodType.getPeriodTypeByName( name );
 
         if ( periodType == null )
@@ -303,7 +309,8 @@ public class ConfigurationController
     public void setSelfRegistrationRole( @RequestBody String uid )
         throws NotFoundException
     {
-        uid = StringUtils.remove( uid, "\"" );
+        uid = trim( uid );
+
         UserAuthorityGroup userGroup = identifiableObjectManager.get( UserAuthorityGroup.class, uid );
 
         if ( userGroup == null )
@@ -342,7 +349,8 @@ public class ConfigurationController
     public void setSelfRegistrationOrgUnit( @RequestBody String uid )
         throws NotFoundException
     {
-        uid = StringUtils.remove( uid, "\"" );
+        uid = trim( uid );
+
         OrganisationUnit orgunit = identifiableObjectManager.get( OrganisationUnit.class, uid );
 
         if ( orgunit == null )
@@ -413,5 +421,16 @@ public class ConfigurationController
     public @ResponseBody String getAppHubUrl( Model model, HttpServletRequest request )
     {
         return appManager.getAppHubUrl();
+    }
+
+    /**
+     * Trims the given string payload by removing double qoutes.
+     *
+     * @param string the string.
+     * @return a trimmed string.
+     */
+    private String trim( String string )
+    {
+        return StringUtils.remove( string, "\"" );
     }
 }
