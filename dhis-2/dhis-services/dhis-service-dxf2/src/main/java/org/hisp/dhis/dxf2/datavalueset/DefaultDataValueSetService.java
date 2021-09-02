@@ -788,13 +788,6 @@ public class DefaultDataValueSetService implements DataValueSetService
                 context.getSummary().skipValue();
                 continue;
             }
-            if ( strategy.isDelete() && existingValue != null && dataValue.getValue() != null
-                && !Objects.equals( existingValue.getValue(), dataValue.getValue() ) )
-            {
-                context.addConflict( valueContext.getIndex(), DataValueImportConflict.DELETED_VALUE_CHANGED );
-                importCount.incrementIgnored();
-                continue;
-            }
 
             // -----------------------------------------------------------------
             // Check soft deleted data values on update and import

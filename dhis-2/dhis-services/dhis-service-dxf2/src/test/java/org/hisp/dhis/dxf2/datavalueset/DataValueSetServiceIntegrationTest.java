@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,7 +47,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -241,11 +239,11 @@ public class DataValueSetServiceIntegrationTest
 
         ImportOptions options = ImportOptions.getDefaultImportOptions();
         options.setImportStrategy( ImportStrategy.DELETE );
-        ImportSummary summary = dataValueSetService
-            .saveDataValueSetJson( readFile( "datavalueset/dataValueSetJDeleteNewValue.json" ), options );
-        assertTrue( summary.hasConflict( conflict -> conflict.getErrorCode() == ErrorCode.E7646 ) );
+        assertSuccessWithImportedUpdatedDeleted( 0, 0, 1,
+            dataValueSetService.saveDataValueSetJson(
+                readFile( "datavalueset/dataValueSetJDeleteNewValue.json" ), options ) );
 
-        assertDataValuesCount( 1 );
+        assertDataValuesCount( 0 );
     }
 
     @Test
