@@ -68,12 +68,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -144,8 +141,10 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
@@ -1361,31 +1360,6 @@ public abstract class DhisConvenienceTest
         return visualization;
     }
 
-    public static Chart createChart( char uniqueCharacter )
-    {
-        Chart chart = new Chart();
-        chart.setAutoFields();
-        chart.setName( "Chart" + uniqueCharacter );
-        chart.setDescription( "Description" + uniqueCharacter );
-        chart.setType( ChartType.COLUMN );
-
-        return chart;
-    }
-
-    public static Chart createChart( char uniqueCharacter, List<Indicator> indicators, List<Period> periods,
-        List<OrganisationUnit> units )
-    {
-        Chart chart = createChart( uniqueCharacter );
-
-        chart.addAllDataDimensionItems( indicators );
-        chart.setPeriods( periods );
-        chart.setOrganisationUnits( units );
-        chart.setDimensions( DimensionalObject.DATA_X_DIM_ID, DimensionalObject.PERIOD_DIM_ID,
-            DimensionalObject.ORGUNIT_DIM_ID );
-
-        return chart;
-    }
-
     public static User createUser( char uniqueCharacter )
     {
         return createUser( uniqueCharacter, Lists.newArrayList() );
@@ -1775,6 +1749,25 @@ public abstract class DhisConvenienceTest
         relationshipType.setFromConstraint( psiConstraint );
         relationshipType.setToConstraint( teiConstraint );
         return relationshipType;
+    }
+
+    public static Relationship createTeiToTeiRelationship( TrackedEntityInstance from, TrackedEntityInstance to,
+        RelationshipType relationshipType )
+    {
+        Relationship relationship = new Relationship();
+        RelationshipItem _from = new RelationshipItem();
+        RelationshipItem _to = new RelationshipItem();
+
+        _from.setTrackedEntityInstance( from );
+        _to.setTrackedEntityInstance( to );
+
+        relationship.setRelationshipType( relationshipType );
+        relationship.setFrom( _from );
+        relationship.setTo( _to );
+
+        relationship.setAutoFields();
+
+        return relationship;
     }
 
     public static RelationshipType createPersonToPersonRelationshipType( char uniqueCharacter, Program program,

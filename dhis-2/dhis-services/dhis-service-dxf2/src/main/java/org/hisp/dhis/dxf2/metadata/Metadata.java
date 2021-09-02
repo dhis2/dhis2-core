@@ -41,7 +41,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.NameableObject;
@@ -91,7 +90,6 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.sqlview.SqlView;
@@ -649,19 +647,6 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "charts", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "chart", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Chart> getCharts()
-    {
-        return getValues( Chart.class );
-    }
-
-    public void setCharts( List<Chart> charts )
-    {
-        setValues( Chart.class, charts );
-    }
-
-    @JsonProperty
     @JacksonXmlElementWrapper( localName = "reports", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "report", namespace = DxfNamespaces.DXF_2_0 )
     public List<Report> getReports()
@@ -672,19 +657,6 @@ public class Metadata
     public void setReports( List<Report> reports )
     {
         setValues( Report.class, reports );
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "reportTables", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "reportTable", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ReportTable> getReportTables()
-    {
-        return getValues( ReportTable.class );
-    }
-
-    public void setReportTables( List<ReportTable> reportTables )
-    {
-        setValues( ReportTable.class, reportTables );
     }
 
     @JsonProperty

@@ -48,11 +48,4 @@ public class DimItemProgramIndicator
         return new DimensionalItemId( PROGRAM_INDICATOR,
             ctx.uid0.getText() );
     }
-
-    @Override
-    public String getId( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return ctx.uid0.getText() +
-            (visitor.getPeriodOffset() == 0 ? "" : "." + visitor.getPeriodOffset());
-    }
 }

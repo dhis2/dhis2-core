@@ -44,7 +44,8 @@
             }
           ],
           "startDate": "2018-09-01",
-          "noDataColor": "#ddeeff",     
+          "noDataColor": "#ddeeff",
+          "organisationUnitColor": "#aabbcc",
           "thematicMapType": "CHOROPLETH"
         }
       ],

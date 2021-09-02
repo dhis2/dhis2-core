@@ -30,7 +30,6 @@ package org.hisp.dhis.dashboard;
 import static org.junit.Assert.*;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.eventchart.EventChart;
@@ -47,6 +46,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
+import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -127,7 +127,7 @@ public class DashboardItemDeletionHandlerTest
 
         EventChart eventChart = new EventChart( "A" );
         eventChart.setProgram( program );
-        eventChart.setType( ChartType.COLUMN );
+        eventChart.setType( VisualizationType.COLUMN );
         eventChartService.saveEventChart( eventChart );
 
         dashboardItem.setEventChart( eventChart );

@@ -32,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.chart.BaseChart;
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;

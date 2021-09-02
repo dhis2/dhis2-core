@@ -40,6 +40,9 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.option.OptionSet;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -58,7 +61,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "dataElementOperand", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementOperand
-    extends BaseDimensionalItemObject implements EmbeddedObject
+    extends BaseDimensionalItemObject
+    implements EmbeddedObject, ValueTypedDimensionalItemObject
 {
     public static final String SEPARATOR = COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
@@ -100,6 +104,28 @@ public class DataElementOperand
         this.dataElement = dataElement;
         this.categoryOptionCombo = categoryOptionCombo;
         this.attributeOptionCombo = attributeOptionCombo;
+    }
+
+    // -------------------------------------------------------------------------
+    // ValueTypedDimensionalItemObject
+    // -------------------------------------------------------------------------
+
+    @Override
+    public boolean hasOptionSet()
+    {
+        return dataElement.hasOptionSet();
+    }
+
+    @Override
+    public OptionSet getOptionSet()
+    {
+        return dataElement.getOptionSet();
+    }
+
+    @Override
+    public ValueType getValueType()
+    {
+        return dataElement.getValueType();
     }
 
     // -------------------------------------------------------------------------
@@ -307,17 +333,6 @@ public class DataElementOperand
         }
 
         return new DataElementOperand( de, coc );
-    }
-
-    /**
-     * Indicates whether this operand specifies a data element only with no
-     * option combinations.
-     *
-     * @return true if operand specifies a data element only.
-     */
-    public boolean isTotal()
-    {
-        return categoryOptionCombo == null && attributeOptionCombo == null;
     }
 
     /**

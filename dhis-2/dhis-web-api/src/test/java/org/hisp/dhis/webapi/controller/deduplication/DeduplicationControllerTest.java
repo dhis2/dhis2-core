@@ -44,7 +44,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.DeduplicationController;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.ConflictException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
@@ -147,7 +146,7 @@ public class DeduplicationControllerTest
 
         PotentialDuplicate pd = deduplicationController.getPotentialDuplicateById( uid );
 
-        assertEquals( teiA, pd.getTeiA() );
+        assertEquals( teiA, pd.getOriginal() );
         verify( deduplicationService ).getPotentialDuplicateByUid( uid );
     }
 
@@ -192,9 +191,6 @@ public class DeduplicationControllerTest
     @Test
     public void postPotentialDuplicateInvalidUidTeiB()
     {
-        when( trackerAccessManager.canRead( Mockito.any(), eq( trackedEntityInstanceA ) ) ).thenReturn(
-            Lists.newArrayList() );
-
         try
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, "invalid" ) );

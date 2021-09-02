@@ -47,6 +47,7 @@ public class TrackerPreheatConfig
         ProgramInstancesWithAtLeastOneEventSupplier.class,
         ProgramStageInstanceProgramStageMapSupplier.class,
         ProgramOrgUnitsSupplier.class,
+        ProgramOwnerSupplier.class,
         PeriodTypeSupplier.class,
         UniqueAttributesSupplier.class,
         UserSupplier.class,
