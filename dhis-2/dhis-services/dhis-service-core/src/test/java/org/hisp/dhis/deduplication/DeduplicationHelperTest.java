@@ -31,7 +31,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -352,19 +351,6 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         assertFalse( mergeObject.getRelationships().isEmpty() );
 
         mergeObject.getRelationships().forEach( r -> assertEquals( anotherRelationship.getUid(), r ) );
-
-        Relationship baseRelationship = getRelationship();
-
-        RelationshipItem relationshipItemTo = getRelationshipItem( baseRelationship, original );
-        RelationshipItem relationshipItemFrom = getRelationshipItem( baseRelationship, duplicate );
-
-        Relationship relationship = getRelationship( relationshipItemTo, relationshipItemFrom );
-        RelationshipItem relationshipItem = getRelationshipItem( relationship, duplicate );
-
-        duplicate.getRelationshipItems().add( relationshipItem );
-
-        assertThrows( PotentialDuplicateConflictException.class,
-            () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
     }
 
     @Test
