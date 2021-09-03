@@ -32,6 +32,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import java.io.InputStream;
@@ -109,6 +110,7 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CsvUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -777,10 +779,19 @@ public class DefaultDataValueSetService implements DataValueSetService
                 internalValue.setCreated( existingValue.getCreated() );
             }
 
+            final ImportStrategy strategy = context.getStrategy();
+            boolean zeroAndInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant(
+                dataValue.getValue(), valueContext.getDataElement() );
+            if ( zeroAndInsignificant && (existingValue == null || strategy.isCreate()) )
+            {
+                // Ignore value
+                context.getSummary().skipValue();
+                continue;
+            }
+
             // -----------------------------------------------------------------
             // Check soft deleted data values on update and import
             // -----------------------------------------------------------------
-            final ImportStrategy strategy = context.getStrategy();
             if ( !context.isSkipExistingCheck() && existingValue != null && !existingValue.isDeleted() )
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
@@ -917,7 +928,8 @@ public class DefaultDataValueSetService implements DataValueSetService
         DataValue internalValue, DataValue existingValue )
     {
         AuditType auditType = AuditType.UPDATE;
-        if ( internalValue.isNullValue() || internalValue.isDeleted() )
+        if ( internalValue.isNullValue() || internalValue.isDeleted()
+            || dataValueIsZeroAndInsignificant( dataValue.getValue(), valueContext.getDataElement() ) )
         {
             internalValue.setDeleted( true );
 
