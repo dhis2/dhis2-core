@@ -308,6 +308,7 @@ public class JdbcEventStore implements EventStore
 
         setAccessiblePrograms( user, params );
 
+        // Event to relationship mapper
         Map<String, List<Relationship>> relationshipsByEventIds = new HashMap<>();
 
         if ( !params.isSkipRelationship() )
