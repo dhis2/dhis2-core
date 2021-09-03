@@ -35,7 +35,6 @@ import static org.hisp.dhis.system.util.ValidationUtils.emailIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.expressionIsValidSQl;
 import static org.hisp.dhis.system.util.ValidationUtils.getLatitude;
 import static org.hisp.dhis.system.util.ValidationUtils.getLongitude;
-import static org.hisp.dhis.system.util.ValidationUtils.hexColorCodeIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.isValidHexColor;
 import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
@@ -154,20 +153,6 @@ public class ValidationUtilsTest
         assertFalse( uuidIsValid( "Jjg3j3-412-1435-342-jajg8234f" ) );
         assertFalse( uuidIsValid( "6cafdc73_2ca4_4c52-8a0a-d38adec33b24" ) );
         assertFalse( uuidIsValid( "e1809673dbf3482d8f84e493c65f74d9" ) );
-    }
-
-    @Test
-    public void testHexColorCodeIsValid()
-    {
-        assertTrue( hexColorCodeIsValid( "#b1a3cc" ) );
-        assertTrue( hexColorCodeIsValid( "#AA33CC" ) );
-        assertTrue( hexColorCodeIsValid( "#dae" ) );
-        assertTrue( hexColorCodeIsValid( "#24A" ) );
-
-        assertFalse( hexColorCodeIsValid( "#Ka3412" ) );
-        assertFalse( hexColorCodeIsValid( "#b1a3cc22" ) );
-        assertFalse( hexColorCodeIsValid( "#3AM" ) );
-        assertFalse( hexColorCodeIsValid( "#aabb" ) );
     }
 
     @Test
