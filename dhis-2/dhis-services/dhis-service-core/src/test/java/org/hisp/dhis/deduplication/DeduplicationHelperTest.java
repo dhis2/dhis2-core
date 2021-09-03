@@ -351,6 +351,21 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         assertFalse( mergeObject.getRelationships().isEmpty() );
 
         mergeObject.getRelationships().forEach( r -> assertEquals( anotherRelationship.getUid(), r ) );
+
+        Relationship baseRelationship = getRelationship();
+
+        RelationshipItem relationshipItemTo = getRelationshipItem( baseRelationship, original );
+        RelationshipItem relationshipItemFrom = getRelationshipItem( baseRelationship, duplicate );
+
+        Relationship relationship = getRelationship( relationshipItemTo, relationshipItemFrom );
+        RelationshipItem relationshipItem = getRelationshipItem( relationship, duplicate );
+
+        duplicate.getRelationshipItems().add( relationshipItem );
+
+        mergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
+
+        assertEquals( 1, mergeObject.getRelationships().size() );
+
     }
 
     @Test
