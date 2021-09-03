@@ -33,6 +33,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -48,6 +50,9 @@ public class ConfigurationServiceTest
 {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
     @Autowired
     private UserGroupService userGroupService;
@@ -69,18 +74,25 @@ public class ConfigurationServiceTest
         userService.addUser( userB );
         userGroupService.addUserGroup( group );
 
+        OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet( 'A' );
+        idObjectManager.save( groupSet );
+
         Configuration config = configurationService.getConfiguration();
 
         assertNull( config.getFeedbackRecipients() );
+        assertNull( config.getOrgUnitMapDefaultGroupSet() );
 
         config.setFeedbackRecipients( group );
+        config.setOrgUnitMapDefaultGroupSet( groupSet );
 
         configurationService.setConfiguration( config );
 
         config = configurationService.getConfiguration();
 
         assertNotNull( config.getFeedbackRecipients() );
+        assertNotNull( config.getOrgUnitMapDefaultGroupSet() );
         assertEquals( group, config.getFeedbackRecipients() );
+        assertEquals( groupSet, config.getOrgUnitMapDefaultGroupSet() );
     }
 
     @Test
