@@ -33,7 +33,13 @@
         column="selfregistrationrole" foreign-key="fk_configuration_selfregistrationrole" />
 
     <many-to-one name="selfRegistrationOrgUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
-        column="selfRegistrationOrgUnit" foreign-key="fk_configuration_selfregistrationorgunit" />
+        column="selfregistrationorgunit" foreign-key="fk_configuration_selfregistrationorgunit" />
+
+    <many-to-one name="orgUnitMapDefaultGroupSet" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet"
+        column="orgunitmapdefaultgroupset" foreign-key="fk_configuration_orgunitmapdefaultgroupset" />
+    
+    <many-to-one name="orgUnitMapDefaultLevel" class="org.hisp.dhis.organisationunit.OrganisationUnitLevel"
+        column="orgunitmapdefaultlevel" foreign-key="fk_configuration_orgunitmapdefaultlevel" />
 
     <set name="corsWhitelist" table="configuration_corswhitelist" lazy="false">
       <cache usage="read-write" />
