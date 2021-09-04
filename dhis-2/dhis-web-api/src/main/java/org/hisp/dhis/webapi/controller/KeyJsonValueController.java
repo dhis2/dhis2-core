@@ -115,7 +115,7 @@ public class KeyJsonValueController
 
         service.deleteNamespace( namespace );
 
-        return ok( "Namespace '" + namespace + "' deleted." );
+        return ok( String.format( "Namespace deleted: '%s'", namespace ) );
     }
 
     /**
@@ -198,7 +198,7 @@ public class KeyJsonValueController
         KeyJsonValue entry = getExistingEntry( namespace, key );
         service.deleteKeyJsonValue( entry );
 
-        return ok( "Key '" + key + "' deleted from namespace '" + namespace + "'." );
+        return ok( String.format( "Key '%s' deleted from namespace '%s'", key, namespace ) );
     }
 
     private KeyJsonValue getExistingEntry( String namespace, String key )
