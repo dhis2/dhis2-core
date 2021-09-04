@@ -384,11 +384,11 @@ public class JdbcEventAnalyticsTableManager
             .collect( Collectors.toList() ) );
         columns.addAll( addPeriodTypeColumns( "dps" ) );
 
-        columns.addAll( program.getDataElements().stream()
+        columns.addAll( program.getAnalyticsDataElements().stream()
             .map( de -> getColumnFromDataElement( de, false ) ).flatMap( Collection::stream )
             .collect( Collectors.toList() ) );
 
-        columns.addAll( program.getDataElementsWithLegendSet().stream()
+        columns.addAll( program.getAnalyticsDataElementsWithLegendSet().stream()
             .map( de -> getColumnFromDataElement( de, true ) ).flatMap( Collection::stream )
             .collect( Collectors.toList() ) );
 

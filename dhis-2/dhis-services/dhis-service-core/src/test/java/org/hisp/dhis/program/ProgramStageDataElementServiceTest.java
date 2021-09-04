@@ -67,6 +67,10 @@ public class ProgramStageDataElementServiceTest
     @Autowired
     private ProgramStageService programStageService;
 
+    private long programId;
+
+    private Program program;
+
     private OrganisationUnit organisationUnit;
 
     private ProgramStage stageA;
@@ -87,8 +91,8 @@ public class ProgramStageDataElementServiceTest
         organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
 
-        Program program = createProgram( 'A', new HashSet<>(), organisationUnit );
-        programService.addProgram( program );
+        program = createProgram( 'A', new HashSet<>(), organisationUnit );
+        programId = programService.addProgram( program );
 
         stageA = new ProgramStage( "A", program );
         stageA.setSortOrder( 1 );
@@ -124,6 +128,26 @@ public class ProgramStageDataElementServiceTest
 
         assertNotNull( programStageDataElementService.get( stageA, dataElementA ) );
         assertNotNull( programStageDataElementService.get( stageA, dataElementB ) );
+    }
+
+    @Test
+    public void testAddProgramStageDataElementSkipAnalytics()
+    {
+        ProgramStageDataElement psdeA = new ProgramStageDataElement( stageA, dataElementA, false, 1 );
+        psdeA.setSkipAnalytics( false );
+        ProgramStageDataElement psdeB = new ProgramStageDataElement( stageA, dataElementB, false, 2 );
+        psdeB.setSkipAnalytics( true );
+
+        programStageDataElementService.addProgramStageDataElement( psdeA );
+        programStageDataElementService.addProgramStageDataElement( psdeB );
+
+        program = programService.getProgram( programId );
+
+        assertEquals( 1, program.getAnalyticsDataElements().size() );
+        assertTrue( program.getAnalyticsDataElements().contains( dataElementA ) );
+
+        assertEquals( 2, program.getAnalyticsDataElements().size() );
+        assertTrue( program.getAnalyticsDataElements().contains( dataElementB ) );
     }
 
     @Test

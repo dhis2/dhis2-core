@@ -67,7 +67,6 @@ import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.query.Query;
@@ -782,9 +781,10 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( programStage.getProgram() );
 
         assertEquals( 3, programStage.getProgramStageDataElements().size() );
-        ProgramStageDataElement programStageDataElement = programStage.getProgramStageDataElements().iterator().next();
-        assertFalse( programStageDataElement.getAllowFutureDate() );
-        assertFalse( programStageDataElement.getSkipAnalytics() );
+        programStage.getProgramStageDataElements().forEach( psde -> {
+            assertNotNull( psde.getSkipAnalytics() );
+            assertFalse( psde.getSkipAnalytics() );
+        } );
 
         Set<ProgramStageSection> programStageSections = programStage.getProgramStageSections();
         assertNotNull( programStageSections );
