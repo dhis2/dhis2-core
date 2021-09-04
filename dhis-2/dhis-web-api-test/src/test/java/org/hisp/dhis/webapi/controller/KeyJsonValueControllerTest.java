@@ -475,7 +475,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testDeleteKeyJsonValue_MustExist()
     {
-        assertEquals( "Key 'cat' was not found in namespace 'pets'",
+        assertEquals( "Key 'cat' not found in namespace 'pets'",
             DELETE( "/dataStore/pets/cat" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
