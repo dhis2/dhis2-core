@@ -110,7 +110,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetKeysInNamespace_MustExist()
     {
-        assertEquals( "The namespace 'missing' was not found.",
+        assertEquals( "Namespace not found: 'missing'",
             GET( "/dataStore/missing" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
@@ -149,7 +149,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
 
         // as a user that lacks authority
         switchToNewUser( "anonymous" );
-        assertEquals( "The namespace 'pets' was not found.",
+        assertEquals( "Namespace not found: 'pets'",
             GET( "/dataStore/pets" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
@@ -408,7 +408,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testUpdateKeyJsonValue_MustExist()
     {
-        assertEquals( "The key 'cat' was not found in the namespace 'pets'.",
+        assertEquals( "Key 'cat' not found in namespace 'pets'",
             PUT( "/dataStore/pets/cat", "[]" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
@@ -475,7 +475,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testDeleteKeyJsonValue_MustExist()
     {
-        assertEquals( "The key 'cat' was not found in the namespace 'pets'.",
+        assertEquals( "Key 'cat' not found in namespace 'pets'",
             DELETE( "/dataStore/pets/cat" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
@@ -501,7 +501,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
 
         switchToNewUser( "anonymous" );
-        assertEquals( "The key 'cat' was not found in the namespace 'pets'.",
+        assertEquals( "Key 'cat' not found in namespace 'pets'",
             DELETE( "/dataStore/pets/cat" ).error( HttpStatus.NOT_FOUND ).getMessage() );
 
         switchToNewUser( "someone", "pets-admin" );
