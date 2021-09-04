@@ -241,6 +241,7 @@
             "id": "agYrfZeYx1b"
           },
           "allowFutureDate": false,
+          "skipAnalytics": false,
           "id": "gANqBDSSNu2",
           "lastUpdated": "2016-03-10T07:27:58.733+0000",
           "created": "2016-03-10T07:27:58.733+0000"
@@ -250,16 +251,17 @@
             "id": "agYrfZeYx1b"
           },
           "allowFutureDate": false,
-          "lastUpdated": "2016-03-10T07:27:58.727+0000",
-          "id": "x7wLneg4rTZ",
-          "created": "2016-03-10T07:27:58.726+0000",
           "displayInReports": false,
           "dataElement": {
             "id": "HLRGJHHgfxc"
           },
           "sortOrder": 1,
           "allowProvidedElsewhere": true,
-          "compulsory": false
+          "compulsory": false,
+          "skipAnalytics": false,
+          "id": "x7wLneg4rTZ",
+          "lastUpdated": "2016-03-10T07:27:58.727+0000",
+          "created": "2016-03-10T07:27:58.726+0000"
         },
         {
           "displayInReports": false,
@@ -273,8 +275,8 @@
             "id": "agYrfZeYx1b"
           },
           "allowFutureDate": false,
-          "lastUpdated": "2016-03-10T07:27:58.719+0000",
           "id": "vOdNoOX7l10",
+          "lastUpdated": "2016-03-10T07:27:58.719+0000",
           "created": "2016-03-10T07:27:58.718+0000"
         }
       ],

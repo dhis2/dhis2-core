@@ -352,6 +352,12 @@ public class JdbcEventAnalyticsTableManager
         populateTableInternal( partition, getDimensionColumns( program ), fromClause );
     }
 
+    /**
+     * Returns dimensional analytics table columns.
+     *
+     * @param program the program.
+     * @return a list of {@link AnalyticsTableColumn}.
+     */
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
