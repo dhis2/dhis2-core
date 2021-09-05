@@ -130,7 +130,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
         // as a user that lacks authority
         switchToNewUser( "anonymous" );
         assertEquals(
-            "The namespace 'pets' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'pets' is protected, access denied",
             GET( "/dataStore/pets" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
@@ -206,7 +206,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'--------'}}" ) );
 
         switchToNewUser( "someone", "pets-admin" );
-        assertEquals( "You do not have the authority to modify the key: 'cat' in the namespace: 'pets'",
+        assertEquals( "Access denied for key 'cat' in namespace 'pets'",
             DELETE( "/dataStore/pets" ).error( HttpStatus.FORBIDDEN ).getMessage() );
 
         switchToSuperuser();
@@ -271,7 +271,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'--------'}}" ) );
 
         switchToNewUser( "someone", "pets-admin" );
-        assertEquals( "You do not have the authority to access the key: 'cat' in the namespace:'pets'",
+        assertEquals( "Access denied for key 'cat' in namespace 'pets'",
             GET( "/dataStore/pets/cat" ).error( HttpStatus.FORBIDDEN ).getMessage() );
 
         switchToSuperuser();
@@ -331,7 +331,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'--------'}}" ) );
 
         switchToNewUser( "someone", "pets-admin" );
-        assertEquals( "You do not have the authority to access the key: 'cat' in the namespace:'pets'",
+        assertEquals( "Access denied for key 'cat' in namespace 'pets'",
             GET( "/dataStore/pets/cat/metaData" ).error( HttpStatus.FORBIDDEN ).getMessage() );
 
         switchToSuperuser();
@@ -361,14 +361,14 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     public void testAddKeyJsonValue_AlreadyExists()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-        assertEquals( "The key 'cat' already exists on the namespace 'pets'.",
+        assertEquals( "Key 'cat' already exists in namespace 'pets'",
             POST( "/dataStore/pets/cat", "{}" ).error( HttpStatus.CONFLICT ).getMessage() );
     }
 
     @Test
     public void testAddKeyJsonValue_MustBeJson()
     {
-        assertEquals( "The data is not valid JSON.",
+        assertEquals( "Invalid JSON value for key 'cat'",
             POST( "/dataStore/pets/cat", "/not JSON/" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
     }
 
@@ -417,7 +417,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
 
-        assertEquals( "The data is not valid JSON.",
+        assertEquals( "Invalid JSON value for key 'cat'",
             PUT( "/dataStore/pets/cat", "+not JSON+" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
     }
 
@@ -457,7 +457,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}" ) );
 
         switchToNewUser( "someone", "pets-admin" );
-        assertEquals( "You do not have the authority to modify the key: 'cat' in the namespace: 'pets'",
+        assertEquals( "Access denied for key 'cat' in namespace 'pets'",
             PUT( "/dataStore/pets/cat", "[]" ).error( HttpStatus.FORBIDDEN ).getMessage() );
 
         switchToSuperuser();
@@ -487,7 +487,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
 
         switchToNewUser( "anonymous" );
         assertEquals(
-            "The namespace 'pets' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'pets' is protected, access denied",
             DELETE( "/dataStore/pets/cat" ).error( HttpStatus.FORBIDDEN ).getMessage() );
 
         switchToNewUser( "someone", "pets-admin" );
@@ -519,7 +519,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
 
         // a user with required authority cannot delete (ACL fails)
         switchToNewUser( "someone", "pets-admin" );
-        assertEquals( "You do not have the authority to modify the key: 'cat' in the namespace: 'pets'",
+        assertEquals( "Access denied for key 'cat' in namespace 'pets'",
             DELETE( "/dataStore/pets/cat" ).error( HttpStatus.FORBIDDEN ).getMessage() );
 
         // but the owner still can
