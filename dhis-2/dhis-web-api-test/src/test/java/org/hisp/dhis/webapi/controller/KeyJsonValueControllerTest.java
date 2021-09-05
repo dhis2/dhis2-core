@@ -361,7 +361,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     public void testAddKeyJsonValue_AlreadyExists()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-        assertEquals( "Key 'cat' already exists in namespace 'pets'.",
+        assertEquals( "Key 'cat' already exists in namespace 'pets'",
             POST( "/dataStore/pets/cat", "{}" ).error( HttpStatus.CONFLICT ).getMessage() );
     }
 
