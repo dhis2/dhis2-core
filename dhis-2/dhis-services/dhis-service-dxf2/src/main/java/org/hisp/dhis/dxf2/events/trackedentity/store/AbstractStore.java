@@ -152,11 +152,11 @@ public abstract class AbstractStore
     }
 
     /**
-     * Method returns Map with event uid as key and its associated List of
+     * Method returns Multimap with event uid as key and its associated List of
      * RelationShips as value.
      *
      * @param eventIds event uids
-     * @return Map of events and associated RelationShips
+     * @return Multimap of events and associated RelationShips
      */
     public Multimap<String, Relationship> getRelationshipsByEventIds( List<String> eventIds )
     {
