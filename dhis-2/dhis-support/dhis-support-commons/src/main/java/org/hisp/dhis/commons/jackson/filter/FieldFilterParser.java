@@ -82,6 +82,26 @@ public class FieldFilterParser
 
                     if ( (StringUtils.containsAny( token, ":", "~", "|" )) )
                     {
+                        if ( token.equals( ":" ) )
+                        {
+                            idx++;
+                        }
+
+                        if ( transformerNameBuilder.length() > 0 && transformerParameters.isEmpty() )
+                        {
+                            transformerName = transformerNameBuilder.toString();
+                        }
+
+                        if ( transformerName != null )
+                        {
+                            fieldPathTransformers.add( new FieldPathTransformer( transformerName,
+                                transformerParameters ) );
+                        }
+
+                        transformerName = null;
+                        transformerNameBuilder = new StringBuilder();
+                        transformerParameters = new ArrayList<>();
+
                         continue;
                     }
 

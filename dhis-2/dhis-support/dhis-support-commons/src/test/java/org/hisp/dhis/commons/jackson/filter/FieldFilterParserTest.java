@@ -203,10 +203,13 @@ public class FieldFilterParserTest
         List<FieldPath> fieldPaths = FieldFilterParser
             .parse( Sets.newHashSet( "name::size::rename(n)" ) );
 
-        System.err.println( fieldPaths );
+        assertFieldPathContains( fieldPaths, "name", true );
 
-        // assertFieldPathContains( fieldPaths, "name", true );
-        // assertFieldPathContains( fieldPaths, "group", true );
+        FieldPathTransformer fieldPathTransformer = fieldPaths.get( 0 ).getTransformers().get( 0 );
+        assertEquals( "size", fieldPathTransformer.getName() );
+
+        fieldPathTransformer = fieldPaths.get( 0 ).getTransformers().get( 1 );
+        assertEquals( "rename", fieldPathTransformer.getName() );
     }
 
     private void assertFieldPathContains( List<FieldPath> fieldPaths, String expected, boolean hasTransformer )
