@@ -33,6 +33,9 @@ import static org.junit.Assert.assertTrue;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class ProgramTest
 {
     @Test
