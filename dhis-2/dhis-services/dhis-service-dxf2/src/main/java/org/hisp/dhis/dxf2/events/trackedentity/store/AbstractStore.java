@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,12 +37,14 @@ import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.AbstractMapper;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.RelationshipRowCallbackHandler;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
  * @author Luciano Fiandesio
@@ -77,6 +80,27 @@ public abstract class AbstractStore
         + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
         + "where r.relationshipid in (:ids)";
 
+    private final static String GET_ALL_RELATIONSHIPS = "select r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi,\n" +
+            "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid\n" +
+            " where ri.relationshipitemid = r.to_relationshipitemid) , (select 'pi|' || pi.uid from programinstance pi\n" +
+            "join relationshipitem ri on pi.programinstanceid = ri.programinstanceid\n" +
+            "where ri.relationshipitemid = r.to_relationshipitemid), (select 'psi|' || psi.uid\n" +
+            "from programstageinstance psi join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid where ri.relationshipitemid = r.to_relationshipitemid)) to_uid,\n" +
+            "coalesce((select psi.uid from programstageinstance psi\n" +
+            "join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid where ri.relationshipitemid = r.to_relationshipitemid)) to_plain_uid,\n" +
+            "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid\n" +
+            "  where ri.relationshipitemid = r.from_relationshipitemid) , (select 'pi|' || pi.uid from programinstance pi join relationshipitem ri\n" +
+            "  on pi.programinstanceid = ri.programinstanceid where ri.relationshipitemid = r.from_relationshipitemid), (select 'psi|' || psi.uid\n" +
+            "from programstageinstance psi join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid where\n" +
+            "ri.relationshipitemid = r.from_relationshipitemid)) from_uid,\n" +
+            "coalesce( (select psi.uidfrom programstageinstance psi join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid where\n" +
+            "ri.relationshipitemid = r.from_relationshipitemid)) from_plain_uid\n" +
+            "from relationship r join relationshiptype rst\n" +
+            "on r.relationshiptypeid = rst.relationshiptypeid where r.relationshipid in (select  r.relationshipid as relationshipid\n" +
+            "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid\n" +
+            "where ri.programstageinstanceid in (select programstageinstanceid from programstageinstance where uid in (:uids)))";
+
+
     public AbstractStore( JdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
@@ -86,6 +110,13 @@ public abstract class AbstractStore
     {
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", ids );
+        return parameters;
+    }
+
+    MapSqlParameterSource createUidsParam( List<String> uids )
+    {
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue( "uids", uids );
         return parameters;
     }
 
@@ -124,8 +155,25 @@ public abstract class AbstractStore
         return ArrayListMultimap.create();
     }
 
-    public Map<String, List<Relationship>> getRelationshipsByEventIds( List<String> uids )
+    /**
+     * Method returns Map with event uid as key and its associated List of RelationShips as value.
+     * @param eventIds event uids
+     * @return Map of events and associated RelationShips
+     */
+    public Map<String, List<Relationship>> getRelationshipsByEventIds( List<String> eventIds )
     {
+        //TODO make sure empty map is return if nothing is fetched from database
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( GET_ALL_RELATIONSHIPS,
+                createUidsParam( eventIds ) );
+
+        Map<String, List<Relationship>> eventRelationshipMap = new HashMap<>();
+
+        do
+        {
+
+        }
+        while ( rowSet.next() );
+
         return null;
     }
 

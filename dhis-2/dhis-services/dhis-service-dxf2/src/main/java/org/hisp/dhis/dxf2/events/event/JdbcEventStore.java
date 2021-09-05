@@ -80,6 +80,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -308,17 +309,9 @@ public class JdbcEventStore implements EventStore
 
         setAccessiblePrograms( user, params );
 
-        // Event to relationship mapper
-        Map<String, List<Relationship>> relationshipsByEventIds = new HashMap<>();
-
-        if ( !params.isSkipRelationship() )
-        {
-            relationshipsByEventIds = eventStore
-                .getRelationshipsByEventIds( Lists.newArrayList( params.getEvents() ) );
-        }
-
         Map<String, Event> eventUidToEventMap = new HashMap<>( params.getPageSizeWithDefault() );
         List<Event> events = new ArrayList<>();
+        List<String> eventUids = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
@@ -334,6 +327,8 @@ public class JdbcEventStore implements EventStore
             {
                 continue;
             }
+
+            eventUids.add( rowSet.getString( "psi_uid" ) );
 
             String psiUid = rowSet.getString( "psi_uid" );
 
@@ -481,10 +476,19 @@ public class JdbcEventStore implements EventStore
                 event.getNotes().add( note );
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
+        }
 
-            if ( relationshipsByEventIds.containsKey( event.getEvent() ) )
+        // Event to relationship mapper
+        final Map<String, List<Relationship>> relationshipsByEventIds;
+
+        if ( !params.isSkipRelationship() )
+        {
+            relationshipsByEventIds = eventStore
+                    .getRelationshipsByEventIds( Lists.newArrayList( eventUids ) );
+
+            if ( !relationshipsByEventIds.isEmpty() )
             {
-                event.getRelationships().addAll( relationshipsByEventIds.get( event.getEvent() ) );
+                events.forEach( e -> e.getRelationships().addAll( relationshipsByEventIds.getOrDefault( e.getUid(), new ArrayList<>() ) ) );
             }
         }
 
